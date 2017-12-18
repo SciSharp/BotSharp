@@ -1,4 +1,5 @@
 ﻿using Bot.Rasa.Agents;
+using Bot.Rasa.Models;
 using CustomEntityFoundation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -25,54 +26,25 @@ namespace Bot.Rasa.Console
             return response.Data;
         }
 
-        public static bool Train(this RasaConsole console, String agentId)
+        public static bool Train(this RasaConsole console, EntityDbContext dc, String agentId)
         {
-            var client = new RestClient($"{console.options.HostUrl}");
+            var agent = dc.Agent().Find(agentId);
+            var corpus = agent.GrabCorpus(dc);
 
-            var request = new RestRequest("train", Method.POST);
-
-            request.AddQueryParameter("project", agentId);
-            
-            string json = JsonConvert.SerializeObject(new
-            {
-                rasa_nlu_data = new RasaTrainingData
+            string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
+                new JsonSerializerSettings
                 {
-                    UserSays = new List<UserSay>
-                    {
-                        new UserSay{ Text = "What's the weather like today?", Intent = "Weather" },
-                        new UserSay{ Text = "Is gonna rain tomorrow?", Intent = "Weather"},
-                        new UserSay{ Text = "Sunny", Intent = "Weather"},
-                        new UserSay{ Text = "Is it raining outside?", Intent = "Weather"},
-                        new UserSay{ Text = "It is raining", Intent = "Weather"},
-                        new UserSay{ Text = "How old are you?", Intent = "Age"},
-                        new UserSay{ Text = "When were you born?", Intent = "Age"},
-                        new UserSay{ Text = "Where do you come from", Intent = "Country"},
-                        new UserSay{ Text = "Where are you from?", Intent = "Country"},
-                        new UserSay{ Text = "are you from US?", Intent = "Country"},
-                        new UserSay{ Text = "What do you like for lunch?", Intent = "Lunch"},
-                        new UserSay{ Text = "Would you like some cookie?", Intent = "Lunch"}
-                    }
-                }
-            }, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                });
 
+            var client = new RestClient($"{console.options.HostUrl}");
+            var request = new RestRequest("train", Method.POST);
+            request.AddQueryParameter("project", agentId);
             request.AddParameter("application/json", json, ParameterType.RequestBody);
 
             var response = client.Execute(request);
 
             return true;
         }
-
-    }
-
-    public class RasaTrainingData
-    {
-        [JsonProperty("common_examples")]
-        public List<UserSay> UserSays { get; set; }
-    }
-
-    public class UserSay
-    {
-        public String Text { get; set; }
-        public String Intent { get; set; }
     }
 }

@@ -1,11 +1,6 @@
 ﻿using CustomEntityFoundation;
-using CustomEntityFoundation.Entities;
-using EntityFrameworkCore.BootKit;
-using Microsoft.Data.Sqlite;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Bot.UnitTest
 {

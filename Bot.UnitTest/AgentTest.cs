@@ -27,7 +27,12 @@ namespace Bot.UnitTest
                 Name = "Pizza Bot"
             };
 
-            dc.DbTran(() => rasa.CreateAgent(agent));
+            int row = dc.DbTran(() => rasa.CreateAgent(agent));
+            if(row > 0)
+            {
+                var generator = new GenerateTestData();
+                dc.DbTran(() => generator.LoadData(dc, agent));
+            }
         }
 
         [TestMethod]
@@ -43,7 +48,7 @@ namespace Bot.UnitTest
         public void Train()
         {
             var rasa = new RasaConsole(dc, Options);
-            rasa.Train(PIZZA_BOT_ID);
+            rasa.Train(dc, PIZZA_BOT_ID);
         }
     }
 }
