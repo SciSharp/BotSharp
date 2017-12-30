@@ -1,6 +1,7 @@
-﻿using Bot.Rasa.Intents;
-using CustomEntityFoundation.Entities;
+﻿using Bot.Rasa.Entities;
+using Bot.Rasa.Intents;
 using EntityFrameworkCore.BootKit;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -9,12 +10,17 @@ using System.Text;
 
 namespace Bot.Rasa.Agents
 {
-    public class RasaAgent : Entity, IDbRecord
+    [Table("Bot_Agent")]
+    public class Agent : DbRecord, IDbRecord
     {
         [MaxLength(64)]
         public String Name { get; set; }
 
         [ForeignKey("AgentId")]
-        public List<RasaIntent> Intents { get; set; }
+        public List<Intent> Intents { get; set; }
+
+        [ForeignKey("AgentId")]
+        [JsonProperty("entity_types")]
+        public List<EntityType> EntityTypes { get; set; }
     }
 }

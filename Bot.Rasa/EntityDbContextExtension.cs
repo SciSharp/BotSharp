@@ -1,6 +1,5 @@
 ﻿using Bot.Rasa.Agents;
 using Bot.Rasa.Intents;
-using CustomEntityFoundation;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,19 +11,19 @@ namespace Bot.Rasa
 {
     public static class EntityDbContextExtension
     {
-        public static DbSet<RasaAgent> Agent(this EntityDbContext dc)
+        public static DbSet<Agent> Agent(this Database dc)
         {
-            return dc.Table<RasaAgent>();
+            return dc.Table<Agent>();
         }
 
-        public static DbSet<RasaIntent> Intent(this EntityDbContext dc)
+        public static DbSet<Intent> Intent(this Database dc)
         {
-            return dc.Table<RasaIntent>();
+            return dc.Table<Intent>();
         }
 
-        public static DbSet<RasaIntentExpression> IntentExpression(this EntityDbContext dc)
+        public static DbSet<IntentExpression> IntentExpression(this Database dc)
         {
-            return dc.Table<RasaIntentExpression>();
+            return dc.Table<IntentExpression>();
         }
     }
 }

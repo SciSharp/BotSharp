@@ -1,5 +1,6 @@
-﻿using Bot.Rasa.Models;
-using CustomEntityFoundation;
+﻿using Bot.Rasa.Entities;
+using Bot.Rasa.Models;
+using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,12 @@ namespace Bot.Rasa.Agents
 {
     public static class AgentExtension
     {
-        public static RasaTrainingData GrabCorpus(this RasaAgent agent, EntityDbContext dc)
+        public static String CreateEntity(this Agent agent, EntityType entity, Database dc)
+        {
+            return entity.Id;
+        }
+
+        public static RasaTrainingData GrabCorpus(this Agent agent, Database dc)
         {
             var trainingData = new RasaTrainingData
             {

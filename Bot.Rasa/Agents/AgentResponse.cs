@@ -1,5 +1,4 @@
 ﻿using Bot.Rasa.Intents;
-using CustomEntityFoundation.Entities;
 using EntityFrameworkCore.BootKit;
 using System;
 using System.Collections.Generic;

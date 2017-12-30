@@ -1,5 +1,4 @@
-﻿using CustomEntityFoundation;
-using CustomEntityFoundation.Entities;
+﻿using Bot.Rasa.Expressions;
 using EntityFrameworkCore.BootKit;
 using Newtonsoft.Json;
 using System;
@@ -11,8 +10,14 @@ using System.Text;
 
 namespace Bot.Rasa.Intents
 {
-    public class RasaIntentExpression : Entity, IDbRecord
+    [Table("Bot_IntentExpression")]
+    public class IntentExpression : DbRecord, IDbRecord
     {
+        public IntentExpression()
+        {
+            Entities = new List<EntitiyOfSpeech>();
+        }
+
         [Required]
         [StringLength(36)]
         public String IntentId { get; set; }
@@ -21,9 +26,12 @@ namespace Bot.Rasa.Intents
         [MaxLength(128)]
         public String Text { get; set; }
 
-        public override bool IsExist<T>(EntityDbContext dc)
+        [ForeignKey("ExpressionId")]
+        public List<EntitiyOfSpeech> Entities { get; set; }
+
+        public bool IsExist(Database dc)
         {
-            return dc.Table<RasaIntentExpression>().Any(x => x.IntentId == IntentId && x.Text == Text);
+            return dc.Table<IntentExpression>().Any(x => x.IntentId == IntentId && x.Text == Text);
         }
     }
 }

@@ -1,0 +1,10 @@
+{
+  "Database": {
+    "Default": "Sqlite",
+    "ConnectionStrings": {
+      "InMemory": "DataSource=:memory:",
+      "Sqlite": "Data Source=|DataDirectory|\\bot-rasa.db;",
+      "SqlServer": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=bot-rasa;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"
+    }
+  }
+}

@@ -5,11 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="CustomEntityFoundation" Version="1.3.3" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="RestSharp" Version="106.1.0" />
   </ItemGroup>
