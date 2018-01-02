@@ -14,6 +14,7 @@ namespace Bot.Rasa.Entities
         [StringLength(36)]
         public String AgentId { get; set; }
 
+        [Required]
         [MaxLength(64)]
         public String Name { get; set; }
 

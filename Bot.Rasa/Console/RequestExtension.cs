@@ -39,7 +39,7 @@ namespace Bot.Rasa.Console
         /// <returns></returns>
         public static bool Train(this RasaConsole console, Database dc, String agentId)
         {
-            var agent = dc.Agent().Find(agentId);
+            var agent = dc.Table<Agent>().Find(agentId);
             var corpus = agent.GrabCorpus(dc);
 
             string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },

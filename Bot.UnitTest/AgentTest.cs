@@ -26,7 +26,7 @@ namespace Bot.UnitTest
 
             if(row > 0)
             {
-                //var result = rasa.Train(dc, agent.Id);
+                var result = rasa.Train(dc, agent.Id);
             }
 
             var loadedAgent = rasa.LoadAgent(agent.Id);
@@ -41,7 +41,7 @@ namespace Bot.UnitTest
         {
             var rasa = new RasaConsole(dc);
             var response = rasa.TextRequest(PIZZA_BOT_ID, "how old are you");
-            response = rasa.TextRequest(PIZZA_BOT_ID, "where do you come from");
+            response = rasa.TextRequest(PIZZA_BOT_ID, "where are you from");
             response = rasa.TextRequest(PIZZA_BOT_ID, "would you like some cookie");
         }
 

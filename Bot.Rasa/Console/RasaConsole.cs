@@ -66,14 +66,14 @@ namespace Bot.Rasa.Console
 
         public Agent LoadAgent(String agentId)
         {
-            return dc.Agent().Include(x => x.Intents).FirstOrDefault(x => x.Id == agentId);
+            return dc.Table<Agent>().Include(x => x.Intents).FirstOrDefault(x => x.Id == agentId);
         }
 
         public String CreateAgent(Agent agent)
         {
-            if (dc.Agent().Any(x => x.Name == agent.Name)) return String.Empty;
+            if (dc.Table<Agent>().Any(x => x.Id == agent.Id)) return String.Empty;
 
-            dc.Agent().Add(agent);
+            dc.Table<Agent>().Add(agent);
 
             return agent.Id;
         }

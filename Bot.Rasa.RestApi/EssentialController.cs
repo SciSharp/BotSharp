@@ -1,8 +1,10 @@
 ﻿using Bot.Rasa.Console;
+using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -63,5 +65,19 @@ namespace Bot.Rasa.RestApi
             }
         }
 
+        [HttpPatch("{table}/{id}")]
+        public IActionResult Patch([FromRoute] String table, [FromRoute] String id, [FromBody] JObject jObject)
+        {
+            var patch = new DbPatchModel
+            {
+                Table = table,
+                Id = id,
+                Values = jObject.ToDictionary()
+            };
+
+            dc.Patch<IDbRecord>(patch);
+
+            return Ok();
+        }
     }
 }

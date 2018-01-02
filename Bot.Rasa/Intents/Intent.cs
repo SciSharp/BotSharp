@@ -7,6 +7,9 @@ using System.Text;
 
 namespace Bot.Rasa.Intents
 {
+    /// <summary>
+    /// Intent Table
+    /// </summary>
     [Table("Bot_Intent")]
     public class Intent : DbRecord, IDbRecord
     {
