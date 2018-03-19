@@ -1,6 +1,6 @@
 ﻿using Bot.Rasa;
 using Bot.Rasa.Agents;
-using Bot.Rasa.Console;
+using Bot.Rasa.Consoles;
 using EntityFrameworkCore.BootKit;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

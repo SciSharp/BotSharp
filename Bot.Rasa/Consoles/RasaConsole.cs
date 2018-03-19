@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Bot.Rasa.Console
+namespace Bot.Rasa.Consoles
 {
     public class RasaConsole
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Bot.Rasa.Console
+namespace Bot.Rasa.Consoles
 {
     public class RasaOptions
     {

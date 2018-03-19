@@ -287,3 +287,4 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 /App_Data
+/Bot.WebStarter/App_Data/bot-rasa.db

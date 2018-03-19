@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Bot.Rasa.Console
+namespace Bot.Rasa.Consoles
 {
     public static class RequestExtension
     {

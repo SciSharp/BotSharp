@@ -1,0 +1,12 @@
+﻿{
+  "Swagger": {
+    "Version": "v1",
+    "Title": "RasaBot API",
+    "Description": "RasaBot API",
+    "TermsOfService": "MIT",
+    "Contact": {
+      "Name": "Haiping Chen",
+      "Email": "haiping008@gmail.com"
+    }
+  }
+}

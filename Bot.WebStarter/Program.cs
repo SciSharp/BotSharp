@@ -19,6 +19,16 @@ namespace Bot.WebStarter
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                   .ConfigureAppConfiguration((hostingContext, config) =>
+                   {
+                       var env = hostingContext.HostingEnvironment;
+                       var settings = Directory.GetFiles("./", "settings.*.json");
+                       settings.ToList().ForEach(setting =>
+                       {
+                           config.AddJsonFile(setting, optional: false, reloadOnChange: true);
+                       });
+                   })
+                .UseUrls("http://localhost:9900")
                 .UseStartup<Startup>()
                 .Build();
     }

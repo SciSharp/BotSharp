@@ -1,0 +1,10 @@
+{
+  "AWS": {
+    "AWSRegionEndPoint": "us-east-1",
+    "AWSSecretKey": "38+UqlSqOVbKfL3LrS6hSmgW/ZSPgZzUa/Hom7ip",
+    "AWSAccessKey": "AKIAIPXFRDXOTKZWOVXQ",
+    "AWSEncoding": "utf-8",
+    "SESVerifiedEmail": "haiping008@gmail.com",
+    "AWSBucketPrefix": "voicecoin.ico"
+  }
+}

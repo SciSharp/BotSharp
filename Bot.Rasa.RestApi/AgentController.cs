@@ -1,5 +1,5 @@
 ﻿using Bot.Rasa.Agents;
-using Bot.Rasa.Console;
+using Bot.Rasa.Consoles;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Mvc;
 using System;

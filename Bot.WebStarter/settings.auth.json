@@ -1,0 +1,11 @@
+﻿{
+  "TokenAuthentication": {
+    "SecretKey": "tK5aNR0FTEm4htInv+HA3A==",
+    "Subject": "Voicecoin",
+    "Issuer": "Voicecoin",
+    "Audience": "Voicecoin",
+    "TokenPath": "/token",
+    "CookieName": "token",
+    "LoginPath": "/login"
+  }
+}
