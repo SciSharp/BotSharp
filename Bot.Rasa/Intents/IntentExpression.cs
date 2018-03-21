@@ -15,23 +15,19 @@ namespace Bot.Rasa.Intents
     {
         public IntentExpression()
         {
-            Entities = new List<EntitiyOfSpeech>();
+            Data = new List<IntentExpressionPart>();
         }
 
         [Required]
         [StringLength(36)]
         public String IntentId { get; set; }
 
-        [Required]
-        [MaxLength(128)]
-        public String Text { get; set; }
-
         [ForeignKey("ExpressionId")]
-        public List<EntitiyOfSpeech> Entities { get; set; }
+        public List<IntentExpressionPart> Data { get; set; }
 
         public bool IsExist(Database dc)
         {
-            return dc.Table<IntentExpression>().Any(x => x.IntentId == IntentId && x.Text == Text);
+            return dc.Table<IntentExpression>().Any(x => x.IntentId == IntentId);
         }
     }
 }

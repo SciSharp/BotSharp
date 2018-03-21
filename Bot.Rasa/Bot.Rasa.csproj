@@ -12,4 +12,9 @@
     <PackageReference Include="RestSharp" Version="106.2.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Adapters\Luis\" />
+    <Folder Include="Adapters\Lex\" />
+  </ItemGroup>
+
 </Project>

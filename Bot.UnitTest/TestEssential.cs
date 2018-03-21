@@ -30,20 +30,12 @@ namespace Bot.UnitTest
 
             dc = new DefaultDataContextLoader().GetDefaultDc();
 
-            RasaConsole.Options = new RasaOptions
+            RasaAi.Options = new RasaOptions
             {
-                HostUrl = "http://192.168.56.101:5000",
+                HostUrl = Database.Configuration.GetSection("Rasa:Host").Value,
                 ContentRootPath = contentRoot,
                 Assembles = new String[] { "Bot.Rasa" }
             };
-
-            dc = new Database();
-
-            dc.BindDbContext<IDbRecord, DbContext4Sqlite>(new DatabaseBind
-            {
-                MasterConnection = new SqliteConnection($"Data Source={RasaConsole.Options.ContentRootPath}\\App_Data\\bot-rasa.db"),
-                CreateDbIfNotExist = true
-            });
         }
     }
 

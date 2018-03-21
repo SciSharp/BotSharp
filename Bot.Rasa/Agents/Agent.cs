@@ -16,11 +16,17 @@ namespace Bot.Rasa.Agents
         [MaxLength(64)]
         public String Name { get; set; }
 
+        public String Description { get; set; }
+
+        public Boolean Published { get; set; }
+
+        public String Language { get; set; }
+
         [ForeignKey("AgentId")]
         public List<Intent> Intents { get; set; }
 
         [ForeignKey("AgentId")]
         [JsonProperty("entity_types")]
-        public List<EntityType> EntityTypes { get; set; }
+        public List<Entity> Entities { get; set; }
     }
 }

@@ -1,8 +1,8 @@
 ﻿{
   "Swagger": {
     "Version": "v1",
-    "Title": "RasaBot API",
-    "Description": "RasaBot API",
+    "Title": "OpenBotKit API",
+    "Description": "OpenBotKit API",
     "TermsOfService": "MIT",
     "Contact": {
       "Name": "Haiping Chen",

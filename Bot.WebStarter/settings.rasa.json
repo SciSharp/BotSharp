@@ -1,5 +1,5 @@
 {
   "Rasa": {
-    "Host": "http://192.168.56.101:5000"
+    "Host": "http://81a1f75c.ngrok.io"
   }
 }

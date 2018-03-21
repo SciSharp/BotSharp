@@ -5,23 +5,19 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace Bot.Rasa.Expressions
+namespace Bot.Rasa.Entities
 {
-    [Table("Bot_EntityOfSpeech")]
-    public class EntitiyOfSpeech : DbRecord, IDbRecord
+    [Table("Bot_EntityEntry")]
+    public class EntityEntry : DbRecord, IDbRecord
     {
         [Required]
         [StringLength(36)]
-        public String ExpressionId { get; set; }
+        public String EntityId { get; set; }
 
-        public int Start { get; set; }
-
-        [Required]
         [MaxLength(128)]
         public String Value { get; set; }
 
-        [Required]
-        [MaxLength(64)]
-        public String Entity { get; set; }
+        [NotMapped]
+        public List<String> Synonyms { get; set; }
     }
 }

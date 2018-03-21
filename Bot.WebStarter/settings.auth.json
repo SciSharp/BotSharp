@@ -1,9 +1,9 @@
 ﻿{
   "TokenAuthentication": {
-    "SecretKey": "tK5aNR0FTEm4htInv+HA3A==",
-    "Subject": "Voicecoin",
-    "Issuer": "Voicecoin",
-    "Audience": "Voicecoin",
+    "SecretKey": "",
+    "Subject": "OpenBotKit",
+    "Issuer": "Haiping Chen",
+    "Audience": "Haiping Chen",
     "TokenPath": "/token",
     "CookieName": "token",
     "LoginPath": "/login"

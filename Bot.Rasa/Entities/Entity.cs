@@ -7,8 +7,8 @@ using System.Text;
 
 namespace Bot.Rasa.Entities
 {
-    [Table("Bot_EntityType")]
-    public class EntityType : DbRecord, IDbRecord
+    [Table("Bot_Entity")]
+    public class Entity : DbRecord, IDbRecord
     {
         [Required]
         [StringLength(36)]
@@ -21,7 +21,7 @@ namespace Bot.Rasa.Entities
         [NotMapped]
         public List<String> Values { get; set; }
 
-        [ForeignKey("EntityTypeId")]
-        public List<EntityItem> Items { get; set; }
+        [ForeignKey("EntityId")]
+        public List<EntityEntry> Entries { get; set; }
     }
 }

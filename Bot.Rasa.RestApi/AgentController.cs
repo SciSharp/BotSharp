@@ -14,17 +14,17 @@ namespace Bot.Rasa.RestApi
         [HttpGet("id")]
         public Agent Get([FromRoute] String id)
         {
-            var console = new RasaConsole(dc);
+            var console = new RasaAi(dc);
             return console.LoadAgent(id);
         }
 
         [HttpPost]
         public String Create([FromBody] Agent agent)
         {
-            var console = new RasaConsole(dc);
+            var console = new RasaAi(dc);
 
             dc.DbTran(() => {
-                console.CreateAgent(agent);
+                console.SaveAgent(agent);
             });
 
             return agent.Id;

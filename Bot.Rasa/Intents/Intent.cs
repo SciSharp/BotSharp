@@ -24,6 +24,12 @@ namespace Bot.Rasa.Intents
         public String Description { get; set; }
 
         [ForeignKey("IntentId")]
-        public List<IntentExpression> Expressions { get; set; }
+        public List<IntentInputContext> Contexts { get; set; }
+
+        [ForeignKey("IntentId")]
+        public List<IntentExpression> UserSays { get; set; }
+
+        [ForeignKey("IntentId")]
+        public List<IntentResponse> Responses { get; set; }
     }
 }

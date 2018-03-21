@@ -11,7 +11,7 @@ namespace Bot.Rasa.RestApi
     public class EntityTypeController : EssentialController
     {
         [HttpPost]
-        public string CreateType([FromBody] EntityType entityType)
+        public string CreateType([FromBody] Entity entityType)
         {
             var agent = dc.Table<Agent>().Find(entityType.AgentId);
             dc.DbTran(() => agent.CreateEntityType(dc, entityType));

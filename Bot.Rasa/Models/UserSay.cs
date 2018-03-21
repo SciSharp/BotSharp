@@ -9,11 +9,11 @@ namespace Bot.Rasa.Models
     {
         public UserSay()
         {
-            Entities = new List<EntitiyOfSpeech>();
+            Entities = new List<IntentExpressionPart>();
         }
 
         public String Text { get; set; }
         public String Intent { get; set; }
-        public List<EntitiyOfSpeech> Entities { get; set; }
+        public List<IntentExpressionPart> Entities { get; set; }
     }
 }
