@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Bot.Rasa.RestApi\Bot.Rasa.RestApi.csproj" />
+    <ProjectReference Include="..\BotSharp.RestApi\BotSharp.RestApi.csproj" />
   </ItemGroup>
 
 </Project>

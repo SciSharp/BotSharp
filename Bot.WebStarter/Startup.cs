@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Bot.Rasa.Consoles;
+using BotSharp.Core.Engines;
 using DotNetToolkit.JwtHelper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -52,7 +52,7 @@ namespace Bot.WebStarter
                 var info = Configuration.GetSection("Swagger").Get<Swashbuckle.AspNetCore.Swagger.Info>();
                 c.SwaggerDoc(info.Version, info);
 
-                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "Bot.Rasa.RestApi.xml");
+                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
                 c.IncludeXmlComments(filePath);
             });
         }
@@ -81,7 +81,7 @@ namespace Bot.WebStarter
             app.UseAuthentication();
             app.UseMvc();
 
-            app.UseEntityDbContext(Configuration, env.ContentRootPath, new String[] { "Bot.Rasa" });
+            app.UseEntityDbContext(Configuration, env.ContentRootPath, new String[] { "BotSharp.Core." });
             app.UseInitLoader();
         }
     }
