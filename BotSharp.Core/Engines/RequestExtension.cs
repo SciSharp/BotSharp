@@ -258,7 +258,8 @@ namespace BotSharp.Core.Engines
             string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
                 new JsonSerializerSettings
                 {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    NullValueHandling = NullValueHandling.Ignore
                 });
 
             var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Host").Value}");
@@ -267,10 +268,11 @@ namespace BotSharp.Core.Engines
             rest.AddParameter("application/json", json, ParameterType.RequestBody);
 
             var response = client.Execute(rest);
-            var result = JObject.Parse(response.Content);
 
             if (response.IsSuccessful)
             {
+                var result = JObject.Parse(response.Content);
+
                 string modelName = result["info"].Value<String>().Split(": ")[1];
 
                 dc.Table<ContextModelMapping>().Add(new ContextModelMapping
@@ -284,6 +286,8 @@ namespace BotSharp.Core.Engines
             }
             else
             {
+                var result = JObject.Parse(response.Content);
+
                 Console.WriteLine(result["error"]);
 
                 return String.Empty;

@@ -9,7 +9,6 @@ namespace BotSharp.Core.Models
     {
         public RasaIntentExpression()
         {
-            Entities = new List<RasaIntentExpressionPart>();
         }
 
         public String Text { get; set; }

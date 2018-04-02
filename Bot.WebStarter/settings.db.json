@@ -3,8 +3,8 @@
     "Default": "SqlServer",
     "ConnectionStrings": {
       "InMemory": "DataSource=:memory:",
-      "Sqlite": "Data Source=|DataDirectory|RasaBot.db;",
-      "SqlServer": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=RasaBot;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"
+      "Sqlite": "Data Source=|DataDirectory|BotSharp.db;",
+      "SqlServer": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=BotSharp;Integrated Security=True;Connect Timeout=15;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"
     }
   }
 }

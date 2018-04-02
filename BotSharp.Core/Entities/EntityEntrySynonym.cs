@@ -7,17 +7,14 @@ using System.Text;
 
 namespace BotSharp.Core.Entities
 {
-    [Table("Bot_EntityEntry")]
-    public class EntityEntry : DbRecord, IDbRecord
+    [Table("Bot_EntityEntrySynonym")]
+    public class EntityEntrySynonym : DbRecord, IDbRecord
     {
         [Required]
         [StringLength(36)]
-        public String EntityId { get; set; }
+        public String EntityEntryId { get; set; }
 
         [MaxLength(64)]
-        public String Value { get; set; }
-
-        [ForeignKey("EntityEntryId")]
-        public List<EntityEntrySynonym> Synonyms { get; set; }
+        public String Synonym { get; set; }
     }
 }

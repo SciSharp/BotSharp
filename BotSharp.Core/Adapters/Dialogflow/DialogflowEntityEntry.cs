@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BotSharp.Core.Entities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,8 +12,9 @@ namespace BotSharp.Core.Adapters.Dialogflow
         [JsonProperty("value")]
         public string Value { get; set; }
 
-        [JsonProperty("synonyms")]
-        public List<String> Synonyms { get; set; }
+        public List<String> RawSynonyms { get; set; }
+
+        public List<EntityEntrySynonym> Synonyms { get; set; }
 
         public DialogflowEntityEntry()
         {
@@ -21,7 +23,7 @@ namespace BotSharp.Core.Adapters.Dialogflow
         public DialogflowEntityEntry(string value, List<string> synonyms)
         {
             this.Value = value;
-            this.Synonyms = synonyms;
+            this.RawSynonyms = synonyms;
         }
 
         public DialogflowEntityEntry(string value, string[] synonyms) : this(value, new List<string>(synonyms))

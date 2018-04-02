@@ -18,10 +18,11 @@ namespace BotSharp.Core.Entities
         [MaxLength(64)]
         public String Name { get; set; }
 
-        [NotMapped]
-        public List<String> Values { get; set; }
-
         [ForeignKey("EntityId")]
         public List<EntityEntry> Entries { get; set; }
+
+        public bool IsOverridable { get; set; }
+
+        public bool IsEnum { get; set; }
     }
 }

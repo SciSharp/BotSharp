@@ -46,7 +46,12 @@ namespace BotSharp.Core.Engines
                         if (File.Exists(entriesFileName))
                         {
                             string entriesJson = File.ReadAllText($"{entriesFileName}");
+                            entriesJson = entriesJson.Replace("\"synonyms\":", "\"rawSynonyms\":");
                             entity.Entries = JsonConvert.DeserializeObject<List<DialogflowEntityEntry>>(entriesJson);
+                            entity.Entries.ForEach(x => x.Synonyms = x.RawSynonyms.Select(s => new EntityEntrySynonym
+                            {
+                                Synonym = s
+                            }).ToList());
                         }
 
                         agent.Entities.Add(entity.ToObject<Entity>());

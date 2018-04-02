@@ -1,4 +1,6 @@
-﻿using BotSharp.Core.Entities;
+﻿using BotSharp.Core.Adapters.Rasa;
+using BotSharp.Core.Entities;
+using BotSharp.Core.Expressions;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
@@ -32,8 +34,11 @@ namespace BotSharp.Core.Agents
         {
             var trainingData = new RasaTrainingData
             {
+                Entities = new List<RasaTraningEntity>(),
                 UserSays = new List<RasaIntentExpression>()
             };
+
+            var expressParts = new List<IntentExpressionPart>();
 
             var intents = dc.Table<Intent>()
                 .Include(x => x.Contexts)
@@ -81,12 +86,34 @@ namespace BotSharp.Core.Agents
                             End = start + x.Text.Length
                         };
 
+                        if (say.Entities == null) say.Entities = new List<RasaIntentExpressionPart>();
                         say.Entities.Add(part);
+
+                        // assemble entity synonmus
+                        if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
+                        {
+                            var allSynonyms = (from e in dc.Table<Entity>()
+                                              join ee in dc.Table<EntityEntry>() on e.Id equals ee.EntityId
+                                              join ees in dc.Table<EntityEntrySynonym>() on ee.Id equals ees.EntityEntryId
+                                              where e.Name == x.Alias && ee.Value == x.Text & ees.Synonym != x.Text
+                                               select ees.Synonym ).ToList();
+
+                            var te = new RasaTraningEntity
+                            {
+                                EntityType = x.Alias,
+                                EntityValue = x.Text,
+                                Synonyms = allSynonyms
+                            };
+
+                            trainingData.Entities.Add(te);
+                        }
                     });
 
                     trainingData.UserSays.Add(say);
                 });
             });
+
+            
 
             return trainingData;
         }
