@@ -1,5 +1,5 @@
 {
   "Rasa": {
-    "Host": "http://rasa.local:5000"
+    "Host": "http://gtx.local:5000"
   }
 }

@@ -31,7 +31,7 @@ namespace BotSharp.Core.Models
             }
         }
 
-        public Dictionary<string, object> Parameters { get; set; }
+        public Dictionary<string, string> Parameters { get; set; }
 
         public AIContext[] Contexts { get; set; }
 
@@ -125,10 +125,10 @@ namespace BotSharp.Core.Models
 
             if (Parameters.ContainsKey(name))
             {
-                var parameter = Parameters[name] as JObject;
+                var parameter = Parameters[name].ToString();
                 if (parameter != null)
                 {
-                    return parameter;
+                    return JObject.FromObject(parameter);
                 }
             }
 

@@ -14,7 +14,7 @@ namespace BotSharp.UnitTest
     public class AgentTest : TestEssential
     {
         [TestMethod]
-        public void CreateAgent()
+        public void CreateAgentTes()
         {
             var agent = new Agent
             {
@@ -28,7 +28,7 @@ namespace BotSharp.UnitTest
         }
 
         [TestMethod]
-        public void UpdateAgent()
+        public void UpdateAgentTest()
         {
             var agent = new Agent
             {
@@ -42,7 +42,7 @@ namespace BotSharp.UnitTest
         }
 
         [TestMethod]
-        public void RestoreAgent()
+        public void RestoreAgentTest()
         {
             var rasa = new RasaAi(dc);
             var importer = new AgentImporterInDialogflow();
@@ -56,9 +56,14 @@ namespace BotSharp.UnitTest
         }
 
         [TestMethod]
-        public void Train()
+        public void TrainAgentTest()
         {
-            var rasa = new RasaAi(dc);
+            var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
+            config.SessionId = Guid.NewGuid().ToString();
+
+            var rasa = new RasaAi(dc, config);
+            rasa.agent = rasa.LoadAgent();
+            rasa.Train(dc);
         }
     }
 }

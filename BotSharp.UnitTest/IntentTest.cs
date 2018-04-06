@@ -18,11 +18,8 @@ namespace BotSharp.UnitTest
 
             var rasa = new RasaAi(dc, config);
 
-            var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Create a work order for PetSmart" } });
-            Assert.IsTrue(response.Result.Metadata.IntentName == "Create Work Order");
-
-            response = rasa.TextRequest(new AIRequest { Query = new String[] { "1010" } });
-            Assert.IsTrue(response.Result.Metadata.IntentName == "Telling Store Number");
+            var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Hello" } });
+            Assert.IsTrue(response.Result.Metadata.IntentName == "greeting");
         }
     }
 }
