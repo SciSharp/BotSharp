@@ -23,7 +23,7 @@ namespace BotSharp.UnitTest
             contentRoot = $"{Directory.GetCurrentDirectory()}\\..\\..\\..\\..\\Bot.WebStarter";
 
             ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-            var settings = Directory.GetFiles(contentRoot, "settings.*.json");
+            var settings = Directory.GetFiles(contentRoot + "/Settings/", "*.json");
             settings.ToList().ForEach(setting =>
             {
                 configurationBuilder.AddJsonFile(setting, optional: false, reloadOnChange: true);

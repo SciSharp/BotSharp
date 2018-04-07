@@ -1,6 +1,6 @@
 ﻿{
   "TokenAuthentication": {
-    "SecretKey": "",
+    "SecretKey": "QEMYOjgkNEq/krV1Ouzz8w==",
     "Subject": "OpenBotKit",
     "Issuer": "Haiping Chen",
     "Audience": "Haiping Chen",

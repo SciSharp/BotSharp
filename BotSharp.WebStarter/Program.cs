@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Bot.WebStarter
+namespace BotSharp.WebStarter
 {
     public class Program
     {
@@ -22,7 +22,7 @@ namespace Bot.WebStarter
                    .ConfigureAppConfiguration((hostingContext, config) =>
                    {
                        var env = hostingContext.HostingEnvironment;
-                       var settings = Directory.GetFiles("./", "settings.*.json");
+                       var settings = Directory.GetFiles("./Settings/", "*.json");
                        settings.ToList().ForEach(setting =>
                        {
                            config.AddJsonFile(setting, optional: false, reloadOnChange: true);

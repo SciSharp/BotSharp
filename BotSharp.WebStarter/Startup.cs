@@ -15,7 +15,7 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 
-namespace Bot.WebStarter
+namespace BotSharp.WebStarter
 {
     public class Startup
     {
@@ -81,7 +81,7 @@ namespace Bot.WebStarter
             app.UseAuthentication();
             app.UseMvc();
 
-            app.UseEntityDbContext(Configuration, env.ContentRootPath, new String[] { "BotSharp.Core." });
+            app.UseEntityDbContext(Configuration, env.ContentRootPath, new String[] { "BotSharp.Core" });
             app.UseInitLoader();
         }
     }

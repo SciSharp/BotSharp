@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bot.WebStarter", "Bot.WebStarter\Bot.WebStarter.csproj", "{ACBEB546-00AB-4EB7-8DBF-4BFF722FC9EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.UnitTest", "BotSharp.UnitTest\BotSharp.UnitTest.csproj", "{1C883AA3-9182-469A-A17E-697DCAAB0121}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.UnitTest", "BotSharp.UnitTest\BotSharp.UnitTest.csproj", "{1C883AA3-9182-469A-A17E-697DCAAB0121}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Core", "BotSharp.Core\BotSharp.Core.csproj", "{95780673-2A1A-4953-962F-C46CBFDD07FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Core", "BotSharp.Core\BotSharp.Core.csproj", "{95780673-2A1A-4953-962F-C46CBFDD07FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.RestApi", "BotSharp.RestApi\BotSharp.RestApi.csproj", "{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.RestApi", "BotSharp.RestApi\BotSharp.RestApi.csproj", "{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.WebStarter", "BotSharp.WebStarter\BotSharp.WebStarter.csproj", "{C1B91383-D548-4906-BEB8-FED7E320731B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{ACBEB546-00AB-4EB7-8DBF-4BFF722FC9EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ACBEB546-00AB-4EB7-8DBF-4BFF722FC9EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ACBEB546-00AB-4EB7-8DBF-4BFF722FC9EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ACBEB546-00AB-4EB7-8DBF-4BFF722FC9EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1C883AA3-9182-469A-A17E-697DCAAB0121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1C883AA3-9182-469A-A17E-697DCAAB0121}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C883AA3-9182-469A-A17E-697DCAAB0121}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -33,6 +29,10 @@ Global
 		{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1B91383-D548-4906-BEB8-FED7E320731B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1B91383-D548-4906-BEB8-FED7E320731B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1B91383-D548-4906-BEB8-FED7E320731B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1B91383-D548-4906-BEB8-FED7E320731B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
