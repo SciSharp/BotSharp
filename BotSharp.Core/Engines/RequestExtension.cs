@@ -78,43 +78,10 @@ namespace BotSharp.Core.Engines
             aiResponse.Status = new AIResponseStatus { };
             aiResponse.SessionId = rasa.AiConfig.SessionId;
             aiResponse.Timestamp = DateTime.UtcNow;
-            intentResponse.Parameters.ForEach(p => {
-                string query = request.Query.First();
-                var entity = response.Entities.FirstOrDefault(x => x.Entity == p.Name);
-                if(entity != null)
-                {
-                    p.Value = query.Substring(entity.Start, entity.End - entity.Start);
-                }
-                
-                // fixed entity per request
-                if(request.Entities != null)
-                {
-                    var fixedEntity = request.Entities.FirstOrDefault(x => x.Name == p.Name);
-                    if (fixedEntity != null)
-                    {
-                        if (query.ToLower().Contains(fixedEntity.Entries.First().Value.ToLower()))
-                        {
-                            p.Value = fixedEntity.Entries.First().Value;
-                        }
-                    }
-                }
-                
-            });
-            intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
-            intentResponse.Messages.ToList()
-                .ForEach(msg =>
-                {
-                    if (msg.Type == AIResponseMessageType.Custom)
-                    {
-                        
-                    }
-                    else
-                    {
-                        msg.Speech = msg.Speech.StartsWith("[") ?
-                            ArrayHelper.GetRandom(msg.Speech.Substring(2, msg.Speech.Length - 4).Split("\",\"").ToList()) :
-                            msg.Speech;
-                    }
-                });
+
+            HandleParameter(rasa.agent, intentResponse, response, request);
+
+            HandleMessage(intentResponse);
 
             aiResponse.Result = new AIResponseResult
             {
@@ -144,6 +111,66 @@ namespace BotSharp.Core.Engines
                 }
             };
 
+            HandleContext(dc, rasa, intentResponse, aiResponse);
+
+            return aiResponse;
+        }
+
+        private static void HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
+        {
+            intentResponse.Parameters.ForEach(p => {
+                string query = request.Query.First();
+                var entity = response.Entities.FirstOrDefault(x => x.Entity == p.Name);
+                if (entity != null)
+                {
+                    p.Value = query.Substring(entity.Start, entity.End - entity.Start);
+                }
+
+                // fixed entity per request
+                if (request.Entities != null)
+                {
+                    var fixedEntity = request.Entities.FirstOrDefault(x => x.Name == p.Name);
+                    if (fixedEntity != null)
+                    {
+                        if (query.ToLower().Contains(fixedEntity.Entries.First().Value.ToLower()))
+                        {
+                            p.Value = fixedEntity.Entries.First().Value;
+                        }
+                    }
+                }
+
+                // convert to Standard entity value
+                if (!String.IsNullOrEmpty(p.Value) && !p.DataType.StartsWith("@sys."))
+                {
+                    p.Value = agent.Entities.FirstOrDefault(x => x.Name == p.Name).Entries.FirstOrDefault((entry) => {
+                        return entry.Value.ToLower() == p.Value.ToLower() ||
+                            entry.Synonyms.Select(synonym => synonym.Synonym.ToLower()).Contains(p.Value.ToLower());
+                    })?.Value;
+                }
+            });
+        }
+
+        private static void HandleMessage(IntentResponse intentResponse)
+        {
+            intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
+            intentResponse.Messages.ToList()
+                .ForEach(msg =>
+                {
+                    if (msg.Type == AIResponseMessageType.Custom)
+                    {
+
+                    }
+                    else
+                    {
+                        msg.Speech = msg.Speech.StartsWith("[") ?
+                            ArrayHelper.GetRandom(msg.Speech.Substring(2, msg.Speech.Length - 4).Split("\",\"").ToList()) :
+                            msg.Speech;
+                    }
+                });
+        }
+
+        private static void HandleContext(Database dc, RasaAi rasa, IntentResponse intentResponse, AIResponse aiResponse)
+        {
             // Merge context lifespan
             // override if exists, otherwise add, delete if lifespan is zero
             dc.DbTran(() =>
@@ -186,8 +213,6 @@ namespace BotSharp.Core.Engines
                 .Where(x => x.SessionId == rasa.AiConfig.SessionId)
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToArray();
-
-            return aiResponse;
         }
 
         private static IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
