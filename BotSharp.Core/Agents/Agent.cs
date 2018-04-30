@@ -16,20 +16,24 @@ namespace BotSharp.Core.Agents
         [MaxLength(64)]
         public String Name { get; set; }
 
+        [MaxLength(256)]
         public String Description { get; set; }
 
         public Boolean Published { get; set; }
 
+        [MaxLength(3)]
         public String Language { get; set; }
 
         /// <summary>
         /// Only access text/ audio rquest
         /// </summary>
+        [StringLength(32)]
         public String ClientAccessToken { get; set; }
 
         /// <summary>
         /// Developer can access more APIs
         /// </summary>
+        [StringLength(32)]
         public String DeveloperAccessToken { get; set; }
 
         [ForeignKey("AgentId")]

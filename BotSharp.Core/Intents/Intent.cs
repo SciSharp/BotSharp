@@ -17,7 +17,7 @@ namespace BotSharp.Core.Intents
         [StringLength(36)]
         public String AgentId { get; set; }
 
-        [MaxLength(32)]
+        [MaxLength(64)]
         public String Name { get; set; }
 
         [MaxLength(256)]

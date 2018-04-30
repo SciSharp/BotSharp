@@ -7,6 +7,232 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\agent.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Affiliate.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Affiliate_entries_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\CallerPosition.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\CallerPosition_entries_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Client.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Client_entries_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCategory.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCategory_entries_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCode.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCode_entries_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceType.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceType_entries_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\UserName.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\UserName_entries_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up - yes.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up - yes_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Telling Available Time.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Telling Available Time_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - no.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - no_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - yes.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - yes_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Create Work Order.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Create Work Order_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Default Fallback Intent.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Default Welcome Intent.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Start Schedule.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Start Schedule_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Name.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Name_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Position.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Position_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - no.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - no_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - yes.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - yes_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - no.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - no_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - yes.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - yes_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number_usersays_en.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\package.json" />
+    <None Remove="App_Data\DbInitializer\Agents\Rasa\2b6a288e-d891-40c6-96ce-6a0cf324545c.json" />
+    <None Remove="Settings\settings.app.json" />
+    <None Remove="Settings\settings.auth.json" />
+    <None Remove="Settings\settings.aws.json" />
+    <None Remove="Settings\settings.bot.json" />
+    <None Remove="Settings\settings.db.json" />
+    <None Remove="Settings\settings.swagger.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\agent.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Affiliate.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Affiliate_entries_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\CallerPosition.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\CallerPosition_entries_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Client.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\Client_entries_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCategory.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCategory_entries_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCode.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceCode_entries_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceType.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\ServiceType_entries_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\UserName.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\entities\UserName_entries_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up - yes.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up - yes_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Picked up_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Telling Available Time.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Affiliate Telling Available Time_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - no.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - no_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - yes.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Confirm Service Type - yes_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Create Work Order.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Create Work Order_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Default Fallback Intent.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Default Welcome Intent.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Start Schedule.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Start Schedule_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Name.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Name_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Position.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Caller Position_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - no.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - no_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - yes.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category - yes_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Service Category_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - no.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - no_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - yes.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number - yes_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\intents\Telling Store Number_usersays_en.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\package.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="App_Data\DbInitializer\Agents\Rasa\2b6a288e-d891-40c6-96ce-6a0cf324545c.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Settings\settings.app.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Settings\settings.auth.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Settings\settings.aws.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Settings\settings.bot.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Settings\settings.db.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Settings\settings.swagger.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
@@ -20,6 +246,10 @@
 
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="App_Data\DbInitializer\Agents\Dialogflow\Voicebot\" />
   </ItemGroup>
 
 </Project>

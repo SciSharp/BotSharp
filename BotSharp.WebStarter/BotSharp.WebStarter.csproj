@@ -14,17 +14,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="2.3.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="2.3.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="2.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="2.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="2.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="2.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BotSharp.RestApi\BotSharp.RestApi.csproj" />
   </ItemGroup>
 
 </Project>

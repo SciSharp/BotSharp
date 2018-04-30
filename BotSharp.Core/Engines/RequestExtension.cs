@@ -56,6 +56,13 @@ namespace BotSharp.Core.Engines
 
             var result = CallRasa(rasa.agent.Id, request.Query.First(), rasa.agent.Id);
 
+            if (result.Data.IntentRanking == null)
+            {
+                result.Data.IntentRanking = new List<RasaResponseIntent>
+                {
+                    result.Data.Intent
+                };
+            }
             result.Data.IntentRanking = result.Data.IntentRanking.Where(x => intents.Select(i => i.Name).Contains(x.Name)).ToList();
             result.Data.Intent = result.Data.IntentRanking.First();
             response = result.Data;

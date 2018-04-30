@@ -14,6 +14,9 @@ using System.Text;
 
 namespace BotSharp.Core.Engines
 {
+    /// <summary>
+    /// Rasa nlu 0.11.x
+    /// </summary>
     public class RasaAi
     {
         public Database dc { get; set; }

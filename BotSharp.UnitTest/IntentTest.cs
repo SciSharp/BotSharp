@@ -17,9 +17,6 @@ namespace BotSharp.UnitTest
             config.SessionId = Guid.NewGuid().ToString();
 
             var rasa = new RasaAi(dc, config);
-
-            var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Hello" } });
-            Assert.IsTrue(response.Result.Metadata.IntentName == "greeting");
         }
     }
 }

@@ -1,0 +1,12 @@
+﻿{
+  "Swagger": {
+    "Version": "v1",
+    "Title": "Open Chatbot Kit",
+    "Description": "OpenBotKit API",
+    "TermsOfService": "MIT",
+    "Contact": {
+      "Name": "Haiping Chen",
+      "Email": "haiping008@gmail.com"
+    }
+  }
+}

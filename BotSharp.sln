@@ -7,9 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.UnitTest", "BotSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Core", "BotSharp.Core\BotSharp.Core.csproj", "{95780673-2A1A-4953-962F-C46CBFDD07FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.RestApi", "BotSharp.RestApi\BotSharp.RestApi.csproj", "{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.WebStarter", "BotSharp.WebStarter\BotSharp.WebStarter.csproj", "{C1B91383-D548-4906-BEB8-FED7E320731B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetToolkit", "..\DotNetToolkit\DotNetToolkit\DotNetToolkit.csproj", "{AF20AEA3-8922-4CDC-B0E3-4DD085B9954C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +23,10 @@ Global
 		{95780673-2A1A-4953-962F-C46CBFDD07FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95780673-2A1A-4953-962F-C46CBFDD07FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95780673-2A1A-4953-962F-C46CBFDD07FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1DDFCE9-10A1-45AF-8F1C-DE0A9145BA48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C1B91383-D548-4906-BEB8-FED7E320731B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1B91383-D548-4906-BEB8-FED7E320731B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1B91383-D548-4906-BEB8-FED7E320731B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1B91383-D548-4906-BEB8-FED7E320731B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF20AEA3-8922-4CDC-B0E3-4DD085B9954C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF20AEA3-8922-4CDC-B0E3-4DD085B9954C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF20AEA3-8922-4CDC-B0E3-4DD085B9954C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF20AEA3-8922-4CDC-B0E3-4DD085B9954C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

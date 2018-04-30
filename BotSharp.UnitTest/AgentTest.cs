@@ -14,7 +14,7 @@ namespace BotSharp.UnitTest
     public class AgentTest : TestEssential
     {
         [TestMethod]
-        public void CreateAgentTes()
+        public void CreateAgentTest()
         {
             var agent = new Agent
             {
@@ -63,7 +63,9 @@ namespace BotSharp.UnitTest
 
             var rasa = new RasaAi(dc, config);
             rasa.agent = rasa.LoadAgent();
-            rasa.Train(dc);
+            string msg = rasa.Train(dc);
+
+            Assert.IsTrue(!String.IsNullOrEmpty(msg));
         }
     }
 }

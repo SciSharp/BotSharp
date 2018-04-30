@@ -1,0 +1,11 @@
+﻿{
+  "TokenAuthentication": {
+    "SecretKey": "QEMYOjgkNEq/krV1Ouzz8w==",
+    "Subject": "OpenBotKit",
+    "Issuer": "Haiping Chen",
+    "Audience": "Haiping Chen",
+    "TokenPath": "/token",
+    "CookieName": "token",
+    "LoginPath": "/login"
+  }
+}

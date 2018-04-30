@@ -290,3 +290,4 @@ __pycache__/
 /Bot.WebStarter/App_Data/bot-rasa.db
 /Bot.WebStarter/App_Data/DbInitializer/Agents/Dialogflow/VirtualAssistant
 /BotSharp.WebStarter/App_Data/DbInitializer/Agents/Dialogflow/VirtualAssistant
+/BotSharp.UnitTest/App_Data/DbInitializer/Agents
