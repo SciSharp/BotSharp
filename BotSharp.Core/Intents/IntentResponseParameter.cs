@@ -13,10 +13,18 @@ namespace BotSharp.Core.Intents
         [Required]
         [StringLength(36)]
         public String IntentResponseId { get; set; }
+
         public bool Required { get; set; }
+
+        [MaxLength(32)]
         public string DataType { get; set; }
+
+        [MaxLength(64)]
         public string Name { get; set; }
+
+        [MaxLength(128)]
         public string Value { get; set; }
+
         public bool IsList { get; set; }
     }
 }
