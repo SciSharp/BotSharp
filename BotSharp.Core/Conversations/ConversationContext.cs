@@ -5,14 +5,14 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace BotSharp.Core.Sessions
+namespace BotSharp.Core.Conversations
 {
-    [Table("Bot_SessionContext")]
-    public class SessionContext : DbRecord, IDbRecord
+    [Table("Bot_ConversationContext")]
+    public class ConversationContext : DbRecord, IDbRecord
     {
         [Required]
         [StringLength(36)]
-        public String SessionId { get; set; }
+        public String ConversationId { get; set; }
 
         [Required]
         [MaxLength(64)]

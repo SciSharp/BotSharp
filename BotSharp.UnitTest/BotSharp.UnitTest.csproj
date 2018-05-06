@@ -57,11 +57,8 @@
     <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\package.json" />
     <None Remove="App_Data\DbInitializer\Agents\Rasa\2b6a288e-d891-40c6-96ce-6a0cf324545c.json" />
     <None Remove="Settings\settings.app.json" />
-    <None Remove="Settings\settings.auth.json" />
-    <None Remove="Settings\settings.aws.json" />
     <None Remove="Settings\settings.bot.json" />
     <None Remove="Settings\settings.db.json" />
-    <None Remove="Settings\settings.swagger.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -215,19 +212,10 @@
     <Content Include="Settings\settings.app.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="Settings\settings.auth.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="Settings\settings.aws.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
     <Content Include="Settings\settings.bot.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Settings\settings.db.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="Settings\settings.swagger.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>

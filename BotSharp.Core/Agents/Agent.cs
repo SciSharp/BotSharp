@@ -36,6 +36,13 @@ namespace BotSharp.Core.Agents
         [StringLength(32)]
         public String DeveloperAccessToken { get; set; }
 
+        /// <summary>
+        /// Who created this bot
+        /// </summary>
+        [Required]
+        [StringLength(36)]
+        public String UserId { get; set; }
+
         [ForeignKey("AgentId")]
         public List<Intent> Intents { get; set; }
 

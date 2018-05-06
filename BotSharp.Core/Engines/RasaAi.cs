@@ -45,10 +45,8 @@ namespace BotSharp.Core.Engines
         /// <param name="importor"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>
-        public Agent RestoreAgent(IAgentImporter importer, String agentId)
+        public Agent RestoreAgent(IAgentImporter importer, String agentId, string dataDir)
         {
-            string dataDir = $"{Database.ContentRootPath}\\App_Data\\DbInitializer\\Agents\\";
-
             // Load agent summary
             agent = importer.LoadAgent(agentId, dataDir);
 

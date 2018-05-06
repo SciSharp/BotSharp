@@ -47,7 +47,8 @@ namespace BotSharp.UnitTest
             var rasa = new RasaAi(dc);
             var importer = new AgentImporterInDialogflow();
 
-            var agent = rasa.RestoreAgent(importer, BOT_NAME);
+            string dataDir = $"{Database.ContentRootPath}\\App_Data\\DbInitializer\\Agents\\";
+            var agent = rasa.RestoreAgent(importer, BOT_NAME, dataDir);
             agent.Id = BOT_ID;
             agent.ClientAccessToken = BOT_CLIENT_TOKEN;
             agent.DeveloperAccessToken = BOT_DEVELOPER_TOKEN;

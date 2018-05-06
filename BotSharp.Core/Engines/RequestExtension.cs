@@ -1,7 +1,7 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
-using BotSharp.Core.Sessions;
+using BotSharp.Core.Conversations;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +31,8 @@ namespace BotSharp.Core.Engines
             Database dc = rasa.dc;
 
             // Merge input contexts
-            var contexts = dc.Table<SessionContext>()
-                .Where(x => x.SessionId == rasa.AiConfig.SessionId && x.Lifespan > 0)
+            var contexts = dc.Table<ConversationContext>()
+                .Where(x => x.ConversationId == rasa.AiConfig.SessionId && x.Lifespan > 0)
                 .ToList()
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToList();
@@ -148,7 +148,7 @@ namespace BotSharp.Core.Engines
             // override if exists, otherwise add, delete if lifespan is zero
             dc.DbTran(() =>
             {
-                var sessionContexts = dc.Table<SessionContext>().Where(x => x.SessionId == rasa.AiConfig.SessionId).ToList();
+                var sessionContexts = dc.Table<ConversationContext>().Where(x => x.ConversationId == rasa.AiConfig.SessionId).ToList();
 
                 // minus 1 round
                 sessionContexts.Where(x => !intentResponse.Contexts.Select(ctx => ctx.Name).Contains(x.Context))
@@ -163,7 +163,7 @@ namespace BotSharp.Core.Engines
                     {
                         if (ctx.Lifespan == 0)
                         {
-                            dc.Table<SessionContext>().Remove(session1);
+                            dc.Table<ConversationContext>().Remove(session1);
                         }
                         else
                         {
@@ -172,9 +172,9 @@ namespace BotSharp.Core.Engines
                     }
                     else
                     {
-                        dc.Table<SessionContext>().Add(new SessionContext
+                        dc.Table<ConversationContext>().Add(new ConversationContext
                         {
-                            SessionId = rasa.AiConfig.SessionId,
+                            ConversationId = rasa.AiConfig.SessionId,
                             Context = ctx.Name,
                             Lifespan = ctx.Lifespan
                         });
@@ -182,8 +182,8 @@ namespace BotSharp.Core.Engines
                 });
             });
 
-            aiResponse.Result.Contexts = dc.Table<SessionContext>()
-                .Where(x => x.SessionId == rasa.AiConfig.SessionId)
+            aiResponse.Result.Contexts = dc.Table<ConversationContext>()
+                .Where(x => x.ConversationId == rasa.AiConfig.SessionId)
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToArray();
 
@@ -192,7 +192,7 @@ namespace BotSharp.Core.Engines
 
         private static IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
         {
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Host").Value}");
+            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
 
             var rest = new RestRequest("parse", Method.POST);
             string json = JsonConvert.SerializeObject(new { Project = projectId, Q = text, Model = model },
@@ -212,8 +212,8 @@ namespace BotSharp.Core.Engines
             Database dc = rasa.dc;
 
             // Merge input contexts
-            var contexts = dc.Table<SessionContext>()
-                .Where(x => x.SessionId == rasa.AiConfig.SessionId && x.Lifespan > 0)
+            var contexts = dc.Table<ConversationContext>()
+                .Where(x => x.ConversationId == rasa.AiConfig.SessionId && x.Lifespan > 0)
                 .ToList()
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToList();
@@ -350,7 +350,7 @@ namespace BotSharp.Core.Engines
             // override if exists, otherwise add, delete if lifespan is zero
             dc.DbTran(() =>
             {
-                var sessionContexts = dc.Table<SessionContext>().Where(x => x.SessionId == rasa.AiConfig.SessionId).ToList();
+                var sessionContexts = dc.Table<ConversationContext>().Where(x => x.ConversationId == rasa.AiConfig.SessionId).ToList();
 
                 // minus 1 round
                 sessionContexts.Where(x => !intentResponse.Contexts.Select(ctx => ctx.Name).Contains(x.Context))
@@ -365,7 +365,7 @@ namespace BotSharp.Core.Engines
                     {
                         if (ctx.Lifespan == 0)
                         {
-                            dc.Table<SessionContext>().Remove(session1);
+                            dc.Table<ConversationContext>().Remove(session1);
                         }
                         else
                         {
@@ -374,9 +374,9 @@ namespace BotSharp.Core.Engines
                     }
                     else
                     {
-                        dc.Table<SessionContext>().Add(new SessionContext
+                        dc.Table<ConversationContext>().Add(new ConversationContext
                         {
-                            SessionId = rasa.AiConfig.SessionId,
+                            ConversationId = rasa.AiConfig.SessionId,
                             Context = ctx.Name,
                             Lifespan = ctx.Lifespan
                         });
@@ -384,8 +384,8 @@ namespace BotSharp.Core.Engines
                 });
             });
 
-            aiResponse.Result.Contexts = dc.Table<SessionContext>()
-                .Where(x => x.SessionId == rasa.AiConfig.SessionId)
+            aiResponse.Result.Contexts = dc.Table<ConversationContext>()
+                .Where(x => x.ConversationId == rasa.AiConfig.SessionId)
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToArray();
 
@@ -425,7 +425,7 @@ namespace BotSharp.Core.Engines
                     NullValueHandling = NullValueHandling.Ignore
                 });
 
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Host").Value}");
+            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
             var rest = new RestRequest("train", Method.POST);
             rest.AddQueryParameter("project", console.agent.Id);
             rest.AddParameter("application/json", json, ParameterType.RequestBody);
