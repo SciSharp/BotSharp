@@ -20,7 +20,8 @@ namespace BotSharp.UnitTest
             {
                 Id = BOT_ID,
                 Name = BOT_NAME,
-                Language = "en"
+                Language = "en",
+                UserId = Guid.NewGuid().ToString()
             };
             var rasa = new RasaAi(dc);
             
@@ -52,6 +53,7 @@ namespace BotSharp.UnitTest
             agent.Id = BOT_ID;
             agent.ClientAccessToken = BOT_CLIENT_TOKEN;
             agent.DeveloperAccessToken = BOT_DEVELOPER_TOKEN;
+            agent.UserId = Guid.NewGuid().ToString();
 
             int row = dc.DbTran(() => rasa.SaveAgent(agent));
         }

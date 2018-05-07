@@ -27,5 +27,8 @@ namespace BotSharp.Core.Intents
 
         [ForeignKey("IntentResponseId")]
         public List<IntentResponseMessage> Messages { get; set; }
+
+        [NotMapped]
+        public string IntentName { get; set; }
     }
 }

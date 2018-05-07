@@ -13,6 +13,11 @@ namespace BotSharp.Core.Agents
     [Table("Bot_Agent")]
     public class Agent : DbRecord, IDbRecord
     {
+        public Agent()
+        {
+            CreatedDate = DateTime.UtcNow;
+        }
+
         [MaxLength(64)]
         public String Name { get; set; }
 
@@ -49,5 +54,16 @@ namespace BotSharp.Core.Agents
         [ForeignKey("AgentId")]
         [JsonProperty("entity_types")]
         public List<Entity> Entities { get; set; }
+
+        public String Birthday
+        {
+            get
+            {
+                return CreatedDate.ToShortDateString();
+            }
+        }
+
+        [Required]
+        public DateTime CreatedDate { get; set; }
     }
 }
