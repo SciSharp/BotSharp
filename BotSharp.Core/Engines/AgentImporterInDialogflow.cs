@@ -19,7 +19,7 @@ namespace BotSharp.Core.Engines
         public Agent LoadAgent(string agentId, string agentDir)
         {
             // load agent profile
-            string data = File.ReadAllText($"{agentDir}\\Dialogflow\\{agentId}\\agent.json");
+            string data = File.ReadAllText($"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agentId}{Path.DirectorySeparatorChar}agent.json");
             var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);
             agent.Id = Guid.NewGuid().ToString();
             agent.Name = agentId;
@@ -31,11 +31,11 @@ namespace BotSharp.Core.Engines
         {
             agent.Entities = new List<Entity>();
 
-            Directory.EnumerateFiles($"{agentDir}\\Dialogflow\\{agent.Name}\\entities")
+            Directory.EnumerateFiles($"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agent.Name}{Path.DirectorySeparatorChar}entities")
                 .ToList()
                 .ForEach(fileName =>
                 {
-                    string entityName = fileName.Split('\\').Last();
+                    string entityName = fileName.Split($"{Path.DirectorySeparatorChar}").Last();
                     if (!entityName.Contains("_"))
                     {
                         string entityJson = File.ReadAllText($"{fileName}");
@@ -63,7 +63,7 @@ namespace BotSharp.Core.Engines
         {
             agent.Intents = new List<Intent>();
 
-            Directory.EnumerateFiles($"{agentDir}\\Dialogflow\\{agent.Name}\\intents")
+            Directory.EnumerateFiles($"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agent.Name}{Path.DirectorySeparatorChar}intents")
                 .ToList()
                 .ForEach(fileName =>
                 {
