@@ -29,7 +29,7 @@
     <PackageReference Include="DotNetToolkit" Version="1.4.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.5.4" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="RestSharp" Version="106.2.1" />
+    <PackageReference Include="RestSharp" Version="106.2.2" />
   </ItemGroup>
 
 </Project>

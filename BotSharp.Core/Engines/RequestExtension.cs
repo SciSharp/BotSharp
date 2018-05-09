@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Engines
 {
@@ -72,6 +73,8 @@ namespace BotSharp.Core.Engines
             };
 
             HandleContext(dc, rasa, intentResponse, aiResponse);
+
+            Console.WriteLine(JsonConvert.SerializeObject(aiResponse.Result));
 
             return aiResponse;
         }
@@ -135,6 +138,15 @@ namespace BotSharp.Core.Engines
                     p.Value = query.Substring(entity.Start, entity.End - entity.Start);
                 }
 
+                // convert to Standard entity value
+                if (!String.IsNullOrEmpty(p.Value) && !p.DataType.StartsWith("@sys."))
+                {
+                    p.Value = agent.Entities.FirstOrDefault(x => x.Name == p.Name).Entries.FirstOrDefault((entry) => {
+                        return entry.Value.ToLower() == p.Value.ToLower() ||
+                            entry.Synonyms.Select(synonym => synonym.Synonym.ToLower()).Contains(p.Value.ToLower());
+                    })?.Value;
+                }
+
                 // fixed entity per request
                 if (request.Entities != null)
                 {
@@ -146,15 +158,6 @@ namespace BotSharp.Core.Engines
                             p.Value = fixedEntity.Entries.First().Value;
                         }
                     }
-                }
-
-                // convert to Standard entity value
-                if (!String.IsNullOrEmpty(p.Value) && !p.DataType.StartsWith("@sys."))
-                {
-                    p.Value = agent.Entities.FirstOrDefault(x => x.Name == p.Name).Entries.FirstOrDefault((entry) => {
-                        return entry.Value.ToLower() == p.Value.ToLower() ||
-                            entry.Synonyms.Select(synonym => synonym.Synonym.ToLower()).Contains(p.Value.ToLower());
-                    })?.Value;
                 }
             });
         }
@@ -174,8 +177,21 @@ namespace BotSharp.Core.Engines
                         msg.Speech = msg.Speech.StartsWith("[") ?
                             ArrayHelper.GetRandom(msg.Speech.Substring(2, msg.Speech.Length - 4).Split("\",\"").ToList()) :
                             msg.Speech;
+
+                        msg.Speech = ReplaceParameters4Response(intentResponse.Parameters, msg.Speech);
                     }
                 });
+        }
+
+        private static string ReplaceParameters4Response(List<IntentResponseParameter> parameters, string text)
+        {
+            var reg = new Regex(@"\$\w+");
+
+            reg.Matches(text).ToList().ForEach(token => {
+                text = text.Replace(token.Value, parameters.FirstOrDefault(x => x.Name == token.Value.Substring(1))?.Value.ToString());
+            });
+
+            return text;
         }
 
         private static void HandleContext(Database dc, RasaAi rasa, IntentResponse intentResponse, AIResponse aiResponse)
