@@ -26,7 +26,7 @@ namespace BotSharp.Core.Agents
 
         public Boolean Published { get; set; }
 
-        [MaxLength(3)]
+        [MaxLength(5)]
         public String Language { get; set; }
 
         /// <summary>

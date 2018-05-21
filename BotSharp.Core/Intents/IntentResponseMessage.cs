@@ -18,7 +18,7 @@ namespace BotSharp.Core.Intents
         public AIResponseMessageType Type { get; set; }
 
         [Required]
-        [MaxLength(3)]
+        [MaxLength(5)]
         public String Lang { get; set; }
 
         /// <summary>

@@ -30,8 +30,10 @@ namespace BotSharp.Core.Engines
         public void LoadEntities(Agent agent, string agentDir)
         {
             agent.Entities = new List<Entity>();
+            string entityDir = $"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agent.Name}{Path.DirectorySeparatorChar}entities";
+            if (!Directory.Exists(entityDir)) return;
 
-            Directory.EnumerateFiles($"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agent.Name}{Path.DirectorySeparatorChar}entities")
+            Directory.EnumerateFiles(entityDir)
                 .ToList()
                 .ForEach(fileName =>
                 {
@@ -62,8 +64,10 @@ namespace BotSharp.Core.Engines
         public void LoadIntents(Agent agent, string agentDir)
         {
             agent.Intents = new List<Intent>();
+            string intentDir = $"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agent.Name}{Path.DirectorySeparatorChar}intents";
+            if (!Directory.Exists(intentDir)) return;
 
-            Directory.EnumerateFiles($"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agent.Name}{Path.DirectorySeparatorChar}intents")
+            Directory.EnumerateFiles(intentDir)
                 .ToList()
                 .ForEach(fileName =>
                 {
