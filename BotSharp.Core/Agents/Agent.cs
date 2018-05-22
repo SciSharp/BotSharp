@@ -53,7 +53,7 @@ namespace BotSharp.Core.Agents
 
         [ForeignKey("AgentId")]
         [JsonProperty("entity_types")]
-        public List<Entity> Entities { get; set; }
+        public List<EntityType> Entities { get; set; }
 
         public String Birthday
         {

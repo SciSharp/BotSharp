@@ -18,6 +18,6 @@ namespace BotSharp.Core.Entities
         public String Value { get; set; }
 
         [ForeignKey("EntityEntryId")]
-        public List<EntityEntrySynonym> Synonyms { get; set; }
+        public List<EntrySynonym> Synonyms { get; set; }
     }
 }

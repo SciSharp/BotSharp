@@ -14,7 +14,7 @@ namespace BotSharp.Core.Adapters.Dialogflow
 
         public List<String> RawSynonyms { get; set; }
 
-        public List<EntityEntrySynonym> Synonyms { get; set; }
+        public List<EntrySynonym> Synonyms { get; set; }
 
         public DialogflowEntityEntry()
         {

@@ -19,6 +19,6 @@ namespace BotSharp.Core.Models
         internal string SessionId { get; set; }
 
         [JsonProperty("entities")]
-        public List<Entity> Entities { get; set; }
+        public List<EntityType> Entities { get; set; }
     }
 }

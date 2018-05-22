@@ -7,8 +7,8 @@ using System.Text;
 
 namespace BotSharp.Core.Entities
 {
-    [Table("Bot_Entity")]
-    public class Entity : DbRecord, IDbRecord
+    [Table("Bot_EntityType")]
+    public class EntityType : DbRecord, IDbRecord
     {
         [Required]
         [StringLength(36)]

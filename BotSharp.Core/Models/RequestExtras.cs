@@ -9,7 +9,7 @@ namespace BotSharp.Core.Models
     {
         public List<AIContext> Contexts { get; set; }
 
-        public List<Entity> Entities { get; set; }
+        public List<EntityType> Entities { get; set; }
 
         public bool HasContexts
         {
@@ -40,7 +40,7 @@ namespace BotSharp.Core.Models
         {
         }
 
-        public RequestExtras(List<AIContext> contexts, List<Entity> entities)
+        public RequestExtras(List<AIContext> contexts, List<EntityType> entities)
         {
             this.Contexts = contexts;
             this.Entities = entities;

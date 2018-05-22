@@ -29,7 +29,7 @@ namespace BotSharp.Core.Engines
 
         public void LoadEntities(Agent agent, string agentDir)
         {
-            agent.Entities = new List<Entity>();
+            agent.Entities = new List<EntityType>();
             string entityDir = $"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agent.Name}{Path.DirectorySeparatorChar}entities";
             if (!Directory.Exists(entityDir)) return;
 
@@ -50,13 +50,13 @@ namespace BotSharp.Core.Engines
                             string entriesJson = File.ReadAllText($"{entriesFileName}");
                             entriesJson = entriesJson.Replace("\"synonyms\":", "\"rawSynonyms\":");
                             entity.Entries = JsonConvert.DeserializeObject<List<DialogflowEntityEntry>>(entriesJson);
-                            entity.Entries.ForEach(x => x.Synonyms = x.RawSynonyms.Select(s => new EntityEntrySynonym
+                            entity.Entries.ForEach(x => x.Synonyms = x.RawSynonyms.Select(s => new EntrySynonym
                             {
                                 Synonym = s
                             }).ToList());
                         }
 
-                        agent.Entities.Add(entity.ToObject<Entity>());
+                        agent.Entities.Add(entity.ToObject<EntityType>());
                     }
                 });
         }

@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Adapters.Rasa;
+using BotSharp.Core.Engines;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Expressions;
 using BotSharp.Core.Intents;
@@ -12,22 +13,49 @@ using System.Text;
 
 namespace BotSharp.Core.Agents
 {
-    public static class AgentExtension
+    public static class AgentDriver
     {
-        /// <summary>
-        /// Get agent header row from Agent table
-        /// </summary>
-        /// <param name="dc"></param>
-        /// <param name="agentId"></param>
-        /// <returns></returns>
-        public static Agent Agent(this Database dc, string agentId)
+        public static Agent LoadAgent(this IBotEngine engine, Database dc, AIConfiguration aiConfig)
         {
-            return dc.Table<Agent>().Find(agentId);
+            return dc.Table<Agent>()
+                .Include(x => x.Intents).ThenInclude(x => x.Contexts)
+                .Include(x => x.Entities).ThenInclude(x => x.Entries).ThenInclude(x => x.Synonyms)
+                .FirstOrDefault(x => x.ClientAccessToken == aiConfig.ClientAccessToken || x.DeveloperAccessToken == aiConfig.ClientAccessToken);
         }
 
-        public static String CreateEntity(this Agent agent, Entity entity, Database dc)
+        /// <summary>
+        /// Restore a agent instance from backup json files
+        /// </summary>
+        /// <param name="importor"></param>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        public static Agent RestoreAgent(this IBotEngine engine, IAgentImporter importer, String agentId, string dataDir)
         {
-            return entity.Id;
+            // Load agent summary
+            var agent = importer.LoadAgent(agentId, dataDir);
+
+            // Load agent entities
+            importer.LoadEntities(agent, dataDir);
+
+            // Load agent intents
+            importer.LoadIntents(agent, dataDir);
+
+            return agent;
+        }
+
+        public static String SaveAgent(this Agent agent, Database dc)
+        {
+            var existedAgent = dc.Table<Agent>().FirstOrDefault(x => x.Id == agent.Id || x.Name == agent.Name);
+            if (existedAgent == null)
+            {
+                dc.Table<Agent>().Add(agent);
+                return agent.Id;
+            }
+            else
+            {
+                agent.Id = existedAgent.Id;
+                return existedAgent.Id;
+            }
         }
 
         public static RasaTrainingData GrabCorpus(this Agent agent, Database dc)
@@ -77,9 +105,9 @@ namespace BotSharp.Core.Agents
                         // assemble entity synonmus
                         if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
                         {
-                            var allSynonyms = (from e in dc.Table<Entity>()
+                            var allSynonyms = (from e in dc.Table<EntityType>()
                                                join ee in dc.Table<EntityEntry>() on e.Id equals ee.EntityId
-                                               join ees in dc.Table<EntityEntrySynonym>() on ee.Id equals ees.EntityEntryId
+                                               join ees in dc.Table<EntrySynonym>() on ee.Id equals ees.EntityEntryId
                                                where e.Name == x.Alias && ee.Value == x.Text & ees.Synonym != x.Text
                                                select ees.Synonym).ToList();
 
@@ -163,9 +191,9 @@ namespace BotSharp.Core.Agents
                         // assemble entity synonmus
                         if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
                         {
-                            var allSynonyms = (from e in dc.Table<Entity>()
+                            var allSynonyms = (from e in dc.Table<EntityType>()
                                               join ee in dc.Table<EntityEntry>() on e.Id equals ee.EntityId
-                                              join ees in dc.Table<EntityEntrySynonym>() on ee.Id equals ees.EntityEntryId
+                                              join ees in dc.Table<EntrySynonym>() on ee.Id equals ees.EntityEntryId
                                               where e.Name == x.Alias && ee.Value == x.Text & ees.Synonym != x.Text
                                                select ees.Synonym ).ToList();
 

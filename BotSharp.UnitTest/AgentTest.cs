@@ -25,7 +25,7 @@ namespace BotSharp.UnitTest
             };
             var rasa = new RasaAi(dc);
             
-            int row = dc.DbTran(() => rasa.SaveAgent(agent));
+            int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
         }
 
         [TestMethod]
@@ -39,7 +39,7 @@ namespace BotSharp.UnitTest
             };
             var rasa = new RasaAi(dc);
 
-            int row = dc.DbTran(() => rasa.SaveAgent(agent));
+            int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
         }
 
         [TestMethod]
@@ -54,8 +54,9 @@ namespace BotSharp.UnitTest
             agent.ClientAccessToken = BOT_CLIENT_TOKEN;
             agent.DeveloperAccessToken = BOT_DEVELOPER_TOKEN;
             agent.UserId = Guid.NewGuid().ToString();
+            rasa.agent = agent;
 
-            int row = dc.DbTran(() => rasa.SaveAgent(agent));
+            int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
         }
 
         [TestMethod]
@@ -65,7 +66,7 @@ namespace BotSharp.UnitTest
             config.SessionId = Guid.NewGuid().ToString();
 
             var rasa = new RasaAi(dc, config);
-            rasa.agent = rasa.LoadAgent();
+            rasa.agent = rasa.LoadAgent(dc, config);
             string msg = rasa.Train(dc);
 
             Assert.IsTrue(!String.IsNullOrEmpty(msg));

@@ -13,7 +13,7 @@ namespace BotSharp.UnitTest
         public static String BOT_ID = "fd9f1b29-fed8-4c68-8fda-69ab463da126";
         public static String BOT_CLIENT_TOKEN = "23a53c46d6244840bbb10c89c171d299";
         public static String BOT_DEVELOPER_TOKEN = "d86103f446d049ff8d5f506e8dfe5f3f";
-        public static String BOT_NAME = "Voicebot";
+        public static String BOT_NAME = "VirtualAssistant";
 
         protected Database dc { get; set; }
         protected string contentRoot;

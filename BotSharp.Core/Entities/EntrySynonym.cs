@@ -8,7 +8,7 @@ using System.Text;
 namespace BotSharp.Core.Entities
 {
     [Table("Bot_EntityEntrySynonym")]
-    public class EntityEntrySynonym : DbRecord, IDbRecord
+    public class EntrySynonym : DbRecord, IDbRecord
     {
         [Required]
         [StringLength(36)]
