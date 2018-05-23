@@ -1,5 +1,7 @@
 ﻿using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -31,6 +33,9 @@ namespace BotSharp.Core.Intents
         /// custom json payload
         /// </summary>
         [MaxLength(1024)]
-        public String Payload { get; set; }
+        public String PayloadJson { get; set; }
+
+        [NotMapped]
+        public JObject Payload { get; set; }
     }
 }

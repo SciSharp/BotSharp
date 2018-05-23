@@ -18,6 +18,7 @@ namespace BotSharp.Core.Agents
             CreatedDate = DateTime.UtcNow;
         }
 
+        [Required]
         [MaxLength(64)]
         public String Name { get; set; }
 
@@ -26,6 +27,7 @@ namespace BotSharp.Core.Agents
 
         public Boolean Published { get; set; }
 
+        [Required]
         [MaxLength(5)]
         public String Language { get; set; }
 

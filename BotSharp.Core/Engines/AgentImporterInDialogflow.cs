@@ -56,7 +56,8 @@ namespace BotSharp.Core.Engines
                             }).ToList());
                         }
 
-                        agent.Entities.Add(entity.ToObject<EntityType>());
+                        var entityType = entity.ToObject<EntityType>();
+                        agent.Entities.Add(entityType);
                     }
                 });
         }
@@ -107,7 +108,7 @@ namespace BotSharp.Core.Engines
                                         return new IntentResponseMessage
                                         {
                                             Lang = x.Lang,
-                                            Payload = JsonConvert.SerializeObject(x.Payload),
+                                            Payload = JObject.FromObject(x.Payload),
                                             Type = x.Type
                                         };
                                     } else

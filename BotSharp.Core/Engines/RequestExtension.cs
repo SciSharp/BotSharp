@@ -60,7 +60,7 @@ namespace BotSharp.Core.Engines
                             return (new
                             {
                                 x.Type,
-                                Payload = JObject.Parse(x.Payload)
+                                x.Payload
                             }) as Object;
                         }
                         else
@@ -384,7 +384,7 @@ namespace BotSharp.Core.Engines
                             return (new
                             {
                                 x.Type,
-                                Payload = JObject.Parse(x.Payload)
+                                x.Payload
                             }) as Object;
                         }
                         else

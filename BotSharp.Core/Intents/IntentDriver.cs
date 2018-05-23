@@ -7,9 +7,9 @@ using System.Text;
 
 namespace BotSharp.Core.Intents
 {
-    public static class IntentExtension
+    public static class IntentDriver
     {
-        public static string CreateIntent(this Agent agent, Database dc, Intent intent)
+        public static String CreateIntent(this Agent agent, Database dc, Intent intent)
         {
             if (dc.Table<Intent>().Any(x => x.Id == intent.Id)) return intent.Id;
 

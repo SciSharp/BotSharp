@@ -15,6 +15,18 @@ namespace BotSharp.Core.Agents
 {
     public static class AgentDriver
     {
+        public static Agent LoadAgentById(this IBotEngine engine, Database dc, string agentId)
+        {
+            var clientAccessToken = dc.Table<Agent>().Find(agentId).ClientAccessToken;
+
+            var config = new AIConfiguration(clientAccessToken, SupportedLanguage.English);
+
+            var rasa = new RasaAi(dc, config);
+            rasa.agent = rasa.LoadAgent(dc, config);
+
+            return rasa.agent;
+        }
+
         public static Agent LoadAgent(this IBotEngine engine, Database dc, AIConfiguration aiConfig)
         {
             return dc.Table<Agent>()
