@@ -18,6 +18,10 @@ namespace BotSharp.UnitTest
             config.SessionId = Guid.NewGuid().ToString();
 
             var rasa = new RasaAi(dc, config);
+
+            // Round 1
+            var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Hi" } });
+            Assert.AreEqual(response.Result.Metadata.IntentName, "greet");
         }
     }
 }

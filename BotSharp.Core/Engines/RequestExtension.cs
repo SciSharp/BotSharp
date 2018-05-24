@@ -32,14 +32,13 @@ namespace BotSharp.Core.Engines
 
             var result = CallRasa(rasa.agent.Id, request.Query.First(), rasa.agent.Id);
             RasaResponse response = result.Data;
-            var intentResponse = HandleIntentPerContextIn(rasa, request, result.Data);
-
             aiResponse.Id = Guid.NewGuid().ToString();
             aiResponse.Lang = rasa.agent.Language;
             aiResponse.Status = new AIResponseStatus { };
             aiResponse.SessionId = rasa.AiConfig.SessionId;
             aiResponse.Timestamp = DateTime.UtcNow;
 
+            var intentResponse = HandleIntentPerContextIn(rasa, request, result.Data);
             HandleParameter(rasa.agent, intentResponse, response, request);
 
             HandleMessage(intentResponse);
@@ -48,13 +47,13 @@ namespace BotSharp.Core.Engines
             {
                 Source = "agent",
                 ResolvedQuery = request.Query.First(),
-                Action = intentResponse.Action,
-                Parameters = intentResponse.Parameters.ToDictionary(x => x.Name, x=> x.Value),
+                Action = intentResponse?.Action,
+                Parameters = intentResponse?.Parameters?.ToDictionary(x => x.Name, x=> x.Value),
                 Score = response.Intent.Confidence,
-                Metadata = new AIResponseMetadata { IntentId = intentResponse.IntentId, IntentName = intentResponse.IntentName },
+                Metadata = new AIResponseMetadata { IntentId = intentResponse?.IntentId, IntentName = intentResponse?.IntentName },
                 Fulfillment = new AIResponseFulfillment
                 {
-                    Messages = intentResponse.Messages.Select(x => {
+                    Messages = intentResponse?.Messages?.Select(x => {
                         if (x.Type == AIResponseMessageType.Custom)
                         {
                             return (new
@@ -115,21 +114,31 @@ namespace BotSharp.Core.Engines
                 };
             }
             response.IntentRanking = response.IntentRanking.Where(x => intents.Select(i => i.Name).Contains(x.Name)).ToList();
-            response.Intent = response.IntentRanking.First();
 
-            var intent = (dc.Table<Intent>().Where(x => x.Name == response.Intent.Name)
-                .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Parameters)
-                .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
+            if (response.IntentRanking.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                response.Intent = response.IntentRanking.First();
 
-            var intentResponse = ArrayHelper.GetRandom(intent.Responses);
-            intentResponse.IntentName = intent.Name;
+                var intent = (dc.Table<Intent>().Where(x => x.Name == response.Intent.Name)
+                    .Include(x => x.Responses).ThenInclude(x => x.Contexts)
+                    .Include(x => x.Responses).ThenInclude(x => x.Parameters)
+                    .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
 
-            return intentResponse;
+                var intentResponse = ArrayHelper.GetRandom(intent.Responses);
+                intentResponse.IntentName = intent.Name;
+
+                return intentResponse;
+            }
         }
 
         private static void HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
         {
+            if (intentResponse == null) return;
+
             intentResponse.Parameters.ForEach(p => {
                 string query = request.Query.First();
                 var entity = response.Entities.FirstOrDefault(x => x.Entity == p.Name);
@@ -164,6 +173,8 @@ namespace BotSharp.Core.Engines
 
         private static void HandleMessage(IntentResponse intentResponse)
         {
+            if (intentResponse == null) return;
+
             intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
             intentResponse.Messages.ToList()
                 .ForEach(msg =>
@@ -196,6 +207,8 @@ namespace BotSharp.Core.Engines
 
         private static void HandleContext(Database dc, RasaAi rasa, IntentResponse intentResponse, AIResponse aiResponse)
         {
+            if (intentResponse == null) return;
+
             // Merge context lifespan
             // override if exists, otherwise add, delete if lifespan is zero
             dc.DbTran(() =>
@@ -444,29 +457,11 @@ namespace BotSharp.Core.Engines
 
         public static string Train(this RasaAi console, Database dc)
         {
+            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
+            var rest = new RestRequest("train", Method.POST);
+            rest.AddQueryParameter("project", console.agent.Id);
+
             var corpus = console.agent.GrabCorpus(dc);
-
-            // Add some fake data
-            if(corpus.UserSays.Count < 3)
-            {
-                corpus.UserSays.Add(new RasaIntentExpression
-                {
-                    Intent = "Welcome",
-                    Text = "Hi"
-                });
-
-                corpus.UserSays.Add(new RasaIntentExpression
-                {
-                    Intent = "Welcome",
-                    Text = "Hey"
-                });
-
-                corpus.UserSays.Add(new RasaIntentExpression
-                {
-                    Intent = "Welcome",
-                    Text = "Hello"
-                });
-            }
 
             string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
                 new JsonSerializerSettings
@@ -475,10 +470,13 @@ namespace BotSharp.Core.Engines
                     NullValueHandling = NullValueHandling.Ignore
                 });
 
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
-            var rest = new RestRequest("train", Method.POST);
-            rest.AddQueryParameter("project", console.agent.Id);
+#if RASA_NLU_0_11
             rest.AddParameter("application/json", json, ParameterType.RequestBody);
+#else
+            string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}config_jieba_mitie_sklearn.yml");
+            body = body.Replace("@data", json);
+            rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
+#endif
 
             var response = client.Execute(rest);
 

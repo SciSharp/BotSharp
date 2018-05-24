@@ -17,7 +17,8 @@
     <RepositoryType>MIT</RepositoryType>
     <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
     <PackageTags>NLU, Chatbot, Bot, AI Bot</PackageTags>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
+    <PackageReleaseNotes>Support Rasa NLU 0.12.x</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

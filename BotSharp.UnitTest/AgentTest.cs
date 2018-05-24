@@ -66,7 +66,6 @@ namespace BotSharp.UnitTest
             config.SessionId = Guid.NewGuid().ToString();
 
             var rasa = new RasaAi(dc, config);
-            rasa.agent = rasa.LoadAgent(dc, config);
             string msg = rasa.Train(dc);
 
             Assert.IsTrue(!String.IsNullOrEmpty(msg));
