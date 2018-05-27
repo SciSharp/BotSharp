@@ -107,7 +107,6 @@ namespace BotSharp.Core.Engines
                                     {
                                         return new IntentResponseMessage
                                         {
-                                            Lang = x.Lang,
                                             Payload = JObject.FromObject(x.Payload),
                                             Type = x.Type
                                         };
@@ -119,7 +118,6 @@ namespace BotSharp.Core.Engines
 
                                         return new IntentResponseMessage
                                         {
-                                            Lang = x.Lang,
                                             Speech = speech,
                                             Type = x.Type
                                         };
