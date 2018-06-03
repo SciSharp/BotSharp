@@ -24,6 +24,11 @@ namespace BotSharp.Core.Intents
 
         public static String CreateIntent(this Agent agent, Database dc, Intent intent)
         {
+            if (String.IsNullOrEmpty(intent.Id))
+            {
+                intent.Id = Guid.NewGuid().ToString();
+            }
+
             if (dc.Table<Intent>().Any(x => x.Id == intent.Id)) return intent.Id;
 
             dc.Table<Intent>().Add(intent);

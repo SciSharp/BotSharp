@@ -20,6 +20,7 @@
     <Version>1.1.0</Version>
     <PackageReleaseNotes>Support Rasa NLU 0.12.x</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
+    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

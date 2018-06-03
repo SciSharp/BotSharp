@@ -8,6 +8,12 @@
 * Import agent from Dialogflow directly
 
 ### How to use
+````shell
+PM> Install-Package BotSharp.Core -Version 1.1.0
+````
+
+
+
 ````cs
 [TestMethod]
 public void RestoreAgentTest()
