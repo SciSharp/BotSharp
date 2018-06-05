@@ -473,8 +473,9 @@ namespace BotSharp.Core.Engines
 #if RASA_NLU_0_11
             rest.AddParameter("application/json", json, ParameterType.RequestBody);
 #else
-            string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}config_jieba_mitie_sklearn.yml");
-            body = body.Replace("@data", json);
+            string trainingConfig = console.agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_spacy.yml";
+            string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}{trainingConfig}");
+            body = $"{body}\r\ndata: {json}";
             rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
 #endif
 
