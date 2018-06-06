@@ -13,13 +13,18 @@ namespace BotSharp.Core.Intents
     {
         public static Intent GetIntent(this IBotEngine bot, Database dc, string intentId)
         {
-            return dc.Table<Intent>()
+            var intent = dc.Table<Intent>()
                 .Include(x => x.Contexts)
                 .Include(x => x.Responses).ThenInclude(x => x.Contexts)
                 .Include(x => x.Responses).ThenInclude(x => x.Parameters)
                 .Include(x => x.Responses).ThenInclude(x => x.Messages)
                 .Include(x => x.UserSays).ThenInclude(x => x.Data)
                 .FirstOrDefault(x => x.Id == intentId);
+
+            // order parts by time
+            intent.UserSays.ForEach(x => x.Data = x.Data.OrderBy(d => d.UpdatedTime).ToList());
+
+            return intent;
         }
 
         public static String CreateIntent(this Agent agent, Database dc, Intent intent)
