@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace BotSharp.Core.Expressions
+namespace BotSharp.Core.Intents
 {
     [Table("Bot_IntentExpressionPart")]
     public class IntentExpressionPart : DbRecord, IDbRecord

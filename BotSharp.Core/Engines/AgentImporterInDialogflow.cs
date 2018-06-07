@@ -79,6 +79,7 @@ namespace BotSharp.Core.Engines
                         // avoid confict data structure
                         intentJson = intentJson.Replace("\"contexts\":", "\"contextList\":");
                         intentJson = intentJson.Replace("\"messages\":", "\"messageList\":");
+                        intentJson = intentJson.Replace("\"prompts\":", "\"promptList\":");
 
                         var intent = JsonConvert.DeserializeObject<DialogflowIntent>(intentJson);
 
@@ -124,6 +125,13 @@ namespace BotSharp.Core.Engines
                                     }
 
                                 }).ToList();
+
+                            newResponse.Parameters = res.Parameters.Select(p =>
+                            {
+                                var rp = p.ToObject<IntentResponseParameter>();
+                                rp.Prompts = p.PromptList.Select(pl => new ResponseParameterPrompt { Prompt = pl.Value }).ToList();
+                                return rp;
+                            }).ToList();
                         });
                         
                         newIntent.Contexts = intent.ContextList.Select(x => new IntentInputContext { Name = x }).ToList();

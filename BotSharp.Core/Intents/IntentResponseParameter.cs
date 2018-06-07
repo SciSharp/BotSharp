@@ -29,5 +29,8 @@ namespace BotSharp.Core.Intents
         public string Value { get; set; }
 
         public bool IsList { get; set; }
+
+        [ForeignKey("ResponseParameterId")]
+        public List<ResponseParameterPrompt> Prompts { get; set; }
     }
 }

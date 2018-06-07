@@ -1,5 +1,4 @@
-﻿using BotSharp.Core.Expressions;
-using EntityFrameworkCore.BootKit;
+﻿using EntityFrameworkCore.BootKit;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

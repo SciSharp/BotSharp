@@ -1,7 +1,6 @@
 ﻿using BotSharp.Core.Adapters.Rasa;
 using BotSharp.Core.Engines;
 using BotSharp.Core.Entities;
-using BotSharp.Core.Expressions;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;

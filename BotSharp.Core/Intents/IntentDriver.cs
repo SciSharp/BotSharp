@@ -16,7 +16,7 @@ namespace BotSharp.Core.Intents
             var intent = dc.Table<Intent>()
                 .Include(x => x.Contexts)
                 .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Parameters)
+                .Include(x => x.Responses).ThenInclude(x => x.Parameters).ThenInclude(x => x.Prompts)
                 .Include(x => x.Responses).ThenInclude(x => x.Messages)
                 .Include(x => x.UserSays).ThenInclude(x => x.Data)
                 .FirstOrDefault(x => x.Id == intentId);
