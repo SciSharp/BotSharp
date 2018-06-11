@@ -72,7 +72,8 @@ namespace BotSharp.Core.Engines
                 .ToList()
                 .ForEach(fileName =>
                 {
-                    if (!fileName.Contains("_usersays_" + agent.Language))
+                    if (!fileName.Contains("_usersays_" + agent.Language)
+                        || fileName.Contains("Default Fallback Intent"))
                     {
                         string intentJson = File.ReadAllText($"{fileName}");
 
@@ -84,12 +85,30 @@ namespace BotSharp.Core.Engines
                         var intent = JsonConvert.DeserializeObject<DialogflowIntent>(intentJson);
 
                         // load user expressions
-                        string expressionFileName = fileName.Replace(intent.Name, $"{intent.Name}_usersays_{agent.Language}");
-                        if (File.Exists(expressionFileName))
+                        if (fileName.Contains("Default Fallback Intent"))
                         {
-                            string expressionJson = File.ReadAllText($"{expressionFileName}");
-                            intent.UserSays = JsonConvert.DeserializeObject<List<DialogflowIntentExpression>>(expressionJson);
+                            intent.UserSays = (intent.Responses[0].MessageList[0].Speech as JArray)
+                            .Select(x => new DialogflowIntentExpression
+                            {
+                                Data = new List<DialogflowIntentExpressionPart>
+                                {
+                                   new DialogflowIntentExpressionPart
+                                   {
+                                       Text = x.ToString()
+                                   }
+                                }
+                            }).ToList();
                         }
+                        else
+                        {
+                            string expressionFileName = fileName.Replace(intent.Name, $"{intent.Name}_usersays_{agent.Language}");
+                            if (File.Exists(expressionFileName))
+                            {
+                                string expressionJson = File.ReadAllText($"{expressionFileName}");
+                                intent.UserSays = JsonConvert.DeserializeObject<List<DialogflowIntentExpression>>(expressionJson);
+                            }
+                        }
+
 
                         var newIntent = intent.ToObject<Intent>();
                         intent.Responses.ForEach(res =>
