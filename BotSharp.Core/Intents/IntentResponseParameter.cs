@@ -19,6 +19,9 @@ namespace BotSharp.Core.Intents
         [MaxLength(32)]
         public string DataType { get; set; }
 
+        [MaxLength(128)]
+        public string DefaultValue { get; set; }
+
         [MaxLength(64)]
         public string Name { get; set; }
 
@@ -26,5 +29,8 @@ namespace BotSharp.Core.Intents
         public string Value { get; set; }
 
         public bool IsList { get; set; }
+
+        [ForeignKey("ResponseParameterId")]
+        public List<ResponseParameterPrompt> Prompts { get; set; }
     }
 }

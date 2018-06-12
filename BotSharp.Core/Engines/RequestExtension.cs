@@ -39,7 +39,7 @@ namespace BotSharp.Core.Engines
             aiResponse.Timestamp = DateTime.UtcNow;
 
             var intentResponse = HandleIntentPerContextIn(rasa, request, result.Data);
-            HandleParameter(rasa.agent, intentResponse, response, request);
+            bool missedRequiredField = HandleParameter(rasa.agent, intentResponse, response, request);
 
             HandleMessage(intentResponse);
 
@@ -113,31 +113,45 @@ namespace BotSharp.Core.Engines
                     response.Intent
                 };
             }
-            response.IntentRanking = response.IntentRanking.Where(x => intents.Select(i => i.Name).Contains(x.Name)).ToList();
+            response.IntentRanking = response.IntentRanking
+                .Where(x => x.Confidence > decimal.Parse("0.2") && intents.Select(i => i.Name).Contains(x.Name)).ToList();
 
+            // add Default Fallback Intent 
             if (response.IntentRanking.Count == 0)
             {
-                return null;
+                var defaultFallbackIntent = rasa.agent.Intents.FirstOrDefault(x => x.Name == "Default Fallback Intent");
+                response.IntentRanking.Add(new RasaResponseIntent
+                {
+                    Name = defaultFallbackIntent.Name,
+                    Confidence = decimal.Parse("0.8")
+                });
             }
-            else
-            {
-                response.Intent = response.IntentRanking.First();
 
-                var intent = (dc.Table<Intent>().Where(x => x.Name == response.Intent.Name)
-                    .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                    .Include(x => x.Responses).ThenInclude(x => x.Parameters)
-                    .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
+            response.Intent = response.IntentRanking.First();
 
-                var intentResponse = ArrayHelper.GetRandom(intent.Responses);
-                intentResponse.IntentName = intent.Name;
+            var intent = (dc.Table<Intent>().Where(x => x.AgentId == rasa.agent.Id && x.Name == response.Intent.Name)
+                .Include(x => x.Responses).ThenInclude(x => x.Contexts)
+                .Include(x => x.Responses).ThenInclude(x => x.Parameters)
+                .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
 
-                return intentResponse;
-            }
+            var intentResponse = ArrayHelper.GetRandom(intent.Responses);
+            intentResponse.IntentName = intent.Name;
+
+            return intentResponse;
+
         }
 
-        private static void HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agent"></param>
+        /// <param name="intentResponse"></param>
+        /// <param name="response"></param>
+        /// <param name="request"></param>
+        /// <returns>Required field is missed</returns>
+        private static bool HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
         {
-            if (intentResponse == null) return;
+            if (intentResponse == null) return false;
 
             intentResponse.Parameters.ForEach(p => {
                 string query = request.Query.First();
@@ -169,6 +183,8 @@ namespace BotSharp.Core.Engines
                     }
                 }
             });
+
+            return intentResponse.Parameters.Any(x => x.Required && String.IsNullOrEmpty(x.Value));
         }
 
         private static void HandleMessage(IntentResponse intentResponse)
@@ -463,6 +479,9 @@ namespace BotSharp.Core.Engines
 
             var corpus = console.agent.GrabCorpus(dc);
 
+            // remove Default Fallback Intent
+            corpus.UserSays = corpus.UserSays.Where(x => x.Intent != "Default Fallback Intent").ToList();
+
             string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
                 new JsonSerializerSettings
                 {
@@ -473,7 +492,7 @@ namespace BotSharp.Core.Engines
 #if RASA_NLU_0_11
             rest.AddParameter("application/json", json, ParameterType.RequestBody);
 #else
-            string trainingConfig = console.agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_spacy.yml";
+            string trainingConfig = console.agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_mitie_sklearn.yml";
             string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}{trainingConfig}");
             body = $"{body}\r\ndata: {json}";
             rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);

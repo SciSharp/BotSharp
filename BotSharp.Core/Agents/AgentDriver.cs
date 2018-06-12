@@ -1,7 +1,6 @@
 ﻿using BotSharp.Core.Adapters.Rasa;
 using BotSharp.Core.Engines;
 using BotSharp.Core.Entities;
-using BotSharp.Core.Expressions;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
@@ -83,7 +82,7 @@ namespace BotSharp.Core.Agents
             var intents = dc.Table<Intent>()
                 .Include(x => x.Contexts)
                 .Include(x => x.UserSays).ThenInclude(say => say.Data)
-                .Where(x => x.UserSays.Count > 0)
+                .Where(x => x.AgentId == agent.Id && x.UserSays.Count > 0)
                 .ToList();
 
             intents.ForEach(intent =>

@@ -72,23 +72,43 @@ namespace BotSharp.Core.Engines
                 .ToList()
                 .ForEach(fileName =>
                 {
-                    if (!fileName.Contains("_usersays_" + agent.Language))
+                    if (!fileName.Contains("_usersays_" + agent.Language)
+                        || fileName.Contains("Default Fallback Intent"))
                     {
                         string intentJson = File.ReadAllText($"{fileName}");
 
                         // avoid confict data structure
                         intentJson = intentJson.Replace("\"contexts\":", "\"contextList\":");
                         intentJson = intentJson.Replace("\"messages\":", "\"messageList\":");
+                        intentJson = intentJson.Replace("\"prompts\":", "\"promptList\":");
 
                         var intent = JsonConvert.DeserializeObject<DialogflowIntent>(intentJson);
                         intent.Name = intent.Name.Replace("/","_");
                         // load user expressions
-                        string expressionFileName = fileName.Replace(intent.Name, $"{intent.Name}_usersays_{agent.Language}");
-                        if (File.Exists(expressionFileName))
+                        if (fileName.Contains("Default Fallback Intent"))
                         {
-                            string expressionJson = File.ReadAllText($"{expressionFileName}");
-                            intent.UserSays = JsonConvert.DeserializeObject<List<DialogflowIntentExpression>>(expressionJson);
+                            intent.UserSays = (intent.Responses[0].MessageList[0].Speech as JArray)
+                            .Select(x => new DialogflowIntentExpression
+                            {
+                                Data = new List<DialogflowIntentExpressionPart>
+                                {
+                                   new DialogflowIntentExpressionPart
+                                   {
+                                       Text = x.ToString()
+                                   }
+                                }
+                            }).ToList();
                         }
+                        else
+                        {
+                            string expressionFileName = fileName.Replace(intent.Name, $"{intent.Name}_usersays_{agent.Language}");
+                            if (File.Exists(expressionFileName))
+                            {
+                                string expressionJson = File.ReadAllText($"{expressionFileName}");
+                                intent.UserSays = JsonConvert.DeserializeObject<List<DialogflowIntentExpression>>(expressionJson);
+                            }
+                        }
+
 
                         var newIntent = intent.ToObject<Intent>();
                         intent.Responses.ForEach(res =>
@@ -124,6 +144,13 @@ namespace BotSharp.Core.Engines
                                     }
 
                                 }).ToList();
+
+                            newResponse.Parameters = res.Parameters.Select(p =>
+                            {
+                                var rp = p.ToObject<IntentResponseParameter>();
+                                rp.Prompts = p.PromptList.Select(pl => new ResponseParameterPrompt { Prompt = pl.Value }).ToList();
+                                return rp;
+                            }).ToList();
                         });
                         
                         newIntent.Contexts = intent.ContextList.Select(x => new IntentInputContext { Name = x }).ToList();
