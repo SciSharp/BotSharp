@@ -81,7 +81,7 @@ namespace BotSharp.Core.Engines
                         intentJson = intentJson.Replace("\"messages\":", "\"messageList\":");
 
                         var intent = JsonConvert.DeserializeObject<DialogflowIntent>(intentJson);
-
+                        intent.Name = intent.Name.Replace("/","_");
                         // load user expressions
                         string expressionFileName = fileName.Replace(intent.Name, $"{intent.Name}_usersays_{agent.Language}");
                         if (File.Exists(expressionFileName))
