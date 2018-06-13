@@ -5,10 +5,10 @@ using System.Text;
 
 namespace BotSharp.Core.Engines
 {
-    public interface INlpProvider
+    public interface INlpFeaturizer
     {
         IConfiguration Configuration { get; set; }
 
-        bool Load();
+        List<decimal> Featurize(string text);
     }
 }

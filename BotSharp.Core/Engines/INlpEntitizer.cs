@@ -1,14 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using BotSharp.Core.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace BotSharp.Core.Engines
 {
-    public interface INlpProvider
+    public interface INlpEntitizer
     {
         IConfiguration Configuration { get; set; }
 
-        bool Load();
+        List<NlpEntity> Entitize(string text);
     }
 }

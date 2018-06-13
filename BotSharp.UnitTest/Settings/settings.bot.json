@@ -4,13 +4,15 @@
   },
 
   "BotSharpAi": {
-      "Lang": "en",
-      "Provider": "SpaCyProvider",
-      "SpaCyProvider": {
-        "Url": "http://localhost:5005"
-      },
-      "Pipe": [
-
-      ]
+    "Lang": "en",
+    "Provider": "SpaCyProvider",
+    "SpaCyProvider": {
+      "Url": "http://gtx.local:5005"
+    },
+    "Pipe": {
+      "Tokenizer": "SpaCyTokenizer",
+      "Featurizer": "SpacyFeaturizer",
+      "Entitizer": "SpaCyEntitizer"
+    }
   }
 }

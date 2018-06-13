@@ -1,4 +1,6 @@
 ﻿using BotSharp.Core.Utilities;
+using Microsoft.Extensions.Configuration;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -8,17 +10,15 @@ namespace BotSharp.Core.Engines.SpaCy
 {
     public class SpaCyProvider : INlpProvider
     {
-        public async void LoadModel()
-        {
-            using (var client = new HttpClient())
-            {
-                var response = await client.PostAsync("", new JsonContent(new { }));
-            }
-        }
+        public IConfiguration Configuration { get; set; }
 
-        public object GetDoc()
+        public bool Load()
         {
-            throw new NotImplementedException();
+            var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
+            var request = new RestRequest("load", Method.GET);
+            var response = client.Execute(request);
+
+            return response.IsSuccessful;
         }
     }
 }
