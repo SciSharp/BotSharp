@@ -24,7 +24,7 @@ namespace BotSharp.UnitTest
                 UserId = Guid.NewGuid().ToString()
             };
             var rasa = new RasaAi(dc);
-            
+            rasa.agent = agent;
             int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
         }
 
@@ -38,7 +38,7 @@ namespace BotSharp.UnitTest
                 Language = "en"
             };
             var rasa = new RasaAi(dc);
-
+            rasa.agent = agent;
             int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
         }
 
@@ -48,7 +48,7 @@ namespace BotSharp.UnitTest
             var rasa = new RasaAi(dc);
             var importer = new AgentImporterInDialogflow();
 
-            string dataDir = $"{Database.ContentRootPath}\\App_Data\\DbInitializer\\Agents\\";
+            string dataDir =  $"{Database.ContentRootPath}\\App_Data\\DbInitializer\\Agents\\";
             var agent = rasa.RestoreAgent(importer, BOT_NAME, dataDir);
             agent.Id = BOT_ID;
             agent.ClientAccessToken = BOT_CLIENT_TOKEN;
