@@ -4,7 +4,9 @@ using System.Text;
 
 namespace BotSharp.Core.Engines
 {
-    public interface IBotEngine
+    public interface INlpProvider
     {
+        void LoadModel();
+        Object GetDoc();
     }
 }

@@ -14,7 +14,7 @@ namespace BotSharp.Core.Agents
 {
     public static class AgentDriver
     {
-        public static Agent LoadAgentById(this IBotEngine engine, Database dc, string agentId)
+        public static Agent LoadAgentById(this IBotPlatform engine, Database dc, string agentId)
         {
             var clientAccessToken = dc.Table<Agent>().Find(agentId).ClientAccessToken;
 
@@ -26,7 +26,7 @@ namespace BotSharp.Core.Agents
             return rasa.agent;
         }
 
-        public static Agent LoadAgent(this IBotEngine engine, Database dc, AIConfiguration aiConfig)
+        public static Agent LoadAgent(this IBotPlatform engine, Database dc, AIConfiguration aiConfig)
         {
             return dc.Table<Agent>()
                 .Include(x => x.Intents).ThenInclude(x => x.Contexts)
@@ -40,7 +40,7 @@ namespace BotSharp.Core.Agents
         /// <param name="importor"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>
-        public static Agent RestoreAgent(this IBotEngine engine, IAgentImporter importer, String agentId, string dataDir)
+        public static Agent RestoreAgent(this IBotPlatform engine, IAgentImporter importer, String agentId, string dataDir)
         {
             // Load agent summary
             var agent = importer.LoadAgent(agentId, dataDir);

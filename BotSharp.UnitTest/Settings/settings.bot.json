@@ -1,5 +1,16 @@
 {
   "Rasa": {
     "Nlu": "http://localhost:5000"
+  },
+
+  "BotSharpAi": {
+      "Lang": "en",
+      "Provider": "SpaCyProvider",
+      "SpaCyProvider": {
+        "Url": "http://localhost:5005"
+      },
+      "Pipe": [
+
+      ]
   }
 }

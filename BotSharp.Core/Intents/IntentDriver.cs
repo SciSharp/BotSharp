@@ -11,7 +11,7 @@ namespace BotSharp.Core.Intents
 {
     public static class IntentDriver
     {
-        public static Intent GetIntent(this IBotEngine bot, Database dc, string intentId)
+        public static Intent GetIntent(this IBotPlatform bot, Database dc, string intentId)
         {
             var intent = dc.Table<Intent>()
                 .Include(x => x.Contexts)
