@@ -9,10 +9,6 @@
     "SpaCyProvider": {
       "Url": "http://gtx.local:5005"
     },
-    "Pipe": {
-      "Tokenizer": "SpaCyTokenizer",
-      "Featurizer": "SpacyFeaturizer",
-      "Entitizer": "SpaCyEntitizer"
-    }
+    "Pipe": "SpaCyTokenizer, SpacyFeaturizer, SpaCyEntitizer"
   }
 }

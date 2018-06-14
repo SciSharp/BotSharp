@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using BotSharp.Core.Abstractions;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
+using Newtonsoft.Json.Linq;
 
 namespace BotSharp.Core.Engines
 {
@@ -23,32 +26,30 @@ namespace BotSharp.Core.Engines
 
         public string Train()
         {
+            var data = JObject.FromObject(new { });
+
             // Get NLP Provider
             string providerName = Database.Configuration.GetSection($"{config}:Provider").Value;
-            var provider = TypeHelper.GetInstance(providerName, Database.Assemblies) as INlpProvider;
+            var provider = TypeHelper.GetInstance(providerName, Database.Assemblies) as INlpPipeline;
             provider.Configuration = Database.Configuration.GetSection("BotSharpAi");
+            provider.Process("How are you doing?", data);
 
-            provider.Load();
 
             // pipe process
+            var pipelines = Database.Configuration.GetSection($"{config}:Pipe").Value
+                .Split(',')
+                .Select(x => x.Trim())
+                .ToList();
 
-            // Tokenize
-            var tokenizerName = provider.Configuration.GetSection("Pipe:Tokenizer").Value;
-            var tokenizer = TypeHelper.GetInstance(tokenizerName, Database.Assemblies) as INlpTokenizer;
-            tokenizer.Configuration = provider.Configuration;
-            var tokens = tokenizer.Tokenize("How are you doing?");
+            pipelines.ForEach(pipeName =>
+            {
+                var pipe = TypeHelper.GetInstance(pipeName, Database.Assemblies) as INlpPipeline;
+                pipe.Configuration = provider.Configuration;
+                var tokens = pipe.Process("How are you doing?", data);
 
-            // Featurize
-            var featurizerName = provider.Configuration.GetSection("Pipe:Featurizer").Value;
-            var featurizer = TypeHelper.GetInstance(featurizerName, Database.Assemblies) as INlpFeaturizer;
-            featurizer.Configuration = provider.Configuration;
-            var features = featurizer.Featurize("How are you doing?");
 
-            // Entitize
-            var entitizerName = provider.Configuration.GetSection("Pipe:Entitizer").Value;
-            var entitizer = TypeHelper.GetInstance(entitizerName, Database.Assemblies) as INlpEntitizer;
-            entitizer.Configuration = provider.Configuration;
-            var entities = entitizer.Entitize("Where are you going tomorrow ?");
+            });
+
 
             return "";
         }

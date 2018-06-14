@@ -1,24 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using BotSharp.Core.Abstractions;
 using BotSharp.Core.Models;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
-    public class SpaCyEntitizer : INlpEntitizer
+    public class SpaCyEntitizer : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
 
-        public List<NlpEntity> Entitize(string text)
+        public bool Process(string text, JObject data)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("entitize", Method.GET);
             request.AddParameter("text", text);
             var response = client.Execute<Result>(request);
 
-            return response.Data.Entities;
+            data.Add("Entities", JToken.FromObject(response.Data.Entities));
+
+            return response.IsSuccessful;
         }
 
         public class Result
