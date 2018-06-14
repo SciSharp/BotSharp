@@ -1,5 +1,4 @@
-﻿using BotSharp.Core.Utilities;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using RestSharp;
 using System;
 using System.Collections.Generic;
