@@ -59,7 +59,7 @@ namespace BotSharp.Core.Engines
                             return (new
                             {
                                 x.Type,
-                                x.Payload
+                                Payload = JsonConvert.DeserializeObject(x.PayloadJson)
                             }) as Object;
                         }
                         else

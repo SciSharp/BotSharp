@@ -128,6 +128,7 @@ namespace BotSharp.Core.Engines
                                         return new IntentResponseMessage
                                         {
                                             Payload = JObject.FromObject(x.Payload),
+                                            PayloadJson = JsonConvert.SerializeObject(x.Payload),
                                             Type = x.Type
                                         };
                                     } else
