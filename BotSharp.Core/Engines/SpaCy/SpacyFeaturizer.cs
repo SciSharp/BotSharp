@@ -19,7 +19,7 @@ namespace BotSharp.Core.Engines.SpaCy
             request.AddParameter("text", text);
             var response = client.Execute<Result>(request);
 
-            data.Add("features", JToken.FromObject(response.Data.Vectors));
+            data.Add("Features", JToken.FromObject(response.Data.Vectors));
 
             return response.IsSuccessful;
         }

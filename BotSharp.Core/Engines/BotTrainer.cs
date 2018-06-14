@@ -32,7 +32,7 @@ namespace BotSharp.Core.Engines
             string providerName = Database.Configuration.GetSection($"{config}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, Database.Assemblies) as INlpPipeline;
             provider.Configuration = Database.Configuration.GetSection("BotSharpAi");
-            provider.Process("How are you doing?", data);
+            provider.Process("How are you today ?", data);
 
 
             // pipe process
@@ -45,7 +45,7 @@ namespace BotSharp.Core.Engines
             {
                 var pipe = TypeHelper.GetInstance(pipeName, Database.Assemblies) as INlpPipeline;
                 pipe.Configuration = provider.Configuration;
-                var tokens = pipe.Process("How are you doing?", data);
+                var tokens = pipe.Process("How are you today ?", data);
 
 
             });

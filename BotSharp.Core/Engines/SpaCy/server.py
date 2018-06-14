@@ -33,11 +33,9 @@ def tokenize():
 @route('/entitize')
 def entitize():
     doc = nlp(request.query.text)
-    entities = ner(doc)
-    print(entities)
+    print(doc.ents)
     list = []
-    print(doc.ents.size)
-    for entity in entities:
+    for entity in doc.ents:
         print(entity)
         list.append(entity)
     return {'entities': list}    
