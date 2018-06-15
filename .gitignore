@@ -291,3 +291,4 @@ __pycache__/
 /Bot.WebStarter/App_Data/DbInitializer/Agents/Dialogflow/VirtualAssistant
 /BotSharp.WebStarter/App_Data/DbInitializer/Agents/Dialogflow/VirtualAssistant
 /BotSharp.UnitTest/App_Data/DbInitializer/Agents
+/BotSharp.UnitTest/App_Data/BotSharp.db

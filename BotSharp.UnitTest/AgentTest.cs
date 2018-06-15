@@ -1,7 +1,9 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
+using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -66,6 +68,7 @@ namespace BotSharp.UnitTest
             config.SessionId = Guid.NewGuid().ToString();
 
             var rasa = new RasaAi(dc, config);
+
             string msg = rasa.Train();
 
             Assert.IsTrue(!String.IsNullOrEmpty(msg));

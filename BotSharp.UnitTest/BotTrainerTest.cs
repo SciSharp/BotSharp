@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Engines;
+using BotSharp.Core.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,13 @@ namespace BotSharp.UnitTest
         [TestMethod]
         public void TrainingTest()
         {
+            var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
+            config.SessionId = Guid.NewGuid().ToString();
+
+            var rasa = new RasaAi(dc, config);
+
             var trainer = new BotTrainer(BOT_ID, dc);
-            trainer.Train();
+            trainer.Train(rasa.agent);
         }
     }
 }

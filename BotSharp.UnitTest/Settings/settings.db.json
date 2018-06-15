@@ -1,6 +1,6 @@
 {
   "Database": {
-    "Default": "SqlServer",
+    "Default": "Sqlite",
     "ConnectionStrings": {
       "InMemory": "DataSource=:memory:",
       "Sqlite": "Data Source=|DataDirectory|BotSharp.db;",

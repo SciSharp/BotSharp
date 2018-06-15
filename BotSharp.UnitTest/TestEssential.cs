@@ -10,10 +10,10 @@ namespace BotSharp.UnitTest
 {
     public abstract class TestEssential
     {
-        public static String BOT_ID = "fd9f1b29-fed8-4c68-8fda-69ab463da126";
-        public static String BOT_CLIENT_TOKEN = "23a53c46d6244840bbb10c89c171d299";
-        public static String BOT_DEVELOPER_TOKEN = "d86103f446d049ff8d5f506e8dfe5f3f";
-        public static String BOT_NAME = "Voicebot";
+        public static String BOT_ID = "5f98a0fd-e7e9-4155-9610-d3f40d026162";
+        public static String BOT_CLIENT_TOKEN = "2fffb9a1a9214144ab2717a37fa43c33";
+        public static String BOT_DEVELOPER_TOKEN = "2c7d224cf7274f9d93b4c65c31ca82fe";
+        public static String BOT_NAME = "Handybot";
 
         protected Database dc { get; set; }
         protected string contentRoot;

@@ -7,8 +7,8 @@
     "Lang": "en",
     "Provider": "SpaCyProvider",
     "SpaCyProvider": {
-      "Url": "http://gtx.local:5005"
+      "Url": "http://10.2.21.200:5005"
     },
-    "Pipe": "SpaCyTokenizer, SpacyFeaturizer, SpaCyEntitizer"
+    "Pipe": "SpaCyTokenizer, SpacyFeaturizer, SpaCyEntitizer, SpaCyTextCategorizer"
   }
 }

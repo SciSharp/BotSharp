@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Abstractions;
+using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
@@ -13,11 +14,11 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(string text, JObject data)
+        public bool Process(Agent agent, JObject data)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tokenize", Method.GET);
-            request.AddParameter("text", text);
+            request.AddParameter("text", "");
             var response = client.Execute<Result>(request);
 
             data.Add("Tokens", JToken.FromObject(response.Data.Tokens));

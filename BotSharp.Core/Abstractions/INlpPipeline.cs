@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using BotSharp.Core.Agents;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,6 @@ namespace BotSharp.Core.Abstractions
     {
         IConfiguration Configuration { get; set; }
 
-        bool Process(String text, JObject data);
+        bool Process(Agent agent, JObject data);
     }
 }
