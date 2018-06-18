@@ -1,0 +1,608 @@
+[
+  {
+    "value": "Castle On The Hill",
+    "synonyms": [
+      "Castle On The Hill"
+    ]
+  },
+  {
+    "value": "Sound Of Silence",
+    "synonyms": [
+      "Sound Of Silence"
+    ]
+  },
+  {
+    "value": "Photograph",
+    "synonyms": [
+      "Photograph"
+    ]
+  },
+  {
+    "value": "Creep",
+    "synonyms": [
+      "Creep"
+    ]
+  },
+  {
+    "value": "Hurt",
+    "synonyms": [
+      "Hurt"
+    ]
+  },
+  {
+    "value": "Love Yourself",
+    "synonyms": [
+      "Love Yourself"
+    ]
+  },
+  {
+    "value": "Wish You Were Here",
+    "synonyms": [
+      "Wish You Were Here"
+    ]
+  },
+  {
+    "value": "Million Reasons",
+    "synonyms": [
+      "Million Reasons"
+    ]
+  },
+  {
+    "value": "When We Were Young",
+    "synonyms": [
+      "When We Were Young"
+    ]
+  },
+  {
+    "value": "Versace On The Floor",
+    "synonyms": [
+      "Versace On The Floor"
+    ]
+  },
+  {
+    "value": "Shape Of You",
+    "synonyms": [
+      "Shape Of You"
+    ]
+  },
+  {
+    "value": "Nothing Else Matters",
+    "synonyms": [
+      "Nothing Else Matters"
+    ]
+  },
+  {
+    "value": "Let Her Go",
+    "synonyms": [
+      "Let Her Go"
+    ]
+  },
+  {
+    "value": "Riptide",
+    "synonyms": [
+      "Riptide"
+    ]
+  },
+  {
+    "value": "Say You Wont Let Go",
+    "synonyms": [
+      "Say You Wont Let Go"
+    ]
+  },
+  {
+    "value": "Cant Help Falling In Love With You",
+    "synonyms": [
+      "Cant Help Falling In Love With You"
+    ]
+  },
+  {
+    "value": "Im Yours",
+    "synonyms": [
+      "Im Yours"
+    ]
+  },
+  {
+    "value": "The Scientist Acoustic",
+    "synonyms": [
+      "The Scientist Acoustic"
+    ]
+  },
+  {
+    "value": "Shape Of You",
+    "synonyms": [
+      "Shape Of You"
+    ]
+  },
+  {
+    "value": "A Thousand Years",
+    "synonyms": [
+      "A Thousand Years"
+    ]
+  },
+  {
+    "value": "La La Land - Audition The Fools Who Dream",
+    "synonyms": [
+      "La La Land - Audition The Fools Who Dream"
+    ]
+  },
+  {
+    "value": "Hey There Delilah",
+    "synonyms": [
+      "Hey There Delilah"
+    ]
+  },
+  {
+    "value": "City Of Stars Acoustic",
+    "synonyms": [
+      "City Of Stars Acoustic"
+    ]
+  },
+  {
+    "value": "Closer",
+    "synonyms": [
+      "Closer"
+    ]
+  },
+  {
+    "value": "Treat You Better",
+    "synonyms": [
+      "Treat You Better"
+    ]
+  },
+  {
+    "value": "Let It Be",
+    "synonyms": [
+      "Let It Be"
+    ]
+  },
+  {
+    "value": "Rockabye",
+    "synonyms": [
+      "Rockabye"
+    ]
+  },
+  {
+    "value": "Shape Of You",
+    "synonyms": [
+      "Shape Of You"
+    ]
+  },
+  {
+    "value": "City Of Stars",
+    "synonyms": [
+      "City Of Stars"
+    ]
+  },
+  {
+    "value": "All Of Me",
+    "synonyms": [
+      "All Of Me"
+    ]
+  },
+  {
+    "value": "How Far Ill Go",
+    "synonyms": [
+      "How Far Ill Go"
+    ]
+  },
+  {
+    "value": "All I Ask",
+    "synonyms": [
+      "All I Ask"
+    ]
+  },
+  {
+    "value": "More Than Words",
+    "synonyms": [
+      "More Than Words"
+    ]
+  },
+  {
+    "value": "Surat Cinta Untuk Starla",
+    "synonyms": [
+      "Surat Cinta Untuk Starla"
+    ]
+  },
+  {
+    "value": "City Of Stars",
+    "synonyms": [
+      "City Of Stars"
+    ]
+  },
+  {
+    "value": "Something Just Like This",
+    "synonyms": [
+      "Something Just Like This"
+    ]
+  },
+  {
+    "value": "Mercy",
+    "synonyms": [
+      "Mercy"
+    ]
+  },
+  {
+    "value": "Versace On The Floor",
+    "synonyms": [
+      "Versace On The Floor"
+    ]
+  },
+  {
+    "value": "Someone Like You",
+    "synonyms": [
+      "Someone Like You"
+    ]
+  },
+  {
+    "value": "Human",
+    "synonyms": [
+      "Human"
+    ]
+  },
+  {
+    "value": "Thinking Out Loud",
+    "synonyms": [
+      "Thinking Out Loud"
+    ]
+  },
+  {
+    "value": "When I Was Your Man",
+    "synonyms": [
+      "When I Was Your Man"
+    ]
+  },
+  {
+    "value": "Versace On The Floor",
+    "synonyms": [
+      "Versace On The Floor"
+    ]
+  },
+  {
+    "value": "House Of The Rising Sun",
+    "synonyms": [
+      "House Of The Rising Sun"
+    ]
+  },
+  {
+    "value": "Stairway To Heaven",
+    "synonyms": [
+      "Stairway To Heaven"
+    ]
+  },
+  {
+    "value": "Wonderwall",
+    "synonyms": [
+      "Wonderwall"
+    ]
+  },
+  {
+    "value": "How Would You Feel",
+    "synonyms": [
+      "How Would You Feel"
+    ]
+  },
+  {
+    "value": "I Dont Wanna Live Forever",
+    "synonyms": [
+      "I Dont Wanna Live Forever"
+    ]
+  },
+  {
+    "value": "Stay With Me",
+    "synonyms": [
+      "Stay With Me"
+    ]
+  },
+  {
+    "value": "This Town",
+    "synonyms": [
+      "This Town"
+    ]
+  },
+  {
+    "value": "Hallelujah",
+    "synonyms": [
+      "Hallelujah"
+    ]
+  },
+  {
+    "value": "7 Years",
+    "synonyms": [
+      "7 Years"
+    ]
+  },
+  {
+    "value": "City Of Stars",
+    "synonyms": [
+      "City Of Stars"
+    ]
+  },
+  {
+    "value": "Hotel California",
+    "synonyms": [
+      "Hotel California"
+    ]
+  },
+  {
+    "value": "I See Fire",
+    "synonyms": [
+      "I See Fire"
+    ]
+  },
+  {
+    "value": "Dancing On My Own",
+    "synonyms": [
+      "Dancing On My Own"
+    ]
+  },
+  {
+    "value": "Fix You Acoustic",
+    "synonyms": [
+      "Fix You Acoustic"
+    ]
+  },
+  {
+    "value": "The A Team",
+    "synonyms": [
+      "The A Team"
+    ]
+  },
+  {
+    "value": "Wonderwall",
+    "synonyms": [
+      "Wonderwall"
+    ]
+  },
+  {
+    "value": "Skinny Love",
+    "synonyms": [
+      "Skinny Love"
+    ]
+  },
+  {
+    "value": "Yellow Acoustic",
+    "synonyms": [
+      "Yellow Acoustic"
+    ]
+  },
+  {
+    "value": "Hallelujah",
+    "synonyms": [
+      "Hallelujah"
+    ]
+  },
+  {
+    "value": "Let It Go",
+    "synonyms": [
+      "Let It Go"
+    ]
+  },
+  {
+    "value": "All I Want",
+    "synonyms": [
+      "All I Want"
+    ]
+  },
+  {
+    "value": "Say Something",
+    "synonyms": [
+      "Say Something"
+    ]
+  },
+  {
+    "value": "Radioactive",
+    "synonyms": [
+      "Radioactive"
+    ]
+  },
+  {
+    "value": "Shape Of You",
+    "synonyms": [
+      "Shape Of You"
+    ]
+  },
+  {
+    "value": "Redemption Song",
+    "synonyms": [
+      "Redemption Song"
+    ]
+  },
+  {
+    "value": "Sweet Child O Mine",
+    "synonyms": [
+      "Sweet Child O Mine"
+    ]
+  },
+  {
+    "value": "Chasing Cars",
+    "synonyms": [
+      "Chasing Cars"
+    ]
+  },
+  {
+    "value": "Boulevard Of Broken Dreams Acoustic",
+    "synonyms": [
+      "Boulevard Of Broken Dreams Acoustic"
+    ]
+  },
+  {
+    "value": "Hey Jude",
+    "synonyms": [
+      "Hey Jude"
+    ]
+  },
+  {
+    "value": "Closer",
+    "synonyms": [
+      "Closer"
+    ]
+  },
+  {
+    "value": "Youve Got A Friend In Me",
+    "synonyms": [
+      "Youve Got A Friend In Me"
+    ]
+  },
+  {
+    "value": "Halo",
+    "synonyms": [
+      "Halo"
+    ]
+  },
+  {
+    "value": "Heathens",
+    "synonyms": [
+      "Heathens"
+    ]
+  },
+  {
+    "value": "Counting Stars",
+    "synonyms": [
+      "Counting Stars"
+    ]
+  },
+  {
+    "value": "Wish You Were Here",
+    "synonyms": [
+      "Wish You Were Here"
+    ]
+  },
+  {
+    "value": "Im Not The Only One",
+    "synonyms": [
+      "Im Not The Only One"
+    ]
+  },
+  {
+    "value": "I Wont Give Up",
+    "synonyms": [
+      "I Wont Give Up"
+    ]
+  },
+  {
+    "value": "Stitches",
+    "synonyms": [
+      "Stitches"
+    ]
+  },
+  {
+    "value": "Sweater Weather",
+    "synonyms": [
+      "Sweater Weather"
+    ]
+  },
+  {
+    "value": "Good Riddance Time Of Your Life",
+    "synonyms": [
+      "Good Riddance Time Of Your Life"
+    ]
+  },
+  {
+    "value": "Love On The Brain",
+    "synonyms": [
+      "Love On The Brain"
+    ]
+  },
+  {
+    "value": "Blackbird",
+    "synonyms": [
+      "Blackbird"
+    ]
+  },
+  {
+    "value": "We Dont Talk Anymore",
+    "synonyms": [
+      "We Dont Talk Anymore"
+    ]
+  },
+  {
+    "value": "Hey Soul Sister",
+    "synonyms": [
+      "Hey Soul Sister"
+    ]
+  },
+  {
+    "value": "Faded",
+    "synonyms": [
+      "Faded"
+    ]
+  },
+  {
+    "value": "Under The Bridge",
+    "synonyms": [
+      "Under The Bridge"
+    ]
+  },
+  {
+    "value": "Imagine",
+    "synonyms": [
+      "Imagine"
+    ]
+  },
+  {
+    "value": "Dont Look Back In Anger",
+    "synonyms": [
+      "Dont Look Back In Anger"
+    ]
+  },
+  {
+    "value": "Iris",
+    "synonyms": [
+      "Iris"
+    ]
+  },
+  {
+    "value": "Love",
+    "synonyms": [
+      "Love"
+    ]
+  },
+  {
+    "value": "One Call Away",
+    "synonyms": [
+      "One Call Away"
+    ]
+  },
+  {
+    "value": "Hello",
+    "synonyms": [
+      "Hello"
+    ]
+  },
+  {
+    "value": "Somewhere Over The Rainbow",
+    "synonyms": [
+      "Somewhere Over The Rainbow"
+    ]
+  },
+  {
+    "value": "Starving",
+    "synonyms": [
+      "Starving"
+    ]
+  },
+  {
+    "value": "Jolene",
+    "synonyms": [
+      "Jolene"
+    ]
+  },
+  {
+    "value": "Castle On The Hill",
+    "synonyms": [
+      "Castle On The Hill"
+    ]
+  },
+  {
+    "value": "Lost Boy Acoustic",
+    "synonyms": [
+      "Lost Boy Acoustic"
+    ]
+  },
+  {
+    "value": "Make You Feel My Love",
+    "synonyms": [
+      "Make You Feel My Love"
+    ]
+  }
+]

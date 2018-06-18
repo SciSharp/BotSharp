@@ -1,0 +1,6121 @@
+[
+  {
+    "id": "4140af75-12d8-4f32-80f0-e864ff58447f",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Madonna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": "\u0027s ",
+        "userDefined": false
+      },
+      {
+        "text": "Like a Virgin",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 36,
+    "updated": 0
+  },
+  {
+    "id": "c232eb6e-963a-4482-b9ed-f0343b331cfc",
+    "data": [
+      {
+        "text": "can",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "you",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " play ",
+        "userDefined": false
+      },
+      {
+        "text": "country",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " music",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "9f1bc06d-87b0-43d0-a24a-4f3c9bfb9b09",
+    "data": [
+      {
+        "text": "play some ",
+        "userDefined": false
+      },
+      {
+        "text": "romantic",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " songs",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d35ef9fd-4b6e-4b0e-b29a-bc398f21a06c",
+    "data": [
+      {
+        "text": "playing ",
+        "userDefined": false
+      },
+      {
+        "text": "Mozart",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "3c34962c-5094-4cdb-a0ae-aa2598941632",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Red Hot Chili Peppers",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "12bae030-caee-4793-9dde-116190c5ea29",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Led Zeppelin two",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "df476926-5b0b-4d0a-9189-1df7ddccb10d",
+    "data": [
+      {
+        "text": "I want to listen to the song ",
+        "userDefined": false
+      },
+      {
+        "text": "New York",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1eaa1073-9a2b-4379-9a20-bf8238896a6f",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Hard Times",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "David Newman",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "c2d8041c-bbd0-4e37-8bfd-ae981e08026f",
+    "data": [
+      {
+        "text": "let\u0027s listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Come together",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Beatles",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "2bbf6334-1242-44c8-b380-a2eb6406546e",
+    "data": [
+      {
+        "text": "play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Love Me Like You Do",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "962b0574-5e8d-42e9-9b0d-2c742b1651e9",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Beyonce",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6458ef3d-c044-4162-87f3-194a93615cd0",
+    "data": [
+      {
+        "text": "play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Gorilla",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "9d129655-8307-434f-9c9a-1110d1547a2b",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Master of Puppets",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "5140ab21-9f48-402c-8b95-11495aa6be3d",
+    "data": [
+      {
+        "text": "play me some ",
+        "userDefined": false
+      },
+      {
+        "text": "good",
+        "alias": "sort",
+        "meta": "@music-sort",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "bcf21f73-d1d5-4be1-ac55-fe4e9e0ce53f",
+    "data": [
+      {
+        "text": "can I listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Macarena",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "aeabcd3a-ee8b-4181-9a10-b33d830d2c28",
+    "data": [
+      {
+        "text": "Can\u0027t Feel My Face",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Google Music",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f4f40ba6-40f7-4c8f-b963-90f7cff853c6",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Maroon 5",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "b5ded7a1-0b2c-4bf0-84cd-d4b2657da797",
+    "data": [
+      {
+        "text": "play me some ",
+        "userDefined": false
+      },
+      {
+        "text": "country",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "4053950b-b9a6-4a9f-ac30-100067ea5c57",
+    "data": [
+      {
+        "text": "play some ",
+        "userDefined": false
+      },
+      {
+        "text": "rock and roll",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a4878e41-bbdb-49c8-9137-26aef6fce868",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Foolin",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Changing Faces",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "b14e5674-de6f-4a41-b12f-7a885908ea8d",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Appetite for destruction",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Guns n Roses",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "088ba699-d35c-4a00-b696-a065253ce0e0",
+    "data": [
+      {
+        "text": "play a song ",
+        "userDefined": false
+      },
+      {
+        "text": "Another Brick in the Wall",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "739e3f75-8a7f-467c-b05e-357bec187f91",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "She\u0027s Got the Look",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Roxette",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "32761126-bcd3-47dd-9b06-6206013dcb95",
+    "data": [
+      {
+        "text": "start playing ",
+        "userDefined": false
+      },
+      {
+        "text": "The Lost",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a17e0479-a85c-4194-ac6d-d34a14c31025",
+    "data": [
+      {
+        "text": "play me some ",
+        "userDefined": false
+      },
+      {
+        "text": "relaxing",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "3f6fa54f-dbf3-4ca7-990e-9caf154d9a01",
+    "data": [
+      {
+        "text": "play song by ",
+        "userDefined": false
+      },
+      {
+        "text": "Willie Nelson",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "021d9348-d13b-4980-af3f-304dfb926b01",
+    "data": [
+      {
+        "text": "just play ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " for me",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a3b1d4ed-9645-4dae-a439-c6a0ef995ad4",
+    "data": [
+      {
+        "text": "can you ",
+        "userDefined": false
+      },
+      {
+        "text": "open",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Careless Whisper",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "68f49695-9e23-4ea0-ab03-029bf1cff728",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "After the Gold Rush",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "32cbd88f-d48e-4238-bf2a-89d8f185b5a6",
+    "data": [
+      {
+        "text": "I want ",
+        "userDefined": false
+      },
+      {
+        "text": "to",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " listen to a song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "e1c422b1-3a4b-4578-b7cb-608ee937221d",
+    "data": [
+      {
+        "text": "play genre ",
+        "userDefined": false
+      },
+      {
+        "text": "RnB",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1c9dad16-0e2b-4bf4-8a39-ae51f8fd122d",
+    "data": [
+      {
+        "text": "I want ",
+        "userDefined": false
+      },
+      {
+        "text": "to",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " hear ",
+        "userDefined": false
+      },
+      {
+        "text": "a",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "4eca3c0b-f8d0-4767-99d9-2a7b8231f758",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "jazz",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ce401513-df30-4cd3-b694-e36cf03e3b0a",
+    "data": [
+      {
+        "text": "play artist ",
+        "userDefined": false
+      },
+      {
+        "text": "A great big world",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 37,
+    "updated": 0
+  },
+  {
+    "id": "e45a1b64-ac6b-40a6-967b-84fff5d89b2b",
+    "data": [
+      {
+        "text": "rock",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " compositions",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ee3dfda5-6725-4c8d-ad65-d17a5c2378a2",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Vanessa Paradis",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "fd37b105-d39c-43bd-99e4-128935a42eed",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Sweet Dreams",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Eurythmics",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "62e31c4d-c930-4cc7-9aa3-0997a403de1d",
+    "data": [
+      {
+        "text": "play a ",
+        "userDefined": false
+      },
+      {
+        "text": "pop",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "211843de-f8c3-4b24-b3d6-c0d8e92592a4",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Megan Trainer",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "5815f8cc-81a1-41ef-996d-214f1ca56186",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Faded",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "ZHU",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1ecd472e-b59e-4f4c-8077-a5a77df39280",
+    "data": [
+      {
+        "text": "let me hear some ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Coldplay",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "7333da40-706d-4396-a76f-3630406fef97",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Killer Queen",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Queen",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "e288571f-f3f6-47cc-a8c8-960e29ed187f",
+    "data": [
+      {
+        "text": "play the artist ",
+        "userDefined": false
+      },
+      {
+        "text": "Rush",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "9e6371e2-1ba7-414b-9d03-c221a762f8e1",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "the",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " song ",
+        "userDefined": false
+      },
+      {
+        "text": "Pots of gold",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "the",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " artist ",
+        "userDefined": false
+      },
+      {
+        "text": "Mamas Gun",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a2df31d7-8338-46e0-8148-914c060e3789",
+    "data": [
+      {
+        "text": "can you ",
+        "userDefined": false
+      },
+      {
+        "text": "open",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Shape of My Heart",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " in ",
+        "userDefined": false
+      },
+      {
+        "text": "Google music",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "2930d107-d840-4791-a522-4246912e98b7",
+    "data": [
+      {
+        "text": "play song from the album ",
+        "userDefined": false
+      },
+      {
+        "text": "Address",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "572599a1-7b95-44fa-bf68-abd7a42961d0",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Alive",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ddbbda1f-37ad-47bd-aad9-107d13635d5e",
+    "data": [
+      {
+        "text": "play",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "R\u0026B",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "0c813c89-38b3-43f6-ab66-fe31496aec88",
+    "data": [
+      {
+        "text": "song ",
+        "userDefined": false
+      },
+      {
+        "text": "pop",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "01c319ca-bf22-4642-b148-aebdde53759b",
+    "data": [
+      {
+        "text": "play some ",
+        "userDefined": false
+      },
+      {
+        "text": "rock",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "763ca6f4-8a07-44b8-9846-a2a306d6e9e4",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Ramones",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "0baf8554-9a81-4771-a3dd-cde31073c10f",
+    "data": [
+      {
+        "text": "Eminem",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "4f41227b-b191-44af-a542-e72a6247ac29",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Pearl Jam",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1ce85c25-8301-458d-b3a9-31e4b64ba123",
+    "data": [
+      {
+        "text": "please play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Lost in You",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "5ee387f0-cdb6-4e55-b818-c6ab67699ec0",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Power Corruption Lies",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "21e0682f-f75f-45aa-873b-533b7021d935",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "End of the World",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "The living end",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "730d0b32-6b85-403e-883d-77d706e1e990",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Empty Sky",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Elton John",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "7c0708bd-a6ee-4d0d-b682-48ffaeeb98c6",
+    "data": [
+      {
+        "text": "play my ",
+        "userDefined": false
+      },
+      {
+        "text": "workout",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "8b12892d-9897-4974-977a-fcadd9dee7e6",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Guns N Roses",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "aa1768ad-7682-48cf-82b1-638d3ffa4935",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Laura Pausini",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "7e07261b-1fd5-45e9-b3a8-7194510cea73",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "greatest",
+        "alias": "sort",
+        "meta": "@music-sort",
+        "userDefined": true
+      },
+      {
+        "text": " hits by ",
+        "userDefined": false
+      },
+      {
+        "text": "Metallica",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "601b73f6-ffe9-4095-a207-a642cac506f2",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Hello",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 2,
+    "updated": 0
+  },
+  {
+    "id": "411a6482-db67-41b7-811a-f4c9a8f20cea",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Roxanne",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "fdba87b0-6b00-484b-9e59-457bc8fdd564",
+    "data": [
+      {
+        "text": "play the ",
+        "userDefined": false
+      },
+      {
+        "text": "50 Great Beatles Songs",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      },
+      {
+        "text": " playlist in ",
+        "userDefined": false
+      },
+      {
+        "text": "Prime Music",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6247a818-cee3-4d49-ad2b-91f978387b8c",
+    "data": [
+      {
+        "text": "start up the track ",
+        "userDefined": false
+      },
+      {
+        "text": "Come Together",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f14d89de-a723-4445-b524-12bb3317c185",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Born to Run",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Bruce Springsteen",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1f72e842-a388-49b2-b898-25e8ca55ea35",
+    "data": [
+      {
+        "text": "country",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "5e935d5e-26d8-4a4f-9a25-afd636972459",
+    "data": [
+      {
+        "text": "let me hear something from ",
+        "userDefined": false
+      },
+      {
+        "text": "George Strait",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "aaf53aa3-3d48-4a9d-b45f-1cd7887ad4ab",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Fly by Night",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Rush",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "5d952c84-c246-403e-9589-aebffb0d8ad9",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Graceland",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Paul Simon",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "c50656a3-b142-4ef4-b21b-19a1764c488c",
+    "data": [
+      {
+        "text": "play an album by ",
+        "userDefined": false
+      },
+      {
+        "text": "Madonna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "57f2758a-94b0-4766-b8ec-5cccb46196e8",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "It’s Now or Never",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "160aa92b-707c-4a13-9db2-f8f70bee3f2b",
+    "data": [
+      {
+        "text": "Play ",
+        "userDefined": false
+      },
+      {
+        "text": "Five Seconds of Summer",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "86af6b61-0464-4280-b3cf-ff5f10cf660b",
+    "data": [
+      {
+        "text": "play some ",
+        "userDefined": false
+      },
+      {
+        "text": "relaxing",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8c70d5d1-ddfe-409b-bf42-e1c2986b34a2",
+    "data": [
+      {
+        "text": "let\u0027s hear ",
+        "userDefined": false
+      },
+      {
+        "text": "Wilco",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d5bb88c7-503c-4d39-bbb3-ce4695238778",
+    "data": [
+      {
+        "text": "I\u0027d like to listen to some ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "470eb328-d528-4f81-898d-769576d94472",
+    "data": [
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " play ",
+        "userDefined": false
+      },
+      {
+        "text": "Addicted to Love",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "e1473efe-4531-4381-b7bf-8052f3968cc3",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Home To Mama",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Justin Bieber",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "56543c3c-873c-4cf7-b7f2-c666c70b8f46",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "best",
+        "alias": "sort",
+        "meta": "@music-sort",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Metallica",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " songs",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "d948f02d-920e-42f8-a4a7-db301b32eb13",
+    "data": [
+      {
+        "text": "play me some ",
+        "userDefined": false
+      },
+      {
+        "text": "jazz",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "29618b5b-4fae-4437-9d33-a9ac5ac70bcc",
+    "data": [
+      {
+        "text": "play some ",
+        "userDefined": false
+      },
+      {
+        "text": "good",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8746f5f4-6a28-4492-b744-e2e74d04b17a",
+    "data": [
+      {
+        "text": "show ",
+        "userDefined": false
+      },
+      {
+        "text": "best",
+        "alias": "sort",
+        "meta": "@music-sort",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "songs",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Rihanna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "7d7b3a3d-7640-42fa-85cc-057aedf1e105",
+    "data": [
+      {
+        "text": "turn ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " a song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "4432a8e0-0ec6-4c6a-9942-9a21afd3308a",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Madonna",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "eead6f02-d9e9-4185-9790-5354f86e113f",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Thriller",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "806a8e42-2fe6-4af5-8fd6-3501f7835bf0",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "London calling",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "The Clash",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6b329618-5b05-452c-9f27-85014ecfa49d",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Do I Wanna Know",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Arctic Monkeys",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d7240388-5999-4e9e-b209-a0c130c8fb2a",
+    "data": [
+      {
+        "text": "I want to hear ",
+        "userDefined": false
+      },
+      {
+        "text": "Owner of a Lonely Heart",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f0f7001d-6da5-41ff-a1fc-acc96bd477ca",
+    "data": [
+      {
+        "text": "play song by ",
+        "userDefined": false
+      },
+      {
+        "text": "Lil Wayne",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "16928918-ef7e-4450-b307-b4b5eecf7268",
+    "data": [
+      {
+        "text": "play song by ",
+        "userDefined": false
+      },
+      {
+        "text": "Nicki Minaj",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "dbc75797-de41-49f9-ab3a-783b4a05de11",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "She\u0027s Got the Look",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "5a094ad4-c7e2-43a6-b666-c223b3e005d9",
+    "data": [
+      {
+        "text": "play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Chasing the Dragon",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "081e8961-e441-49ef-8182-8c31af8036bf",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "The Nights",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1c095906-23c9-4f12-800c-9939ecd06090",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Ignition",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "R Kelly",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 11,
+    "updated": 0
+  },
+  {
+    "id": "7792e55d-0766-4504-9f0a-85436d6ab448",
+    "data": [
+      {
+        "text": "play a song ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "156bed9a-4461-4329-b540-392b34baf151",
+    "data": [
+      {
+        "text": "I want you to play ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8fdb8dce-0cab-4bea-97e6-ac27498228bf",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Poker Face",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Lady Gaga",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d093ebaf-e4ae-4494-a110-9109cbbb1815",
+    "data": [
+      {
+        "text": "can I listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Gangsta\u0027s Paradise",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6584fcba-250d-4cf3-98e8-a3b0d57bc368",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Animals",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Maroon 5",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8ce7f1ca-9942-4074-b4ca-8be026f6c1a3",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "What Does the Fox Say",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f4f60a85-1de1-4efb-b920-44289ad322fe",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Nevermind",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Nirvana",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "93b181fc-7356-4531-94cd-26ab93b3f4b9",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Apparently",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "J Cole",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "5eb85606-88df-44ba-85f9-f0c6e0d8881d",
+    "data": [
+      {
+        "text": "Bob Marley",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " play the song please",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a78bf904-8cca-4962-8530-e7698fc54152",
+    "data": [
+      {
+        "text": "Bart Baker",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1be9fdac-b9a5-46bb-9db3-0774741448d9",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Rihanna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Unfaithful",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song for me",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ee65a516-c38c-4932-8de2-4a0a4b9af9f9",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "In the jungle groove",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a50d9a57-b22e-43c7-929e-c10d6506e97e",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Sounds Good Field",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Five Seconds of Summer",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "12c35c5c-775e-4ca1-a986-ff77a1c1a2b2",
+    "data": [
+      {
+        "text": "reproduce a the track ",
+        "userDefined": false
+      },
+      {
+        "text": "Monster",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Rihanna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " ft ",
+        "userDefined": false
+      },
+      {
+        "text": "Eminem",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "a7463bcd-e379-4883-9399-ec2bc26155d8",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Yesterday",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Beatles",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ccbe210e-3d0a-47b6-9eec-f9811c37fae2",
+    "data": [
+      {
+        "text": "play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Back in time",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Pitbull",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "af1f7029-c9d0-4356-82bf-f7cb35f1741a",
+    "data": [
+      {
+        "text": "play song by ",
+        "userDefined": false
+      },
+      {
+        "text": "Shaggy",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "e5e81c1b-da7b-451f-a549-d5355f8d906d",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "I See Fire",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Ed Sheeran",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "fcaa4dbe-d5ad-431b-ba69-067aaa946487",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Budapest",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "94e14c50-b195-4b7b-ace4-5d88fc112b4e",
+    "data": [
+      {
+        "text": "play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Nothing Gonna Stop Us Now",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d425f27c-2b23-429c-a8f3-55e581c3a84a",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Blackbird",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "from SD card",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "9ec7086f-0cf0-427b-9356-f458fecdbc65",
+    "data": [
+      {
+        "text": "play the album ",
+        "userDefined": false
+      },
+      {
+        "text": "The Wall",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "0a831a75-4120-4535-96a2-aa40bb08edb3",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Ca Marche",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Maitre Gims",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a62fdd37-45ff-447c-97d3-223fb3eef801",
+    "data": [
+      {
+        "text": "I want to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Crazy",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " performed by ",
+        "userDefined": false
+      },
+      {
+        "text": "Aerosmith",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8412430c-9182-4412-a8f7-2a60b7d064ec",
+    "data": [
+      {
+        "text": "play",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "songs",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "from",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " playlist ",
+        "userDefined": false
+      },
+      {
+        "text": "Hot Hits UK",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d4b457c5-bfbf-44e1-8fb0-afb46d2448fc",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "One Direction",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d4879ec4-d109-4703-b6a0-b7e537b68cf6",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "75f031ea-f0c3-4d2d-a7c9-b6473c2d9cc5",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Dangerous",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " feat ",
+        "userDefined": false
+      },
+      {
+        "text": "Sam Martin",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "David Guetta",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "400a712b-c701-4eac-97ff-8932f1b65109",
+    "data": [
+      {
+        "text": "play something by ",
+        "userDefined": false
+      },
+      {
+        "text": "Rihanna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "affb702a-6145-484e-8a19-9f8f5ee81319",
+    "data": [
+      {
+        "text": "the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Grew",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Bruno Mars",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "172ddfdb-9d9e-430b-929e-9b78a7beddf3",
+    "data": [
+      {
+        "text": "let\u0027s hear ",
+        "userDefined": false
+      },
+      {
+        "text": "The Beatles",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "cb952e74-7f67-43b9-8262-1b8a2e2b8625",
+    "data": [
+      {
+        "text": "can you start playing music",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ddd7408f-8bbc-46fd-86aa-6322b6c3aa8f",
+    "data": [
+      {
+        "text": "I want to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Ariana Grande",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6f1e750b-e40e-4adc-8f2c-fa2568257178",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Justin Bieber",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "df5e75a6-e592-40a8-b515-b1785a7b3f1f",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Abbey Road",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " remastered by ",
+        "userDefined": false
+      },
+      {
+        "text": "The Beatles",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d1c947cd-cc54-4e68-80c2-8ba9b61e4024",
+    "data": [
+      {
+        "text": "play",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "r\u0026b",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "642f3a40-1168-45e9-af74-2d439ba63bef",
+    "data": [
+      {
+        "text": "play a ",
+        "userDefined": false
+      },
+      {
+        "text": "romantic",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8e175fb1-5908-49b4-bf23-85dc77ed8ffc",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Thriller",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "df767c28-f11c-4e7c-9875-1ea8d4871fac",
+    "data": [
+      {
+        "text": "I\u0027d like to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "classic opera",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "63c74e0b-8766-4df6-ba94-717ad2f4aff8",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Bad",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " from ",
+        "userDefined": false
+      },
+      {
+        "text": "Michael Jackson",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "269c71e0-e42e-4c41-8495-e35449bfd90a",
+    "data": [
+      {
+        "text": "play song by ",
+        "userDefined": false
+      },
+      {
+        "text": "Eminem",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " and ",
+        "userDefined": false
+      },
+      {
+        "text": "Rihanna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f556da1d-10e3-4c50-a454-da9b654bc8f3",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "françoise hardy",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "283d983d-98e1-4df4-81b4-0207567d3974",
+    "data": [
+      {
+        "text": "switch to ",
+        "userDefined": false
+      },
+      {
+        "text": "workout",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      },
+      {
+        "text": " music",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "33a0ab8d-341a-4a6d-833d-b90995d4764f",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Songs for the Deaf",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Queens of the stone age",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "98f98243-0f50-43af-99e4-e6a701bdb923",
+    "data": [
+      {
+        "text": "Hollaback Girl",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " music",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "768a22cf-6066-44e4-848a-bb3655bf784f",
+    "data": [
+      {
+        "text": "play something by ",
+        "userDefined": false
+      },
+      {
+        "text": "The Rolling Stones",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "6265a232-c622-40c3-87db-5ad3db85df28",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "jazz",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8d9963f5-cf9c-428a-98f3-77e472fd5b04",
+    "data": [
+      {
+        "text": "play the ",
+        "userDefined": false
+      },
+      {
+        "text": "Mean Kitty",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "757b7e86-b9de-4f24-b472-b929f3c6ca6e",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Amy Winehouse",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "2f7bd4b4-2305-49ad-a8bf-a9692ffa27c2",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Drake",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "9cea1a96-526c-43ab-9d6a-4894cbfc5b39",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Meghan Trainor",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1c32a3a4-bd47-4c7c-9367-abfb7f4c27b3",
+    "data": [
+      {
+        "text": "I\u0027d like to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "jazz",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "7467827c-3b39-4919-8fd1-671da5153eb7",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Gospel",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " songs on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "650927fc-7680-4602-9d67-10ef052ad78b",
+    "data": [
+      {
+        "text": "I want to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Temperature",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Sean Paul",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6792c706-ff8d-4a61-8e5e-d3638bafb3e7",
+    "data": [
+      {
+        "text": "play songs by ",
+        "userDefined": false
+      },
+      {
+        "text": "Ellie Goulding",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "7b7ee199-6a86-4d40-92eb-28c485fc8237",
+    "data": [
+      {
+        "text": "play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Encantadora",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "48f9a456-4c97-4853-b0d8-6e5ccc9e0c4d",
+    "data": [
+      {
+        "text": "put on my ",
+        "userDefined": false
+      },
+      {
+        "text": "late night",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "d964c519-c04a-43e6-9a5b-65cbf3675224",
+    "data": [
+      {
+        "text": "I want to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Bleeding Love",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d397d0a4-0e29-4a5d-bd70-1a48afc28168",
+    "data": [
+      {
+        "text": "can",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " you play ",
+        "userDefined": false
+      },
+      {
+        "text": "Adele",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "226efae3-8551-4a13-b9ca-854ee9407f79",
+    "data": [
+      {
+        "text": "play song from ",
+        "userDefined": false
+      },
+      {
+        "text": "Rihanna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "71b9ccc4-b8f6-4244-b4f6-28a72464b1ef",
+    "data": [
+      {
+        "text": "can you play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Dark Horse",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "710491f2-3f97-46c4-88a5-bf8055adbd92",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Miracles",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " from ",
+        "userDefined": false
+      },
+      {
+        "text": "Apple Music",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "9cc89a30-6a79-445f-a695-e54dccab5e53",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "RnB",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "187e7d29-1b5a-427a-a6a7-fa80965dbe60",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Do I Wanna Know",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Arctic Monkeys",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "47412244-c03e-4f77-bcd6-371ccd6a4612",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "hip hop",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "2460edc3-3fa8-4220-9f88-957b3fc5e622",
+    "data": [
+      {
+        "text": "play a song from ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "2a33e951-9079-48b1-8304-91f2177aabdc",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Black Widow",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Iggy Azalea",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "600a7eb6-8da7-4d60-b8f3-75084e14aa62",
+    "data": [
+      {
+        "text": "play music by ",
+        "userDefined": false
+      },
+      {
+        "text": "Marco Mengoni",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "4a51c7fa-d779-4bda-961f-8addc818a2ee",
+    "data": [
+      {
+        "text": "play genre ",
+        "userDefined": false
+      },
+      {
+        "text": "blues",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "c5b311f0-01c1-4ef2-b327-e3488c61d194",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Nirvana",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "c3de288a-2fda-4e50-ab80-4b4619b136a3",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "songs",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Enrique Iglesias",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 2,
+    "updated": 0
+  },
+  {
+    "id": "fb063662-66d2-408e-b02e-45d7d1e56cc9",
+    "data": [
+      {
+        "text": "I want to listen to some ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "df04c95d-9e6c-4ec3-9b07-458d284465cb",
+    "data": [
+      {
+        "text": "songs by ",
+        "userDefined": false
+      },
+      {
+        "text": "Tom Waits",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "919b3261-925d-477d-a81f-cf745f79be73",
+    "data": [
+      {
+        "text": "I\u0027d like to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "70ece144-6411-4d2c-9c3e-76a5fe8df0cd",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "from",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "iTunes",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ea122652-0bef-40cd-8c2c-1a3a0baa7b1f",
+    "data": [
+      {
+        "text": "I want to listen to something by ",
+        "userDefined": false
+      },
+      {
+        "text": "Madonna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a36d7a17-a4a3-42e5-a7da-8a842b13261d",
+    "data": [
+      {
+        "text": "play artist ",
+        "userDefined": false
+      },
+      {
+        "text": "Meghan Trainor",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "50033e2f-1f47-4558-b463-f671412b2d60",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Britney Spears",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Me Against the Music",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " feat ",
+        "userDefined": false
+      },
+      {
+        "text": "Madonna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "aacfafab-2472-4aa4-a9f0-c7032a66f1ec",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "The Police",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "68e27cf4-f036-4922-bf96-837efefead72",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Never listen",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Julia Othmer",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "82665e89-c7ff-4fa8-88fc-bfbfcdc081cf",
+    "data": [
+      {
+        "text": "play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Bird",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ccb4fe47-d139-42b9-85d3-b705035ca606",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Rihanna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "26e4ef21-d1dd-4764-b788-78ef36960ab2",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Miracles",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " from ",
+        "userDefined": false
+      },
+      {
+        "text": "phone",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6c8a9102-3d86-4485-89f2-32d09e5514ba",
+    "data": [
+      {
+        "text": "play",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Adele",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": "\u0027s ",
+        "userDefined": false
+      },
+      {
+        "text": "Hello",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f1cd710f-333b-403b-a40a-4d2a4f59c493",
+    "data": [
+      {
+        "text": "play",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Imagine Dragons",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "10fa87c3-1563-45e9-93f8-31ff757f6e1e",
+    "data": [
+      {
+        "text": "play some ",
+        "userDefined": false
+      },
+      {
+        "text": "smooth jazz",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "bf97fdc3-9aa6-4d88-9de1-b5bd04e5b228",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Bohemian Rhapsody",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Queen",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1059d415-3a79-48b1-9fd0-59888e955aab",
+    "data": [
+      {
+        "text": "play the album ",
+        "userDefined": false
+      },
+      {
+        "text": "Divorcio",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Julio Iglesia",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "afb3d4e6-1835-4c7c-92ff-159e3418d079",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Thinking Out Loud",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Ed Sheeran",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "bad552f1-3623-43eb-ad57-707856aba08a",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Harder Better Faster",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "bfdf2ac1-0d50-498f-a558-79e0507a7d5b",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a67145ff-df87-4242-9c5f-2505ec2b0eea",
+    "data": [
+      {
+        "text": "Cher",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Believe",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "aceb8375-c055-4b5f-819c-e24c8be35fc3",
+    "data": [
+      {
+        "text": "Blank Space",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "949e513a-0e63-43da-b2fb-bcfa14fba0f2",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Thriller",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Michael Jackson",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6b3938b2-5d2a-407d-b610-9e86eec7261e",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Madonna",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Madonna",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "884d7c51-fd31-4afd-8bde-c65d045a02e1",
+    "data": [
+      {
+        "text": "put",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " some ",
+        "userDefined": false
+      },
+      {
+        "text": "Rolling Stones",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "afda44f2-b66a-4f57-ad85-3be5a014ac55",
+    "data": [
+      {
+        "text": "play a song from my ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "library",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "498d74c8-f6fb-4514-b21f-f42083ea435a",
+    "data": [
+      {
+        "text": "play genre ",
+        "userDefined": false
+      },
+      {
+        "text": "party",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f7cff84a-2606-46e2-8736-1b694a4420c8",
+    "data": [
+      {
+        "text": "Live While We are Young",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "38ab8a22-465c-4f48-a443-0383f1dab382",
+    "data": [
+      {
+        "text": "play a ",
+        "userDefined": false
+      },
+      {
+        "text": "country",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a170cbd8-595e-4418-94fa-4f122038e651",
+    "data": [
+      {
+        "text": "play",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Best of You",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Foo Fighters",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "94abfa0e-280b-4401-a3ae-58f0d727d2f9",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Keep On Walking",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "CeCe",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "20ff5ce3-7acb-46a2-ba25-dd84e3f4d273",
+    "data": [
+      {
+        "text": "can",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " you turn ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " my ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "23bcca1c-b7cf-4001-be83-07df61a8a264",
+    "data": [
+      {
+        "text": "play a ",
+        "userDefined": false
+      },
+      {
+        "text": "U2",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8f576510-622b-4839-a97a-0ed793724f4a",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Experimental",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " songs on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "be65effc-4c48-43f4-8a51-6d3e352956e7",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Miracle",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " from ",
+        "userDefined": false
+      },
+      {
+        "text": "Apple Music",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "b9b72a58-2a2f-4e72-81ec-91ba52dcb140",
+    "data": [
+      {
+        "text": "I want to listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "Disturbia",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "b4cb7f5c-8133-4c8e-a63a-c039436c456f",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Elastic Heart",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Sia",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "11fbfd11-5ae5-40ac-8032-176e568bd457",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "6 Words",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Wretch 32",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "87cbbcc8-3839-435e-875c-32750b80a646",
+    "data": [
+      {
+        "text": "can you play ",
+        "userDefined": false
+      },
+      {
+        "text": "Irreplaceable",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Beyonce",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "ca1807fb-6616-4597-b7ab-65a3a80c45e3",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "I Will Always Love You",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " from ",
+        "userDefined": false
+      },
+      {
+        "text": "Whitney Houston",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "87e08518-5170-409e-97fb-5b10c2463c94",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "my faves",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "220f26f8-ee29-4eed-b80b-caa9cef5cb52",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Metallica",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "8e3541a5-8d8b-4ad4-b703-ac7991d04a63",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "The Cantos de Mallorca",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 23,
+    "updated": 0
+  },
+  {
+    "id": "5198c960-2842-4fc9-9249-a9ca961a23af",
+    "data": [
+      {
+        "text": "I would like to hear some ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "04b1aeba-2417-4b3a-9ba2-a9388a5f196b",
+    "data": [
+      {
+        "text": "play genre ",
+        "userDefined": false
+      },
+      {
+        "text": "romance",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6ffac0fc-c209-4db2-90aa-9195d79a2232",
+    "data": [
+      {
+        "text": "change",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "to",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " my ",
+        "userDefined": false
+      },
+      {
+        "text": "workout",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "89528305-1941-43a1-af61-53bfd06c9c54",
+    "data": [
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Grenade",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " in my ",
+        "userDefined": false
+      },
+      {
+        "text": "library",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ddc5ddd3-9902-497f-b01a-afa9de33197a",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Let Her Go",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Passenger",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " song on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "83fe76d6-d82b-4608-94c2-08865d775632",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Maroon 5",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "7ae9c980-66c8-4009-8dd0-eb5bb1790e09",
+    "data": [
+      {
+        "text": "turn on",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "meditative",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": false
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "tracks",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d2771282-c5f0-46d0-90a1-546be28fc87e",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Do you Mind",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Changing Faces",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "c12d0f32-a322-4cc4-9d99-38b88c0b0dc7",
+    "data": [
+      {
+        "text": "can you play ",
+        "userDefined": false
+      },
+      {
+        "text": "It Must Have Been Love",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f327361f-d9f6-42b8-96f1-167a68c4064f",
+    "data": [
+      {
+        "text": "will",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " you please play ",
+        "userDefined": false
+      },
+      {
+        "text": "Tik Tok",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "0ad3e07c-3410-4706-b480-5d8a7acde886",
+    "data": [
+      {
+        "text": "play any song ",
+        "userDefined": false
+      },
+      {
+        "text": "of",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Babbu Maan",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " from my ",
+        "userDefined": false
+      },
+      {
+        "text": "library",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "38c7ce00-85c7-453b-9a1c-c07755ba705d",
+    "data": [
+      {
+        "text": "play the album ",
+        "userDefined": false
+      },
+      {
+        "text": "Un monde meilleur",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Kids United",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "4dce1fc0-c708-425a-aad8-92b38f29633b",
+    "data": [
+      {
+        "text": "can you play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Still into You",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "dea8b13f-9b5e-433e-91b4-a2632923a235",
+    "data": [
+      {
+        "text": "can you please play a song from my ",
+        "userDefined": false
+      },
+      {
+        "text": "favourite",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6ec8e79c-1046-4bf9-86b5-707725f50c0b",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "In Da Club",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a4a1227d-3caf-4250-ba61-9e5e82853a1a",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " for me",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "cc911300-6be8-4005-afec-6d69c17c5c89",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "21",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Adele",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a6df9ebf-04cd-4dee-967a-a80924dab3dd",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Now Call Mom",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6ef00ec3-689c-4b4d-bddf-33a8db64da61",
+    "data": [
+      {
+        "text": "play me a song by ",
+        "userDefined": false
+      },
+      {
+        "text": "Aventura",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "37b8d332-9c6a-41c7-97be-12940cbe9d48",
+    "data": [
+      {
+        "text": "Tom Waits",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " songs",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "bdb361c7-208e-4e3e-aacf-d43172173f1d",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Song of Joy",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "10dad1aa-e8a5-4847-b809-4b849e11928b",
+    "data": [
+      {
+        "text": "I wanna listen to ",
+        "userDefined": false
+      },
+      {
+        "text": "reggae",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "25278946-e823-43ef-958d-4be7757858fa",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Tears in Heaven",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Eric Clapton",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "93173604-0a30-49c8-b4ec-9580bc3e2b08",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Anaconda",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Nicki Minaj",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "c5eb5234-0a7f-49ac-a1d2-db28c49c4db3",
+    "data": [
+      {
+        "text": "please play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Secret Love Song",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "b99b9842-0d8a-4200-bf9e-446b97e3651a",
+    "data": [
+      {
+        "text": "a",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " song ",
+        "userDefined": false
+      },
+      {
+        "text": "Still Loving You",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "98a809bf-7ee5-47fb-acb5-768b5fe9bdff",
+    "data": [
+      {
+        "text": "can you play ",
+        "userDefined": false
+      },
+      {
+        "text": "How You Remind Me",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "e2be7657-6d72-471e-9c8b-dbd0fc10f52b",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Theory of a Deadman",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 1497017425
+  },
+  {
+    "id": "b47dd2ec-948f-4679-a03e-6df29485688f",
+    "data": [
+      {
+        "text": "play me some ",
+        "userDefined": false
+      },
+      {
+        "text": "Michael Jackson",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a24ee159-1dca-4fed-aa8c-cc2a49022a6b",
+    "data": [
+      {
+        "text": "play artist ",
+        "userDefined": false
+      },
+      {
+        "text": "ACDC",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 1,
+    "updated": 0
+  },
+  {
+    "id": "10adef9f-bf9d-441e-b131-bf17671cdf48",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Miracle",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1f8df08a-4aab-4581-8bcb-66c4af33a559",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Purple Rain",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " on ",
+        "userDefined": false
+      },
+      {
+        "text": "Spotify",
+        "alias": "service",
+        "meta": "@music-service",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "ca158749-3e4f-4a25-8a43-40ff4070e48d",
+    "data": [
+      {
+        "text": "can you play the song ",
+        "userDefined": false
+      },
+      {
+        "text": "Beauty and a Beat",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "2f07511a-7bf9-464c-a0d9-10791c0b3aab",
+    "data": [
+      {
+        "text": "play some ",
+        "userDefined": false
+      },
+      {
+        "text": "rock n roll",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "dcd0b614-d7b4-4564-bddd-daaac3989d87",
+    "data": [
+      {
+        "text": "play a song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a79c1d43-6ceb-443f-8490-80a1c952e29d",
+    "data": [
+      {
+        "text": "play the ",
+        "userDefined": false
+      },
+      {
+        "text": "newest",
+        "alias": "sort",
+        "meta": "@music-sort",
+        "userDefined": true
+      },
+      {
+        "text": " song by ",
+        "userDefined": false
+      },
+      {
+        "text": "Eminem",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d28275ed-81fb-420d-a64d-2456de43229b",
+    "data": [
+      {
+        "text": "put ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "some",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "463ee578-3305-45d3-89df-d9f794ec84a1",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "country blues",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "188a93b3-991e-4dd3-a832-22609729b568",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Queens of the stone age",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d8839581-1a5b-4cb3-a95c-ee4eba449921",
+    "data": [
+      {
+        "text": "No Scrubs",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " song play",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "41fd1f25-e099-4612-a8ba-8ebc1a1e0035",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "How do I Live",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "1d9df822-ccae-4427-8231-a24d6361bdb3",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "The marshall mathers",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Eminem",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "b20f0ae3-164f-401f-84c9-aa9634b60c38",
+    "data": [
+      {
+        "text": "play album ",
+        "userDefined": false
+      },
+      {
+        "text": "Horses",
+        "alias": "album",
+        "meta": "@music-album",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "b9663329-579d-421c-8721-8d1809c0d225",
+    "data": [
+      {
+        "text": "play a song ",
+        "userDefined": false
+      },
+      {
+        "text": "Tera Mera Rishta",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "d38034bf-c988-400d-8406-c41890899fbe",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "The Antlers",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "8c0fb53f-14ec-4b1a-86b0-0e92ea9988e2",
+    "data": [
+      {
+        "text": "Play",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "chill",
+        "alias": "playlist",
+        "meta": "@playlist",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "f370ceb8-c706-4770-b13f-9bb3c158161a",
+    "data": [
+      {
+        "text": "play a ",
+        "userDefined": false
+      },
+      {
+        "text": "rock",
+        "alias": "genre",
+        "meta": "@sys.music-genre",
+        "userDefined": true
+      },
+      {
+        "text": " song",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "92e80d1f-7a17-433b-8e4c-2a884c398277",
+    "data": [
+      {
+        "text": "turn ",
+        "userDefined": false
+      },
+      {
+        "text": "on",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " the ",
+        "userDefined": false
+      },
+      {
+        "text": "music",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "7ac433c5-387a-4e3c-9b21-4bbf86cf54b4",
+    "data": [
+      {
+        "text": "can you play some music",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "a40407bb-38e5-4ba7-b64c-e77b902d61b3",
+    "data": [
+      {
+        "text": "play song ",
+        "userDefined": false
+      },
+      {
+        "text": "Krystof",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      },
+      {
+        "text": " ",
+        "userDefined": false
+      },
+      {
+        "text": "Tak Pojd Hlwdat Breh",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 45,
+    "updated": 0
+  },
+  {
+    "id": "ab2f6e07-3af3-4000-9c4a-bc62cb2f09d4",
+    "data": [
+      {
+        "text": "play ",
+        "userDefined": false
+      },
+      {
+        "text": "Focus",
+        "alias": "song",
+        "meta": "@song",
+        "userDefined": true
+      },
+      {
+        "text": " by ",
+        "userDefined": false
+      },
+      {
+        "text": "Ariana Grande",
+        "alias": "artist",
+        "meta": "@sys.music-artist",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "id": "6315f5ee-327f-4c47-8512-b5fe0bebe020",
+  "name": "music_player_control.add_playlist",
+  "auto": true,
+  "contexts": [
+    "music-player-control"
+  ],
+  "responses": [
+    {
+      "resetContexts": false,
+      "action": "music_player_control.add_playlist",
+      "affectedContexts": [
+        {
+          "name": "music-player-control",
+          "parameters": {},
+          "lifespan": 3
+        }
+      ],
+      "parameters": [
+        {
+          "id": "ee99ad29-dd22-4209-8a6e-bc6318c036e6",
+          "dataType": "@sys.any",
+          "name": "playlist",
+          "value": "$playlist",
+          "isList": false
+        }
+      ],
+      "messages": [
+        {
+          "type": 0,
+          "lang": "en",
+          "speech": []
+        }
+      ],
+      "defaultResponsePlatforms": {},
+      "speech": []
+    }
+  ],
+  "priority": 500000,
+  "webhookUsed": false,
+  "webhookForSlotFilling": false,
+  "lastUpdate": 1496995044571,
+  "fallbackIntent": false,
+  "events": []
+}
