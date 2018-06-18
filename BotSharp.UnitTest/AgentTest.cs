@@ -82,9 +82,7 @@ namespace BotSharp.UnitTest
 
             var rasa = new RasaAi(dc, config);
 
-            string msg = rasa.TrainWithContexts();
-
-            Assert.IsTrue(!String.IsNullOrEmpty(msg));
+            rasa.TrainWithContexts();
         }
     }
 }

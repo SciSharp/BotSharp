@@ -7,11 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\**" />
     <Compile Remove="App_Data\DbInitializer\Agents\Dialogflow\Voicebot\**" />
-    <EmbeddedResource Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\**" />
     <EmbeddedResource Remove="App_Data\DbInitializer\Agents\Dialogflow\Voicebot\**" />
-    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\VirtualAssistant\**" />
     <None Remove="App_Data\DbInitializer\Agents\Dialogflow\Voicebot\**" />
   </ItemGroup>
 

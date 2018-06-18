@@ -108,6 +108,12 @@ namespace BotSharp.Core.Engines
                             {
                                 string expressionJson = File.ReadAllText($"{expressionFileName}");
                                 intent.UserSays = JsonConvert.DeserializeObject<List<DialogflowIntentExpression>>(expressionJson);
+
+                                // remove @sys.ignore
+                                intent.UserSays.ForEach(say =>
+                                {
+                                    say.Data.Where(x => x.Meta == "@sys.ignore").ToList().ForEach(x => x.Meta = null);
+                                });
                             }
                         }
 

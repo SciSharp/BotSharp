@@ -93,6 +93,7 @@ namespace BotSharp.Core.Agents
                     {
                         Intent = intent.Name,
                         Text = String.Join("", exp.Data.OrderBy(x => x.UpdatedTime).Select(x => x.Text)),
+                        ContextHash = intent.ContextHash
                     };
 
                     // convert entity format
@@ -136,6 +137,9 @@ namespace BotSharp.Core.Agents
                     trainingData.UserSays.Add(say);
                 });
             });
+
+            // remove Default Fallback Intent
+            trainingData.UserSays = trainingData.UserSays.Where(x => x.Intent != "Default Fallback Intent").ToList();
 
             return trainingData;
         }
