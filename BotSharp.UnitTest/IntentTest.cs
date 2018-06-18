@@ -20,8 +20,8 @@ namespace BotSharp.UnitTest
             var rasa = new RasaAi(dc, config);
 
             // Round 1
-            var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Hi" } });
-            Assert.AreEqual(response.Result.Metadata.IntentName, "greet");
+            var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Can you play country music?" } });
+            Assert.AreEqual(response.Result.Metadata.IntentName, "music.play");
         }
     }
 }

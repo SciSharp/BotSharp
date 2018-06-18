@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Entities;
+using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +75,49 @@ namespace BotSharp.Core.Engines
                 var result = JObject.Parse(response.Content);
 
                 string modelName = result["info"].Value<String>().Split(": ")[1];
+
+                return modelName;
+            }
+            else
+            {
+                var result = JObject.Parse(response.Content);
+
+                Console.WriteLine(result["error"]);
+
+                return String.Empty;
+            }
+        }
+
+        public string TrainWithContexts()
+        {
+            var corpus = agent.GrabCorpus(dc);
+
+            string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
+                new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    NullValueHandling = NullValueHandling.Ignore
+                });
+
+            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Host").Value}");
+            var rest = new RestRequest("train", Method.POST);
+            rest.AddQueryParameter("project", agent.Id);
+            rest.AddParameter("application/json", json, ParameterType.RequestBody);
+
+            var response = client.Execute(rest);
+
+            if (response.IsSuccessful)
+            {
+                var result = JObject.Parse(response.Content);
+
+                string modelName = result["info"].Value<String>().Split(": ")[1];
+
+                dc.Table<ContextModelMapping>().Add(new ContextModelMapping
+                {
+                    AgentId = agent.Id,
+                    ModelName = modelName,
+                    //ContextId = contextId
+                });
 
                 return modelName;
             }

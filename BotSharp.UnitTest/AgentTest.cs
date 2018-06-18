@@ -73,5 +73,18 @@ namespace BotSharp.UnitTest
 
             Assert.IsTrue(!String.IsNullOrEmpty(msg));
         }
+
+        [TestMethod]
+        public void TrainAgentPerContextTest()
+        {
+            var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
+            config.SessionId = Guid.NewGuid().ToString();
+
+            var rasa = new RasaAi(dc, config);
+
+            string msg = rasa.TrainWithContexts();
+
+            Assert.IsTrue(!String.IsNullOrEmpty(msg));
+        }
     }
 }

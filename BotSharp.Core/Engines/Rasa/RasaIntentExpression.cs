@@ -12,6 +12,7 @@ namespace BotSharp.Core.Models
 
         public String Text { get; set; }
         public String Intent { get; set; }
+        public String ContextHash { get; set; }
         public List<RasaIntentExpressionPart> Entities { get; set; }
     }
 }

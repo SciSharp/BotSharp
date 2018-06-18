@@ -83,6 +83,8 @@ namespace BotSharp.Core.Engines
                         intentJson = intentJson.Replace("\"prompts\":", "\"promptList\":");
 
                         var intent = JsonConvert.DeserializeObject<DialogflowIntent>(intentJson);
+                        // void id confict
+                        intent.Id = Guid.NewGuid().ToString();
                         intent.Name = intent.Name.Replace("/","_");
                         // load user expressions
                         if (fileName.Contains("Default Fallback Intent"))

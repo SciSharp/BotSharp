@@ -113,8 +113,9 @@ namespace BotSharp.Core.Engines
                     response.Intent
                 };
             }
-            response.IntentRanking = response.IntentRanking
-                .Where(x => x.Confidence > decimal.Parse("0.2") && intents.Select(i => i.Name).Contains(x.Name)).ToList();
+
+            response.IntentRanking = response.IntentRanking.Where(x => x.Confidence > decimal.Parse("0.1")).ToList();
+            response.IntentRanking = response.IntentRanking.Where(x => intents.Select(i => i.Name).Contains(x.Name)).ToList();
 
             // add Default Fallback Intent 
             if (response.IntentRanking.Count == 0)
@@ -314,23 +315,10 @@ namespace BotSharp.Core.Engines
                 }
             }).OrderByDescending(x => x.Contexts.Count).ToList();
 
-            // training per request contexts
+            // query per request contexts
             {
                 string contextId = $"{String.Join(',', contexts.Select(x => x.Name))}".GetMd5Hash();
                 string modelName = dc.Table<ContextModelMapping>().FirstOrDefault(x => x.ContextId == contextId)?.ModelName;
-                // need training
-                if (String.IsNullOrEmpty(modelName))
-                {
-                    request.Contexts = contexts.Select(x => new AIContext { Name = x.Name.ToLower() })
-                    .OrderBy(x => x.Name)
-                    .ToList();
-
-                    dc.DbTran(() =>
-                    {
-                        modelName = TrainWithContexts(rasa, dc, request, contextId);
-                    });
-                }
-
                 var result = CallRasa(rasa.agent.Id, request.Query.First(), modelName);
 
                 if (result.Data.Intent != null)
@@ -350,15 +338,6 @@ namespace BotSharp.Core.Engines
                     string contextId = $"{String.Join(',', request.Contexts.Select(x => x.Name))}".GetMd5Hash();
 
                     string modelName = dc.Table<ContextModelMapping>().FirstOrDefault(x => x.ContextId == contextId)?.ModelName;
-
-                    // need training
-                    if (String.IsNullOrEmpty(modelName))
-                    {
-                        dc.DbTran(() =>
-                        {
-                            modelName = TrainWithContexts(rasa, dc, request, contextId);
-                        });
-                    }
 
                     var result = CallRasa(rasa.agent.Id, request.Query.First(), modelName);
 
@@ -469,75 +448,6 @@ namespace BotSharp.Core.Engines
                 .ToArray();
 
             return aiResponse;
-        }
-
-        /// <summary>
-        /// Need two categories at least
-        /// </summary>
-        /// <param name="console"></param>
-        /// <param name="dc"></param>
-        /// <param name="request"></param>
-        /// <param name="contextId"></param>
-        /// <returns></returns>
-        public static string TrainWithContexts(this RasaAi console, Database dc, AIRequest request, String contextId)
-        {
-            var corpus = console.agent.GrabCorpusPerContexts(dc, request.Contexts);
-
-            corpus.UserSays.Add(new RasaIntentExpression
-            {
-                Intent = "Welcome",
-                Text = "Hi"
-            });
-
-            corpus.UserSays.Add(new RasaIntentExpression
-            {
-                Intent = "Welcome",
-                Text = "Hey"
-            });
-
-            corpus.UserSays.Add(new RasaIntentExpression
-            {
-                Intent = "Welcome",
-                Text = "Hello"
-            });
-
-            string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
-                new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
-                });
-
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Host").Value}");
-            var rest = new RestRequest("train", Method.POST);
-            rest.AddQueryParameter("project", console.agent.Id);
-            rest.AddParameter("application/json", json, ParameterType.RequestBody);
-
-            var response = client.Execute(rest);
-
-            if (response.IsSuccessful)
-            {
-                var result = JObject.Parse(response.Content);
-
-                string modelName = result["info"].Value<String>().Split(": ")[1];
-
-                dc.Table<ContextModelMapping>().Add(new ContextModelMapping
-                {
-                    AgentId = console.agent.Id,
-                    ModelName = modelName,
-                    ContextId = contextId
-                });
-
-                return modelName;
-            }
-            else
-            {
-                var result = JObject.Parse(response.Content);
-
-                Console.WriteLine(result["error"]);
-
-                return String.Empty;
-            }
         }
     }
 }
