@@ -228,7 +228,11 @@ namespace BotSharp.Core.Engines
             var reg = new Regex(@"\$\w+");
 
             reg.Matches(text).ToList().ForEach(token => {
-                text = text.Replace(token.Value, parameters.FirstOrDefault(x => x.Name == token.Value.Substring(1))?.Value.ToString());
+                var parameter = parameters.FirstOrDefault(x => x.Name == token.Value.Substring(1));
+                if(parameter != null)
+                {
+                    text = text.Replace(token.Value, parameter?.Value?.ToString());
+                }
             });
 
             return text;
