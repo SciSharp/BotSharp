@@ -85,7 +85,6 @@ namespace BotSharp.Core.Engines
         public void TrainWithContexts()
         {
             var corpus = agent.GrabCorpus(dc);
-
             var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
 
             var contextHashs = corpus.UserSays
@@ -95,10 +94,25 @@ namespace BotSharp.Core.Engines
 
             contextHashs.ForEach(ctx =>
             {
+                var common_examples = corpus.UserSays.Where(x => x.ContextHash == ctx || x.ContextHash == Guid.Empty.ToString("N")).ToList();
+
+                // assemble entity and synonyms
+                var usedEntities = new List<String>();
+                common_examples.ForEach(x =>
+                {
+                    if (x.Entities != null)
+                    {
+                        usedEntities.AddRange(x.Entities.Select(y => y.Entity));
+                    }
+                });
+                usedEntities = usedEntities.Distinct().ToList();
+
+                var entity_synonyms = corpus.Entities.Where(x => usedEntities.Contains(x.EntityType)).ToList();
+
                 var data = new RasaTrainingData
                 {
-                    Entities = corpus.Entities,
-                    UserSays = corpus.UserSays.Where(x => x.ContextHash == ctx).ToList()
+                    Entities = entity_synonyms,
+                    UserSays = common_examples
                 };
 
                 // meet minimal requirement
