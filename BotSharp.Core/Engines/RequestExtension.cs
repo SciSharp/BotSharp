@@ -30,7 +30,12 @@ namespace BotSharp.Core.Engines
             AIResponse aiResponse = new AIResponse();
             Database dc = rasa.dc;
 
+#if MODEL_PER_CONTEXTS
+            string model = GetModelPerContexts(rasa, request);
+            var result = CallRasa(rasa.agent.Id, request.Query.First(), model);
+#else
             var result = CallRasa(rasa.agent.Id, request.Query.First(), rasa.agent.Id);
+#endif
             RasaResponse response = result.Data;
             aiResponse.Id = Guid.NewGuid().ToString();
             aiResponse.Lang = rasa.agent.Language;
@@ -39,10 +44,10 @@ namespace BotSharp.Core.Engines
             aiResponse.Timestamp = DateTime.UtcNow;
 
             var intentResponse = HandleIntentPerContextIn(rasa, request, result.Data);
-            bool missedRequiredField = HandleParameter(rasa.agent, intentResponse, response, request);
+            HandleParameter(rasa.agent, intentResponse, response, request);
 
             HandleMessage(intentResponse);
-
+            
             aiResponse.Result = new AIResponseResult
             {
                 Source = "agent",
@@ -113,8 +118,9 @@ namespace BotSharp.Core.Engines
                     response.Intent
                 };
             }
-            response.IntentRanking = response.IntentRanking
-                .Where(x => x.Confidence > decimal.Parse("0.2") && intents.Select(i => i.Name).Contains(x.Name)).ToList();
+
+            response.IntentRanking = response.IntentRanking.Where(x => x.Confidence > decimal.Parse("0.3")).ToList();
+            response.IntentRanking = response.IntentRanking.Where(x => intents.Select(i => i.Name).Contains(x.Name)).ToList();
 
             // add Default Fallback Intent 
             if (response.IntentRanking.Count == 0)
@@ -131,7 +137,7 @@ namespace BotSharp.Core.Engines
 
             var intent = (dc.Table<Intent>().Where(x => x.AgentId == rasa.agent.Id && x.Name == response.Intent.Name)
                 .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Parameters)
+                .Include(x => x.Responses).ThenInclude(x => x.Parameters).ThenInclude(x => x.Prompts)
                 .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
 
             var intentResponse = ArrayHelper.GetRandom(intent.Responses);
@@ -149,9 +155,9 @@ namespace BotSharp.Core.Engines
         /// <param name="response"></param>
         /// <param name="request"></param>
         /// <returns>Required field is missed</returns>
-        private static bool HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
+        private static void HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
         {
-            if (intentResponse == null) return false;
+            if (intentResponse == null) return;
 
             intentResponse.Parameters.ForEach(p => {
                 string query = request.Query.First();
@@ -164,10 +170,14 @@ namespace BotSharp.Core.Engines
                 // convert to Standard entity value
                 if (!String.IsNullOrEmpty(p.Value) && !p.DataType.StartsWith("@sys."))
                 {
-                    p.Value = agent.Entities.FirstOrDefault(x => x.Name == p.Name).Entries.FirstOrDefault((entry) => {
-                        return entry.Value.ToLower() == p.Value.ToLower() ||
-                            entry.Synonyms.Select(synonym => synonym.Synonym.ToLower()).Contains(p.Value.ToLower());
-                    })?.Value;
+                    p.Value = agent.Entities
+                        .FirstOrDefault(x => x.Name == p.DataType.Substring(1))
+                        .Entries
+                        .FirstOrDefault((entry) =>
+                        {
+                            return entry.Value.ToLower() == p.Value.ToLower() ||
+                                entry.Synonyms.Select(synonym => synonym.Synonym.ToLower()).Contains(p.Value.ToLower());
+                        })?.Value;
                 }
 
                 // fixed entity per request
@@ -183,15 +193,29 @@ namespace BotSharp.Core.Engines
                     }
                 }
             });
-
-            return intentResponse.Parameters.Any(x => x.Required && String.IsNullOrEmpty(x.Value));
         }
 
         private static void HandleMessage(IntentResponse intentResponse)
         {
             if (intentResponse == null) return;
 
-            intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
+            var missingRequiredParameter = intentResponse.Parameters.FirstOrDefault(x => x.Required && String.IsNullOrEmpty(x.Value));
+            if (missingRequiredParameter != null)
+            {
+                intentResponse.Messages = new List<IntentResponseMessage> {
+                    new IntentResponseMessage {
+                        Type = AIResponseMessageType.Text,
+                        Speech = ArrayHelper.GetRandom(missingRequiredParameter.Prompts).Prompt,
+                        IntentResponseId = intentResponse.Id,
+                        UpdatedTime = DateTime.UtcNow
+                    }
+                };
+            }
+            else
+            {
+                intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
+            }
+            
             intentResponse.Messages.ToList()
                 .ForEach(msg =>
                 {
@@ -201,11 +225,14 @@ namespace BotSharp.Core.Engines
                     }
                     else
                     {
-                        msg.Speech = msg.Speech.StartsWith("[") ?
+                        if (msg.Speech != "[]")
+                        {
+                            msg.Speech = msg.Speech.StartsWith("[") ?
                             ArrayHelper.GetRandom(msg.Speech.Substring(2, msg.Speech.Length - 4).Split("\",\"").ToList()) :
                             msg.Speech;
 
-                        msg.Speech = ReplaceParameters4Response(intentResponse.Parameters, msg.Speech);
+                            msg.Speech = ReplaceParameters4Response(intentResponse.Parameters, msg.Speech);
+                        }
                     }
                 });
         }
@@ -215,7 +242,11 @@ namespace BotSharp.Core.Engines
             var reg = new Regex(@"\$\w+");
 
             reg.Matches(text).ToList().ForEach(token => {
-                text = text.Replace(token.Value, parameters.FirstOrDefault(x => x.Name == token.Value.Substring(1))?.Value.ToString());
+                var parameter = parameters.FirstOrDefault(x => x.Name == token.Value.Substring(1));
+                if(parameter != null)
+                {
+                    text = text.Replace(token.Value, parameter?.Value?.ToString());
+                }
             });
 
             return text;
@@ -284,10 +315,8 @@ namespace BotSharp.Core.Engines
             return client.Execute<RasaResponse>(rest);
         }
 
-        public static AIResponse TextRequestPerContexts(this RasaAi rasa, AIRequest request)
+        private static string GetModelPerContexts(RasaAi rasa, AIRequest request)
         {
-            AIResponse aiResponse = new AIResponse();
-            RasaResponse response = null;
             Database dc = rasa.dc;
 
             // Merge input contexts
@@ -314,230 +343,10 @@ namespace BotSharp.Core.Engines
                 }
             }).OrderByDescending(x => x.Contexts.Count).ToList();
 
-            // training per request contexts
-            {
-                string contextId = $"{String.Join(',', contexts.Select(x => x.Name))}".GetMd5Hash();
-                string modelName = dc.Table<ContextModelMapping>().FirstOrDefault(x => x.ContextId == contextId)?.ModelName;
-                // need training
-                if (String.IsNullOrEmpty(modelName))
-                {
-                    request.Contexts = contexts.Select(x => new AIContext { Name = x.Name.ToLower() })
-                    .OrderBy(x => x.Name)
-                    .ToList();
+            // query per request contexts
+            var contextHashs = intents.Select(x => x.ContextHash).Distinct().ToList();
 
-                    dc.DbTran(() =>
-                    {
-                        modelName = TrainWithContexts(rasa, dc, request, contextId);
-                    });
-                }
-
-                var result = CallRasa(rasa.agent.Id, request.Query.First(), modelName);
-
-                if (result.Data.Intent != null)
-                {
-                    response = result.Data;
-                }
-            }
-
-            // Max contexts match
-            if (response == null)
-            {
-                foreach (var it in intents)
-                {
-                    request.Contexts = it.Contexts.Select(x => new AIContext { Name = x.Name.ToLower() })
-                        .OrderBy(x => x.Name)
-                        .ToList();
-                    string contextId = $"{String.Join(',', request.Contexts.Select(x => x.Name))}".GetMd5Hash();
-
-                    string modelName = dc.Table<ContextModelMapping>().FirstOrDefault(x => x.ContextId == contextId)?.ModelName;
-
-                    // need training
-                    if (String.IsNullOrEmpty(modelName))
-                    {
-                        dc.DbTran(() =>
-                        {
-                            modelName = TrainWithContexts(rasa, dc, request, contextId);
-                        });
-                    }
-
-                    var result = CallRasa(rasa.agent.Id, request.Query.First(), modelName);
-
-                    if (result.Data.Intent != null)
-                    {
-                        response = result.Data;
-                        break;
-                    }
-                };
-            }
-
-            var intent = (dc.Table<Intent>().Where(x => x.Name == response.Intent.Name)
-                .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Parameters)
-                .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
-
-            var intentResponse = ArrayHelper.GetRandom(intent.Responses);
-            aiResponse.Id = Guid.NewGuid().ToString();
-            aiResponse.Lang = rasa.agent.Language;
-            aiResponse.Status = new AIResponseStatus { };
-            aiResponse.SessionId = rasa.AiConfig.SessionId;
-            aiResponse.Timestamp = DateTime.UtcNow;
-            intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
-            intentResponse.Messages.ToList()
-                .ForEach(msg =>
-                {
-                    if (msg.Type == AIResponseMessageType.Custom)
-                    {
-
-                    }
-                    else
-                    {
-                        msg.Speech = msg.Speech.StartsWith("[") ?
-                            ArrayHelper.GetRandom(msg.Speech.Substring(2, msg.Speech.Length - 4).Split("\",\"").ToList()) :
-                            msg.Speech;
-                    }
-                });
-
-            aiResponse.Result = new AIResponseResult
-            {
-                Source = "agent",
-                ResolvedQuery = request.Query.First(),
-                Action = intentResponse.Action,
-                Parameters = new Dictionary<string, string>(),
-                Score = response.Intent.Confidence,
-                Metadata = new AIResponseMetadata { IntentId = intent.Id, IntentName = intent.Name },
-                Fulfillment = new AIResponseFulfillment
-                {
-                    Messages = intentResponse.Messages.Select(x => {
-                        if (x.Type == AIResponseMessageType.Custom)
-                        {
-                            return (new
-                            {
-                                x.Type,
-                                x.Payload
-                            }) as Object;
-                        }
-                        else
-                        {
-                            return (new { x.Type, x.Speech }) as Object;
-                        }
-
-                    }).ToList()
-                }
-            };
-
-            // Merge context lifespan
-            // override if exists, otherwise add, delete if lifespan is zero
-            dc.DbTran(() =>
-            {
-                var sessionContexts = dc.Table<ConversationContext>().Where(x => x.ConversationId == rasa.AiConfig.SessionId).ToList();
-
-                // minus 1 round
-                sessionContexts.Where(x => !intentResponse.Contexts.Select(ctx => ctx.Name).Contains(x.Context))
-                    .ToList()
-                    .ForEach(ctx => ctx.Lifespan = ctx.Lifespan - 1);
-
-                intentResponse.Contexts.ForEach(ctx =>
-                {
-                    var session1 = sessionContexts.FirstOrDefault(x => x.Context == ctx.Name);
-
-                    if (session1 != null)
-                    {
-                        if (ctx.Lifespan == 0)
-                        {
-                            dc.Table<ConversationContext>().Remove(session1);
-                        }
-                        else
-                        {
-                            session1.Lifespan = ctx.Lifespan;
-                        }
-                    }
-                    else
-                    {
-                        dc.Table<ConversationContext>().Add(new ConversationContext
-                        {
-                            ConversationId = rasa.AiConfig.SessionId,
-                            Context = ctx.Name,
-                            Lifespan = ctx.Lifespan
-                        });
-                    }
-                });
-            });
-
-            aiResponse.Result.Contexts = dc.Table<ConversationContext>()
-                .Where(x => x.ConversationId == rasa.AiConfig.SessionId)
-                .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
-                .ToArray();
-
-            return aiResponse;
-        }
-
-        /// <summary>
-        /// Need two categories at least
-        /// </summary>
-        /// <param name="console"></param>
-        /// <param name="dc"></param>
-        /// <param name="request"></param>
-        /// <param name="contextId"></param>
-        /// <returns></returns>
-        public static string TrainWithContexts(this RasaAi console, Database dc, AIRequest request, String contextId)
-        {
-            var corpus = console.agent.GrabCorpusPerContexts(dc, request.Contexts);
-
-            corpus.UserSays.Add(new RasaIntentExpression
-            {
-                Intent = "Welcome",
-                Text = "Hi"
-            });
-
-            corpus.UserSays.Add(new RasaIntentExpression
-            {
-                Intent = "Welcome",
-                Text = "Hey"
-            });
-
-            corpus.UserSays.Add(new RasaIntentExpression
-            {
-                Intent = "Welcome",
-                Text = "Hello"
-            });
-
-            string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
-                new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
-                });
-
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Host").Value}");
-            var rest = new RestRequest("train", Method.POST);
-            rest.AddQueryParameter("project", console.agent.Id);
-            rest.AddParameter("application/json", json, ParameterType.RequestBody);
-
-            var response = client.Execute(rest);
-
-            if (response.IsSuccessful)
-            {
-                var result = JObject.Parse(response.Content);
-
-                string modelName = result["info"].Value<String>().Split(": ")[1];
-
-                dc.Table<ContextModelMapping>().Add(new ContextModelMapping
-                {
-                    AgentId = console.agent.Id,
-                    ModelName = modelName,
-                    ContextId = contextId
-                });
-
-                return modelName;
-            }
-            else
-            {
-                var result = JObject.Parse(response.Content);
-
-                Console.WriteLine(result["error"]);
-
-                return String.Empty;
-            }
+            return contextHashs.FirstOrDefault();
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿using EntityFrameworkCore.BootKit;
+﻿using DotNetToolkit;
+using EntityFrameworkCore.BootKit;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Text;
 
 namespace BotSharp.Core.Intents
@@ -25,6 +27,20 @@ namespace BotSharp.Core.Intents
 
         [ForeignKey("IntentId")]
         public List<IntentInputContext> Contexts { get; set; }
+
+        /// <summary>
+        /// Get input contexts hash
+        /// </summary>
+        [NotMapped]
+        public String ContextHash
+        {
+            get
+            {
+                return Contexts == null || Contexts.Count == 0
+                    ? Guid.Empty.ToString("N")
+                    : $"{String.Join(',', Contexts.OrderBy(x => x.Name).Select(x => x.Name))}".GetMd5Hash();
+            }
+        }
 
         [ForeignKey("IntentId")]
         public List<IntentExpression> UserSays { get; set; }

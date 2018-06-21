@@ -83,6 +83,8 @@ namespace BotSharp.Core.Engines
                         intentJson = intentJson.Replace("\"prompts\":", "\"promptList\":");
 
                         var intent = JsonConvert.DeserializeObject<DialogflowIntent>(intentJson);
+                        // void id confict
+                        intent.Id = Guid.NewGuid().ToString();
                         intent.Name = intent.Name.Replace("/","_");
                         // load user expressions
                         if (fileName.Contains("Default Fallback Intent"))
@@ -106,6 +108,12 @@ namespace BotSharp.Core.Engines
                             {
                                 string expressionJson = File.ReadAllText($"{expressionFileName}");
                                 intent.UserSays = JsonConvert.DeserializeObject<List<DialogflowIntentExpression>>(expressionJson);
+
+                                // remove @sys.ignore
+                                intent.UserSays.ForEach(say =>
+                                {
+                                    say.Data.Where(x => x.Meta == "@sys.ignore").ToList().ForEach(x => x.Meta = null);
+                                });
                             }
                         }
 

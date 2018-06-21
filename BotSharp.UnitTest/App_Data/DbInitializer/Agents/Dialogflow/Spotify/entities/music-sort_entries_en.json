@@ -1,0 +1,28 @@
+[
+  {
+    "value": "top",
+    "synonyms": [
+      "top",
+      "popular",
+      "most popular"
+    ]
+  },
+  {
+    "value": "latest",
+    "synonyms": [
+      "latest",
+      "last",
+      "new",
+      "newest"
+    ]
+  },
+  {
+    "value": "best",
+    "synonyms": [
+      "best",
+      "good",
+      "greatest",
+      "the greatest"
+    ]
+  }
+]

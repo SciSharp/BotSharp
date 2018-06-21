@@ -7,6 +7,7 @@ namespace BotSharp.Core.Adapters.Rasa
 {
     public class RasaTraningEntity
     {
+        [JsonIgnore]
         public String EntityType { get; set; }
 
         [JsonProperty("value")]

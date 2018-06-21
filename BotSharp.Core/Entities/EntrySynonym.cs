@@ -14,7 +14,7 @@ namespace BotSharp.Core.Entities
         [StringLength(36)]
         public String EntityEntryId { get; set; }
 
-        [MaxLength(64)]
+        [MaxLength(128)]
         public String Synonym { get; set; }
     }
 }

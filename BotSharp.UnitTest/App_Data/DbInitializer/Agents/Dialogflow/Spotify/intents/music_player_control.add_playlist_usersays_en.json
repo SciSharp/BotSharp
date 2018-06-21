@@ -1,0 +1,155 @@
+[
+  {
+    "id": "f41942b0-e652-47a5-8e01-b0580c87e98a",
+    "data": [
+      {
+        "text": "put it into the playlist ",
+        "userDefined": false
+      },
+      {
+        "text": "Running",
+        "alias": "playlist",
+        "meta": "@sys.any",
+        "userDefined": true
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "2f1ff037-28e1-401f-b978-034c2c9c89a8",
+    "data": [
+      {
+        "text": "put it on my ",
+        "userDefined": false
+      },
+      {
+        "text": "Late Night",
+        "alias": "playlist",
+        "meta": "@sys.any",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "533c99cb-c20b-46c7-a57d-702ac28dce06",
+    "data": [
+      {
+        "text": "move it to the ",
+        "userDefined": false
+      },
+      {
+        "text": "Gym",
+        "alias": "playlist",
+        "meta": "@sys.any",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "4d9d5238-1395-41bd-9b3e-44e54f460717",
+    "data": [
+      {
+        "text": "save ",
+        "userDefined": false
+      },
+      {
+        "text": "this",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " song to my ",
+        "userDefined": false
+      },
+      {
+        "text": "Workout",
+        "alias": "playlist",
+        "meta": "@sys.any",
+        "userDefined": true
+      },
+      {
+        "text": " playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "0762f05b-407d-4381-b5ec-fa92b1c07cd5",
+    "data": [
+      {
+        "text": "add ",
+        "userDefined": false
+      },
+      {
+        "text": "this",
+        "meta": "@sys.ignore",
+        "userDefined": true
+      },
+      {
+        "text": " song to my playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "5fb50231-4168-4872-90d5-b97a57a4a0f3",
+    "data": [
+      {
+        "text": "add it to the playlist ",
+        "userDefined": false
+      },
+      {
+        "text": "Yoga",
+        "alias": "playlist",
+        "meta": "@sys.any",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  },
+  {
+    "id": "6608f743-b21c-403c-aa74-7f5d7ac39986",
+    "data": [
+      {
+        "text": "save ",
+        "userDefined": false
+      },
+      {
+        "text": "this",
+        "meta": "@sys.ignore",
+        "userDefined": false
+      },
+      {
+        "text": " track in my playlist",
+        "userDefined": false
+      }
+    ],
+    "isTemplate": false,
+    "count": 0,
+    "updated": 0
+  }
+]

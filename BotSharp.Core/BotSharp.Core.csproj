@@ -23,6 +23,10 @@
     <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;MODEL_PER_CONTEXTS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="DotNetToolkit" Version="1.4.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.6.0" />

@@ -1,0 +1,737 @@
+[
+  {
+    "value": "Achtung Baby",
+    "synonyms": [
+      "Achtung Baby"
+    ]
+  },
+  {
+    "value": "At Folsom Prison",
+    "synonyms": [
+      "At Folsom Prison"
+    ]
+  },
+  {
+    "value": "Brain",
+    "synonyms": [
+      "Brain"
+    ]
+  },
+  {
+    "value": "Exodus",
+    "synonyms": [
+      "Exodus"
+    ]
+  },
+  {
+    "value": "Marquee Moon",
+    "synonyms": [
+      "Marquee Moon"
+    ]
+  },
+  {
+    "value": "Pet Sounds",
+    "synonyms": [
+      "Pet Sounds"
+    ]
+  },
+  {
+    "value": "Revolver",
+    "synonyms": [
+      "Revolver"
+    ]
+  },
+  {
+    "value": "Stand!",
+    "synonyms": [
+      "Stand!"
+    ]
+  },
+  {
+    "value": "Thriller",
+    "synonyms": [
+      "Thriller"
+    ]
+  },
+  {
+    "value": "Tommy",
+    "synonyms": [
+      "Tommy"
+    ]
+  },
+  {
+    "value": "Burst Apart",
+    "synonyms": [
+      "Burst Apart"
+    ]
+  },
+  {
+    "value": "Closing Time",
+    "synonyms": [
+      "Closing Time"
+    ]
+  },
+  {
+    "value": "Electric Ladyland",
+    "synonyms": [
+      "Electric Ladyland"
+    ]
+  },
+  {
+    "value": "Innervisions",
+    "synonyms": [
+      "Innervisions"
+    ]
+  },
+  {
+    "value": "Love",
+    "synonyms": [
+      "love"
+    ]
+  },
+  {
+    "value": "Power, Corruption \u0026 Lies",
+    "synonyms": [
+      "Power, Corruption \u0026 Lies",
+      "Power Corruption Lies",
+      "corruption and lies"
+    ]
+  },
+  {
+    "value": "Quadrophenia",
+    "synonyms": [
+      "Quadrophenia"
+    ]
+  },
+  {
+    "value": "Songs in the Key of Life",
+    "synonyms": [
+      "Songs in the Key of Life"
+    ]
+  },
+  {
+    "value": "The Wall",
+    "synonyms": [
+      "The Wall"
+    ]
+  },
+  {
+    "value": "American Beauty",
+    "synonyms": [
+      "American Beauty"
+    ]
+  },
+  {
+    "value": "Blue",
+    "synonyms": [
+      "Blue"
+    ]
+  },
+  {
+    "value": "Born to Run",
+    "synonyms": [
+      "Born to Run"
+    ]
+  },
+  {
+    "value": "Bringing It All Back Home",
+    "synonyms": [
+      "Bringing It All Back Home"
+    ]
+  },
+  {
+    "value": "Daydream Nation",
+    "synonyms": [
+      "Daydream Nation"
+    ]
+  },
+  {
+    "value": "Divorcio",
+    "synonyms": [
+      "Divorcio"
+    ]
+  },
+  {
+    "value": "Let It Be",
+    "synonyms": [
+      "Let It Be"
+    ]
+  },
+  {
+    "value": "\u0027Live\u0027 at The Apollo",
+    "synonyms": [
+      "Live at The Apollo"
+    ]
+  },
+  {
+    "value": "Magical Mystery Tour",
+    "synonyms": [
+      "Magical Mystery Tour"
+    ]
+  },
+  {
+    "value": "Paul\u0027s Boutique",
+    "synonyms": [
+      "Paul s Boutique, Pauls Boutique"
+    ]
+  },
+  {
+    "value": "Sgt. Pepper\u0027s Lonely Hearts Club Band",
+    "synonyms": [
+      "Sgt Pepper s Lonely Hearts Club Band, Sgt Peppers Lonely Hearts Club Band"
+    ]
+  },
+  {
+    "value": "Songs about Jane",
+    "synonyms": [
+      "Songs about Jane"
+    ]
+  },
+  {
+    "value": "The Velvet Underground and Nico",
+    "synonyms": [
+      "The Velvet Underground and Nico"
+    ]
+  },
+  {
+    "value": "Un Monde Meilleur",
+    "synonyms": [
+      "Un Monde Meilleur"
+    ]
+  },
+  {
+    "value": "Appetite for Destruction",
+    "synonyms": [
+      "Appetite for Destruction"
+    ]
+  },
+  {
+    "value": "Goodbye Yellow Brick Road",
+    "synonyms": [
+      "Goodbye Yellow Brick Road"
+    ]
+  },
+  {
+    "value": "Highway  Revisited",
+    "synonyms": [
+      "Highway  Revisited"
+    ]
+  },
+  {
+    "value": "Kind of Blue",
+    "synonyms": [
+      "Kind of Blue"
+    ]
+  },
+  {
+    "value": "Layla and Other Assorted Love Songs",
+    "synonyms": [
+      "Layla and Other Assorted Love Songs"
+    ]
+  },
+  {
+    "value": "Led Zeppelin II",
+    "synonyms": [
+      "Led Zeppelin II"
+    ]
+  },
+  {
+    "value": "Led Zeppelin II",
+    "synonyms": [
+      "Led Zeppelin too, Led Zeppelin second, Led Zeppelin two, Led Zeppelin 2, Led Zeppelin II"
+    ]
+  },
+  {
+    "value": "The Clash",
+    "synonyms": [
+      "The Clash"
+    ]
+  },
+  {
+    "value": "The Rise and Fall of Ziggy Stardust and the Spiders From Mars",
+    "synonyms": [
+      "The Rise and Fall of Ziggy Stardust and the Spiders From Mars"
+    ]
+  },
+  {
+    "value": "White",
+    "synonyms": [
+      "White"
+    ]
+  },
+  {
+    "value": "Who\u0027s Next",
+    "synonyms": [
+      "Who s Next, Whos Next"
+    ]
+  },
+  {
+    "value": "After the Gold Rush",
+    "synonyms": [
+      "After the Gold Rush"
+    ]
+  },
+  {
+    "value": "Beggars Banquet",
+    "synonyms": [
+      "Beggars Banquet"
+    ]
+  },
+  {
+    "value": "My Aim Is True",
+    "synonyms": [
+      "My Aim Is True"
+    ]
+  },
+  {
+    "value": "Straight Outta Compton",
+    "synonyms": [
+      "Straight Outta Compton"
+    ]
+  },
+  {
+    "value": "Summer",
+    "synonyms": [
+      "Summer"
+    ]
+  },
+  {
+    "value": "The Joshua Tree",
+    "synonyms": [
+      "The Joshua Tree"
+    ]
+  },
+  {
+    "value": "The Marshall Mathers LP",
+    "synonyms": [
+      "The Marshall Mathers LP",
+      "The Marshall Mathers"
+    ]
+  },
+  {
+    "value": "The Sun Sessions",
+    "synonyms": [
+      "The Sun Sessions"
+    ]
+  },
+  {
+    "value": "Some Girls",
+    "synonyms": [
+      "Some Girls"
+    ]
+  },
+  {
+    "value": "A Love Supreme",
+    "synonyms": [
+      "A Love Supreme"
+    ]
+  },
+  {
+    "value": "Automatic for the People",
+    "synonyms": [
+      "Automatic for the People"
+    ]
+  },
+  {
+    "value": "Moondance",
+    "synonyms": [
+      "Moondance"
+    ]
+  },
+  {
+    "value": "Nevermind",
+    "synonyms": [
+      "Nevermind"
+    ]
+  },
+  {
+    "value": "Raising Hell",
+    "synonyms": [
+      "Raising Hell"
+    ]
+  },
+  {
+    "value": "Tapestry",
+    "synonyms": [
+      "Tapestry"
+    ]
+  },
+  {
+    "value": "Forever Changes",
+    "synonyms": [
+      "Forever Changes"
+    ]
+  },
+  {
+    "value": "In the Court of the Crimson King",
+    "synonyms": [
+      "In the Court of the Crimson King"
+    ]
+  },
+  {
+    "value": "Let It Bleed",
+    "synonyms": [
+      "Let It Bleed"
+    ]
+  },
+  {
+    "value": "Never Mind the Bollocks Here\u0027s the Sex Pistols",
+    "synonyms": [
+      "Never Mind the Bollocks Heres the Sex Pistols, Never Mind the Bollocks Here s the Sex Pistols"
+    ]
+  },
+  {
+    "value": "Winter",
+    "synonyms": [
+      "Winter"
+    ]
+  },
+  {
+    "value": "Wish You Were Here",
+    "synonyms": [
+      "Wish You Were Here"
+    ]
+  },
+  {
+    "value": "19",
+    "synonyms": [
+      "19"
+    ]
+  },
+  {
+    "value": "Abraxas",
+    "synonyms": [
+      "Abraxas"
+    ]
+  },
+  {
+    "value": "Are You Experienced",
+    "synonyms": [
+      "Are You Experienced"
+    ]
+  },
+  {
+    "value": "Astral Weeks",
+    "synonyms": [
+      "Astral Weeks"
+    ]
+  },
+  {
+    "value": "Blonde on Blonde",
+    "synonyms": [
+      "Blonde on Blonde"
+    ]
+  },
+  {
+    "value": "Giant Steps",
+    "synonyms": [
+      "Giant Steps"
+    ]
+  },
+  {
+    "value": "It Takes a Nation of Millions to Hold Us Back",
+    "synonyms": [
+      "It Takes a Nation of Millions to Hold Us Back"
+    ]
+  },
+  {
+    "value": "Modern Sounds in Country and Western Music",
+    "synonyms": [
+      "Modern Sounds in Country and Western Music"
+    ]
+  },
+  {
+    "value": "The Bends",
+    "synonyms": [
+      "The Bends"
+    ]
+  },
+  {
+    "value": "Abbey Road",
+    "synonyms": [
+      "Abbey Road"
+    ]
+  },
+  {
+    "value": "Call Me",
+    "synonyms": [
+      "Call Me"
+    ]
+  },
+  {
+    "value": "Disraeli Gears",
+    "synonyms": [
+      "Disraeli Gears"
+    ]
+  },
+  {
+    "value": "Grace",
+    "synonyms": [
+      "Grace"
+    ]
+  },
+  {
+    "value": "Please Please Me",
+    "synonyms": [
+      "Please Please Me"
+    ]
+  },
+  {
+    "value": "Rumours",
+    "synonyms": [
+      "Rumours"
+    ]
+  },
+  {
+    "value": "Synchronicity",
+    "synonyms": [
+      "Synchronicity"
+    ]
+  },
+  {
+    "value": "Bridge Over Troubled Water",
+    "synonyms": [
+      "Bridge Over Troubled Water"
+    ]
+  },
+  {
+    "value": "Exile on Main St.",
+    "synonyms": [
+      "Exile on Main St"
+    ]
+  },
+  {
+    "value": "John Lennon / Plastic Ono Band",
+    "synonyms": [
+      "John Lennon / Plastic Ono Band"
+    ]
+  },
+  {
+    "value": "Music From Big Pink",
+    "synonyms": [
+      "Music From Big Pink"
+    ]
+  },
+  {
+    "value": "Rocks",
+    "synonyms": [
+      "Rocks"
+    ]
+  },
+  {
+    "value": "Back in Black",
+    "synonyms": [
+      "Back in Black"
+    ]
+  },
+  {
+    "value": "Biagio",
+    "synonyms": [
+      "Biagio"
+    ]
+  },
+  {
+    "value": "Blood on the Tracks",
+    "synonyms": [
+      "Blood on the Tracks"
+    ]
+  },
+  {
+    "value": "Hotel California",
+    "synonyms": [
+      "Hotel California"
+    ]
+  },
+  {
+    "value": "Hunky Dory",
+    "synonyms": [
+      "Hunky Dory"
+    ]
+  },
+  {
+    "value": "Ten",
+    "synonyms": [
+      "Ten"
+    ]
+  },
+  {
+    "value": "The Doors",
+    "synonyms": [
+      "The Doors"
+    ]
+  },
+  {
+    "value": "Californication",
+    "synonyms": [
+      "Californication"
+    ]
+  },
+  {
+    "value": "OK Computer",
+    "synonyms": [
+      "OK Computer"
+    ]
+  },
+  {
+    "value": "What\u0027s Going On",
+    "synonyms": [
+      "Whats Going On, What s Going On"
+    ]
+  },
+  {
+    "value": "Green River",
+    "synonyms": [
+      "Green River"
+    ]
+  },
+  {
+    "value": "Led Zeppelin",
+    "synonyms": [
+      "Led Zeppelin"
+    ]
+  },
+  {
+    "value": "Remain in Light",
+    "synonyms": [
+      "Remain in Light"
+    ]
+  },
+  {
+    "value": "Rubber Soul",
+    "synonyms": [
+      "Rubber Soul"
+    ]
+  },
+  {
+    "value": "The Dark Side of the Moon",
+    "synonyms": [
+      "The Dark Side of the Moon"
+    ]
+  },
+  {
+    "value": "Born in the U.S.A.",
+    "synonyms": [
+      "Born in the USA, Born in the U S A"
+    ]
+  },
+  {
+    "value": "Celebration",
+    "synonyms": [
+      "Celebration"
+    ]
+  },
+  {
+    "value": "Harvest",
+    "synonyms": [
+      "Harvest"
+    ]
+  },
+  {
+    "value": "London Calling",
+    "synonyms": [
+      "London Calling"
+    ]
+  },
+  {
+    "value": "Purple Rain",
+    "synonyms": [
+      "Purple Rain"
+    ]
+  },
+  {
+    "value": "Sign the Times",
+    "synonyms": [
+      "Sign the Times"
+    ]
+  },
+  {
+    "value": "White Album",
+    "synonyms": [
+      "The Beatles White Album, White, White Album"
+    ]
+  },
+  {
+    "value": "Graceland",
+    "synonyms": [
+      "Graceland"
+    ]
+  },
+  {
+    "value": "Horses",
+    "synonyms": [
+      "Horses"
+    ]
+  },
+  {
+    "value": "In Utero",
+    "synonyms": [
+      "In Utero"
+    ]
+  },
+  {
+    "value": "Paid In Full",
+    "synonyms": [
+      "Paid In Full"
+    ]
+  },
+  {
+    "value": "At Fillmore East",
+    "synonyms": [
+      "At Fillmore East"
+    ]
+  },
+  {
+    "value": "Axis Bold as Love",
+    "synonyms": [
+      "Axis Bold as Love"
+    ]
+  },
+  {
+    "value": "Déjà vu",
+    "synonyms": [
+      "Déjà vu"
+    ]
+  },
+  {
+    "value": "Doolittle",
+    "synonyms": [
+      "Doolittle"
+    ]
+  },
+  {
+    "value": "Eat a Peach",
+    "synonyms": [
+      "Eat a Peach"
+    ]
+  },
+  {
+    "value": "I Never Loved a Man the Way I Love You",
+    "synonyms": [
+      "I Never Loved a Man the Way I Love You"
+    ]
+  },
+  {
+    "value": "Love",
+    "synonyms": [
+      "Love"
+    ]
+  },
+  {
+    "value": "Physical Graffiti",
+    "synonyms": [
+      "Physical Graffiti"
+    ]
+  },
+  {
+    "value": "Sticky Fingers",
+    "synonyms": [
+      "Sticky Fingers"
+    ]
+  },
+  {
+    "value": "Surrealistic Pillow",
+    "synonyms": [
+      "Surrealistic Pillow"
+    ]
+  }
+]

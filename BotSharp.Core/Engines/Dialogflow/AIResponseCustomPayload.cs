@@ -8,6 +8,6 @@ namespace BotSharp.Core.Models
     {
         public string Task { get; set; }
 
-        public Object Body { get; set; }
+        public List<String> Parameters { get; set; }
     }
 }
