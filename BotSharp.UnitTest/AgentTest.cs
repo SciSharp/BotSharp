@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -50,7 +51,7 @@ namespace BotSharp.UnitTest
             var rasa = new RasaAi(dc);
             var importer = new AgentImporterInDialogflow();
 
-            string dataDir =  $"{Database.ContentRootPath}\\App_Data\\DbInitializer\\Agents\\";
+            string dataDir =  $"{Database.ContentRootPath}App_Data{Path.DirectorySeparatorChar}DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}";
             var agent = rasa.RestoreAgent(importer, BOT_NAME, dataDir);
             agent.Id = BOT_ID;
             agent.ClientAccessToken = BOT_CLIENT_TOKEN;

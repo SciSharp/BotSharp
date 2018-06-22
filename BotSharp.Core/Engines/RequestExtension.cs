@@ -46,10 +46,10 @@ namespace BotSharp.Core.Engines
             aiResponse.Timestamp = DateTime.UtcNow;
 
             var intentResponse = HandleIntentPerContextIn(rasa, request, result.Data);
-            bool missedRequiredField = HandleParameter(rasa.agent, intentResponse, response, request);
+            HandleParameter(rasa.agent, intentResponse, response, request);
 
             HandleMessage(intentResponse);
-
+            
             aiResponse.Result = new AIResponseResult
             {
                 Source = "agent",
@@ -139,7 +139,7 @@ namespace BotSharp.Core.Engines
 
             var intent = (dc.Table<Intent>().Where(x => x.AgentId == rasa.agent.Id && x.Name == response.Intent.Name)
                 .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Parameters)
+                .Include(x => x.Responses).ThenInclude(x => x.Parameters).ThenInclude(x => x.Prompts)
                 .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
 
             var intentResponse = ArrayHelper.GetRandom(intent.Responses);
@@ -157,9 +157,9 @@ namespace BotSharp.Core.Engines
         /// <param name="response"></param>
         /// <param name="request"></param>
         /// <returns>Required field is missed</returns>
-        private static bool HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
+        private static void HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
         {
-            if (intentResponse == null) return false;
+            if (intentResponse == null) return;
 
             intentResponse.Parameters.ForEach(p => {
                 string query = request.Query.First();
@@ -195,15 +195,29 @@ namespace BotSharp.Core.Engines
                     }
                 }
             });
-
-            return intentResponse.Parameters.Any(x => x.Required && String.IsNullOrEmpty(x.Value));
         }
 
         private static void HandleMessage(IntentResponse intentResponse)
         {
             if (intentResponse == null) return;
 
-            intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
+            var missingRequiredParameter = intentResponse.Parameters.FirstOrDefault(x => x.Required && String.IsNullOrEmpty(x.Value));
+            if (missingRequiredParameter != null)
+            {
+                intentResponse.Messages = new List<IntentResponseMessage> {
+                    new IntentResponseMessage {
+                        Type = AIResponseMessageType.Text,
+                        Speech = ArrayHelper.GetRandom(missingRequiredParameter.Prompts).Prompt,
+                        IntentResponseId = intentResponse.Id,
+                        UpdatedTime = DateTime.UtcNow
+                    }
+                };
+            }
+            else
+            {
+                intentResponse.Messages = intentResponse.Messages.OrderBy(x => x.UpdatedTime).ToList();
+            }
+            
             intentResponse.Messages.ToList()
                 .ForEach(msg =>
                 {
