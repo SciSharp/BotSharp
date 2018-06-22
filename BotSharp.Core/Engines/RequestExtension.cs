@@ -36,6 +36,8 @@ namespace BotSharp.Core.Engines
 #else
             var result = CallRasa(rasa.agent.Id, request.Query.First(), rasa.agent.Id);
 #endif
+            result.Content.Log();
+
             RasaResponse response = result.Data;
             aiResponse.Id = Guid.NewGuid().ToString();
             aiResponse.Lang = rasa.agent.Language;
