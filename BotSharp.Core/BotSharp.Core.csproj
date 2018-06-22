@@ -13,18 +13,23 @@
     <Authors>Haiping Chen</Authors>
     <Company />
     <Product>BotSharp.Core</Product>
-    <Description>Upgrade .Net Core to 2.1</Description>
+    <Description>Open source chatbot platform written in C#. Ready for enterprise.</Description>
     <RepositoryType>MIT</RepositoryType>
     <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
     <PackageTags>NLU, Chatbot, Bot, AI Bot</PackageTags>
-    <Version>1.2.0</Version>
-    <PackageReleaseNotes>Support Rasa NLU 0.12.x</PackageReleaseNotes>
+    <Version>1.3.0</Version>
+    <PackageReleaseNotes>Add NLP pipeline. Support training model by input context.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;MODEL_PER_CONTEXTS</DefineConstants>
+    <DefineConstants>TRACE;MODEL_PER_CONTEXTS;NETCOREAPP;NETCOREAPP2_1</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;MODEL_PER_CONTEXTS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
