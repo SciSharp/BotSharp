@@ -45,11 +45,14 @@ namespace BotSharp.Core.Agents
             // Load agent summary
             var agent = importer.LoadAgent(agentId, dataDir);
 
-            // Load agent entities
-            importer.LoadEntities(agent, dataDir);
+            // Load user custom entities
+            importer.LoadCustomEntities(agent, dataDir);
 
             // Load agent intents
             importer.LoadIntents(agent, dataDir);
+
+            // Load system buildin entities
+            importer.LoadBuildinEntities(agent, dataDir);
 
             return agent;
         }
@@ -106,7 +109,7 @@ namespace BotSharp.Core.Agents
                         var part = new RasaIntentExpressionPart
                         {
                             Value = x.Text,
-                            Entity = x.Alias,
+                            Entity = $"{x.Meta}:{x.Alias}",
                             Start = start,
                             End = start + x.Text.Length
                         };
@@ -125,7 +128,7 @@ namespace BotSharp.Core.Agents
 
                             var te = new RasaTraningEntity
                             {
-                                EntityType = x.Alias,
+                                EntityType = $"{x.Meta}:{x.Alias}",
                                 EntityValue = x.Text,
                                 Synonyms = allSynonyms
                             };

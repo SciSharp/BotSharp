@@ -161,17 +161,17 @@ namespace BotSharp.Core.Engines
 
             intentResponse.Parameters.ForEach(p => {
                 string query = request.Query.First();
-                var entity = response.Entities.FirstOrDefault(x => x.Entity == p.Name);
+                var entity = response.Entities.FirstOrDefault(x => x.Entity == p.Name || x.Entity.Split(":").Contains(p.Name));
                 if (entity != null)
                 {
                     p.Value = query.Substring(entity.Start, entity.End - entity.Start);
                 }
 
                 // convert to Standard entity value
-                if (!String.IsNullOrEmpty(p.Value) && !p.DataType.StartsWith("@sys."))
+                if (!String.IsNullOrEmpty(p.Value) && !p.DataType.StartsWith("sys."))
                 {
                     p.Value = agent.Entities
-                        .FirstOrDefault(x => x.Name == p.DataType.Substring(1))
+                        .FirstOrDefault(x => x.Name == p.DataType)
                         .Entries
                         .FirstOrDefault((entry) =>
                         {

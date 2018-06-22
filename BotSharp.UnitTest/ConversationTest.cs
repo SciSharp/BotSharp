@@ -9,7 +9,7 @@ using System.Text;
 namespace BotSharp.UnitTest
 {
     [TestClass]
-    public class IntentTest : TestEssential
+    public class ConversationTest : TestEssential
     {
         [TestMethod]
         public void TextRequest()

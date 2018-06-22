@@ -152,11 +152,23 @@ namespace BotSharp.Core.Engines
                     }
                 });
 
+                // set empty synonym to null
+                data.Entities
+                    .Where(x => x.Synonyms != null)
+                    .ToList()
+                    .ForEach(entity =>
+                    {
+                        if (entity.Synonyms.Count == 0)
+                        {
+                            entity.Synonyms = null;
+                        }
+                    });
+
                 string json = JsonConvert.SerializeObject(new { rasa_nlu_data = data },
                     new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                        NullValueHandling = NullValueHandling.Ignore
+                        NullValueHandling = NullValueHandling.Ignore,
                     });
 
                 var rest = new RestRequest("train", Method.POST);
