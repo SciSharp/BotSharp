@@ -213,17 +213,21 @@ namespace BotSharp.Core.Engines
 
         public void LoadBuildinEntities(Agent agent, string agentDir)
         {
-            agent.Intents.ForEach(intent => {
+            agent.Intents.ForEach(intent =>
+            {
 
-                intent.UserSays.ForEach(us => {
-
-                    us.Data.Where(data => data.Meta != null)
-                        .ToList()
-                        .ForEach(data =>
-                        {
-                            LoadBuildinEntityTypePerUserSay(agent, data);
-                        });
-                });
+                if (intent.UserSays != null)
+                {
+                    intent.UserSays.ForEach(us =>
+                    {
+                        us.Data.Where(data => data.Meta != null)
+                            .ToList()
+                            .ForEach(data =>
+                            {
+                                LoadBuildinEntityTypePerUserSay(agent, data);
+                            });
+                    });
+                }
 
             });
         }

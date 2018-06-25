@@ -28,7 +28,7 @@ namespace BotSharp.Core.Entities
 
         public bool IsEnum { get; set; }
 
-        [StringLength(7)]
+        [StringLength(6)]
         public string Color { get; set; }
 
         /// <summary>
