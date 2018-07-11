@@ -53,12 +53,12 @@ namespace BotSharp.Core.Engines.SpaCy
             var response = client.Execute<Result>(request);
 
             data["ModelName"] = response.Data.ModelName;
-            
+            /*
             //Predict
             var request2 = new RestRequest("predict", Method.GET);
             request2.AddParameter("text", "the roof is leaking");
             var response2 = client.Execute(request2);
-            
+            */
             return true;
         }
 

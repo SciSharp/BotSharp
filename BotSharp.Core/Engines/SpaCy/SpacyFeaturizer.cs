@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
+using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -17,12 +18,21 @@ namespace BotSharp.Core.Engines.SpaCy
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("featurize", Method.GET);
-            request.AddParameter("text", "");
-            var response = client.Execute<Result>(request);
+            List<List<decimal>> vectors = new List<List<decimal>>();
+            Boolean res = true;
+            var dc = new DefaultDataContextLoader().GetDefaultDc();
+            var corpus = agent.GrabCorpus(dc);
 
-            data.Add("Features", JToken.FromObject(response.Data.Vectors));
+            corpus.UserSays.ForEach(usersay => {
+                request.AddParameter("text", usersay.Text);
+                var response = client.Execute<Result>(request);
+                vectors.Add(response.Data.Vectors);
+                res = res && response.IsSuccessful;
+            });
 
-            return response.IsSuccessful;
+            data.Add("Features", JToken.FromObject(vectors));
+
+            return res;
         }
 
         public class Result

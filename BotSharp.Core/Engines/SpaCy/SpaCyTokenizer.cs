@@ -1,11 +1,13 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
+using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BotSharp.Core.Engines.SpaCy
@@ -18,13 +20,26 @@ namespace BotSharp.Core.Engines.SpaCy
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tokenize", Method.GET);
-            request.AddParameter("text", "");
-            var response = client.Execute<Result>(request);
+            List<List<NlpToken>> tokens = new List<List<NlpToken>>();
+            Boolean res = true;
+            var dc = new DefaultDataContextLoader().GetDefaultDc();
+            var corpus = agent.GrabCorpus(dc);
 
-            data.Add("Tokens", JToken.FromObject(response.Data.Tokens));
+            corpus.UserSays.ForEach(usersay => {
+                request.AddParameter("text", usersay.Text);
+                var response = client.Execute<Result>(request);
+                tokens.Add(response.Data.Tokens);
+                res = res && response.IsSuccessful;
+            });
 
-            return response.IsSuccessful;
+
+            
+
+            data.Add("Tokens", JToken.FromObject(tokens));
+
+            return res;
         }
+        
 
         public class Result
         {

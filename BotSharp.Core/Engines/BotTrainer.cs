@@ -48,6 +48,7 @@ namespace BotSharp.Core.Engines
             provider.Configuration = Database.Configuration.GetSection("BotSharpAi");
             provider.Process(agent, data);
 
+            //var corpus = agent.GrabCorpus(dc);
 
             // pipe process
             var pipelines = Database.Configuration.GetSection($"{config}:Pipe").Value
