@@ -20,10 +20,10 @@ namespace BotSharp.UnitTest
 
         public TestEssential()
         {
-            contentRoot = $"{Directory.GetCurrentDirectory()}\\..\\..\\..\\";
+            contentRoot = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}..";
 
             ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-            var settings = Directory.GetFiles(contentRoot + "/Settings/", "*.json");
+            var settings = Directory.GetFiles(contentRoot + $"{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}", "*.json");
             settings.ToList().ForEach(setting =>
             {
                 configurationBuilder.AddJsonFile(setting, optional: false, reloadOnChange: true);
