@@ -42,47 +42,82 @@ namespace BotSharp.Core.Engines
             aiConfig.DevMode = agent.DeveloperAccessToken == aiConfig.ClientAccessToken;
         }
 
-        public string Train()
+        public AIResponse TextRequest(AIRequest request)
         {
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
-            var rest = new RestRequest("train", Method.POST);
-            rest.AddQueryParameter("project", agent.Id);
+            AIResponse aiResponse = new AIResponse();
 
-            var corpus = agent.GrabCorpus(dc);
+#if MODEL_PER_CONTEXTS
+            string model = RasaRequestExtension.GetModelPerContexts(agent, AiConfig, request, dc);
+            var result = CallRasa(agent.Id, request.Query.First(), model);
+#else
+            var result = CallRasa(rasa.agent.Id, request.Query.First(), rasa.agent.Id);
+#endif
+            result.Content.Log();
 
-            string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
-                new JsonSerializerSettings
+            RasaResponse response = result.Data;
+            aiResponse.Id = Guid.NewGuid().ToString();
+            aiResponse.Lang = agent.Language;
+            aiResponse.Status = new AIResponseStatus { };
+            aiResponse.SessionId = AiConfig.SessionId;
+            aiResponse.Timestamp = DateTime.UtcNow;
+
+            var intentResponse = RasaRequestExtension.HandleIntentPerContextIn(agent, AiConfig, request, result.Data, dc);
+
+            RasaRequestExtension.HandleParameter(agent, intentResponse, response, request);
+
+            RasaRequestExtension.HandleMessage(intentResponse);
+
+            aiResponse.Result = new AIResponseResult
+            {
+                Source = "agent",
+                ResolvedQuery = request.Query.First(),
+                Action = intentResponse?.Action,
+                Parameters = intentResponse?.Parameters?.ToDictionary(x => x.Name, x => x.Value),
+                Score = response.Intent.Confidence,
+                Metadata = new AIResponseMetadata { IntentId = intentResponse?.IntentId, IntentName = intentResponse?.IntentName },
+                Fulfillment = new AIResponseFulfillment
                 {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
-                });
+                    Messages = intentResponse?.Messages?.Select(x => {
+                        if (x.Type == AIResponseMessageType.Custom)
+                        {
+                            return (new
+                            {
+                                x.Type,
+                                Payload = JsonConvert.DeserializeObject(x.PayloadJson)
+                            }) as Object;
+                        }
+                        else
+                        {
+                            return (new { x.Type, x.Speech }) as Object;
+                        }
 
-            string trainingConfig = agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_spacy.yml";
-            string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}{trainingConfig}");
-            body = $"{body}\r\ndata: {json}";
-            rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
+                    }).ToList()
+                }
+            };
 
-            var response = client.Execute(rest);
+            RasaRequestExtension.HandleContext(dc, AiConfig, intentResponse, aiResponse);
 
-            if (response.IsSuccessful)
-            {
-                var result = JObject.Parse(response.Content);
+            Console.WriteLine(JsonConvert.SerializeObject(aiResponse.Result));
 
-                string modelName = result["info"].Value<String>().Split(": ")[1];
-
-                return modelName;
-            }
-            else
-            {
-                var result = JObject.Parse(response.Content);
-
-                Console.WriteLine(result["error"]);
-
-                return String.Empty;
-            }
+            return aiResponse;
         }
 
-        public void TrainWithContexts()
+        private IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
+        {
+            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
+
+            var rest = new RestRequest("parse", Method.POST);
+            string json = JsonConvert.SerializeObject(new { Project = projectId, Q = text, Model = model },
+                new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                });
+            rest.AddParameter("application/json", json, ParameterType.RequestBody);
+
+            return client.Execute<RasaResponse>(rest);
+        }
+
+        public void Train()
         {
             var corpus = agent.GrabCorpus(dc);
             var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
@@ -174,7 +209,7 @@ namespace BotSharp.Core.Engines
                 var rest = new RestRequest("train", Method.POST);
                 rest.AddQueryParameter("project", agent.Id);
                 rest.AddQueryParameter("model", ctx);
-                string trainingConfig = agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_spacy.yml";
+                string trainingConfig = agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_mitie_sklearn.yml";
                 string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}{trainingConfig}");
                 body = $"{body}\r\ndata: {json}";
                 rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
@@ -196,5 +231,47 @@ namespace BotSharp.Core.Engines
             });
 
         }
+
+        [Obsolete]
+        public string TrainWithoutContext()
+        {
+            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
+            var rest = new RestRequest("train", Method.POST);
+            rest.AddQueryParameter("project", agent.Id);
+
+            var corpus = agent.GrabCorpus(dc);
+
+            string json = JsonConvert.SerializeObject(new { rasa_nlu_data = corpus },
+                new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    NullValueHandling = NullValueHandling.Ignore
+                });
+
+            string trainingConfig = agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_spacy.yml";
+            string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}{trainingConfig}");
+            body = $"{body}\r\ndata: {json}";
+            rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
+
+            var response = client.Execute(rest);
+
+            if (response.IsSuccessful)
+            {
+                var result = JObject.Parse(response.Content);
+
+                string modelName = result["info"].Value<String>().Split(": ")[1];
+
+                return modelName;
+            }
+            else
+            {
+                var result = JObject.Parse(response.Content);
+
+                Console.WriteLine(result["error"]);
+
+                return String.Empty;
+            }
+        }
+
     }
 }

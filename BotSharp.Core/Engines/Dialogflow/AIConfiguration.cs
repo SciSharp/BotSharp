@@ -6,10 +6,10 @@ namespace BotSharp.Core.Models
 {
     public class AIConfiguration
     {
-        private const string SERVICE_PROD_URL = "";
-        private const string SERVICE_DEV_URL = "";
+        private const string SERVICE_PROD_URL = "https://api.api.ai/v1/";
+        private const string SERVICE_DEV_URL = "https://dev.api.ai/api/";
 
-        private const string CURRENT_PROTOCOL_VERSION = "20190322";
+        private const string CURRENT_PROTOCOL_VERSION = "20150910";
 
         public string ClientAccessToken { get; private set; }
 

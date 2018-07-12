@@ -67,5 +67,10 @@ namespace BotSharp.Core.Agents
 
         [Required]
         public DateTime CreatedDate { get; set; }
+
+        public Boolean IsSkillSet { get; set; }
+
+        [ForeignKey("AgentId")]
+        public AgentMlConfig MlConfig { get; set; }
     }
 }

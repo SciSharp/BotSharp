@@ -31,6 +31,7 @@ namespace BotSharp.Core.Agents
             return dc.Table<Agent>()
                 .Include(x => x.Intents).ThenInclude(x => x.Contexts)
                 .Include(x => x.Entities).ThenInclude(x => x.Entries).ThenInclude(x => x.Synonyms)
+                .Include(x => x.MlConfig)
                 .FirstOrDefault(x => x.ClientAccessToken == aiConfig.ClientAccessToken || x.DeveloperAccessToken == aiConfig.ClientAccessToken);
         }
 

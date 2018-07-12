@@ -14,7 +14,6 @@ namespace BotSharp.Core.Conversations
         [StringLength(36)]
         public String AgentId { get; set; }
 
-        [Required]
         [StringLength(36)]
         public String UserId { get; set; }
 

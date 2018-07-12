@@ -11,6 +11,10 @@ namespace BotSharp.Core.Adapters.Dialogflow
         public String Description { get; set; }
         public Boolean Published { get; set; }
 
+        public String DefaultTimezone { get; set; }
         public String Language { get; set; }
+
+        public decimal MlMinConfidence { get; set; }
+        public string CustomClassifierMode { get; set; }
     }
 }

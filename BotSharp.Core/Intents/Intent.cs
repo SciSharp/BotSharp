@@ -28,6 +28,9 @@ namespace BotSharp.Core.Intents
         [ForeignKey("IntentId")]
         public List<IntentInputContext> Contexts { get; set; }
 
+        [ForeignKey("IntentId")]
+        public List<IntentEvent> Events { get; set; }
+        
         /// <summary>
         /// Get input contexts hash
         /// </summary>

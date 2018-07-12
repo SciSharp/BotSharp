@@ -20,6 +20,11 @@ namespace BotSharp.Core.Intents
         public AIResponseMessageType Type { get; set; }
 
         /// <summary>
+        /// Platform like: facebook, slack
+        /// </summary>
+        public String Platform { get; set; }
+
+        /// <summary>
         /// json list data
         /// </summary>
         [MaxLength(1024)]
@@ -30,6 +35,8 @@ namespace BotSharp.Core.Intents
         /// </summary>
         [MaxLength(1024)]
         public String PayloadJson { get; set; }
+
+        public String CardJson { get; set; }
 
         [NotMapped]
         public JObject Payload { get; set; }

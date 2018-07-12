@@ -18,80 +18,18 @@ using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Engines
 {
-    public static class RequestExtension
+    public static class RasaRequestExtension
     {
         public static AIResponse TextRequest(this RasaAi rasa, string text, RequestExtras requestExtras)
         {
             return rasa.TextRequest(new AIRequest(text, requestExtras));
         }
 
-        public static AIResponse TextRequest(this RasaAi rasa, AIRequest request)
+        public static IntentResponse HandleIntentPerContextIn(Agent agent, AIConfiguration aiConfig, AIRequest request, RasaResponse response, Database dc)
         {
-            AIResponse aiResponse = new AIResponse();
-            Database dc = rasa.dc;
-
-#if MODEL_PER_CONTEXTS
-            string model = GetModelPerContexts(rasa, request);
-            var result = CallRasa(rasa.agent.Id, request.Query.First(), model);
-#else
-            var result = CallRasa(rasa.agent.Id, request.Query.First(), rasa.agent.Id);
-#endif
-            result.Content.Log();
-
-            RasaResponse response = result.Data;
-            aiResponse.Id = Guid.NewGuid().ToString();
-            aiResponse.Lang = rasa.agent.Language;
-            aiResponse.Status = new AIResponseStatus { };
-            aiResponse.SessionId = rasa.AiConfig.SessionId;
-            aiResponse.Timestamp = DateTime.UtcNow;
-
-            var intentResponse = HandleIntentPerContextIn(rasa, request, result.Data);
-            HandleParameter(rasa.agent, intentResponse, response, request);
-
-            HandleMessage(intentResponse);
-            
-            aiResponse.Result = new AIResponseResult
-            {
-                Source = "agent",
-                ResolvedQuery = request.Query.First(),
-                Action = intentResponse?.Action,
-                Parameters = intentResponse?.Parameters?.ToDictionary(x => x.Name, x=> x.Value),
-                Score = response.Intent.Confidence,
-                Metadata = new AIResponseMetadata { IntentId = intentResponse?.IntentId, IntentName = intentResponse?.IntentName },
-                Fulfillment = new AIResponseFulfillment
-                {
-                    Messages = intentResponse?.Messages?.Select(x => {
-                        if (x.Type == AIResponseMessageType.Custom)
-                        {
-                            return (new
-                            {
-                                x.Type,
-                                Payload = JsonConvert.DeserializeObject(x.PayloadJson)
-                            }) as Object;
-                        }
-                        else
-                        {
-                            return (new { x.Type, x.Speech }) as Object;
-                        }
-                        
-                    }).ToList()
-                }
-            };
-
-            HandleContext(dc, rasa, intentResponse, aiResponse);
-
-            Console.WriteLine(JsonConvert.SerializeObject(aiResponse.Result));
-
-            return aiResponse;
-        }
-
-        private static IntentResponse HandleIntentPerContextIn(RasaAi rasa, AIRequest request, RasaResponse response)
-        {
-            Database dc = rasa.dc;
-
             // Merge input contexts
             var contexts = dc.Table<ConversationContext>()
-                .Where(x => x.ConversationId == rasa.AiConfig.SessionId && x.Lifespan > 0)
+                .Where(x => x.ConversationId == aiConfig.SessionId && x.Lifespan > 0)
                 .ToList()
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToList();
@@ -100,7 +38,7 @@ namespace BotSharp.Core.Engines
             contexts = contexts.OrderBy(x => x.Name).ToList();
 
             // search all potential intents which input context included in contexts
-            var intents = rasa.agent.Intents.Where(it =>
+            var intents = agent.Intents.Where(it =>
             {
                 if (contexts.Count == 0)
                 {
@@ -121,13 +59,13 @@ namespace BotSharp.Core.Engines
                 };
             }
 
-            response.IntentRanking = response.IntentRanking.Where(x => x.Confidence > decimal.Parse("0.3")).ToList();
+            response.IntentRanking = response.IntentRanking.Where(x => x.Confidence > agent.MlConfig.MinConfidence).ToList();
             response.IntentRanking = response.IntentRanking.Where(x => intents.Select(i => i.Name).Contains(x.Name)).ToList();
 
             // add Default Fallback Intent 
             if (response.IntentRanking.Count == 0)
             {
-                var defaultFallbackIntent = rasa.agent.Intents.FirstOrDefault(x => x.Name == "Default Fallback Intent");
+                var defaultFallbackIntent = agent.Intents.FirstOrDefault(x => x.Name == "Default Fallback Intent");
                 response.IntentRanking.Add(new RasaResponseIntent
                 {
                     Name = defaultFallbackIntent.Name,
@@ -137,7 +75,7 @@ namespace BotSharp.Core.Engines
 
             response.Intent = response.IntentRanking.First();
 
-            var intent = (dc.Table<Intent>().Where(x => x.AgentId == rasa.agent.Id && x.Name == response.Intent.Name)
+            var intent = (dc.Table<Intent>().Where(x => x.AgentId == agent.Id && x.Name == response.Intent.Name)
                 .Include(x => x.Responses).ThenInclude(x => x.Contexts)
                 .Include(x => x.Responses).ThenInclude(x => x.Parameters).ThenInclude(x => x.Prompts)
                 .Include(x => x.Responses).ThenInclude(x => x.Messages)).First();
@@ -157,7 +95,7 @@ namespace BotSharp.Core.Engines
         /// <param name="response"></param>
         /// <param name="request"></param>
         /// <returns>Required field is missed</returns>
-        private static void HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
+        public static void HandleParameter(Agent agent, IntentResponse intentResponse, RasaResponse response, AIRequest request)
         {
             if (intentResponse == null) return;
 
@@ -197,7 +135,7 @@ namespace BotSharp.Core.Engines
             });
         }
 
-        private static void HandleMessage(IntentResponse intentResponse)
+        public static void HandleMessage(IntentResponse intentResponse)
         {
             if (intentResponse == null) return;
 
@@ -254,7 +192,7 @@ namespace BotSharp.Core.Engines
             return text;
         }
 
-        private static void HandleContext(Database dc, RasaAi rasa, IntentResponse intentResponse, AIResponse aiResponse)
+        public static void HandleContext(Database dc, AIConfiguration AiConfig, IntentResponse intentResponse, AIResponse aiResponse)
         {
             if (intentResponse == null) return;
 
@@ -262,7 +200,7 @@ namespace BotSharp.Core.Engines
             // override if exists, otherwise add, delete if lifespan is zero
             dc.DbTran(() =>
             {
-                var sessionContexts = dc.Table<ConversationContext>().Where(x => x.ConversationId == rasa.AiConfig.SessionId).ToList();
+                var sessionContexts = dc.Table<ConversationContext>().Where(x => x.ConversationId == AiConfig.SessionId).ToList();
 
                 // minus 1 round
                 sessionContexts.Where(x => !intentResponse.Contexts.Select(ctx => ctx.Name).Contains(x.Context))
@@ -288,7 +226,7 @@ namespace BotSharp.Core.Engines
                     {
                         dc.Table<ConversationContext>().Add(new ConversationContext
                         {
-                            ConversationId = rasa.AiConfig.SessionId,
+                            ConversationId = AiConfig.SessionId,
                             Context = ctx.Name,
                             Lifespan = ctx.Lifespan
                         });
@@ -297,33 +235,16 @@ namespace BotSharp.Core.Engines
             });
 
             aiResponse.Result.Contexts = dc.Table<ConversationContext>()
-                .Where(x => x.Lifespan > 0 && x.ConversationId == rasa.AiConfig.SessionId)
+                .Where(x => x.Lifespan > 0 && x.ConversationId == AiConfig.SessionId)
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToArray();
         }
 
-        private static IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
+        public static string GetModelPerContexts(Agent agent, AIConfiguration aiConfig, AIRequest request, Database dc)
         {
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
-
-            var rest = new RestRequest("parse", Method.POST);
-            string json = JsonConvert.SerializeObject(new { Project = projectId, Q = text, Model = model },
-                new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                });
-            rest.AddParameter("application/json", json, ParameterType.RequestBody);
-
-            return client.Execute<RasaResponse>(rest);
-        }
-
-        private static string GetModelPerContexts(RasaAi rasa, AIRequest request)
-        {
-            Database dc = rasa.dc;
-
             // Merge input contexts
             var contexts = dc.Table<ConversationContext>()
-                .Where(x => x.ConversationId == rasa.AiConfig.SessionId && x.Lifespan > 0)
+                .Where(x => x.ConversationId == aiConfig.SessionId && x.Lifespan > 0)
                 .ToList()
                 .Select(x => new AIContext { Name = x.Context.ToLower(), Lifespan = x.Lifespan })
                 .ToList();
@@ -332,7 +253,7 @@ namespace BotSharp.Core.Engines
             contexts = contexts.OrderBy(x => x.Name).ToList();
 
             // search all potential intents which input context included in contexts
-            var intents = rasa.agent.Intents.Where(it =>
+            var intents = agent.Intents.Where(it =>
             {
                 if (contexts.Count == 0)
                 {

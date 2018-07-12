@@ -33,10 +33,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Engines\Dialogflow\ApiAi.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DotNetToolkit" Version="1.4.0" />
-    <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.6.0" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.6.3" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="RestSharp" Version="106.3.0" />
+    <PackageReference Include="RestSharp" Version="106.3.1" />
   </ItemGroup>
 
   <ItemGroup>

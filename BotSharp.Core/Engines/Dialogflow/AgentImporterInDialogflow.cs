@@ -33,7 +33,12 @@ namespace BotSharp.Core.Engines
             agent.Id = Guid.NewGuid().ToString();
             agent.Name = agentId;
 
-            return agent.ToObject<Agent>();
+            var result = agent.ToObject<Agent>();
+            result.MlConfig = agent.ToObject<AgentMlConfig>();
+            result.MlConfig.MinConfidence = agent.MlMinConfidence;
+            result.MlConfig.AgentId = agent.Id;
+
+            return result;
         }
 
         public void LoadCustomEntities(Agent agent, string agentDir)
@@ -161,6 +166,8 @@ namespace BotSharp.Core.Engines
                     Lifespan = x.Lifespan
                 }).ToList();
 
+                int millSeconds = 0;
+
                 newResponse.Messages = res.MessageList.Where(x => x.Speech != null || x.Payload != null)
                     .Select(x =>
                     {
@@ -170,7 +177,8 @@ namespace BotSharp.Core.Engines
                             {
                                 Payload = JObject.FromObject(x.Payload),
                                 PayloadJson = JsonConvert.SerializeObject(x.Payload),
-                                Type = x.Type
+                                Type = x.Type,
+                                UpdatedTime = DateTime.UtcNow.AddMilliseconds(millSeconds++)
                             };
                         }
                         else
@@ -182,7 +190,8 @@ namespace BotSharp.Core.Engines
                             return new IntentResponseMessage
                             {
                                 Speech = speech,
-                                Type = x.Type
+                                Type = x.Type,
+                                UpdatedTime = DateTime.UtcNow.AddMilliseconds(millSeconds++)
                             };
                         }
 

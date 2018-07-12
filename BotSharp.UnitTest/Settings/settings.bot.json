@@ -1,6 +1,6 @@
 {
   "Rasa": {
-    "Nlu": "http://gtx.local:5000"
+    "Nlu": "http://localhost:5000"
   },
 
   "BotSharpAi": {
