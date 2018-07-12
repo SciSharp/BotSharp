@@ -124,7 +124,7 @@ namespace BotSharp.Core.Engines.CRFsuite
             trainer.train("model_test", X_dev == null ? -1 : 1);
         }
 
-        public Feature Word2Features(List<TrainingData> sent, int i) {
+        public Item Word2Features(List<TrainingData> sent, int i) {
             string word = sent[i].Token;
             string postag = sent[i].Tag;
 
@@ -142,6 +142,10 @@ namespace BotSharp.Core.Engines.CRFsuite
 
             Feature feature = new Feature(bias, wordLower, wordLast3Char, isSupper, isTitle, isDigit, posTag, postagFirst2Char);
 
+            Item curItem = new Item();
+
+
+
             if (i > 0)
             {
                 string minusWord = sent[i - 1].Token;
@@ -152,9 +156,16 @@ namespace BotSharp.Core.Engines.CRFsuite
                 feature.MinusIsSupper = new Regex(patternAllCaptain).IsMatch(minusWord);
                 feature.MinusPostag = minusPostag;
                 feature.MinusPostagFirst2Char = minusPostag.Length >= 2 ? minusPostag.Substring(0, 2) : minusPostag.Substring(0);
+
+                feature.Items.Add(new Attribute($"minusWordLower:{minusWord}", 1.0));
+                feature.Items.Add(new Attribute($"minusIsTitle", feature.MinusIsTitle ? 1.0 : 0.0));
+                feature.Items.Add(new Attribute($"minusIsSupper", feature.MinusIsSupper ? 1.0 : 0.0));
+                feature.Items.Add(new Attribute($"minusPostag:{minusPostag}", 1.0));
+                feature.Items.Add(new Attribute($"minusPostagFirst2Char:{feature.MinusPostagFirst2Char}", 1.0));
             }
             else {
                 feature.BOS = true;
+                feature.Items.Add(new Attribute($"BOS", feature.BOS? 1.0 : 0.0));
             }
 
             if ( i < sent.Count - 1)
@@ -167,13 +178,19 @@ namespace BotSharp.Core.Engines.CRFsuite
                 feature.PlusIsSupper = new Regex(patternAllCaptain).IsMatch(plusWord);
                 feature.PlusPostag = plusPostag;
                 feature.PlusPostagFirst2Char = plusPostag.Length >= 2 ? plusPostag.Substring(0, 2) : plusPostag.Substring(0);
+
+                feature.Items.Add(new Attribute($"minusWordLower:{plusWord}", 1.0));
+                feature.Items.Add(new Attribute($"minusIsTitle", feature.PlusIsTitle ? 1.0 : 0.0));
+                feature.Items.Add(new Attribute($"minusIsSupper", feature.PlusIsSupper ? 1.0 : 0.0));
+                feature.Items.Add(new Attribute($"minusPostag:{plusPostag}", 1.0));
+                feature.Items.Add(new Attribute($"minusPostagFirst2Char:{feature.PlusPostagFirst2Char}", 1.0));
             }
-            return feature;
+            return feature.ToItems();
         }
 
-        public List<Feature> sent2features(List<TrainingData> sent)
+        public List<Item> sent2features(List<TrainingData> sent)
         {
-            List<Feature> list = new List<Feature>();
+            List<Item> list = new List<Item>();
             for (int i = 0 ; i < sent.Count; i++ )
             {
                 list.Add(Word2Features(sent, i));
@@ -225,6 +242,8 @@ namespace BotSharp.Core.Engines.CRFsuite
         public String MinusPostag { get; set; }
         public String MinusPostagFirst2Char { get; set; }
 
+        public Item Items { get; set; }
+
         public Feature(float bias, String wordLower, String wordLast3Char, Boolean isSupper, Boolean isTitle, Boolean isDigit, String posTag, String postagFirst2Char)
         {
             this.Bias = bias;
@@ -235,6 +254,21 @@ namespace BotSharp.Core.Engines.CRFsuite
             this.IsDigit = isDigit;
             this.Postag = posTag;
             this.PostagFirst2Char = postagFirst2Char;
+            this.Items = new Item();
+
+            Items.Add(new Attribute($"bias", bias));
+            Items.Add(new Attribute($"wordLower:{wordLower}", 1.0));
+            Items.Add(new Attribute($"wordLast3Char:{wordLast3Char}", 1.0));
+            Items.Add(new Attribute($"isSupper", isSupper? 1.0 : 0.0));
+            Items.Add(new Attribute($"isTitle", isTitle ? 1.0 : 0.0));
+            Items.Add(new Attribute($"isDigit", isDigit ? 1.0 : 0.0));
+            Items.Add(new Attribute($"posTag={posTag}", 1.0));
+            Items.Add(new Attribute($"postagFirst2Char:{postagFirst2Char}", 1.0));
+        }
+
+        public Item ToItems()
+        {
+            return this.Items;
         }
     }
 
