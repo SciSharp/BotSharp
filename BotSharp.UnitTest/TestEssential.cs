@@ -20,7 +20,7 @@ namespace BotSharp.UnitTest
 
         public TestEssential()
         {
-            contentRoot = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}..";
+            contentRoot = $"{Directory.GetCurrentDirectory()}\\..\\..\\..\\..\\BotSharp.WebHost\\";
 
             ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
             var settings = Directory.GetFiles(contentRoot + $"{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}", "*.json");

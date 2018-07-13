@@ -1,0 +1,105 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RuntimeIdentifiers>Portable;win10-x64;centos.7-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="App_Data\DbInitializer\Agents\agents.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\agent.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album_entries_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service_entries_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort_entries_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist_entries_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song_entries_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop_usersays_en.json" />
+    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\package.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="App_Data\BotSharp.db" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotSharp.RestApi\BotSharp.RestApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="App_Data\DbInitializer\Agents\Rasa\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="App_Data\DbInitializer\Agents\agents.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\agent.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album_entries_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service_entries_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort_entries_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist_entries_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song_entries_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop_usersays_en.json" />
+    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\package.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.1" />
+  </ItemGroup>
+
+</Project>

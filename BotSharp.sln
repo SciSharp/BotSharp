@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.UnitTest", "BotSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Core", "BotSharp.Core\BotSharp.Core.csproj", "{95780673-2A1A-4953-962F-C46CBFDD07FF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.RestApi", "BotSharp.RestApi\BotSharp.RestApi.csproj", "{80DDAA05-69BC-49DD-96A4-37345E7A2E20}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.WebHost", "BotSharp.WebHost\BotSharp.WebHost.csproj", "{03DCA427-327A-4FC9-9A2F-57D17F16708C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{95780673-2A1A-4953-962F-C46CBFDD07FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95780673-2A1A-4953-962F-C46CBFDD07FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95780673-2A1A-4953-962F-C46CBFDD07FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80DDAA05-69BC-49DD-96A4-37345E7A2E20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80DDAA05-69BC-49DD-96A4-37345E7A2E20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80DDAA05-69BC-49DD-96A4-37345E7A2E20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80DDAA05-69BC-49DD-96A4-37345E7A2E20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03DCA427-327A-4FC9-9A2F-57D17F16708C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03DCA427-327A-4FC9-9A2F-57D17F16708C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03DCA427-327A-4FC9-9A2F-57D17F16708C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03DCA427-327A-4FC9-9A2F-57D17F16708C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

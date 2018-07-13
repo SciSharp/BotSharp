@@ -7,30 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="App_Data\DbInitializer\Agents\Dialogflow\Voicebot\**" />
-    <EmbeddedResource Remove="App_Data\DbInitializer\Agents\Dialogflow\Voicebot\**" />
-    <None Remove="App_Data\DbInitializer\Agents\Dialogflow\Voicebot\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Settings\settings.app.json" />
-    <None Remove="Settings\settings.bot.json" />
-    <None Remove="Settings\settings.db.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Settings\settings.app.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="Settings\settings.bot.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="Settings\settings.db.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
@@ -44,10 +20,6 @@
 
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="App_Data\DbInitializer\Agents\Rasa\" />
   </ItemGroup>
 
 </Project>
