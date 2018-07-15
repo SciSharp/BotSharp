@@ -21,14 +21,14 @@ namespace BotSharp.Core.Engines.SpaCy
             List<List<decimal>> vectors = new List<List<decimal>>();
             Boolean res = true;
             var dc = new DefaultDataContextLoader().GetDefaultDc();
-            var corpus = agent.GrabCorpus(dc);
+            /*var corpus = agent.GrabCorpus(dc);
 
             corpus.UserSays.ForEach(usersay => {
                 request.AddParameter("text", usersay.Text);
                 var response = client.Execute<Result>(request);
                 vectors.Add(response.Data.Vectors);
                 res = res && response.IsSuccessful;
-            });
+            });*/
 
             data.Add("Features", JToken.FromObject(vectors));
 

@@ -13,13 +13,13 @@ namespace BotSharp.UnitTest
         [TestMethod]
         public void TrainingTest()
         {
-            var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
+            var config = new AIConfiguration("", SupportedLanguage.English) { AgentId = BOT_ID };
             config.SessionId = Guid.NewGuid().ToString();
 
-            var rasa = new RasaAi(dc, config);
+            var rasa = new RasaAi();
 
             var trainer = new BotTrainer(BOT_ID, dc);
-            trainer.Train(rasa.agent);
+            trainer.Train(rasa.LoadAgent(BOT_ID));
         }
     }
 }

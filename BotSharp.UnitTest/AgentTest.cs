@@ -5,6 +5,7 @@ using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,13 +23,11 @@ namespace BotSharp.UnitTest
             var agent = new Agent
             {
                 Id = BOT_ID,
-                Name = BOT_NAME,
                 Language = "en",
                 UserId = Guid.NewGuid().ToString()
             };
-            var rasa = new RasaAi(dc);
-            rasa.agent = agent;
-            int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
+            var rasa = new RasaAi();
+            //int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
         }
 
         [TestMethod]
@@ -37,38 +36,31 @@ namespace BotSharp.UnitTest
             var agent = new Agent
             {
                 Id = BOT_ID,
-                Name = BOT_NAME,
                 Language = "en"
             };
-            var rasa = new RasaAi(dc);
-            rasa.agent = agent;
-            int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
+            var rasa = new RasaAi();
+            //int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
         }
 
         [TestMethod]
-        public void RestoreAgentTest()
+        public void RestoreAgentFromDialogflowToRasaTest()
         {
-            var rasa = new RasaAi(dc);
-            var importer = new AgentImporterInDialogflow();
+            var botsHeaderFilePath = $"{Database.ContentRootPath}App_Data{Path.DirectorySeparatorChar}DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json";
+            var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(File.ReadAllText(botsHeaderFilePath));
 
-            string dataDir =  $"{Database.ContentRootPath}App_Data{Path.DirectorySeparatorChar}DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}";
-            var agent = rasa.RestoreAgent(importer, BOT_NAME, dataDir);
-            agent.Id = BOT_ID;
-            agent.ClientAccessToken = BOT_CLIENT_TOKEN;
-            agent.DeveloperAccessToken = BOT_DEVELOPER_TOKEN;
-            agent.UserId = Guid.NewGuid().ToString();
-            rasa.agent = agent;
-
-            int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));
+            agents.ForEach(agentHeader => {
+                var rasa = new RasaAi();
+                rasa.RestoreAgent<AgentImporterInDialogflow>(agentHeader);
+            });
         }
 
         [TestMethod]
         public void TrainAgentTest()
         {
-            var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
+            var config = new AIConfiguration("", SupportedLanguage.English) { AgentId = BOT_ID };
             config.SessionId = Guid.NewGuid().ToString();
 
-            var rasa = new RasaAi(dc, config);
+            var rasa = new RasaAi();
 
             rasa.Train();
         }

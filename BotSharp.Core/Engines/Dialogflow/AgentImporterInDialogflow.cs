@@ -22,18 +22,25 @@ namespace BotSharp.Core.Engines
         /// <summary>
         /// Load agent meta
         /// </summary>
-        /// <param name="agentId"></param>
+        /// <param name="agentName"></param>
         /// <param name="agentDir"></param>
         /// <returns></returns>
-        public Agent LoadAgent(string agentId, string agentDir)
+        public Agent LoadAgent(AgentImportHeader agentHeader, string agentDir)
         {
             // load agent profile
-            string data = File.ReadAllText($"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agentId}{Path.DirectorySeparatorChar}agent.json");
+            string data = File.ReadAllText($"{agentDir}{Path.DirectorySeparatorChar}Dialogflow{Path.DirectorySeparatorChar}{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json");
             var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);
-            agent.Id = Guid.NewGuid().ToString();
-            agent.Name = agentId;
+            agent.Name = agentHeader.Name;
+            agent.Id = agentHeader.Id;
 
             var result = agent.ToObject<Agent>();
+            result.ClientAccessToken = agentHeader.ClientAccessToken;
+            result.DeveloperAccessToken = agentHeader.DeveloperAccessToken;
+            if(agentHeader.UserId != null)
+            {
+                result.UserId = agentHeader.UserId;
+            }
+
             result.MlConfig = agent.ToObject<AgentMlConfig>();
             result.MlConfig.MinConfidence = agent.MlMinConfidence;
             result.MlConfig.AgentId = agent.Id;

@@ -14,10 +14,11 @@ namespace BotSharp.UnitTest
         [TestMethod]
         public void TextRequest()
         {
-            var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
-            config.SessionId = Guid.NewGuid().ToString();
+            var rasa = new RasaAi();
+            var agent = rasa.LoadAgent(BOT_ID);
 
-            var rasa = new RasaAi(dc, config);
+            var config = new AIConfiguration(agent.ClientAccessToken, SupportedLanguage.English) { AgentId = BOT_ID };
+            config.SessionId = Guid.NewGuid().ToString();
 
             // Round 1
             var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Can you play country music?" } });

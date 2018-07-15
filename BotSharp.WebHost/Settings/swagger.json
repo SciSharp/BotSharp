@@ -1,0 +1,19 @@
+﻿{
+  "Swagger": {
+    "Contact": {
+      "Email": "haiping008@gmail.com",
+      "Name": "Haiping Chen",
+      "Url": "https://github.com/Oceania2018"
+    },
+    "Description": "BotSharp is a chatbot platform written in C# (.net core), and it's developed for enterprise usage.",
+    "Endpoint": "/swagger/v1/swagger.json",
+    "License": {
+      "Name": "Apache License 2.0",
+      "Url": "https://github.com/Oceania2018/BotSharp/blob/master/LICENSE"
+    },
+    "TermsOfService": "http://www.apache.org/licenses/",
+    "Title": "BotSharp API",
+    "Version": "v1",
+    "Stylesheet": "/swagger.css"
+  }
+}

@@ -13,6 +13,8 @@ namespace BotSharp.Core.Models
 
         public string ClientAccessToken { get; private set; }
 
+        public string AgentId { get; set; }
+
         public SupportedLanguage Language { get; set; }
 
         public bool VoiceActivityDetectionEnabled { get; set; }

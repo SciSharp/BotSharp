@@ -10,10 +10,10 @@ namespace BotSharp.Core.Engines
         /// <summary>
         /// Load agent summary
         /// </summary>
-        /// <param name="agentId">agent guid or name</param>
+        /// <param name="agentHeader"></param>
         /// <param name="agentDir"></param>
         /// <returns></returns>
-        Agent LoadAgent(string agentId, string agentDir);
+        Agent LoadAgent(AgentImportHeader agentHeader, string agentDir);
 
         /// <summary>
         /// Load user customized entity type

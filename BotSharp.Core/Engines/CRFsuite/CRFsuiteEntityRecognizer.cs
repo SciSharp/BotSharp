@@ -18,7 +18,7 @@ namespace BotSharp.Core.Engines.CRFsuite
         public bool Process(Agent agent, JObject data)
         {
             var dc = new DefaultDataContextLoader().GetDefaultDc();
-            var corpus = agent.GrabCorpus(dc);
+            //var corpus = agent.GrabCorpus(dc);
 
             // Mock Data
             List<TrainingData> train_sent = new List<TrainingData>();

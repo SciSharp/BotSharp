@@ -27,7 +27,7 @@ namespace BotSharp.Core.Engines.SpaCy
             List<TrainingNode> trainingData = new List<TrainingNode>();
 
             var dc = new DefaultDataContextLoader().GetDefaultDc();
-            var corpus = agent.GrabCorpus(dc);
+            /*var corpus = agent.GrabCorpus(dc);
 
             corpus.UserSays.ForEach(userSay =>
             {
@@ -40,7 +40,7 @@ namespace BotSharp.Core.Engines.SpaCy
                     });
                     trainingData.Add(new TrainingNode(userSay.Text, entityLabel));
                 }
-            });
+            });*/
             entitiesInTrainingSet = entitiesInTrainingSet.Distinct().ToList();
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("entityrecognizer", Method.POST);
