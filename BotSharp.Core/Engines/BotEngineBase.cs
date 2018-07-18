@@ -178,5 +178,12 @@ namespace BotSharp.Core.Engines
 
             return corpus;
         }
+
+        public virtual void Train()
+        {
+            var trainer = new BotTrainer(agent.Id, dc);
+            trainer.Train(agent);
+        }
+
     }
 }
