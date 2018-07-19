@@ -16,9 +16,8 @@ namespace BotSharp.UnitTest
         {
             var rasa = new RasaAi();
             var agent = rasa.LoadAgent(BOT_ID);
-
-            var config = new AIConfiguration(agent.ClientAccessToken, SupportedLanguage.English) { AgentId = BOT_ID };
-            config.SessionId = Guid.NewGuid().ToString();
+            rasa.AiConfig = new AIConfiguration(agent.ClientAccessToken, SupportedLanguage.English) { AgentId = BOT_ID };
+            rasa.AiConfig.SessionId = Guid.NewGuid().ToString();
 
             // Round 1
             var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Can you play country music?" } });

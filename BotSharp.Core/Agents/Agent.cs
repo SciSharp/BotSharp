@@ -72,5 +72,8 @@ namespace BotSharp.Core.Agents
 
         [ForeignKey("AgentId")]
         public AgentMlConfig MlConfig { get; set; }
+
+        [ForeignKey("AgentId")]
+        public List<AgentIntegration> Integrations { get; set; }
     }
 }

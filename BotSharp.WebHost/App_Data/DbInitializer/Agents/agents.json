@@ -8,8 +8,9 @@
     "Integrations": 
     [
       {
-        "Platform": "FacebookMessenger",
-        "PageAccessToken": "EAAJym8gGQFMBAPnsxTw6rZBE2WVfYtCJeGkCQ2NZC3VbQd45SyUlXjjgUf1gAkCOWq7v0blxTb1xLZAeMAXYhQj3btcMlMO9YbG7StMyx8ussz5TnD1tjjIZCye5u66PZAuFxSyIPXtTCin8GPiJ19cYB8ZCyH3rr5sro7OxUSyAZDZD"
+        "Platform": "Facebook Messenger",
+        "VerifyToken": "spotify_music_bot",
+        "AccessToken": "EAAJym8gGQFMBAPnsxTw6rZBE2WVfYtCJeGkCQ2NZC3VbQd45SyUlXjjgUf1gAkCOWq7v0blxTb1xLZAeMAXYhQj3btcMlMO9YbG7StMyx8ussz5TnD1tjjIZCye5u66PZAuFxSyIPXtTCin8GPiJ19cYB8ZCyH3rr5sro7OxUSyAZDZD"
       }
     ]
   }
