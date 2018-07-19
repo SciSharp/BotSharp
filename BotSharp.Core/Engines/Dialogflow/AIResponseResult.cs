@@ -31,7 +31,7 @@ namespace BotSharp.Core.Models
             }
         }
 
-        public Dictionary<string, string> Parameters { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
 
         public AIContext[] Contexts { get; set; }
 

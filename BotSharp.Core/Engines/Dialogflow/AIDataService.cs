@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Engines.Dialogflow.Http;
 using BotSharp.Core.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -47,7 +48,8 @@ namespace BotSharp.Core.Engines.Dialogflow
 
                 var jsonSettings = new JsonSerializerSettings
                 {
-                    NullValueHandling = NullValueHandling.Ignore
+                    NullValueHandling = NullValueHandling.Ignore,
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
                 };
 
                 var jsonRequest = JsonConvert.SerializeObject(request, Formatting.None, jsonSettings);

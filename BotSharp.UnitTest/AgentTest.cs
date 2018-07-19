@@ -57,11 +57,8 @@ namespace BotSharp.UnitTest
         [TestMethod]
         public void TrainAgentTest()
         {
-            var config = new AIConfiguration("", SupportedLanguage.English) { AgentId = BOT_ID };
-            config.SessionId = Guid.NewGuid().ToString();
-
             var rasa = new RasaAi();
-
+            rasa.LoadAgent(BOT_ID);
             rasa.Train();
         }
     }

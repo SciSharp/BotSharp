@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
+using BotSharp.Core.Engines.Dialogflow;
 using BotSharp.Core.Models;
 using BotSharp.RestApi.Integrations.FacebookMessenger;
 using DotNetToolkit;
@@ -77,11 +78,11 @@ namespace BotSharp.RestApi.Integrations
         {
             Console.WriteLine($"OnTextMessaged: {message.Message.Text}");
 
-            var rasa = new RasaAi();
-            var agent = rasa.LoadAgent(agentId);
-            rasa.AiConfig = new AIConfiguration(agent.ClientAccessToken, SupportedLanguage.English) { AgentId = agentId };
-            rasa.AiConfig.SessionId = message.Sender.Id;
-            var aiResponse = rasa.TextRequest(new AIRequest { Query = new String[] { message.Message.Text } });
+            var ai = new ApiAi();
+            var agent = ai.LoadAgent(agentId);
+            ai.AiConfig = new AIConfiguration(agent.ClientAccessToken, SupportedLanguage.English) { AgentId = agentId };
+            ai.AiConfig.SessionId = message.Sender.Id;
+            var aiResponse = ai.TextRequest(new AIRequest { Query = new String[] { message.Message.Text } });
 
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var config = dc.Table<AgentIntegration>().FirstOrDefault(x => x.AgentId == agentId && x.Platform == "Facebook Messenger");
@@ -91,7 +92,7 @@ namespace BotSharp.RestApi.Integrations
                 Recipient = message.Sender.ToObject<WebhookMessageRecipient>(),
                 Message = new WebhookTextMessage
                 {
-                    Text = aiResponse.Result.Fulfillment.Speech
+                    Text = String.IsNullOrEmpty(aiResponse.Result.Fulfillment.Speech) ? aiResponse.Result.Action : aiResponse.Result.Fulfillment.Speech
                 }
             });
         }

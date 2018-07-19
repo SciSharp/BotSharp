@@ -8,18 +8,15 @@ namespace BotSharp.Core.Engines.Dialogflow
 {
     public class ApiAi : ApiAiBase, IBotPlatform
     {
-        private readonly AIConfiguration config;
-        private readonly AIDataService dataService;
-
-        public ApiAi(AIConfiguration config)
-        {
-            this.config = config;
-
-            dataService = new AIDataService(this.config);
-        }
+        private AIDataService dataService;
 
         public AIResponse TextRequest(string text)
         {
+            if (dataService == null)
+            {
+                dataService = new AIDataService(AiConfig);
+            }
+
             if (string.IsNullOrEmpty(text))
             {
                 throw new ArgumentNullException("text");
@@ -35,6 +32,11 @@ namespace BotSharp.Core.Engines.Dialogflow
                 throw new ArgumentNullException("request");
             }
 
+            if(dataService == null)
+            {
+                dataService = new AIDataService(AiConfig);
+            }
+
             return dataService.Request(request);
         }
 
@@ -45,17 +47,17 @@ namespace BotSharp.Core.Engines.Dialogflow
                 throw new ArgumentNullException("text");
             }
 
+            if (dataService == null)
+            {
+                dataService = new AIDataService(AiConfig);
+            }
+
             return TextRequest(new AIRequest(text, requestExtras));
         }
 
-        public AIResponse VoiceRequest(Stream voiceStream, RequestExtras requestExtras = null)
+        public void Train()
         {
-            if (config.Language == SupportedLanguage.Italian)
-            {
-                throw new AIServiceException("Sorry, but Italian language now is not supported in Speaktoit recognition. Please use some another speech recognition engine.");
-            }
-
-            return dataService.VoiceRequest(voiceStream, requestExtras);
+            throw new NotImplementedException();
         }
     }
 }

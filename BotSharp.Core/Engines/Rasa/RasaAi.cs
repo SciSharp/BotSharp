@@ -51,7 +51,7 @@ namespace BotSharp.Core.Engines
                 Source = "agent",
                 ResolvedQuery = request.Query.First(),
                 Action = intentResponse?.Action,
-                Parameters = intentResponse?.Parameters?.ToDictionary(x => x.Name, x => x.Value),
+                Parameters = intentResponse?.Parameters?.ToDictionary(x => x.Name, x => (object)x.Value),
                 Score = response.Intent.Confidence,
                 Metadata = new AIResponseMetadata { IntentId = intentResponse?.IntentId, IntentName = intentResponse?.IntentName },
                 Fulfillment = new AIResponseFulfillment
@@ -132,7 +132,7 @@ namespace BotSharp.Core.Engines
                 var data = new RasaTrainingData
                 {
                     Entities = entity_synonyms.Select(x => x.ToObject<RasaTraningEntity>()).ToList(),
-                    UserSays = common_examples.Select(x => x.Intent.ToObject<RasaIntentExpression>()).ToList()
+                    UserSays = common_examples.Select(x => x.ToObject<RasaIntentExpression>()).ToList()
                 };
 
                 // meet minimal requirement
