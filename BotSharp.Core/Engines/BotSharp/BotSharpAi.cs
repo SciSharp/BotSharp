@@ -12,9 +12,9 @@ namespace BotSharp.Core.Engines.BotSharp
             throw new NotImplementedException();
         }
 
-        public void Train()
+        public override void Train()
         {
-            throw new NotImplementedException();
+           
         }
     }
 }
