@@ -1,8 +1,8 @@
-# BotSharp 
+# <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png" height="30">
 ### The Open Source AI Chatbot Platform Builder for Enterprise
 ###  
-<img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png" height="30">
-is an open source AI chatbot platform builder not only a bot builder, it's a complete out of box toolkit for building up a functional chabot platform which utilize aritifical intelligence. It's witten  in C# running on .Net Core that is full cross-platform framework. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. BotSharp adopts machine learning algrithm in C/C++ interfaces directly which skips the python interfaces. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
+
+**BotSharp** is an open source AI chatbot platform builder not only a bot builder, it's a complete out of box toolkit for building up a functional chabot platform which utilize aritifical intelligence. It's witten  in C# running on .Net Core that is full cross-platform framework. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. BotSharp adopts machine learning algrithm in C/C++ interfaces directly which skips the python interfaces. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
 
 Why we do this? because we all know python is not friendly programming language for enterprise developers, it's not only because it's low performance but also it's a type weak language, it will be a disater if you use python to build your bussiness system.
 
