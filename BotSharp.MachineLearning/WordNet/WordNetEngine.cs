@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SharpWordNet
+namespace BotSharp.MachineLearning
 {
 	/// <summary>
 	/// Summary description for WordNetEngine.

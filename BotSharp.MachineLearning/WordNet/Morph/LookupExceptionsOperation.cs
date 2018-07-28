@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpWordNet.Morph
+namespace BotSharp.MachineLearning.Morph
 {
     /// <summary>Lookup the word in the exceptions file of the given part-of-speech. </summary>
     public class LookupExceptionsOperation : IOperation

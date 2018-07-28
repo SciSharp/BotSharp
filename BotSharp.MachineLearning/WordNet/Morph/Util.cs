@@ -22,7 +22,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpWordNet.Morph
+namespace BotSharp.MachineLearning.Morph
 {
     public class Util
     {

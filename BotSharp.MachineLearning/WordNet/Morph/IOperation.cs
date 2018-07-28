@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpWordNet.Morph
+namespace BotSharp.MachineLearning.Morph
 {
     public interface IOperation
     {

@@ -18,7 +18,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 
-namespace SharpWordNet
+namespace BotSharp.MachineLearning
 {
 	/// <summary>
 	/// Summary description for DataFileEngine.

@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Collections;
 
-namespace SharpWordNet.Morph
+namespace BotSharp.MachineLearning.Morph
 {
     public class TokenizerOperation : AbstractDelegatingOperation
     {

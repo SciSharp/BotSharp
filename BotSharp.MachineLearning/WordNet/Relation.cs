@@ -16,7 +16,7 @@
 
 using System;
 
-namespace SharpWordNet
+namespace BotSharp.MachineLearning
 {
 	/// <summary>
 	/// Summary description for Relation.

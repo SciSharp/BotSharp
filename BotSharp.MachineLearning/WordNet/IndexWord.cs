@@ -17,7 +17,7 @@
 using System;
 using System.Linq;
 
-namespace SharpWordNet
+namespace BotSharp.MachineLearning
 {
 	/// <summary>
 	/// Summary description for IndexWord.

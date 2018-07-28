@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpWordNet.Morph
+namespace BotSharp.MachineLearning.Morph
 {
     /// <summary>
     /// Remove all applicable suffixes from the word(s) and do a look-up.
