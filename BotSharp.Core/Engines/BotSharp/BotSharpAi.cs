@@ -11,10 +11,11 @@ namespace BotSharp.Core.Engines.BotSharp
         {
             throw new NotImplementedException();
         }
-
         public override void Train()
         {
-           
+            agent.Corpus = GetIntentExpressions();
+            var trainer = new BotTrainer(agent.Id, dc);
+            trainer.Train(agent);
         }
     }
 }

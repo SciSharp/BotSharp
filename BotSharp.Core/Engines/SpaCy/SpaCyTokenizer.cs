@@ -24,14 +24,14 @@ namespace BotSharp.Core.Engines.SpaCy
             List<List<NlpToken>> tokens = new List<List<NlpToken>>();
             Boolean res = true;
             var dc = new DefaultDataContextLoader().GetDefaultDc();
-            /*var corpus = ;
+            var corpus = agent.Corpus;
 
             corpus.UserSays.ForEach(usersay => {
                 request.AddParameter("text", usersay.Text);
                 var response = client.Execute<Result>(request);
                 tokens.Add(response.Data.Tokens);
                 res = res && response.IsSuccessful;
-            });*/
+            });
 
 
             
