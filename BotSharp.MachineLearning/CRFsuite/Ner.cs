@@ -1,10 +1,3 @@
-using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
-using BotSharp.MachineLearning.NLP;
-using EntityFrameworkCore.BootKit;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace BotSharp.Core.Engines.CRFsuite
+namespace BotSharp.MachineLearning.CRFsuite
 {
     public class Ner
     {

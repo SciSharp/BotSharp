@@ -47,7 +47,7 @@ namespace BotSharp.Core.Engines.CRFsuite
             sw.Close();
             fs.Close();  
             
-            new Ner().NerStart();
+            new MachineLearning.CRFsuite.Ner().NerStart();
             
             Runcmd();
 
@@ -132,7 +132,7 @@ namespace BotSharp.Core.Engines.CRFsuite
 
         }
     }
-    
+
     public class TrainingData
     {
         public String Token { get; set; }
