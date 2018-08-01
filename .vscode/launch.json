@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/BotSharp.UnitTest/bin/Debug/netcoreapp2.0/BotSharp.UnitTest.dll",
+            "program": "${workspaceFolder}/BotSharp.WebHost/bin/Debug/netcoreapp2.1/BotSharp.WebHost.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/BotSharp.UnitTest",
+            "cwd": "${workspaceFolder}/BotSharp.WebHost",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
             "console": "internalConsole",
             "stopAtEntry": false,

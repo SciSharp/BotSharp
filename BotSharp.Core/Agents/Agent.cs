@@ -1,4 +1,5 @@
-﻿using BotSharp.Core.Entities;
+﻿using BotSharp.Core.Engines;
+using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using EntityFrameworkCore.BootKit;
 using Newtonsoft.Json;
@@ -72,6 +73,9 @@ namespace BotSharp.Core.Agents
 
         [ForeignKey("AgentId")]
         public AgentMlConfig MlConfig { get; set; }
+
+        [NotMapped]
+        public TrainingCorpus Corpus { get; set; }
 
         [ForeignKey("AgentId")]
         public List<AgentIntegration> Integrations { get; set; }
