@@ -31,11 +31,6 @@ namespace BotSharp.Core.Engines
             DbInitializerPath = $"{Database.ContentRootPath}App_Data{Path.DirectorySeparatorChar}DbInitializer{Path.DirectorySeparatorChar}";
         }
 
-        /// <summary>
-        /// Load Agent
-        /// </summary>
-        /// <param name="id">agentId, clientAccessToken, developerAccessToken</param>
-        /// <returns></returns>
         public Agent LoadAgent(string id)
         {
             if (agent == null)
