@@ -3,11 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.RestApi
+namespace BotSharp.RestApi.Integrations
 {
     [Route("v1/[controller]/[action]")]
-    public class ConversationController : ControllerBase
+    public class SkypeController : ControllerBase
     {
-
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BotSharp.Core.Engines.Dialogflow
 {
-    public class ApiAiBase
+    public class ApiAiBase : BotEngineBase
     {
         protected float[] TrimSilence(float[] samples)
         {

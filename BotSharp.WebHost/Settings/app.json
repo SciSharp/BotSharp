@@ -1,3 +1,4 @@
 ﻿{
-  "Assemblies": "BotSharp.Core"
+  "Assemblies": "BotSharp.Core",
+  "BotPlatform": "ApiAi"
 }

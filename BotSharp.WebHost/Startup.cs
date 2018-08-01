@@ -1,10 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using BotSharp.Core.Engines;
+using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
@@ -44,6 +47,17 @@ namespace BotSharp.WebHost
                 var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
                 c.IncludeXmlComments(filePath);
             });
+
+            // register platform dependency
+            services.AddTransient<IBotPlatform>((provider) =>
+            {
+                var implements = TypeHelper.GetClassesWithInterface<IBotPlatform>(Database.Assemblies);
+                string platform = Database.Configuration.GetValue<String>("BotPlatform");
+                var implement = implements.FirstOrDefault(x => x.Name.Split('.').Last() == platform);
+                var instance = (IBotPlatform)Activator.CreateInstance(implement);
+
+                return instance;
+            });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -73,6 +87,17 @@ namespace BotSharp.WebHost
             });
 
             app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+
+            app.Use(async (context, next) =>
+            {
+                string token = context.Request.Headers["Authorization"];
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                }
+
+                await next.Invoke();
+            });
+            app.UseAuthentication();
 
             app.UseMvc();
 

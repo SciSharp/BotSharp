@@ -44,6 +44,11 @@ namespace BotSharp.Core.Engines
             result.MlConfig = agent.ToObject<AgentMlConfig>();
             result.MlConfig.MinConfidence = agent.MlMinConfidence;
             result.MlConfig.AgentId = agent.Id;
+            if(agentHeader.Integrations != null)
+            {
+                agentHeader.Integrations.ForEach(x => x.AgentId = agent.Id);
+                result.Integrations = agentHeader.Integrations;
+            }
 
             return result;
         }

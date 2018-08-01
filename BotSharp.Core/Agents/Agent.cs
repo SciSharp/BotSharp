@@ -76,5 +76,8 @@ namespace BotSharp.Core.Agents
 
         [NotMapped]
         public TrainingCorpus Corpus { get; set; }
+
+        [ForeignKey("AgentId")]
+        public List<AgentIntegration> Integrations { get; set; }
     }
 }

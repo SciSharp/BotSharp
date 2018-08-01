@@ -1,61 +1,30 @@
-# BotSharp
-.Net implementation of open chatbot platform like google Dialogflow. Modulized design supports different NLU engine as backend.
+# <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png" height="30">
+### The Open Source AI Chatbot Platform Builder for Enterprise
+###  
 
-### Features
+**BotSharp** is an open source AI chatbot platform builder not only a bot builder, it's a complete out of box toolkit for building up a functional chabot platform which utilize aritifical intelligence. It's witten  in C# running on .Net Core that is full cross-platform framework. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. BotSharp adopts machine learning algrithm in C/C++ interfaces directly which skips the python interfaces. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
+
+Why we do this? because we all know python is not friendly programming language for enterprise developers, it's not only because it's low performance but also it's a type weak language, it will be a disater if you use python to build your bussiness system.
+
+BotSharp is in accordance with components princple strictly, decouples every part that needed in the platform builder. So you can choose different UI/UX, or pick up a different NLP Tagger, or select a more advanced algrithm to do NER task. They are all modulized based an unfied interfaces.
+
+### Some Features
 * Multiple agents management
 * Context In/ Out with lifespan to make conversion flow be controllable.
-* Rasa NLU as is one of NLU engine
-* Import agent from Dialogflow directly
+* Support Rasa, Dialogflow and many others as a bot platform builder components.
+* Support export/ import agent from other bot platforms directly.
+* Support different UI providers.
+* With a Rest API interfaces.
+* Integrate with popular social platforms.
 
-### How to use
+### How to Install
 ````shell
-PM> Install-Package BotSharp.Core -Version 1.1.0
+PM> Install-Package BotSharp.Core
 ````
 
+### Documents
+https://github.com/Oceania2018/BotSharp/wiki
 
-
-````cs
-[TestMethod]
-public void RestoreAgentTest()
-{
-    var rasa = new RasaAi(dc);
-    var importer = new AgentImporterInDialogflow();
-
-    string dataDir = $"{Database.ContentRootPath}\\App_Data\\DbInitializer\\Agents\\";
-    var agent = rasa.RestoreAgent(importer, BOT_NAME, dataDir);
-    agent.Id = BOT_ID;
-    agent.ClientAccessToken = BOT_CLIENT_TOKEN;
-    agent.DeveloperAccessToken = BOT_DEVELOPER_TOKEN;
-    agent.UserId = Guid.NewGuid().ToString();
-
-    int row = dc.DbTran(() => rasa.SaveAgent(agent));
-}
-
-[TestMethod]
-public void TrainAgentTest()
-{
-    var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
-    config.SessionId = Guid.NewGuid().ToString();
-
-    var rasa = new RasaAi(dc, config);
-    rasa.agent = rasa.LoadAgent();
-    string msg = rasa.Train(dc);
-
-    Assert.IsTrue(!String.IsNullOrEmpty(msg));
-}
-
-[TestMethod]
-public void TextRequest()
-{
-    var config = new AIConfiguration(BOT_CLIENT_TOKEN, SupportedLanguage.English);
-    config.SessionId = Guid.NewGuid().ToString();
-
-    var rasa = new RasaAi(dc, config);
-
-    var response = rasa.TextRequest(new AIRequest { Query = new String[] { "Hi" } });
-    Assert.AreEqual(response.Result.Metadata.IntentName, "Wakeup");
-}
-````
 
 #### Tip Jar
 * **Ethereum**
