@@ -50,8 +50,10 @@ namespace BotSharp.WebHost
             // register platform dependency
             services.AddTransient<IBotPlatform>((provider) =>
             {
-                var implements = TypeHelper.GetClassesWithInterface<IBotPlatform>(Database.Assemblies);
-                string platform = Database.Configuration.GetValue<String>("BotPlatform");
+                var assemblies = (String[])AppDomain.CurrentDomain.GetData("Assemblies");
+                var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+                var implements = TypeHelper.GetClassesWithInterface<IBotPlatform>(assemblies);
+                string platform = config.GetValue<String>("BotPlatform");
                 var implement = implements.FirstOrDefault(x => x.Name.Split('.').Last() == platform);
                 var instance = (IBotPlatform)Activator.CreateInstance(implement);
 
@@ -100,9 +102,15 @@ namespace BotSharp.WebHost
 
             app.UseMvc();
 
-            Database.Configuration = Configuration;
-            Database.ContentRootPath = env.ContentRootPath;
-            Database.Assemblies = Configuration.GetValue<String>("Assemblies").Split(',');
+            AppDomain.CurrentDomain.SetData("DataPath", Path.Join(env.ContentRootPath, "App_Data"));
+            AppDomain.CurrentDomain.SetData("Configuration", Configuration);
+            AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
+            AppDomain.CurrentDomain.SetData("Assemblies", Configuration.GetValue<String>("Assemblies").Split(','));
+
+            InitializationLoader loader = new InitializationLoader();
+            loader.Env = env;
+            loader.Config = Configuration;
+            loader.Load();
         }
     }
 }

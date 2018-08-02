@@ -52,7 +52,7 @@
 		},
 		created() {
 			let agentId = this.$route.query.agentId;
-			this.$ajax.get(`/Account`, { baseURL: this.$config.authURL })
+			this.$ajax.get(`/Account`, { baseURL: this.$config.baseURL })
 				.then(response => {
 					this.user = response.data;
 				});
@@ -61,7 +61,7 @@
 			updateAgent(agentId){
 				this.$ajax.put('/v1/Agents/' + agentId, this.agent)
 					.then(response => {
-						this.$Message.info("保存成功");
+						this.$Message.info("Saved");
 					});
 			}
 		}

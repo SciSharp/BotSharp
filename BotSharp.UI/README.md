@@ -4,7 +4,7 @@ Voiceweb AI Chatbot Web Console
 ## How to install
 #### Download source code
 ````sh
-git clone https://github.com/voicecoin/voiceweb-chatbot-vue
+git clone https://github.com/Oceania2018/BotSharp
 ````
 #### Run node.js server
 ````sh

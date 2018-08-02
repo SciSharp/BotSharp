@@ -83,7 +83,8 @@ namespace BotSharp.Core.Engines
 
         private IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
         {
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
+            var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+            var client = new RestClient($"{config.GetSection("Rasa:Nlu").Value}");
 
             var rest = new RestRequest("parse", Method.POST);
             string json = JsonConvert.SerializeObject(new { Project = projectId, Q = text, Model = model },
@@ -105,7 +106,8 @@ namespace BotSharp.Core.Engines
             };
 
             var corpus = GetIntentExpressions();
-            var client = new RestClient($"{Database.Configuration.GetSection("Rasa:Nlu").Value}");
+            var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+            var client = new RestClient($"{config.GetSection("Rasa:Nlu").Value}");
 
             var contextHashs = corpus.UserSays
                 .Select(x => x.ContextHash)
@@ -195,7 +197,8 @@ namespace BotSharp.Core.Engines
                 rest.AddQueryParameter("project", agent.Id);
                 rest.AddQueryParameter("model", ctx);
                 string trainingConfig = agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_mitie_sklearn.yml";
-                string body = File.ReadAllText($"{Database.ContentRootPath}{Path.DirectorySeparatorChar}Settings{Path.DirectorySeparatorChar}{trainingConfig}");
+                var contentRootPatch = AppDomain.CurrentDomain.GetData("ContentRootPath").ToString();
+                string body = File.ReadAllText(Path.Join(contentRootPatch, "Settings", trainingConfig));
                 body = $"{body}\r\ndata: {json}";
                 rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
 

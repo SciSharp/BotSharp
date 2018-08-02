@@ -45,7 +45,8 @@ namespace BotSharp.UnitTest
         [TestMethod]
         public void RestoreAgentFromDialogflowToRasaTest()
         {
-            var botsHeaderFilePath = $"{Database.ContentRootPath}App_Data{Path.DirectorySeparatorChar}DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json";
+            string dataPath = AppDomain.CurrentDomain.GetData("DataPath").ToString();
+            var botsHeaderFilePath = Path.Join(dataPath, "DbInitializer", $"Agents{Path.DirectorySeparatorChar}agents.json");
             var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(File.ReadAllText(botsHeaderFilePath));
 
             agents.ForEach(agentHeader => {
