@@ -1,0 +1,2226 @@
+O add VB O
+O this DT O
+O song NN O
+O to IN O
+O my PRP$ O
+O playlist NN O
+
+O put VB O
+O it PRP O
+O on IN O
+O my PRP$ O
+playlist Late JJ I
+playlist Night JJ I
+O playlist NN O
+
+O save VB O
+O this DT O
+O song NN O
+O to IN O
+O my PRP$ O
+playlist Workout NNP I
+O playlist NN O
+
+O move VB O
+O it PRP O
+O to IN O
+O the DT O
+playlist Gym NNP I
+O playlist NN O
+
+O add VB O
+O it PRP O
+O to IN O
+O the DT O
+O playlist NN O
+playlist Yoga NN I
+
+O save VB O
+O this DT O
+O track NN O
+O in IN O
+O my PRP$ O
+O playlist NN O
+
+O put VB O
+O it PRP O
+O into IN O
+O the DT O
+O playlist NN O
+playlist Running VBG I
+
+O now RB O
+O play VBP O
+
+O play VB O
+O this DT O
+
+O play VB O
+
+O could MD O
+O you PRP O
+O play VB O
+O this DT O
+O one NN O
+
+O I PRP O
+O want VBP O
+O you PRP O
+O to TO O
+O play VB O
+O it PRP O
+
+O start VB O
+O playing VBG O
+O it PRP O
+
+O play VB O
+O it PRP O
+
+O could MD O
+O you PRP O
+O play VB O
+O it PRP O
+O for IN O
+O me PRP O
+
+O now RB O
+O start VBP O
+O playing VBG O
+
+O play VB O
+O it PRP O
+
+O can MD O
+O you PRP O
+O play VB O
+O it PRP O
+
+O and CC O
+O play VB O
+O it PRP O
+
+O shuffle VB O
+O them PRP O
+
+O shuffle VB O
+O this DT O
+O playlist NN O
+
+O shuffle VB O
+O mode NN O
+O on IN O
+
+O turn VB O
+O on RP O
+O shuffle NN O
+O mode NN O
+
+O shuffle VB O
+
+O play VB O
+O some DT O
+genre rock NN I
+O music NN O
+
+O just RB O
+O play VBP O
+O music NN O
+O for IN O
+O me PRP O
+
+O play VBP O
+O genre NN O
+genre romance NN I
+
+O play VBP O
+O song NN O
+song The DT I
+song Nights DT I
+
+O play VB O
+O a DT O
+O song NN O
+song Another DT I
+song Brick DT I
+song in DT I
+song the DT I
+song Wall DT I
+
+O play VB O
+song Ca NNP I
+song Marche NNP I
+O by IN O
+artist Maitre NNP I
+artist Gims NNP I
+
+O play VB O
+O any DT O
+O song NN O
+O of IN O
+artist Babbu NNP I
+artist Maan NNP I
+O from IN O
+O my PRP$ O
+O library NN O
+
+artist Eminem NNP I
+O song NN O
+
+O song JJ O
+genre pop NN I
+
+O play VB O
+O the DT O
+O album NN O
+album Divorcio NNP I
+O by IN O
+artist Julio NNP I
+artist Iglesia NNP I
+
+O play VB O
+song Miracle NN I
+
+O I PRP O
+O wanna MD O
+O listen VB O
+O to IN O
+genre reggae NN I
+
+O play VB O
+O some DT O
+genre smooth JJ I
+genre jazz JJ I
+
+O play VB O
+song 6 CD I
+song Words CD I
+O by IN O
+artist Wretch JJ I
+artist 32 JJ I
+O on IN O
+service Spotify NNP I
+
+O play VB O
+album Led NNP I
+album Zeppelin NNP I
+album two NNP I
+
+O reproduce VB O
+O a DT O
+O the DT O
+O track NN O
+song Monster NN I
+O by IN O
+artist Rihanna NNP I
+O ft NN O
+artist Eminem NNP I
+
+O I PRP O
+O want VBP O
+O you PRP O
+O to TO O
+O play VB O
+O music NN O
+
+O Play VB O
+artist Five CD I
+artist Seconds CD I
+artist of CD I
+artist Summer CD I
+
+O play VBP O
+O song NN O
+O by IN O
+artist Nicki NNP I
+artist Minaj NNP I
+
+O let's VB O
+O hear PRP O
+artist The VB I
+artist Beatles VB I
+
+O play VB O
+song Do VBP I
+song I VBP I
+song Wanna VBP I
+song Know VBP I
+O by IN O
+artist Arctic NNP I
+artist Monkeys NNP I
+
+O play VBP O
+artist Queens NNPS I
+artist of NNPS I
+artist the NNPS I
+artist stone NNPS I
+artist age NNPS I
+
+O play VB O
+artist Rihanna NNP I
+song Unfaithful NNP I
+O for IN O
+O me PRP O
+
+O play VB O
+song Ignition NN I
+O by IN O
+artist R NN I
+artist Kelly NN I
+
+O I'd PRP O
+O like MD O
+O to VB O
+O listen TO O
+O to VB O
+genre jazz IN I
+
+O I PRP O
+O want VBP O
+O to TO O
+O hear VB O
+O a DT O
+O song NN O
+
+O please UH O
+O play VB O
+O song NN O
+song Lost VBN I
+song in VBN I
+song You VBN I
+
+O play VB O
+O album NN O
+album The DT I
+album marshall DT I
+album mathers DT I
+O by IN O
+artist Eminem NNP I
+
+O play VB O
+song Hard NNP I
+song Times NNP I
+O by IN O
+artist David NNP I
+artist Newman NNP I
+
+O let VB O
+O me PRP O
+O hear VB O
+O some DT O
+O music NN O
+O by IN O
+artist Coldplay NNP I
+
+genre country NN I
+O song NN O
+
+O play VBP O
+O album NN O
+album Purple JJ I
+album Rain JJ I
+O on IN O
+service Spotify NNP I
+
+O can MD O
+O you PRP O
+O turn VB O
+O on RP O
+O my PRP$ O
+O music NN O
+
+O play VBP O
+O music NN O
+O by IN O
+artist Megan NNP I
+artist Trainer NNP I
+
+O play VB O
+song End NN I
+song of NN I
+song the NN I
+song World NN I
+O by IN O
+artist The DT I
+artist living DT I
+artist end DT I
+
+O play VB O
+artist Metallica NNP I
+
+O play VBP O
+O song NN O
+O from IN O
+artist Rihanna NNP I
+
+O play VB O
+O a DT O
+artist U2 JJ I
+O song NN O
+
+O play VB O
+O a DT O
+O song NN O
+O from IN O
+service Spotify NNP I
+
+O play VB O
+album Tears NNS I
+album in NNS I
+album Heaven NNS I
+O by IN O
+artist Eric NNP I
+artist Clapton NNP I
+
+O play VBP O
+O song NN O
+O by IN O
+artist Eminem NNP I
+O and CC O
+artist Rihanna NNP I
+
+O play VB O
+song Miracles NNS I
+O from IN O
+O phone NN O
+
+O switch VB O
+O to TO O
+playlist workout NN I
+O music NN O
+
+O play VBP O
+O song NN O
+O from IN O
+O the DT O
+O album NN O
+album Address NN I
+
+O play VB O
+O some DT O
+O good JJ O
+O music NN O
+
+O play VB O
+song Black NNP I
+song Widow NNP I
+O by IN O
+artist Iggy NNP I
+artist Azalea NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O the DT O
+O song NN O
+song Love VB I
+song Me VB I
+song Like VB I
+song You VB I
+song Do VB I
+
+O play VB O
+O some DT O
+genre rock NN I
+genre n NN I
+genre roll NN I
+O music NN O
+
+O play VB O
+artist Drake NNP I
+
+O start VB O
+O playing VBG O
+song The DT I
+song Lost DT I
+O song NN O
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+O a DT O
+O song NN O
+
+O play VBP O
+O album NN O
+album Songs NNP I
+album for NNP I
+album the NNP I
+album Deaf NNP I
+O by IN O
+artist Queens NNPS I
+artist of NNPS I
+artist the NNPS I
+artist stone NNPS I
+artist age NNPS I
+
+artist Tom NNP I
+artist Waits NNP I
+O songs NNS O
+
+O play VB O
+O a DT O
+genre country NN I
+O song NN O
+
+O play VB O
+O the DT O
+O album NN O
+album Un NNP I
+album monde NNP I
+album meilleur NNP I
+O by IN O
+artist Kids NNPS I
+artist United NNPS I
+
+O play VB O
+artist Red NNP I
+artist Hot NNP I
+artist Chili NNP I
+artist Peppers NNP I
+
+O play VBP O
+O song NN O
+O by IN O
+artist Willie NNP I
+artist Nelson NNP I
+
+O play VB O
+O something NN O
+O by IN O
+artist Rihanna NNP I
+
+O play VB O
+O some DT O
+genre rock NN I
+genre and NN I
+genre roll NN I
+
+O play VBP O
+O song NN O
+song Roxanne NNP I
+
+O play VB O
+O Madonna's NNP O
+song Like POS I
+song a POS I
+song Virgin POS I
+
+O play VBP O
+O song NN O
+song How WRB I
+song do WRB I
+song I WRB I
+song Live WRB I
+
+O play VB O
+O album NN O
+album Madonna NNP I
+
+O play VB O
+genre country NN I
+genre blues NN I
+
+O music NN O
+O play NN O
+song Addicted VBN I
+song to VBN I
+song Love VBN I
+
+O play VB O
+genre hip NN I
+genre hop NN I
+
+O put VB O
+O on RP O
+O my PRP$ O
+playlist late JJ I
+playlist night JJ I
+O playlist NN O
+
+O play VBP O
+O genre NN O
+genre party NN I
+
+O play VBP O
+O genre NN O
+genre blues NNS I
+
+O can MD O
+O you PRP O
+O play VB O
+O the DT O
+O song NN O
+song Still RB I
+song into RB I
+song You RB I
+
+O play VBP O
+genre jazz NN I
+O on IN O
+service Spotify NNP I
+
+O play VB O
+artist Pearl NNP I
+artist Jam NNP I
+
+O play VB O
+artist Britney NNP I
+artist Spears NNP I
+song Me PRP I
+song Against PRP I
+song the PRP I
+song Music PRP I
+O feat NN O
+artist Madonna NNP I
+
+O play VB O
+O me PRP O
+O some DT O
+sort good JJ I
+O music NN O
+
+O I PRP O
+O would MD O
+O like VB O
+O to TO O
+O hear VB O
+O some DT O
+O music NN O
+
+O play VB O
+sort best JJS I
+artist Metallica NNP I
+
+O play VBP O
+O song NN O
+song Alive NNP I
+
+O play VB O
+song It’s PRP I
+song Now PRP I
+song or PRP I
+song Never PRP I
+
+O play VB O
+song Faded VBN I
+O by IN O
+artist ZHU NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O the DT O
+O song NN O
+song Chasing VBG I
+song the VBG I
+song Dragon VBG I
+
+O play VB O
+O album NN O
+album Graceland NNP I
+O by IN O
+artist Paul NNP I
+artist Simon NNP I
+
+O let VB O
+O me PRP O
+O hear VB O
+O something NN O
+O from IN O
+artist George NNP I
+artist Strait NNP I
+
+artist Bob NNP I
+artist Marley NNP I
+O play VB O
+O the DT O
+O song NN O
+O please NN O
+
+O play VB O
+O album NN O
+album Power NNP I
+album Corruption NNP I
+album Lies NNP I
+
+O play VBP O
+O music NN O
+O by IN O
+artist Marco NNP I
+artist Mengoni NNP I
+
+O play VB O
+song Hello UH I
+
+O start VB O
+O up RP O
+O the DT O
+O track NN O
+song Come VB I
+song Together VB I
+
+O play VB O
+genre jazz NN I
+
+O play VB O
+O a DT O
+genre pop NN I
+O song NN O
+
+O play VB O
+song Bad JJ I
+O from IN O
+artist Michael NNP I
+artist Jackson NNP I
+
+O play VB O
+O a DT O
+genre romantic JJ I
+O song NN O
+
+O play VB O
+O the DT O
+O song NN O
+song Gorilla NNP I
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+song Temperature NN I
+O by IN O
+artist Sean NNP I
+artist Paul NNP I
+
+O play VB O
+song Animals NNS I
+O by IN O
+artist Maroon NN I
+artist 5 NN I
+
+O play VBP O
+O songs NNS O
+O by IN O
+artist Ellie NNP I
+artist Goulding NNP I
+
+O play VBP O
+song Never RB I
+song listen RB I
+artist Julia NNP I
+artist Othmer NNP I
+
+O play VB O
+O album NN O
+album After IN I
+album the IN I
+album Gold IN I
+album Rush IN I
+
+O play VB O
+song Do VBP I
+song I VBP I
+song Wanna VBP I
+song Know VBP I
+O by IN O
+artist Arctic NNP I
+artist Monkeys NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O album NN O
+album Madonna NNP I
+O by IN O
+album Madonna NNP I
+
+O play VB O
+O Adele's NNP O
+song Hello POS I
+
+O play VBP O
+O song NN O
+song In IN I
+song Da IN I
+song Club IN I
+
+O play VB O
+O me PRP O
+O a DT O
+O song NN O
+O by IN O
+artist Aventura NNP I
+
+O play VB O
+artist Justin NNP I
+artist Bieber NNP I
+
+O change VB O
+O to IN O
+O my PRP$ O
+playlist workout NN I
+O music NN O
+
+O play VBP O
+O song NN O
+O from IN O
+service iTunes NNS I
+
+O play VB O
+song Miracles NNPS I
+O from IN O
+service Apple NNP I
+service Music NNP I
+
+O can MD O
+O you PRP O
+O play VB O
+O song NN O
+song Dark JJ I
+song Horse JJ I
+
+O play VB O
+album Empty JJ I
+album Sky JJ I
+O by IN O
+artist Elton NNP I
+artist John NNP I
+
+O play VBP O
+O song NN O
+song Killer NNP I
+song Queen NNP I
+O by IN O
+artist Queen NNP I
+
+O play VB O
+song She's PRP I
+song Got PRP I
+song the PRP I
+song Look PRP I
+O by NNP O
+artist Roxette IN I
+
+O play VB O
+genre Gospel NN I
+O songs NNS O
+O on IN O
+service Spotify NNP I
+
+O play VB O
+artist Amy NNP I
+artist Winehouse NNP I
+
+O play VB O
+song Dangerous JJ I
+O feat NN O
+artist Sam NNP I
+artist Martin NNP I
+O by IN O
+artist David NNP I
+artist Guetta NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O play VBP O
+O album NN O
+album Ramones NNP I
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O something NN O
+O by IN O
+artist The DT I
+artist Rolling DT I
+artist Stones DT I
+
+O play VB O
+O a DT O
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O can MD O
+O you PRP O
+O play VB O
+O some DT O
+O music NN O
+
+O turn VB O
+O on RP O
+playlist meditative JJ I
+O tracks NNS O
+
+O play VB O
+O the DT O
+O song NN O
+song Encantadora NNP I
+
+O play VB O
+O my PRP$ O
+playlist workout NN I
+O playlist NN O
+
+O turn VB O
+O on RP O
+O a DT O
+O song NN O
+
+O play VB O
+sort greatest JJS I
+O hits NNS O
+O by IN O
+artist Metallica NNP I
+
+O play VB O
+O album NN O
+album London NNP I
+album calling NNP I
+O by IN O
+artist The DT I
+artist Clash DT I
+
+O play VB O
+O the DT O
+O song NN O
+song Bird NNP I
+
+O play VB O
+artist Maroon NN I
+artist 5 NN I
+
+O play VBP O
+O songs NNS O
+O from IN O
+O playlist NN O
+playlist Hot NNP I
+playlist Hits NNP I
+playlist UK NNP I
+
+O play VB O
+O some DT O
+genre relaxing VBG I
+O music NN O
+
+O show VBP O
+sort best JJS I
+O songs NNS O
+O by IN O
+artist Rihanna NNP I
+
+O can MD O
+O you PRP O
+O play VB O
+song Irreplaceable JJ I
+O by IN O
+artist Beyonce NNP I
+
+O play VB O
+playlist my PRP$ I
+playlist faves PRP$ I
+O playlist NN O
+
+O put VBN O
+O on RP O
+O some DT O
+artist Rolling NNP I
+artist Stones NNP I
+
+O music NN O
+song Grenade NNP I
+O in IN O
+O my PRP$ O
+O library NN O
+
+O play VB O
+artist Guns NNPS I
+artist N NNPS I
+artist Roses NNPS I
+
+O Play VB O
+playlist chill NN I
+O playlist NN O
+
+O let's VB O
+O hear PRP O
+artist Wilco VB I
+
+O play VB O
+song What WP I
+song Does WP I
+song the WP I
+song Fox WP I
+song Say WP I
+
+O play VB O
+O the DT O
+song Mean NNP I
+song Kitty NNP I
+O song NN O
+
+O play VBP O
+O song NN O
+song Thriller NNP I
+
+O play VBP O
+O song NN O
+song The DT I
+song Cantos DT I
+song de DT I
+song Mallorca DT I
+
+O play VB O
+genre Experimental JJ I
+O songs NNS O
+O on IN O
+service Spotify NNP I
+
+O play VBP O
+O song NN O
+song Poker NNP I
+song Face NNP I
+O by IN O
+artist Lady NNP I
+artist Gaga NNP I
+
+O I'd PRP O
+O like MD O
+O to VB O
+O listen TO O
+O to VB O
+O music IN O
+
+O turn VB O
+O on RP O
+O the DT O
+O music NN O
+
+O play VB O
+song Anaconda NNP I
+O by IN O
+artist Nicki NNP I
+artist Minaj NNP I
+
+O play VB O
+song Apparently RB I
+O by IN O
+artist J NNP I
+artist Cole NNP I
+
+O play VB O
+song Thriller NNP I
+artist Michael NNP I
+artist Jackson NNP I
+
+O play VB O
+song Keep VB I
+song On VB I
+song Walking VB I
+O by IN O
+artist CeCe NNP I
+
+O play VB O
+O the DT O
+O song JJ O
+song Nothing NN I
+song Gonna NN I
+song Stop NN I
+song Us NN I
+song Now NN I
+
+O play VB O
+artist Beyonce NNP I
+
+O can MD O
+O you PRP O
+O play VB O
+song How WRB I
+song You WRB I
+song Remind WRB I
+song Me WRB I
+
+song Hollaback NNP I
+song Girl NNP I
+O music NN O
+
+O play VB O
+genre RnB NN I
+
+O play VB O
+artist Meghan NNP I
+artist Trainor NNP I
+
+O play VB O
+O album NN O
+album Master NNP I
+album of NNP I
+album Puppets NNP I
+
+O play VB O
+O the DT O
+O song JJ O
+song Pots NNS I
+song of NNS I
+song gold NNS I
+O by IN O
+O the DT O
+O artist NN O
+artist Mamas NNP I
+artist Gun NNP I
+
+O play VB O
+O the DT O
+O album NN O
+album The DT I
+album Wall DT I
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O some DT O
+genre romantic JJ I
+O songs NNS O
+
+O play VB O
+song Best JJS I
+song of JJS I
+song You JJS I
+O by IN O
+artist Foo NNP I
+artist Fighters NNP I
+
+O play VB O
+O me PRP O
+O some DT O
+genre relaxing VBG I
+O music NN O
+
+O play VB O
+O artist NN O
+artist ACDC NNP I
+
+O can MD O
+O you PRP O
+O open VB O
+song Shape NN I
+song of NN I
+song My NN I
+song Heart NN I
+O in IN O
+service Google NNP I
+service music NNP I
+
+O play VB O
+O artist NN O
+artist Meghan NNP I
+artist Trainor NNP I
+
+O can MD O
+O you PRP O
+O open VB O
+song Careless NNP I
+song Whisper NNP I
+O song NN O
+
+O play VBP O
+O song NN O
+artist Krystof NNP I
+song Tak NNP I
+song Pojd NNP I
+song Hlwdat NNP I
+song Breh NNP I
+
+O play VB O
+song Foolin NNP I
+O by IN O
+artist Changing VBG I
+artist Faces VBG I
+
+O play VBP O
+O music NN O
+O for IN O
+O me PRP O
+
+O play VBP O
+O album NN O
+album Sounds VBZ I
+album Good VBZ I
+album Field VBZ I
+O by IN O
+artist Five CD I
+artist Seconds CD I
+artist of CD I
+artist Summer CD I
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+song Crazy NNP I
+O performed VBN O
+O by IN O
+artist Aerosmith NNP I
+
+artist Cher NNP I
+song Believe VB I
+
+O play VB O
+song Now RB I
+song Call RB I
+song Mom RB I
+
+O play VB O
+song Yesterday NN I
+O by IN O
+artist Beatles NNP I
+
+artist Bart NNP I
+artist Baker NNP I
+O song NN O
+
+O play VB O
+O the DT O
+sort newest JJS I
+O song NN O
+O by IN O
+artist Eminem NNP I
+
+O play VB O
+artist Laura NNP I
+artist Pausini NNP I
+
+O play VB O
+artist The DT I
+artist Police DT I
+
+O play VB O
+O album NN O
+album Fly NN I
+album by NN I
+album Night NN I
+O by IN O
+artist Rush NNP I
+
+O play VB O
+song Focus NN I
+O by IN O
+artist Ariana NNP I
+artist Grande NNP I
+
+song Blank NNP I
+song Space NNP I
+O song NN O
+
+song Can't MD I
+song Feel MD I
+song My MD I
+song Face MD I
+O on NNP O
+service Google IN I
+service Music IN I
+
+O play VBP O
+O song NN O
+O by IN O
+artist Shaggy NNP I
+
+O play VB O
+song Thinking VBG I
+song Out VBG I
+song Loud VBG I
+O by IN O
+artist Ed NNP I
+artist Sheeran NNP I
+
+O play VB O
+O a DT O
+O song NN O
+O from IN O
+O my PRP$ O
+O music NN O
+O library NN O
+
+O the DT O
+O song NN O
+song Grew VBN I
+O by IN O
+artist Bruno NNP I
+artist Mars NNP I
+
+O play VB O
+O album NN O
+album Appetite NN I
+album for NN I
+album destruction NN I
+O by IN O
+artist Guns NNPS I
+artist n NNPS I
+artist Roses NNPS I
+
+O play VBP O
+O album NN O
+album Horses NNS I
+
+O play VB O
+O me PRP O
+O some DT O
+artist Michael NNP I
+artist Jackson NNP I
+
+O play VB O
+song Elastic NNP I
+song Heart NNP I
+O by IN O
+artist Sia NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O me PRP O
+O some DT O
+genre country NN I
+O music NN O
+
+O play VB O
+O a DT O
+O song NN O
+song Tera NNP I
+song Mera NNP I
+song Rishta NNP I
+
+O a DT O
+O song NN O
+song Still RB I
+song Loving RB I
+song You RB I
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+song Disturbia NNP I
+O song NN O
+
+O play VB O
+song Harder RBR I
+song Better RBR I
+song Faster RBR I
+
+O can MD O
+O I PRP O
+O listen VB O
+O to IN O
+song Macarena NNP I
+
+O play VB O
+song Song NNP I
+song of NNP I
+song Joy NNP I
+
+O play VB O
+song Miracle NN I
+O from IN O
+service Apple NNP I
+service Music NNP I
+
+O play VB O
+song Bohemian NNP I
+song Rhapsody NNP I
+O by IN O
+artist Queen NNP I
+
+O play VB O
+O music NN O
+
+O can MD O
+O you PRP O
+O play VB O
+song It PRP I
+song Must PRP I
+song Have PRP I
+song Been PRP I
+song Love PRP I
+
+O can MD O
+O you PRP O
+O play VB O
+genre country NN I
+O music NN O
+
+O let's VB O
+O listen PRP O
+O to VB O
+song Come TO I
+song together TO I
+O by RB O
+artist Beatles IN I
+
+O play VBP O
+O songs NNS O
+O by IN O
+artist Enrique NNP I
+artist Iglesias NNP I
+
+O play VB O
+O an DT O
+O album NN O
+O by IN O
+artist Madonna NNP I
+
+O play VB O
+artist Nirvana NNP I
+
+O please UH O
+O play VB O
+O song NN O
+genre Secret NNP I
+genre Love NNP I
+genre Song NNP I
+
+O can MD O
+O you PRP O
+O play VB O
+O the DT O
+O song JJ O
+song Beauty NNP I
+song and NNP I
+song a NNP I
+song Beat NNP I
+
+O play VB O
+song I PRP I
+song Will PRP I
+song Always PRP I
+song Love PRP I
+song You PRP I
+O from IN O
+artist Whitney NNP I
+artist Houston NNP I
+
+O can MD O
+O you PRP O
+O start VB O
+O playing VBG O
+O music NN O
+
+O play VB O
+song 21 CD I
+O by IN O
+artist Adele NNP I
+O on IN O
+service Spotify NNP I
+
+O play VB O
+artist Rihanna NNP I
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O the DT O
+O song NN O
+song Back RB I
+song in RB I
+song time RB I
+O by IN O
+artist Pitbull NNP I
+
+O play VB O
+O artist NN O
+artist A DT I
+artist great DT I
+artist big DT I
+artist world DT I
+
+O can MD O
+O I PRP O
+O listen VB O
+O to IN O
+song Gangsta's NNP I
+song Paradise NNP I
+O song NNP O
+
+O play VB O
+song r&b NN I
+O music NN O
+
+O play NN O
+song Do VBP I
+song you VBP I
+song Mind VBP I
+O by IN O
+artist Changing VBG I
+artist Faces VBG I
+
+O put VBN O
+O on RP O
+O some DT O
+O music NN O
+
+O playing VBG O
+artist Mozart NNP I
+O song NN O
+
+O play VB O
+artist The DT I
+artist Antlers DT I
+
+O can MD O
+O you PRP O
+O play VB O
+artist Adele NNP I
+
+O play VBP O
+song Blackbird NNP I
+O from IN O
+O SD NN O
+O card NN O
+
+O play VBP O
+O music NN O
+O on IN O
+service Spotify NNP I
+
+O play VB O
+artist One CD I
+artist Direction CD I
+
+O I'd PRP O
+O like MD O
+O to VB O
+O listen TO O
+O to VB O
+O some IN O
+O music DT O
+
+O I PRP O
+O want VBP O
+O to TO O
+O hear VB O
+song Owner NN I
+song of NN I
+song a NN I
+song Lonely NN I
+song Heart NN I
+
+song No DT I
+song Scrubs DT I
+O song NN O
+O play NN O
+
+O play VB O
+O me PRP O
+O some DT O
+genre jazz NN I
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+song Bleeding NNP I
+song Love NNP I
+
+O play VBP O
+O song NN O
+song She's PRP I
+song Got PRP I
+song the PRP I
+song Look PRP I
+
+O play VB O
+O a DT O
+O song NN O
+
+O play VB O
+genre R&B NNP I
+
+O play VB O
+song Let VB I
+song Her VB I
+song Go VB I
+O by IN O
+artist Passenger NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+artist Ariana NNP I
+artist Grande NNP I
+
+O can MD O
+O you PRP O
+O please UH O
+O play VB O
+O a DT O
+O song NN O
+O from IN O
+O my PRP$ O
+playlist favourite JJ I
+O playlist NN O
+
+O songs NNS O
+O by IN O
+artist Tom NNP I
+artist Waits NNP I
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+O the DT O
+O song JJ O
+song New NNP I
+song York NNP I
+
+O play VB O
+album Abbey NNP I
+album Road NNP I
+O remastered VBN O
+O by IN O
+artist The DT I
+artist Beatles DT I
+
+O I'd PRP O
+O like MD O
+O to VB O
+O listen TO O
+O to VB O
+genre classic IN I
+genre opera IN I
+
+O play VB O
+song Home NN I
+song To NN I
+song Mama NN I
+O by IN O
+artist Justin NNP I
+artist Bieber NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O play VBP O
+O genre NN O
+genre RnB IN I
+
+O play VB O
+O the DT O
+O artist NN O
+artist Rush NN I
+
+O play VB O
+artist Theory NN I
+artist of NN I
+artist a NN I
+artist Deadman NN I
+
+genre rock NN I
+O compositions NNS O
+
+O play VB O
+song I PRP I
+song See PRP I
+song Fire PRP I
+O by IN O
+artist Ed NNP I
+artist Sheeran NNP I
+O song NN O
+O on IN O
+service Spotify NNP I
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+O something NN O
+O by IN O
+artist Madonna NNP I
+
+O play VB O
+O music NN O
+O by IN O
+artist Vanessa NNP I
+artist Paradis NNP I
+
+O play VB O
+O album NN O
+album In IN I
+album the IN I
+album jungle IN I
+album groove IN I
+
+O play VB O
+O album NN O
+album Thriller NNP I
+
+O play VBP O
+O song NN O
+O by IN O
+artist Lil NNP I
+artist Wayne NNP I
+
+O play VBP O
+O album NN O
+album Born VBN I
+album to VBN I
+album Run VBN I
+O by IN O
+artist Bruce NNP I
+artist Springsteen NNP I
+O on IN O
+service Spotify NNP I
+
+O play VBP O
+artist Imagine NNP I
+artist Dragons NNP I
+
+O will MD O
+O you PRP O
+O please UH O
+O play VB O
+song Tik NNP I
+song Tok NNP I
+
+O play VB O
+O a DT O
+genre rock NN I
+O song NN O
+
+O play VB O
+artist Maroon NNP I
+artist 5 NNP I
+O on IN O
+service Spotify NNP I
+
+O play VB O
+O album NN O
+album Nevermind NNP I
+O by IN O
+artist Nirvana NNP I
+
+O play VBP O
+artist françoise NN I
+artist hardy NN I
+
+song Live VB I
+song While VB I
+song We VB I
+song are VB I
+song Young VB I
+O song NN O
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+O some DT O
+O music NN O
+
+O play VB O
+song Budapest NNP I
+
+O play VB O
+song Sweet NNP I
+song Dreams NNP I
+O by IN O
+artist Eurythmics NNP I
+
+O play VB O
+O the DT O
+playlist 50 CD I
+playlist Great CD I
+playlist Beatles CD I
+playlist Songs CD I
+O playlist NN O
+O in IN O
+service Prime NNP I
+service Music NNP I
+
+O continue VB O
+O playing VBG O
+
+O start VB O
+O music NN O
+O again RB O
+
+O resume VB O
+
+O resume VB O
+O it PRP O
+
+O resume VB O
+O playing VBG O
+
+O continue VB O
+O the DT O
+O music NN O
+
+O continue VB O
+
+O resume VB O
+O music NN O
+
+O restart VB O
+O music NN O
+
+O resume VB O
+O this DT O
+O song NN O
+
+O can MD O
+O you PRP O
+O pause VB O
+O it PRP O
+
+O pause VB O
+O it PRP O
+
+O pause VB O
+O playing VBG O
+
+O pause VB O
+O song NN O
+
+O please UH O
+O pause VB O
+
+O pause VB O
+
+O put VB O
+O it PRP O
+O on IN O
+O pause NN O
+
+O pause VB O
+O this DT O
+O song NN O
+
+O skip VB O
+O to IN O
+O the DT O
+O previous JJ O
+O song NN O
+
+O go VB O
+O back RB O
+
+O skip VB O
+O backward RB O
+
+O go VB O
+O back RB O
+O to IN O
+O the DT O
+O previous JJ O
+O station NN O
+
+O back VB O
+O up RP O
+O a DT O
+O track NN O
+
+O go VB O
+O to IN O
+O previous JJ O
+
+O previous JJ O
+O song NN O
+
+O go VB O
+O back RB O
+O to IN O
+O previous JJ O
+O song NN O
+
+O skip VB O
+O to IN O
+O the DT O
+O back NN O
+
+O back RB O
+
+O go VB O
+O back RB O
+O to IN O
+O previous JJ O
+
+O previous JJ O
+
+O previous JJ O
+O station NN O
+
+O skip VB O
+O back RB O
+
+O skip VB O
+O to IN O
+O previous JJ O
+
+O remember VB O
+O this DT O
+O song NN O
+
+O fave VB O
+O this DT O
+O song NN O
+
+O it's PRP O
+O my VBZ O
+O favourite PRP$ O
+
+O add VB O
+O this DT O
+O song NN O
+O to IN O
+O favorites NNS O
+
+O I PRP O
+O love VBP O
+O this DT O
+O song NN O
+
+O put VB O
+O this DT O
+O track NN O
+O into IN O
+O my PRP$ O
+O favourites NNS O
+
+O add VB O
+O to IN O
+O faves NNS O
+
+O add VB O
+O it PRP O
+O to IN O
+O my PRP$ O
+O favourites NNS O
+
+O favourite JJ O
+O this DT O
+O song NN O
+
+O could MD O
+O you PRP O
+O mark VB O
+O it PRP O
+O as IN O
+O favourite JJ O
+
+O add VB O
+O this DT O
+O song NN O
+O to IN O
+O my PRP$ O
+O favourites NNS O
+
+O stop VB O
+O it PRP O
+
+O could MD O
+O you PRP O
+O stop VB O
+
+O music NN O
+O off RP O
+
+O can MD O
+O you PRP O
+O stop VB O
+O the DT O
+O music NN O
+
+O stop VB O
+
+O stop VB O
+O playing VBG O
+
+O stop VB O
+O the DT O
+O music NN O
+
+O turn VB O
+O off RP O
+O music NN O
+
+O enough RB O
+
+O enough JJ O
+O music NN O
+
+O repeat VB O
+
+O repeat VB O
+O one CD O
+O more JJR O
+O time NN O
+
+O put VB O
+O it PRP O
+O on IN O
+O repeat NN O
+O mode NN O
+
+O play VB O
+O this DT O
+O track NN O
+O once RB O
+O again RB O
+
+O repeat VB O
+O it PRP O
+
+O play VB O
+O this DT O
+O song NN O
+O from IN O
+O the DT O
+O beginning NN O
+
+O repeat VB O
+O it PRP O
+O once RB O
+O again RB O
+
+O play VB O
+O again RB O
+O from IN O
+O the DT O
+O very JJ O
+O beginning NN O
+
+O repeat VB O
+O this DT O
+O track NN O
+
+O one CD O
+O more JJR O
+O time NN O
+
+O play VB O
+O it PRP O
+O again RB O
+
+O repeat VB O
+O please UH O
+
+O repeat VB O
+O this DT O
+O track NN O
+O one CD O
+O more JJR O
+O time NN O
+
+O I PRP O
+O want VBP O
+O to TO O
+O listen VB O
+O to IN O
+O this DT O
+O song NN O
+O once RB O
+O again RB O
+
+O repeat VB O
+O the DT O
+O song NN O
+
+O turn VB O
+O on RP O
+O repeat NN O
+O for IN O
+O this DT O
+O song NN O
+
+O can MD O
+O you PRP O
+O repeat VB O
+O it PRP O
+
+O can MD O
+O you PRP O
+O repeat VB O
+O this DT O
+O track NN O
+
+O turn VB O
+O on RP O
+O repeat NN O
+O mode NN O
+O for IN O
+O this DT O
+O song NN O
+
+O put VB O
+O this DT O
+O track NN O
+O on IN O
+O repeat NN O
+
+O repeat VB O
+O this DT O
+O song NN O
+
+O repeat VB O
+O mode NN O
+O for IN O
+O this DT O
+O track NN O
+
+O put VB O
+O this DT O
+O on IN O
+O repeat NN O
+
+O could MD O
+O you PRP O
+O repeat VB O
+O them PRP O
+
+O play VB O
+O this DT O
+O song NN O
+O again RB O
+
+O repeat VB O
+O this DT O
+O song NN O
+O once RB O
+O again RB O
+
+O play VB O
+O it PRP O
+O one CD O
+O more JJR O
+O time NN O
+
+O let's VB O
+O repeat PRP O
+O this VB O
+O track DT O
+
+O turn VB O
+O on RP O
+O repeat NN O
+O mode NN O
+O for IN O
+O it PRP O
+
+O play VB O
+O the DT O
+O next JJ O
+O one CD O
+
+O what's WP O
+O the VBZ O
+O next DT O
+O one JJ O
+
+O skip VB O
+O next RB O
+
+O skip VB O
+O to IN O
+O next JJ O
+
+O next JJ O
+O track NN O
+
+O go VB O
+O to IN O
+O the DT O
+O next JJ O
+
+O what's WP O
+O next VBZ O
+
+O now RB O
+O the DT O
+O next JJ O
+O one CD O
+
+O play VB O
+O next RB O
+
+O the DT O
+O next JJ O
+O song NN O
+
+O skip VB O
+O forward RB O
+
+O play VB O
+O next JJ O
+O track NN O
+
+O the DT O
+O following VBG O
+O song NN O
+
+O what's WP O
+O the VBZ O
+O next DT O
+O song JJ O
+
+O go VB O
+O to IN O
+O the DT O
+O next JJ O
+O one CD O
+
+O go VB O
+O forward RB O
+
+O next JJ O
+O song NN O
+
+O skip VB O
+
+O play VB O
+O the DT O
+O next JJ O
+O song NN O
+
+O the DT O
+O next JJ O
+O please UH O
+
+O next RB O
+O please UH O
+
+O skip VB O
+O this DT O
+O song NN O
+
+O play VB O
+O another DT O
+O one NN O
+
+O next RB O
+
+O skip VB O
+O to IN O
+O the DT O
+O next JJ O
+O one CD O
+

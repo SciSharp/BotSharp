@@ -9,6 +9,6 @@
     "SpaCyProvider": {
       "Url": "http://10.2.21.200:5005"
     },
-    "Pipe": "SpaCyTokenizer, SpacyFeaturizer, CRFsuiteEntityRecognizer" //SpaCyEntitizer, SpaCyTextCategorizer, SpaCyEntityRecognizer
+    "Pipe": "SpaCyTokenizer, SpaCyTagger, CRFsuiteEntityRecognizer" 
   }
 }
