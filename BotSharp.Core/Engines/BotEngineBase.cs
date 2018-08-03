@@ -28,7 +28,8 @@ namespace BotSharp.Core.Engines
         public BotEngineBase()
         {
             dc = new DefaultDataContextLoader().GetDefaultDc();
-            DbInitializerPath = $"{Database.ContentRootPath}App_Data{Path.DirectorySeparatorChar}DbInitializer{Path.DirectorySeparatorChar}";
+            string dataPath = AppDomain.CurrentDomain.GetData("DataPath").ToString();
+            DbInitializerPath = Path.Join(dataPath, $"DbInitializer");
         }
 
         public Agent LoadAgent(string id)
@@ -62,7 +63,7 @@ namespace BotSharp.Core.Engines
         {
             var importer = new TAgentImporter();
 
-            string dataDir = $"{DbInitializerPath}Agents{Path.DirectorySeparatorChar}";
+            string dataDir = Path.Join(DbInitializerPath, "Agents");
 
             int row = dc.DbTran(() => {
 

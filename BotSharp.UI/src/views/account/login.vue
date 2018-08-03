@@ -56,7 +56,7 @@
                 })
             },
             getToken() {
-                this.$ajax.post(`/token`, this.formInline, { baseURL: this.$config.authURL })
+                this.$ajax.post(`/token`, this.formInline, { baseURL: this.$config.baseURL })
 					.then(response => {
                         this.$store.commit('authenticated', response.data)
                     });

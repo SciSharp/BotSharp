@@ -14,6 +14,8 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using BotSharp.Core.Engines.BotSharp;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace BotSharp.WebHost
 {
@@ -51,8 +53,10 @@ namespace BotSharp.WebHost
             // register platform dependency
             services.AddTransient<IBotPlatform>((provider) =>
             {
-                var implements = TypeHelper.GetClassesWithInterface<IBotPlatform>(Database.Assemblies);
-                string platform = Database.Configuration.GetValue<String>("BotPlatform");
+                var assemblies = (String[])AppDomain.CurrentDomain.GetData("Assemblies");
+                var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+                var implements = TypeHelper.GetClassesWithInterface<IBotPlatform>(assemblies);
+                string platform = config.GetValue<String>("BotPlatform");
                 var implement = implements.FirstOrDefault(x => x.Name.Split('.').Last() == platform);
                 var instance = (IBotPlatform)Activator.CreateInstance(implement);
 
@@ -101,15 +105,20 @@ namespace BotSharp.WebHost
 
             app.UseMvc();
 
-            Database.Configuration = Configuration;
-            Database.ContentRootPath = env.ContentRootPath;
-            Database.Assemblies = Configuration.GetValue<String>("Assemblies").Split(',');
+            AppDomain.CurrentDomain.SetData("DataPath", Path.Join(env.ContentRootPath, "App_Data"));
+            AppDomain.CurrentDomain.SetData("Configuration", Configuration);
+            AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
+            AppDomain.CurrentDomain.SetData("Assemblies", Configuration.GetValue<String>("Assemblies").Split(','));
 
-            Runcmd();
-
+            InitializationLoader loader = new InitializationLoader();
+            loader.Env = env;
+            loader.Config = Configuration;
+            loader.Load();
+            
+            /*Runcmd();
             var ai = new BotSharpAi();
             ai.LoadAgent("6a9fd374-c43d-447a-97f2-f37540d0c725");
-            ai.Train();
+            ai.Train();*/
         }
 
         public void Runcmd () 

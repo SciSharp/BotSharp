@@ -8,6 +8,7 @@ using BotSharp.Core.Intents;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 
 namespace BotSharp.Core.Engines
@@ -43,22 +44,24 @@ namespace BotSharp.Core.Engines
             });
 
             // Get NLP Provider
-            string providerName = Database.Configuration.GetSection($"{config}:Provider").Value;
-            var provider = TypeHelper.GetInstance(providerName, Database.Assemblies) as INlpPipeline;
-            provider.Configuration = Database.Configuration.GetSection("BotSharpAi");
+            var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+            var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
+            string providerName = config.GetSection($"{config}:Provider").Value;
+            var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpPipeline;
+            provider.Configuration = config.GetSection("BotSharpAi");
             provider.Process(agent, data);
 
             //var corpus = agent.GrabCorpus(dc);
 
             // pipe process
-            var pipelines = Database.Configuration.GetSection($"{config}:Pipe").Value
+            var pipelines = config.GetSection($"{config}:Pipe").Value
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
 
             pipelines.ForEach(pipeName =>
             {
-                var pipe = TypeHelper.GetInstance(pipeName, Database.Assemblies) as INlpPipeline;
+                var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPipeline;
                 pipe.Configuration = provider.Configuration;
                 pipe.Process(agent, data);
             });
