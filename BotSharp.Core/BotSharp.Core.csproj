@@ -12,11 +12,11 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Haiping Chen</Authors>
     <Company />
-    <Product>BotSharp Chabot Platform</Product>
+    <Product>BotSharp Chatbot Platform</Product>
     <Description>Open source chatbot platform which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.</Description>
     <RepositoryType>MIT</RepositoryType>
     <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
-    <PackageTags>NLU, Chatbot, Bot, AI Bot</PackageTags>
+    <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence, RPA</PackageTags>
     <Version>1.4.0</Version>
     <PackageReleaseNotes>Add NLP pipeline. Support training model by input context.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
@@ -36,12 +36,13 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetToolkit" Version="1.4.0" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.8.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="RestSharp" Version="106.3.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EntityFrameworkCore.BootKit\EntityFrameworkCore.BootKit\EntityFrameworkCore.BootKit.csproj" />
     <ProjectReference Include="..\BotSharp.MachineLearning\BotSharp.MachineLearning.csproj" />
   </ItemGroup>
 

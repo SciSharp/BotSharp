@@ -1,0 +1,12 @@
+﻿[
+  {
+    "userName": "support@botsharp.io",
+    "email": "support@botsharp.io",
+    "firstName": "Support",
+    "lastName": "Botsharp",
+    "description": "demo account",
+    "authenticaiton": {
+      "password": "botsharp"
+    }
+  }
+]

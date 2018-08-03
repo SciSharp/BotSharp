@@ -57,7 +57,6 @@
 
   <ItemGroup>
     <Folder Include="App_Data\DbInitializer\Agents\Rasa\" />
-    <Folder Include="App_Data\DbInitializer\Accounts\" />
   </ItemGroup>
 
   <ItemGroup>

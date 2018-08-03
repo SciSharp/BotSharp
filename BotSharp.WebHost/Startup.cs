@@ -103,15 +103,21 @@ namespace BotSharp.WebHost
 
             app.UseMvc();
 
-            Database.Configuration = Configuration;
-            Database.ContentRootPath = env.ContentRootPath;
-            Database.Assemblies = Configuration.GetValue<String>("Assemblies").Split(',');
+            AppDomain.CurrentDomain.SetData("DataPath", Path.Join(env.ContentRootPath, "App_Data"));
+            AppDomain.CurrentDomain.SetData("Configuration", Configuration);
+            AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
+            AppDomain.CurrentDomain.SetData("Assemblies", Configuration.GetValue<String>("Assemblies").Split(','));
 
-            Runcmd();
+            InitializationLoader loader = new InitializationLoader();
+            loader.Env = env;
+            loader.Config = Configuration;
+            loader.Load();
+
+            /*Runcmd();
 
             var ai = new BotSharpAi();
             ai.LoadAgent("6a9fd374-c43d-447a-97f2-f37540d0c725");
-            ai.Train();
+            ai.Train();*/
         }
 
         public void Runcmd () 

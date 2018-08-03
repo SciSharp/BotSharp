@@ -45,7 +45,8 @@ namespace BotSharp.RestApi.Authentication
                 string hash = PasswordHelper.Hash(userModel.Password, user.Salt);
                 if (user.Password == hash)
                 {
-                    return Ok(JwtToken.GenerateToken((IConfiguration)AppDomain.CurrentDomain.GetData("Configuration"), user.UserId));
+                    var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+                    return Ok(JwtToken.GenerateToken(config, user.UserId));
                 }
                 else
                 {

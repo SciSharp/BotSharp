@@ -2,6 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Haiping Chen</Authors>
+    <Company>Personal</Company>
+    <Product>BotSharp</Product>
+    <Description>Restful API for BotSharp.Core</Description>
+    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Oceania2018/BotSharp/tree/master/BotSharp.RestApi</RepositoryUrl>
+    <RepositoryType>MIT</RepositoryType>
+    <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
+    <Copyright>Since 2018 Haiping Chen</Copyright>
+    <PackageLicenseUrl>https://github.com/Oceania2018/BotSharp/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageTags>NLU, Chatbot, Bot, AI Bot</PackageTags>
+    <PackageReleaseNotes>Restful API for BotSharp.Core</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
