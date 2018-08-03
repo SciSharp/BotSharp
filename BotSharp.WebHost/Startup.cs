@@ -14,6 +14,8 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using BotSharp.Core.Engines.BotSharp;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace BotSharp.WebHost
 {
@@ -114,7 +116,6 @@ namespace BotSharp.WebHost
             loader.Load();
 
             /*Runcmd();
-
             var ai = new BotSharpAi();
             ai.LoadAgent("6a9fd374-c43d-447a-97f2-f37540d0c725");
             ai.Train();*/

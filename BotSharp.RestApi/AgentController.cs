@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
+using BotSharp.Core.Engines.BotSharp;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Mvc;
@@ -29,9 +30,9 @@ namespace BotSharp.RestApi
             var botsHeaderFilePath = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), $"DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json");
             var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(System.IO.File.ReadAllText(botsHeaderFilePath));
 
-            var rasa = new RasaAi();
+            var rasa = new BotSharpAi();
             var agentHeader = agents.First(x => x.Id == agentId);
-            rasa.RestoreAgent<AgentImporterInDialogflow>(agentHeader);
+            rasa.RestoreAgent<AgentImporterInSebis>(agentHeader);
 
             return Ok();
         }
