@@ -16,7 +16,7 @@ using Newtonsoft.Json.Linq;
 namespace BotSharp.Core.Engines
 {
     /// <summary>
-    /// Import agent from Dialogflow
+    /// Import Sebis NLU benchmark corpus
     /// </summary>
     public class AgentImporterInSebis : IAgentImporter
     {
@@ -58,48 +58,74 @@ namespace BotSharp.Core.Engines
             agent.Intents = sentences.Select(x => x.Name).Distinct().Select(x => new Intent{Name = x}).ToList();
             
             agent.Intents.ForEach(intent => {
-                intent.UserSays = new List<IntentExpression>();
-
-                var userSays = sentences.Where(x => x.Name == intent.Name).ToList();
-
-                userSays.ForEach(say => 
-                {
-                    var expression = new IntentExpression();
-
-                    expression.Data = new List<IntentExpressionPart>();
-
-                    for(int index = 0; index < say.Entities.Count; index++)
-                    {
-                        
-                    }
-
-                    intent.UserSays.Add(expression);
-                });
+                ImportIntentUserSays(agent, intent, sentences);
             });
         }
 
-        private Intent ImportIntentUserSays(Agent agent, Intent intent, string fileName)
+        private void ImportIntentUserSays(Agent agent, Intent intent, List<SebisIntent> sentences)
         {
-            // void id confict
-            intent.Id = Guid.NewGuid().ToString();
-            intent.Name = intent.Name.Replace("/", "_");
-            // load user expressions
+            intent.UserSays = new List<IntentExpression>();
 
-            string expressionFileName = fileName.Replace(intent.Name, $"{intent.Name}_usersays_{agent.Language}");
-            if (File.Exists(expressionFileName))
+            var userSays = sentences.Where(x => x.Name == intent.Name).ToList();
+
+            userSays.ForEach(say =>
             {
-                string expressionJson = File.ReadAllText($"{expressionFileName}");
-                intent.UserSays = JsonConvert.DeserializeObject<List<IntentExpression>>(expressionJson);
-            }
+                var expression = new IntentExpression();
 
-            return null;
+                say.Entities = say.Entities.OrderBy(x => x.Start).ToList();
+
+                int pos = 0;
+                say.Entities.ForEach(x =>
+                {
+                    ConvertWordPosToCharPos(say.Text, x, pos);
+                    pos = x.End;
+                });
+
+                expression.Data = new List<IntentExpressionPart>();
+
+                pos = 0;
+                for (int entityIdx = 0; entityIdx < say.Entities.Count; entityIdx++)
+                {
+                    var entity = say.Entities[entityIdx];
+
+                    // previous
+                    expression.Data.Add(new IntentExpressionPart
+                    {
+                        Text = say.Text.Substring(pos, entity.Start - pos)
+                    });
+
+                    // self
+                    expression.Data.Add(new IntentExpressionPart
+                    {
+                        Alias = entity.Entity,
+                        Meta = entity.Entity,
+                        Text = say.Text.Substring(entity.Start, entity.Value.Length)
+                    });
+
+                    pos = entity.End + 1;
+
+                    if (pos < say.Text.Length && entityIdx == say.Entities.Count - 1)
+                    {
+                        // end
+                        expression.Data.Add(new IntentExpressionPart
+                        {
+                            Text = say.Text.Substring(pos)
+                        });
+                    }
+                }
+            });
+        }
+
+        private void ConvertWordPosToCharPos(string text, SebisIntentExpressionPart entity, int start)
+        {
+            entity.Start = text.IndexOf(entity.Value, start);
+            entity.End = entity.Start + entity.Value.Length;
         }
 
         public void LoadBuildinEntities(Agent agent, string agentDir)
         {
             agent.Intents.ForEach(intent =>
             {
-
                 if (intent.UserSays != null)
                 {
                     intent.UserSays.ForEach(us =>

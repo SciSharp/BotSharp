@@ -394,13 +394,13 @@
         {
           "entity": "StationStart",
           "start": 6,
-          "stop": 10,
+          "stop": 8,
           "text": "kurt-eisner-straße"
         },
         {
           "entity": "StationDest",
-          "start": 12,
-          "stop": 13,
+          "start": 10,
+          "stop": 11,
           "text": "garching forschungszentrum"
         }
       ]
@@ -586,13 +586,13 @@
         {
           "entity": "StationStart",
           "start": 5,
-          "stop": 9,
+          "stop": 5,
           "text": "kurt-eisner-straße"
         },
         {
           "entity": "StationDest",
-          "start": 11,
-          "stop": 12,
+          "start": 7,
+          "stop": 8,
           "text": "garching forschungszentrum"
         }
       ]

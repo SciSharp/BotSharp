@@ -293,3 +293,4 @@ __pycache__/
 /BotSharp.UnitTest/App_Data/DbInitializer/Agents
 /BotSharp.UnitTest/App_Data/BotSharp.db
 /BotSharp.WebHost/App_Data/BotSharp.db
+/BotSharp.UI
