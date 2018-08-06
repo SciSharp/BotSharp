@@ -11,12 +11,12 @@ using BotSharp.MachineLearning.NLP;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
-    class SpaCyTagger : INlpPipeline
+    public class SpaCyTagger : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
 
         
-public bool Process(Agent agent, JObject data)
+        public bool Process(Agent agent, JObject data)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tagger", Method.GET);

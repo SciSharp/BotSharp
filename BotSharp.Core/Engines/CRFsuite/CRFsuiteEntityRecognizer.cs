@@ -27,9 +27,10 @@ namespace BotSharp.Core.Engines.CRFsuite
             List<List<String>> tags = data["Tags"].ToObject<List<List<String>>>();
             List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
-            List<List<TrainingData>> list  =new List<List<TrainingData>>();
+            List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            FileStream fs = new FileStream("/home/bolo/Desktop/BotSharp/TrainingFiles/rawTrain.txt", FileMode.Create);
+            var dir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles");
+            FileStream fs = new FileStream(Path.Join(dir, "rawTrain.txt"), FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
 
             for (int i = 0 ; i < tags.Count; i++) 
@@ -56,7 +57,10 @@ namespace BotSharp.Core.Engines.CRFsuite
 
         public void Runcmd () 
         {
-            string cmd = "/home/bolo/Desktop/BotSharp/TrainingFiles/crfsuite learn -m /home/bolo/Desktop/BotSharp/TrainingFiles/crfsuite/bolo.model /home/bolo/Desktop/BotSharp/TrainingFiles/crfsuite/1.txt";
+            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
+            var dataDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles");
+
+            string cmd = $"{algorithmDir}/crfsuite learn -m {dataDir}/crfsuite/bolo.model {dataDir}/crfsuite/1.txt";
             System.Diagnostics.Process p = new System.Diagnostics.Process();
             p.StartInfo.FileName = "sh";
             p.StartInfo.UseShellExecute = false; 

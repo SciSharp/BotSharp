@@ -78,7 +78,7 @@ namespace BotSharp.Core.Engines
                 say.Entities.ForEach(x =>
                 {
                     ConvertWordPosToCharPos(say.Text, x, pos);
-                    pos = x.End;
+                    pos = x.End + 1;
                 });
 
                 expression.Data = new List<IntentExpressionPart>();
@@ -89,10 +89,13 @@ namespace BotSharp.Core.Engines
                     var entity = say.Entities[entityIdx];
 
                     // previous
-                    expression.Data.Add(new IntentExpressionPart
+                    if(entity.Start > 0)
                     {
-                        Text = say.Text.Substring(pos, entity.Start - pos)
-                    });
+                        expression.Data.Add(new IntentExpressionPart
+                        {
+                            Text = say.Text.Substring(pos, entity.Start - pos)
+                        });
+                    }
 
                     // self
                     expression.Data.Add(new IntentExpressionPart
@@ -114,6 +117,12 @@ namespace BotSharp.Core.Engines
                     }
                 }
 
+<<<<<<< HEAD
+=======
+                int second = 0;
+                expression.Data.ForEach(x => x.UpdatedTime = DateTime.UtcNow.AddSeconds(second++));
+
+>>>>>>> b389d837f25afa256b35d0418274967557fb06f9
                 intent.UserSays.Add(expression);
             });
         }
@@ -121,7 +130,7 @@ namespace BotSharp.Core.Engines
         private void ConvertWordPosToCharPos(string text, SebisIntentExpressionPart entity, int start)
         {
             entity.Start = text.IndexOf(entity.Value, start);
-            entity.End = entity.Start + entity.Value.Length;
+            entity.End = entity.Start + entity.Value.Length - 1;
         }
 
         public void LoadBuildinEntities(Agent agent, string agentDir)
