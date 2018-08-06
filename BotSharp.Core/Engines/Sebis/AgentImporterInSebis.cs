@@ -58,11 +58,11 @@ namespace BotSharp.Core.Engines
             agent.Intents = sentences.Select(x => x.Name).Distinct().Select(x => new Intent{Name = x}).ToList();
             
             agent.Intents.ForEach(intent => {
-                ImportIntentUserSays(agent, intent, sentences);
+                ImportIntentUserSays(intent, sentences);
             });
         }
 
-        private void ImportIntentUserSays(Agent agent, Intent intent, List<SebisIntent> sentences)
+        private void ImportIntentUserSays(Intent intent, List<SebisIntent> sentences)
         {
             intent.UserSays = new List<IntentExpression>();
 
@@ -113,6 +113,8 @@ namespace BotSharp.Core.Engines
                         });
                     }
                 }
+
+                intent.UserSays.Add(expression);
             });
         }
 

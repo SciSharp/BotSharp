@@ -2,8 +2,10 @@
 using BotSharp.Core.Engines;
 using BotSharp.Core.Engines.BotSharp;
 using BotSharp.Core.Models;
+using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -19,6 +21,17 @@ namespace BotSharp.RestApi
     [Route("v1/[controller]/[action]")]
     public class AgentController : ControllerBase
     {
+        private readonly IBotPlatform _platform;
+
+        /// <summary>
+        /// Initialize dialog controller and get a platform instance
+        /// </summary>
+        /// <param name="platform"></param>
+        public AgentController(IBotPlatform platform)
+        {
+            _platform = platform;
+        }
+
         /// <summary>
         /// Restore a agent from a uploaded zip file 
         /// </summary>
@@ -45,9 +58,8 @@ namespace BotSharp.RestApi
         [HttpGet("{agentId}")]
         public string Train([FromRoute] String agentId)
         {
-            var ai = new BotSharpAi();
-            ai.LoadAgent("bff7605c-3db5-44dc-9ba7-1c9be2832318");
-            ai.Train();
+            _platform.LoadAgent(agentId);
+            _platform.Train();
 
             return "";
         }
@@ -60,8 +72,7 @@ namespace BotSharp.RestApi
         [HttpGet("{agentId}")]
         public ActionResult<Agent> Dump([FromRoute] String agentId)
         {
-            var rasa = new RasaAi();
-            var agent = rasa.LoadAgent(agentId);
+            var agent = _platform.LoadAgent(agentId);
 
             return Ok(agent);
         }

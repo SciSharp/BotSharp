@@ -19,13 +19,10 @@ namespace BotSharp.Core.Engines
 
         private string agentId;
 
-        private string config;
-
-        public BotTrainer(string agentId, Database dc, string config = "BotSharpAi")
+        public BotTrainer(string agentId, Database dc)
         {
             this.dc = dc;
             this.agentId = agentId;
-            this.config = config;
         }
 
         public string Train(Agent agent)
