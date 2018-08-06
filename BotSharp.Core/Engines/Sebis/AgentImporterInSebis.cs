@@ -102,7 +102,7 @@ namespace BotSharp.Core.Engines
                         Text = say.Text.Substring(entity.Start, entity.Value.Length)
                     });
 
-                    pos = entity.End + 1;
+                    pos = entity.End;
 
                     if (pos < say.Text.Length && entityIdx == say.Entities.Count - 1)
                     {
