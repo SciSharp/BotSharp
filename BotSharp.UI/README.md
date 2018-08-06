@@ -1,4 +1,4 @@
-Voiceweb AI Chatbot Web Console
+BotSharp Web Console
 ===
 
 ## How to install

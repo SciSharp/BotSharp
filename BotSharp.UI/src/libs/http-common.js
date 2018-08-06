@@ -19,6 +19,12 @@ HTTP.interceptors.request.use(function (config) {
 
 HTTP.interceptors.response.use(null, function(error) {
   let response = error.response;
+
+  if(response == undefined) {
+    iView.Message.error(error.message);
+    return Promise.reject(error.message);
+  }
+
   let status = response.status;
 
   if (status === 400) {

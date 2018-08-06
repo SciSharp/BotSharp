@@ -18,7 +18,7 @@
         </Form>
         <div>
             <Button @click="handleSubmit('formInline')" style="margin-left:10px;">Login</Button>
-            <p style="margin-top:30px;">Automate conversationon and enterprise processing through intelligent bot</p>
+            <p style="margin-top:30px;">Automate conversationon and enterprise processing through intelligent chatbot</p>
         </div>
     </Row>
 </template>

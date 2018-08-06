@@ -5,13 +5,8 @@
 				<Row type="flex" justify="center">
 					<Col span="2"></Col>
 					<Col span="20">
-						<div></div>
-						<h1>
-							<img src="../images/logo.png">
-						</h1>
+						<img src="../images/logo.png" width="300em;">
 						<div class="title">The Chatbot Platform Builder for Enterprise</div>
-						<div class="slogan"><vue-typer text='Hello！' :type-delay='500' :repeat='0'></vue-typer></div>
-						
 					</Col>
 					<Col span="2" style="height: 95%">
 						
@@ -34,7 +29,6 @@
 </template>
 
 <script>
-	import {VueTyper} from 'vue-typer';
 	import login from './account/login.vue';
 	
     export default {
@@ -48,7 +42,6 @@
 			}
         },
 		components: {
-			VueTyper,
 			login
 		}
     }
@@ -82,6 +75,7 @@
 	.title{
 		font-size:2em;
 		margin-top:1.5em;
+		margin-bottom: 1.5em;
 	}
 	.slogan{
 		font-size:1.2em;
