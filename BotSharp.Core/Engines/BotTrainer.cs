@@ -46,15 +46,16 @@ namespace BotSharp.Core.Engines
             // Get NLP Provider
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
-            string providerName = config.GetSection($"{config}:Provider").Value;
+            var platform = config.GetSection($"BotPlatform").Value;
+            string providerName = config.GetSection($"{platform}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpPipeline;
-            provider.Configuration = config.GetSection("BotSharpAi");
+            provider.Configuration = config.GetSection(platform);
             provider.Process(agent, data);
 
             //var corpus = agent.GrabCorpus(dc);
 
             // pipe process
-            var pipelines = config.GetSection($"{config}:Pipe").Value
+            var pipelines = provider.Configuration.GetSection($"Pipe").Value
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();

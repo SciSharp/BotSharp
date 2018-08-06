@@ -38,6 +38,21 @@ namespace BotSharp.RestApi
         }
 
         /// <summary>
+        /// Restore a agent from a uploaded zip file 
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        [HttpGet("{agentId}")]
+        public string Train([FromRoute] String agentId)
+        {
+            var ai = new BotSharpAi();
+            ai.LoadAgent("bff7605c-3db5-44dc-9ba7-1c9be2832318");
+            ai.Train();
+
+            return "";
+        }
+
+        /// <summary>
         /// Dump agent
         /// </summary>
         /// <param name="agentId"></param>

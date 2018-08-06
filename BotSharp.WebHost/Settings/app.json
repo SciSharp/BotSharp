@@ -1,4 +1,4 @@
 ﻿{
   "Assemblies": "BotSharp.Core",
-  "BotPlatform": "ApiAi"
+  "BotPlatform": "BotSharpAi"
 }
