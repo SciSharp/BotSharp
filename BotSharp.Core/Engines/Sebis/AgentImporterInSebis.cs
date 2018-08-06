@@ -117,12 +117,9 @@ namespace BotSharp.Core.Engines
                     }
                 }
 
-<<<<<<< HEAD
-=======
                 int second = 0;
                 expression.Data.ForEach(x => x.UpdatedTime = DateTime.UtcNow.AddSeconds(second++));
 
->>>>>>> b389d837f25afa256b35d0418274967557fb06f9
                 intent.UserSays.Add(expression);
             });
         }
