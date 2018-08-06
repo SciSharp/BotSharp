@@ -120,10 +120,12 @@ namespace BotSharp.Core.Engines
             {
                 intent.UserSays.ForEach(exp =>
                 {
+                    exp.Data = exp.Data.OrderBy(x => x.UpdatedTime).ToList();
+
                     var say = new TrainingIntentExpression<TrainingIntentExpressionPart>
                     {
                         Intent = intent.Name,
-                        Text = String.Join("", exp.Data.OrderBy(x => x.UpdatedTime).Select(x => x.Text)),
+                        Text = String.Join("", exp.Data.Select(x => x.Text)),
                         ContextHash = intent.ContextHash
                     };
 
