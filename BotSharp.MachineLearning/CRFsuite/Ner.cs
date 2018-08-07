@@ -469,15 +469,9 @@ namespace BotSharp.MachineLearning.CRFsuite
             }
         }
 
-        string[] Uique = new string[]{"w", "wl", "pos", "chk", "shape", "shaped", "type",
-                                  "p1", "p2", "p3", "p4","s1", "s2", "s3", "s4",
-                                  "2d", "4d", "d&a", "d&-", "d&/", "d&,", "d&.", "up",
-                                  "iu", "au", "al", "ad", "ao", "cu", "cl", "ca", "cd", "cs"};
-        string[] Bi = new string[]{"w", "pos", "chk", "shaped", "type"};
-
-        public void InitialTemplate () 
+        public void InitialTemplate (string[] uniFeatures, string[] biFeatures) 
         {
-            foreach (string name in Uique)
+            foreach (string name in uniFeatures)
             {
                 for (int i = -2 ; i < 3; i++)
                 {
@@ -487,7 +481,7 @@ namespace BotSharp.MachineLearning.CRFsuite
                 }
             }
 
-            foreach (string name in Bi)
+            foreach (string name in biFeatures)
             {
                 for (int i = -2 ; i < 2; i++)
                 {
@@ -509,7 +503,6 @@ namespace BotSharp.MachineLearning.CRFsuite
             // Apply the feature templates.
             new Crfutils().ApplyTemplates(X, templates);
             
-            // Append disjunctive features.
             for (int t = 0; t < X.Count ; t++) 
             {
                 DisJunctive(X, t, "w", -4, -1);
@@ -522,10 +515,10 @@ namespace BotSharp.MachineLearning.CRFsuite
             }
         }
 
-        public void NerStart () 
+        public void NerStart (string rawFile, string parsedName, string[] uniFeatures, string[] biFeatures) 
         {
-            InitialTemplate();
-            new Crfutils().CRFFileGenerator(FeatureExtractor, fields, separator);
+            InitialTemplate(uniFeatures, biFeatures);
+            new Crfutils().CRFFileGenerator(FeatureExtractor, fields, rawFile, parsedName, separator);
         }
 
 

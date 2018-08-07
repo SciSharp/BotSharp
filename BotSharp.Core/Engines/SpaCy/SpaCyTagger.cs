@@ -16,7 +16,7 @@ namespace BotSharp.Core.Engines.SpaCy
         public IConfiguration Configuration { get; set; }
 
         
-        public bool Process(Agent agent, JObject data)
+        public bool ProcessAsync(Agent agent, JObject data)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tagger", Method.GET);

@@ -135,16 +135,19 @@ namespace BotSharp.MachineLearning.CRFsuite
         /// <param name="FeatureExtractor">an extractor which to do the feature extracting work</param>
         /// <param name="fields">attributes name seperated by space</param>
         /// <param name="sep">string whihch seperated by</param>
-        public void CRFFileGenerator (System.Action<List<Dictionary<string, Object>>> FeatureExtractor, string fields, string sep= " ")
+        public void CRFFileGenerator (System.Action<List<Dictionary<string, Object>>> FeatureExtractor, string fields, string rawFile, string parsedName, string sep= " ")
         {
-            String fiPath = "/home/bolo/Desktop/BotSharp/TrainingFiles/rawTrain.txt";
-            FileStream fs = new FileStream("/home/bolo/Desktop/BotSharp/TrainingFiles/1.txt", FileMode.Create);
+            FileStream fs = new FileStream(parsedName, FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
             List<string> F = fields.Split(" ").ToList();
-            List<List<Dictionary<string, Object>>> Xs = Readiter(fiPath, F, " ");
+            List<List<Dictionary<string, Object>>> Xs = Readiter(rawFile, F, " ");
 
             foreach (List<Dictionary<string, Object>> X in Xs)
             {
+                if (X.Any(x => x["w"].ToString() == ""))
+                {
+
+                }
                 FeatureExtractor(X);
                 OutputFeatures(sw, X, "y");
             }

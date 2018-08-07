@@ -17,7 +17,7 @@ namespace BotSharp.Core.Engines.SpaCy
         List<String> entitiesInTrainingSet = new List<string>();
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(Agent agent, JObject data)
+        public bool ProcessAsync(Agent agent, JObject data)
         {
             String modelPath = "./entity_rec_output";
             String newModelName = "test";

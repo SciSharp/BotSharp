@@ -17,24 +17,25 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(Agent agent, JObject data)
+        public bool ProcessAsync(Agent agent, JObject data)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
-            var request = new RestRequest("tokenize", Method.GET);
+            var request = new RestRequest("tokenizer", Method.GET);
             List<List<NlpToken>> tokens = new List<List<NlpToken>>();
             Boolean res = true;
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
             corpus.UserSays.ForEach(usersay => {
+                Console.WriteLine(usersay.Text);
                 request.AddParameter("text", usersay.Text);
                 var response = client.Execute<Result>(request);
+                
                 tokens.Add(response.Data.Tokens);
+
                 res = res && response.IsSuccessful;
+                
             });
-
-
-            
 
             data.Add("Tokens", JToken.FromObject(tokens));
 

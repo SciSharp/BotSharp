@@ -16,7 +16,7 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(Agent agent, JObject data)
+        public bool ProcessAsync(Agent agent, JObject data)
         {
             //var input = new List<Tuple<String, JObject>>();
 

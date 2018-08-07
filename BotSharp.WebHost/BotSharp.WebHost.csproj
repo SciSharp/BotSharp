@@ -6,6 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="App_Data\NewFolder\**" />
+    <Content Remove="App_Data\NewFolder\**" />
+    <EmbeddedResource Remove="App_Data\NewFolder\**" />
+    <None Remove="App_Data\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="App_Data\DbInitializer\Agents\agents.json" />
     <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\agent.json" />
     <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album.json" />

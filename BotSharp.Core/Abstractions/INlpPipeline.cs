@@ -14,6 +14,6 @@ namespace BotSharp.Core.Abstractions
     {
         IConfiguration Configuration { get; set; }
 
-        bool Process(Agent agent, JObject data);
+        bool ProcessAsync(Agent agent, JObject data);
     }
 }

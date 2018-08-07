@@ -47,7 +47,7 @@ namespace BotSharp.Core.Engines
             string providerName = config.GetSection($"{platform}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpPipeline;
             provider.Configuration = config.GetSection(platform);
-            provider.Process(agent, data);
+            provider.ProcessAsync(agent, data);
 
             //var corpus = agent.GrabCorpus(dc);
 
@@ -61,7 +61,7 @@ namespace BotSharp.Core.Engines
             {
                 var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPipeline;
                 pipe.Configuration = provider.Configuration;
-                pipe.Process(agent, data);
+                pipe.ProcessAsync(agent, data);
             });
 
 
