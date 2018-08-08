@@ -135,6 +135,7 @@ namespace BotSharp.Core.Engines.CRFsuite
             return trainingTuple;
 
         }
+
     }
 
     public class TrainingData
