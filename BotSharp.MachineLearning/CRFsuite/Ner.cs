@@ -11,8 +11,7 @@ namespace BotSharp.MachineLearning.CRFsuite
     {
         // Separator of field values.
         string separator = " ";
-        // Field names of the input data.
-        string fields = "y w pos chk";
+
         Template templates = new Template();
         
         public string GetShape (string token) 
@@ -515,7 +514,7 @@ namespace BotSharp.MachineLearning.CRFsuite
             }
         }
 
-        public void NerStart (string rawFile, string parsedName, string[] uniFeatures, string[] biFeatures) 
+        public void NerStart(string rawFile, string parsedName, string fields, string[] uniFeatures, string[] biFeatures)
         {
             InitialTemplate(uniFeatures, biFeatures);
             new Crfutils().CRFFileGenerator(FeatureExtractor, fields, rawFile, parsedName, separator);

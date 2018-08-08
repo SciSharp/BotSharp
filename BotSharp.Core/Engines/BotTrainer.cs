@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Intents;
@@ -9,7 +11,9 @@ using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace BotSharp.Core.Engines
 {
@@ -25,7 +29,7 @@ namespace BotSharp.Core.Engines
             this.agentId = agentId;
         }
 
-        public string Train(Agent agent)
+        public async Task<string> Train(Agent agent)
         {
             agent.Intents = dc.Table<Intent>()
                 .Include(x => x.Contexts)
@@ -47,9 +51,25 @@ namespace BotSharp.Core.Engines
             string providerName = config.GetSection($"{platform}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpPipeline;
             provider.Configuration = config.GetSection(platform);
-            provider.ProcessAsync(agent, data);
 
-            //var corpus = agent.GrabCorpus(dc);
+            var pipeModel = new PipeModel
+            {
+                Name = providerName,
+                Class = provider.ToString(),
+                Meta = new JObject(),
+                Time = DateTime.UtcNow
+            };
+
+            await provider.Train(agent, data, pipeModel);
+
+            var meta = new ModelMetaData
+            {
+                Platform = platform,
+                Language = agent.Language,
+                TrainingDate = DateTime.UtcNow,
+                Version = config.GetValue<String>($"Version"),
+                Pipeline = new List<PipeModel>() { pipeModel }
+            };
 
             // pipe process
             var pipelines = provider.Configuration.GetSection($"Pipe").Value
@@ -57,15 +77,34 @@ namespace BotSharp.Core.Engines
                 .Select(x => x.Trim())
                 .ToList();
 
-            pipelines.ForEach(pipeName =>
+            pipelines.ForEach(async pipeName =>
             {
                 var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPipeline;
                 pipe.Configuration = provider.Configuration;
-                pipe.ProcessAsync(agent, data);
+                pipeModel = new PipeModel
+                {
+                    Name = pipeName,
+                    Class = pipe.ToString(),
+                    Time = DateTime.UtcNow
+                };
+                meta.Pipeline.Add(pipeModel);
+
+                await pipe.Train(agent, data, pipeModel);
             });
 
+            // save model meta data
+            var dir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
+            var metaJson = JsonConvert.SerializeObject(meta, new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore,
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+            File.WriteAllText(Path.Join(dir, "metadata.json"), metaJson);
 
-            return "";
+            Console.WriteLine(metaJson);
+
+            return metaJson;
         }
     }
 }

@@ -21,7 +21,7 @@ namespace BotSharp.Core.Engines.CRFsuite
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool ProcessAsync(Agent agent, JObject data)
+        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
@@ -30,11 +30,22 @@ namespace BotSharp.Core.Engines.CRFsuite
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            var dir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles");
-            string rawTrainingDataFileName = Path.Join(dir, $"{agent.Id}.corpus.txt");
-            string parsedTrainingDataFileName = Path.Join(dir, $"{agent.Id}.parsed.txt");
-            string modelFileName = Path.Join(dir, $"{agent.Id}.model");
-            string logFileName = Path.Join(dir, $"{agent.Id}.log.txt");
+            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
+            if (!Directory.Exists(dirTrain))
+            {
+                Directory.CreateDirectory(dirTrain);
+            }
+
+            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
+            if (!Directory.Exists(dirModel))
+            {
+                Directory.CreateDirectory(dirModel);
+            }
+
+            string rawTrainingDataFileName = Path.Join(dirTrain, "ner-crf.corpus.txt");
+            string parsedTrainingDataFileName = Path.Join(dirTrain, "ner-crf.parsed.txt");
+            string modelFileName = Path.Join(dirModel, $"ner-crf.model");
+            string logFileName = Path.Join(dirTrain, $"ner-crf.log.txt");
 
             using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
             {
@@ -56,18 +67,23 @@ namespace BotSharp.Core.Engines.CRFsuite
                 }
             }
 
-
-            var uniFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:uniFeatures").Split(" ");
-            var biFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:biFeatures").Split(" ");
+            var fields = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:fields");
+            var uniFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:uniFeatures");
+            var biFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:biFeatures");
 
             new MachineLearning.CRFsuite.Ner()
-                .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, uniFeatures, biFeatures);
+                .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, fields, uniFeatures.Split(" "), biFeatures.Split(" "));
 
             var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
 
             CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
 
             Console.WriteLine($"Saved model to {modelFileName}");
+            meta.Meta = new JObject();
+            meta.Meta["model"] = $"ner-crf.model";
+            meta.Meta["fields"] = fields;
+            meta.Meta["uniFeatures"] = uniFeatures;
+            meta.Meta["biFeatures"] = biFeatures;
 
             return true;
         }
@@ -125,8 +141,13 @@ namespace BotSharp.Core.Engines.CRFsuite
                     i = i + wordCandidateCount - 1;
                 }
             }
-            return trainingTuple;
 
+            return trainingTuple;
+        }
+
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        {
+            return true;
         }
     }
 

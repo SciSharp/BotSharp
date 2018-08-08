@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using BotSharp.MachineLearning.NLP;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
@@ -15,8 +16,7 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         public IConfiguration Configuration { get; set; }
 
-        
-        public bool ProcessAsync(Agent agent, JObject data)
+        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tagger", Method.GET);
@@ -36,7 +36,12 @@ namespace BotSharp.Core.Engines.SpaCy
             return res;
         }
 
-        public class Result
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        {
+            return true;
+        }
+
+        private class Result
         {
             public List<String> Tags { get; set; }
         }

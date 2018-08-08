@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
@@ -16,7 +17,7 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool ProcessAsync(Agent agent, JObject data)
+        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             //var input = new List<Tuple<String, JObject>>();
 
@@ -59,6 +60,11 @@ namespace BotSharp.Core.Engines.SpaCy
             request2.AddParameter("text", "the roof is leaking");
             var response2 = client.Execute(request2);
             */
+            return true;
+        }
+
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        {
             return true;
         }
 

@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines
 {
@@ -18,6 +19,6 @@ namespace BotSharp.Core.Engines
 
         AIResponse TextRequest(AIRequest request);
 
-        void Train();
+        Task Train();
     }
 }

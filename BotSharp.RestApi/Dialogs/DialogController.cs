@@ -13,6 +13,7 @@ namespace BotSharp.RestApi.Dialogs
     /// <summary>
     /// Conversation controller
     /// </summary>
+    [Authorize]
     [Route("v1/[controller]")]
     public class DialogController : ControllerBase
     {
@@ -33,16 +34,10 @@ namespace BotSharp.RestApi.Dialogs
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        [AllowAnonymous]
         [HttpPost("/v1/query")]
         public ActionResult<AIResponse> Query([FromBody] QueryModel request)
         {
-            String clientAccessToken = Request.Headers["Authorization"];
-            if (String.IsNullOrEmpty(clientAccessToken))
-            {
-                return Unauthorized();
-            }
-
+            String clientAccessToken = Request.Headers["ClientAccessToken"];
             var config = new AIConfiguration(clientAccessToken, SupportedLanguage.English);
             config.SessionId = request.SessionId;
 
