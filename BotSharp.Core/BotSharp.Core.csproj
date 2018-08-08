@@ -35,7 +35,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetToolkit" Version="1.4.0" />
+    <PackageReference Include="DotNetToolkit" Version="1.5.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
@@ -44,6 +44,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.MachineLearning\BotSharp.MachineLearning.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Engines\CoreNlp\" />
   </ItemGroup>
 
 </Project>

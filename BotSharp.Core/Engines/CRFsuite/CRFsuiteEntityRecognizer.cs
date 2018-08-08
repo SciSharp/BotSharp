@@ -1,9 +1,9 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.MachineLearning.NLP;
+using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -65,45 +65,11 @@ namespace BotSharp.Core.Engines.CRFsuite
 
             var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
 
-            CallCommandLine(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
+            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
 
             Console.WriteLine($"Saved model to {modelFileName}");
 
             return true;
-        }
-
-        public void CallCommandLine(string fileName, string arguments)
-        {
-            Console.WriteLine($"{fileName} {arguments}");
-
-            ProcessStartInfo procStartInfo = new ProcessStartInfo(fileName);
-            procStartInfo.Arguments = arguments;
-            // The following commands are needed to redirect the standard output.
-            // This means that it will be redirected to the Process.StandardOutput StreamReader.
-            procStartInfo.RedirectStandardOutput = true;
-            procStartInfo.UseShellExecute = false;
-            // Do not create the black window.
-            procStartInfo.CreateNoWindow = true;
-            if (procStartInfo.EnvironmentVariables["OS"] == "Windows_NT")
-            {
-                procStartInfo.FileName = fileName;
-            }
-            else
-            {
-                procStartInfo.FileName = "sh";
-            }
-
-            Process proc = new Process();
-            proc.StartInfo = procStartInfo;
-            proc.Start();
-
-            string output = String.Empty;
-            while (!proc.HasExited)
-            {
-                Thread.Sleep(1);
-                output = proc.StandardOutput.ReadLine();
-                Console.WriteLine(output);
-            }
         }
 
         public List<TrainingData> Merge(List<NlpToken> tokens, List<TrainingIntentExpressionPart> entities)
@@ -173,10 +139,10 @@ namespace BotSharp.Core.Engines.CRFsuite
 
         public TrainingData(string entity, string token, string pos, string chunk)
         {
-            this.Token = token;
-            this.Entity = entity;
-            this.Pos = pos;
-            this.Chunk = chunk;
+            Token = token;
+            Entity = entity;
+            Pos = pos;
+            Chunk = chunk;
         }
     }
 }
