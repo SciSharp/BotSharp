@@ -17,6 +17,11 @@ namespace BotSharp.Core.Abstractions
         IConfiguration Configuration { get; set; }
 
         /// <summary>
+        /// Common settings for Pipeline
+        /// </summary>
+        PipeSettings Settings { get; set; }
+
+        /// <summary>
         /// Process
         /// </summary>
         /// <param name="agent"></param>

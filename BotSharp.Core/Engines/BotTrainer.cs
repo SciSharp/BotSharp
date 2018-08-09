@@ -71,16 +71,21 @@ namespace BotSharp.Core.Engines
                 Pipeline = new List<PipeModel>() { pipeModel }
             };
 
-            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
-            if (!Directory.Exists(dirTrain))
+            var settings = new PipeSettings
             {
-                Directory.CreateDirectory(dirTrain);
+                TrainDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id),
+                ModelDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id),
+                AlgorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
+            };
+
+            if (!Directory.Exists(settings.TrainDir))
+            {
+                Directory.CreateDirectory(settings.TrainDir);
             }
 
-            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
-            if (!Directory.Exists(dirModel))
+            if (!Directory.Exists(settings.ModelDir))
             {
-                Directory.CreateDirectory(dirModel);
+                Directory.CreateDirectory(settings.ModelDir);
             }
 
             // pipe process
@@ -93,6 +98,7 @@ namespace BotSharp.Core.Engines
             {
                 var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPipeline;
                 pipe.Configuration = provider.Configuration;
+                pipe.Settings = settings;
                 pipeModel = new PipeModel
                 {
                     Name = pipeName,

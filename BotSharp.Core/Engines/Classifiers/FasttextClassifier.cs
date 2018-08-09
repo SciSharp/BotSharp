@@ -14,21 +14,22 @@ namespace BotSharp.Core.Engines.Classifiers
     public class FasttextClassifier : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
 
-        public Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
         {
-            throw new NotImplementedException();
+            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
+            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), "predict {modelFileName}.bin test.txt");
+
+            return true;
         }
 
         public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             meta.Model = "classification-fasttext.model";
-            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
-            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
-            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
 
-            string parsedTrainingDataFileName = Path.Join(dirTrain, $"classification-fasttext.parsed.txt");
-            string modelFileName = Path.Join(dirModel, meta.Model);
+            string parsedTrainingDataFileName = Path.Join(Settings.TrainDir, $"classification-fasttext.parsed.txt");
+            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
 
             // assemble corpus
             StringBuilder corpus = new StringBuilder();
@@ -36,7 +37,7 @@ namespace BotSharp.Core.Engines.Classifiers
 
             File.WriteAllText(parsedTrainingDataFileName, corpus.ToString());
 
-            var output = CmdHelper.Run(Path.Join(algorithmDir, "fasttext"), $"supervised -input {parsedTrainingDataFileName} -output {modelFileName}");
+            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), $"supervised -input {parsedTrainingDataFileName} -output {modelFileName}");
 
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();

@@ -20,6 +20,7 @@ namespace BotSharp.Core.Engines.CRFsuite
     public class CRFsuiteEntityRecognizer : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
 
         public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
@@ -32,11 +33,9 @@ namespace BotSharp.Core.Engines.CRFsuite
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
-            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
-            string rawTrainingDataFileName = Path.Join(dirTrain, "ner-crf.corpus.txt");
-            string parsedTrainingDataFileName = Path.Join(dirTrain, "ner-crf.parsed.txt");
-            string modelFileName = Path.Join(dirModel, meta.Model);
+            string rawTrainingDataFileName = Path.Join(Settings.TrainDir, "ner-crf.corpus.txt");
+            string parsedTrainingDataFileName = Path.Join(Settings.TrainDir, "ner-crf.parsed.txt");
+            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
             {
@@ -65,9 +64,7 @@ namespace BotSharp.Core.Engines.CRFsuite
             new MachineLearning.CRFsuite.Ner()
                 .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, fields, uniFeatures.Split(" "), biFeatures.Split(" "));
 
-            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
-
-            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
+            CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
 
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();

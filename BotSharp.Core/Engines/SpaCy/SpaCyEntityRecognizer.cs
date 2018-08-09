@@ -17,6 +17,7 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         List<String> entitiesInTrainingSet = new List<string>();
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
 
         public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {

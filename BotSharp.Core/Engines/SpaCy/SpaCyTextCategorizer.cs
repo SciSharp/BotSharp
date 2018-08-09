@@ -16,6 +16,7 @@ namespace BotSharp.Core.Engines.SpaCy
     public class SpaCyTextCategorizer : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
 
         public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
