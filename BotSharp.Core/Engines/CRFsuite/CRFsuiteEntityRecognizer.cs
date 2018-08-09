@@ -137,6 +137,57 @@ namespace BotSharp.Core.Engines.CRFsuite
 
         public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
         {
+            List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
+            var uniFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:uniFeatures");
+            var biFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:biFeatures");
+            string field = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:fields");
+            string[] fields = field.Split(" ");
+
+            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
+            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
+            
+            string rawPredictingDataFileName = Path.Join(dirTrain, "ner-crf.corpus.predict.txt");
+            string parsedPredictingDataFileName = Path.Join(dirTrain, "ner-crf.parsed.predict.txt");
+            string modelFileName = Path.Join(dirModel, meta.Model);
+
+
+            using (FileStream fs = new FileStream(rawPredictingDataFileName, FileMode.Create))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    List<string> curLine = new List<string>();
+                    foreach (List<NlpToken> tokenList in tokens) 
+                    {
+                        foreach (NlpToken token in tokenList) 
+                        {
+                            for (int i = 0 ; i < fields.Length; i++) 
+                            {
+                                if (fields[i] == "y") {
+                                    curLine.Add("");
+                                }
+                                else if (fields[i] == "w") {
+                                    curLine.Add(token.Text);
+                                }
+                                else if (fields[i] == "pos") {
+                                    curLine.Add(token.Tag);
+                                }
+                                else if (fields[i] == "chk") {
+                                    curLine.Add("");
+                                }
+                            }
+                            sw.Write(string.Join(" ", curLine) + "\n");
+                        }
+                        sw.Write("\n");
+                    }
+                    sw.Flush();
+                }
+            }
+            new MachineLearning.CRFsuite.Ner()
+                .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(" "), biFeatures.Split(" "));
+
+            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
+
+            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"tag -r -m {modelFileName} {parsedPredictingDataFileName}");
             return true;
         }
     }
