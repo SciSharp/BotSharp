@@ -294,3 +294,12 @@ __pycache__/
 /BotSharp.UnitTest/App_Data/BotSharp.db
 /BotSharp.WebHost/App_Data/BotSharp.db
 /BotSharp.UI
+/BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318.parsed.txt
+/BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318.model
+/BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318.corpus.txt
+/BotSharp.WebHost/App_Data/ModelFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318/ner-crf.model
+/BotSharp.WebHost/App_Data/ModelFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318/metadata.json
+/BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318/ner-crf.parsed.txt
+/BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318/ner-crf.corpus.txt
+/BotSharp.WebHost/App_Data/ModelFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318
+/BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318

@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
@@ -17,32 +18,37 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(Agent agent, JObject data)
+        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
-            var request = new RestRequest("tokenize", Method.GET);
+            var request = new RestRequest("tokenizer", Method.GET);
             List<List<NlpToken>> tokens = new List<List<NlpToken>>();
             Boolean res = true;
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
             corpus.UserSays.ForEach(usersay => {
+                Console.WriteLine(usersay.Text);
                 request.AddParameter("text", usersay.Text);
                 var response = client.Execute<Result>(request);
+                
                 tokens.Add(response.Data.Tokens);
+
                 res = res && response.IsSuccessful;
+                
             });
-
-
-            
 
             data.Add("Tokens", JToken.FromObject(tokens));
 
             return res;
         }
-        
 
-        public class Result
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        {
+            return true;
+        }
+
+        private class Result
         {
             public List<NlpToken> Tokens { get; set; }
         }

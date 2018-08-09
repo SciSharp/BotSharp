@@ -16,6 +16,8 @@ using Swashbuckle.AspNetCore.Swagger;
 using BotSharp.Core.Engines.BotSharp;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using DotNetToolkit.JwtHelper;
+using BotSharp.Core.Agents;
 
 namespace BotSharp.WebHost
 {
@@ -31,6 +33,7 @@ namespace BotSharp.WebHost
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddJwtAuth(Configuration);
 
             services.AddMvc(options =>
             {
@@ -43,6 +46,18 @@ namespace BotSharp.WebHost
 
             services.AddSwaggerGen(c =>
             {
+                c.AddSecurityDefinition("Bearer", new ApiKeyScheme()
+                {
+                    In = "header",
+                    Description = "Please insert JWT with Bearer schema. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    Type = "apiKey"
+                });
+
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
+                  { "Bearer", Enumerable.Empty<string>() },
+                });
+
                 var info = Configuration.GetSection("Swagger").Get<Info>();
                 c.SwaggerDoc(info.Version, info);
 
@@ -74,10 +89,7 @@ namespace BotSharp.WebHost
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            app.UseSwagger(c =>
-            {
-
-            });
+            app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 var info = Configuration.GetSection("Swagger").Get<Info>();
@@ -95,8 +107,15 @@ namespace BotSharp.WebHost
             app.Use(async (context, next) =>
             {
                 string token = context.Request.Headers["Authorization"];
-                if (string.IsNullOrWhiteSpace(token))
+                if (!string.IsNullOrWhiteSpace(token) && (token = token.Split(' ').Last()).Length == 32)
                 {
+                    var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+                    context.Request.Headers["ClientAccessToken"] = token;
+
+                    var dc = new DefaultDataContextLoader().GetDefaultDc();
+                    var userId = dc.Table<Agent>().FirstOrDefault(x => x.ClientAccessToken == token)?.UserId;
+
+                    context.Request.Headers["Authorization"] = "Bearer " + JwtToken.GenerateToken(config, userId);
                 }
 
                 await next.Invoke();
@@ -114,51 +133,6 @@ namespace BotSharp.WebHost
             loader.Env = env;
             loader.Config = Configuration;
             loader.Load();
-
-            /*Runcmd();
-            var ai = new BotSharpAi();
-            ai.LoadAgent("6a9fd374-c43d-447a-97f2-f37540d0c725");
-            ai.Train();*/
-        }
-
-        public void Runcmd () 
-        {
-            string cmd = "/home/bolo/Desktop/BotSharp/TrainingFiles/crfsuite learn -m /home/bolo/Desktop/BotSharp/TrainingFiles/bolo.model /home/bolo/Desktop/BotSharp/TrainingFiles/1.txt";
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = "sh";
-            p.StartInfo.UseShellExecute = false;    //是否使用操作系统shell启动
-            p.StartInfo.RedirectStandardInput = true;//接受来自调用程序的输入信息
-            p.StartInfo.RedirectStandardOutput = true;//由调用程序获取输出信息
-            p.StartInfo.RedirectStandardError = true;//重定向标准错误输出
-            p.StartInfo.CreateNoWindow = false;//不显示程序窗口
-            p.Start();//启动程序
-
-            //向cmd窗口发送输入信息
-            p.StandardInput.WriteLine(cmd + "&exit");
-
-            p.StandardInput.AutoFlush = false;
-            //p.StandardInput.WriteLine("exit");
-            //向标准输入写入要执行的命令。这里使用&是批处理命令的符号，表示前面一个命令不管是否执行成功都执行后面(exit)命令，如果不执行exit命令，后面调用ReadToEnd()方法会假死
-            //同类的符号还有&&和||前者表示必须前一个命令执行成功才会执行后面的命令，后者表示必须前一个命令执行失败才会执行后面的命令
-
-
-
-            //获取cmd窗口的输出信息
-            string output = p.StandardOutput.ReadToEnd();
-
-            //StreamReader reader = p.StandardOutput;
-            //string line=reader.ReadLine();
-            //while (!reader.EndOfStream)
-            //{
-            //    str += line + "  ";
-            //    line = reader.ReadLine();
-            //}
-
-            p.WaitForExit();//等待程序执行完退出进程
-            p.Close();
-
-
-            Console.WriteLine(output);
         }
     }
 }

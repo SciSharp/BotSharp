@@ -6,6 +6,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="App_Data\ModelFiles\**" />
+    <Compile Remove="App_Data\NewFolder\**" />
+    <Compile Remove="App_Data\TrainingFiles\**" />
+    <Content Remove="App_Data\ModelFiles\**" />
+    <Content Remove="App_Data\NewFolder\**" />
+    <Content Remove="App_Data\TrainingFiles\**" />
+    <EmbeddedResource Remove="App_Data\ModelFiles\**" />
+    <EmbeddedResource Remove="App_Data\NewFolder\**" />
+    <EmbeddedResource Remove="App_Data\TrainingFiles\**" />
+    <None Remove="App_Data\ModelFiles\**" />
+    <None Remove="App_Data\NewFolder\**" />
+    <None Remove="App_Data\TrainingFiles\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="App_Data\DbInitializer\Agents\agents.json" />
     <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\agent.json" />
     <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album.json" />
@@ -57,7 +72,6 @@
 
   <ItemGroup>
     <Folder Include="App_Data\DbInitializer\Agents\Rasa\" />
-    <Folder Include="Algorithms\" />
   </ItemGroup>
 
   <ItemGroup>

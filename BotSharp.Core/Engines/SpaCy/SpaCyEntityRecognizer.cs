@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
@@ -17,7 +18,7 @@ namespace BotSharp.Core.Engines.SpaCy
         List<String> entitiesInTrainingSet = new List<string>();
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(Agent agent, JObject data)
+        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             String modelPath = "./entity_rec_output";
             String newModelName = "test";
@@ -52,6 +53,11 @@ namespace BotSharp.Core.Engines.SpaCy
 
             data["EntityModelTrained"] = response.Data.EntityModelTrained;
 
+            return true;
+        }
+
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        {
             return true;
         }
     }

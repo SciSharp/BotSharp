@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
@@ -15,7 +16,12 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(Agent agent, JObject data)
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        {
+            return true;
+        }
+
+        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("entitize", Method.GET);

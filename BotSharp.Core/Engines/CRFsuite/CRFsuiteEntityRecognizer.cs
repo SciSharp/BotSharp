@@ -1,17 +1,19 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.MachineLearning.NLP;
+using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.CRFsuite
 {
@@ -19,73 +21,70 @@ namespace BotSharp.Core.Engines.CRFsuite
     {
         public IConfiguration Configuration { get; set; }
 
-        public bool Process(Agent agent, JObject data)
+        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
-            
-            List<List<String>> tags = data["Tags"].ToObject<List<List<String>>>();
+
+            meta.Model = "ner-crf.model";
+
             List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            var dir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles");
-            FileStream fs = new FileStream(Path.Join(dir, "rawTrain.txt"), FileMode.Create);
-            StreamWriter sw = new StreamWriter(fs);
+            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
+            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
+            string rawTrainingDataFileName = Path.Join(dirTrain, "ner-crf.corpus.txt");
+            string parsedTrainingDataFileName = Path.Join(dirTrain, "ner-crf.parsed.txt");
+            string modelFileName = Path.Join(dirModel, meta.Model);
 
-            for (int i = 0 ; i < tags.Count; i++) 
+            using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
             {
-                List<TrainingData> curLine = Merge(tokens[i], tags[i], userSays[i].Entities);
-                list.Add(curLine);
-                curLine.ForEach(trainingData =>{
-                    string[] wordParams = {trainingData.Entity, trainingData.Token, trainingData.Tag, trainingData.Chunk};
-                    string wordStr = string.Join(" ", wordParams);
-                    sw.Write(wordStr + "\n");
-                });
-                sw.Write("\n");
-            }      
-            sw.Flush();
-            sw.Close();
-            fs.Close();  
-            
-            new MachineLearning.CRFsuite.Ner().NerStart();
-            
-            Runcmd();
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    for (int i = 0; i < tokens.Count; i++)
+                    {
+                        List<TrainingData> curLine = Merge(tokens[i], userSays[i].Entities);
+                        curLine.ForEach(trainingData =>
+                        {
+                            string[] wordParams = { trainingData.Entity, trainingData.Token, trainingData.Pos, trainingData.Chunk };
+                            string wordStr = string.Join(" ", wordParams);
+                            sw.Write(wordStr + "\n");
+                        });
+                        list.Add(curLine);
+                        sw.Write("\n");
+                    }
+                    sw.Flush();
+                }
+            }
+
+            var fields = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:fields");
+            var uniFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:uniFeatures");
+            var biFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:biFeatures");
+
+            new MachineLearning.CRFsuite.Ner()
+                .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, fields, uniFeatures.Split(" "), biFeatures.Split(" "));
+
+            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
+
+            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
+
+            Console.WriteLine($"Saved model to {modelFileName}");
+            meta.Meta = new JObject();
+            meta.Meta["fields"] = fields;
+            meta.Meta["uniFeatures"] = uniFeatures;
+            meta.Meta["biFeatures"] = biFeatures;
 
             return true;
         }
 
-        public void Runcmd () 
-        {
-            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
-            var dataDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles");
-
-            string cmd = $"{algorithmDir}/crfsuite learn -m {dataDir}/crfsuite/bolo.model {dataDir}/crfsuite/1.txt";
-            System.Diagnostics.Process p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = "sh";
-            p.StartInfo.UseShellExecute = false; 
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.CreateNoWindow = false;
-            p.Start();
-
-            p.StandardInput.WriteLine(cmd + "&exit");
-            p.StandardInput.AutoFlush = false;
-
-            string output = p.StandardOutput.ReadToEnd();
-
-            p.WaitForExit();//等待程序执行完退出进程
-            p.Close();
-            Console.WriteLine(output);
-        }
-        public List<TrainingData> Merge(List<NlpToken> sentence, List<string> tags, List<TrainingIntentExpressionPart> entities)
+        public List<TrainingData> Merge(List<NlpToken> tokens, List<TrainingIntentExpressionPart> entities)
         {
             List<TrainingData> trainingTuple = new List<TrainingData>();
             HashSet<String> entityWordBag = new HashSet<String>();
             int wordCandidateCount = 0;
             
-            for (int i = 0; i < sentence.Count; i++)
+            for (int i = 0; i < tokens.Count; i++)
             {
                 TrainingIntentExpressionPart curEntity = null;
                 if (entities != null) 
@@ -97,7 +96,7 @@ namespace BotSharp.Core.Engines.CRFsuite
                             string[] words = entity.Value.Split(" ");
                             for (int j = 0; j < words.Length; j++)
                             {
-                                if (sentence[i + j].Text == words[j])
+                                if (tokens[i + j].Text == words[j])
                                 {
                                     wordCandidateCount++;
                                     if (j == words.Length - 1)
@@ -116,7 +115,7 @@ namespace BotSharp.Core.Engines.CRFsuite
                                 String entityName = curEntity.Entity.Contains(":")? curEntity.Entity.Substring(curEntity.Entity.IndexOf(":") + 1): curEntity.Entity;
                                 foreach(string s in words) 
                                 {
-                                    trainingTuple.Add(new TrainingData(entityName, s, tags[i], "I"));
+                                    trainingTuple.Add(new TrainingData(entityName, s, tokens[i].Pos, "I"));
                                 }
                                 entityFinded = true;
                             }
@@ -125,50 +124,36 @@ namespace BotSharp.Core.Engines.CRFsuite
                 }
                 if (wordCandidateCount == 0)
                 {
-                    trainingTuple.Add(new TrainingData("O", sentence[i].Text, tags[i], "O"));
+                    trainingTuple.Add(new TrainingData("O", tokens[i].Text, tokens[i].Pos, "O"));
                 }
                 else
                 {
                     i = i + wordCandidateCount - 1;
                 }
             }
-            return trainingTuple;
 
+            return trainingTuple;
         }
 
+        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        {
+            return true;
+        }
     }
 
     public class TrainingData
     {
         public String Token { get; set; }
         public String Entity { get; set; }
-        public String Tag { get; set; }
+        public String Pos { get; set; }
         public String Chunk { get; set; }
 
-        public TrainingData(string entity, string token, string tag, string chunk)
+        public TrainingData(string entity, string token, string pos, string chunk)
         {
-            this.Token = token;
-            this.Entity = entity;
-            this.Tag = tag;
-            this.Chunk = chunk;
+            Token = token;
+            Entity = entity;
+            Pos = pos;
+            Chunk = chunk;
         }
     }
-
-
-    public class Token
-    {
-        public String Text { get; set; }
-        public int Offset { get; set; }
-        public int End { get; set; }
-    }
-
-    public class Entity
-    {
-        public String EntityName { get; set; }
-        public String Value { get; set; }
-        public int Start { get; set; }
-        public int End { get; set; }
-    }
-
-
 }

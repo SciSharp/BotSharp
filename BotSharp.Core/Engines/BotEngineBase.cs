@@ -4,11 +4,13 @@ using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines
 {
@@ -30,6 +32,13 @@ namespace BotSharp.Core.Engines
             dc = new DefaultDataContextLoader().GetDefaultDc();
             string dataPath = AppDomain.CurrentDomain.GetData("DataPath").ToString();
             DbInitializerPath = Path.Join(dataPath, $"DbInitializer");
+        }
+
+        public AIResponse TextRequest(AIRequest request)
+        {
+            var preditor = new BotPreditor();
+            var text = preditor.Predict(agent, request);
+            return null;
         }
 
         public Agent LoadAgent(string id)
@@ -177,9 +186,9 @@ namespace BotSharp.Core.Engines
             return corpus;
         }
 
-        public virtual void Train()
+        public virtual Task Train()
         {
-
+            return Task.CompletedTask;
         }
 
     }

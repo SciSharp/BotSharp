@@ -8,6 +8,9 @@ namespace BotSharp.MachineLearning.NLP
     {
         public string Text { get; set; }
         public int Offset { get; set; }
+        public string Pos { get; set; }
+        public string Tag { get; set; }
+        public string Lemma { get; set; }
         public int End
         {
             get
