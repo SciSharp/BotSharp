@@ -301,3 +301,5 @@ __pycache__/
 /BotSharp.WebHost/App_Data/ModelFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318/metadata.json
 /BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318/ner-crf.parsed.txt
 /BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318/ner-crf.corpus.txt
+/BotSharp.WebHost/App_Data/ModelFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318
+/BotSharp.WebHost/App_Data/TrainingFiles/bff7605c-3db5-44dc-9ba7-1c9be2832318

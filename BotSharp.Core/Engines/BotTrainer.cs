@@ -71,6 +71,18 @@ namespace BotSharp.Core.Engines
                 Pipeline = new List<PipeModel>() { pipeModel }
             };
 
+            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
+            if (!Directory.Exists(dirTrain))
+            {
+                Directory.CreateDirectory(dirTrain);
+            }
+
+            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
+            if (!Directory.Exists(dirModel))
+            {
+                Directory.CreateDirectory(dirModel);
+            }
+
             // pipe process
             var pipelines = provider.Configuration.GetSection($"Pipe").Value
                 .Split(',')

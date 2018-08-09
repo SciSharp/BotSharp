@@ -19,6 +19,8 @@ namespace BotSharp.Core.Engines
 
         public DateTime Time { get; set; }
 
+        public string Model { get; set; }
+
         /// <summary>
         /// Extra meta data according to pipe
         /// </summary>

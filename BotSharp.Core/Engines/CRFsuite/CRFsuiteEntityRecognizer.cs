@@ -26,26 +26,17 @@ namespace BotSharp.Core.Engines.CRFsuite
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
+            meta.Model = "ner-crf.model";
+
             List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
             var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
-            if (!Directory.Exists(dirTrain))
-            {
-                Directory.CreateDirectory(dirTrain);
-            }
-
             var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
-            if (!Directory.Exists(dirModel))
-            {
-                Directory.CreateDirectory(dirModel);
-            }
-
             string rawTrainingDataFileName = Path.Join(dirTrain, "ner-crf.corpus.txt");
             string parsedTrainingDataFileName = Path.Join(dirTrain, "ner-crf.parsed.txt");
-            string modelFileName = Path.Join(dirModel, $"ner-crf.model");
-            string logFileName = Path.Join(dirTrain, $"ner-crf.log.txt");
+            string modelFileName = Path.Join(dirModel, meta.Model);
 
             using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
             {
@@ -80,7 +71,6 @@ namespace BotSharp.Core.Engines.CRFsuite
 
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();
-            meta.Meta["model"] = $"ner-crf.model";
             meta.Meta["fields"] = fields;
             meta.Meta["uniFeatures"] = uniFeatures;
             meta.Meta["biFeatures"] = biFeatures;

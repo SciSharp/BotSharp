@@ -22,6 +22,8 @@ namespace BotSharp.Core.Engines.SpaCy
             var response = client.Execute<Result>(request);
 
             meta.Meta = JObject.FromObject(response.Data);
+            meta.Meta["models"] = null;
+            meta.Model = response.Data.Models;
 
             return response.IsSuccessful;
         }
