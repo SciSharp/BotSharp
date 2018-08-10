@@ -67,7 +67,6 @@ namespace BotSharp.Core.Engines.CRFsuite
             var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
 
             CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
-
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();
             meta.Meta["fields"] = fields;
@@ -195,12 +194,15 @@ namespace BotSharp.Core.Engines.CRFsuite
                 entities.Add(new NlpEntity
                 {
                     Entity = entity,
+                    Start = doc.Sentences[0].Tokens[i].Offset,
                     Value = doc.Sentences[0].Tokens[i].Text,
                     Confidence = probability
                 });
             }
 
-            doc.Sentences[0].Entities = entities.Where(x => x.Entity != "O").ToList();
+            List<NlpEntity> unionedEntities = MergeEntity(entities);
+
+            doc.Sentences[0].Entities = unionedEntities.Where(x => x.Entity != "O").ToList();
             
             if(File.Exists(rawPredictingDataFileName))
             {
@@ -212,6 +214,32 @@ namespace BotSharp.Core.Engines.CRFsuite
             }
 
             return true;
+        }
+
+        public List<NlpEntity> MergeEntity (List<NlpEntity> tokens)
+        {
+            List<NlpEntity> res = new List<NlpEntity>();
+            for (int i = 0; i < tokens.Count ; i++) 
+            {
+                NlpEntity nlpEntity = new NlpEntity();
+                StringBuilder unionValue = new StringBuilder(tokens[i].Value);
+                StringBuilder unionEntity = new StringBuilder(tokens[i].Entity);
+                decimal unoinConfidence = tokens[i].Confidence;
+
+                int j = i + 1;
+                while (j < tokens.Count && tokens[j].Entity == tokens[i].Entity && tokens[i].Entity != "O") 
+                {
+                    unionValue.Append(" " + tokens[j].Value);
+                    j++;
+                }
+                nlpEntity.Entity = unionEntity.ToString();
+                nlpEntity.Start = tokens[i].Start;
+                nlpEntity.Value = unionValue.ToString();
+                nlpEntity.Confidence = unoinConfidence;
+                res.Add(nlpEntity);
+                i = j - 1;
+            }
+            return res;
         }
     }
 
