@@ -187,6 +187,19 @@ namespace BotSharp.Core.Engines.CRFsuite
 
             var entities = new List<NlpEntity>();
             //
+            string[] entityProbabilityPairs = output.Split("\r");
+            for (int i = 0 ; i < entityProbabilityPairs.Length ; i++)
+            {
+                string entityProbabilityPair = entityProbabilityPairs[i];
+                string entity = entityProbabilityPair.Split(":")[0];
+                decimal probability = decimal.Parse(entityProbabilityPair.Split(":")[1]);
+                NlpEntity nlpentity = new NlpEntity();
+                nlpentity.Entity = entity;
+                nlpentity.Value = tokens[0][i].Text;
+                nlpentity.Confidence = probability;
+                entities.Add(nlpentity);
+            }
+            
 
 
             data["entities"] = JObject.FromObject(entities);
