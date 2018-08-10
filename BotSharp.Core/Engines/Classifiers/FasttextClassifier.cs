@@ -14,6 +14,7 @@ namespace BotSharp.Core.Engines.Classifiers
     public class FasttextClassifier : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
+
         public PipeSettings Settings { get; set; }
 
         public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)

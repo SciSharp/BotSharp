@@ -1,0 +1,10 @@
+ when WRB 
+ is VBZ 
+ the DT 
+ next JJ 
+ train NN 
+ in IN 
+ muncher NN 
+ freiheit NN 
+ ? . 
+

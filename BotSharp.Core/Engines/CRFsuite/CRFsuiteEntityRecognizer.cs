@@ -64,7 +64,9 @@ namespace BotSharp.Core.Engines.CRFsuite
             new MachineLearning.CRFsuite.Ner()
                 .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, fields, uniFeatures.Split(" "), biFeatures.Split(" "));
 
-            CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
+            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
+
+            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
 
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();
@@ -134,6 +136,68 @@ namespace BotSharp.Core.Engines.CRFsuite
 
         public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
         {
+            List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
+            var uniFeatures = meta.Meta["uniFeatures"].ToString();
+            var biFeatures = meta.Meta["biFeatures"].ToString();
+            string field = meta.Meta["fields"].ToString();
+            string[] fields = field.Split(" ");
+
+            
+            string rawPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.corpus.predict.txt");
+            string parsedPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.parsed.predict.txt");
+            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
+
+            using (FileStream fs = new FileStream(rawPredictingDataFileName, FileMode.Create))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    List<string> curLine = new List<string>();
+                    foreach (List<NlpToken> tokenList in tokens) 
+                    {
+                        foreach (NlpToken token in tokenList) 
+                        {
+                            for (int i = 0 ; i < fields.Length; i++) 
+                            {
+                                if (fields[i] == "y") {
+                                    curLine.Add("");
+                                }
+                                else if (fields[i] == "w") {
+                                    curLine.Add(token.Text);
+                                }
+                                else if (fields[i] == "pos") {
+                                    curLine.Add(token.Tag);
+                                }
+                                else if (fields[i] == "chk") {
+                                    curLine.Add("");
+                                }
+                            }
+                            sw.Write(string.Join(" ", curLine) + "\n");
+                            curLine.Clear();
+                        }
+                        sw.Write("\n");
+                        
+                    }
+                    sw.Flush();
+                }
+            }
+            new MachineLearning.CRFsuite.Ner()
+                .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(" "), biFeatures.Split(" "));
+
+            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}");
+
+            var entities = new List<NlpEntity>();
+            //
+
+
+            data["entities"] = JObject.FromObject(entities);
+            if(File.Exists(rawPredictingDataFileName))
+            {
+                File.Delete(rawPredictingDataFileName);
+            }
+            if(File.Exists(parsedPredictingDataFileName))
+            {
+                File.Delete(parsedPredictingDataFileName);
+            }
             return true;
         }
     }

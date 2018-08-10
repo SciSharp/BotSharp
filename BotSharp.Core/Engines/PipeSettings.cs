@@ -9,5 +9,6 @@ namespace BotSharp.Core.Engines
         public string TrainDir { get; set; }
         public string ModelDir { get; set; }
         public string AlgorithmDir { get; set; }
+        public string PredictDir { get; set; }
     }
 }
