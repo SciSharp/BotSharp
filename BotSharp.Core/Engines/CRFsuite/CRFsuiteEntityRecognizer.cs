@@ -183,7 +183,7 @@ namespace BotSharp.Core.Engines.CRFsuite
             new MachineLearning.CRFsuite.Ner()
                 .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(" "), biFeatures.Split(" "));
 
-            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}");
+            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}", false);
 
             var entities = new List<NlpEntity>();
             //

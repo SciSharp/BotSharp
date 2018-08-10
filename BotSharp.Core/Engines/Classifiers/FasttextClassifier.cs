@@ -20,7 +20,10 @@ namespace BotSharp.Core.Engines.Classifiers
         public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
         {
             string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
-            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), "predict {modelFileName}.bin test.txt");
+            string predictFileName = Path.Join(Settings.PredictDir, "test.txt");
+            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), $"predict-prob {modelFileName}.bin {predictFileName}", false);
+
+            data["Intent"] = JObject.FromObject(new { Name = output.Split(' ')[0].Split("__label__")[1], Confidence = output.Split(' ')[1] });
 
             return true;
         }
