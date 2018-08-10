@@ -15,6 +15,7 @@ namespace BotSharp.Core.Engines.SpaCy
     public class SpaCyEntitizer : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
 
         public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
         {

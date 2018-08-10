@@ -1,0 +1,10 @@
+ when WRB 
+ when WRB   is VBZ 
+ when WRB   is VBZ   the DT 
+ when WRB   is VBZ   the DT   next JJ 
+ when WRB   is VBZ   the DT   next JJ   train NN 
+ when WRB   is VBZ   the DT   next JJ   train NN   in IN 
+ when WRB   is VBZ   the DT   next JJ   train NN   in IN   muncher NN 
+ when WRB   is VBZ   the DT   next JJ   train NN   in IN   muncher NN   freiheit NN 
+ when WRB   is VBZ   the DT   next JJ   train NN   in IN   muncher NN   freiheit NN   ? . 
+

@@ -20,6 +20,7 @@ namespace BotSharp.Core.Engines.CRFsuite
     public class CRFsuiteEntityRecognizer : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
 
         public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
@@ -32,11 +33,9 @@ namespace BotSharp.Core.Engines.CRFsuite
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
-            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
-            string rawTrainingDataFileName = Path.Join(dirTrain, "ner-crf.corpus.txt");
-            string parsedTrainingDataFileName = Path.Join(dirTrain, "ner-crf.parsed.txt");
-            string modelFileName = Path.Join(dirModel, meta.Model);
+            string rawTrainingDataFileName = Path.Join(Settings.TrainDir, "ner-crf.corpus.txt");
+            string parsedTrainingDataFileName = Path.Join(Settings.TrainDir, "ner-crf.parsed.txt");
+            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
             {
@@ -138,18 +137,15 @@ namespace BotSharp.Core.Engines.CRFsuite
         public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
         {
             List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
-            var uniFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:uniFeatures");
-            var biFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:biFeatures");
-            string field = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:fields");
+            var uniFeatures = meta.Meta["uniFeatures"].ToString();
+            var biFeatures = meta.Meta["biFeatures"].ToString();
+            string field = meta.Meta["fields"].ToString();
             string[] fields = field.Split(" ");
 
-            var dirTrain = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id);
-            var dirModel = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
             
-            string rawPredictingDataFileName = Path.Join(dirTrain, "ner-crf.corpus.predict.txt");
-            string parsedPredictingDataFileName = Path.Join(dirTrain, "ner-crf.parsed.predict.txt");
-            string modelFileName = Path.Join(dirModel, meta.Model);
-
+            string rawPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.corpus.predict.txt");
+            string parsedPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.parsed.predict.txt");
+            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawPredictingDataFileName, FileMode.Create))
             {
@@ -176,8 +172,10 @@ namespace BotSharp.Core.Engines.CRFsuite
                                 }
                             }
                             sw.Write(string.Join(" ", curLine) + "\n");
+                            curLine.Clear();
                         }
                         sw.Write("\n");
+                        
                     }
                     sw.Flush();
                 }
@@ -185,9 +183,21 @@ namespace BotSharp.Core.Engines.CRFsuite
             new MachineLearning.CRFsuite.Ner()
                 .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(" "), biFeatures.Split(" "));
 
-            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
+            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}");
 
-            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"tag -r -m {modelFileName} {parsedPredictingDataFileName}");
+            var entities = new List<NlpEntity>();
+            //
+
+
+            data["entities"] = JObject.FromObject(entities);
+            if(File.Exists(rawPredictingDataFileName))
+            {
+                File.Delete(rawPredictingDataFileName);
+            }
+            if(File.Exists(parsedPredictingDataFileName))
+            {
+                File.Delete(parsedPredictingDataFileName);
+            }
             return true;
         }
     }

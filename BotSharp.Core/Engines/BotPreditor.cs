@@ -34,16 +34,30 @@ namespace BotSharp.Core.Engines
 
             var data = JObject.FromObject(new
             {
+                Text = request.Query.FirstOrDefault()
             });
 
             await provider.Train(agent, data, providerPipe);
             meta.Pipeline.RemoveAt(0);
+
+            var settings = new PipeSettings
+            {
+                ModelDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id),
+                PredictDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Predicts"),
+                AlgorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
+            };
+
+            if (!Directory.Exists(settings.PredictDir))
+            {
+                Directory.CreateDirectory(settings.PredictDir);
+            }
 
             // pipe process
             meta.Pipeline.ForEach(async pipeMeta =>
             {
                 var pipe = TypeHelper.GetInstance(pipeMeta.Name, assemblies) as INlpPipeline;
                 pipe.Configuration = provider.Configuration;
+                pipe.Settings = settings;
                 await pipe.Predict(agent, data, pipeMeta);
             });
 

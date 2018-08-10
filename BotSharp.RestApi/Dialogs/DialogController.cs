@@ -46,7 +46,7 @@ namespace BotSharp.RestApi.Dialogs
             var aIResponse = _platform.TextRequest(new AIRequest
             {
                 Timezone = request.Timezone,
-                Contexts = request.Contexts.Select(x => new AIContext { Name = x }).ToList(),
+                Contexts = request?.Contexts?.Select(x => new AIContext { Name = x })?.ToList(),
                 Language = request.Lang,
                 Query = new String[] { request.Query }
             });

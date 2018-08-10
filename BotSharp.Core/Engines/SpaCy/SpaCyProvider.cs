@@ -15,6 +15,8 @@ namespace BotSharp.Core.Engines.SpaCy
     public class SpaCyProvider : INlpPipeline
     {
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
+
         public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
