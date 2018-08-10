@@ -25,10 +25,10 @@ namespace BotSharp.Core.Abstractions
         /// Process
         /// </summary>
         /// <param name="agent"></param>
-        /// <param name="data">Intermediate result</param>
+        /// <param name="doc">Intermediate result</param>
         /// <param name="meta">Meta data which is packed to model</param>
         /// <returns></returns>
-        Task<bool> Train(Agent agent, JObject data, PipeModel meta);
-        Task<bool> Predict(Agent agent, JObject data, PipeModel meta);
+        Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta);
+        Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta);
     }
 }

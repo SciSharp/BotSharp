@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -22,14 +23,13 @@ namespace BotSharp.Core.Engines.CRFsuite
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
             meta.Model = "ner-crf.model";
 
-            List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
@@ -41,9 +41,9 @@ namespace BotSharp.Core.Engines.CRFsuite
             {
                 using (StreamWriter sw = new StreamWriter(fs))
                 {
-                    for (int i = 0; i < tokens.Count; i++)
+                    for (int i = 0; i < doc.Sentences.Count; i++)
                     {
-                        List<TrainingData> curLine = Merge(tokens[i], userSays[i].Entities);
+                        List<TrainingData> curLine = Merge(doc.Sentences[i].Tokens, userSays[i].Entities);
                         curLine.ForEach(trainingData =>
                         {
                             string[] wordParams = { trainingData.Entity, trainingData.Token, trainingData.Pos, trainingData.Chunk };
@@ -134,14 +134,12 @@ namespace BotSharp.Core.Engines.CRFsuite
             return trainingTuple;
         }
 
-        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            List<List<NlpToken>> tokens = data["Tokens"].ToObject<List<List<NlpToken>>>();
             var uniFeatures = meta.Meta["uniFeatures"].ToString();
             var biFeatures = meta.Meta["biFeatures"].ToString();
             string field = meta.Meta["fields"].ToString();
             string[] fields = field.Split(" ");
-
             
             string rawPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.corpus.predict.txt");
             string parsedPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.parsed.predict.txt");
@@ -152,9 +150,9 @@ namespace BotSharp.Core.Engines.CRFsuite
                 using (StreamWriter sw = new StreamWriter(fs))
                 {
                     List<string> curLine = new List<string>();
-                    foreach (List<NlpToken> tokenList in tokens) 
+                    foreach (NlpDocSentence sentence in doc.Sentences) 
                     {
-                        foreach (NlpToken token in tokenList) 
+                        foreach (NlpToken token in sentence.Tokens) 
                         {
                             for (int i = 0 ; i < fields.Length; i++) 
                             {
@@ -180,29 +178,30 @@ namespace BotSharp.Core.Engines.CRFsuite
                     sw.Flush();
                 }
             }
+
             new MachineLearning.CRFsuite.Ner()
                 .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(" "), biFeatures.Split(" "));
 
             var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}", false);
 
             var entities = new List<NlpEntity>();
-            //
-            string[] entityProbabilityPairs = output.Split("\r");
-            for (int i = 0 ; i < entityProbabilityPairs.Length ; i++)
+
+            string[] entityProbabilityPairs = output.Split(Environment.NewLine).Where(x => !String.IsNullOrEmpty(x)).ToArray();
+            for (int i = 0; i < entityProbabilityPairs.Length; i++)
             {
                 string entityProbabilityPair = entityProbabilityPairs[i];
                 string entity = entityProbabilityPair.Split(":")[0];
                 decimal probability = decimal.Parse(entityProbabilityPair.Split(":")[1]);
-                NlpEntity nlpentity = new NlpEntity();
-                nlpentity.Entity = entity;
-                nlpentity.Value = tokens[0][i].Text;
-                nlpentity.Confidence = probability;
-                entities.Add(nlpentity);
+                entities.Add(new NlpEntity
+                {
+                    Entity = entity,
+                    Value = doc.Sentences[0].Tokens[i].Text,
+                    Confidence = probability
+                });
             }
+
+            doc.Sentences[0].Entities = entities.Where(x => x.Entity != "O").ToList();
             
-
-
-            data["entities"] = JObject.FromObject(entities);
             if(File.Exists(rawPredictingDataFileName))
             {
                 File.Delete(rawPredictingDataFileName);
@@ -211,6 +210,7 @@ namespace BotSharp.Core.Engines.CRFsuite
             {
                 File.Delete(parsedPredictingDataFileName);
             }
+
             return true;
         }
     }

@@ -5,6 +5,7 @@ using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +17,7 @@ namespace BotSharp.Core.Engines
 {
     public class BotPreditor
     {
-        public async Task<string> Predict(Agent agent, AIRequest request)
+        public async Task<NlpDoc> Predict(Agent agent, AIRequest request)
         {
             // load model
             var dir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
@@ -32,10 +33,16 @@ namespace BotSharp.Core.Engines
             var provider = TypeHelper.GetInstance(providerPipe.Name, assemblies) as INlpPipeline;
             provider.Configuration = config.GetSection(meta.Platform);
 
-            var data = JObject.FromObject(new
+            var data = new NlpDoc
             {
-                Text = request.Query.FirstOrDefault()
-            });
+                Sentences = new List<NlpDocSentence>
+                {
+                    new NlpDocSentence
+                    {
+                        Text = request.Query.FirstOrDefault()
+                    }
+                }
+            };
 
             await provider.Train(agent, data, providerPipe);
             meta.Pipeline.RemoveAt(0);
@@ -51,7 +58,7 @@ namespace BotSharp.Core.Engines
             {
                 Directory.CreateDirectory(settings.PredictDir);
             }
-
+            
             // pipe process
             meta.Pipeline.ForEach(async pipeMeta =>
             {
@@ -61,7 +68,14 @@ namespace BotSharp.Core.Engines
                 await pipe.Predict(agent, data, pipeMeta);
             });
 
-            return "";
+            Console.WriteLine(JsonConvert.SerializeObject(data, new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore,
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }));
+
+            return data;
         }
     }
 }

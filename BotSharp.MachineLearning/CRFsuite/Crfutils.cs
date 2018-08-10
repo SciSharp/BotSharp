@@ -67,30 +67,32 @@ namespace BotSharp.MachineLearning.CRFsuite
         {
             List<List<Dictionary<string, Object>>> Xs = new List<List<Dictionary<string, Object>>>();
             List<Dictionary<string, Object>> X = new List<Dictionary<string, Object>>();
-            StreamReader sr = new StreamReader(fiPath, Encoding.Default);
-            string line;
-            while ((line = sr.ReadLine()) != null) 
+            using (StreamReader sr = new StreamReader(fiPath, Encoding.Default))
             {
-                line = line.Replace("\n","");
-                if (line == null || line.Length == 0) 
+                string line;
+                while ((line = sr.ReadLine()) != null)
                 {
-                    Xs.Add(new List<Dictionary<string, Object>>(X));
-                    X.Clear();
-                }
-                else
-                {
-                    String[] fields = line.Split(sep);
-                    if (fields.Count() < names.Count)
+                    line = line.Replace("\n", "");
+                    if (line == null || line.Length == 0)
                     {
-                        // Error Exception
+                        Xs.Add(new List<Dictionary<string, Object>>(X));
+                        X.Clear();
                     }
-                    Dictionary<string, Object> item = new Dictionary<string, Object>();
-                    item.Add("F", new List<string>());
-                    for (int i = 0 ; i < names.Count ; i++)
+                    else
                     {
-                        item.Add(names[i], fields[i]);
+                        String[] fields = line.Split(sep);
+                        if (fields.Count() < names.Count)
+                        {
+                            // Error Exception
+                        }
+                        Dictionary<string, Object> item = new Dictionary<string, Object>();
+                        item.Add("F", new List<string>());
+                        for (int i = 0; i < names.Count; i++)
+                        {
+                            item.Add(names[i], fields[i]);
+                        }
+                        X.Add(item);
                     }
-                    X.Add(item);
                 }
             }
             return Xs;
@@ -135,25 +137,27 @@ namespace BotSharp.MachineLearning.CRFsuite
         /// <param name="FeatureExtractor">an extractor which to do the feature extracting work</param>
         /// <param name="fields">attributes name seperated by space</param>
         /// <param name="sep">string whihch seperated by</param>
-        public void CRFFileGenerator (System.Action<List<Dictionary<string, Object>>> FeatureExtractor, string fields, string rawFile, string parsedName, string sep= " ")
+        public void CRFFileGenerator(System.Action<List<Dictionary<string, Object>>> FeatureExtractor, string fields, string rawFile, string parsedName, string sep = " ")
         {
-            FileStream fs = new FileStream(parsedName, FileMode.Create);
-            StreamWriter sw = new StreamWriter(fs);
-            List<string> F = fields.Split(" ").ToList();
-            List<List<Dictionary<string, Object>>> Xs = Readiter(rawFile, F, " ");
-
-            foreach (List<Dictionary<string, Object>> X in Xs)
+            using (FileStream fs = new FileStream(parsedName, FileMode.Create))
             {
-                if (X.Any(x => x["w"].ToString() == ""))
+                using (StreamWriter sw = new StreamWriter(fs))
                 {
+                    List<string> F = fields.Split(" ").ToList();
+                    List<List<Dictionary<string, Object>>> Xs = Readiter(rawFile, F, " ");
 
+                    foreach (List<Dictionary<string, Object>> X in Xs)
+                    {
+                        if (X.Any(x => x["w"].ToString() == ""))
+                        {
+
+                        }
+                        FeatureExtractor(X);
+                        OutputFeatures(sw, X, "y");
+                    }
+                    sw.Flush();
                 }
-                FeatureExtractor(X);
-                OutputFeatures(sw, X, "y");
             }
-            sw.Flush();
-            sw.Close();
-            fs.Close();
         }
     }
 }

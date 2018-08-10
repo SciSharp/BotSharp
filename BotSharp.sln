@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.WebHost", "BotShar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.MachineLearning", "BotSharp.MachineLearning\BotSharp.MachineLearning.csproj", "{E664115A-AE86-49E9-8AE4-D4589A568CD7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetToolkit", "..\DotNetToolkit\DotNetToolkit\DotNetToolkit.csproj", "{49F8D187-599E-458F-8567-40FCD146CFFA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,10 +39,6 @@ Global
 		{E664115A-AE86-49E9-8AE4-D4589A568CD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E664115A-AE86-49E9-8AE4-D4589A568CD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E664115A-AE86-49E9-8AE4-D4589A568CD7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{49F8D187-599E-458F-8567-40FCD146CFFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{49F8D187-599E-458F-8567-40FCD146CFFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{49F8D187-599E-458F-8567-40FCD146CFFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{49F8D187-599E-458F-8567-40FCD146CFFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

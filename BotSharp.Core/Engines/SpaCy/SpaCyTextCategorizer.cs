@@ -18,7 +18,7 @@ namespace BotSharp.Core.Engines.SpaCy
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             //var input = new List<Tuple<String, JObject>>();
 
@@ -54,17 +54,10 @@ namespace BotSharp.Core.Engines.SpaCy
 
             var response = client.Execute<Result>(request);
 
-            data["ModelName"] = response.Data.ModelName;
-            /*
-            //Predict
-            var request2 = new RestRequest("predict", Method.GET);
-            request2.AddParameter("text", "the roof is leaking");
-            var response2 = client.Execute(request2);
-            */
             return true;
         }
 
-        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
             return true;
         }

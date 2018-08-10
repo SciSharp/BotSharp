@@ -40,9 +40,7 @@ namespace BotSharp.Core.Engines
                 .Where(x => x.AgentId == agentId)
                 .ToList();
 
-            var data = JObject.FromObject(new
-            {
-            });
+            var data = new NlpDoc();
 
             // Get NLP Provider
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");

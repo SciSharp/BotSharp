@@ -19,7 +19,7 @@ namespace BotSharp.Core.Engines.SpaCy
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tokenizer", Method.GET);
@@ -28,6 +28,8 @@ namespace BotSharp.Core.Engines.SpaCy
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
+            doc.Sentences = new List<NlpDocSentence>();
+
             corpus.UserSays.ForEach(usersay => {
                 Console.WriteLine(usersay.Text);
                 request.AddParameter("text", usersay.Text);
@@ -35,16 +37,20 @@ namespace BotSharp.Core.Engines.SpaCy
                 
                 tokens.Add(response.Data.Tokens);
 
+                doc.Sentences.Add(new NlpDocSentence
+                {
+                    Tokens = response.Data.Tokens,
+                    Text = usersay.Text
+                });
+
                 res = res && response.IsSuccessful;
                 
             });
 
-            data.Add("Tokens", JToken.FromObject(tokens));
-
             return res;
         }
 
-        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tokenizer", Method.GET);
@@ -52,15 +58,14 @@ namespace BotSharp.Core.Engines.SpaCy
             Boolean res = true;
             var corpus = agent.Corpus;
 
-            request.AddParameter("text", data["Text"]);
+            request.AddParameter("text", doc.Sentences[0].Text);
             var response = client.Execute<Result>(request);
             
             tokens.Add(response.Data.Tokens);
 
             res = res && response.IsSuccessful;
-                
 
-            data.Add("Tokens", JToken.FromObject(tokens));
+            doc.Sentences[0].Tokens = tokens[0];
 
             return true;
         }

@@ -2,6 +2,7 @@
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
+using BotSharp.MachineLearning.NLP;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -37,8 +38,28 @@ namespace BotSharp.Core.Engines
         public AIResponse TextRequest(AIRequest request)
         {
             var preditor = new BotPreditor();
-            var text = preditor.Predict(agent, request);
-            return null;
+            var doc = preditor.Predict(agent, request).Result;
+            var parameters = new Dictionary<String, Object>();
+            doc.Sentences[0].Entities.ForEach(x => parameters.Add(x.Entity, x.Value));
+
+            return new AIResponse
+            {
+                Lang = request.Language,
+                Timestamp = DateTime.UtcNow,
+                SessionId = request.SessionId,
+                Status = new AIResponseStatus(),
+                Result = new AIResponseResult
+                {
+                    Score = doc.Sentences[0].Intent.Confidence,
+                    ResolvedQuery = doc.Sentences[0].Text,
+                    Fulfillment = new AIResponseFulfillment { },
+                    Parameters = parameters,
+                    Metadata = new AIResponseMetadata
+                    {
+                        IntentName = doc.Sentences[0].Intent.Label
+                    }
+                }
+            };
         }
 
         public Agent LoadAgent(string id)

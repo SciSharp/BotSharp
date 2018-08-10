@@ -17,18 +17,26 @@ namespace BotSharp.Core.Engines.Classifiers
 
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
             string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
-            string predictFileName = Path.Join(Settings.PredictDir, "test.txt");
-            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), $"predict-prob {modelFileName}.bin {predictFileName}", false);
+            string predictFileName = Path.Join(Settings.PredictDir, "fasttext.txt");
+            File.WriteAllText(predictFileName, doc.Sentences[0].Text);
 
-            data["Intent"] = JObject.FromObject(new { Name = output.Split(' ')[0].Split("__label__")[1], Confidence = output.Split(' ')[1] });
+            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), $"predict-prob {modelFileName}.bin {predictFileName}");
+
+            File.Delete(predictFileName);
+
+            doc.Sentences[0].Intent = new TextClassificationResult
+            {
+                Label = output.Split(' ')[0].Split("__label__")[1],
+                Confidence = decimal.Parse(output.Split(' ')[1])
+            };
 
             return true;
         }
 
-        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             meta.Model = "classification-fasttext.model";
 

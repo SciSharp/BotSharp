@@ -17,12 +17,12 @@ namespace BotSharp.Core.Engines.SpaCy
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
             return true;
         }
 
-        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("entitize", Method.GET);
