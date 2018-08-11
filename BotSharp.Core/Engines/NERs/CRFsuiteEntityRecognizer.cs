@@ -16,12 +16,23 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BotSharp.Core.Engines.CRFsuite
+namespace BotSharp.Core.Engines.NERs
 {
-    public class CRFsuiteEntityRecognizer : INlpPipeline
+    public class CRFsuiteEntityRecognizer : INlpPipeline, INlpNer
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
+
+        public List<OntologyEnum> Ontologies
+        {
+            get
+            {
+                return new List<OntologyEnum>
+                {
+                    OntologyEnum.DateTime
+                };
+            }
+        }
 
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
