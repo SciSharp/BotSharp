@@ -1,15 +1,22 @@
 {
-  "Rasa": {
-    "Nlu": "http://localhost:5000"
+  "RasaNlu": {
+    "url": "http://localhost:5000"
+  },
+
+  "WitAi": {
+    "url": "https://api.wit.ai",
+    "resource": "message",
+    "serverAccessToken": "YLLK6SFAPXNYGMKAWLOREQ5MJQSX345L",
+    "version": "20180811"
   },
 
   "BotSharpAi": {
     "Lang": "en",
     "Provider": "SpaCyProvider",
     "SpaCyProvider": {
-      "Url": "http://10.2.21.200:5005"
+      "Url": "http://localhost:5005"
     },
-    "Pipe": "SpaCyTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
+    "Pipe": "SpaCyTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer, FasttextClassifier",
     "CRFsuiteEntityRecognizer": {
       "fields": "y w pos chk",
       "uniFeatures": "w wl pos chk shape shaped type p1 p2 p3 p4 s1 s2 s3 s4 2d 4d d&a d&- d&/ d&, d&. up iu au al ad ao cu cl ca cd cs",

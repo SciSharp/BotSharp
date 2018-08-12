@@ -9,9 +9,10 @@ import spacy
 nlp = spacy.load('en')
 ner = EntityRecognizer(nlp.vocab)
 
+# python -m spacy info
 @route('/load')
 def load():
-    pass
+    return {'version': '2.0.11', 'models': 'en_core_web_md, en', 'python': '3.5.2'}
 
 @route('/tokenizer')
 def tokenize():
@@ -201,4 +202,4 @@ def entityrecognizerpredict():
 
 
 
-run(host='0.0.0.0', port=5005, debug=True)
+run(host='0.0.0.0', port=5005, debug=False)

@@ -32,6 +32,14 @@ namespace BotSharp.RestApi
             _platform = platform;
         }
 
+        [HttpGet]
+        public ActionResult<List<Agent>> AllAgents()
+        {
+            var dc = new DefaultDataContextLoader().GetDefaultDc();
+
+            return dc.Table<Agent>().ToList();
+        }
+
         /// <summary>
         /// Restore a agent from a uploaded zip file 
         /// </summary>

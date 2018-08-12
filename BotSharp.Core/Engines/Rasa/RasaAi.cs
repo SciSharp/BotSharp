@@ -84,7 +84,7 @@ namespace BotSharp.Core.Engines
         private IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
         {
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-            var client = new RestClient($"{config.GetSection("Rasa:Nlu").Value}");
+            var client = new RestClient($"{config.GetSection("RasaNlu:url").Value}");
 
             var rest = new RestRequest("parse", Method.POST);
             string json = JsonConvert.SerializeObject(new { Project = projectId, Q = text, Model = model },
@@ -107,7 +107,7 @@ namespace BotSharp.Core.Engines
 
             var corpus = GetIntentExpressions();
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-            var client = new RestClient($"{config.GetSection("Rasa:Nlu").Value}");
+            var client = new RestClient($"{config.GetSection("RasaNlu:url").Value}");
 
             var contextHashs = corpus.UserSays
                 .Select(x => x.ContextHash)
