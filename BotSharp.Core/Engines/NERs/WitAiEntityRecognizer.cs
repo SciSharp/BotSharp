@@ -34,11 +34,10 @@ namespace BotSharp.Core.Engines.NERs
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-            var client = new RestClient($"{config.GetSection("WitAi:url").Value}");
-            var request = new RestRequest(config.GetSection("WitAi:resource").Value, Method.GET);
-            request.AddHeader("Authorization", "Bearer " + config.GetSection("WitAi:serverAccessToken").Value);
-            request.AddQueryParameter("v", config.GetSection("WitAi:version").Value);
+            var client = new RestClient($"{Configuration.GetSection("WitAiEntityRecognizer:url").Value}");
+            var request = new RestRequest(Configuration.GetSection("WitAiEntityRecognizer:resource").Value, Method.GET);
+            request.AddHeader("Authorization", "Bearer " + Configuration.GetSection("WitAiEntityRecognizer:serverAccessToken").Value);
+            request.AddQueryParameter("v", Configuration.GetSection("WitAiEntityRecognizer:version").Value);
             request.AddQueryParameter("q", doc.Sentences[0].Text);
             request.AddQueryParameter("verbose", "true");
             request.AddQueryParameter("autosuggest", "true");

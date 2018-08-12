@@ -29,6 +29,7 @@ namespace BotSharp.Core.Engines.NERs
             {
                 return new List<OntologyEnum>
                 {
+                    OntologyEnum.Location,
                     OntologyEnum.DateTime
                 };
             }

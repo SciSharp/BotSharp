@@ -50,13 +50,13 @@ namespace BotSharp.Core.Engines
                 Status = new AIResponseStatus(),
                 Result = new AIResponseResult
                 {
-                    Score = doc.Sentences[0].Intent.Confidence,
+                    Score = doc.Sentences[0].Intent == null ? 0 : doc.Sentences[0].Intent.Confidence,
                     ResolvedQuery = doc.Sentences[0].Text,
                     Fulfillment = new AIResponseFulfillment { },
                     Parameters = parameters,
                     Metadata = new AIResponseMetadata
                     {
-                        IntentName = doc.Sentences[0].Intent.Label
+                        IntentName = doc.Sentences[0].Intent?.Label
                     }
                 }
             };
