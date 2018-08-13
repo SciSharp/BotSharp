@@ -1,14 +1,12 @@
 # stage 1: build
-FROM microsoft/aspnetcore-build AS builder
+FROM microsoft/dotnet AS botsharp
 WORKDIR /source
 
- # copies the rest of your code
+# copies the rest of your code
 COPY . .
 RUN dotnet build
-RUN dotnet publish --output /app/ --configuration Release
+RUN dotnet publish --output /app/ --configuration Debug
 
-# stage 2: install
-FROM microsoft/aspnetcore
+# stage 2: run
 WORKDIR /app
-COPY --from=builder /app .
 ENTRYPOINT [ "dotnet", "BotSharp.WebHost.dll" ]

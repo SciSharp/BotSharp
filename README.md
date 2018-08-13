@@ -1,6 +1,5 @@
 # <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png" height="30">
 ### The Open Source AI Chatbot Platform Builder for Enterprise
-###  
 
 **BotSharp** is an open source machine learning framework for AI Bot platform builder. This project involves natural language understanding, computer vision and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in enterprise information systems. Out-of-the-box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier. 
 
@@ -11,22 +10,34 @@ Why we do this? because we all know python is not friendly programming language 
 BotSharp is in accordance with components princple strictly, decouples every part that needed in the platform builder. So you can choose different UI/UX, or pick up a different NLP Tagger, or select a more advanced algrithm to do NER task. They are all modulized based an unfied interfaces.
 
 ### Some Features
-* Multiple agents management
+* Built-in multi-Agents management, easy to build Bot as a Service platform.
 * Context In/ Out with lifespan to make conversion flow be controllable.
-* Support Rasa, Dialogflow and many others as a bot platform builder components.
+* Use the natural language processing pipeline mechanism and the popular NLP algorithm library to build your own unique robot processing flow.
 * Support export/ import agent from other bot platforms directly.
-* Support different UI providers.
-* With a Rest API interfaces.
-* Integrate with popular social platforms.
+* Support different UI providers like [Rasa UI](https://github.com/paschmann/rasa-ui) and [Articulate UI](https://spg.ai/projects/articulate/).
+* Support for multiple data request and response formats such as Rasa NLU and Dialogflow.
+* Integrate with popular social platforms like Facebook Messenger, Slack and Telegram.
 
-### How to Install
+### Documents
+https://github.com/Oceania2018/BotSharp/wiki
+
+## QUICK START
+### Install in docker container
+Make sure you've got [Docker](https://www.docker.com/) installed:
+```
+PS D:\> git clone https://github.com/Oceania2018/BotSharp
+PS D:\> cd BotSharp
+```
+```
+PS D:\BotSharp\> docker build -t botsharp .
+PS D:\BotSharp\> docker run -it -p 3112:3112 botsharp
+```
+
+### Install in NuGet
 ````shell
 PM> Install-Package BotSharp.Core
 PM> Install-Package BotSharp.RestApi
 ````
-
-### Documents
-https://github.com/Oceania2018/BotSharp/wiki
 
 
 #### Tip Jar
