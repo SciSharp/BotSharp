@@ -19,6 +19,11 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\BotSharp.RestApi.xml</DocumentationFile>
+    <DefineConstants>TRACE;DEBUG;MODE_DIALOGFLOW</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;MODE_DIALOGFLOW</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
