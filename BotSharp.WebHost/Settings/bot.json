@@ -10,9 +10,12 @@
       "url": "http://localhost:5005"
     },
 
-    "Pipe": "SpaCyTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
+    "Pipe": {
+      "train": "SpaCyTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
+      "predict": "SpaCyTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer"
+    },
+
     "SpaCyTokenizer": {
-      "url": "http://localhost:5005"
     },
     "CRFsuiteEntityRecognizer": {
       "fields": "y w pos chk",

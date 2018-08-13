@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
-    public class SpaCyTokenizer : INlpPipeline
+    public class SpaCyTokenizer : INlpTrain, INlpPredict
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }

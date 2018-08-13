@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.Classifiers
 {
-    public class FasttextClassifier : INlpPipeline
+    public class FasttextClassifier : INlpTrain, INlpPredict
     {
         public IConfiguration Configuration { get; set; }
 

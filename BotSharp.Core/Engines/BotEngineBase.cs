@@ -37,7 +37,7 @@ namespace BotSharp.Core.Engines
 
         public AIResponse TextRequest(AIRequest request)
         {
-            var preditor = new BotPreditor();
+            var preditor = new BotPredictor();
             var doc = preditor.Predict(agent, request).Result;
             var parameters = new Dictionary<String, Object>();
             doc.Sentences[0].Entities.ForEach(x => parameters.Add(x.Entity, x.Value));

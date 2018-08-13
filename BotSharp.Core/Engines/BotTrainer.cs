@@ -47,7 +47,7 @@ namespace BotSharp.Core.Engines
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
             var platform = config.GetSection($"BotPlatform").Value;
             string providerName = config.GetSection($"{platform}:Provider").Value;
-            var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpPipeline;
+            var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpTrain;
             provider.Configuration = config.GetSection(platform);
 
             var pipeModel = new PipeModel
@@ -87,14 +87,14 @@ namespace BotSharp.Core.Engines
             }
 
             // pipe process
-            var pipelines = provider.Configuration.GetSection($"Pipe").Value
+            var pipelines = provider.Configuration.GetValue<String>($"Pipe:train")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
 
             pipelines.ForEach(async pipeName =>
             {
-                var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPipeline;
+                var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpTrain;
                 pipe.Configuration = provider.Configuration;
                 pipe.Settings = settings;
                 pipeModel = new PipeModel

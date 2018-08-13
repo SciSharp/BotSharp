@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines
 {
-    public class BotPreditor
+    public class BotPredictor
     {
         public async Task<NlpDoc> Predict(Agent agent, AIRequest request)
         {
@@ -30,7 +30,7 @@ namespace BotSharp.Core.Engines
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
 
             var providerPipe = meta.Pipeline.First();
-            var provider = TypeHelper.GetInstance(providerPipe.Name, assemblies) as INlpPipeline;
+            var provider = TypeHelper.GetInstance(providerPipe.Name, assemblies) as INlpProvider;
             provider.Configuration = config.GetSection(meta.Platform);
 
             var data = new NlpDoc
@@ -44,7 +44,7 @@ namespace BotSharp.Core.Engines
                 }
             };
 
-            await provider.Train(agent, data, providerPipe);
+            await provider.Load(agent, providerPipe);
             meta.Pipeline.RemoveAt(0);
 
             var settings = new PipeSettings
@@ -58,14 +58,19 @@ namespace BotSharp.Core.Engines
             {
                 Directory.CreateDirectory(settings.PredictDir);
             }
-            
+
             // pipe process
-            meta.Pipeline.ForEach(async pipeMeta =>
+            var pipelines = provider.Configuration.GetValue<String>($"Pipe:predict")
+                .Split(',')
+                .Select(x => x.Trim())
+                .ToList();
+
+            pipelines.ForEach(async pipeName =>
             {
-                var pipe = TypeHelper.GetInstance(pipeMeta.Name, assemblies) as INlpPipeline;
+                var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPredict;
                 pipe.Configuration = provider.Configuration;
                 pipe.Settings = settings;
-                await pipe.Predict(agent, data, pipeMeta);
+                await pipe.Predict(agent, data, meta.Pipeline.FirstOrDefault(x => x.Name == pipeName));
             });
 
             Console.WriteLine(JsonConvert.SerializeObject(data, new JsonSerializerSettings

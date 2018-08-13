@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.NERs
 {
-    public class CRFsuiteEntityRecognizer : INlpPipeline, INlpNer
+    public class CRFsuiteEntityRecognizer : INlpTrain, INlpPredict, INlpNer
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }

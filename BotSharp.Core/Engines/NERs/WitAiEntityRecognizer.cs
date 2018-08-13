@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.NERs
 {
-    public class WitAiEntityRecognizer : INlpPipeline, INlpNer
+    public class WitAiEntityRecognizer : INlpPredict, INlpNer
     {
         public List<OntologyEnum> Ontologies
         {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BotSharp.Core.Abstractions
 {
-    public interface INlpNer
+    public interface INlpNer : INlpPipeline
     {
         List<OntologyEnum> Ontologies { get; }
     }
