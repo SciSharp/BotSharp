@@ -1,20 +1,20 @@
 {
   "RasaAi": {
-    "url": "http://localhost:5000"
+    "url": "http://10.21.2.200:5000"
   },
   "BotSharpAi": {
     "Lang": "en",
 
     "Provider": "SpaCyProvider",
     "SpaCyProvider": {
-      "url": "http://localhost:5005"
+      "url": "http://10.2.21.200:5005"
     },
     "NltkProvider": {
-      "url": "http://localhost:5005"
+      "url": "http://10.2.21.200:5005"
     },
     "Pipe": {
-      "train": "NltkTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
-      "predict": "NltkTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer"
+      "train": "SpaCyTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
+      "predict": "SpaCyTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer"
     },
 
     "SpaCyTokenizer": {

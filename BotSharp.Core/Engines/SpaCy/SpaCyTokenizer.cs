@@ -4,6 +4,7 @@ using BotSharp.Core.Models;
 using BotSharp.MachineLearning.NLP;
 using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
@@ -22,31 +23,33 @@ namespace BotSharp.Core.Engines.SpaCy
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
-            var request = new RestRequest("tokenizer", Method.GET);
+            var request = new RestRequest("spacytokenizesentences", Method.POST);
             List<List<NlpToken>> tokens = new List<List<NlpToken>>();
             Boolean res = true;
             var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
             doc.Sentences = new List<NlpDocSentence>();
+            List<string> sentencesList = new List<string>();
+            corpus.UserSays.ForEach(usersay => sentencesList.Add(usersay.Text));
 
-            corpus.UserSays.ForEach(usersay => {
-                Console.WriteLine(usersay.Text);
-                request.AddParameter("text", usersay.Text);
-                var response = client.Execute<Result>(request);
-                
-                tokens.Add(response.Data.Tokens);
+            request.RequestFormat = DataFormat.Json;
 
+            request.AddParameter("application/json", JsonConvert.SerializeObject(new Documents(sentencesList)), ParameterType.RequestBody);
+
+            var response = client.Execute<Result>(request);
+
+            tokens = response.Data.TokensList;
+
+            for (int i = 0; i < sentencesList.Count; i++)
+            {
                 doc.Sentences.Add(new NlpDocSentence
                 {
-                    Tokens = response.Data.Tokens,
-                    Text = usersay.Text
+                    Tokens = tokens[i],
+                    Text = sentencesList[i]
                 });
-
-                res = res && response.IsSuccessful;
-                
-            });
-
+            }
+            res = res && response.IsSuccessful;
             return res;
         }
 
@@ -61,7 +64,7 @@ namespace BotSharp.Core.Engines.SpaCy
             request.AddParameter("text", doc.Sentences[0].Text);
             var response = client.Execute<Result>(request);
             
-            tokens.Add(response.Data.Tokens);
+            tokens = response.Data.TokensList;
 
             res = res && response.IsSuccessful;
 
@@ -72,7 +75,17 @@ namespace BotSharp.Core.Engines.SpaCy
 
         private class Result
         {
-            public List<NlpToken> Tokens { get; set; }
+            public List<List<NlpToken>> TokensList { get; set; }
+        }
+
+        private class Documents
+        {
+            public List<string> Sentences { get; set; }
+
+            public Documents(List<string> sentences)
+            {
+                this.Sentences = sentences;
+            }
         }
     }
 }

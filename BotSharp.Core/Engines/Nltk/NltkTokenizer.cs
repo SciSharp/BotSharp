@@ -23,7 +23,7 @@ namespace BotSharp.Core.Engines.SpaCy
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("NltkProvider:Url").Value);
-            var request = new RestRequest("nltktokenizesentences", Method.GET);
+            var request = new RestRequest("nltktokenizesentences", Method.POST);
             List<List<NlpToken>> tokens = new List<List<NlpToken>>();
             Boolean res = true;
             var dc = new DefaultDataContextLoader().GetDefaultDc();
@@ -33,19 +33,24 @@ namespace BotSharp.Core.Engines.SpaCy
             List<string> sentencesList = new List<string>();
             corpus.UserSays.ForEach ( usersay => sentencesList.Add(usersay.Text));
 
-
-
-
             request.RequestFormat = DataFormat.Json;
 
-            request.AddParameter("application/json", JsonConvert.SerializeObject(new { sentences = sentencesList}));
+            request.AddParameter("application/json", JsonConvert.SerializeObject(new Documents(sentencesList)), ParameterType.RequestBody);
 
             var response = client.Execute<Result>(request);
 
+            tokens = response.Data.TokensList;
 
-
-
-
+            for (int i = 0; i < sentencesList.Count; i++)
+            {
+                doc.Sentences.Add(new NlpDocSentence
+                {
+                    Tokens = tokens[i],
+                    Text = sentencesList[i]
+                });
+            }
+            res = res && response.IsSuccessful;
+            return res;
             /*
              corpus.UserSays.ForEach(usersay => {
                 Console.WriteLine(usersay.Text);
@@ -61,12 +66,8 @@ namespace BotSharp.Core.Engines.SpaCy
                 });
 
                 res = res && response.IsSuccessful;
-                
             });
              */
-           
-
-            return res;
         }
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
@@ -91,7 +92,17 @@ namespace BotSharp.Core.Engines.SpaCy
 
         private class Result
         {
-            public List<List<NlpToken>> Tokens { get; set; }
+            public List<List<NlpToken>> TokensList { get; set; }
+        }
+
+        private class Documents
+        {
+            public List<string> Sentences { get; set; }
+
+            public Documents(List<string> sentences)
+            {
+                this.Sentences = sentences;
+            }
         }
     }
 }

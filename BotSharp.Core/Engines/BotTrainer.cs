@@ -47,7 +47,7 @@ namespace BotSharp.Core.Engines
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
             var platform = config.GetSection($"BotPlatform").Value;
             string providerName = config.GetSection($"{platform}:Provider").Value;
-            var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpTrain;
+            var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpProvider;
             provider.Configuration = config.GetSection(platform);
 
             var pipeModel = new PipeModel
@@ -58,7 +58,7 @@ namespace BotSharp.Core.Engines
                 Time = DateTime.UtcNow
             };
 
-            await provider.Train(agent, data, pipeModel);
+            await provider.Load(agent, pipeModel);
 
             var meta = new ModelMetaData
             {
