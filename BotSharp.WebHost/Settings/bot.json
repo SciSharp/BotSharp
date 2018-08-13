@@ -9,10 +9,12 @@
     "SpaCyProvider": {
       "url": "http://localhost:5005"
     },
-
+    "NltkProvider": {
+      "url": "http://localhost:5005"
+    },
     "Pipe": {
-      "train": "SpaCyTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
-      "predict": "SpaCyTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer"
+      "train": "NltkTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
+      "predict": "NltkTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer"
     },
 
     "SpaCyTokenizer": {
