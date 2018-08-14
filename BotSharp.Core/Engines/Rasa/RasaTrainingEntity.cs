@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BotSharp.Core.Adapters.Rasa
 {
-    public sealed class RasaTraningEntity : TrainingEntity
+    public sealed class RasaTrainingEntity : TrainingEntity
     {
         [JsonIgnore]
         public override String EntityType { get; set; }

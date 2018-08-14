@@ -1,14 +1,17 @@
 ﻿using BotSharp.Core.Adapters.Rasa;
-using BotSharp.Core.Engines.Rasa;
+using BotSharp.Core.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Models
+namespace BotSharp.Core.Engines.Rasa
 {
-    public class RasaTrainingData
+    public class RasaAgent
     {
+        public String Id { get; set; }
+        public String Name { get; set; }
+
         [JsonProperty("common_examples")]
         public List<RasaIntentExpression> UserSays { get; set; }
 

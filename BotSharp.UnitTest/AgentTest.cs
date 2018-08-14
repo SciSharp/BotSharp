@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
+using BotSharp.Core.Engines.BotSharp;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using EntityFrameworkCore.BootKit;
@@ -50,8 +51,8 @@ namespace BotSharp.UnitTest
             var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(File.ReadAllText(botsHeaderFilePath));
 
             agents.ForEach(agentHeader => {
-                var rasa = new RasaAi();
-                rasa.RestoreAgent<AgentImporterInDialogflow>(agentHeader);
+                var bot = new BotSharpAi();
+                bot.RestoreAgent<AgentImporterInDialogflow>(agentHeader);
             });
         }
 

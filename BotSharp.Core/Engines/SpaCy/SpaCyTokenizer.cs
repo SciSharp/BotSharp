@@ -23,10 +23,9 @@ namespace BotSharp.Core.Engines.SpaCy
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
-            var request = new RestRequest("spacytokenizesentences", Method.POST);
+            var request = new RestRequest("tokenizer", Method.POST);
             List<List<NlpToken>> tokens = new List<List<NlpToken>>();
             Boolean res = true;
-            var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
             doc.Sentences = new List<NlpDocSentence>();
@@ -34,7 +33,8 @@ namespace BotSharp.Core.Engines.SpaCy
             corpus.UserSays.ForEach(usersay => sentencesList.Add(usersay.Text));
 
             request.RequestFormat = DataFormat.Json;
-
+            request.Method = Method.POST;
+            request.AddHeader("Content-Type", "application/json; charset=utf-8");
             request.AddParameter("application/json", JsonConvert.SerializeObject(new Documents(sentencesList)), ParameterType.RequestBody);
 
             var response = client.Execute<Result>(request);

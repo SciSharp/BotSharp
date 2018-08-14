@@ -5,23 +5,38 @@ from spacy.gold import GoldParse
 #import plac
 import random
 import spacy
-
 nlp = spacy.load('en')
 ner = EntityRecognizer(nlp.vocab)
 
 # python -m spacy info
 @route('/load')
 def load():
-    return {'version': '2.0.11', 'models': 'en_core_web_md, en', 'python': '3.5.2'}
+    return {'version': '2.0.11',\
+    'models': 'en_core_web_md, en',\
+    'python': '3.5.2'}
 
-@route('/tokenizer')
+@route('/tokenizer', method = 'GET')
 def tokenize():
-    doc = nlp(request.query.text)
+    return spacy_tokenize(request.query.text)
+
+@route('/tokenizer', method = 'POST')
+def tokenize_sentences():
+    sentences = request.json['Sentences']
+    tokens_list = []
+    for sentence in sentences:
+        token = spacy_tokenize(sentence)
+        tokens_list.append(token['tokens'])
+    return {'tokensList' : tokens_list}
+
+def spacy_tokenize(sentence):
+    print('sentence : {0}'.format(sentence))
+    doc = nlp(sentence)
     tokens = []
     for token in doc:
-        tokens.append({'text': token.text, 'offset': token.idx, 'pos': token.pos_, 'tag': token.tag_, 'lemma': token.lemma_})
-    return {'tokens': tokens}
+        tokens.append({'text': token.text, 'offset': token.idx,\
+        'pos': token.pos_, 'tag': token.tag_, 'lemma': token.lemma_})
 
+    return {'tokens': tokens}
 
 @route('/tagger')
 def tagger():
@@ -62,11 +77,6 @@ def textcategorizer():
     for index in range(len(texts)):
         tuple =(texts[index], golds[index])
         train_data.append(tuple)
-    '''
-    for tup in train_data:
-        print("cur tuple {0}, training data body: {1}".format(i, train_data))
-        i = i + 1
-    '''
     textcat = nlp.create_pipe('textcat')
     nlp.add_pipe(textcat, last=True)
     for label in labels:
@@ -75,32 +85,21 @@ def textcategorizer():
     for itn in range(2):
         for doc, gold in train_data:
             nlp.update([doc], [gold], sgd=optimizer)
-
     textcat.to_disk('./textcat_try')
-
-
-
     return {'ModelName':'textcat_try'}
 
 @route('/textcategorizerpredict')
 def textcategorizerpredict():
     textcat = TextCategorizer(nlp.vocab)
     textcat.from_disk('./textcat_try')
-
     nlp.add_pipe(textcat, last=True)
-
     doc = nlp(request.query.text)
-
-    #scores = textcat.predict([request.query.text])
     print(doc.cats)
-
     list = []
     for key in doc.cats:
         print(key)
         list.append({'Label': key, 'Confidence': doc.cats[key]})
-
     print (list)
-
     return {'Labels': list}
 
 @route('/entityrecognizer', method='POST')
@@ -120,14 +119,12 @@ def entityrecognizer():
         tup = (node['Text'], labels)
         training_data.append(tup)
     print(training_data)
-
     if model is not None:
         nlp = spacy.load(model)  # load existing spaCy model
         print("Loaded model '%s'" % model)
     else:
         nlp = spacy.blank('en')  # create blank Language class
         print("Created blank 'en' model")
-
     # Add entity recognizer to model if it's not in the pipeline
     # nlp.create_pipe works for built-ins that are registered with spaCy
     if 'ner' not in nlp.pipe_names:
@@ -147,24 +144,20 @@ def entityrecognizer():
 
     extra_labels = nlp.entity.cfg[u'extra_labels'] \
     if ('extra_labels' in nlp.entity.cfg) else []
-
     labels = []
     for entity in entities_in_training_set:
         if (entity in en_labels or entity in extra_labels):
             continue
         labels.append(entity)
-
     for label in labels:
         ner.add_label(label)   # add new entity label to entity recognizer
         print("label added succeed!")
-
     if model is None:
         optimizer = nlp.begin_training()
     else:
         # Note that 'begin_training' initializes the models, so it'll zero out
         # existing entity types.
         optimizer = nlp.entity.create_optimizer()
-
     # get names of other pipes to disable them during training
     other_pipes = [pipe for pipe in nlp.pipe_names if pipe != 'ner']
     with nlp.disable_pipes(*other_pipes):  # only train NER
@@ -180,7 +173,6 @@ def entityrecognizer():
                 #
                 nlp.update([doc], [gold], sgd=optimizer, drop=0.35)#,losses=losses)
             #print(losses)
-
     # save model to output directory
     if output_dir is not None:
         output_dir = Path(output_dir)
@@ -193,7 +185,6 @@ def entityrecognizer():
 
 @route('/entityrecognizerpredict')
 def entityrecognizerpredict():
-
     print("Loading from", './entity_rec_output')
     nlp2 = spacy.load('./entity_rec_output')
     doc2 = nlp2(request.query.text)

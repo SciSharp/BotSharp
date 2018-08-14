@@ -22,7 +22,7 @@ namespace BotSharp.Core.Engines.Classifiers
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
             string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
-            string predictFileName = Path.Join(Settings.PredictDir, "fasttext.txt");
+            string predictFileName = Path.Join(Settings.TempDir, "fasttext.txt");
             File.WriteAllText(predictFileName, doc.Sentences[0].Text);
 
             var output = Engines.Classifiers.CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), $"predict-prob {modelFileName}.bin {predictFileName}");
@@ -42,7 +42,7 @@ namespace BotSharp.Core.Engines.Classifiers
         {
             meta.Model = "classification-fasttext.model";
 
-            string parsedTrainingDataFileName = Path.Join(Settings.TrainDir, $"classification-fasttext.parsed.txt");
+            string parsedTrainingDataFileName = Path.Join(Settings.TempDir, $"classification-fasttext.parsed.txt");
             string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
 
             // assemble corpus

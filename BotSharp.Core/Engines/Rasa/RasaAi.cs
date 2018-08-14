@@ -101,7 +101,7 @@ namespace BotSharp.Core.Engines
         {
             var trainingData = new RasaTrainingData
             {
-                Entities = new List<RasaTraningEntity>(),
+                Entities = new List<RasaTrainingEntity>(),
                 UserSays = new List<RasaIntentExpression>()
             };
 
@@ -133,7 +133,7 @@ namespace BotSharp.Core.Engines
 
                 var data = new RasaTrainingData
                 {
-                    Entities = entity_synonyms.Select(x => x.ToObject<RasaTraningEntity>()).ToList(),
+                    Entities = entity_synonyms.Select(x => x.ToObject<RasaTrainingEntity>()).ToList(),
                     UserSays = common_examples.Select(x => x.ToObject<RasaIntentExpression>()).ToList()
                 };
 

@@ -91,28 +91,33 @@ namespace BotSharp.Core.Engines
         /// <returns></returns>
         public bool RestoreAgent<TAgentImporter>(AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
         {
-            var importer = new TAgentImporter();
-
             string dataDir = Path.Join(DbInitializerPath, "Agents");
 
             int row = dc.DbTran(() => {
-
-                // Load agent summary
-                agent = importer.LoadAgent(agentHeader, dataDir);
-
-                // Load user custom entities
-                importer.LoadCustomEntities(agent, dataDir);
-
-                // Load agent intents
-                importer.LoadIntents(agent, dataDir);
-
-                // Load system buildin entities
-                importer.LoadBuildinEntities(agent, dataDir);
-
+                LoadAgentFromFile<TAgentImporter>(dataDir, agentHeader);
                 SaveAgent();
             });
 
             return row > 0;
+        }
+
+        public Agent LoadAgentFromFile<TAgentImporter>(string dataDir, AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
+        {
+            var importer = new TAgentImporter();
+
+            // Load agent summary
+            agent = importer.LoadAgent(agentHeader, dataDir);
+
+            // Load user custom entities
+            importer.LoadCustomEntities(agent, dataDir);
+
+            // Load agent intents
+            importer.LoadIntents(agent, dataDir);
+
+            // Load system buildin entities
+            importer.LoadBuildinEntities(agent, dataDir);
+
+            return agent;
         }
 
         public String SaveAgent()

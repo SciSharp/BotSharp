@@ -49,15 +49,10 @@ namespace BotSharp.Core.Engines
 
             var settings = new PipeSettings
             {
-                ModelDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id),
-                PredictDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "PredictFiles", agent.Id),
+                ProjectDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id),
                 AlgorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
             };
 
-            if (!Directory.Exists(settings.PredictDir))
-            {
-                Directory.CreateDirectory(settings.PredictDir);
-            }
 
             // pipe process
             var pipelines = provider.Configuration.GetValue<String>($"Pipe:predict")

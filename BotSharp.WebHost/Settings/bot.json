@@ -1,6 +1,6 @@
 {
   "RasaAi": {
-    "url": "http://10.21.2.200:5000"
+    "url": "http://10.2.21.200:5000"
   },
   "BotSharpAi": {
     "Lang": "en",
@@ -10,7 +10,7 @@
       "url": "http://10.2.21.200:5005"
     },
     "NltkProvider": {
-      "url": "http://10.2.21.200:5005"
+      "url": "http://localhost:5005"
     },
     "Pipe": {
       "train": "SpaCyTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",

@@ -45,8 +45,8 @@ namespace BotSharp.Core.Engines.NERs
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            string rawTrainingDataFileName = Path.Join(Settings.TrainDir, "ner-crf.corpus.txt");
-            string parsedTrainingDataFileName = Path.Join(Settings.TrainDir, "ner-crf.parsed.txt");
+            string rawTrainingDataFileName = Path.Join(Settings.TempDir, "ner-crf.corpus.txt");
+            string parsedTrainingDataFileName = Path.Join(Settings.TempDir, "ner-crf.parsed.txt");
             string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
@@ -120,7 +120,7 @@ namespace BotSharp.Core.Engines.NERs
                                     break;
                                 }
                             }
-                            if (wordCandidateCount != 0)
+                            if (wordCandidateCount != 0) // && entity.Start == tokens[i].Offset)
                             {
                                 String entityName = curEntity.Entity.Contains(":")? curEntity.Entity.Substring(curEntity.Entity.IndexOf(":") + 1): curEntity.Entity;
                                 foreach(string s in words) 
@@ -152,8 +152,8 @@ namespace BotSharp.Core.Engines.NERs
             string field = meta.Meta["fields"].ToString();
             string[] fields = field.Split(" ");
             
-            string rawPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.corpus.predict.txt");
-            string parsedPredictingDataFileName = Path.Join(Settings.PredictDir, "ner-crf.parsed.predict.txt");
+            string rawPredictingDataFileName = Path.Join(Settings.TempDir, "ner-crf.corpus.predict.txt");
+            string parsedPredictingDataFileName = Path.Join(Settings.TempDir, "ner-crf.parsed.predict.txt");
             string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawPredictingDataFileName, FileMode.Create))

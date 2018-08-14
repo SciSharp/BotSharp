@@ -23,6 +23,10 @@ namespace BotSharp.Core.Engines
 
         private string agentId;
 
+        public BotTrainer()
+        {
+        }
+
         public BotTrainer(string agentId, Database dc)
         {
             this.dc = dc;
@@ -31,14 +35,14 @@ namespace BotSharp.Core.Engines
 
         public async Task<string> Train(Agent agent)
         {
-            agent.Intents = dc.Table<Intent>()
+            /*agent.Intents = dc.Table<Intent>()
                 .Include(x => x.Contexts)
                 .Include(x => x.Responses).ThenInclude(x => x.Contexts)
                 .Include(x => x.Responses).ThenInclude(x => x.Parameters).ThenInclude(x => x.Prompts)
                 .Include(x => x.Responses).ThenInclude(x => x.Messages)
                 .Include(x => x.UserSays).ThenInclude(x => x.Data)
                 .Where(x => x.AgentId == agentId)
-                .ToList();
+                .ToList();*/
 
             var data = new NlpDoc();
 
@@ -71,14 +75,20 @@ namespace BotSharp.Core.Engines
 
             var settings = new PipeSettings
             {
-                TrainDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "TrainingFiles", agent.Id),
-                ModelDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id),
+                ProjectDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id),
                 AlgorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
             };
 
-            if (!Directory.Exists(settings.TrainDir))
+            settings.ModelDir = Path.Join(settings.ProjectDir, "model" + DateTime.UtcNow.ToString("MMddyyyyHHmm"));
+
+            if (!Directory.Exists(settings.ProjectDir))
             {
-                Directory.CreateDirectory(settings.TrainDir);
+                Directory.CreateDirectory(settings.ProjectDir);
+            }
+
+            if (!Directory.Exists(settings.TempDir))
+            {
+                Directory.CreateDirectory(settings.TempDir);
             }
 
             if (!Directory.Exists(settings.ModelDir))
