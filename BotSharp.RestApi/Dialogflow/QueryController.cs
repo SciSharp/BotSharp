@@ -13,7 +13,6 @@ namespace BotSharp.RestApi.Dialogflow
     /// <summary>
     /// Dialogflow mode query controller
     /// </summary>
-    [Authorize]
     [Route("v1/[controller]")]
     public class QueryController : ControllerBase
     {

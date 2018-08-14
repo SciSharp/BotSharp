@@ -15,6 +15,10 @@ namespace BotSharp.Core.Models
         public List<RasaResponseEntity> Entities { get; set; }
 
         public String Text { get; set; }
+
+        public String Project { get; set; }
+
+        public String Model { get; set; }
     }
 
     public class RasaResponseIntent
