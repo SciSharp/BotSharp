@@ -33,7 +33,7 @@ namespace BotSharp.Core.Engines
             this.agentId = agentId;
         }
 
-        public async Task<string> Train(Agent agent)
+        public async Task<ModelMetaData> Train(Agent agent)
         {
             /*agent.Intents = dc.Table<Intent>()
                 .Include(x => x.Contexts)
@@ -64,15 +64,6 @@ namespace BotSharp.Core.Engines
 
             await provider.Load(agent, pipeModel);
 
-            var meta = new ModelMetaData
-            {
-                Platform = platform,
-                Language = agent.Language,
-                TrainingDate = DateTime.UtcNow,
-                Version = config.GetValue<String>($"Version"),
-                Pipeline = new List<PipeModel>() { pipeModel }
-            };
-
             var settings = new PipeSettings
             {
                 ProjectDir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id),
@@ -95,6 +86,16 @@ namespace BotSharp.Core.Engines
             {
                 Directory.CreateDirectory(settings.ModelDir);
             }
+
+            var meta = new ModelMetaData
+            {
+                Platform = platform,
+                Language = agent.Language,
+                TrainingDate = DateTime.UtcNow,
+                Version = config.GetValue<String>($"Version"),
+                Pipeline = new List<PipeModel>() { pipeModel },
+                Model = settings.ModelDir
+            };
 
             // pipe process
             var pipelines = provider.Configuration.GetValue<String>($"Pipe:train")
@@ -119,18 +120,17 @@ namespace BotSharp.Core.Engines
             });
 
             // save model meta data
-            var dir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
             var metaJson = JsonConvert.SerializeObject(meta, new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
                 NullValueHandling = NullValueHandling.Ignore,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
-            File.WriteAllText(Path.Join(dir, "metadata.json"), metaJson);
+            File.WriteAllText(Path.Join(settings.ModelDir, "metadata.json"), metaJson);
 
             Console.WriteLine(metaJson);
 
-            return metaJson;
+            return meta;
         }
     }
 }

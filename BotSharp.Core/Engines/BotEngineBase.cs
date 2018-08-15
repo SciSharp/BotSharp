@@ -104,18 +104,22 @@ namespace BotSharp.Core.Engines
         public Agent LoadAgentFromFile<TAgentImporter>(string dataDir, AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
         {
             var importer = new TAgentImporter();
+            importer.AgentDir = dataDir;
 
             // Load agent summary
-            agent = importer.LoadAgent(agentHeader, dataDir);
+            agent = importer.LoadAgent(agentHeader);
 
             // Load user custom entities
-            importer.LoadCustomEntities(agent, dataDir);
+            importer.LoadCustomEntities(agent);
 
             // Load agent intents
-            importer.LoadIntents(agent, dataDir);
+            importer.LoadIntents(agent);
 
             // Load system buildin entities
-            importer.LoadBuildinEntities(agent, dataDir);
+            importer.LoadBuildinEntities(agent);
+
+            // Generate corpus
+            importer.AssembleTrainData(agent);
 
             return agent;
         }

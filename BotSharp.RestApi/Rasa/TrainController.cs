@@ -64,33 +64,9 @@ namespace BotSharp.RestApi.Rasa
                     Name = project
                 });
 
-            // convert agent to training corpus
-            agent.Corpus = new TrainingCorpus
-            {
-                Entities = new List<TrainingEntity>(),
-                UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>()
-            };
+            var info = await trainer.Train(agent);
 
-            agent.Intents.ForEach(intent =>
-            {
-                intent.UserSays.ForEach(say => {
-                    agent.Corpus.UserSays.Add(new TrainingIntentExpression<TrainingIntentExpressionPart>
-                    {
-                        Intent = intent.Name,
-                        Text = String.Join("", say.Data.Select(x => x.Text)),
-                        Entities = say.Data.Where(x => !String.IsNullOrEmpty(x.Meta))
-                        .Select(x => new TrainingIntentExpressionPart {
-                            Value = x.Text,
-                            Entity = x.Meta
-                        })
-                        .ToList()
-                    });
-                });
-            });
-
-            string info = await trainer.Train(agent);
-
-            return Ok(new { info });
+            return Ok(new { info = info.Model });
         }
     }
 #endif

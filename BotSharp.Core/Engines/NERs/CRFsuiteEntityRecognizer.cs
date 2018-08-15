@@ -78,7 +78,7 @@ namespace BotSharp.Core.Engines.NERs
 
             var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
 
-            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}"); // --split=3 -x
+            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}", false); // --split=3 -x
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();
             meta.Meta["fields"] = fields;

@@ -19,16 +19,18 @@ namespace BotSharp.Core.Engines
     /// </summary>
     public class AgentImporterInDialogflow : IAgentImporter
     {
+        public string AgentDir { get; set; }
+
         /// <summary>
         /// Load agent meta
         /// </summary>
         /// <param name="agentName"></param>
         /// <param name="agentDir"></param>
         /// <returns></returns>
-        public Agent LoadAgent(AgentImportHeader agentHeader, string agentDir)
+        public Agent LoadAgent(AgentImportHeader agentHeader)
         {
             // load agent profile
-            string data = File.ReadAllText(Path.Join(agentDir, "Dialogflow", $"agentHeader.Name{Path.DirectorySeparatorChar}agent.json"));
+            string data = File.ReadAllText(Path.Join(AgentDir, "Dialogflow", $"agentHeader.Name{Path.DirectorySeparatorChar}agent.json"));
             var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);
             agent.Name = agentHeader.Name;
             agent.Id = agentHeader.Id;
@@ -53,10 +55,10 @@ namespace BotSharp.Core.Engines
             return result;
         }
 
-        public void LoadCustomEntities(Agent agent, string agentDir)
+        public void LoadCustomEntities(Agent agent)
         {
             agent.Entities = new List<EntityType>();
-            string entityDir = Path.Join(agentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}entities");
+            string entityDir = Path.Join(AgentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}entities");
             if (!Directory.Exists(entityDir)) return;
 
             Directory.EnumerateFiles(entityDir)
@@ -88,10 +90,10 @@ namespace BotSharp.Core.Engines
                 });
         }
 
-        public void LoadIntents(Agent agent, string agentDir)
+        public void LoadIntents(Agent agent)
         {
             agent.Intents = new List<Intent>();
-            string intentDir = Path.Join(agentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}intents");
+            string intentDir = Path.Join(AgentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}intents");
             if (!Directory.Exists(intentDir)) return;
 
             Directory.EnumerateFiles(intentDir)
@@ -232,11 +234,10 @@ namespace BotSharp.Core.Engines
             return newIntent;
         }
 
-        public void LoadBuildinEntities(Agent agent, string agentDir)
+        public void LoadBuildinEntities(Agent agent)
         {
             agent.Intents.ForEach(intent =>
             {
-
                 if (intent.UserSays != null)
                 {
                     intent.UserSays.ForEach(us =>
@@ -284,6 +285,10 @@ namespace BotSharp.Core.Engines
                     }
                 });
             }
+        }
+
+        public void AssembleTrainData(Agent agent)
+        {
         }
     }
 }

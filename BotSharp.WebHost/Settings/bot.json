@@ -7,7 +7,7 @@
 
     "Provider": "SpaCyProvider",
     "SpaCyProvider": {
-      "url": "http://10.2.21.200:5005"
+      "url": "http://localhost:5005"
     },
     "NltkProvider": {
       "url": "http://localhost:5005"

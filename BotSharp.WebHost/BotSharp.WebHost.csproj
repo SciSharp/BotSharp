@@ -12,18 +12,22 @@
   <ItemGroup>
     <Compile Remove="App_Data\ModelFiles\**" />
     <Compile Remove="App_Data\NewFolder\**" />
+    <Compile Remove="App_Data\Projects\**" />
     <Compile Remove="App_Data\TrainingFiles\**" />
     <Compile Remove="PublishOutput\**" />
     <Content Remove="App_Data\ModelFiles\**" />
     <Content Remove="App_Data\NewFolder\**" />
+    <Content Remove="App_Data\Projects\**" />
     <Content Remove="App_Data\TrainingFiles\**" />
     <Content Remove="PublishOutput\**" />
     <EmbeddedResource Remove="App_Data\ModelFiles\**" />
     <EmbeddedResource Remove="App_Data\NewFolder\**" />
+    <EmbeddedResource Remove="App_Data\Projects\**" />
     <EmbeddedResource Remove="App_Data\TrainingFiles\**" />
     <EmbeddedResource Remove="PublishOutput\**" />
     <None Remove="App_Data\ModelFiles\**" />
     <None Remove="App_Data\NewFolder\**" />
+    <None Remove="App_Data\Projects\**" />
     <None Remove="App_Data\TrainingFiles\**" />
     <None Remove="PublishOutput\**" />
   </ItemGroup>
@@ -76,10 +80,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.RestApi\BotSharp.RestApi.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="App_Data\DbInitializer\Agents\Rasa\" />
   </ItemGroup>
 
   <ItemGroup>
