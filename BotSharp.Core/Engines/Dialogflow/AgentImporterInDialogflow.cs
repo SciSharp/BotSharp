@@ -30,7 +30,7 @@ namespace BotSharp.Core.Engines
         public Agent LoadAgent(AgentImportHeader agentHeader)
         {
             // load agent profile
-            string data = File.ReadAllText(Path.Join(AgentDir, "Dialogflow", $"agentHeader.Name{Path.DirectorySeparatorChar}agent.json"));
+            string data = File.ReadAllText(Path.Join(AgentDir, "Dialogflow", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
             var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);
             agent.Name = agentHeader.Name;
             agent.Id = agentHeader.Id;
@@ -155,6 +155,12 @@ namespace BotSharp.Core.Engines
 
                         // remove @
                         say.Data.Where(x => x.Meta != null && x.Meta.StartsWith("@")).ToList().ForEach(x => x.Meta = x.Meta.Substring(1));
+
+                        // calculate offset
+                        for(int i = 1; i < say.Data.Count; i++)
+                        {
+                            say.Data[i].Start = String.Join("", say.Data.Select(x => x.Text).Take(i)).Length;
+                        }
                     });
                 }
             }

@@ -95,7 +95,8 @@ namespace BotSharp.Core.Engines
                     {
                         expression.Data.Add(new IntentExpressionPart
                         {
-                            Text = say.Text.Substring(pos, entity.Start - pos)
+                            Text = say.Text.Substring(pos, entity.Start - pos),
+                            Start = pos
                         });
                     }
 
@@ -104,7 +105,8 @@ namespace BotSharp.Core.Engines
                     {
                         Alias = entity.Entity,
                         Meta = entity.Entity,
-                        Text = say.Text.Substring(entity.Start, entity.Value.Length)
+                        Text = say.Text.Substring(entity.Start, entity.Value.Length),
+                        Start = entity.Start
                     });
 
                     pos = entity.End + 1;
@@ -114,7 +116,8 @@ namespace BotSharp.Core.Engines
                         // end
                         expression.Data.Add(new IntentExpressionPart
                         {
-                            Text = say.Text.Substring(pos)
+                            Text = say.Text.Substring(pos),
+                            Start = pos
                         });
                     }
                 }

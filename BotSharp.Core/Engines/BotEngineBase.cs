@@ -173,14 +173,11 @@ namespace BotSharp.Core.Engines
                     .ToList()
                     .ForEach(x =>
                     {
-                        int start = say.Text.IndexOf(x.Text);
-
                         var part = new TrainingIntentExpressionPart
                         {
                             Value = x.Text,
                             Entity = $"{x.Meta}:{x.Alias}",
-                            Start = start,
-                            End = start + x.Text.Length
+                            Start = x.Start
                         };
 
                         if (say.Entities == null) say.Entities = new List<TrainingIntentExpressionPart>();

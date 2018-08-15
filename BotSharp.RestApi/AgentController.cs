@@ -53,7 +53,7 @@ namespace BotSharp.RestApi
 
             var rasa = new BotSharpAi();
             var agentHeader = agents.First(x => x.Id == agentId);
-            rasa.RestoreAgent<AgentImporterInSebis>(agentHeader);
+            rasa.RestoreAgent<AgentImporterInDialogflow>(agentHeader);
 
             return Ok();
         }
