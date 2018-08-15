@@ -87,7 +87,7 @@ namespace BotSharp.Core.Engines.Rasa
 
         public void LoadIntents(Agent agent)
         {
-            string data = File.ReadAllText(Path.Join(AgentDir, "corpus.json"));
+            string data = File.ReadAllText(Path.Combine(AgentDir, "corpus.json"));
             var rasa = JsonConvert.DeserializeObject<RasaAgent>(data);
 
             agent.Intents = rasa.UserSays.Select(x => x.Intent).Distinct().Select(x => new Intent { Name = x }).ToList();

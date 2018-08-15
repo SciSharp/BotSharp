@@ -30,7 +30,7 @@ namespace BotSharp.Core.Engines
         public Agent LoadAgent(AgentImportHeader agentHeader)
         {
             // load agent profile
-            string data = File.ReadAllText(Path.Join(AgentDir, "Dialogflow", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
+            string data = File.ReadAllText(Path.Combine(AgentDir, "Dialogflow", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
             var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);
             agent.Name = agentHeader.Name;
             agent.Id = agentHeader.Id;
@@ -58,14 +58,14 @@ namespace BotSharp.Core.Engines
         public void LoadCustomEntities(Agent agent)
         {
             agent.Entities = new List<EntityType>();
-            string entityDir = Path.Join(AgentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}entities");
+            string entityDir = Path.Combine(AgentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}entities");
             if (!Directory.Exists(entityDir)) return;
 
             Directory.EnumerateFiles(entityDir)
                 .ToList()
                 .ForEach(fileName =>
                 {
-                    string entityName = fileName.Split($"{Path.DirectorySeparatorChar}").Last();
+                    string entityName = fileName.Split(Path.DirectorySeparatorChar).Last();
                     if (!entityName.Contains("_"))
                     {
                         string entityJson = File.ReadAllText($"{fileName}");
@@ -93,7 +93,7 @@ namespace BotSharp.Core.Engines
         public void LoadIntents(Agent agent)
         {
             agent.Intents = new List<Intent>();
-            string intentDir = Path.Join(AgentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}intents");
+            string intentDir = Path.Combine(AgentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}intents");
             if (!Directory.Exists(intentDir)) return;
 
             Directory.EnumerateFiles(intentDir)

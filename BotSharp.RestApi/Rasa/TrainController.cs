@@ -38,16 +38,16 @@ namespace BotSharp.RestApi.Rasa
             }
 
             // save corpus to agent dir
-            var projectPath = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects");
-            var dataPath = Path.Join(projectPath, project);
-            var agentPath = Path.Join(dataPath, "Temp");
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects");
+            var dataPath = Path.Combine(projectPath, project);
+            var agentPath = Path.Combine(dataPath, "Temp");
 
             if (!Directory.Exists(agentPath))
             {
                 Directory.CreateDirectory(agentPath);
             }
 
-            var fileName = Path.Join(agentPath, "corpus.json");
+            var fileName = Path.Combine(agentPath, "corpus.json");
 
             System.IO.File.WriteAllText(fileName, JsonConvert.SerializeObject(request.Corpus, new JsonSerializerSettings
             {

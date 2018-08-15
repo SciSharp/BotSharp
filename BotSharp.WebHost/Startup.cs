@@ -1,23 +1,19 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
 using DotNetToolkit;
+using DotNetToolkit.JwtHelper;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
-using BotSharp.Core.Engines.BotSharp;
+using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using DotNetToolkit.JwtHelper;
-using BotSharp.Core.Agents;
+using System.IO;
+using System.Linq;
 
 namespace BotSharp.WebHost
 {
@@ -124,7 +120,7 @@ namespace BotSharp.WebHost
 
             app.UseMvc();
 
-            AppDomain.CurrentDomain.SetData("DataPath", Path.Join(env.ContentRootPath, "App_Data"));
+            AppDomain.CurrentDomain.SetData("DataPath", Path.Combine(env.ContentRootPath, "App_Data"));
             AppDomain.CurrentDomain.SetData("Configuration", Configuration);
             AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
             AppDomain.CurrentDomain.SetData("Assemblies", Configuration.GetValue<String>("Assemblies").Split(','));

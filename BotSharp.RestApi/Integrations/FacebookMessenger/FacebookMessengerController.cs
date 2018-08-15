@@ -2,6 +2,7 @@
 using BotSharp.Core.Engines;
 using BotSharp.Core.Engines.Dialogflow;
 using BotSharp.Core.Models;
+using BotSharp.NLP;
 using BotSharp.RestApi.Integrations.FacebookMessenger;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;

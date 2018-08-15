@@ -2,6 +2,7 @@
 using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
 using BotSharp.MachineLearning.NLP;
+using BotSharp.NLP.Tokenize;
 using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -24,7 +25,7 @@ namespace BotSharp.Core.Engines.SpaCy
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tokenizer", Method.POST);
-            List<List<NlpToken>> tokens = new List<List<NlpToken>>();
+            List<List<Token>> tokens = new List<List<Token>>();
             Boolean res = true;
             var corpus = agent.Corpus;
 
@@ -57,7 +58,7 @@ namespace BotSharp.Core.Engines.SpaCy
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("tokenizer", Method.GET);
-            List<List<NlpToken>> tokens = new List<List<NlpToken>>();
+            List<List<Token>> tokens = new List<List<Token>>();
             Boolean res = true;
             var corpus = agent.Corpus;
 
@@ -75,7 +76,7 @@ namespace BotSharp.Core.Engines.SpaCy
 
         private class Result
         {
-            public List<List<NlpToken>> TokensList { get; set; }
+            public List<List<Token>> TokensList { get; set; }
         }
 
         private class Documents

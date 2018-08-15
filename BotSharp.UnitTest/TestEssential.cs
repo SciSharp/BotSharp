@@ -26,7 +26,7 @@ namespace BotSharp.UnitTest
                 configurationBuilder.AddJsonFile(setting, optional: false, reloadOnChange: true);
             });
 
-            AppDomain.CurrentDomain.SetData("DataPath", Path.Join(contentRoot, "App_Data"));
+            AppDomain.CurrentDomain.SetData("DataPath", Path.Combine(contentRoot, "App_Data"));
             AppDomain.CurrentDomain.SetData("Configuration", configurationBuilder.Build());
             AppDomain.CurrentDomain.SetData("ContentRootPath", contentRoot);
             AppDomain.CurrentDomain.SetData("Assemblies", new String[] { "BotSharp.Core" });

@@ -21,17 +21,17 @@ namespace BotSharp.Core.Engines.Classifiers
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
-            string predictFileName = Path.Join(Settings.TempDir, "fasttext.txt");
+            string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
+            string predictFileName = Path.Combine(Settings.TempDir, "fasttext.txt");
             File.WriteAllText(predictFileName, doc.Sentences[0].Text);
 
-            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), $"predict-prob {modelFileName}.bin {predictFileName}");
+            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "fasttext"), $"predict-prob {modelFileName}.bin {predictFileName}");
 
             File.Delete(predictFileName);
 
             doc.Sentences[0].Intent = new TextClassificationResult
             {
-                Label = output.Split(' ')[0].Split("__label__")[1],
+                Label = output.Split(' ')[0].Split(new string[] { "__label__" }, StringSplitOptions.None)[1],
                 Confidence = decimal.Parse(output.Split(' ')[1])
             };
 
@@ -42,8 +42,8 @@ namespace BotSharp.Core.Engines.Classifiers
         {
             meta.Model = "classification-fasttext.model";
 
-            string parsedTrainingDataFileName = Path.Join(Settings.TempDir, $"classification-fasttext.parsed.txt");
-            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
+            string parsedTrainingDataFileName = Path.Combine(Settings.TempDir, $"classification-fasttext.parsed.txt");
+            string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
 
             // assemble corpus
             StringBuilder corpus = new StringBuilder();
@@ -51,7 +51,7 @@ namespace BotSharp.Core.Engines.Classifiers
 
             File.WriteAllText(parsedTrainingDataFileName, corpus.ToString());
 
-            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "fasttext"), $"supervised -input {parsedTrainingDataFileName} -output {modelFileName}", false);
+            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "fasttext"), $"supervised -input {parsedTrainingDataFileName} -output {modelFileName}", false);
 
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();

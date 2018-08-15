@@ -48,7 +48,7 @@ namespace BotSharp.RestApi
         [HttpGet("{agentId}")]
         public ActionResult Restore([FromRoute] String agentId)
         {
-            var botsHeaderFilePath = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), $"DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json");
+            var botsHeaderFilePath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), $"DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json");
             var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(System.IO.File.ReadAllText(botsHeaderFilePath));
 
             var rasa = new BotSharpAi();

@@ -41,7 +41,7 @@ namespace BotSharp.Core.Intents
             {
                 return Contexts == null || Contexts.Count == 0
                     ? Guid.Empty.ToString("N")
-                    : $"{String.Join(',', Contexts.OrderBy(x => x.Name).Select(x => x.Name))}".GetMd5Hash();
+                    : $"{String.Join(",", Contexts.OrderBy(x => x.Name).Select(x => x.Name))}".GetMd5Hash();
             }
         }
 

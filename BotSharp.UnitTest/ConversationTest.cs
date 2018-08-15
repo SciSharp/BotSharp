@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Engines;
 using BotSharp.Core.Engines.Dialogflow;
 using BotSharp.Core.Models;
+using BotSharp.NLP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

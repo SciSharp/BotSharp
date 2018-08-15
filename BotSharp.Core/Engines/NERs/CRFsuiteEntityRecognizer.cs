@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.MachineLearning.NLP;
+using BotSharp.NLP.Tokenize;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
@@ -45,9 +46,9 @@ namespace BotSharp.Core.Engines.NERs
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            string rawTrainingDataFileName = Path.Join(Settings.TempDir, "ner-crf.corpus.txt");
-            string parsedTrainingDataFileName = Path.Join(Settings.TempDir, "ner-crf.parsed.txt");
-            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
+            string rawTrainingDataFileName = Path.Combine(Settings.TempDir, "ner-crf.corpus.txt");
+            string parsedTrainingDataFileName = Path.Combine(Settings.TempDir, "ner-crf.parsed.txt");
+            string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
             {
@@ -74,11 +75,11 @@ namespace BotSharp.Core.Engines.NERs
             var biFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:biFeatures");
 
             new MachineLearning.CRFsuite.Ner()
-                .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, fields, uniFeatures.Split(" "), biFeatures.Split(" "));
+                .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, fields, uniFeatures.Split(' '), biFeatures.Split(' '));
 
-            var algorithmDir = Path.Join(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
+            var algorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
 
-            CmdHelper.Run(Path.Join(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}", false); // --split=3 -x
+            CmdHelper.Run(Path.Combine(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}", false); // --split=3 -x
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();
             meta.Meta["fields"] = fields;
@@ -88,7 +89,7 @@ namespace BotSharp.Core.Engines.NERs
             return true;
         }
 
-        public List<TrainingData> Merge(List<NlpToken> tokens, List<TrainingIntentExpressionPart> entities)
+        public List<TrainingData> Merge(List<Token> tokens, List<TrainingIntentExpressionPart> entities)
         {
             List<TrainingData> trainingTuple = new List<TrainingData>();
             HashSet<String> entityWordBag = new HashSet<String>();
@@ -103,7 +104,7 @@ namespace BotSharp.Core.Engines.NERs
                     entities.ForEach(entity => {
                         if (!entityFinded)
                         {
-                            string[] words = entity.Value.Split(" ");
+                            string[] words = entity.Value.Split(' ');
                             for (int j = 0; j < words.Length; j++)
                             {
                                 if (tokens[i + j].Text == words[j])
@@ -150,11 +151,11 @@ namespace BotSharp.Core.Engines.NERs
             var uniFeatures = meta.Meta["uniFeatures"].ToString();
             var biFeatures = meta.Meta["biFeatures"].ToString();
             string field = meta.Meta["fields"].ToString();
-            string[] fields = field.Split(" ");
+            string[] fields = field.Split(' ');
             
-            string rawPredictingDataFileName = Path.Join(Settings.TempDir, "ner-crf.corpus.predict.txt");
-            string parsedPredictingDataFileName = Path.Join(Settings.TempDir, "ner-crf.parsed.predict.txt");
-            string modelFileName = Path.Join(Settings.ModelDir, meta.Model);
+            string rawPredictingDataFileName = Path.Combine(Settings.TempDir, "ner-crf.corpus.predict.txt");
+            string parsedPredictingDataFileName = Path.Combine(Settings.TempDir, "ner-crf.parsed.predict.txt");
+            string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawPredictingDataFileName, FileMode.Create))
             {
@@ -163,7 +164,7 @@ namespace BotSharp.Core.Engines.NERs
                     List<string> curLine = new List<string>();
                     foreach (NlpDocSentence sentence in doc.Sentences) 
                     {
-                        foreach (NlpToken token in sentence.Tokens) 
+                        foreach (Token token in sentence.Tokens) 
                         {
                             for (int i = 0 ; i < fields.Length; i++) 
                             {
@@ -191,18 +192,18 @@ namespace BotSharp.Core.Engines.NERs
             }
 
             new MachineLearning.CRFsuite.Ner()
-                .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(" "), biFeatures.Split(" "));
+                .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(' '), biFeatures.Split(' '));
 
-            var output = CmdHelper.Run(Path.Join(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}", false);
+            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}", false);
 
             var entities = new List<NlpEntity>();
 
-            string[] entityProbabilityPairs = output.Split(Environment.NewLine).Where(x => !String.IsNullOrEmpty(x)).ToArray();
+            string[] entityProbabilityPairs = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.None).Where(x => !String.IsNullOrEmpty(x)).ToArray();
             for (int i = 0; i < entityProbabilityPairs.Length; i++)
             {
                 string entityProbabilityPair = entityProbabilityPairs[i];
-                string entity = entityProbabilityPair.Split(":")[0];
-                decimal probability = decimal.Parse(entityProbabilityPair.Split(":")[1]);
+                string entity = entityProbabilityPair.Split(':')[0];
+                decimal probability = decimal.Parse(entityProbabilityPair.Split(':')[1]);
                 entities.Add(new NlpEntity
                 {
                     Entity = entity,

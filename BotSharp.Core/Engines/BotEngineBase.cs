@@ -32,7 +32,7 @@ namespace BotSharp.Core.Engines
         {
             dc = new DefaultDataContextLoader().GetDefaultDc();
             string dataPath = AppDomain.CurrentDomain.GetData("DataPath").ToString();
-            DbInitializerPath = Path.Join(dataPath, $"DbInitializer");
+            DbInitializerPath = Path.Combine(dataPath, $"DbInitializer");
         }
 
         public AIResponse TextRequest(AIRequest request)
@@ -91,7 +91,7 @@ namespace BotSharp.Core.Engines
         /// <returns></returns>
         public bool RestoreAgent<TAgentImporter>(AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
         {
-            string dataDir = Path.Join(DbInitializerPath, "Agents");
+            string dataDir = Path.Combine(DbInitializerPath, "Agents");
 
             int row = dc.DbTran(() => {
                 LoadAgentFromFile<TAgentImporter>(dataDir, agentHeader);

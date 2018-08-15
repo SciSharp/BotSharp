@@ -101,7 +101,7 @@ namespace BotSharp.Core.Engines
 
             intentResponse.Parameters.ForEach(p => {
                 string query = request.Query.First();
-                var entity = response.Entities.FirstOrDefault(x => x.Entity == p.Name || x.Entity.Split(":").Contains(p.Name));
+                var entity = response.Entities.FirstOrDefault(x => x.Entity == p.Name || x.Entity.Split(':').Contains(p.Name));
                 if (entity != null)
                 {
                     p.Value = query.Substring(entity.Start, entity.End - entity.Start);
@@ -168,7 +168,7 @@ namespace BotSharp.Core.Engines
                         if (msg.Speech != "[]")
                         {
                             msg.Speech = msg.Speech.StartsWith("[") ?
-                            ArrayHelper.GetRandom(msg.Speech.Substring(2, msg.Speech.Length - 4).Split("\",\"").ToList()) :
+                            ArrayHelper.GetRandom(msg.Speech.Substring(2, msg.Speech.Length - 4).Split(new string[] { "\",\"" }, StringSplitOptions.None).ToList()) :
                             msg.Speech;
 
                             msg.Speech = ReplaceParameters4Response(intentResponse.Parameters, msg.Speech);
@@ -181,7 +181,7 @@ namespace BotSharp.Core.Engines
         {
             var reg = new Regex(@"\$\w+");
 
-            reg.Matches(text).ToList().ForEach(token => {
+            reg.Matches(text).Cast<Match>().ToList().ForEach(token => {
                 var parameter = parameters.FirstOrDefault(x => x.Name == token.Value.Substring(1));
                 if(parameter != null)
                 {

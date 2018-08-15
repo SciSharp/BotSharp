@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Engines;
 using BotSharp.Core.Models;
+using BotSharp.NLP;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;

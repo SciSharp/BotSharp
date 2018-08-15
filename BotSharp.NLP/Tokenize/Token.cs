@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.MachineLearning.NLP
+namespace BotSharp.NLP.Tokenize
 {
-    public class NlpToken
+    public class Token
     {
         public string Text { get; set; }
         public int Offset { get; set; }
@@ -15,7 +15,7 @@ namespace BotSharp.MachineLearning.NLP
         {
             get
             {
-                return Offset + Text.Length;
+                return Offset + Text.Length - 1;
             }
         }
     }

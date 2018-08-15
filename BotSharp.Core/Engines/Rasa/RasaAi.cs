@@ -198,7 +198,7 @@ namespace BotSharp.Core.Engines
                 rest.AddQueryParameter("model", ctx);
                 string trainingConfig = agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_mitie_sklearn.yml";
                 var contentRootPatch = AppDomain.CurrentDomain.GetData("ContentRootPath").ToString();
-                string body = File.ReadAllText(Path.Join(contentRootPatch, "Settings", trainingConfig));
+                string body = File.ReadAllText(Path.Combine(contentRootPatch, "Settings", trainingConfig));
                 body = $"{body}\r\ndata: {json}";
                 rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
 
@@ -208,7 +208,7 @@ namespace BotSharp.Core.Engines
                 {
                     var result = JObject.Parse(response.Content);
 
-                    string modelName = result["info"].Value<String>().Split(": ")[1];
+                    string modelName = result["info"].Value<String>().Split(new string[] { ": " }, StringSplitOptions.None)[1];
                 }
                 else
                 {

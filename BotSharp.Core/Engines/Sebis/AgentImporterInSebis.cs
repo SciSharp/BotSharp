@@ -31,7 +31,7 @@ namespace BotSharp.Core.Engines
         public Agent LoadAgent(AgentImportHeader agentHeader)
         {
             // load agent profile
-            string data = File.ReadAllText(Path.Join(AgentDir, "Sebis", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
+            string data = File.ReadAllText(Path.Combine(AgentDir, "Sebis", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
             var agent = JsonConvert.DeserializeObject<SebisAgent>(data);
             agent.Name = agentHeader.Name;
             agent.Id = agentHeader.Id;
@@ -54,7 +54,7 @@ namespace BotSharp.Core.Engines
 
         public void LoadIntents(Agent agent)
         {
-            string data = File.ReadAllText(Path.Join(AgentDir, "Sebis", $"{agent.Name}{Path.DirectorySeparatorChar}corpus.json"));
+            string data = File.ReadAllText(Path.Combine(AgentDir, "Sebis", $"{agent.Name}{Path.DirectorySeparatorChar}corpus.json"));
             var sentences = JsonConvert.DeserializeObject<SebisAgent>(data).Sentences;
             
             agent.Intents = sentences.Select(x => x.Name).Distinct().Select(x => new Intent{Name = x}).ToList();

@@ -14,7 +14,7 @@ namespace BotSharp.Core.Engines
         {
             get
             {
-                return Path.Join(ProjectDir, "Temp");
+                return Path.Combine(ProjectDir, "Temp");
             }
         }
     }

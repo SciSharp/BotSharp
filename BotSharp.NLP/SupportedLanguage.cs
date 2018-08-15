@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Models
+namespace BotSharp.NLP
 {
     public class SupportedLanguage
     {

@@ -63,7 +63,7 @@ namespace BotSharp.MachineLearning.CRFsuite
         /// <param name="names">each attribute name in fields</param>
         /// <param name="sep">seperate by</param>
         
-        public List<List<Dictionary<string, Object>>> Readiter (string fiPath, List<string> names, string sep = " ") 
+        public List<List<Dictionary<string, Object>>> Readiter (string fiPath, List<string> names, char sep = ' ') 
         {
             List<List<Dictionary<string, Object>>> Xs = new List<List<Dictionary<string, Object>>>();
             List<Dictionary<string, Object>> X = new List<Dictionary<string, Object>>();
@@ -143,8 +143,8 @@ namespace BotSharp.MachineLearning.CRFsuite
             {
                 using (StreamWriter sw = new StreamWriter(fs))
                 {
-                    List<string> F = fields.Split(" ").ToList();
-                    List<List<Dictionary<string, Object>>> Xs = Readiter(rawFile, F, " ");
+                    List<string> F = fields.Split(' ').ToList();
+                    List<List<Dictionary<string, Object>>> Xs = Readiter(rawFile, F);
 
                     foreach (List<Dictionary<string, Object>> X in Xs)
                     {
