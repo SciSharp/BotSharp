@@ -42,29 +42,27 @@ namespace BotSharp.NLP.Tokenize
             if (options.IsGap)
             {
                 int pos = 0;
-                int span = 0;
+                var tokens = new Token[matches.Length + 1];
 
-                var tokens = matches.Select(x =>
+                for (int span = 0; span <= matches.Length; span++)
                 {
                     var token = new Token
                     {
-                        Text = (span == matches.Length - 1) ? text.Substring(pos) : text.Substring(pos, x.Index - pos),
+                        Text = (span == matches.Length) ? text.Substring(pos) : text.Substring(pos, matches[span].Index - pos),
                         Offset = pos
                     };
 
-                    pos = x.Index + 1;
+                    token.Text = token.Text.Trim();
 
-                    if (span == matches.Length - 1)
+                    tokens[span] = token;
+
+                    if (span < matches.Length)
                     {
-
+                        pos = matches[span].Index + 1;
                     }
-                    
-                    span++;
+                }
 
-                    return token;
-                }).ToArray();
-
-                return tokens;
+                return tokens.ToArray();
             }
             else
             {
@@ -74,7 +72,6 @@ namespace BotSharp.NLP.Tokenize
                     Offset = x.Index
                 }).ToArray();
             }
-
         }
     }
 }
