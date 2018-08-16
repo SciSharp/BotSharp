@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace BotSharp.NLP.UnitTest
 {
     [TestClass]
-    public class RegexpTokenizerTest
+    public class RegexTokenizerTest
     {
         [TestMethod]
         public void TokenizeInWhiteSpace()
