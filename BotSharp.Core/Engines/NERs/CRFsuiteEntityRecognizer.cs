@@ -207,7 +207,7 @@ namespace BotSharp.Core.Engines.NERs
                 entities.Add(new NlpEntity
                 {
                     Entity = entity,
-                    Start = doc.Sentences[0].Tokens[i].Offset,
+                    Start = doc.Sentences[0].Tokens[i].Start,
                     Value = doc.Sentences[0].Tokens[i].Text,
                     Confidence = probability
                 });

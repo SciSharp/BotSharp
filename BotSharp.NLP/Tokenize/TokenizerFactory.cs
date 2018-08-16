@@ -19,9 +19,9 @@ namespace BotSharp.NLP.Tokenize
             _tokenizer = new ITokenize();
         }
 
-        public Token[] Tokenize(string text, TokenizationOptions options)
+        public Token[] Tokenize(string sentence, TokenizationOptions options)
         {
-            return _tokenizer.Tokenize(text, options);
+            return _tokenizer.Tokenize(sentence, options);
         }
     }
 }

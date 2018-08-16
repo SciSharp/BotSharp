@@ -18,9 +18,9 @@ namespace BotSharp.NLP.Tokenize
         /// <summary>
         /// Tokenize
         /// </summary>
-        /// <param name="text">input</param>
+        /// <param name="sentence">input sentence</param>
         /// <param name="options">Options such as: regex expression</param>
         /// <returns></returns>
-        Token[] Tokenize(string text, TokenizationOptions options);
+        Token[] Tokenize(string sentence, TokenizationOptions options);
     }
 }
