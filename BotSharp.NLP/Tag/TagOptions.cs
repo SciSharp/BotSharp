@@ -16,5 +16,15 @@ namespace BotSharp.NLP.Tag
         /// Used in DefaultTagger
         /// </summary>
         public string Tag { get; set; }
+
+        /// <summary>
+        /// N-Gram number
+        /// </summary>
+        public int NGram { get; set; }
+
+        /// <summary>
+        /// Tagged corpus used for training a model
+        /// </summary>
+        public List<Sentence> Corpus { get; set; }
     }
 }

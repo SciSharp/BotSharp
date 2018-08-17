@@ -11,8 +11,6 @@ namespace BotSharp.NLP.Tokenize
     /// </summary>
     public class RegexTokenizer : ITokenizer
     {
-        public SupportedLanguage Lang { get; set; }
-
         /// <summary>
         /// Tokenize a text into a sequence of alphabetic and non-alphabetic characters
         /// </summary>
@@ -34,7 +32,7 @@ namespace BotSharp.NLP.Tokenize
 
         private Regex _regex;
 
-        public Token[] Tokenize(string sentence, TokenizationOptions options)
+        public List<Token> Tokenize(string sentence, TokenizationOptions options)
         {
             _regex = new Regex(options.Pattern);
 
@@ -65,7 +63,7 @@ namespace BotSharp.NLP.Tokenize
                     }
                 }
 
-                return tokens.ToArray();
+                return tokens.ToList();
             }
             else
             {
@@ -73,7 +71,7 @@ namespace BotSharp.NLP.Tokenize
                 {
                     Text = x.Value,
                     Start = x.Index
-                }).ToArray();
+                }).ToList();
             }
         }
     }

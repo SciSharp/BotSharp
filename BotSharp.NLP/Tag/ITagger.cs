@@ -12,11 +12,6 @@ namespace BotSharp.NLP.Tag
     public interface ITagger
     {
         /// <summary>
-        /// Language
-        /// </summary>
-        SupportedLanguage Lang { get; set; }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="sentences">A tagged corpus. Each item should be a list of tokens.</param>

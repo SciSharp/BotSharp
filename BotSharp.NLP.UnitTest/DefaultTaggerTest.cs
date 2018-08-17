@@ -14,22 +14,15 @@ namespace BotSharp.NLP.UnitTest
         [TestMethod]
         public void TagInCoNLL2000()
         {
-            var sentences = new CoNLLReader()
-                .Read(new ReaderOptions
-                {
-                    DataDir = AppDomain.CurrentDomain.BaseDirectory,
-                    FileName = "conll2000_chunking_train"
-                });
+            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
+            var tokens = tokenizer.Tokenize("How are you doing?");
 
-            var tagger = new TaggerFactory<DefaultTagger>();
+            var tagger = new TaggerFactory<DefaultTagger>(new TagOptions
+            {
+                Tag = "NN"
+            }, SupportedLanguage.English);
 
-            // tokenize
-            
-            tagger.Tag(null,
-                new TagOptions
-                {
-                    
-                });
+            tagger.Tag(new Sentence { Words = tokens });
         }
     }
 }

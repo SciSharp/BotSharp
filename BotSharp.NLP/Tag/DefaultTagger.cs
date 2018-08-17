@@ -12,16 +12,14 @@ namespace BotSharp.NLP.Tag
     /// </summary>
     public class DefaultTagger : ITagger
     {
-        public SupportedLanguage Lang { get; set; }
-
         public void Tag(Sentence sentence, TagOptions options)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void Train(List<Sentence> sentences, TagOptions options)
         {
-            throw new NotImplementedException();
+            
         }
     }
 }

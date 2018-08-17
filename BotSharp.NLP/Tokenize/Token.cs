@@ -55,5 +55,10 @@ namespace BotSharp.NLP.Tokenize
                 return Start + Text.Length - 1;
             }
         }
+
+        public override string ToString()
+        {
+            return $"{Text} {Start} {Pos}";
+        }
     }
 }

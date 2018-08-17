@@ -12,13 +12,12 @@ namespace BotSharp.NLP.UnitTest
         [TestMethod]
         public void StemInDefault()
         {
-            var stemmer = new StemmerFactory<RegexStemmer>();
+            var stemmer = new StemmerFactory<RegexStemmer>(new StemOptions
+            {
+                Pattern = RegexStemmer.DEFAULT
+            }, SupportedLanguage.English);
 
-            var stem = stemmer.Stem("doing",
-                new StemOptions
-                {
-                    Pattern = RegexStemmer.DEFAULT
-                });
+            var stem = stemmer.Stem("doing");
 
             Assert.IsTrue(stem == "do");
         }

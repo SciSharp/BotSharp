@@ -9,13 +9,12 @@ namespace BotSharp.NLP.UnitTest
         [TestMethod]
         public void TokenizeInWhiteSpace()
         {
-            var tokenizer = new TokenizerFactory<RegexTokenizer>();
+            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            {
+                Pattern = RegexTokenizer.WHITE_SPACE
+            }, SupportedLanguage.English);
 
-            var tokens = tokenizer.Tokenize("Chop into pieces, isn't it?",
-                new TokenizationOptions
-                {
-                    Pattern = RegexTokenizer.WHITE_SPACE
-                });
+            var tokens = tokenizer.Tokenize("Chop into pieces, isn't it?");
 
             Assert.IsTrue(tokens[0].Start == 0);
             Assert.IsTrue(tokens[0].Text == "Chop");
@@ -36,13 +35,12 @@ namespace BotSharp.NLP.UnitTest
         [TestMethod]
         public void TokenizeInWordPunctuation()
         {
-            var tokenizer = new TokenizerFactory<RegexTokenizer>();
+            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            {
+                Pattern = RegexTokenizer.WORD_PUNC
+            }, SupportedLanguage.English);
 
-            var tokens = tokenizer.Tokenize("Chop into pieces, isn't it?",
-                new TokenizationOptions
-                {
-                    Pattern = RegexTokenizer.WORD_PUNC
-                });
+            var tokens = tokenizer.Tokenize("Chop into pieces, isn't it?");
 
             Assert.IsTrue(tokens[0].Start == 0);
             Assert.IsTrue(tokens[0].Text == "Chop");
@@ -75,17 +73,16 @@ namespace BotSharp.NLP.UnitTest
         [TestMethod]
         public void TokenizeInBlankLine()
         {
-            var tokenizer = new TokenizerFactory<RegexTokenizer>();
+            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            {
+                Pattern = RegexTokenizer.BLANK_LINE
+            }, SupportedLanguage.English);
 
             var tokens = tokenizer.Tokenize(@"Chop into pieces, 
 
 isn't
 
-it?",
-                new TokenizationOptions
-                {
-                    Pattern = RegexTokenizer.BLANK_LINE
-                });
+it?");
 
             Assert.IsTrue(tokens[0].Start == 0);
             Assert.IsTrue(tokens[0].Text == "Chop into pieces,");

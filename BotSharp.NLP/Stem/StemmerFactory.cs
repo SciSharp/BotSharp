@@ -14,16 +14,22 @@ namespace BotSharp.NLP.Stem
     /// <typeparam name="IStem"></typeparam>
     public class StemmerFactory<IStem> where IStem : IStemmer, new()
     {
+        private SupportedLanguage _lang { get; set; }
+
         private IStem _stemmer;
 
-        public StemmerFactory()
+        private StemOptions _options;
+
+        public StemmerFactory(StemOptions options, SupportedLanguage lang)
         {
+            _lang = lang;
+            _options = options;
             _stemmer = new IStem();
         }
 
-        public string Stem(string word, StemOptions options)
+        public string Stem(string word)
         {
-            return _stemmer.Stem(word, options);
+            return _stemmer.Stem(word, _options);
         }
     }
 }

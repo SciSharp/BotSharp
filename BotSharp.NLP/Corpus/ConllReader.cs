@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotSharp.NLP.Tokenize;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -17,9 +18,36 @@ namespace BotSharp.NLP.Corpus
     {
         public List<Sentence> Read(ReaderOptions options)
         {
-            string corpus = File.ReadAllText(Path.Combine(options.DataDir, "conll2000_chunking_train.txt"));
+            var sentences = new List<Sentence>();
+            using(StreamReader reader = new StreamReader(Path.Combine(options.DataDir, options.FileName)))
+            {
+                string line = reader.ReadLine();
+                var sentence = new Sentence { Words = new List<Token> { } };
 
-            return null;
+                while (!reader.EndOfStream)
+                {
+                    if (String.IsNullOrEmpty(line))
+                    {
+                        sentences.Add(sentence);
+                        sentence = new Sentence { Words = new List<Token> { } };
+                    }
+                    else
+                    {
+                        var columns = line.Split(' ');
+
+                        sentence.Words.Add(new Token
+                        {
+                            Text = columns[0],
+                            Pos = columns[1]
+                        });
+                    }
+
+                    line = reader.ReadLine();
+                }
+                
+            }
+
+            return sentences;
         }
     }
 }
