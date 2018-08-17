@@ -12,55 +12,73 @@ namespace BotSharp.NLP.Tag
     /// </summary>
     public class NGramTagger : ITagger
     {
-        public Dictionary<string, string> ContextMapping { get; set; }
+        private List<NGramFreq> _contextMapping { get; set; }
 
         public void Tag(Sentence sentence, TagOptions options)
         {
             // need training to generate model
-            if(ContextMapping == null)
+            if(_contextMapping == null)
             {
-                var cache = new List<Tuple<String, String>>();
-                var contextTag = new List<Tuple<String, String, int>>();
-
-                ContextMapping = new Dictionary<string, string>();
-
-                options.Corpus.ForEach(sent =>
-                {
-                    // Supplementary place
-                    for (int ngram = 1; ngram < options.NGram; ngram++)
-                    {
-                        sent.Words.Insert(0, new Token { Text = "NIL", Pos = options.Tag, Start = (ngram - 1) * 3 });
-                    }
-
-                    int pos = options.NGram - 1;
-                    for(pos = 1; pos < sent.Words.Count; pos++)
-                    {
-                        Token pre = sent.Words[pos - 1];
-                        Token cur = sent.Words[pos];
-
-                        cache.Add(new Tuple<string, string>($"{pre.Pos} {cur.Text}", cur.Pos));// Dictionary.Add($"{pre.Pos} {cur.Text}", cur.Pos);
-                    }
-                });
-
-                var results = (from c in cache
-                               group c by c.Item1 into g
-                               select new { g.Key, Count = g.Count() }).ToList();
-
-                results.ForEach(x =>
-                {
-                    int count = cache.Count(c => c.Item1 == x.Key);
-                });
+                Train(options.Corpus, options);
             }
         }
 
         public void Train(List<Sentence> sentences, TagOptions options)
         {
-            throw new NotImplementedException();
+            _contextMapping = new List<NGramFreq>();
+
+            for (int idx = 0; idx < options.Corpus.Count; idx++)
+            {
+                var sent = options.Corpus[idx];
+
+                for (int ngram = 1; ngram < options.NGram; ngram++)
+                {
+                    sent.Words.Insert(0, new Token { Text = "NIL", Pos = options.Tag, Start = (ngram - 1) * 3 });
+                }
+
+                int pos = options.NGram - 1;
+                for (pos = 1; pos < sent.Words.Count; pos++)
+                {
+                    var freq = new NGramFreq
+                    {
+                        PrecedingTokens = new List<Token> { sent.Words[pos - 1] },
+                        Token = sent.Words[pos],
+                        Count = 0
+                    };
+
+                    _contextMapping.Add(freq);
+                }
+            }
+
+            /*var results = (from c in cache
+                           group c by c.Item1 into g
+                           select new { g.Key, Count = g.Count() }).ToList();*/
         }
         
         private class NGramFreq
         {
-            public string Key { get; set; }
+            /// <summary>
+            /// Tokens prior current token
+            /// </summary>
+            public List<Token> PrecedingTokens { get; set; }
+
+            /// <summary>
+            /// Current token tag
+            /// </summary>
+            public Token Token { get; set; }
+
+            /// <summary>
+            /// Occurence frequency
+            /// </summary>
+            public int Count { get; set; }
+
+            public string Context
+            {
+                get
+                {
+                    return $"{PrecedingTokens.First().Pos} {Token.Text} {Token.Pos}";
+                }
+            }
         }
     }
 }
