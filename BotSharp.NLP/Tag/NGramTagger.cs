@@ -21,64 +21,92 @@ namespace BotSharp.NLP.Tag
             {
                 Train(options.Corpus, options);
             }
+
+            Fill(sentence, options);
+
+            for (int pos = options.NGram - 1; pos < sentence.Words.Count; pos++)
+            {
+                sentence.Words[pos].Pos = _contextMapping.FirstOrDefault(x => x.Context == GetContext(pos, sentence.Words, options))?.Tag;
+
+                // set default tag
+                if(sentence.Words[pos].Pos == null)
+                {
+                    sentence.Words[pos].Pos = options.Tag;
+                }
+            }
+
+            for(int pos = 0; pos < options.NGram - 1; pos++)
+            {
+                sentence.Words.RemoveAt(0);
+            }
         }
 
         public void Train(List<Sentence> sentences, TagOptions options)
         {
-            _contextMapping = new List<NGramFreq>();
+            var cache = new List<NGramFreq>();
 
             for (int idx = 0; idx < options.Corpus.Count; idx++)
             {
                 var sent = options.Corpus[idx];
 
-                for (int ngram = 1; ngram < options.NGram; ngram++)
-                {
-                    sent.Words.Insert(0, new Token { Text = "NIL", Pos = options.Tag, Start = (ngram - 1) * 3 });
-                }
+                Fill(sent, options);
 
-                int pos = options.NGram - 1;
-                for (pos = 1; pos < sent.Words.Count; pos++)
+                for (int pos = options.NGram - 1; pos < sent.Words.Count; pos++)
                 {
                     var freq = new NGramFreq
                     {
-                        PrecedingTokens = new List<Token> { sent.Words[pos - 1] },
-                        Token = sent.Words[pos],
-                        Count = 0
+                        Context = GetContext(pos, sent.Words, options),
+                        Tag = sent.Words[pos].Pos,
+                        Count = 1
                     };
 
-                    _contextMapping.Add(freq);
+                    cache.Add(freq);
                 }
             }
 
-            /*var results = (from c in cache
-                           group c by c.Item1 into g
-                           select new { g.Key, Count = g.Count() }).ToList();*/
+            _contextMapping = (from c in cache
+                               group c by new { c.Context, c.Tag } into g
+                               select new NGramFreq
+                               {
+                                   Context = g.Key.Context,
+                                   Tag = g.Key.Tag,
+                                   Count = g.Count()
+                               }).OrderByDescending(x => x.Count)
+                               .ToList();
+        }
+
+        private string GetContext(int pos, List<Token> words, TagOptions options)
+        {
+            string context = words[pos].Text;
+            for (int ngram = options.NGram - 1; ngram > 0; ngram--)
+            {
+                context = words[pos - ngram].Pos + " " + context;
+            }
+
+            return context;
+        }
+
+        private void Fill(Sentence sent, TagOptions options)
+        {
+            for (int ngram = 1; ngram < options.NGram; ngram++)
+            {
+                sent.Words.Insert(0, new Token { Text = "NIL", Pos = options.Tag, Start = (ngram - 1) * 3 });
+            }
         }
         
         private class NGramFreq
         {
             /// <summary>
-            /// Tokens prior current token
-            /// </summary>
-            public List<Token> PrecedingTokens { get; set; }
-
-            /// <summary>
             /// Current token tag
             /// </summary>
-            public Token Token { get; set; }
+            public string Tag { get; set; }
 
             /// <summary>
             /// Occurence frequency
             /// </summary>
             public int Count { get; set; }
 
-            public string Context
-            {
-                get
-                {
-                    return $"{PrecedingTokens.First().Pos} {Token.Text} {Token.Pos}";
-                }
-            }
+            public string Context { get; set; }
         }
     }
 }
