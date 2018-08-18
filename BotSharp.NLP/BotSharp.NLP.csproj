@@ -3,6 +3,18 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.1.0</Version>
+    <Description>Botsharp NLP is a platform for building C# programs to work with human language data. It is the NLP low-level processing library of the BotSharp robot construction platform. It provides a separate installation package for downloading. It can be used as a common POS, NER and text classification service in the NLP field, providing a variety of machine learning algorithms to switch freely.</Description>
+    <Copyright>MIT</Copyright>
+    <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
+    <Authors>Haiping Chen, Bo Peng</Authors>
+    <Company>Personal</Company>
+    <PackageReleaseNotes>RegexTokenizer and RegexStemmer.</PackageReleaseNotes>
+    <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
+    <PackageTags>BotSharp, NLP, NLU, POS, CRS, NER, LSTM, CRF</PackageTags>
   </PropertyGroup>
 
 </Project>
