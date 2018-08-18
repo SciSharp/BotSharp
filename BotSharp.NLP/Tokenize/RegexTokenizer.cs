@@ -6,10 +6,11 @@ using System.Text.RegularExpressions;
 
 namespace BotSharp.NLP.Tokenize
 {
+    /// <summary>
+    /// Regular-Expression Tokenizers
+    /// </summary>
     public class RegexTokenizer : ITokenizer
     {
-        public SupportedLanguage Lang { get; set; }
-
         /// <summary>
         /// Tokenize a text into a sequence of alphabetic and non-alphabetic characters
         /// </summary>
@@ -31,11 +32,11 @@ namespace BotSharp.NLP.Tokenize
 
         private Regex _regex;
 
-        public Token[] Tokenize(string text, TokenizationOptions options)
+        public List<Token> Tokenize(string sentence, TokenizationOptions options)
         {
             _regex = new Regex(options.Pattern);
 
-            var matches = _regex.Matches(text).Cast<Match>().ToArray();
+            var matches = _regex.Matches(sentence).Cast<Match>().ToArray();
 
             options.IsGap = new string[] { WHITE_SPACE, BLANK_LINE }.Contains(options.Pattern);
 
@@ -48,8 +49,8 @@ namespace BotSharp.NLP.Tokenize
                 {
                     var token = new Token
                     {
-                        Text = (span == matches.Length) ? text.Substring(pos) : text.Substring(pos, matches[span].Index - pos),
-                        Offset = pos
+                        Text = (span == matches.Length) ? sentence.Substring(pos) : sentence.Substring(pos, matches[span].Index - pos),
+                        Start = pos
                     };
 
                     token.Text = token.Text.Trim();
@@ -62,15 +63,15 @@ namespace BotSharp.NLP.Tokenize
                     }
                 }
 
-                return tokens.ToArray();
+                return tokens.ToList();
             }
             else
             {
                 return matches.Select(x => new Token
                 {
                     Text = x.Value,
-                    Offset = x.Index
-                }).ToArray();
+                    Start = x.Index
+                }).ToList();
             }
         }
     }

@@ -15,8 +15,6 @@ namespace BotSharp.NLP.Stem
     {
         public const string DEFAULT = "ing$|s$|e$|able$";
 
-        public SupportedLanguage Lang { get; set; }
-
         private Regex _regex;
 
         public string Stem(string word, StemOptions options)

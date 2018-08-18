@@ -12,16 +12,22 @@ namespace BotSharp.NLP.Tokenize
     /// </summary>
     public class TokenizerFactory<ITokenize> where ITokenize : ITokenizer, new()
     {
+        private SupportedLanguage _lang;
+
         private ITokenize _tokenizer;
 
-        public TokenizerFactory()
+        private TokenizationOptions _options;
+
+        public TokenizerFactory(TokenizationOptions options, SupportedLanguage lang)
         {
+            _lang = lang;
+            _options = options;
             _tokenizer = new ITokenize();
         }
 
-        public Token[] Tokenize(string text, TokenizationOptions options)
+        public List<Token> Tokenize(string sentence)
         {
-            return _tokenizer.Tokenize(text, options);
+            return _tokenizer.Tokenize(sentence, _options);
         }
     }
 }

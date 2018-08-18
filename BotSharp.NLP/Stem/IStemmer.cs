@@ -13,11 +13,6 @@ namespace BotSharp.NLP.Stem
     public interface IStemmer
     {
         /// <summary>
-        /// Language
-        /// </summary>
-        SupportedLanguage Lang { get; set; }
-
-        /// <summary>
         /// Strip affixes from the token and return the stem.
         /// </summary>
         /// <param name="word"></param>

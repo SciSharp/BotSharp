@@ -17,4 +17,14 @@
     <PackageTags>BotSharp, NLP, NLU, POS, CRS, NER, LSTM, CRF</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DevExpress.Xpo" Version="18.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="NER\README.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
 </Project>

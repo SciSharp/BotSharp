@@ -11,16 +11,11 @@ namespace BotSharp.NLP.Tokenize
     public interface ITokenizer
     {
         /// <summary>
-        /// Language
-        /// </summary>
-        SupportedLanguage Lang { get; set; }
-
-        /// <summary>
         /// Tokenize
         /// </summary>
-        /// <param name="text">input</param>
+        /// <param name="sentence">input sentence</param>
         /// <param name="options">Options such as: regex expression</param>
         /// <returns></returns>
-        Token[] Tokenize(string text, TokenizationOptions options);
+        List<Token> Tokenize(string sentence, TokenizationOptions options);
     }
 }
