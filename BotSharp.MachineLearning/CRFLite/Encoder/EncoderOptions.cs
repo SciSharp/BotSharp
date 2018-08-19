@@ -68,7 +68,7 @@ namespace BotSharp.MachineLearning.CRFLite.Encoder
         /// <summary>
         /// 
         /// </summary>
-        public uint HugeLexMemLoad = 0;
+        public uint HugeLexMemLoad { get; set; }
 
         /// <summary>
         /// cost factor, too big or small value may lead encoded model over tune or under tune

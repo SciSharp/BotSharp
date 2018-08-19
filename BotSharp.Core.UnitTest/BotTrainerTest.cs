@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.UnitTest
+namespace BotSharp.Core.UnitTest
 {
     [TestClass]
     public class BotTrainerTest : TestEssential

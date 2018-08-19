@@ -8,7 +8,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.MachineLearning.UnitTest
+namespace BotSharp.MachineLearning.UnitTest.CRFLite
 {
     [TestClass]
     public class DecoderTest
@@ -17,9 +17,11 @@ namespace BotSharp.MachineLearning.UnitTest
         public void TestDecode()
         {
             var encoder = new CRFDecoder();
-            bool bRet = Decode(new DecoderOptions
+            bool result = Decode(new DecoderOptions
             {
-
+                InputFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\English\test\test.txt",
+                ModelFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\English\model\ner_model_eng",
+                OutputFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\English\test\output.txt"
             });
         }
 
@@ -29,28 +31,17 @@ namespace BotSharp.MachineLearning.UnitTest
         {
             var parallelOption = new ParallelOptions();
             var watch = Stopwatch.StartNew();
-            if (File.Exists(options.strInputFileName) == false)
-            {
-                //Logger.WriteLine("FAILED: Open {0} file failed.", options.strInputFileName);
-                return false;
-            }
 
-            if (File.Exists(options.strModelFileName) == false)
-            {
-                //Logger.WriteLine("FAILED: Open {0} file failed.", options.strModelFileName);
-                return false;
-            }
-
-            var sr = new StreamReader(options.strInputFileName);
+            var sr = new StreamReader(options.InputFileName);
             StreamWriter sw = null, swSeg = null;
 
-            if (options.strOutputFileName != null && options.strOutputFileName.Length > 0)
+            if (options.OutputFileName != null && options.OutputFileName.Length > 0)
             {
-                sw = new StreamWriter(options.strOutputFileName);
+                sw = new StreamWriter(options.OutputFileName);
             }
-            if (options.strOutputSegFileName != null && options.strOutputSegFileName.Length > 0)
+            if (options.OutputSegFileName != null && options.OutputSegFileName.Length > 0)
             {
-                swSeg = new StreamWriter(options.strOutputSegFileName);
+                swSeg = new StreamWriter(options.OutputSegFileName);
             }
 
             //Create CRFSharp wrapper instance. It's a global instance
@@ -58,22 +49,22 @@ namespace BotSharp.MachineLearning.UnitTest
 
             //Load encoded model from file
             //Logger.WriteLine("Loading model from {0}", options.strModelFileName);
-            crfWrapper.LoadModel(options.strModelFileName);
+            crfWrapper.LoadModel(options.ModelFileName);
 
             var queueRecords = new ConcurrentQueue<List<List<string>>>();
             var queueSegRecords = new ConcurrentQueue<List<List<string>>>();
 
-            parallelOption.MaxDegreeOfParallelism = options.thread;
-            Parallel.For(0, options.thread, parallelOption, t =>
+            parallelOption.MaxDegreeOfParallelism = options.Thread;
+            Parallel.For(0, options.Thread, parallelOption, t =>
             {
 
                 //Create decoder tagger instance. If the running environment is multi-threads, each thread needs a separated instance
-                var tagger = crfWrapper.CreateTagger(options.nBest, options.maxword);
-                tagger.set_vlevel(options.probLevel);
+                var tagger = crfWrapper.CreateTagger(options.NBest, options.MaxWord);
+                tagger.set_vlevel(options.ProbLevel);
 
                 //Initialize result
-                var crf_out = new crf_seg_out[options.nBest];
-                for (var i = 0; i < options.nBest; i++)
+                var crf_out = new crf_seg_out[options.NBest];
+                for (var i = 0; i < options.NBest; i++)
                 {
                     crf_out[i] = new crf_seg_out(tagger.crf_max_word_num);
                 }

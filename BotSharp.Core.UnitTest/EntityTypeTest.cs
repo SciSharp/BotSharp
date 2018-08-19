@@ -3,25 +3,25 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.UnitTest
+namespace BotSharp.Core.UnitTest
 {
     [TestClass]
-    public class EntityEntryTest : TestEssential
+    public class EntityTypeTest : TestEssential
     {
         [TestMethod]
-        public void CreateEntityEntryTest()
+        public void CreateEntityTypeTest()
         {
 
         }
 
         [TestMethod]
-        public void UpdateEntityEntryeTest()
+        public void UpdateEntityTypeTest()
         {
 
         }
 
         [TestMethod]
-        public void DeleteEntityEntryTest()
+        public void DeleteEntityTypeTest()
         {
 
         }

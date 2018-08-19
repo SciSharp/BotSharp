@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace BotSharp.UnitTest
+namespace BotSharp.Core.UnitTest
 {
     public abstract class TestEssential
     {

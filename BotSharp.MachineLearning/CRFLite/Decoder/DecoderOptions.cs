@@ -8,23 +8,54 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
 {
     public class DecoderOptions
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [Required]
-        public string strModelFileName;
+        public string ModelFileName;
+
+        /// <summary>
+        /// 
+        /// </summary>
         [Required]
-        public string strInputFileName;
-        public string strOutputFileName;
-        public string strOutputSegFileName;
-        public int nBest;
-        public int thread;
-        public int probLevel;
-        public int maxword;
+        public string InputFileName;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string OutputFileName;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string OutputSegFileName;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int NBest;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Thread;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int ProbLevel;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int MaxWord;
 
         public DecoderOptions()
         {
-            thread = 1;
-            nBest = 1;
-            probLevel = 0;
-            maxword = 100;
+            Thread = 1;
+            NBest = 1;
+            ProbLevel = 0;
+            MaxWord = 100;
         }
     }
 }

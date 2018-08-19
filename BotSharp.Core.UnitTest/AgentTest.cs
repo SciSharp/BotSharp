@@ -13,7 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace BotSharp.UnitTest
+namespace BotSharp.Core.UnitTest
 {
     [TestClass]
     public class AgentTest : TestEssential
