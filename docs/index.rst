@@ -1,5 +1,5 @@
 .. BotSharp documentation master file, created by
-   sphinx-quickstart on Sun Aug 19 10:12:30 2018.
+   sphinx-quickstart on Sun Aug 19 10:40:29 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

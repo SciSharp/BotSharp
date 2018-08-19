@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # BotSharp documentation build configuration file, created by
-# sphinx-quickstart on Sun Aug 19 10:12:30 2018.
+# sphinx-quickstart on Sun Aug 19 10:40:29 2018.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -38,8 +38,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages']
+    'sphinx.ext.viewcode']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -56,14 +55,14 @@ master_doc = 'index'
 # General information about the project.
 project = 'BotSharp'
 copyright = '2018, Haiping Chen'
-author = 'Haiping Chen, Peng Bo'
+author = 'Haiping Chen'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '0.1'
+version = '0.1.0'
 # The full version, including alpha/beta/rc tags.
 release = '0.1.0'
 
@@ -77,7 +76,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -148,7 +147,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'BotSharp.tex', 'BotSharp Documentation',
-     'Haiping Chen, Peng Bo', 'manual'),
+     'Haiping Chen', 'manual'),
 ]
 
 

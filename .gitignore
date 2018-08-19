@@ -301,3 +301,4 @@ __pycache__/
 /BotSharp.WebHost/PublishOutput
 /Data
 /docs/build
+/docs/_build
