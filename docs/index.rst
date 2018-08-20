@@ -5,6 +5,7 @@
 
 Welcome to BotSharp's documentation!
 ====================================
+.. include:: ../README.rst
 
 .. toctree::
    :maxdepth: 2
