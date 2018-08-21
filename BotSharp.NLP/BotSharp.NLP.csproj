@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DevExpress.Xpo" Version="18.1.4" />
+    <ProjectReference Include="..\BotSharp.MachineLearning\BotSharp.MachineLearning.csproj" />
   </ItemGroup>
 
   <ItemGroup>

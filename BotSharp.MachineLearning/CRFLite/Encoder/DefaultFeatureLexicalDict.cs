@@ -92,7 +92,7 @@ namespace BotSharp.MachineLearning.CRFLite.Encoder
                 return pair.Key;
             }
 
-            return BaseUtils.ERROR_INVALIDATED_FEATURE;
+            return BaseUtils.RETURN_INVALIDATED_FEATURE;
         }
 
         public long GetOrAddId(string key)

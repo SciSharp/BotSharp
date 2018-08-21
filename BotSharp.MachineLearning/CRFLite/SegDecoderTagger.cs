@@ -19,7 +19,7 @@ namespace BotSharp.MachineLearning.CRFLite
 
             //build raw result at first
             var iRet = termbuf_build(term_buf);
-            if (iRet != BaseUtils.ERROR_SUCCESS)
+            if (iRet != BaseUtils.RETURN_SUCCESS)
             {
                 return iRet;
             }
@@ -82,7 +82,7 @@ namespace BotSharp.MachineLearning.CRFLite
             }
 
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
 
@@ -125,7 +125,7 @@ namespace BotSharp.MachineLearning.CRFLite
                 }
             }
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
     }
 }

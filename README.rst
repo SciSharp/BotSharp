@@ -1,7 +1,4 @@
-﻿.. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
-   :height: 30px
-
-The Open Source AI Bot Platform Builder for Enterprise
+﻿The Open Source AI Bot Platform Builder for Enterprise
 ======================================================
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our enterprise developers using the BotSharp Bot Platform Builder to build a CaaP. It opens up as much learning power as possible for your enterprise robots and precisely control every step of the AI processing pipeline."*

@@ -32,16 +32,15 @@ namespace BotSharp.MachineLearning.CRFLite
 
         public const int MODEL_TYPE_NORM = 100;
 
-
-        public const int ERROR_INVALIDATED_FEATURE = -8;
-        public const int ERROR_HEAP_SIZE_TOO_BIG = -7;
-        public const int ERROR_INSERT_HEAP_FAILED = -6;
-        public const int ERROR_EMPTY_FEATURE = -5;
-        public const int ERROR_INVALIDATED_PARAMETER = -4;
-        public const int ERROR_WRONG_STATUS = -3;
-        public const int ERROR_TOO_LONG_WORD = -2;
-        public const int ERROR_UNKNOWN = -1;
-        public const int ERROR_SUCCESS = 0;
+        public const int RETURN_INVALIDATED_FEATURE = -8;
+        public const int RETURN_HEAP_SIZE_TOO_BIG = -7;
+        public const int RETURN_INSERT_HEAP_FAILED = -6;
+        public const int RETURN_EMPTY_FEATURE = -5;
+        public const int RETURN_INVALIDATED_PARAMETER = -4;
+        public const int RETURN_WRONG_STATUS = -3;
+        public const int RETURN_TOO_LONG_WORD = -2;
+        public const int RETURN_UNKNOWN = -1;
+        public const int RETURN_SUCCESS = 0;
 
         public static Heap heap_init(int max_size)
         {
@@ -82,7 +81,7 @@ namespace BotSharp.MachineLearning.CRFLite
         {
             if (H.size >= H.capacity)
             {
-                return BaseUtils.ERROR_HEAP_SIZE_TOO_BIG;
+                return BaseUtils.RETURN_HEAP_SIZE_TOO_BIG;
             }
             var i = ++H.size;
             while (i != 1 && H.elem_ptr_list[i / 2].fx > qe.fx)

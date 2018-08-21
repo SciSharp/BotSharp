@@ -149,7 +149,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                 }
             }
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
         public int initNbest()
@@ -164,10 +164,10 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                 eos.next = null;
                 if (BaseUtils.heap_insert(eos, heap_queue) < 0)
                 {
-                    return BaseUtils.ERROR_INSERT_HEAP_FAILED;
+                    return BaseUtils.RETURN_INSERT_HEAP_FAILED;
                 }
             }
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
         public int next()
@@ -199,7 +199,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                     n.next = top;
                     if (BaseUtils.heap_insert(n, heap_queue) < 0)
                     {
-                        return BaseUtils.ERROR_INSERT_HEAP_FAILED;
+                        return BaseUtils.RETURN_INSERT_HEAP_FAILED;
                     }
                 }
             }
@@ -212,7 +212,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
             Z_ = cost_ = 0.0;
 
             BaseUtils.heap_reset(heap_queue);
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -235,7 +235,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                 }
             }
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
         public int add(List<List<string>> row_p)
@@ -243,7 +243,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
             x_ = row_p;
             word_num = (short)x_.Count;
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
 
@@ -270,7 +270,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                         break;
                 }
             }
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
         //Label input string. The result is saved as result []
@@ -282,7 +282,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
             //no word need to be labeled
             if (word_num == 0)
             {
-                return BaseUtils.ERROR_SUCCESS;
+                return BaseUtils.RETURN_SUCCESS;
             }
 
             //building feature set
@@ -326,7 +326,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
 
             }
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
 
@@ -334,7 +334,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
         {
             if (word_num <= 0)
             {
-                return BaseUtils.ERROR_INVALIDATED_PARAMETER;
+                return BaseUtils.RETURN_INVALIDATED_PARAMETER;
             }
             using (var v = _buildersPool.GetOrCreate())
             {
@@ -351,7 +351,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                         var res = featureIndex.apply_rule(templ, cur, builder, this);
                         if (res == null)
                         {
-                            return BaseUtils.ERROR_EMPTY_FEATURE;
+                            return BaseUtils.RETURN_EMPTY_FEATURE;
                         }
                         id = featureIndex.get_id(res.ToString());
                         if (id != -1)
@@ -373,7 +373,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                         var strFeature = featureIndex.apply_rule(templ, cur, builder, this);
                         if (strFeature == null)
                         {
-                            return BaseUtils.ERROR_EMPTY_FEATURE;
+                            return BaseUtils.RETURN_EMPTY_FEATURE;
                         }
 
                         id = featureIndex.get_id(strFeature.ToString());
@@ -387,7 +387,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                     feature_cache_size++;
                 }
 
-                return BaseUtils.ERROR_SUCCESS;
+                return BaseUtils.RETURN_SUCCESS;
             }
         }
 
@@ -465,7 +465,7 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
                 }
             }
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
     }
 }

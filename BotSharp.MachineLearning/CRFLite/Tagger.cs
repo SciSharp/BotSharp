@@ -70,7 +70,7 @@ namespace BotSharp.MachineLearning.CRFLite
 
             cost_ = -node_[s, result_[s]].bestCost;
 
-            return BaseUtils.ERROR_SUCCESS;
+            return BaseUtils.RETURN_SUCCESS;
         }
 
         private void calcAlpha(int m, int n)

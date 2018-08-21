@@ -3,8 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to BotSharp's documentation!
-====================================
+.. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
+   :height: 30px
+   
 .. include:: ../README.rst
 
 .. toctree::
