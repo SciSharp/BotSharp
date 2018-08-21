@@ -11,13 +11,11 @@ namespace BotSharp.MachineLearning.CRFLite.Decoder
         /// <summary>
         /// 
         /// </summary>
-        [Required]
         public string ModelFileName;
 
         /// <summary>
         /// 
         /// </summary>
-        [Required]
         public string InputFileName;
 
         /// <summary>

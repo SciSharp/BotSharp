@@ -40,19 +40,16 @@ namespace BotSharp.MachineLearning.CRFLite.Encoder
         /// <summary>
         /// Template file name
         /// </summary>
-        [Required]
         public string TemplateFileName { get; set; }
 
         /// <summary>
         /// Training corpus file name
         /// </summary>
-        [Required]
         public string TrainingCorpusFileName { get; set; }
 
         /// <summary>
         /// Encoded model file name
         /// </summary>
-        [Required]
         public string ModelFileName { get; set; }
 
         /// <summary>
