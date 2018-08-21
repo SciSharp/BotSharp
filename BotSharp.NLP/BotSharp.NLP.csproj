@@ -17,6 +17,10 @@
     <PackageTags>BotSharp, NLP, NLU, POS, CRS, NER, LSTM, CRF</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.MachineLearning\BotSharp.MachineLearning.csproj" />
   </ItemGroup>

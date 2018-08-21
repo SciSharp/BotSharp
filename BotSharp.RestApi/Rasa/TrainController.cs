@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.RestApi.Rasa
 {
-#if MODE_RASA
+#if RASA_UI
     [Route("[controller]")]
     public class TrainController : ControllerBase
     {

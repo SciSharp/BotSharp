@@ -20,7 +20,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\BotSharp.RestApi.xml</DocumentationFile>
-    <DefineConstants>TRACE;DEBUG;MODE_RASA</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;RASA_UI</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
