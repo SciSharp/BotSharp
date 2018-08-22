@@ -1,6 +1,6 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
-using BotSharp.MachineLearning.NLP;
+using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
@@ -74,7 +74,7 @@ namespace BotSharp.Core.Engines.NERs
             var uniFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:uniFeatures");
             var biFeatures = Configuration.GetValue<String>($"CRFsuiteEntityRecognizer:biFeatures");
 
-            new MachineLearning.CRFsuite.Ner()
+            new NLP.Models.CRFsuite.Ner()
                 .NerStart(rawTrainingDataFileName, parsedTrainingDataFileName, fields, uniFeatures.Split(' '), biFeatures.Split(' '));
 
             var algorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
@@ -191,7 +191,7 @@ namespace BotSharp.Core.Engines.NERs
                 }
             }
 
-            new MachineLearning.CRFsuite.Ner()
+            new NLP.Models.CRFsuite.Ner()
                 .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(' '), biFeatures.Split(' '));
 
             var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}", false);

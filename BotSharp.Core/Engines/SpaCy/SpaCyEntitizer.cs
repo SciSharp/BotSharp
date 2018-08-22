@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
-using BotSharp.MachineLearning.NLP;
+using BotSharp.Models.NLP;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using RestSharp;

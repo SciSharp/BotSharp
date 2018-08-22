@@ -52,12 +52,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.MachineLearning\BotSharp.MachineLearning.csproj" />
-    <ProjectReference Include="..\BotSharp.NLP\BotSharp.NLP.csproj" />
+    <Folder Include="Engines\CoreNlp\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Engines\CoreNlp\" />
+    <ProjectReference Include="..\..\BotSharp.NLP\BotSharp.NLP\BotSharp.NLP.csproj" />
   </ItemGroup>
 
 </Project>

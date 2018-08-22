@@ -1,7 +1,6 @@
 using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
-using BotSharp.MachineLearning.NLP;
 using BotSharp.NLP.Tokenize;
 using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.Configuration;
