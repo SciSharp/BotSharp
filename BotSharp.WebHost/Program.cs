@@ -17,15 +17,14 @@ namespace BotSharp.WebHost
             Microsoft.AspNetCore.WebHost.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
-
                     var env = hostingContext.HostingEnvironment;
-                    var settings = Directory.GetFiles($"{env.ContentRootPath}{Path.DirectorySeparatorChar}Settings", "*.json");
+                    var settings = Directory.GetFiles(Path.Combine(env.ContentRootPath, "Settings"), "*.json");
                     settings.ToList().ForEach(setting =>
                     {
                         config.AddJsonFile(setting, optional: false, reloadOnChange: true);
                     });
                 })
-#if MODE_RASA
+#if RASA_UI
                 .UseUrls("http://0.0.0.0:5000")
 #else
                 .UseUrls("http://0.0.0.0:3112")

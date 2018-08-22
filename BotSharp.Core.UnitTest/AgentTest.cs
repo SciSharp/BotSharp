@@ -24,8 +24,7 @@ namespace BotSharp.Core.UnitTest
             var agent = new Agent
             {
                 Id = BOT_ID,
-                Language = "en",
-                UserId = Guid.NewGuid().ToString()
+                Language = "en"
             };
             var rasa = new RasaAi();
             //int row = dc.DbTran(() => rasa.agent.SaveAgent(dc));

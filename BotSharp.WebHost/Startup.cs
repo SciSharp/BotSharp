@@ -108,10 +108,7 @@ namespace BotSharp.WebHost
                     var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
                     context.Request.Headers["ClientAccessToken"] = token;
 
-                    var dc = new DefaultDataContextLoader().GetDefaultDc();
-                    var userId = dc.Table<Agent>().FirstOrDefault(x => x.ClientAccessToken == token)?.UserId;
-
-                    context.Request.Headers["Authorization"] = "Bearer " + JwtToken.GenerateToken(config, userId);
+                    // context.Request.Headers["Authorization"] = "Bearer " + JwtToken.GenerateToken(config, userId);
                 }
 
                 await next.Invoke();

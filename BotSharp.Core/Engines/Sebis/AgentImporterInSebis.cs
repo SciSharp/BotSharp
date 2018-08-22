@@ -39,10 +39,6 @@ namespace BotSharp.Core.Engines
             var result = agent.ToObject<Agent>();
             result.ClientAccessToken = agentHeader.ClientAccessToken;
             result.DeveloperAccessToken = agentHeader.DeveloperAccessToken;
-            if(agentHeader.UserId != null)
-            {
-                result.UserId = agentHeader.UserId;
-            }
 
             return result;
         }
