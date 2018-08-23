@@ -15,6 +15,10 @@ using System.Threading.Tasks;
 namespace BotSharp.RestApi.Rasa
 {
 #if RASA_UI
+    /// <summary>
+    /// You can post your training data to this endpoint to train a new model for a project.
+    /// This request will wait for the server answer: either the model was trained successfully or the training exited with an error. 
+    /// </summary>
     [Route("[controller]")]
     public class TrainController : ControllerBase
     {
@@ -29,12 +33,29 @@ namespace BotSharp.RestApi.Rasa
             _platform = platform;
         }
 
+        /// <summary>
+        /// Using the HTTP server, you must specify the project you want to train a new model for to be able to use it during parse requests later on : /train?project=my_project.
+        /// </summary>
+        /// <param name="agent">Model name</param>
+        /// <param name="project"></param>
+        /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<String>> Train(RasaUiMiddlewareRequestModel request)
+        public async Task<ActionResult<String>> Train([FromQuery] string agent, [FromQuery] string project)
         {
-            return Ok();
+            string body = "";
+            using (var reader = new StreamReader(Request.Body))
+            {
+                body = reader.ReadToEnd();
+            }
+
+            var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(body);
+            rasa_nlu_data.Model = agent;
+            var trainResult = await Train(rasa_nlu_data, project);
+
+            return trainResult;
         }
-        /*public async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestModel request, [FromQuery] string project)
+
+        private async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestModel request, [FromQuery] string project)
         {
             var trainer = new BotTrainer();
             if (String.IsNullOrEmpty(request.Project))
@@ -52,6 +73,8 @@ namespace BotSharp.RestApi.Rasa
                 Directory.CreateDirectory(agentPath);
             }
 
+            // Save raw data to file, then parse it to Agent instance.
+            // in order to unify the process.
             var fileName = Path.Combine(agentPath, "corpus.json");
 
             System.IO.File.WriteAllText(fileName, JsonConvert.SerializeObject(request.Corpus, new JsonSerializerSettings
@@ -69,10 +92,10 @@ namespace BotSharp.RestApi.Rasa
                     Name = project
                 });
 
-            var info = await trainer.Train(agent);
+            var info = await trainer.Train(agent, new BotTrainOptions { Model = request.Model });
 
             return Ok(new { info = info.Model });
-        }*/
+        }
     }
 #endif
 }

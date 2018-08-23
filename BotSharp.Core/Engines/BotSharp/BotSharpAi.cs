@@ -12,7 +12,7 @@ namespace BotSharp.Core.Engines.BotSharp
         {
             agent.Corpus = GetIntentExpressions();
             var trainer = new BotTrainer(agent.Id, dc);
-            await trainer.Train(agent);
+            await trainer.Train(agent, new BotTrainOptions { });
         }
     }
 }

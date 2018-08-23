@@ -33,7 +33,7 @@ namespace BotSharp.Core.Engines
             this.agentId = agentId;
         }
 
-        public async Task<ModelMetaData> Train(Agent agent)
+        public async Task<ModelMetaData> Train(Agent agent, BotTrainOptions options)
         {
             /*agent.Intents = dc.Table<Intent>()
                 .Include(x => x.Contexts)
@@ -70,7 +70,7 @@ namespace BotSharp.Core.Engines
                 AlgorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
             };
 
-            settings.ModelDir = Path.Combine(settings.ProjectDir, "model" + DateTime.UtcNow.ToString("MMddyyyyHHmm"));
+            settings.ModelDir = Path.Combine(settings.ProjectDir, String.IsNullOrEmpty(options.Model) ? "model" + DateTime.UtcNow.ToString("MMddyyyyHHmm") : options.Model);
 
             if (!Directory.Exists(settings.ProjectDir))
             {

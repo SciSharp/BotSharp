@@ -2,13 +2,18 @@
 using BotSharp.Core.Models;
 using BotSharp.NLP;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace BotSharp.RestApi.Rasa
 {
 #if RASA_UI
+    /// <summary>
+    /// send a text request
+    /// </summary>
     [Route("[controller]")]
     public class ParseController : ControllerBase
     {
@@ -23,14 +28,26 @@ namespace BotSharp.RestApi.Rasa
             _platform = platform;
         }
 
-        [HttpPost]
-        public ActionResult<RasaResponse> Parse(RasaRequestModel request)
+        /// <summary>
+        /// parse request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost, HttpGet]
+        public ActionResult<RasaResponse> Parse()
         {
             String clientAccessToken = Request.Headers["ClientAccessToken"];
-            var config = new AIConfiguration(clientAccessToken, SupportedLanguage.English);
+            var config = new AIConfiguration("", SupportedLanguage.English);
             config.SessionId = "rasa nlu";
 
-            _platform.LoadAgent(clientAccessToken);
+            string body = "";
+            using (var reader = new StreamReader(Request.Body))
+            {
+                body = reader.ReadToEnd();
+            }
+            var request = JsonConvert.DeserializeObject<RasaRequestModel>(body);
+
+            //_platform.LoadAgent(clientAccessToken);
 
             var aIResponse = _platform.TextRequest(new AIRequest
             {
@@ -48,7 +65,7 @@ namespace BotSharp.RestApi.Rasa
                 {
 
                 },
-                Text = request.Text
+                Text = ""
             };
         }
     }

@@ -10,6 +10,8 @@ namespace BotSharp.RestApi.Rasa
     {
         public string Project { get; set; }
 
+        public string Model { get; set; }
+
         [JsonProperty("rasa_nlu_data")]
         public RasaTrainingData Corpus { get; set; }
     }
