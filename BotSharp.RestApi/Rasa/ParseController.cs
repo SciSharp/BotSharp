@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Engines;
+using BotSharp.Core.Engines.Rasa;
 using BotSharp.Core.Models;
 using BotSharp.NLP;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +37,6 @@ namespace BotSharp.RestApi.Rasa
         [HttpPost, HttpGet]
         public ActionResult<RasaResponse> Parse()
         {
-            String clientAccessToken = Request.Headers["ClientAccessToken"];
             var config = new AIConfiguration("", SupportedLanguage.English);
             config.SessionId = "rasa nlu";
 
@@ -47,10 +47,20 @@ namespace BotSharp.RestApi.Rasa
             }
             var request = JsonConvert.DeserializeObject<RasaRequestModel>(body);
 
-            //_platform.LoadAgent(clientAccessToken);
+            // Load agent
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.Project);
+            var modelPath = Path.Combine(projectPath, request.Model);
+
+            _platform.LoadAgentFromFile<AgentImporterInRasa>(modelPath,
+                new AgentImportHeader
+                {
+                    Id = request.Project,
+                    Name = request.Project
+                });
 
             var aIResponse = _platform.TextRequest(new AIRequest
             {
+                Model = request.Model,
                 Query = new String[] { request.Text }
             });
 

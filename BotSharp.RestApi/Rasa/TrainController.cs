@@ -64,18 +64,17 @@ namespace BotSharp.RestApi.Rasa
             }
 
             // save corpus to agent dir
-            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects");
-            var dataPath = Path.Combine(projectPath, project);
-            var agentPath = Path.Combine(dataPath, "Temp");
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", project);
+            var modelPath = Path.Combine(projectPath, request.Model);
 
-            if (!Directory.Exists(agentPath))
+            if (!Directory.Exists(modelPath))
             {
-                Directory.CreateDirectory(agentPath);
+                Directory.CreateDirectory(modelPath);
             }
 
             // Save raw data to file, then parse it to Agent instance.
             // in order to unify the process.
-            var fileName = Path.Combine(agentPath, "corpus.json");
+            var fileName = Path.Combine(modelPath, "corpus.json");
 
             System.IO.File.WriteAllText(fileName, JsonConvert.SerializeObject(request.Corpus, new JsonSerializerSettings
             {
@@ -84,8 +83,7 @@ namespace BotSharp.RestApi.Rasa
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             }));
 
-            var bot = new RasaAi();
-            var agent = bot.LoadAgentFromFile<AgentImporterInRasa>(agentPath,
+            var agent = _platform.LoadAgentFromFile<AgentImporterInRasa>(modelPath,
                 new AgentImportHeader
                 {
                     Id = request.Project,
