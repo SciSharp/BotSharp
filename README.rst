@@ -60,7 +60,14 @@ Start a container:
 
 ::
 
- PS D:\BotSharp\> docker run -it -p 3112:3112 botsharp
+ PS D:\BotSharp\> docker run -it -p 5000:5000 botsharp
+
+
+We integrate Rasa UI with botsharp, you can use docker compose to run
+
+docker-compose up
+
+point your web browser at http://localhost:5001 and enjoy Rasa-UI with Botsharp
 
 
 Install in NuGet
