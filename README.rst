@@ -63,9 +63,12 @@ Start a container:
  PS D:\BotSharp\> docker run -it -p 5000:5000 botsharp
 
 
-We integrate Rasa UI with botsharp, you can use docker compose to run
+To integrate Rasa UI with botsharp, you can use docker compose to run
 
-docker-compose up
+::
+
+ PS D:\BotSharp\> docker-compose up
+ 
 
 point your web browser at http://localhost:5001 and enjoy Rasa-UI with Botsharp
 
