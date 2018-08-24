@@ -30,6 +30,14 @@ https://github.com/Oceania2018/BotSharp/wiki
 
 QUICK START
 -----------
+
+Integrate Rasa UI with botsharp, you can use docker compose to run
+
+::
+
+ PS D:\BotSharp\> docker-compose -f docker-compose-rasaui.yml up
+
+
 Building BotSharp
 ^^^^^^^^^^^^^^^^^
 Make sure the `Microsoft .NET Core`_ build environment is installed. 
@@ -62,12 +70,6 @@ Start a container:
 
  PS D:\BotSharp\> docker run -it -p 5000:5000 botsharp
 
-
-To integrate Rasa UI with botsharp, you can use docker compose to run
-
-::
-
- PS D:\BotSharp\> docker-compose up
  
 
 point your web browser at http://localhost:5001 and enjoy Rasa-UI with Botsharp
