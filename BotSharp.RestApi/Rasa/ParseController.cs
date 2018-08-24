@@ -72,10 +72,12 @@ namespace BotSharp.RestApi.Rasa
                     Name = aIResponse.Result.Metadata.IntentName,
                     Confidence = aIResponse.Result.Score
                 },
-                Entities = aIResponse.Result.Parameters.Select(x => new RasaResponseEntity
+                Entities = aIResponse.Result.Entities.Select(x => new RasaResponseEntity
                 {
-                    Entity = x.Key,
-                    Value = x.Value.ToString()
+                    Extractor = x.Extrator,
+                    Start = x.Start,
+                    Entity = x.Entity,
+                    Value = x.Value
                 }).ToList(),
                 Text = request.Text,
                 Model = request.Model,

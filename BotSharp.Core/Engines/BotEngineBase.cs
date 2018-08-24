@@ -53,6 +53,7 @@ namespace BotSharp.Core.Engines
                     ResolvedQuery = doc.Sentences[0].Text,
                     Fulfillment = new AIResponseFulfillment { },
                     Parameters = parameters,
+                    Entities = doc.Sentences[0].Entities,
                     Metadata = new AIResponseMetadata
                     {
                         IntentName = doc.Sentences[0].Intent?.Label
