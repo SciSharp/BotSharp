@@ -44,6 +44,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BotSharp.NLP" Version="0.2.3" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.9.1" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
@@ -53,10 +54,6 @@
 
   <ItemGroup>
     <Folder Include="Engines\CoreNlp\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\BotSharp.NLP\BotSharp.NLP\BotSharp.NLP.csproj" />
   </ItemGroup>
 
 </Project>
