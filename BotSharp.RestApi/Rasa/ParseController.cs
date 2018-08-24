@@ -36,7 +36,7 @@ namespace BotSharp.RestApi.Rasa
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost, HttpGet]
-        public ActionResult<List<RasaResponse>> Parse()
+        public ActionResult<RasaResponse> Parse()
         {
             var config = new AIConfiguration("", SupportedLanguage.English);
             config.SessionId = "rasa nlu";
@@ -83,7 +83,7 @@ namespace BotSharp.RestApi.Rasa
                 IntentRanking = new List<RasaResponseIntent> { }
             };
 
-            return new List<RasaResponse> { rasaResponse };
+            return rasaResponse;
         }
     }
 #endif
