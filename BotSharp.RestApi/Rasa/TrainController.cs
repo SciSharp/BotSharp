@@ -36,11 +36,11 @@ namespace BotSharp.RestApi.Rasa
         /// <summary>
         /// Using the HTTP server, you must specify the project you want to train a new model for to be able to use it during parse requests later on : /train?project=my_project.
         /// </summary>
-        /// <param name="agent">Model name</param>
+        /// <param name="model">Model name</param>
         /// <param name="project"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<String>> Train([FromQuery] string agent, [FromQuery] string project)
+        public async Task<ActionResult<String>> Train([FromQuery] string model, [FromQuery] string project)
         {
             string body = "";
             using (var reader = new StreamReader(Request.Body))
@@ -49,7 +49,7 @@ namespace BotSharp.RestApi.Rasa
             }
 
             var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(body);
-            rasa_nlu_data.Model = agent;
+            rasa_nlu_data.Model = model;
             var trainResult = await Train(rasa_nlu_data, project);
 
             return trainResult;

@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace BotSharp.RestApi.Rasa
@@ -35,7 +36,7 @@ namespace BotSharp.RestApi.Rasa
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost, HttpGet]
-        public ActionResult<RasaResponse> Parse()
+        public ActionResult<List<RasaResponse>> Parse()
         {
             var config = new AIConfiguration("", SupportedLanguage.English);
             config.SessionId = "rasa nlu";
@@ -64,19 +65,25 @@ namespace BotSharp.RestApi.Rasa
                 Query = new String[] { request.Text }
             });
 
-            return new RasaResponse
+            var rasaResponse = new RasaResponse
             {
                 Intent = new RasaResponseIntent
                 {
                     Name = aIResponse.Result.Metadata.IntentName,
                     Confidence = aIResponse.Result.Score
                 },
-                Entities = new List<RasaResponseEntity>
+                Entities = aIResponse.Result.Parameters.Select(x => new RasaResponseEntity
                 {
-
-                },
-                Text = ""
+                    Entity = x.Key,
+                    Value = x.Value.ToString()
+                }).ToList(),
+                Text = request.Text,
+                Model = request.Model,
+                Project = request.Project,
+                IntentRanking = new List<RasaResponseIntent> { }
             };
+
+            return new List<RasaResponse> { rasaResponse };
         }
     }
 #endif
