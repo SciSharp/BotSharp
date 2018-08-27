@@ -83,12 +83,7 @@ namespace BotSharp.RestApi.Rasa
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             }));
 
-            var agent = _platform.LoadAgentFromFile<AgentImporterInRasa>(modelPath,
-                new AgentImportHeader
-                {
-                    Id = request.Project,
-                    Name = project
-                });
+            var agent = _platform.LoadAgentFromFile<AgentImporterInRasa>(modelPath);
 
             var info = await trainer.Train(agent, new BotTrainOptions { Model = request.Model });
 

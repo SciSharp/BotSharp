@@ -16,8 +16,10 @@ namespace BotSharp.Core.Engines.Rasa
     {
         public string AgentDir { get; set; }
 
-        public Agent LoadAgent(AgentImportHeader agentHeader)
+        public Agent LoadAgent()
         {
+            AgentImportHeader agentHeader = null;
+
             var agent = new Agent();
             agent.ClientAccessToken = Guid.NewGuid().ToString("N");
             agent.DeveloperAccessToken = Guid.NewGuid().ToString("N");

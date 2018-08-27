@@ -86,28 +86,27 @@ namespace BotSharp.Core.Engines
         /// Restore a agent instance from backup json files
         /// </summary>
         /// <param name="importer"></param>
-        /// <param name="agentHeader"></param>
         /// <param name="dataDir"></param>
         /// <returns></returns>
-        public bool RestoreAgent<TAgentImporter>(AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
+        public bool RestoreAgent<TAgentImporter>() where TAgentImporter : IAgentImporter, new()
         {
             string dataDir = Path.Combine(DbInitializerPath, "Agents");
 
             int row = dc.DbTran(() => {
-                LoadAgentFromFile<TAgentImporter>(dataDir, agentHeader);
+                LoadAgentFromFile<TAgentImporter>(dataDir);
                 SaveAgent();
             });
 
             return row > 0;
         }
 
-        public Agent LoadAgentFromFile<TAgentImporter>(string dataDir, AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
+        public Agent LoadAgentFromFile<TAgentImporter>(string dataDir) where TAgentImporter : IAgentImporter, new()
         {
             var importer = new TAgentImporter();
             importer.AgentDir = dataDir;
 
             // Load agent summary
-            agent = importer.LoadAgent(agentHeader);
+            agent = importer.LoadAgent();
 
             // Load user custom entities
             importer.LoadCustomEntities(agent);

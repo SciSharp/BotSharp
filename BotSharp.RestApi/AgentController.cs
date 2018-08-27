@@ -46,13 +46,12 @@ namespace BotSharp.RestApi
         /// <summary>
         /// Restore a agent from a uploaded zip file 
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="file"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult> Restore(IFormFile file)
+        public async Task<ActionResult> Restore(IFormFile uploadedFile)
         {
-            if (file == null || file.Length == 0)
+            if (uploadedFile == null || uploadedFile.Length == 0)
             {
                 return BadRequest();
             }
@@ -61,15 +60,17 @@ namespace BotSharp.RestApi
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await file.CopyToAsync(stream);
+                await uploadedFile.CopyToAsync(stream);
             }
 
-            string dest = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", "", DateTime.UtcNow.ToString("MMddyyyyHHmm"));
+            string dest = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", uploadedFile.FileName.Split('.').First(), "model_" + DateTime.UtcNow.ToString("MMddyyyyHHmm"));
             ZipFile.ExtractToDirectory(filePath, dest);
 
-            _platform.LoadAgentFromFile<AgentImporterInDialogflow>("", new AgentImportHeader { });
+            System.IO.File.Delete(filePath);
 
-            return Ok();
+            var agent = _platform.LoadAgentFromFile<AgentImporterInDialogflow>(dest);
+
+            return Ok(agent.Id);
         }
 
         /// <summary>

@@ -44,6 +44,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Accounts\**" />
+    <EmbeddedResource Remove="Accounts\**" />
+    <None Remove="Accounts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BotSharp.NLP" Version="0.2.3" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.9.1" />

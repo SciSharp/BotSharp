@@ -15,64 +15,38 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="App_Data\AgentArchive\**" />
+    <Compile Remove="App_Data\Corpus\**" />
+    <Compile Remove="App_Data\DbInitializer\**" />
     <Compile Remove="App_Data\ModelFiles\**" />
     <Compile Remove="App_Data\NewFolder\**" />
     <Compile Remove="App_Data\Projects\**" />
     <Compile Remove="App_Data\TrainingFiles\**" />
     <Compile Remove="PublishOutput\**" />
+    <Content Remove="App_Data\AgentArchive\**" />
+    <Content Remove="App_Data\Corpus\**" />
+    <Content Remove="App_Data\DbInitializer\**" />
     <Content Remove="App_Data\ModelFiles\**" />
     <Content Remove="App_Data\NewFolder\**" />
     <Content Remove="App_Data\Projects\**" />
     <Content Remove="App_Data\TrainingFiles\**" />
     <Content Remove="PublishOutput\**" />
+    <EmbeddedResource Remove="App_Data\AgentArchive\**" />
+    <EmbeddedResource Remove="App_Data\Corpus\**" />
+    <EmbeddedResource Remove="App_Data\DbInitializer\**" />
     <EmbeddedResource Remove="App_Data\ModelFiles\**" />
     <EmbeddedResource Remove="App_Data\NewFolder\**" />
     <EmbeddedResource Remove="App_Data\Projects\**" />
     <EmbeddedResource Remove="App_Data\TrainingFiles\**" />
     <EmbeddedResource Remove="PublishOutput\**" />
+    <None Remove="App_Data\AgentArchive\**" />
+    <None Remove="App_Data\Corpus\**" />
+    <None Remove="App_Data\DbInitializer\**" />
     <None Remove="App_Data\ModelFiles\**" />
     <None Remove="App_Data\NewFolder\**" />
     <None Remove="App_Data\Projects\**" />
     <None Remove="App_Data\TrainingFiles\**" />
     <None Remove="PublishOutput\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="App_Data\DbInitializer\Agents\agents.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\agent.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album_entries_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service_entries_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort_entries_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist_entries_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song_entries_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop_usersays_en.json" />
-    <Content Remove="App_Data\DbInitializer\Agents\Dialogflow\Spotify\package.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -89,44 +63,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="App_Data\DbInitializer\Agents\agents.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\agent.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-album_entries_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-service_entries_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\music-sort_entries_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\playlist_entries_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\entities\song_entries_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music.play_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_favorite_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.add_playlist_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.pause_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.play_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.repeat_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.resume_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.shuffle_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_backward_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.skip_forward_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\intents\music_player_control.stop_usersays_en.json" />
-    <None Include="App_Data\DbInitializer\Agents\Dialogflow\Spotify\package.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
@@ -134,6 +70,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="App_Data\" />
   </ItemGroup>
 
 </Project>

@@ -17,7 +17,7 @@ namespace BotSharp.Core.Engines
         /// <returns></returns>
         Agent LoadAgent(string id);
 
-        Agent LoadAgentFromFile<TAgentImporter>(string dataDir, AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new();
+        Agent LoadAgentFromFile<TAgentImporter>(string dataDir) where TAgentImporter : IAgentImporter, new();
 
         AIResponse TextRequest(AIRequest request);
 

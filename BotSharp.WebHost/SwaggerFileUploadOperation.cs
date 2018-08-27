@@ -11,7 +11,7 @@ namespace BotSharp.WebHost
     {
         public void Apply(Operation operation, OperationFilterContext context)
         {
-            if (operation.OperationId == "V1AgentRestoreByNamePost")
+            if (operation.OperationId == "V1AgentRestorePost")
             {
                 operation.Parameters.Clear();
 
@@ -19,7 +19,7 @@ namespace BotSharp.WebHost
                 {
                     Name = "uploadedFile",
                     In = "formData",
-                    Description = "Upload Zip File",
+                    Description = "Upload Zip File， meta.json is the extra data for customized function.",
                     Required = true,
                     Type = "file"
                 });
