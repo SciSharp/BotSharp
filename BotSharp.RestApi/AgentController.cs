@@ -4,6 +4,7 @@ using BotSharp.Core.Engines.BotSharp;
 using BotSharp.Core.Models;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.RestApi
 {
@@ -43,23 +45,38 @@ namespace BotSharp.RestApi
         /// <summary>
         /// Restore a agent from a uploaded zip file 
         /// </summary>
-        /// <param name="agentId"></param>
+        /// <param name="file"></param>
         /// <returns></returns>
-        [HttpGet("{agentId}")]
-        public ActionResult Restore([FromRoute] String agentId)
+        [HttpPost]
+        public async Task<ActionResult> Restore(IFormFile file)
         {
-            var botsHeaderFilePath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), $"DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json");
+            System.IO.Compression.ZipFile.ExtractToDirectory("", "");
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest();
+            }
+
+            var filePath = Path.GetTempFileName();
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            _platform.LoadAgentFromFile<AgentImporterInDialogflow>("", new AgentImportHeader { });
+            /*var botsHeaderFilePath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), $"DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json");
             var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(System.IO.File.ReadAllText(botsHeaderFilePath));
 
             var rasa = new BotSharpAi();
             var agentHeader = agents.First(x => x.Id == agentId);
-            rasa.RestoreAgent<AgentImporterInDialogflow>(agentHeader);
+            rasa.RestoreAgent<AgentImporterInDialogflow>(agentHeader);*/
 
             return Ok();
         }
 
         /// <summary>
-        /// Restore a agent from a uploaded zip file 
+        /// Train agent
         /// </summary>
         /// <param name="agentId"></param>
         /// <returns></returns>

@@ -59,6 +59,7 @@ namespace BotSharp.WebHost
 
                 var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
                 c.IncludeXmlComments(filePath);
+                c.OperationFilter<SwaggerFileUploadOperation>();
             });
 
             // register platform dependency
