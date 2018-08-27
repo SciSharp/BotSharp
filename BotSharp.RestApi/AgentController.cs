@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,13 +46,12 @@ namespace BotSharp.RestApi
         /// <summary>
         /// Restore a agent from a uploaded zip file 
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="file"></param>
         /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult> Restore(IFormFile file)
         {
-            System.IO.Compression.ZipFile.ExtractToDirectory("", "");
-
             if (file == null || file.Length == 0)
             {
                 return BadRequest();
@@ -64,13 +64,10 @@ namespace BotSharp.RestApi
                 await file.CopyToAsync(stream);
             }
 
-            _platform.LoadAgentFromFile<AgentImporterInDialogflow>("", new AgentImportHeader { });
-            /*var botsHeaderFilePath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), $"DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json");
-            var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(System.IO.File.ReadAllText(botsHeaderFilePath));
+            string dest = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", "", DateTime.UtcNow.ToString("MMddyyyyHHmm"));
+            ZipFile.ExtractToDirectory(filePath, dest);
 
-            var rasa = new BotSharpAi();
-            var agentHeader = agents.First(x => x.Id == agentId);
-            rasa.RestoreAgent<AgentImporterInDialogflow>(agentHeader);*/
+            _platform.LoadAgentFromFile<AgentImporterInDialogflow>("", new AgentImportHeader { });
 
             return Ok();
         }

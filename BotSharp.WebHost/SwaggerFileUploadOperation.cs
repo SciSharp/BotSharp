@@ -2,6 +2,7 @@
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BotSharp.WebHost
@@ -10,14 +11,15 @@ namespace BotSharp.WebHost
     {
         public void Apply(Operation operation, OperationFilterContext context)
         {
-            if (operation.OperationId == "V1AgentRestorePost")
+            if (operation.OperationId == "V1AgentRestoreByNamePost")
             {
                 operation.Parameters.Clear();
+
                 operation.Parameters.Add(new NonBodyParameter
                 {
                     Name = "uploadedFile",
                     In = "formData",
-                    Description = "Upload File",
+                    Description = "Upload Zip File",
                     Required = true,
                     Type = "file"
                 });
