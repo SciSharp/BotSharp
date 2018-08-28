@@ -14,29 +14,35 @@ namespace BotSharp.Core.Engines.BotSharp
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
+        private TokenizerFactory<RegexTokenizer> _tokenizer;
+
+        public BotSharpTokenizer()
+        {
+            _tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            {
+                Pattern = RegexTokenizer.WORD_PUNC
+            }, SupportedLanguage.English);
+        }
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
+            // same as train
+            doc.Sentences.ForEach(snt =>
+            {
+                snt.Tokens = _tokenizer.Tokenize(snt.Text);
+            });
+
             return true;
         }
 
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            List<List<Token>> tokens = new List<List<Token>>();
-            var corpus = agent.Corpus;
-
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
-            {
-                Pattern = RegexTokenizer.WORD_PUNC
-            }, SupportedLanguage.English);
-
             doc.Sentences = new List<NlpDocSentence>();
-            List<string> sentencesList = new List<string>();
-            corpus.UserSays.ForEach(say =>
+            agent.Corpus.UserSays.ForEach(say =>
             {
                 doc.Sentences.Add(new NlpDocSentence
                 {
-                    Tokens = tokenizer.Tokenize(say.Text),
+                    Tokens = _tokenizer.Tokenize(say.Text),
                     Text = say.Text
                 });
             });

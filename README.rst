@@ -24,69 +24,10 @@ Some Features
 
 Documents
 ---------
-https://botsharp.readthedocs.io/en/latest
+Read the docs: https://botsharp.readthedocs.io
 
-https://github.com/Oceania2018/BotSharp/wiki
+Github Wiki: https://github.com/Oceania2018/BotSharp/wiki
 
-QUICK START
------------
-Building BotSharp
-^^^^^^^^^^^^^^^^^
-Make sure the `Microsoft .NET Core`_ build environment is installed. 
-Building solution using dotnet CLI (preferred).
-
-::
-
-    PS D:\> git clone https://github.com/Oceania2018/BotSharp
-    PS D:\> cd BotSharp
-    PS D:\> dotnet build
-
-Install in docker container
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Make sure you've got `Docker`_ installed:
-
-::
- 
-    PS D:\> git clone https://github.com/Oceania2018/BotSharp
-    PS D:\> cd BotSharp
-    
-Build docker image:
-
-::
-
- PS D:\BotSharp\> docker build -t botsharp .
-
-Start a container:
-
-::
-
- PS D:\BotSharp\> docker run -it -p 3112:3112 botsharp
-
-
-Install in NuGet
-^^^^^^^^^^^^^^^^
-
-::
- 
- PM> Install-Package BotSharp.Core
- PM> Install-Package BotSharp.RestApi
-
-Use BotSharp.NLP as a natural language processing toolkit alone.
-
-::
-
- PM> Install-Package BotSharp.NLP
-
-
-
-Tip Jar
--------
-* Ethereum 0x2FdE97210cd14F6020C67BAFA61d4c227FdC268d
-
-.. image:: https://raw.githubusercontent.com/Haiping-Chen/Etherscan.NetSDK/master/qr_code_eth.jpg
-   :height: 160px
 
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
 .. _Articulate UI: https://spg.ai/projects/articulate
-.. _Microsoft .NET Core: https://www.microsoft.com/net/download
-.. _Docker: https://www.docker.com

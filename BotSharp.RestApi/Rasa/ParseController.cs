@@ -1,14 +1,21 @@
 ﻿using BotSharp.Core.Engines;
+using BotSharp.Core.Engines.Rasa;
 using BotSharp.Core.Models;
 using BotSharp.NLP;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace BotSharp.RestApi.Rasa
 {
 #if RASA_UI
+    /// <summary>
+    /// send a text request
+    /// </summary>
     [Route("[controller]")]
     public class ParseController : ControllerBase
     {
@@ -23,33 +30,57 @@ namespace BotSharp.RestApi.Rasa
             _platform = platform;
         }
 
-        [HttpPost]
-        public ActionResult<RasaResponse> Parse(RasaRequestModel request)
+        /// <summary>
+        /// parse request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost, HttpGet]
+        public ActionResult<RasaResponse> Parse()
         {
-            String clientAccessToken = Request.Headers["ClientAccessToken"];
-            var config = new AIConfiguration(clientAccessToken, SupportedLanguage.English);
+            var config = new AIConfiguration("", SupportedLanguage.English);
             config.SessionId = "rasa nlu";
 
-            _platform.LoadAgent(clientAccessToken);
+            string body = "";
+            using (var reader = new StreamReader(Request.Body))
+            {
+                body = reader.ReadToEnd();
+            }
+            var request = JsonConvert.DeserializeObject<RasaRequestModel>(body);
+
+            // Load agent
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.Project);
+            var modelPath = Path.Combine(projectPath, request.Model);
+
+            _platform.LoadAgentFromFile(modelPath);
 
             var aIResponse = _platform.TextRequest(new AIRequest
             {
+                Model = request.Model,
                 Query = new String[] { request.Text }
             });
 
-            return new RasaResponse
+            var rasaResponse = new RasaResponse
             {
                 Intent = new RasaResponseIntent
                 {
                     Name = aIResponse.Result.Metadata.IntentName,
                     Confidence = aIResponse.Result.Score
                 },
-                Entities = new List<RasaResponseEntity>
+                Entities = aIResponse.Result.Entities.Select(x => new RasaResponseEntity
                 {
-
-                },
-                Text = request.Text
+                    Extractor = x.Extrator,
+                    Start = x.Start,
+                    Entity = x.Entity,
+                    Value = x.Value
+                }).ToList(),
+                Text = request.Text,
+                Model = request.Model,
+                Project = request.Project,
+                IntentRanking = new List<RasaResponseIntent> { }
             };
+
+            return rasaResponse;
         }
     }
 #endif

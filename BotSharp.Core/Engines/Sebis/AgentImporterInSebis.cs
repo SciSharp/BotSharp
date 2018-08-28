@@ -25,7 +25,6 @@ namespace BotSharp.Core.Engines
         /// <summary>
         /// Load agent meta
         /// </summary>
-        /// <param name="agentName"></param>
         /// <param name="agentDir"></param>
         /// <returns></returns>
         public Agent LoadAgent(AgentImportHeader agentHeader)

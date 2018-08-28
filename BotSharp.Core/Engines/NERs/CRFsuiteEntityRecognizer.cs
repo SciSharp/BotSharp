@@ -209,7 +209,8 @@ namespace BotSharp.Core.Engines.NERs
                     Entity = entity,
                     Start = doc.Sentences[0].Tokens[i].Start,
                     Value = doc.Sentences[0].Tokens[i].Text,
-                    Confidence = probability
+                    Confidence = probability,
+                    Extrator = "CRFsuiteEntityRecognizer"
                 });
             }
 
@@ -249,6 +250,7 @@ namespace BotSharp.Core.Engines.NERs
                 nlpEntity.Start = tokens[i].Start;
                 nlpEntity.Value = unionValue.ToString();
                 nlpEntity.Confidence = unoinConfidence;
+                nlpEntity.Extrator = tokens[i].Extrator;
                 res.Add(nlpEntity);
                 i = j - 1;
             }

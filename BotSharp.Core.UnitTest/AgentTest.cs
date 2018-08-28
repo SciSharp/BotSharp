@@ -51,7 +51,7 @@ namespace BotSharp.Core.UnitTest
 
             agents.ForEach(agentHeader => {
                 var bot = new BotSharpAi();
-                bot.RestoreAgent<AgentImporterInDialogflow>(agentHeader);
+                bot.RestoreAgent<AgentImporterInDialogflow>();
             });
         }
 

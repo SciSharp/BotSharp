@@ -1,0 +1,2 @@
+﻿conll2000_chunking is downloaded from https://www.clips.uantwerpen.be/conll2000/chunking/
+The train and test data consist of three columns separated by spaces. Each word has been put on a separate line and there is an empty line after each sentence. The first column contains the current word, the second its part-of-speech tag as derived by the Brill tagger and the third its chunk tag as derived from the WSJ corpus. 

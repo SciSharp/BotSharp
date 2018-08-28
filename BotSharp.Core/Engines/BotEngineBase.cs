@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Agents;
+using BotSharp.Core.Engines.Rasa;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
@@ -53,6 +54,7 @@ namespace BotSharp.Core.Engines
                     ResolvedQuery = doc.Sentences[0].Text,
                     Fulfillment = new AIResponseFulfillment { },
                     Parameters = parameters,
+                    Entities = doc.Sentences[0].Entities,
                     Metadata = new AIResponseMetadata
                     {
                         IntentName = doc.Sentences[0].Intent?.Label
@@ -85,28 +87,44 @@ namespace BotSharp.Core.Engines
         /// Restore a agent instance from backup json files
         /// </summary>
         /// <param name="importer"></param>
-        /// <param name="agentHeader"></param>
         /// <param name="dataDir"></param>
         /// <returns></returns>
-        public bool RestoreAgent<TAgentImporter>(AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
+        public bool RestoreAgent<TAgentImporter>() where TAgentImporter : IAgentImporter, new()
         {
             string dataDir = Path.Combine(DbInitializerPath, "Agents");
 
             int row = dc.DbTran(() => {
-                LoadAgentFromFile<TAgentImporter>(dataDir, agentHeader);
+                LoadAgentFromFile(dataDir);
                 SaveAgent();
             });
 
             return row > 0;
         }
 
-        public Agent LoadAgentFromFile<TAgentImporter>(string dataDir, AgentImportHeader agentHeader) where TAgentImporter : IAgentImporter, new()
+        public Agent LoadAgentFromFile(string dataDir)
         {
-            var importer = new TAgentImporter();
+            var meta = LoadMeta(dataDir);
+            IAgentImporter importer = null;
+
+            switch (meta.Platform)
+            {
+                case "Dialogflow":
+                    importer = new AgentImporterInDialogflow();
+                    break;
+                case "Rasa":
+                    importer = new AgentImporterInRasa();
+                    break;
+                case "Sebis":
+                    importer = new AgentImporterInSebis();
+                    break;
+                default:
+                    break;
+            }
+            
             importer.AgentDir = dataDir;
 
             // Load agent summary
-            agent = importer.LoadAgent(agentHeader);
+            agent = importer.LoadAgent(meta);
 
             // Load user custom entities
             importer.LoadCustomEntities(agent);
@@ -123,6 +141,14 @@ namespace BotSharp.Core.Engines
             return agent;
         }
 
+        private AgentImportHeader LoadMeta(string dataDir)
+        {
+            // load meta
+            string metaJson = File.ReadAllText(Path.Combine(dataDir, "meta.json"));
+
+            return JsonConvert.DeserializeObject<AgentImportHeader>(metaJson);
+        }
+
         public String SaveAgent()
         {
             var existedAgent = dc.Table<Agent>().FirstOrDefault(x => x.Id == agent.Id || x.Name == agent.Name);
@@ -136,6 +162,76 @@ namespace BotSharp.Core.Engines
                 agent.Id = existedAgent.Id;
                 return existedAgent.Id;
             }
+        }
+
+        public TrainingCorpus GetIntentExpressions(Agent agent)
+        {
+            TrainingCorpus corpus = new TrainingCorpus()
+            {
+                UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>(),
+                Entities = new List<TrainingEntity>()
+            };
+
+            var expressParts = new List<IntentExpressionPart>();
+
+            var intents = agent.Intents;
+
+            intents.ForEach(intent =>
+            {
+                intent.UserSays.ForEach(exp =>
+                {
+                    exp.Data = exp.Data.OrderBy(x => x.UpdatedTime).ToList();
+
+                    var say = new TrainingIntentExpression<TrainingIntentExpressionPart>
+                    {
+                        Intent = intent.Name,
+                        Text = String.Join("", exp.Data.Select(x => x.Text)),
+                        ContextHash = intent.ContextHash
+                    };
+
+                    // convert entity format
+                    exp.Data.Where(x => !String.IsNullOrEmpty(x.Meta))
+                    .ToList()
+                    .ForEach(x =>
+                    {
+                        var part = new TrainingIntentExpressionPart
+                        {
+                            Value = x.Text,
+                            Entity = $"{x.Meta}:{x.Alias}",
+                            Start = x.Start
+                        };
+
+                        if (say.Entities == null) say.Entities = new List<TrainingIntentExpressionPart>();
+                        say.Entities.Add(part);
+
+                        // assemble entity synonmus
+                        /*if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
+                        {
+                            var allSynonyms = (from e in dc.Table<EntityType>()
+                                               join ee in dc.Table<EntityEntry>() on e.Id equals ee.EntityId
+                                               join ees in dc.Table<EntrySynonym>() on ee.Id equals ees.EntityEntryId
+                                               where e.Name == x.Alias && ee.Value == x.Text & ees.Synonym != x.Text
+                                               select ees.Synonym).ToList();
+
+                            var te = new TrainingEntity
+                            {
+                                EntityType = $"{x.Meta}:{x.Alias}",
+                                EntityValue = x.Text,
+                                Synonyms = allSynonyms
+                            };
+
+                            trainingData.Entities.Add(te);
+                        }*/
+                    });
+
+                    corpus.UserSays.Add(say);
+                });
+            });
+
+            // remove Default Fallback Intent
+            corpus.UserSays = corpus.UserSays.Where(x => x.Intent != "Default Fallback Intent").ToList();
+
+            return corpus;
         }
 
         public TrainingCorpus GetIntentExpressions()
@@ -212,7 +308,7 @@ namespace BotSharp.Core.Engines
             return corpus;
         }
 
-        public virtual Task Train()
+        public virtual Task Train(BotTrainOptions options)
         {
             return Task.CompletedTask;
         }

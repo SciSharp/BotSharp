@@ -17,28 +17,35 @@ namespace BotSharp.Core.Engines.BotSharp
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
-        {
-            throw new NotImplementedException();
-        }
+        private TaggerFactory<NGramTagger> _tagger;
 
-        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        public BotSharpTagger()
         {
-            string dataDir = Path.Combine(Configuration.GetValue<String>("BotSharpTagger:dataDir"), "CoNLL");
+            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Corpus", "CoNLL");
             var data = new CoNLLReader().Read(new ReaderOptions
             {
                 DataDir = dataDir,
                 FileName = "conll2000_chunking_train.txt"
             });
 
-            var tagger = new TaggerFactory<NGramTagger>(new TagOptions
+            _tagger = new TaggerFactory<NGramTagger>(new TagOptions
             {
                 NGram = 1,
                 Tag = "NN",
                 Corpus = data
             }, SupportedLanguage.English);
+        }
 
-            doc.Sentences.ForEach(x => tagger.Tag(new Sentence { Words = x.Tokens }));
+        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
+        {
+            doc.Sentences.ForEach(x => _tagger.Tag(new Sentence { Words = x.Tokens }));
+
+            return true;
+        }
+
+        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        {
+            doc.Sentences.ForEach(x => _tagger.Tag(new Sentence { Words = x.Tokens }));
 
             return true;
         }

@@ -8,11 +8,10 @@
 
     "Pipe": {
       "train": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, FasttextClassifier",
-      "predict": "BotSharpTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer, FasttextClassifier"
+      "predict": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, FasttextClassifier"
     },
 
     "BotSharpTagger": {
-      "dataDir": "D:\\Projects\\BotSharp.NLP\\Data"
     },
 
     "CRFsuiteEntityRecognizer": {

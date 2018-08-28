@@ -1,5 +1,4 @@
-﻿using BotSharp.Core.Accounts;
-using DotNetToolkit;
+﻿using DotNetToolkit;
 using DotNetToolkit.JwtHelper;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Authorization;

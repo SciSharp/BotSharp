@@ -9,7 +9,7 @@ namespace BotSharp.Core.Engines
     {
         public String Id { get; set; }
         public String Name { get; set; }
-        public String UserId { get; set; }
+        public String Platform { get; set; }
         public String ClientAccessToken { get; set; }
         public String DeveloperAccessToken { get; set; }
 

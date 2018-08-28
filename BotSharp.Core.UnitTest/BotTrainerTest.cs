@@ -12,11 +12,11 @@ namespace BotSharp.Core.UnitTest
     public class BotTrainerTest : TestEssential
     {
         [TestMethod]
-        public void TrainingTest()
+        public async void TrainingTest()
         {
             var ai = new BotSharpAi();
             ai.LoadAgent(BOT_ID);
-            ai.Train();
+            await ai.Train(new BotTrainOptions { });
         }
     }
 }
