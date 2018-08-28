@@ -27,10 +27,8 @@ namespace BotSharp.Core.Engines
         /// </summary>
         /// <param name="agentDir"></param>
         /// <returns></returns>
-        public Agent LoadAgent()
+        public Agent LoadAgent(AgentImportHeader agentHeader)
         {
-            AgentImportHeader agentHeader = null;
-
             // load agent profile
             string data = File.ReadAllText(Path.Combine(AgentDir, "Sebis", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
             var agent = JsonConvert.DeserializeObject<SebisAgent>(data);

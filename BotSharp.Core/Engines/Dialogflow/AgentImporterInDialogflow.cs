@@ -27,13 +27,8 @@ namespace BotSharp.Core.Engines
         /// <param name="agentName"></param>
         /// <param name="agentDir"></param>
         /// <returns></returns>
-        public Agent LoadAgent()
+        public Agent LoadAgent(AgentImportHeader agentHeader)
         {
-            // load meta
-            string metaJson = File.ReadAllText(Path.Combine(AgentDir, "meta.json"));
-
-            AgentImportHeader agentHeader = JsonConvert.DeserializeObject<AgentImportHeader>(metaJson);
-
             // load agent profile
             string data = File.ReadAllText(Path.Combine(AgentDir, "agent.json"));
             var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);

@@ -35,15 +35,6 @@ namespace BotSharp.Core.Engines
 
         public async Task<ModelMetaData> Train(Agent agent, BotTrainOptions options)
         {
-            /*agent.Intents = dc.Table<Intent>()
-                .Include(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Parameters).ThenInclude(x => x.Prompts)
-                .Include(x => x.Responses).ThenInclude(x => x.Messages)
-                .Include(x => x.UserSays).ThenInclude(x => x.Data)
-                .Where(x => x.AgentId == agentId)
-                .ToList();*/
-
             var data = new NlpDoc();
 
             // Get NLP Provider

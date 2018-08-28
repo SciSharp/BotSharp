@@ -8,11 +8,11 @@ namespace BotSharp.Core.Engines.BotSharp
 {
     public class BotSharpAi : BotEngineBase, IBotPlatform
     {
-        public override async Task Train()
+        public override async Task Train(BotTrainOptions options)
         {
-            agent.Corpus = GetIntentExpressions();
+            agent.Corpus = GetIntentExpressions(agent);
             var trainer = new BotTrainer(agent.Id, dc);
-            await trainer.Train(agent, new BotTrainOptions { });
+            await trainer.Train(agent, options);
         }
     }
 }

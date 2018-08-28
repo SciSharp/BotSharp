@@ -16,7 +16,7 @@ namespace BotSharp.Core.Engines
         /// Load agent summary
         /// </summary>
         /// <returns></returns>
-        Agent LoadAgent();
+        Agent LoadAgent(AgentImportHeader agentHeader);
 
         /// <summary>
         /// Load user customized entity type which defined in dictionary

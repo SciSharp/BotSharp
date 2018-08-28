@@ -52,7 +52,7 @@ namespace BotSharp.RestApi.Rasa
             var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.Project);
             var modelPath = Path.Combine(projectPath, request.Model);
 
-            _platform.LoadAgentFromFile<AgentImporterInRasa>(modelPath);
+            _platform.LoadAgentFromFile(modelPath);
 
             var aIResponse = _platform.TextRequest(new AIRequest
             {

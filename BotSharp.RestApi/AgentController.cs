@@ -68,7 +68,7 @@ namespace BotSharp.RestApi
 
             System.IO.File.Delete(filePath);
 
-            var agent = _platform.LoadAgentFromFile<AgentImporterInDialogflow>(dest);
+            var agent = _platform.LoadAgentFromFile(dest);
 
             return Ok(agent.Id);
         }
@@ -81,8 +81,10 @@ namespace BotSharp.RestApi
         [HttpGet("{agentId}")]
         public string Train([FromRoute] String agentId)
         {
-            _platform.LoadAgent(agentId);
-            _platform.Train();
+            string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agentId);
+            string dest = Directory.GetDirectories(agentDir).Last();
+            var agent = _platform.LoadAgentFromFile(dest);
+            _platform.Train(new BotTrainOptions { AgentDir = agentDir, Model = dest.Split(Path.DirectorySeparatorChar).Last() });
 
             return "";
         }
