@@ -1,29 +1,26 @@
 {
-  "RasaAi": {
-    "url": "http://10.2.21.200:5000"
-  },
   "BotSharpAi": {
     "Lang": "en",
 
-    "Provider": "SpaCyProvider",
-    "SpaCyProvider": {
-      "url": "http://localhost:5005"
-    },
-    "NltkProvider": {
-      "url": "http://localhost:5005"
-    },
-    "Pipe": {
-      "train": "SpaCyTokenizer, CRFsuiteEntityRecognizer, FasttextClassifier",
-      "predict": "SpaCyTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer"
+    "Provider": "BotSharpProvider",
+    "BotSharpProvider": {
     },
 
-    "SpaCyTokenizer": {
+    "Pipe": {
+      "train": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, FasttextClassifier",
+      "predict": "BotSharpTokenizer, CRFsuiteEntityRecognizer, WitAiEntityRecognizer, FasttextClassifier"
     },
+
+    "BotSharpTagger": {
+      "dataDir": "D:\\Projects\\BotSharp.NLP\\Data"
+    },
+
     "CRFsuiteEntityRecognizer": {
       "fields": "y w pos chk",
       "uniFeatures": "w wl pos chk shape shaped type p1 p2 p3 p4 s1 s2 s3 s4 2d 4d d&a d&- d&/ d&, d&. up iu au al ad ao cu cl ca cd cs",
       "biFeatures": "w pos chk shaped type"
     },
+
     "WitAiEntityRecognizer": {
       "url": "https://api.wit.ai",
       "resource": "message",

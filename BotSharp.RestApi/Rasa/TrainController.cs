@@ -3,6 +3,7 @@ using BotSharp.Core.Engines;
 using BotSharp.Core.Engines.Rasa;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,11 @@ namespace BotSharp.RestApi.Rasa
         }
 
         [HttpPost]
-        public async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestModel request, [FromQuery] string project)
+        public async Task<ActionResult<String>> Train(RasaUiMiddlewareRequestModel request)
+        {
+            return Ok();
+        }
+        /*public async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestModel request, [FromQuery] string project)
         {
             var trainer = new BotTrainer();
             if (String.IsNullOrEmpty(request.Project))
@@ -67,7 +72,7 @@ namespace BotSharp.RestApi.Rasa
             var info = await trainer.Train(agent);
 
             return Ok(new { info = info.Model });
-        }
+        }*/
     }
 #endif
 }

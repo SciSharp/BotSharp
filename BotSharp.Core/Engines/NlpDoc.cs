@@ -1,4 +1,4 @@
-﻿using BotSharp.MachineLearning.NLP;
+﻿using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
 using System;
 using System.Collections.Generic;

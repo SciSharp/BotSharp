@@ -7,7 +7,6 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using BotSharp.MachineLearning.NLP;
 using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.SpaCy
