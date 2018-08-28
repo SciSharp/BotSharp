@@ -15,6 +15,15 @@ Make sure you've got `Docker`_ installed.
 
 Point your web browser at http://localhost:5001 and enjoy Rasa-UI with BotSharp.
 
+Integrate with `Articulate UI`_, you can use docker compose to run.
+Make sure you've got `Docker`_ installed.
+
+::
+
+ PS D:\BotSharp\> docker-compose -f docker-compose-articulateui.yml up
+
+Point your web browser at http://localhost:3000 and enjoy Rasa-UI with BotSharp.
+
 Building BotSharp
 ^^^^^^^^^^^^^^^^^
 Make sure the `Microsoft .NET Core`_ build environment is installed. 
