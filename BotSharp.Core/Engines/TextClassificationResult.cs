@@ -6,6 +6,8 @@ namespace BotSharp.Core.Engines
 {
     public class TextClassificationResult
     {
+        public String Classifier { get; set; }
+
         public String Label { get; set; }
 
         public Decimal Confidence { get; set; }

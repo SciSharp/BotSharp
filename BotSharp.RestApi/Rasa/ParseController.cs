@@ -36,7 +36,7 @@ namespace BotSharp.RestApi.Rasa
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost, HttpGet]
-        public ActionResult<RasaResponse> Parse()
+        public ActionResult<RasaResponse> Parse(RasaRequestModel request)
         {
             var config = new AIConfiguration("", SupportedLanguage.English);
             config.SessionId = "rasa nlu";
@@ -46,16 +46,21 @@ namespace BotSharp.RestApi.Rasa
             {
                 body = reader.ReadToEnd();
             }
-            var request = JsonConvert.DeserializeObject<RasaRequestModel>(body);
+
+            if(request ==null && !String.IsNullOrEmpty(body))
+            {
+                request = JsonConvert.DeserializeObject<RasaRequestModel>(body);
+            }
 
             // Load agent
             var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.Project);
             var modelPath = Path.Combine(projectPath, request.Model);
 
-            _platform.LoadAgentFromFile(modelPath);
+            var agent = _platform.LoadAgentFromFile(modelPath);
 
             var aIResponse = _platform.TextRequest(new AIRequest
             {
+                AgentDir = projectPath,
                 Model = request.Model,
                 Query = new String[] { request.Text }
             });
@@ -76,7 +81,7 @@ namespace BotSharp.RestApi.Rasa
                 }).ToList(),
                 Text = request.Text,
                 Model = request.Model,
-                Project = request.Project,
+                Project = agent.Name,
                 IntentRanking = new List<RasaResponseIntent> { }
             };
 

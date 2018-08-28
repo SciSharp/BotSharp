@@ -57,11 +57,11 @@ namespace BotSharp.Core.Engines
 
             var settings = new PipeSettings
             {
-                ProjectDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id),
+                ProjectDir = Path.Combine(options.AgentDir),
                 AlgorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
             };
 
-            settings.ModelDir = Path.Combine(settings.ProjectDir, String.IsNullOrEmpty(options.Model) ? "model" + DateTime.UtcNow.ToString("MMddyyyyHHmm") : options.Model);
+            settings.ModelDir = Path.Combine(options.AgentDir, options.Model);
 
             if (!Directory.Exists(settings.ProjectDir))
             {
@@ -117,7 +117,7 @@ namespace BotSharp.Core.Engines
                 NullValueHandling = NullValueHandling.Ignore,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
-            File.WriteAllText(Path.Combine(settings.ModelDir, "metadata.json"), metaJson);
+            File.WriteAllText(Path.Combine(settings.ModelDir, "model-meta.json"), metaJson);
 
             Console.WriteLine(metaJson);
 

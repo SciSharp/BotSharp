@@ -18,6 +18,11 @@ namespace BotSharp.Core.Models
         public OriginalRequest OriginalRequest { get; set; }
 
         /// <summary>
+        /// Agent directory
+        /// </summary>
+        public string AgentDir { get; set; }
+
+        /// <summary>
         /// What model is used to predict.
         /// </summary>
         public string Model { get; set; }

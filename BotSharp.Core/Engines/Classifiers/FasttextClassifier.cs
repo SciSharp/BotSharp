@@ -31,6 +31,7 @@ namespace BotSharp.Core.Engines.Classifiers
 
             doc.Sentences[0].Intent = new TextClassificationResult
             {
+                Classifier = "FasttextClassifier",
                 Label = output.Split(' ')[0].Split(new string[] { "__label__" }, StringSplitOptions.None)[1],
                 Confidence = decimal.Parse(output.Split(' ')[1])
             };

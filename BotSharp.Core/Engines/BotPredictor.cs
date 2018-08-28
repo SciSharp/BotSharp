@@ -20,9 +20,9 @@ namespace BotSharp.Core.Engines
         public async Task<NlpDoc> Predict(Agent agent, AIRequest request)
         {
             // load model
-            var dir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id, request.Model);
+            var dir = Path.Combine(request.AgentDir, request.Model);
             Console.WriteLine($"Load model from {dir}");
-            var metaJson = File.ReadAllText(Path.Combine(dir, "metadata.json"));
+            var metaJson = File.ReadAllText(Path.Combine(dir, "model-meta.json"));
             var meta = JsonConvert.DeserializeObject<ModelMetaData>(metaJson);
 
             // Get NLP Provider
@@ -50,7 +50,7 @@ namespace BotSharp.Core.Engines
             var settings = new PipeSettings
             {
                 ModelDir = dir,
-                ProjectDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id),
+                ProjectDir = request.AgentDir,
                 AlgorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
             };
 
