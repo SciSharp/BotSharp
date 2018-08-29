@@ -54,6 +54,12 @@ namespace BotSharp.RestApi.Rasa
 
             // Load agent
             var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.Project);
+
+            if (String.IsNullOrEmpty(request.Model))
+            {
+                request.Model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last();
+            }
+
             var modelPath = Path.Combine(projectPath, request.Model);
 
             var agent = _platform.LoadAgentFromFile(modelPath);

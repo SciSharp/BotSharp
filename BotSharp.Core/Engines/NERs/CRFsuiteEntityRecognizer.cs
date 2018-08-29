@@ -56,7 +56,7 @@ namespace BotSharp.Core.Engines.NERs
                 {
                     for (int i = 0; i < doc.Sentences.Count; i++)
                     {
-                        List<TrainingData> curLine = Merge(doc.Sentences[i].Tokens, userSays[i].Entities);
+                        List<TrainingData> curLine = Merge(doc, doc.Sentences[i].Tokens, userSays[i].Entities);
                         curLine.ForEach(trainingData =>
                         {
                             string[] wordParams = { trainingData.Entity, trainingData.Token, trainingData.Pos, trainingData.Chunk };
@@ -89,7 +89,7 @@ namespace BotSharp.Core.Engines.NERs
             return true;
         }
 
-        public List<TrainingData> Merge(List<Token> tokens, List<TrainingIntentExpressionPart> entities)
+        public List<TrainingData> Merge(NlpDoc doc, List<Token> tokens, List<TrainingIntentExpressionPart> entities)
         {
             List<TrainingData> trainingTuple = new List<TrainingData>();
             HashSet<String> entityWordBag = new HashSet<String>();
@@ -104,7 +104,10 @@ namespace BotSharp.Core.Engines.NERs
                     entities.ForEach(entity => {
                         if (!entityFinded)
                         {
-                            string[] words = entity.Value.Split(' ');
+                            var vDoc = new NlpDoc { Sentences = new List<NlpDocSentence> { new NlpDocSentence { Text = entity.Value } } };
+                            doc.Tokenizer.Predict(null, vDoc, null);
+                            string[] words = vDoc.Sentences[0].Tokens.Select(x => x.Text).ToArray();
+
                             for (int j = 0; j < words.Length; j++)
                             {
                                 if (tokens[i + j].Text == words[j])
@@ -214,7 +217,7 @@ namespace BotSharp.Core.Engines.NERs
                 });
             }
 
-            List<NlpEntity> unionedEntities = MergeEntity(entities);
+            List<NlpEntity> unionedEntities = MergeEntity(doc.Sentences[0].Text, entities);
 
             doc.Sentences[0].Entities = unionedEntities.Where(x => x.Entity != "O").ToList();
             
@@ -230,29 +233,35 @@ namespace BotSharp.Core.Engines.NERs
             return true;
         }
 
-        public List<NlpEntity> MergeEntity (List<NlpEntity> tokens)
+        public List<NlpEntity> MergeEntity (string sentence, List<NlpEntity> tokens)
         {
             List<NlpEntity> res = new List<NlpEntity>();
             for (int i = 0; i < tokens.Count ; i++) 
             {
                 NlpEntity nlpEntity = new NlpEntity();
-                StringBuilder unionValue = new StringBuilder(tokens[i].Value);
-                StringBuilder unionEntity = new StringBuilder(tokens[i].Entity);
-                decimal unoinConfidence = tokens[i].Confidence;
+                var current = tokens[i];
 
-                int j = i + 1;
-                while (j < tokens.Count && tokens[j].Entity == tokens[i].Entity && tokens[i].Entity != "O") 
+                if (current.Entity != "O")
                 {
-                    unionValue.Append(" " + tokens[j].Value);
-                    j++;
+                    nlpEntity = current.ToObject<NlpEntity>();
+                    // greedy search until next entity
+                    int j = 0;
+                    for (j = i + 1; j < tokens.Count; j++)
+                    {
+                        var next = tokens[j];
+                        if (current.Entity == next.Entity)
+                        {
+                            i = j;
+                            nlpEntity.Value = sentence.Substring(current.Start, next.End - current.Start + 1);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    
+                    res.Add(nlpEntity);
                 }
-                nlpEntity.Entity = unionEntity.ToString();
-                nlpEntity.Start = tokens[i].Start;
-                nlpEntity.Value = unionValue.ToString();
-                nlpEntity.Confidence = unoinConfidence;
-                nlpEntity.Extrator = tokens[i].Extrator;
-                res.Add(nlpEntity);
-                i = j - 1;
             }
             return res;
         }

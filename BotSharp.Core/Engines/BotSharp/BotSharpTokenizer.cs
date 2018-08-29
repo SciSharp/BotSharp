@@ -20,12 +20,15 @@ namespace BotSharp.Core.Engines.BotSharp
         {
             _tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
             {
-                Pattern = RegexTokenizer.WORD_PUNC
+                Pattern = RegexTokenizer.WORD_PUNC,
+                SpecialWords = new List<string> { "'s" }
             }, SupportedLanguage.English);
         }
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
+            doc.Tokenizer = this;
+
             // same as train
             doc.Sentences.ForEach(snt =>
             {
@@ -37,7 +40,9 @@ namespace BotSharp.Core.Engines.BotSharp
 
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
+            doc.Tokenizer = this;
             doc.Sentences = new List<NlpDocSentence>();
+
             agent.Corpus.UserSays.ForEach(say =>
             {
                 doc.Sentences.Add(new NlpDocSentence

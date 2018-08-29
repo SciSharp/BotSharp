@@ -1,4 +1,5 @@
-﻿using BotSharp.Models.NLP;
+﻿using BotSharp.Core.Abstractions;
+using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ namespace BotSharp.Core.Engines
 {
     public class NlpDoc
     {
+        public INlpPredict Tokenizer { get; set; }
         public List<NlpDocSentence> Sentences { get; set; }
     }
 
