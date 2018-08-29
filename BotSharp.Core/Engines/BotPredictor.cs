@@ -61,13 +61,13 @@ namespace BotSharp.Core.Engines
                 .Select(x => x.Trim())
                 .ToList();
 
-            pipelines.ForEach(async pipeName =>
+            for(int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
-                var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPredict;
+                var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpPredict;
                 pipe.Configuration = provider.Configuration;
                 pipe.Settings = settings;
-                await pipe.Predict(agent, data, meta.Pipeline.FirstOrDefault(x => x.Name == pipeName));
-            });
+                await pipe.Predict(agent, data, meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]));
+            }
 
             Console.WriteLine(JsonConvert.SerializeObject(data, new JsonSerializerSettings
             {

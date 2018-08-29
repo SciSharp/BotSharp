@@ -57,7 +57,7 @@ namespace BotSharp.RestApi.Rasa
 
             if (String.IsNullOrEmpty(request.Model))
             {
-                request.Model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last();
+                request.Model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last().Split(Path.DirectorySeparatorChar).Last();
             }
 
             var modelPath = Path.Combine(projectPath, request.Model);
@@ -88,7 +88,14 @@ namespace BotSharp.RestApi.Rasa
                 Text = request.Text,
                 Model = request.Model,
                 Project = agent.Name,
-                IntentRanking = new List<RasaResponseIntent> { }
+                IntentRanking = new List<RasaResponseIntent>
+                {
+                    new RasaResponseIntent
+                    {
+                        Name = aIResponse.Result.Metadata.IntentName,
+                        Confidence = aIResponse.Result.Score
+                    }
+                }
             };
 
             return rasaResponse;

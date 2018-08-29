@@ -123,10 +123,10 @@ namespace BotSharp.WebHost
             AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
             AppDomain.CurrentDomain.SetData("Assemblies", Configuration.GetValue<String>("Assemblies").Split(','));
 
-            InitializationLoader loader = new InitializationLoader();
+            /*InitializationLoader loader = new InitializationLoader();
             loader.Env = env;
             loader.Config = Configuration;
-            loader.Load();
+            loader.Load();*/
         }
     }
 }
