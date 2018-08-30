@@ -25,7 +25,7 @@ namespace BotSharp.Core.Engines.Classifiers
             string predictFileName = Path.Combine(Settings.TempDir, "fasttext.txt");
             File.WriteAllText(predictFileName, doc.Sentences[0].Text);
 
-            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "fasttext"), $"predict-prob {modelFileName}.bin {predictFileName}");
+            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "fasttext"), $"predict-prob \"{modelFileName}.bin\" \"{predictFileName}\"");
 
             File.Delete(predictFileName);
 
@@ -52,7 +52,7 @@ namespace BotSharp.Core.Engines.Classifiers
 
             File.WriteAllText(parsedTrainingDataFileName, corpus.ToString());
 
-            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "fasttext"), $"supervised -input {parsedTrainingDataFileName} -output {modelFileName}", false);
+            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "fasttext"), $"supervised -input \"{parsedTrainingDataFileName}\" -output \"{modelFileName}\"", false);
 
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();

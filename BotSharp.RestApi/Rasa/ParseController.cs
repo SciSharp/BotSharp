@@ -95,7 +95,8 @@ namespace BotSharp.RestApi.Rasa
                         Name = aIResponse.Result.Metadata.IntentName,
                         Confidence = aIResponse.Result.Score
                     }
-                }
+                },
+                Fullfillment = aIResponse.Result.Fulfillment
             };
 
             return rasaResponse;

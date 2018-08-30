@@ -1,8 +1,11 @@
 ﻿using BotSharp.Core.Agents;
+using BotSharp.Core.Engines.QuickQA;
 using BotSharp.Core.Engines.Rasa;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
+using BotSharp.Models.NLP;
+using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -36,6 +39,10 @@ namespace BotSharp.Core.Engines
             var preditor = new BotPredictor();
             var doc = preditor.Predict(agent, request).Result;
             var parameters = new Dictionary<String, Object>();
+            if(doc.Sentences[0].Entities == null)
+            {
+                doc.Sentences[0].Entities = new List<NlpEntity>();
+            }
             doc.Sentences[0].Entities.ForEach(x => parameters.Add(x.Entity, x.Value));
 
             return new AIResponse
@@ -48,7 +55,10 @@ namespace BotSharp.Core.Engines
                 {
                     Score = doc.Sentences[0].Intent == null ? 0 : doc.Sentences[0].Intent.Confidence,
                     ResolvedQuery = doc.Sentences[0].Text,
-                    Fulfillment = new AIResponseFulfillment { },
+                    Fulfillment = new AIResponseFulfillment
+                    {
+                        Speech = agent.Intents.FirstOrDefault(tnt => tnt.Name == doc.Sentences[0].Intent?.Label)?.Responses?.Random()?.Messages?.Random()?.Speech
+                    },
                     Parameters = parameters,
                     Entities = doc.Sentences[0].Entities,
                     Metadata = new AIResponseMetadata
@@ -110,6 +120,9 @@ namespace BotSharp.Core.Engines
                     break;
                 case "Sebis":
                     importer = new AgentImporterInSebis();
+                    break;
+                case "QuickQA":
+                    importer = new AgentImporterInQuickQA();
                     break;
                 default:
                     break;

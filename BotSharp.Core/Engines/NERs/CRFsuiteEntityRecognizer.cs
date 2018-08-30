@@ -79,7 +79,7 @@ namespace BotSharp.Core.Engines.NERs
 
             var algorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms");
 
-            CmdHelper.Run(Path.Combine(algorithmDir, "crfsuite"), $"learn -m {modelFileName} {parsedTrainingDataFileName}", false); // --split=3 -x
+            CmdHelper.Run(Path.Combine(algorithmDir, "crfsuite"), $"learn -m \"{modelFileName}\" \"{parsedTrainingDataFileName}\"", false); // --split=3 -x
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();
             meta.Meta["fields"] = fields;
@@ -197,7 +197,7 @@ namespace BotSharp.Core.Engines.NERs
             new NLP.Models.CRFsuite.Ner()
                 .NerStart(rawPredictingDataFileName, parsedPredictingDataFileName, field, uniFeatures.Split(' '), biFeatures.Split(' '));
 
-            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m {modelFileName} {parsedPredictingDataFileName}", false);
+            var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "crfsuite"), $"tag -i -m \"{modelFileName}\" \"{parsedPredictingDataFileName}\"", false);
 
             var entities = new List<NlpEntity>();
 

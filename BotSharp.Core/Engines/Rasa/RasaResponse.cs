@@ -9,6 +9,8 @@ namespace BotSharp.Core.Models
     {
         public RasaResponseIntent Intent { get; set; }
 
+        public AIResponseFulfillment Fullfillment { get; set; }
+
         [JsonProperty("intent_ranking")]
         public List<RasaResponseIntent> IntentRanking { get; set; }
 

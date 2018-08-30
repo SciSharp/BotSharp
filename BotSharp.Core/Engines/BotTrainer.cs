@@ -94,21 +94,21 @@ namespace BotSharp.Core.Engines
                 .Select(x => x.Trim())
                 .ToList();
 
-            pipelines.ForEach(async pipeName =>
+            for (int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
-                var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpTrain;
+                var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpTrain;
                 pipe.Configuration = provider.Configuration;
                 pipe.Settings = settings;
                 pipeModel = new PipeModel
                 {
-                    Name = pipeName,
+                    Name = pipelines[pipeIdx],
                     Class = pipe.ToString(),
                     Time = DateTime.UtcNow
                 };
                 meta.Pipeline.Add(pipeModel);
 
                 await pipe.Train(agent, data, pipeModel);
-            });
+            }
 
             // save model meta data
             var metaJson = JsonConvert.SerializeObject(meta, new JsonSerializerSettings
