@@ -54,6 +54,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="App_Data\Corpus\CoNLL\conll2000_chunking_train.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
   </ItemGroup>
 
@@ -70,10 +74,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="3.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="App_Data\" />
   </ItemGroup>
 
 </Project>

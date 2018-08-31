@@ -14,10 +14,10 @@ services:
     ports: ['0.0.0.0:3000:3000']
     networks: ['botsharp-network']
     environment:
-     - rasanluendpoint=http://botsharp:5000
+     - rasanluendpoint=http://rasa:5000
      - API_URL
      
-  botsharp:
+  rasa:
     image: botsharpdocker/botsharp:latest
     ports: ['0.0.0.0:5000:5000']
     networks: ['botsharp-network']
