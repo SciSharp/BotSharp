@@ -51,6 +51,7 @@
 
   <ItemGroup>
     <PackageReference Include="BotSharp.NLP" Version="0.2.4" />
+    <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.9.1" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />

@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Console = Colorful.Console;
 
 namespace BotSharp.RestApi.Rasa
 {
@@ -47,6 +49,7 @@ namespace BotSharp.RestApi.Rasa
                 body = reader.ReadToEnd();
             }
 
+            Console.WriteLine($"Got message from {Request.Host}: {body}", Color.Green);
             if(request.Project ==null && !String.IsNullOrEmpty(body))
             {
                 request = JsonConvert.DeserializeObject<RasaRequestModel>(body);

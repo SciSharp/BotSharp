@@ -8,10 +8,12 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Console = Colorful.Console;
 
 namespace BotSharp.Core.Engines
 {
@@ -69,6 +71,7 @@ namespace BotSharp.Core.Engines
                 await pipe.Predict(agent, data, meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]));
             }
 
+            Console.WriteLine($"Prediction result:", Color.Green);
             Console.WriteLine(JsonConvert.SerializeObject(data, new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,

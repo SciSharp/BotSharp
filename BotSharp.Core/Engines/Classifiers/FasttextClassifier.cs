@@ -29,12 +29,15 @@ namespace BotSharp.Core.Engines.Classifiers
 
             File.Delete(predictFileName);
 
-            doc.Sentences[0].Intent = new TextClassificationResult
+            if (!String.IsNullOrEmpty(output))
             {
-                Classifier = "FasttextClassifier",
-                Label = output.Split(' ')[0].Split(new string[] { "__label__" }, StringSplitOptions.None)[1],
-                Confidence = decimal.Parse(output.Split(' ')[1])
-            };
+                doc.Sentences[0].Intent = new TextClassificationResult
+                {
+                    Classifier = "FasttextClassifier",
+                    Label = output.Split(' ')[0].Split(new string[] { "__label__" }, StringSplitOptions.None)[1],
+                    Confidence = decimal.Parse(output.Split(' ')[1])
+                };
+            }
 
             return true;
         }

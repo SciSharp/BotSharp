@@ -9,8 +9,10 @@ using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -38,6 +40,7 @@ namespace BotSharp.Core.Engines
         {
             var preditor = new BotPredictor();
             var doc = preditor.Predict(agent, request).Result;
+
             var parameters = new Dictionary<String, Object>();
             if(doc.Sentences[0].Entities == null)
             {
