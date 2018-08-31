@@ -8,6 +8,11 @@ Docker Composer
 ^^^^^^^^^^^^^^^
 You can use docker compose to run, make sure you've got `Docker`_ installed.
 
+::
+
+    PS D:\> git clone https://github.com/Oceania2018/BotSharp
+    PS D:\> cd BotSharp
+    
 1. Integrate with `Articulate UI`_
 
 ::

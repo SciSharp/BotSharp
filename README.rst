@@ -27,6 +27,8 @@ Quick Started
 You can use docker compose to run BotSharp quickly, make sure you've got `Docker`_ installed.
 ::
 
+ PS D:\> git clone https://github.com/Oceania2018/BotSharp
+ PS D:\> cd BotSharp
  PS D:\BotSharp\> docker-compose -f docker-compose-articulateui.yml up
 
 Point your web browser at http://localhost:3000 and enjoy BotSharp with Articulate-UI.
