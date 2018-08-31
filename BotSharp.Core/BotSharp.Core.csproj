@@ -62,4 +62,8 @@
     <Folder Include="Engines\CoreNlp\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\BotSharp.NLP\BotSharp.NLP\BotSharp.NLP.csproj" />
+  </ItemGroup>
+
 </Project>
