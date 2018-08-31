@@ -57,7 +57,7 @@ namespace BotSharp.Core.Engines
 
             var settings = new PipeSettings
             {
-                ProjectDir = Path.Combine(options.AgentDir),
+                ProjectDir = options.AgentDir,
                 AlgorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
             };
 

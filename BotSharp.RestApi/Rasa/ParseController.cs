@@ -47,7 +47,7 @@ namespace BotSharp.RestApi.Rasa
                 body = reader.ReadToEnd();
             }
 
-            if(request ==null && !String.IsNullOrEmpty(body))
+            if(request.Project ==null && !String.IsNullOrEmpty(body))
             {
                 request = JsonConvert.DeserializeObject<RasaRequestModel>(body);
             }

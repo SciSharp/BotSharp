@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BotSharp.RestApi.Rasa
@@ -48,8 +49,24 @@ namespace BotSharp.RestApi.Rasa
                 body = reader.ReadToEnd();
             }
 
-            var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(body);
+            string lang = Regex.Match(body, @"language:.+")?.Value;
+            if (!String.IsNullOrEmpty(lang))
+            {
+                lang = lang.Substring(11, 2);
+            }
+            string data = Regex.Match(body, @"data:([\s\S]*)")?.Value;
+            if (String.IsNullOrEmpty(data))
+            {
+                data = body;
+            }
+            else
+            {
+                data = data.Substring(6);
+            }
+
+            var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(data);
             rasa_nlu_data.Model = model;
+            rasa_nlu_data.Project = project;
             var trainResult = await Train(rasa_nlu_data, project);
 
             return trainResult;
@@ -73,6 +90,12 @@ namespace BotSharp.RestApi.Rasa
             }
 
             // Save raw data to file, then parse it to Agent instance.
+            var metaFileName = Path.Combine(modelPath, "meta.json");
+            System.IO.File.WriteAllText(metaFileName, JsonConvert.SerializeObject(new AgentImportHeader
+            {
+                Name = project,
+                Platform = "Rasa"
+            }));
             // in order to unify the process.
             var fileName = Path.Combine(modelPath, "corpus.json");
 
@@ -85,7 +108,11 @@ namespace BotSharp.RestApi.Rasa
 
             var agent = _platform.LoadAgentFromFile(modelPath);
 
-            var info = await trainer.Train(agent, new BotTrainOptions { Model = request.Model });
+            var info = await trainer.Train(agent, new BotTrainOptions
+            {
+                AgentDir = projectPath,
+                Model = request.Model
+            });
 
             return Ok(new { info = info.Model });
         }

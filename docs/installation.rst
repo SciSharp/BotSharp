@@ -6,8 +6,17 @@ If you want to use the `RASA UI`_ as a front end, you can use the rasaui-specifi
 
 Docker Composer
 ^^^^^^^^^^^^^^^
-Integrate with `Rasa UI`_, you can use docker compose to run.
-Make sure you've got `Docker`_ installed.
+You can use docker compose to run, make sure you've got `Docker`_ installed.
+
+1. Integrate with `Articulate UI`_
+
+::
+
+ PS D:\BotSharp\> docker-compose -f docker-compose-articulateui.yml up
+
+Point your web browser at http://localhost:3000 and enjoy Articulate-UI with BotSharp.
+
+2. Integrate with `Rasa UI`_, you can use docker compose to run.
 
 ::
 

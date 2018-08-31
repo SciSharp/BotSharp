@@ -36,6 +36,7 @@ namespace BotSharp.RestApi.Rasa
         {
             var status = new RasaStatusModel();
             status.AvailableProjects = JObject.FromObject(new { });
+            status.MaxTrainingProcesses = 1;
 
             // scan dir, get all models
             var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects");
