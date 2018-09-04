@@ -11,9 +11,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BotSharp.Core.Engines.Classifiers
+namespace BotSharp.Core.Engines.BotSharp
 {
-    public class FasttextClassifier : INlpTrain, INlpPredict
+    public class BotSharpCBOWClassifier : INlpTrain, INlpPredict
     {
         public IConfiguration Configuration { get; set; }
 

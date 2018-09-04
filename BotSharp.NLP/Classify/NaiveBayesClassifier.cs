@@ -94,6 +94,10 @@ namespace BotSharp.NLP.Classify
     {
         public List<Feature> Features { get; set; }
         public string Label { get; set; }
+        public LabeledFeatureSet()
+        {
+            this.Features = new List<Feature>();
+        }
     }
 
     public class Feature

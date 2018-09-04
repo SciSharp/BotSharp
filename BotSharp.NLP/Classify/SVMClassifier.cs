@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using SVM.BotSharp.MachineLearning;
+using Txt2Vec;
 
 namespace BotSharp.NLP.Classify
 {
@@ -32,17 +33,23 @@ namespace BotSharp.NLP.Classify
     {
         public void Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
         {
-            Problem test = new Problem();
+            
+        }
+
+        public double[][] Predict(LabeledFeatureSet featureSet, ClassifyOptions options)
+        {
+            Problem predict = new Problem();
             List<LabeledFeatureSet> featureSets = new List<LabeledFeatureSet>();
             featureSets.Add(featureSet);
-            test.X = GetData(featureSets).ToArray();
-            test.Y = GetLabels(featureSets).ToArray();
-            test.Count = test.Y.Distinct().Count();
-            test.MaxIndex = int.MaxValue;
+            predict.X = GetData(featureSets).ToArray();
+            predict.Y = new double[1];
+            predict.Count = predict.X.Count();
+            predict.MaxIndex = 200;
 
-            RangeTransform transform = RangeTransform.Compute(test);
-            Problem scaled = transform.Scale(test);
-            double d = Prediction.Predict(scaled, options.PrediceOutputFile, options.Model, false);
+            RangeTransform transform = RangeTransform.Compute(predict);
+            Problem scaled = transform.Scale(predict);
+
+            return Prediction.PredictLabelsProbability(options.Model, scaled);
         }
 
         public void Train(List<LabeledFeatureSet> featureSets, ClassifyOptions options)
@@ -50,14 +57,14 @@ namespace BotSharp.NLP.Classify
             SVMClassifierTrain(featureSets, options);
         }
 
-        public void SVMClassifierTrain (List<LabeledFeatureSet> featureSets, ClassifyOptions options, SvmType svm = SvmType.C_SVC, KernelType kernel = KernelType.RBF, bool probability = true, string outputFile = null) 
+        public void SVMClassifierTrain(List<LabeledFeatureSet> featureSets, ClassifyOptions options, SvmType svm = SvmType.C_SVC, KernelType kernel = KernelType.RBF, bool probability = true, string outputFile = null)
         {
             // copy test multiclass Model
             Problem train = new Problem();
             train.X = GetData(featureSets).ToArray();
             train.Y = GetLabels(featureSets).ToArray();
-            train.Count = train.Y.Distinct().Count();
-            train.MaxIndex = int.MaxValue;
+            train.Count = train.X.Count();
+            train.MaxIndex = 200;//int.MaxValue;
 
             Parameter param = new Parameter();
             RangeTransform transform = RangeTransform.Compute(train);
@@ -77,11 +84,12 @@ namespace BotSharp.NLP.Classify
                 for (int i = 0; i < numberOfClasses; i++)
                     param.Weights[i] = 1;
             }
-            Model model = Training.Train(scaled, param);
-            Model.Write(options.ModelFilePath, model);
+            var model = Training.Train(scaled, param);
+            SVM.BotSharp.MachineLearning.Model.Write(options.ModelFilePath, model);
+            Console.Write("Training finished!");
         }
 
-        public List<double> GetLabels (List<LabeledFeatureSet> featureSets) 
+        public List<double> GetLabels(List<LabeledFeatureSet> featureSets)
         {
             List<double> labels = new List<double>();
             foreach (LabeledFeatureSet labelFeatureSet in featureSets)
@@ -108,7 +116,43 @@ namespace BotSharp.NLP.Classify
             }
             return datas;
         }
+
+        public List<LabeledFeatureSet> FeatureSetsGenerator(List<Vec> sentenceVectors, List<String> labels)
+        {
+            List<LabeledFeatureSet> res = new List<LabeledFeatureSet>();
+            int j;
+            for (int i = 0; i < labels.Count; i++)
+            {
+                string curLabel = labels[i];
+                Vec curVec = sentenceVectors[i];
+                LabeledFeatureSet labeledFeatureSet = new LabeledFeatureSet();
+                j = 1;
+                foreach (double node in curVec.VecNodes)
+                {
+                    Feature feature = new Feature((j++).ToString(), node.ToString());
+                    labeledFeatureSet.Features.Add(feature);
+                }
+                labeledFeatureSet.Label = curLabel;
+                res.Add(labeledFeatureSet);
+            }
+
+            return res;
+        }
+
+        public LabeledFeatureSet FeatureSetsGenerator(Vec sentenceVectors, String label)
+        {
+            LabeledFeatureSet labeledFeatureSet = new LabeledFeatureSet();
+            int j = 1;
+            foreach (double node in sentenceVectors.VecNodes)
+            {
+                Feature feature = new Feature((j++).ToString(), node.ToString());
+                labeledFeatureSet.Features.Add(feature);
+            }
+            labeledFeatureSet.Label = label;
+
+            return labeledFeatureSet;
+        }
     }
 
-    
+
 }

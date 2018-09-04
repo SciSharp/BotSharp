@@ -34,7 +34,7 @@ namespace Txt2Vec
             model.LoadModel(strModelFileName, bTxtFormat);
         }
 
-        public List<Vec> Sentence2Vec(List<string> sentences, WeightingScheme weightingScheme = WeightingScheme.TFIDF)
+        public List<Vec> Sentence2Vec(List<string> sentences, WeightingScheme weightingScheme = WeightingScheme.AVG)
         {
             // Inplementing TF-IDF
             TFIDFGenerator tfidfGenerator = new TFIDFGenerator();
@@ -88,24 +88,48 @@ namespace Txt2Vec
             }
             for (int i = 0; i < vectorList.Count; i++)
             {
-                this.dict.Add(sentences[i], vectorList[i]);
+                if (this.dict.ContainsKey(sentences[i]))
+                {
+                    continue;
+                }
+                else
+                {
+                    this.dict.Add(sentences[i], vectorList[i]);
+                }
+                
             }
             return vectorList;
         }
 
-        public Vec SingleSentence2Vec(string sentence)
+        public Vec SingleSentence2Vec(string sentence, WeightingScheme weightingScheme = WeightingScheme.AVG)
         {
-            if (dict.ContainsKey(sentence))
+
+            Vec sentenceVector = new Vec();
+            List<Vec> sentenceVectorList = new List<Vec>();
+            string[] words = sentence.Split(' ');
+            foreach (string word in words)
             {
-                return this.dict[sentence];
+                Vec vec = Word2Vec(word.ToLower());
+                sentenceVectorList.Add(vec);
             }
-            Vec vec = new Vec();
-            int dim = new Encoder().layer1_size;
-            for (int i = 0; i < dim; i++)
+            if (weightingScheme == WeightingScheme.AVG)
             {
-                vec.VecNodes.Add(1);
+                int dim = sentenceVectorList[0].VecNodes.Count;
+                double nodeTotalValue;
+                for (int k = 0; k < dim; k++)
+                {
+                    nodeTotalValue = 0;
+                    for (int j = 0; j < sentenceVectorList.Count; j++)
+                    {
+                        Vec curWordVec = sentenceVectorList[j];
+                        double curNodeVal = curWordVec.VecNodes[k];
+                        nodeTotalValue += curNodeVal;
+                    }
+                    sentenceVector.VecNodes.Add(nodeTotalValue / dim);
+                }
+
             }
-            return vec;
+            return sentenceVector;
         }
 
         public Vec TFIDFMultiply(List<Vec> curVecList, List<double> weight)
