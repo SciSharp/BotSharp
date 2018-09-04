@@ -14,7 +14,7 @@ using Console = Colorful.Console;
 
 namespace BotSharp.RestApi.Rasa
 {
-#if RASA_UI
+#if RASA
     /// <summary>
     /// send a text request
     /// </summary>

@@ -291,6 +291,31 @@ namespace BotSharp.Core.Engines
 
         public void AssembleTrainData(Agent agent)
         {
+            // convert agent to training corpus
+            agent.Corpus = new TrainingCorpus
+            {
+                Entities = new List<TrainingEntity>(),
+                UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>()
+            };
+
+            agent.Intents.ForEach(intent =>
+            {
+                intent.UserSays.ForEach(say => {
+                    agent.Corpus.UserSays.Add(new TrainingIntentExpression<TrainingIntentExpressionPart>
+                    {
+                        Intent = intent.Name,
+                        Text = String.Join("", say.Data.Select(x => x.Text)),
+                        Entities = say.Data.Where(x => !String.IsNullOrEmpty(x.Meta))
+                        .Select(x => new TrainingIntentExpressionPart
+                        {
+                            Value = x.Text,
+                            Entity = x.Meta,
+                            Start = x.Start
+                        })
+                        .ToList()
+                    });
+                });
+            });
         }
     }
 }

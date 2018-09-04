@@ -10,6 +10,8 @@ namespace BotSharp.Core.Engines
 {
     public interface IBotPlatform
     {
+        AIConfiguration AiConfig { get; set; }
+
         /// <summary>
         /// Load agent profile
         /// </summary>

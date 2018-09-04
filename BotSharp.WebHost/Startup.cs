@@ -107,9 +107,9 @@ namespace BotSharp.WebHost
                 if (!string.IsNullOrWhiteSpace(token) && (token = token.Split(' ').Last()).Length == 32)
                 {
                     var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-                    context.Request.Headers["ClientAccessToken"] = token;
+                    context.Request.Headers["Authorization"] = token;
 
-                    // context.Request.Headers["Authorization"] = "Bearer " + JwtToken.GenerateToken(config, userId);
+                    context.Request.Headers["Authorization"] = "Bearer " + JwtToken.GenerateToken(config, token);
                 }
 
                 await next.Invoke();

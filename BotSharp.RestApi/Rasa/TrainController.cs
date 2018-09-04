@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.RestApi.Rasa
 {
-#if RASA_UI
+#if RASA
     /// <summary>
     /// You can post your training data to this endpoint to train a new model for a project.
     /// This request will wait for the server answer: either the model was trained successfully or the training exited with an error. 
@@ -94,7 +94,7 @@ namespace BotSharp.RestApi.Rasa
             System.IO.File.WriteAllText(metaFileName, JsonConvert.SerializeObject(new AgentImportHeader
             {
                 Name = project,
-                Platform = "Rasa"
+                Platform = PlatformType.Rasa
             }));
             // in order to unify the process.
             var fileName = Path.Combine(modelPath, "corpus.json");

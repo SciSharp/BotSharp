@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BotSharp.RestApi.Rasa
 {
-#if RASA_UI
+#if RASA
     [Route("[controller]")]
     public class VersionController : ControllerBase
     {

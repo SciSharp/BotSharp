@@ -9,7 +9,7 @@ using System.Text;
 
 namespace BotSharp.RestApi.Rasa
 {
-#if RASA_UI
+#if RASA
     /// <summary>
     /// This returns all the currently available projects.
     /// </summary>

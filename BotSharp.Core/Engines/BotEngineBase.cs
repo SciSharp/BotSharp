@@ -115,16 +115,16 @@ namespace BotSharp.Core.Engines
 
             switch (meta.Platform)
             {
-                case "Dialogflow":
+                case PlatformType.Dialogflow:
                     importer = new AgentImporterInDialogflow();
                     break;
-                case "Rasa":
+                case PlatformType.Rasa:
                     importer = new AgentImporterInRasa();
                     break;
-                case "Sebis":
+                case PlatformType.Sebis:
                     importer = new AgentImporterInSebis();
                     break;
-                case "QuickQA":
+                case PlatformType.QuickQA:
                     importer = new AgentImporterInQuickQA();
                     break;
                 default:

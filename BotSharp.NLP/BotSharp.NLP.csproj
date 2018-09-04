@@ -24,9 +24,18 @@ Naive Bayes Classifier</Description>
 Mark milestone 0.2.3. Tokenizer, POS Tagger, NER and Text Classifier modules can be used in production environments.</PackageReleaseNotes>
     <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
     <PackageTags>BotSharp, NLP, NLU, POS, NER, LSTM, CRF, SVM, Tagger, NaiveBayes</PackageTags>
+    <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|AnyCPU'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
 
