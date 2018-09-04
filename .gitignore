@@ -303,3 +303,4 @@ __pycache__/
 /docs/build
 /docs/_build
 /BotSharp.WebHost/App_Data/AgentArchive/Smart Niraj.zip
+/BotSharp.NLP.UnitTest/wordvec_enu.bin

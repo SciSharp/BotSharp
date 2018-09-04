@@ -78,9 +78,9 @@ namespace BotSharp.Core.Engines.Classifiers
             }
             NLP.Classify.SVMClassifier svmClassifier = new NLP.Classify.SVMClassifier();
             Args args = new Args(); 
-            args.WordDecoderModelFile = Path.Combine(Settings.ModelDir, "wordvec_enu.bin");
-            List<LabeledFeatureSet> featureSetList = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).Sentence2Vec(sentences), labelNums);
-            svmClassifier.Train(featureSetList, new ClassifyOptions(Path.Combine(Settings.ModelDir, "svm_classifier_model")));
+            //args.WordDecoderModelFile = Path.Combine(Settings.ModelDir, "wordvec_enu.bin");
+            //List<LabeledFeatureSet> featureSetList = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).Sentence2Vec(sentences), labelNums);
+            //svmClassifier.Train(featureSetList, new ClassifyOptions(Path.Combine(Settings.ModelDir, "svm_classifier_model")));
 
             meta.Meta = new JObject();
             meta.Meta["compiled at"] = "Aug 31, 2018";

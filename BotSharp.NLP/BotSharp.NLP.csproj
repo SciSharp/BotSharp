@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.2.4</Version>
+    <Description>Botsharp.NLP is a set of tools for building C# programs to work with human language data. It can be used in common tasks like POS, NER and text classification in the NLP or NLU field.
+
+BotSharp.NLP has implemented below machine learning algorithms:
+
+Conditional Random Field (CRF)
+Support Vector Machine (SVM)
+N-Gram Tagger
+Regex Tokenizer
+Naive Bayes Classifier</Description>
+    <Copyright>MIT</Copyright>
+    <RepositoryUrl>https://github.com/Oceania2018/BotSharp.NLP</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
+    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp.NLP</PackageProjectUrl>
+    <Authors>Haiping Chen, Bo Peng</Authors>
+    <Company>Personal</Company>
+    <PackageReleaseNotes>Fix entity end position issue.
+Mark milestone 0.2.3. Tokenizer, POS Tagger, NER and Text Classifier modules can be used in production environments.</PackageReleaseNotes>
+    <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
+    <PackageTags>BotSharp, NLP, NLU, POS, NER, LSTM, CRF, SVM, Tagger, NaiveBayes</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Algorithm\BotSharp.Algorithm.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="NER\README.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>
