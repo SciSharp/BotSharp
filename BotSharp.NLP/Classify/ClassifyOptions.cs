@@ -11,5 +11,7 @@ namespace BotSharp.NLP.Classify
         public string ModelFilePath { get; set; }
         public Model Model { get; set; }
         public string PrediceOutputFile { get; set; }
+        public string TransformFilePath { get; set; }
+        public RangeTransform Transform { get; set; }
     }
 }
