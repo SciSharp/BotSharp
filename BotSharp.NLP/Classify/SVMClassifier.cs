@@ -46,7 +46,7 @@ namespace BotSharp.NLP.Classify
             predict.Count = predict.X.Count();
             predict.MaxIndex = 200;
 
-            RangeTransform transform = RangeTransform.Compute(predict);
+            RangeTransform transform = options.Transform;
             Problem scaled = transform.Scale(predict);
 
             return Prediction.PredictLabelsProbability(options.Model, scaled);
@@ -85,6 +85,7 @@ namespace BotSharp.NLP.Classify
                     param.Weights[i] = 1;
             }
             var model = Training.Train(scaled, param);
+            RangeTransform.Write(options.TransformFilePath, transform);
             SVM.BotSharp.MachineLearning.Model.Write(options.ModelFilePath, model);
             Console.Write("Training finished!");
         }

@@ -40,6 +40,10 @@ Mark milestone 0.2.3. Tokenizer, POS Tagger, NER and Text Classifier modules can
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BotSharp.Algorithm\BotSharp.Algorithm.csproj" />
   </ItemGroup>
 

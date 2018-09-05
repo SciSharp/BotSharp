@@ -33,17 +33,32 @@ namespace BotSharp.Core.Engines.BotSharp
             LabeledFeatureSet featureSet = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).SingleSentence2Vec(doc.Sentences[0].Text), "");
 
             ClassifyOptions classifyOptions = new ClassifyOptions();
-            classifyOptions.Model = SVM.BotSharp.MachineLearning.Model.Read(Path.Combine(Settings.ModelDir, "svm_classifier_model")); 
+            classifyOptions.Model = SVM.BotSharp.MachineLearning.Model.Read(Path.Combine(Settings.ModelDir, "svm_classifier_model"));
+            classifyOptions.Transform = SVM.BotSharp.MachineLearning.RangeTransform.Read(Path.Combine(Settings.ModelDir, "transform_obj_data"));
             double[][] d = svmClassifier.Predict(featureSet, classifyOptions);
+
+            string intent = null;
+            decimal confidence = 0;
+            double max = Double.MinValue;
+            for (int i = 0; i < d[0].Count(); i++)
+            {
+                if (d[0][i] > max)
+                {
+                    max = d[0][i];
+                    intent = agent.Intents[i].Name;
+                    confidence = (decimal)d[0][i];
+                }
+            }
+
 
             File.Delete(predictFileName);
 
-            //doc.Sentences[0].Intent = new TextClassificationResult
-            //{
-            //    Classifier = "FasttextClassifier",
-            //    Label = output.Split(' ')[0].Split(new string[] { "__label__" }, StringSplitOptions.None)[1],
-            //    Confidence = decimal.Parse(output.Split(' ')[1])
-            //};
+            doc.Sentences[0].Intent = new TextClassificationResult
+            {
+                Classifier = "SVMClassifier",
+                Label = intent,
+                Confidence = confidence
+            };
 
             return true;
         }
@@ -73,12 +88,11 @@ namespace BotSharp.Core.Engines.BotSharp
             List<LabeledFeatureSet> featureSetList = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).Sentence2Vec(sentences), labels);
             ClassifyOptions classifyOptions = new ClassifyOptions();
             classifyOptions.ModelFilePath = Path.Combine(Settings.ModelDir, "svm_classifier_model");
+            classifyOptions.TransformFilePath = Path.Combine(Settings.ModelDir, "transform_obj_data");
             svmClassifier.Train(featureSetList, classifyOptions);
 
             meta.Meta = new JObject();
             meta.Meta["compiled at"] = "Aug 31, 2018";
-
-
             return true;
         }
     }
