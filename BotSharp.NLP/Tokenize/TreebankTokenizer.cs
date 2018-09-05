@@ -47,22 +47,24 @@ namespace BotSharp.NLP.Tokenize
 
         public List<Token> Tokenize(string sentence, TokenizationOptions options)
         {
+            string text = sentence;
+
             // starting quoting replace
             STARTING_QUOTES.ForEach(x =>
             {
-                sentence = Regex.Replace(sentence, x.Item1, x.Item2);
+                text = Regex.Replace(text, x.Item1, x.Item2);
             });
 
             // replace PUNCTUATION
             PUNCTUATION.ForEach(x =>
             {
-                sentence = Regex.Replace(sentence, x.Item1, x.Item2);
+                text = Regex.Replace(text, x.Item1, x.Item2);
             });
 
             // Handles parentheses.
             PARENS_BRACKETS.ForEach(x =>
             {
-                sentence = Regex.Replace(sentence, x.Item1, x.Item2);
+                text = Regex.Replace(text, x.Item1, x.Item2);
             });
 
             // convert parentheses
@@ -70,39 +72,39 @@ namespace BotSharp.NLP.Tokenize
             {
                 CONVERT_PARENTHESES.ForEach(x =>
                 {
-                    sentence = Regex.Replace(sentence, x.Item1, x.Item2);
+                    text = Regex.Replace(text, x.Item1, x.Item2);
                 });
             }
 
             // Handles repeated dash.
-            sentence = Regex.Replace(sentence, "(-{2,})", " $1 ");
+            text = Regex.Replace(text, "(-{2,})", " $1 ").Trim();
 
             // replace ending quotes
             ENDING_QUOTES.ForEach(x =>
             {
-                sentence = Regex.Replace(sentence, x.Item1, x.Item2);
+                text = Regex.Replace(text, x.Item1, x.Item2);
             });
 
             // replace ending quotes
             CONVENTIONS.ForEach(x =>
             {
-                sentence = Regex.Replace(sentence, x.Item1, x.Item2);
+                text = Regex.Replace(text, x.Item1, x.Item2);
             });
 
             // remove duplicated spaces
-            sentence = Regex.Replace(sentence, "\\s+", " ");
+            text = Regex.Replace(text, "\\s+", " ") + " ";
 
             // split
             int pos = 0;
 
-            var results = Regex.Matches(sentence, "\\s")
+            var tokens = Regex.Matches(text, "\\s")
                 .Cast<Match>()
                 .Select(x => {
 
                     var token = new Token
                     {
                         Start = pos,
-                        Text = sentence.Substring(pos, x.Index - pos)
+                        Text = text.Substring(pos, x.Index - pos)
                     };
 
                     pos = x.Index + 1;
@@ -111,7 +113,23 @@ namespace BotSharp.NLP.Tokenize
 
                 }).ToList();
 
-            return results;
+            // correct token position
+            CorrectTokenPosition(sentence, tokens);
+
+            return tokens;
+        }
+
+        private void CorrectTokenPosition(string sentence, List<Token> tokens)
+        {
+            int startPos = 0;
+
+            for(int i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                token.Start = sentence.IndexOf(token.Text, startPos);
+
+                startPos = token.End + 1;
+            }
         }
 
         private void Init()
@@ -121,13 +139,13 @@ namespace BotSharp.NLP.Tokenize
             STARTING_QUOTES.Add(new Tuple<string, string>(@"(``)", " $1 "));
             STARTING_QUOTES.Add(new Tuple<string, string>("([ ([{<])(\" | '{2})", "$1 `` "));
 
-            PUNCTUATION.Add(new Tuple<string, string>(@"([^\.])(\.)([\]\)}>" + "\"" + @"\\\'»”’ ]*)\s*$", "$1 $2 $3 "));
+            PUNCTUATION.Add(new Tuple<string, string>(@"([^\.])(\.)([\]\)}>" + "\"" + @"\\'»”’ ]*)\s*$", "$1 $2 $3 "));
             PUNCTUATION.Add(new Tuple<string, string>(@"([:,])([^\d])", " $1 $2"));
             PUNCTUATION.Add(new Tuple<string, string>(@"([:,])$", " $1 "));
             PUNCTUATION.Add(new Tuple<string, string>(@"(\.\.\.)", " $1 "));
             PUNCTUATION.Add(new Tuple<string, string>(@"([;@#$%&])", " $1 "));
-            PUNCTUATION.Add(new Tuple<string, string>(@"([^\.])(\.)([\]\)}>" + "\"" + @"\\\']*)\\s*$", "$1 $2 $3 "));
-            PUNCTUATION.Add(new Tuple<string, string>(@"[?!]", " $1 "));
+            PUNCTUATION.Add(new Tuple<string, string>(@"([^\.])(\.)([\]\)}>" + "\"" + @"']*)\s*$", "$1 $2 $3 "));
+            PUNCTUATION.Add(new Tuple<string, string>(@"([?!])", " $1 "));
             PUNCTUATION.Add(new Tuple<string, string>(@"([^'])' ", "$1 ' "));
 
             PARENS_BRACKETS.Add(new Tuple<string, string>(@"([\]\[\(\)\{\}\<\>])", " $1 "));
@@ -142,8 +160,8 @@ namespace BotSharp.NLP.Tokenize
             ENDING_QUOTES.Add(new Tuple<string, string>(@"([»”’])", " $1 "));
             ENDING_QUOTES.Add(new Tuple<string, string>("\"", " '' "));
             ENDING_QUOTES.Add(new Tuple<string, string>(@"(\S)(\'\')", "$1 $2 "));
-            ENDING_QUOTES.Add(new Tuple<string, string>(@"([^' ])('[sS]|'[mM]|'[dD]|') ", "$1 $2 "));
-            ENDING_QUOTES.Add(new Tuple<string, string>(@"([^' ])('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ", "$1 $2 "));
+            ENDING_QUOTES.Add(new Tuple<string, string>(@"('[sS]|'[mM]|'[dD]|') ", " $1 "));
+            ENDING_QUOTES.Add(new Tuple<string, string>(@"('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ", " $1 "));
 
             CONVENTIONS.Add(new Tuple<string, string>(@"(?i)\b(can)(?#X)(not)\b", "$1 $2 "));
             CONVENTIONS.Add(new Tuple<string, string>(@"(?i)\b(d)(?#X)('ye)\b", "$1 $2 "));
