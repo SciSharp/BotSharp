@@ -44,7 +44,7 @@ namespace BotSharp.NLP.Classify
             predict.X = GetData(featureSets).ToArray();
             predict.Y = new double[1];
             predict.Count = predict.X.Count();
-            predict.MaxIndex = 200;
+            predict.MaxIndex = 300;
 
             RangeTransform transform = options.Transform;
             Problem scaled = transform.Scale(predict);
@@ -58,13 +58,13 @@ namespace BotSharp.NLP.Classify
         }
 
         public void SVMClassifierTrain(List<LabeledFeatureSet> featureSets, ClassifyOptions options, SvmType svm = SvmType.C_SVC, KernelType kernel = KernelType.RBF, bool probability = true, string outputFile = null)
-        {
+        {   
             // copy test multiclass Model
             Problem train = new Problem();
             train.X = GetData(featureSets).ToArray();
             train.Y = GetLabels(featureSets).ToArray();
             train.Count = train.X.Count();
-            train.MaxIndex = 200;//int.MaxValue;
+            train.MaxIndex = 300;//int.MaxValue;
 
             Parameter param = new Parameter();
             RangeTransform transform = RangeTransform.Compute(train);
