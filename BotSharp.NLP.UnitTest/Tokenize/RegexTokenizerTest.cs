@@ -2,7 +2,7 @@ using BotSharp.NLP.Tokenize;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
-namespace BotSharp.NLP.UnitTest
+namespace BotSharp.NLP.UnitTest.Tokenize
 {
     [TestClass]
     public class RegexTokenizerTest

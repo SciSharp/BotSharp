@@ -27,5 +27,10 @@ namespace BotSharp.NLP.Tokenize
         /// Split "isn't" into "is", "n't"
         /// </summary>
         public List<string> SpecialWords { get; set; }
+
+        /// <summary>
+        /// Convert bracket-like characters to avoid confusion with parse brackets.
+        /// </summary>
+        public bool ConvertParentheses { get; set; }
     }
 }
