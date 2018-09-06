@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.NLP.Tokenize
 {
@@ -28,6 +30,28 @@ namespace BotSharp.NLP.Tokenize
         public List<Token> Tokenize(string sentence)
         {
             return _tokenizer.Tokenize(sentence, _options);
+        }
+
+        public List<List<Token>> Tokenize(List<String> sentences)
+        {
+            var sents = sentences.Select(s => new ParallelToken { Text = s }).ToList();
+
+            Parallel.ForEach(sents, (sentence) =>
+            {
+                sentence.Tokens = Tokenize(sentence.Text);
+            });
+
+            List<List<Token>> result = new List<List<Token>>();
+            sents.ForEach(x => result.Add(x.Tokens));
+
+            return result;
+        }
+
+        private class ParallelToken
+        {
+            public String Text { get; set; }
+
+            public List<Token> Tokens { get; set; }
         }
     }
 }

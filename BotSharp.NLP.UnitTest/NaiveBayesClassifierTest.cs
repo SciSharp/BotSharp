@@ -18,7 +18,7 @@ namespace BotSharp.NLP.UnitTest
         {
             var options = new ClassifyOptions
             {
-                TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("BotSharp.NLP:dataDir"), "Gender")
+                TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Gender")
             };
             var classifier = new ClassifierFactory<NaiveBayesClassifier>(options, SupportedLanguage.English);
 

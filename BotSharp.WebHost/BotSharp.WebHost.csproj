@@ -12,7 +12,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;RASA;NETCOREAPP;NETCOREAPP2_1;RASA;NETCOREAPP;NETCOREAPP2_1;RASA;NETCOREAPP;NETCOREAPP2_1;RASA;NETCOREAPP;NETCOREAPP2_1</DefineConstants>
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|AnyCPU'">

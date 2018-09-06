@@ -56,37 +56,33 @@ namespace BotSharp.NLP.Classify
                 Values = allFeatureValues.Where(x => x.Name == fn).Select(x => x.Value).Distinct().ToList()
             }).ToList();
 
-            var allFeatureFreq = new List<FeatureFrequencyDistribution>();
-            featureSets.ForEach(fs =>
+            var featureFreqDist = new List<FeatureFrequencyDistribution>();
+
+            labelFreqDist.Select(x => x.Label).ToList().ForEach(label =>
             {
-                fs.Features.ForEach(f =>
+                var fSets = featureSets.Where(x => x.Label == label);
+                fNames.ForEach(fName =>
                 {
-                    allFeatureFreq.Add(new FeatureFrequencyDistribution
+                    var fsv = fSets.Select(fs => fs.Features.First(f => f.Name == fName))
+                        .GroupBy(f => f.Value)
+                        .Select(f => new Tuple<string, int>(f.Key, f.Count()))
+                        .OrderBy(f => f.Item1)
+                        .ToList();
+
+                    featureFreqDist.Add(new FeatureFrequencyDistribution
                     {
-                        Label = fs.Label,
-                        FeatureName = f.Name,
-                        FeatureValue = f.Value,
-                        Count = 1
+                        Label = label,
+                        FeatureName = fName,
+                        FeatureValues = fsv
                     });
                 });
             });
 
-            var featureFreqDist = allFeatureFreq.GroupBy(x => new { x.Label, x.FeatureName, x.FeatureValue })
-                .Select(x => new FeatureFrequencyDistribution
-                {
-                    Label = x.Key.Label,
-                    FeatureName = x.Key.FeatureName,
-                    FeatureValue = x.Key.FeatureValue,
-                    Count = x.Count()
-                }).ToList();
+            featureFreqDist.ForEach(ffd =>
+            {
 
-            var featureProbDist = featureFreqDist.GroupBy(x => new { x.Label, x.FeatureName })
-                .Select(x => new FeatureProbabilityDistribution
-                {
-                    Label = x.Key.Label,
-                    FeatureName = x.Key.FeatureName,
-                    Count = featureFreqDist.Where(ffd => ffd.Label == x.Key.Label && ffd.FeatureName == x.Key.FeatureName).Sum(ffd => ffd.Count)
-                }).ToList();
+
+            });
         }
     }
 
@@ -132,13 +128,11 @@ namespace BotSharp.NLP.Classify
 
         public string FeatureName { get; set; }
 
-        public string FeatureValue { get; set; }
-
-        public int Count { get; set; }
+        public List<Tuple<string, int>> FeatureValues { get; set; }
 
         public override string ToString()
         {
-            return $"{Label} {FeatureName} {FeatureValue} {Count}";
+            return $"{Label} {FeatureName} {FeatureValues.Count}";
         }
     }
 }

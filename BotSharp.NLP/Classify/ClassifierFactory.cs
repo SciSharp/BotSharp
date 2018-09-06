@@ -38,10 +38,12 @@ namespace BotSharp.NLP.Classify
 
         private List<Feature> GetFeatures(List<Token> words)
         {
+            string text = words[0].Text;
             var features = new List<Feature>();
 
-            features.Add(new Feature("StartsWith(A)", words[0].Text.StartsWith("A").ToString()));
-            features.Add(new Feature("EndsWith(a)", words[0].Text.EndsWith("a").ToString()));
+            features.Add(new Feature("alwayson", "True"));
+            features.Add(new Feature("startswith", text[0].ToString().ToLower()));
+            features.Add(new Feature("endswith", text[text.Length - 1].ToString().ToLower()));
 
             return features;
         }

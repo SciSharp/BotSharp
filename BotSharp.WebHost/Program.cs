@@ -18,7 +18,8 @@ namespace BotSharp.WebHost
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     var env = hostingContext.HostingEnvironment;
-                    var settings = Directory.GetFiles(Path.Combine(env.ContentRootPath, "Settings"), "*.json");
+                    string dir = Path.GetFullPath(env.ContentRootPath + "/..");
+                    var settings = Directory.GetFiles(Path.Combine(dir, "Settings"), "*.json");
                     settings.ToList().ForEach(setting =>
                     {
                         config.AddJsonFile(setting, optional: false, reloadOnChange: true);
