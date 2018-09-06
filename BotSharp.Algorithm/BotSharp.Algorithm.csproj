@@ -4,6 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA</Configurations>
     <Platforms>AnyCPU;x64</Platforms>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
+    <Version>0.1.0</Version>
+    <PackageTags>MachineLearning,Algorithm,Model</PackageTags>
+    <Authors>Haiping Chen</Authors>
+    <Copyright>MIT</Copyright>
   </PropertyGroup>
 
 </Project>
