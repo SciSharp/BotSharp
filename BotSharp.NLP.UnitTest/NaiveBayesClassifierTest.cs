@@ -32,6 +32,9 @@ namespace BotSharp.NLP.UnitTest
             corpus.ForEach(x => x.Words = tokenizer.Tokenize(x.Text));
 
             classifier.Train(corpus);
+
+            string text = "Aamir";
+            classifier.Classify(new Sentence { Text = text, Words = tokenizer.Tokenize(text) });
         }
 
         private List<Sentence> GetLabeledCorpus(ClassifyOptions options)

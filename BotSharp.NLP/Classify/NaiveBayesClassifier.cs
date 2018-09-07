@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using BotSharp.Algorithm;
+using BotSharp.Algorithm.Formulas;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,15 +35,18 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class NaiveBayesClassifier : IClassifier
     {
-        public void Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
-        {
-            throw new NotImplementedException();
-        }
+        private List<FeatureFrequencyDistribution> featureDist;
+
+        private List<Probability> labelDist;
 
         public void Train(List<LabeledFeatureSet> featureSets, ClassifyOptions options)
         {
-            var labelFreqDist = featureSets.GroupBy(x => x.Label)
-                .Select(x => new { Label = x.Key, Count = x.Count() })
+            labelDist = featureSets.GroupBy(x => x.Label)
+                .Select(x => new Probability
+                {
+                    Value = x.Key,
+                    Freq = x.Count()
+                })
                 .ToList();
 
             var fNames = featureSets[0].Features.Select(x => x.Name).ToList();
@@ -56,20 +61,24 @@ namespace BotSharp.NLP.Classify
                 Values = allFeatureValues.Where(x => x.Name == fn).Select(x => x.Value).Distinct().ToList()
             }).ToList();
 
-            var featureFreqDist = new List<FeatureFrequencyDistribution>();
+            featureDist = new List<FeatureFrequencyDistribution>();
 
-            labelFreqDist.Select(x => x.Label).ToList().ForEach(label =>
+            labelDist.Select(x => x.Value).ToList().ForEach(label =>
             {
                 var fSets = featureSets.Where(x => x.Label == label);
                 fNames.ForEach(fName =>
                 {
                     var fsv = fSets.Select(fs => fs.Features.First(f => f.Name == fName))
                         .GroupBy(f => f.Value)
-                        .Select(f => new Tuple<string, int>(f.Key, f.Count()))
-                        .OrderBy(f => f.Item1)
+                        .Select(f => new Probability
+                        {
+                            Value = f.Key,
+                            Freq = f.Count()
+                        })
+                        .OrderBy(f => f.Value)
                         .ToList();
 
-                    featureFreqDist.Add(new FeatureFrequencyDistribution
+                    featureDist.Add(new FeatureFrequencyDistribution
                     {
                         Label = label,
                         FeatureName = fName,
@@ -77,11 +86,26 @@ namespace BotSharp.NLP.Classify
                     });
                 });
             });
+        }
 
-            featureFreqDist.ForEach(ffd =>
+        public void Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
+        {
+            var estimator = new Lidstone();
+
+            labelDist.ForEach(lf =>
             {
+                lf.Prob = estimator.Log2Prob(labelDist, lf.Value);
+            });
 
+            featureDist.ForEach(fd =>
+            {
+                fd.FeatureValues.ForEach(fv =>
+                {
+                    fv.Prob = estimator.Log2Prob(fd.FeatureValues, fv.Value);
 
+                    var p = labelDist.Find(l => l.Value == fd.Label);
+                    p.Prob += fv.Prob;
+                });
             });
         }
     }
@@ -128,7 +152,7 @@ namespace BotSharp.NLP.Classify
 
         public string FeatureName { get; set; }
 
-        public List<Tuple<string, int>> FeatureValues { get; set; }
+        public List<Probability> FeatureValues { get; set; }
 
         public override string ToString()
         {

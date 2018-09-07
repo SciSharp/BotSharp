@@ -24,7 +24,12 @@ namespace BotSharp.NLP.Classify
 
         public void Classify(Sentence sentence)
         {
-            
+            _classifier.Classify(new LabeledFeatureSet
+            {
+                Features = GetFeatures(sentence.Words)
+            }, new ClassifyOptions
+            {
+            });
         }
 
         public void Train(List<Sentence> sentences)
