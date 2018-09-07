@@ -40,6 +40,8 @@ Read the docs: https://botsharp.readthedocs.io
 
 Github Wiki: https://github.com/Oceania2018/BotSharp/wiki
 
+If you feel that this project is helpful to you, please Star on the project, we will be very grateful.
+
 .. _Docker: https://www.docker.com
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
 .. _Articulate UI: https://spg.ai/projects/articulate

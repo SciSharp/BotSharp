@@ -15,13 +15,16 @@
     <Authors>Haiping Chen</Authors>
     <Company />
     <Product>AI Bot Platform Builder</Product>
-    <Description>Open source AI Bot platform builder which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.</Description>
+    <Description>Open source AI Bot platform builder which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.
+
+If you feel that this project is helpful to you, please Star on the project, we will be very grateful.</Description>
     <RepositoryType>MIT</RepositoryType>
     <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
     <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence, RPA</PackageTags>
     <Version>1.5.0</Version>
     <PackageReleaseNotes>Monthly Update.
-Integrated with Articulate UI.</PackageReleaseNotes>
+Integrated with Articulate UI.
+If you feel that this project is helpful to you, please Star on the project, we will be very grateful.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
     <AssemblyVersion>1.5.0.0</AssemblyVersion>

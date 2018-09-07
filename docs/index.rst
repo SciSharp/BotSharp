@@ -54,6 +54,7 @@ The main documentation for the site is organized into a couple sections:
 
    integrations/facebook-messenger
 
+If you feel that this project is helpful to you, please Star on the project, we will be very grateful.
 
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
 .. _Articulate UI: https://spg.ai/projects/articulate
