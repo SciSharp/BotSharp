@@ -69,9 +69,10 @@ namespace BotSharp.NLP.UnitTest
 
             corpus.ForEach(x => x.Words = tokenizer.Tokenize(x.Text));
 
-            // classifier.Train(corpus);
-            // string text = "Bridget";
-            // classifier.Classify(new Sentence { Text = text, Words = tokenizer.Tokenize(text) });
+            classifier.Train(corpus);
+            string text = "Bridget";
+            classifier.Classify(new Sentence { Text = text, Words = tokenizer.Tokenize(text) });
+
             corpus.Shuffle();
             var trainingData = corpus.Skip(2000).ToList();
             classifier.Train(trainingData);

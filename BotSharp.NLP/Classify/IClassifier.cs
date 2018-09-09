@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotSharp.Algorithm.Bayes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 

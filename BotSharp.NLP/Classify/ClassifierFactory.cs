@@ -1,4 +1,5 @@
-﻿using BotSharp.NLP.Corpus;
+﻿using BotSharp.Algorithm.Bayes;
+using BotSharp.NLP.Corpus;
 using BotSharp.NLP.Tokenize;
 using System;
 using System.Collections.Generic;

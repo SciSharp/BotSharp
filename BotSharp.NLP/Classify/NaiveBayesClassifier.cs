@@ -17,6 +17,7 @@
  */
 
 using BotSharp.Algorithm;
+using BotSharp.Algorithm.Bayes;
 using BotSharp.Algorithm.Extensions;
 using BotSharp.Algorithm.Formulas;
 using System;
@@ -33,8 +34,6 @@ namespace BotSharp.NLP.Classify
     /// This technique works well for topic classification; 
     /// say we have a set of academic papers, and we want to classify them into different topics (computer science, biology, mathematics).
     /// Naive Bayes is best for Less training data
-    /// P(X, Y) = P(Y|X)P(X) = P(X|Y)P(Y) => P(Y|X) = P(Y)P(X|Y)/P(X)
-    /// Y is label, X is features.
     /// </summary>
     public class NaiveBayesClassifier : IClassifier
     {
@@ -95,19 +94,14 @@ namespace BotSharp.NLP.Classify
 
         public List<Tuple<string, double>> Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
         {
-            var estimator = new Lidstone();
+            var nb = new NaiveBayes();
+            nb.LabelDist = labelDist;
+            nb.FeatureDist = featureDist;
 
             labelDist.ForEach(lf =>
             {
                 // prior probability
-                lf.Prob = estimator.Log2Prob(labelDist, lf.Value);
-
-                // post probability P(X1,...,Xn|Y) = Sum(P(X1|Y) +...+ P(Xn|Y)
-                featureSet.Features.ForEach(f =>
-                {
-                    var fv = featureDist.Find(x => x.Label == lf.Value && x.FeatureName == f.Name).FeatureValues;
-                    lf.Prob += estimator.Log2Prob(fv, f.Value);
-                });
+                lf.Prob = nb.PosteriorProb(lf.Value, featureSet);
             });
 
             // add log
@@ -127,56 +121,6 @@ namespace BotSharp.NLP.Classify
             labelDist.ForEach(d => d.Prob -= sumLogs);
 
             return labelDist.Select(x => new Tuple<string, double>(x.Value, x.Prob)).ToList();
-        }
-    }
-
-    public class LabeledFeatureSet
-    {
-        public List<Feature> Features { get; set; }
-        public string Label { get; set; }
-        public LabeledFeatureSet()
-        {
-            this.Features = new List<Feature>();
-        }
-    }
-
-    public class Feature
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
-
-        public Feature(string name, string value)
-        {
-            Name = name;
-            Value = value;
-        }
-    }
-
-    public class FeatureProbabilityDistribution
-    {
-        public string Label { get; set; }
-
-        public string FeatureName { get; set; }
-
-        public int Count { get; set; }
-
-        public override string ToString()
-        {
-            return $"{Label} {FeatureName} {Count}";
-        }
-    }
-
-    public class FeatureFrequencyDistribution
-    {
-        public string Label { get; set; }
-
-        public string FeatureName { get; set; }
-
-        public List<Probability> FeatureValues { get; set; }
-
-        public override string ToString()
-        {
-            return $"{Label} {FeatureName} {FeatureValues.Count}";
         }
     }
 }

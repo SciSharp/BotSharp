@@ -1,4 +1,5 @@
-﻿using BotSharp.Core.Abstractions;
+﻿using BotSharp.Algorithm.Bayes;
+using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.NLP.Classify;
 using DotNetToolkit;
@@ -29,10 +30,10 @@ namespace BotSharp.Core.Engines.BotSharp
             string predictFileName = Path.Combine(Settings.TempDir, "svm-predict-tempfile.txt");
             File.WriteAllText(predictFileName, doc.Sentences[0].Text);
 
-            NLP.Classify.SVMClassifier svmClassifier = new NLP.Classify.SVMClassifier();
+            var svmClassifier = new NLP.Classify.SVMClassifier();
             Args args = new Args();
             args.ModelFile = Path.Combine(Configuration.GetValue<String>("BotSharpSVMClassifier:wordvec"), "wordvec_enu.bin");
-            LabeledFeatureSet featureSet = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).SingleSentence2Vec(doc.Sentences[0].Text), "");
+            var featureSet = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).SingleSentence2Vec(doc.Sentences[0].Text), "");
             /*
             //
             var client = new RestClient("http://10.2.21.200:5005");
