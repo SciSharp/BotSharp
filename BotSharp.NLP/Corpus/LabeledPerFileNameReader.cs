@@ -14,7 +14,7 @@ namespace BotSharp.NLP.Corpus
     {
         public List<Sentence> Read(ReaderOptions options)
         {
-            string lable = options.FileName.Split('.')[0];
+            string label = options.FileName.Split('.')[0];
 
             var sentences = new List<Sentence>();
             using (StreamReader reader = new StreamReader(Path.Combine(options.DataDir, options.FileName)))
@@ -26,7 +26,7 @@ namespace BotSharp.NLP.Corpus
                     {
                         sentences.Add(new Sentence
                         {
-                            Labels = new List<string> { lable },
+                            Label = label,
                             Text = line
                         });
                     }

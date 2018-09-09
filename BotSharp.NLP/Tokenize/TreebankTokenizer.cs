@@ -128,7 +128,7 @@ namespace BotSharp.NLP.Tokenize
                 var token = tokens[i];
                 token.Start = sentence.IndexOf(token.Text, startPos);
 
-                startPos = token.End + 1;
+                startPos = token.End;
             }
         }
 

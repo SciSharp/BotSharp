@@ -14,6 +14,11 @@ namespace BotSharp.NLP.Corpus
     {
         public List<Sentence> Read(ReaderOptions options)
         {
+            if (String.IsNullOrEmpty(options.LabelPrefix))
+            {
+                options.LabelPrefix = "__label__";
+            }
+
             var sentences = new List<Sentence>();
             using (StreamReader reader = new StreamReader(Path.Combine(options.DataDir, options.FileName)))
             {
@@ -22,13 +27,21 @@ namespace BotSharp.NLP.Corpus
                     string line = reader.ReadLine();
                     if (!String.IsNullOrEmpty(line))
                     {
-                        var ms = Regex.Matches(line, @"__label__\w+\s").Cast<Match>().ToList();
+                        var ms = Regex.Matches(line, options.LabelPrefix + @"\S+")
+                            .Cast<Match>()
+                            .ToList();
 
-                        sentences.Add(new Sentence
+                        var text = line.Substring(ms.Last().Index + ms.Last().Length + 1);
+
+                        ms.ForEach(m =>
                         {
-                            // Label = lable,
-                            Text = line
+                            sentences.Add(new Sentence
+                            {
+                                Label = m.Value.Substring(options.LabelPrefix.Length),
+                                Text = text
+                            });
                         });
+
                     }
                 }
             }

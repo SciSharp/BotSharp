@@ -52,7 +52,7 @@ namespace BotSharp.NLP.Tokenize
         {
             get
             {
-                return Start + Text.Length - 1;
+                return Start + Text.Length;
             }
         }
 

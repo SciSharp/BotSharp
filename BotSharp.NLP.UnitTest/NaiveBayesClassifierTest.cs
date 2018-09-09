@@ -16,6 +16,42 @@ namespace BotSharp.NLP.UnitTest
     public class NaiveBayesClassifierTest : TestEssential
     {
         [TestMethod]
+        public void CookingTest()
+        {
+            var reader = new FasttextDataReader();
+            var sentences = reader.Read(new ReaderOptions
+            {
+                DataDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange"),
+                FileName = "cooking.stackexchange.txt"
+            });
+
+            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
+            sentences.ForEach(x => x.Words = tokenizer.Tokenize(x.Text));
+
+            sentences.Shuffle();
+
+            var options = new ClassifyOptions
+            {
+                TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange")
+            };
+            var classifier = new ClassifierFactory<NaiveBayesClassifier>(options, SupportedLanguage.English);
+            var dataset = sentences.Split(0.7M);
+            classifier.Train(dataset.Item1);
+
+            int correct = 0;
+            dataset.Item2.ForEach(td =>
+            {
+                var classes = classifier.Classify(td);
+                if (td.Label == classes[0].Item1)
+                {
+                    correct++;
+                }
+            });
+
+            var accuracy = (float)correct / dataset.Item2.Count;
+        }
+
+        [TestMethod]
         public void GenderTest()
         {
             var options = new ClassifyOptions
@@ -45,7 +81,7 @@ namespace BotSharp.NLP.UnitTest
             testData.ForEach(td =>
             {
                 var classes = classifier.Classify(td);
-                if(td.Labels[0] == classes[0].Item1)
+                if(td.Label == classes[0].Item1)
                 {
                     correct++;
                 }
