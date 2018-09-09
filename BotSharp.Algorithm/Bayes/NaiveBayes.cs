@@ -10,20 +10,20 @@ namespace BotSharp.Algorithm.Bayes
     /// <summary>
     /// https://en.wikipedia.org/wiki/Bayes%27_theorem
     /// </summary>
-    public class NaiveBayes
+    public class NaiveBayes<Smoother> where Smoother : ISmoother, new()
     {
         /// <summary>
         /// smoothing function
         /// </summary>
-        private Lidstone smoother;
+        private Smoother smoother;
 
-        public List<FeatureFrequencyDistribution> FeatureDist { get; set; }
+        public List<FeaturesDistribution> FeaturesDist { get; set; }
 
         public List<Probability> LabelDist { get; set; }
 
         public NaiveBayes()
         {
-            smoother = new Lidstone();
+            smoother = new Smoother();
         }
 
         /// <summary>
@@ -35,19 +35,25 @@ namespace BotSharp.Algorithm.Bayes
         /// <param name="Y">label</param>
         /// <param name="featureSet"></param>
         /// <returns></returns>
-        public double PosteriorProb(string Y, LabeledFeatureSet featureSet)
+        public double PosteriorProb(string Y, List<Feature> features)
         {
             double prob = 0;
 
             // prior probability
-            prob = smoother.Log2Prob(LabelDist, Y);
+            prob = Math.Log(smoother.Prob(LabelDist, Y), 2);
 
             // posterior probability P(X1,...,Xn|Y) = Sum(P(X1|Y) +...+ P(Xn|Y)
-            featureSet.Features.ForEach(f =>
+            var featuresIfY = FeaturesDist.Where(fd => fd.Label == Y).ToList();
+
+            // loop features
+            for (int x = 0; x < features.Count; x++)
             {
-                var fv = FeatureDist.Find(x => x.Label == Y && x.FeatureName == f.Name).FeatureValues;
-                prob += smoother.Log2Prob(fv, f.Value);
-            });
+                var Xn = features[x];
+                var fv = featuresIfY.First(fd => fd.FeatureName == Xn.Name).FeatureValues;
+
+                // features are independent, so calculate every feature prob and sum them
+                prob += Math.Log(smoother.Prob(fv, Xn.Value), 2);
+            }
 
             return prob;
         }
@@ -65,7 +71,17 @@ namespace BotSharp.Algorithm.Bayes
         }
     }
 
-    public class FeatureFrequencyDistribution
+    public class FeaturesWithLabel
+    {
+        public List<Feature> Features { get; set; }
+        public string Label { get; set; }
+        public FeaturesWithLabel()
+        {
+            this.Features = new List<Feature>();
+        }
+    }
+
+    public class FeaturesDistribution
     {
         public string Label { get; set; }
 
@@ -76,16 +92,6 @@ namespace BotSharp.Algorithm.Bayes
         public override string ToString()
         {
             return $"{Label} {FeatureName} {FeatureValues.Count}";
-        }
-    }
-
-    public class LabeledFeatureSet
-    {
-        public List<Feature> Features { get; set; }
-        public string Label { get; set; }
-        public LabeledFeatureSet()
-        {
-            this.Features = new List<Feature>();
         }
     }
 }

@@ -37,11 +37,11 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class NaiveBayesClassifier : IClassifier
     {
-        private List<FeatureFrequencyDistribution> featureDist;
+        private List<FeaturesDistribution> featuresDist;
 
         private List<Probability> labelDist;
 
-        public void Train(List<LabeledFeatureSet> featureSets, ClassifyOptions options)
+        public void Train(List<FeaturesWithLabel> featureSets, ClassifyOptions options)
         {
             labelDist = featureSets.GroupBy(x => x.Label)
                 .Select(x => new Probability
@@ -65,7 +65,7 @@ namespace BotSharp.NLP.Classify
                 Values = allFeatureValues.Where(x => x.Name == fn).Select(x => x.Value).Distinct().ToList()
             }).ToList();
 
-            featureDist = new List<FeatureFrequencyDistribution>();
+            featuresDist = new List<FeaturesDistribution>();
 
             labelDist.Select(x => x.Value).ToList().ForEach(label =>
             {
@@ -82,7 +82,7 @@ namespace BotSharp.NLP.Classify
                         .OrderBy(f => f.Value)
                         .ToList();
 
-                    featureDist.Add(new FeatureFrequencyDistribution
+                    featuresDist.Add(new FeaturesDistribution
                     {
                         Label = label,
                         FeatureName = fName,
@@ -92,17 +92,14 @@ namespace BotSharp.NLP.Classify
             });
         }
 
-        public List<Tuple<string, double>> Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
+        public List<Tuple<string, double>> Classify(List<Feature> features, ClassifyOptions options)
         {
-            var nb = new NaiveBayes();
+            // calculate prop
+            var nb = new NaiveBayes<Lidstone>();
             nb.LabelDist = labelDist;
-            nb.FeatureDist = featureDist;
-
-            labelDist.ForEach(lf =>
-            {
-                // prior probability
-                lf.Prob = nb.PosteriorProb(lf.Value, featureSet);
-            });
+            nb.FeaturesDist = featuresDist;
+            
+            labelDist.ForEach(lf => lf.Prob = nb.PosteriorProb(lf.Value, features));
 
             // add log
             double[] logs = labelDist.Select(x => x.Prob).ToArray();

@@ -32,15 +32,15 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class SVMClassifier : IClassifier
     {
-        public List<Tuple<string, double>> Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
+        public List<Tuple<string, double>> Classify(List<Feature> features, ClassifyOptions options)
         {
             return null;
         }
 
-        public double[][] Predict(LabeledFeatureSet featureSet, ClassifyOptions options)
+        public double[][] Predict(FeaturesWithLabel featureSet, ClassifyOptions options)
         {
             Problem predict = new Problem();
-            List<LabeledFeatureSet> featureSets = new List<LabeledFeatureSet>();
+            List<FeaturesWithLabel> featureSets = new List<FeaturesWithLabel>();
             featureSets.Add(featureSet);
             predict.X = GetData(featureSets).ToArray();
             predict.Y = new double[1];
@@ -53,12 +53,12 @@ namespace BotSharp.NLP.Classify
             return Prediction.PredictLabelsProbability(options.Model, scaled);
         }
 
-        public void Train(List<LabeledFeatureSet> featureSets, ClassifyOptions options)
+        public void Train(List<FeaturesWithLabel> featureSets, ClassifyOptions options)
         {
             SVMClassifierTrain(featureSets, options);
         }
 
-        public void SVMClassifierTrain(List<LabeledFeatureSet> featureSets, ClassifyOptions options, SvmType svm = SvmType.C_SVC, KernelType kernel = KernelType.RBF, bool probability = true, string outputFile = null)
+        public void SVMClassifierTrain(List<FeaturesWithLabel> featureSets, ClassifyOptions options, SvmType svm = SvmType.C_SVC, KernelType kernel = KernelType.RBF, bool probability = true, string outputFile = null)
         {   
             // copy test multiclass Model
             Problem train = new Problem();
@@ -91,10 +91,10 @@ namespace BotSharp.NLP.Classify
             Console.Write("Training finished!");
         }
 
-        public List<double> GetLabels(List<LabeledFeatureSet> featureSets)
+        public List<double> GetLabels(List<FeaturesWithLabel> featureSets)
         {
             List<double> labels = new List<double>();
-            foreach (LabeledFeatureSet labelFeatureSet in featureSets)
+            foreach (var labelFeatureSet in featureSets)
             {
                 labels.Add(double.Parse(labelFeatureSet.Label));
             }
@@ -102,11 +102,11 @@ namespace BotSharp.NLP.Classify
             return labels;
         }
 
-        public List<Node[]> GetData(List<LabeledFeatureSet> featureSets)
+        public List<Node[]> GetData(List<FeaturesWithLabel> featureSets)
         {
             List<Node[]> datas = new List<Node[]>();
 
-            foreach (LabeledFeatureSet labelFeatureSet in featureSets)
+            foreach (var labelFeatureSet in featureSets)
             {
                 List<Node> curNodes = new List<Node>();
                 labelFeatureSet.Features.ForEach(features => {
@@ -119,15 +119,15 @@ namespace BotSharp.NLP.Classify
             return datas;
         }
 
-        public List<LabeledFeatureSet> FeatureSetsGenerator(List<Vec> sentenceVectors, List<String> labels)
+        public List<FeaturesWithLabel> FeatureSetsGenerator(List<Vec> sentenceVectors, List<String> labels)
         {
-            List<LabeledFeatureSet> res = new List<LabeledFeatureSet>();
+            var res = new List<FeaturesWithLabel>();
             int j;
             for (int i = 0; i < labels.Count; i++)
             {
                 string curLabel = labels[i];
                 Vec curVec = sentenceVectors[i];
-                LabeledFeatureSet labeledFeatureSet = new LabeledFeatureSet();
+                var labeledFeatureSet = new FeaturesWithLabel();
                 j = 1;
                 foreach (double node in curVec.VecNodes)
                 {
@@ -141,9 +141,9 @@ namespace BotSharp.NLP.Classify
             return res;
         }
 
-        public LabeledFeatureSet FeatureSetsGenerator(Vec sentenceVectors, String label)
+        public FeaturesWithLabel FeatureSetsGenerator(Vec sentenceVectors, String label)
         {
-            LabeledFeatureSet labeledFeatureSet = new LabeledFeatureSet();
+            var labeledFeatureSet = new FeaturesWithLabel();
             int j = 1;
             foreach (double node in sentenceVectors.VecNodes)
             {

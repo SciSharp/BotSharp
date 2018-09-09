@@ -100,7 +100,7 @@ namespace BotSharp.Core.Engines.BotSharp
             NLP.Classify.SVMClassifier svmClassifier = new NLP.Classify.SVMClassifier();
             Args args = new Args(); 
             args.ModelFile = Path.Combine(Configuration.GetValue<String>("BotSharpSVMClassifier:wordvec"), "wordvec_enu.bin");
-            List<LabeledFeatureSet> featureSetList = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).Sentence2Vec(sentences), labels);
+            var featureSetList = svmClassifier.FeatureSetsGenerator(new VectorGenerator(args).Sentence2Vec(sentences), labels);
 
             /*
             // try using spacy doc2vec

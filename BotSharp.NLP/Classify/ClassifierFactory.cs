@@ -25,10 +25,7 @@ namespace BotSharp.NLP.Classify
 
         public List<Tuple<string, double>> Classify(Sentence sentence)
         {
-            var classes = _classifier.Classify(new LabeledFeatureSet
-            {
-                Features = GetFeatures(sentence.Words)
-            }, new ClassifyOptions
+            var classes = _classifier.Classify(GetFeatures(sentence.Words), new ClassifyOptions
             {
             });
 
@@ -37,7 +34,7 @@ namespace BotSharp.NLP.Classify
 
         public void Train(List<Sentence> sentences)
         {
-            _classifier.Train(sentences.Select(x => new LabeledFeatureSet
+            _classifier.Train(sentences.Select(x => new FeaturesWithLabel
             {
                 Label = x.Label,
                 Features = GetFeatures(x.Words)

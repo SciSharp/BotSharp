@@ -29,17 +29,12 @@ namespace BotSharp.Algorithm.Formulas
     /// Given an observation x = (x1, …, xd) from a multinomial distribution with N trials, a "smoothed" version of the data gives the estimator.
     /// https://en.wikipedia.org/wiki/Additive_smoothing
     /// </summary>
-    public class Lidstone
+    public class Lidstone : ISmoother
     {
         /// <summary>
         /// α > 0 is the smoothing parameter
         /// </summary>
-        private double _a;
-
-        public Lidstone(double alpha = 0.5D)
-        {
-            _a = alpha;
-        }
+        public double Alpha { get; set; }
 
         /// <summary>
         /// Probability
@@ -49,6 +44,11 @@ namespace BotSharp.Algorithm.Formulas
         /// <returns></returns>
         public double Prob(List<Probability> dist, string sample)
         {
+            if(Alpha == 0)
+            {
+                Alpha = 0.5D;
+            }
+
             // observation x = (x1, ..., xd)
             var p = dist.Find(f => f.Value == sample);
             int x = p == null ? 0 : p.Freq;
@@ -58,31 +58,7 @@ namespace BotSharp.Algorithm.Formulas
 
             int _d = dist.Count;
 
-            return (x + _a) / (_N +  _a * _d);
-        }
-
-        /// <summary>
-        /// 2 based Log probability
-        /// </summary>
-        /// <param name="dist">distribution</param>
-        /// <param name="sample">sample value</param>
-        /// <returns></returns>
-        public double Log2Prob(List<Probability> dist, string sample)
-        {
-            var d = Prob(dist, sample);
-            return Math.Log(d, 2);
-        }
-
-        /// <summary>
-        /// 10 based Log probability
-        /// </summary>
-        /// <param name="dist">distribution</param>
-        /// <param name="sample">sample value</param>
-        /// <returns></returns>
-        public double Log10Prob(List<Probability> dist, string sample)
-        {
-            var d = Prob(dist, sample);
-            return Math.Log(d, 10);
+            return (x + Alpha) / (_N +  Alpha * _d);
         }
     }
 }
