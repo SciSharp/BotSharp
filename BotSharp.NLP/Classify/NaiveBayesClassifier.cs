@@ -17,6 +17,7 @@
  */
 
 using BotSharp.Algorithm;
+using BotSharp.Algorithm.Extensions;
 using BotSharp.Algorithm.Formulas;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,8 @@ namespace BotSharp.NLP.Classify
     /// This technique works well for topic classification; 
     /// say we have a set of academic papers, and we want to classify them into different topics (computer science, biology, mathematics).
     /// Naive Bayes is best for Less training data
+    /// P(X, Y) = P(Y|X)P(X) = P(X|Y)P(Y) => P(Y|X) = P(Y)P(X|Y)/P(X)
+    /// Y is label, X is features.
     /// </summary>
     public class NaiveBayesClassifier : IClassifier
     {
@@ -49,7 +52,9 @@ namespace BotSharp.NLP.Classify
                 })
                 .ToList();
 
-            var fNames = featureSets[0].Features.Select(x => x.Name).ToList();
+            var fNames = featureSets[0].Features.Select(x => x.Name)
+                .OrderBy(x => x)
+                .ToList();
 
             // combine all features.
             var allFeatureValues = new List<Feature>();
@@ -88,25 +93,40 @@ namespace BotSharp.NLP.Classify
             });
         }
 
-        public void Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
+        public List<Tuple<string, double>> Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
         {
             var estimator = new Lidstone();
 
             labelDist.ForEach(lf =>
             {
+                // prior probability
                 lf.Prob = estimator.Log2Prob(labelDist, lf.Value);
-            });
 
-            featureDist.ForEach(fd =>
-            {
-                fd.FeatureValues.ForEach(fv =>
+                // post probability P(X1,...,Xn|Y) = Sum(P(X1|Y) +...+ P(Xn|Y)
+                featureSet.Features.ForEach(f =>
                 {
-                    fv.Prob = estimator.Log2Prob(fd.FeatureValues, fv.Value);
-
-                    var p = labelDist.Find(l => l.Value == fd.Label);
-                    p.Prob += fv.Prob;
+                    var fv = featureDist.Find(x => x.Label == lf.Value && x.FeatureName == f.Name).FeatureValues;
+                    lf.Prob += estimator.Log2Prob(fv, f.Value);
                 });
             });
+
+            // add log
+            double[] logs = labelDist.Select(x => x.Prob).ToArray();
+
+            var sumLogs = logs.Reduce((log1, next) =>
+            {
+                double min = log1;
+                if (next < log1)
+                {
+                    min = next;
+                }
+
+                return min + Math.Log(Math.Pow(2, log1 - min) + Math.Pow(2, next - min), 2);
+            });
+
+            labelDist.ForEach(d => d.Prob -= sumLogs);
+
+            return labelDist.Select(x => new Tuple<string, double>(x.Value, x.Prob)).ToList();
         }
     }
 

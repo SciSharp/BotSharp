@@ -8,6 +8,6 @@ namespace BotSharp.NLP.Classify
     {
         void Train(List<LabeledFeatureSet> featureSets, ClassifyOptions options);
 
-        void Classify(LabeledFeatureSet featureSet, ClassifyOptions options);
+        List<Tuple<string, double>> Classify(LabeledFeatureSet featureSet, ClassifyOptions options);
     }
 }

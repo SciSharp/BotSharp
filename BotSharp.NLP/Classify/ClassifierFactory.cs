@@ -22,14 +22,16 @@ namespace BotSharp.NLP.Classify
             _classifier = new IClassify();
         }
 
-        public void Classify(Sentence sentence)
+        public List<Tuple<string, double>> Classify(Sentence sentence)
         {
-            _classifier.Classify(new LabeledFeatureSet
+            var classes = _classifier.Classify(new LabeledFeatureSet
             {
                 Features = GetFeatures(sentence.Words)
             }, new ClassifyOptions
             {
             });
+
+            return classes.OrderByDescending(x => x.Item2).ToList();
         }
 
         public void Train(List<Sentence> sentences)

@@ -6,7 +6,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using BotSharp.Algorithm.Extensions;
 
 namespace BotSharp.NLP.UnitTest
 {
@@ -31,10 +33,25 @@ namespace BotSharp.NLP.UnitTest
 
             corpus.ForEach(x => x.Words = tokenizer.Tokenize(x.Text));
 
-            classifier.Train(corpus);
+            // classifier.Train(corpus);
+            // string text = "Bridget";
+            // classifier.Classify(new Sentence { Text = text, Words = tokenizer.Tokenize(text) });
+            corpus.Shuffle();
+            var trainingData = corpus.Skip(2000).ToList();
+            classifier.Train(trainingData);
 
-            string text = "Aamir";
-            classifier.Classify(new Sentence { Text = text, Words = tokenizer.Tokenize(text) });
+            var testData = corpus.Take(2000).ToList();
+            int correct = 0;
+            testData.ForEach(td =>
+            {
+                var classes = classifier.Classify(td);
+                if(td.Label == classes[0].Item1)
+                {
+                    correct++;
+                }
+            });
+
+            var accuracy = (float)correct / testData.Count;
         }
 
         private List<Sentence> GetLabeledCorpus(ClassifyOptions options)

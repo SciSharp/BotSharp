@@ -50,7 +50,8 @@ namespace BotSharp.Algorithm.Formulas
         public double Prob(List<Probability> dist, string sample)
         {
             // observation x = (x1, ..., xd)
-            int x = dist.Find(f => f.Value == sample).Freq;
+            var p = dist.Find(f => f.Value == sample);
+            int x = p == null ? 0 : p.Freq;
 
             // N trials
             int _N = dist.Sum(f => f.Freq);

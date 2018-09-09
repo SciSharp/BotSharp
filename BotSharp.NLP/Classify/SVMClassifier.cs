@@ -31,9 +31,9 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class SVMClassifier : IClassifier
     {
-        public void Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
+        public List<Tuple<string, double>> Classify(LabeledFeatureSet featureSet, ClassifyOptions options)
         {
-            
+            return null;
         }
 
         public double[][] Predict(LabeledFeatureSet featureSet, ClassifyOptions options)
