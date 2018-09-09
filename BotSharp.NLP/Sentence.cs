@@ -9,7 +9,10 @@ namespace BotSharp.NLP
     {
         public List<Token> Words { get; set; }
 
-        public String Label { get; set; }
+        /// <summary>
+        /// Allow multiple classification
+        /// </summary>
+        public List<String> Labels { get; set; }
 
         public String Text { get; set; }
     }

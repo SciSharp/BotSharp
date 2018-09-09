@@ -38,7 +38,7 @@ namespace BotSharp.NLP.Classify
         {
             _classifier.Train(sentences.Select(x => new LabeledFeatureSet
             {
-                Label = x.Label,
+                Label = x.Labels[0],
                 Features = GetFeatures(x.Words)
             }).ToList(), _options);
         }

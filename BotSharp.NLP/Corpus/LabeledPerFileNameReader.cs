@@ -26,7 +26,7 @@ namespace BotSharp.NLP.Corpus
                     {
                         sentences.Add(new Sentence
                         {
-                            Label = lable,
+                            Labels = new List<string> { lable },
                             Text = line
                         });
                     }

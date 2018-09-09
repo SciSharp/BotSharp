@@ -45,7 +45,7 @@ namespace BotSharp.NLP.UnitTest
             testData.ForEach(td =>
             {
                 var classes = classifier.Classify(td);
-                if(td.Label == classes[0].Item1)
+                if(td.Labels[0] == classes[0].Item1)
                 {
                     correct++;
                 }
