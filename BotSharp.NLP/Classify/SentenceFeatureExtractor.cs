@@ -13,9 +13,10 @@ namespace BotSharp.NLP.Classify
         {
             var features = new List<Feature>();
 
-            words.Where(x => x.Text.Length > 1)
+            words.Where(x => x.IsAlpha)
+                .Distinct()
                 .ToList()
-                .ForEach(w => features.Add(new Feature("contains", w.Text.ToLower())));
+                .ForEach(w => features.Add(new Feature($"contains {w.Text.ToLower()}", "True")));
 
             return features;
         }

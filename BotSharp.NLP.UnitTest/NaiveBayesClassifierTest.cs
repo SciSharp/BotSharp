@@ -31,8 +31,8 @@ namespace BotSharp.NLP.UnitTest
             {
                 newSentences[i].Label = sentences[i].Label;
             }
-            sentences = newSentences;
-
+            sentences = newSentences.Take(10).ToList();
+            
             sentences.Shuffle();
 
             var options = new ClassifyOptions
@@ -40,11 +40,12 @@ namespace BotSharp.NLP.UnitTest
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange")
             };
             var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
-            var dataset = sentences.Split(0.7M);
+            
+            var dataset = sentences.Split(0.9M);
             classifier.Train(dataset.Item1);
 
             int correct = 0;
-            dataset.Item2.ForEach(td =>
+            dataset.Item1.ToList().ForEach(td =>
             {
                 var classes = classifier.Classify(td);
                 if (td.Label == classes[0].Item1)

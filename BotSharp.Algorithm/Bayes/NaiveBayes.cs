@@ -50,10 +50,13 @@ namespace BotSharp.Algorithm.Bayes
             for (int x = 0; x < features.Count; x++)
             {
                 var Xn = features[x];
-                var fv = featuresIfY.First(fd => fd.FeatureName == Xn.Name).FeatureValues;
+                var fv = featuresIfY.FirstOrDefault(fd => fd.FeatureName == Xn.Name)?.FeatureValues;
 
-                // features are independent, so calculate every feature prob and sum them
-                prob += Math.Log(estomator.Prob(fv, Xn.Value), 2);
+                if(fv != null)
+                {
+                    // features are independent, so calculate every feature prob and sum them
+                    prob += Math.Log(estomator.Prob(fv, Xn.Value), 2);
+                }
             }
 
             return prob;

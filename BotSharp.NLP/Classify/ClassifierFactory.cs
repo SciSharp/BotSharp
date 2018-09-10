@@ -29,20 +29,26 @@ namespace BotSharp.NLP.Classify
 
         public List<Tuple<string, double>> Classify(Sentence sentence)
         {
-            var classes = _classifier.Classify(featureExtractor.GetFeatures(sentence.Words), new ClassifyOptions
+            var options = new ClassifyOptions
             {
-            });
+            };
+
+            var features = featureExtractor.GetFeatures(sentence.Words);
+
+            var classes = _classifier.Classify(features, options);
 
             return classes.OrderByDescending(x => x.Item2).ToList();
         }
 
         public void Train(List<Sentence> sentences)
         {
-            _classifier.Train(sentences.Select(x => new FeaturesWithLabel
+            var sents = sentences.Select(x => new FeaturesWithLabel
             {
                 Label = x.Label,
                 Features = featureExtractor.GetFeatures(x.Words)
-            }).ToList(), _options);
+            }).ToList();
+
+            _classifier.Train(sents, _options);
         }
     }
 }

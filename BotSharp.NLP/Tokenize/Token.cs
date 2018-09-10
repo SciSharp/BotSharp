@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.NLP.Tokenize
 {
@@ -41,7 +42,13 @@ namespace BotSharp.NLP.Tokenize
         /// <summary>
         /// Is the token an alpha character?
         /// </summary>
-        public bool IsAlpha { get; set; }
+        public bool IsAlpha
+        {
+            get
+            {
+                return Regex.IsMatch(Text, @"^[a-zA-Z]+$");
+            }
+        }
 
         /// <summary>
         /// Is the token part of a stop list, i.e. the most common words of the language?
