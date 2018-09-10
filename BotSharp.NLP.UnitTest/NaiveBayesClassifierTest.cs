@@ -25,8 +25,13 @@ namespace BotSharp.NLP.UnitTest
                 FileName = "cooking.stackexchange.txt"
             });
 
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
-            sentences.ForEach(x => x.Words = tokenizer.Tokenize(x.Text));
+            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);     
+            var newSentences = tokenizer.Tokenize(sentences.Select(x => x.Text).ToList());
+            for(int i = 0; i < newSentences.Count; i++)
+            {
+                newSentences[i].Label = sentences[i].Label;
+            }
+            sentences = newSentences;
 
             sentences.Shuffle();
 
@@ -34,7 +39,7 @@ namespace BotSharp.NLP.UnitTest
             {
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange")
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
             var dataset = sentences.Split(0.7M);
             classifier.Train(dataset.Item1);
 
@@ -58,7 +63,7 @@ namespace BotSharp.NLP.UnitTest
             {
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Gender")
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<NaiveBayesClassifier, WordFeatureExtractor>(options, SupportedLanguage.English);
 
             var corpus = GetLabeledCorpus(options);
 

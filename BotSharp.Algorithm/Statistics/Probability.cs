@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Algorithm
+namespace BotSharp.Algorithm.Statistics
 {
     /// <summary>
     /// In probability theory and statistics, a probability distribution is a mathematical function 

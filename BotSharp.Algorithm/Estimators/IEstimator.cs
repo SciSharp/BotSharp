@@ -1,10 +1,11 @@
-﻿using System;
+﻿using BotSharp.Algorithm.Statistics;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Algorithm
+namespace BotSharp.Algorithm.Estimators
 {
-    public interface ISmoother
+    public interface IEstimator
     {
         double Prob(List<Probability> dist, string sample);
     }

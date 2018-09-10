@@ -32,19 +32,16 @@ namespace BotSharp.NLP.Tokenize
             return _tokenizer.Tokenize(sentence, _options);
         }
 
-        public List<List<Token>> Tokenize(List<String> sentences)
+        public List<Sentence> Tokenize(List<String> sentences)
         {
-            var sents = sentences.Select(s => new ParallelToken { Text = s }).ToList();
+            var sents = sentences.Select(s => new Sentence { Text = s }).ToList();
 
             Parallel.ForEach(sents, (sentence) =>
             {
-                sentence.Tokens = Tokenize(sentence.Text);
+                sentence.Words = Tokenize(sentence.Text);
             });
 
-            List<List<Token>> result = new List<List<Token>>();
-            sents.ForEach(x => result.Add(x.Tokens));
-
-            return result;
+            return sents;
         }
 
         private class ParallelToken

@@ -16,20 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using BotSharp.Algorithm.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace BotSharp.Algorithm.Formulas
+namespace BotSharp.Algorithm.Estimators
 {
     /// <summary>
     /// Lidstone smoothing is a technique used to smooth categorical data. 
     /// In statistics, it's called additive smoothing or Laplace smoothing.
     /// Given an observation x = (x1, …, xd) from a multinomial distribution with N trials, a "smoothed" version of the data gives the estimator.
     /// https://en.wikipedia.org/wiki/Additive_smoothing
+    /// Used as Multinomial Naive Bayes
     /// </summary>
-    public class Lidstone : ISmoother
+    public class Lidstone : IEstimator
     {
         /// <summary>
         /// α > 0 is the smoothing parameter

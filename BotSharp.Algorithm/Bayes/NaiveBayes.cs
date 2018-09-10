@@ -1,5 +1,6 @@
-﻿using BotSharp.Algorithm.Extensions;
-using BotSharp.Algorithm.Formulas;
+﻿using BotSharp.Algorithm.Estimators;
+using BotSharp.Algorithm.Features;
+using BotSharp.Algorithm.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,12 @@ namespace BotSharp.Algorithm.Bayes
     /// <summary>
     /// https://en.wikipedia.org/wiki/Bayes%27_theorem
     /// </summary>
-    public class NaiveBayes<Smoother> where Smoother : ISmoother, new()
+    public class NaiveBayes<Estimator> where Estimator : IEstimator, new()
     {
         /// <summary>
         /// smoothing function
         /// </summary>
-        private Smoother smoother;
+        private Estimator estomator;
 
         public List<FeaturesDistribution> FeaturesDist { get; set; }
 
@@ -23,7 +24,7 @@ namespace BotSharp.Algorithm.Bayes
 
         public NaiveBayes()
         {
-            smoother = new Smoother();
+            estomator = new Estimator();
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace BotSharp.Algorithm.Bayes
             double prob = 0;
 
             // prior probability
-            prob = Math.Log(smoother.Prob(LabelDist, Y), 2);
+            prob = Math.Log(estomator.Prob(LabelDist, Y), 2);
 
             // posterior probability P(X1,...,Xn|Y) = Sum(P(X1|Y) +...+ P(Xn|Y)
             var featuresIfY = FeaturesDist.Where(fd => fd.Label == Y).ToList();
@@ -52,46 +53,10 @@ namespace BotSharp.Algorithm.Bayes
                 var fv = featuresIfY.First(fd => fd.FeatureName == Xn.Name).FeatureValues;
 
                 // features are independent, so calculate every feature prob and sum them
-                prob += Math.Log(smoother.Prob(fv, Xn.Value), 2);
+                prob += Math.Log(estomator.Prob(fv, Xn.Value), 2);
             }
 
             return prob;
-        }
-    }
-
-    public class Feature
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
-
-        public Feature(string name, string value)
-        {
-            Name = name;
-            Value = value;
-        }
-    }
-
-    public class FeaturesWithLabel
-    {
-        public List<Feature> Features { get; set; }
-        public string Label { get; set; }
-        public FeaturesWithLabel()
-        {
-            this.Features = new List<Feature>();
-        }
-    }
-
-    public class FeaturesDistribution
-    {
-        public string Label { get; set; }
-
-        public string FeatureName { get; set; }
-
-        public List<Probability> FeatureValues { get; set; }
-
-        public override string ToString()
-        {
-            return $"{Label} {FeatureName} {FeatureValues.Count}";
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using BotSharp.Algorithm.Bayes;
-using BotSharp.NLP.Corpus;
+﻿using BotSharp.Algorithm.Features;
 using BotSharp.NLP.Tokenize;
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,9 @@ using System.Text;
 
 namespace BotSharp.NLP.Classify
 {
-    public class ClassifierFactory<IClassify> where IClassify : IClassifier, new()
+    public class ClassifierFactory<IClassify, IFeatureExtractor> 
+        where IClassify : IClassifier, new() 
+        where IFeatureExtractor : ITextFeatureExtractor, new()
     {
         private SupportedLanguage _lang;
 
@@ -16,16 +17,19 @@ namespace BotSharp.NLP.Classify
 
         private ClassifyOptions _options;
 
+        private IFeatureExtractor featureExtractor;
+
         public ClassifierFactory(ClassifyOptions options, SupportedLanguage lang)
         {
             _lang = lang;
             _options = options;
             _classifier = new IClassify();
+            featureExtractor = new IFeatureExtractor();
         }
 
         public List<Tuple<string, double>> Classify(Sentence sentence)
         {
-            var classes = _classifier.Classify(GetFeatures(sentence.Words), new ClassifyOptions
+            var classes = _classifier.Classify(featureExtractor.GetFeatures(sentence.Words), new ClassifyOptions
             {
             });
 
@@ -37,20 +41,8 @@ namespace BotSharp.NLP.Classify
             _classifier.Train(sentences.Select(x => new FeaturesWithLabel
             {
                 Label = x.Label,
-                Features = GetFeatures(x.Words)
+                Features = featureExtractor.GetFeatures(x.Words)
             }).ToList(), _options);
-        }
-
-        private List<Feature> GetFeatures(List<Token> words)
-        {
-            string text = words[0].Text;
-            var features = new List<Feature>();
-
-            features.Add(new Feature("alwayson", "True"));
-            features.Add(new Feature("startswith", text[0].ToString().ToLower()));
-            features.Add(new Feature("endswith", text[text.Length - 1].ToString().ToLower()));
-
-            return features;
         }
     }
 }

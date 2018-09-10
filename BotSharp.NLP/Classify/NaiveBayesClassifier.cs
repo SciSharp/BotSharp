@@ -18,8 +18,10 @@
 
 using BotSharp.Algorithm;
 using BotSharp.Algorithm.Bayes;
+using BotSharp.Algorithm.Estimators;
 using BotSharp.Algorithm.Extensions;
-using BotSharp.Algorithm.Formulas;
+using BotSharp.Algorithm.Features;
+using BotSharp.Algorithm.Statistics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -52,6 +54,7 @@ namespace BotSharp.NLP.Classify
                 .ToList();
 
             var fNames = featureSets[0].Features.Select(x => x.Name)
+                .Distinct()
                 .OrderBy(x => x)
                 .ToList();
 
@@ -118,6 +121,16 @@ namespace BotSharp.NLP.Classify
             labelDist.ForEach(d => d.Prob -= sumLogs);
 
             return labelDist.Select(x => new Tuple<string, double>(x.Value, x.Prob)).ToList();
+        }
+    }
+
+    public class FeaturesWithLabel
+    {
+        public List<Feature> Features { get; set; }
+        public string Label { get; set; }
+        public FeaturesWithLabel()
+        {
+            this.Features = new List<Feature>();
         }
     }
 }

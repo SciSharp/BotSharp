@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Algorithm.Bayes;
+using BotSharp.Algorithm.Features;
 using SVM.BotSharp.MachineLearning;
 using Txt2Vec;
 
