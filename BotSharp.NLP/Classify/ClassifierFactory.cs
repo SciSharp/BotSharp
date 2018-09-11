@@ -50,5 +50,14 @@ namespace BotSharp.NLP.Classify
 
             _classifier.Train(sents, _options);
         }
+
+        public void TrainInVector(List<Sentence> sentences)
+        {
+            var vectors = new List<Tuple<string, double[]>>();
+
+            var sents = sentences.Select(x => new Tuple<string, double[]>(x.Label, x.Vector)).ToList();
+
+            _classifier.Train(sents, _options);
+        }
     }
 }

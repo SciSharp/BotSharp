@@ -154,6 +154,16 @@ namespace BotSharp.NLP.Classify
 
             return labeledFeatureSet;
         }
+
+        public void Train(List<Tuple<string, double[]>> featureSets, ClassifyOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

@@ -47,6 +47,8 @@ namespace BotSharp.NLP.UnitTest
             var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
             
             var dataset = sentences.Split(0.9M);
+            classifier.TrainInVector(dataset.Item1);
+
             classifier.Train(dataset.Item1);
 
             int correct = 0;

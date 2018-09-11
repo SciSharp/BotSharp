@@ -138,6 +138,22 @@ namespace BotSharp.NLP.Classify
 
             return labelDist.Select(x => new Tuple<string, double>(x.Value, x.Prob)).ToList();
         }
+
+        public void Train(List<Tuple<string, double[]>> featureSets, ClassifyOptions options)
+        {
+            labelDist = featureSets.GroupBy(x => x.Item1)
+                .Select(x => new Probability
+                {
+                    Value = x.Key,
+                    Freq = x.Count()
+                })
+                .ToList();
+        }
+
+        public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class FeaturesWithLabel
