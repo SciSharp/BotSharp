@@ -12,7 +12,7 @@ namespace BotSharp.NLP.Classify
         /// </summary>
         /// <param name="featureSets"></param>
         /// <param name="options"></param>
-        void Train(List<Tuple<string, double[]>> featureSets, ClassifyOptions options);
+        void Train(List<Tuple<string, double[]>> featureSets, double[] values, ClassifyOptions options);
 
         /// <summary>
         /// Predict by feature vector

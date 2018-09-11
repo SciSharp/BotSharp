@@ -44,12 +44,9 @@ namespace BotSharp.NLP.Classify
 
         private MultinomiaNaiveBayes nb = new MultinomiaNaiveBayes();
 
-        /// <summary>
-        /// Cache all categories' prior probability
-        /// </summary>
-        private Dictionary<string, double> PriorPropDictionary = new Dictionary<string, double>();
+        private Dictionary<string, double> condProbDictionary = new Dictionary<string, double>();
 
-        public void Train(List<Tuple<string, double[]>> featureSets, ClassifyOptions options)
+        public void Train(List<Tuple<string, double[]>> featureSets, double[] values, ClassifyOptions options)
         {
             labelDist = featureSets.GroupBy(x => x.Item1)
                 .Select(x => new Probability
@@ -66,7 +63,27 @@ namespace BotSharp.NLP.Classify
             labelDist.ForEach(l => l.Prob = nb.CalPriorProb(l.Value));
 
             // calculate posterior prob
+            // loop features
+            var featureCount = nb.FeatureSet[0].Item2.Length;
 
+            labelDist.ForEach(label =>
+            {
+                for (int x = 0; x < featureCount; x++)
+                {
+                    for (int v = 0; v < values.Length; v++)
+                    {
+                        string key = $"{label.Value} f{x} {values[v]}";
+                        condProbDictionary[key] = nb.CalCondProb(x, label.Value, values[v]);
+                    }
+                }
+            });
+
+            // save the model
+            var model = new MultinomiaNaiveBayesModel
+            {
+                LabelDist = labelDist,
+                CondProbDictionary = condProbDictionary
+            };
         }
 
         public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
@@ -76,7 +93,7 @@ namespace BotSharp.NLP.Classify
             // calculate prop
             labelDist.ForEach(lf =>
             {
-                var prob = nb.PosteriorProb(lf.Value, features, lf.Prob);
+                var prob = nb.CalPosteriorProb(lf.Value, features, lf.Prob, condProbDictionary);
                 results.Add(new Tuple<string, double>(lf.Value, prob));
             });
 

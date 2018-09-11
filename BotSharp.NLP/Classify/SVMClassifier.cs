@@ -32,11 +32,6 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class SVMClassifier : IClassifier
     {
-        public List<Tuple<string, double>> Classify(List<Feature> features, ClassifyOptions options)
-        {
-            return null;
-        }
-
         public double[][] Predict(FeaturesWithLabel featureSet, ClassifyOptions options)
         {
             Problem predict = new Problem();
@@ -53,9 +48,14 @@ namespace BotSharp.NLP.Classify
             return Prediction.PredictLabelsProbability(options.Model, scaled);
         }
 
-        public void Train(List<FeaturesWithLabel> featureSets, ClassifyOptions options)
+        public void Train(List<Tuple<string, double[]>> featureSets, double[] values, ClassifyOptions options)
         {
-            SVMClassifierTrain(featureSets, options);
+            // SVMClassifierTrain(featureSets, options);
+        }
+
+        public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
+        {
+            throw new NotImplementedException();
         }
 
         public void SVMClassifierTrain(List<FeaturesWithLabel> featureSets, ClassifyOptions options, SvmType svm = SvmType.C_SVC, KernelType kernel = KernelType.RBF, bool probability = true, string outputFile = null)
@@ -154,17 +154,5 @@ namespace BotSharp.NLP.Classify
 
             return labeledFeatureSet;
         }
-
-        public void Train(List<Tuple<string, double[]>> featureSets, ClassifyOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
-        {
-            throw new NotImplementedException();
-        }
     }
-
-
 }

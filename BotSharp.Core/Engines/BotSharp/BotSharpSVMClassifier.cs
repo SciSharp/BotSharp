@@ -129,7 +129,7 @@ namespace BotSharp.Core.Engines.BotSharp
             ClassifyOptions classifyOptions = new ClassifyOptions();
             classifyOptions.ModelFilePath = Path.Combine(Settings.ModelDir, "svm_classifier_model");
             classifyOptions.TransformFilePath = Path.Combine(Settings.ModelDir, "transform_obj_data");
-            svmClassifier.Train(featureSetList, classifyOptions);
+            // svmClassifier.Train(featureSetList, classifyOptions);
 
             meta.Meta = new JObject();
             meta.Meta["compiled at"] = "Aug 31, 2018";

@@ -35,7 +35,12 @@ namespace BotSharp.Algorithm.Bayes
 
         public List<Tuple<string, double[]>> FeatureSet { get; set; }
 
-        public double Alpha { get; set; }
+        private double alpha { get; set; }
+
+        public MultinomiaNaiveBayes(double alpha = 0.5)
+        {
+            this.alpha = alpha;
+        }
 
         /// <summary>
         /// prior probability
@@ -48,7 +53,29 @@ namespace BotSharp.Algorithm.Bayes
             int k = LabelDist.Count;
             int Nyk = LabelDist.First(x => x.Value == Y).Freq;
 
-            return (Nyk + Alpha) / (N + k * Alpha);
+            return (Nyk + alpha) / (N + k * alpha);
+        }
+
+        public double CalCondProb(int x, string Y, double feature)
+        {
+            // posterior probability P(X1,...,Xn|Y) = Sum(P(X1|Y) +...+ P(Xn|Y)
+            var featuresIfY = FeatureSet.Where(fd => fd.Item1 == Y).ToList();
+            var matrix = ConstructMatrix(featuresIfY);
+
+            int freq = 0;
+            for (int y = 0; y < featuresIfY.Count; y++)
+            {
+                if (matrix[y, x] == feature)
+                {
+                    freq++;
+                }
+            }
+
+            int Nyk = featuresIfY.Count;
+            int n = featuresIfY.Count;
+            int Nykx = freq;
+
+            return Math.Log((Nykx + alpha) / (Nyk + n * alpha));
         }
 
         /// <summary>
@@ -57,35 +84,17 @@ namespace BotSharp.Algorithm.Bayes
         /// P(X1,...,Xn|Y) = Sum(P(X1|Y) +...+ P(Xn|Y)
         /// P(X, Y) = P(Y|X)P(X) = P(X|Y)P(Y) => P(Y|X) = P(Y)P(X|Y)/P(X)
         /// </summary>
-        public double PosteriorProb(string Y, double[] features, double priorProb)
+        public double CalPosteriorProb(string Y, double[] features, double priorProb, Dictionary<string, double> condProbDictionary)
         {
-            Alpha = 0.5;
-
             int featureCount = features.Length;
             
             double postProb = priorProb;
 
-            // posterior probability P(X1,...,Xn|Y) = Sum(P(X1|Y) +...+ P(Xn|Y)
-            var featuresIfY = FeatureSet.Where(fd => fd.Item1 == Y).ToList();
-            var matrix = ConstructMatrix(featuresIfY);
-
             // loop features
             for (int x = 0; x < featureCount; x++)
             {
-                int freq = 0;
-                for (int y = 0; y < featuresIfY.Count; y++)
-                {
-                    if(matrix[y, x] == features[x])
-                    {
-                        freq++;
-                    }
-                }
-
-                int Nyk = featuresIfY.Count;
-                int n = featureCount;
-                int Nykx = freq;
-
-                postProb += Math.Log((Nykx + Alpha) / (Nyk + n * Alpha));
+                string key = $"{Y} f{x} {features[x]}";
+                postProb += condProbDictionary[key];
             }
 
             return Math.Pow(2, postProb);

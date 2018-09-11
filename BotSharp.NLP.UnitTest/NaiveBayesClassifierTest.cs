@@ -32,9 +32,9 @@ namespace BotSharp.NLP.UnitTest
             {
                 newSentences[i].Label = sentences[i].Label;
             }
-            sentences = newSentences.Take(10).ToList();
+            sentences = newSentences.ToList();
             
-            //sentences.Shuffle();
+            // sentences.Shuffle();
 
             var encoder = new OneHotEncoder();
             encoder.Sentences = sentences;

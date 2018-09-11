@@ -33,7 +33,7 @@ namespace BotSharp.NLP.Classify
 
             var sents = sentences.Select(x => new Tuple<string, double[]>(x.Label, x.Vector)).ToList();
 
-            _classifier.Train(sents, _options);
+            _classifier.Train(sents, new double[] { 0, 1 }, _options);
         }
 
         public List<Tuple<string, double>> Classify(Sentence sentence)
