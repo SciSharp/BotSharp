@@ -31,10 +31,12 @@ namespace BotSharp.Algorithm.Estimators
     /// https://en.wikipedia.org/wiki/Additive_smoothing
     /// Used as Multinomial Naive Bayes
     /// </summary>
-    public class Lidstone : IEstimator
+    public class AdditiveSmoothing : IEstimator
     {
         /// <summary>
-        /// α > 0 is the smoothing parameter
+        /// 1 > α > 0 is the smoothing parameter is Lidstone
+        /// α = 1 is Laplace
+        /// α = 0 no smoothing
         /// </summary>
         public double Alpha { get; set; }
 
@@ -61,6 +63,25 @@ namespace BotSharp.Algorithm.Estimators
             int _d = dist.Count;
 
             return (x + Alpha) / (_N +  Alpha * _d);
+        }
+
+        public double Prob(List<Tuple<string, double>> dist, string sample)
+        {
+            if (Alpha == 0)
+            {
+                Alpha = 0.5D;
+            }
+
+            // observation x = (x1, ..., xd)
+            var p = dist.Find(f => f.Item1 == sample);
+            double x = p == null ? 0D : p.Item2;
+
+            // N trials
+            double _N = dist.Sum(f => f.Item2);
+
+            int _d = dist.Count;
+
+            return (x + Alpha) / (_N + Alpha * _d);
         }
     }
 }

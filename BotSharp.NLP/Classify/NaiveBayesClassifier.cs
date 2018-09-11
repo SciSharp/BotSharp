@@ -40,104 +40,14 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class NaiveBayesClassifier : IClassifier
     {
-        private List<FeaturesDistribution> featuresDist;
-
         private List<Probability> labelDist;
 
-        public void Train(List<FeaturesWithLabel> featureSets, ClassifyOptions options)
-        {
-            labelDist = featureSets.GroupBy(x => x.Label)
-                .Select(x => new Probability
-                {
-                    Value = x.Key,
-                    Freq = x.Count()
-                })
-                .ToList();
+        private MultinomiaNaiveBayes nb = new MultinomiaNaiveBayes();
 
-            var fNames = new List<string>();
-
-            featureSets.ForEach(fs => fNames.AddRange(fs.Features.Select(x => x.Name)));
-            fNames = fNames.OrderBy(x => x).Distinct().ToList();
-
-            var featureValues = new Dictionary<string, List<Feature>>();
-
-            for (int i = 0; i < featureSets.Count; i++)
-            {
-                var fs = featureSets[i];
-                featureValues[fs.Label] = new List<Feature>();
-
-                fNames.ForEach(fn =>
-                {
-                    Feature feature = null;
-                    for (int j = 0; j < fs.Features.Count; j++)
-                    {
-                        if (fs.Features[j].Name == fn)
-                        {
-                            feature = fs.Features[j];
-                            break;
-                        }
-                    }
-
-                    var fv = new Feature(fn, feature == null ? "False" : feature.Value);
-                    featureValues[fs.Label].Add(fv);
-                });
-            }
-
-            featuresDist = new List<FeaturesDistribution>();
-
-            labelDist.Select(x => x.Value).ToList().ForEach(label =>
-            {
-                var fSets = featureValues[label];
-
-                fNames.ForEach(fName =>
-                {
-                    var fsv = fSets.Where(fs => fs.Name == fName)
-                        .GroupBy(fs => fs.Value)
-                        .Select(fs => new Probability
-                        {
-                            Value = fs.Key,
-                            Freq = fs.Count()
-                        })
-                        .OrderBy(fs => fs.Value)
-                        .ToList();
-
-                    featuresDist.Add(new FeaturesDistribution
-                    {
-                        Label = label,
-                        FeatureName = fName,
-                        FeatureValues = fsv
-                    });
-                });
-            });
-        }
-
-        public List<Tuple<string, double>> Classify(List<Feature> features, ClassifyOptions options)
-        {
-            // calculate prop
-            var nb = new NaiveBayes<Lidstone>();
-            nb.LabelDist = labelDist;
-            nb.FeaturesDist = featuresDist;
-
-            Parallel.ForEach(labelDist, (lf) => lf.Prob = nb.PosteriorProb(lf.Value, features));
-
-            // add log
-            double[] logs = labelDist.Select(x => x.Prob).ToArray();
-
-            var sumLogs = logs.Reduce((log1, next) =>
-            {
-                double min = log1;
-                if (next < log1)
-                {
-                    min = next;
-                }
-
-                return min + Math.Log(Math.Pow(2, log1 - min) + Math.Pow(2, next - min), 2);
-            });
-
-            labelDist.ForEach(d => d.Prob -= sumLogs);
-
-            return labelDist.Select(x => new Tuple<string, double>(x.Value, x.Prob)).ToList();
-        }
+        /// <summary>
+        /// Cache all categories' prior probability
+        /// </summary>
+        private Dictionary<string, double> PriorPropDictionary = new Dictionary<string, double>();
 
         public void Train(List<Tuple<string, double[]>> featureSets, ClassifyOptions options)
         {
@@ -148,11 +58,35 @@ namespace BotSharp.NLP.Classify
                     Freq = x.Count()
                 })
                 .ToList();
+
+            nb.LabelDist = labelDist;
+            nb.FeatureSet = featureSets;
+
+            // calculate prior prob
+            labelDist.ForEach(l => l.Prob = nb.CalPriorProb(l.Value));
+
+            // calculate posterior prob
+
         }
 
         public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
         {
-            throw new NotImplementedException();
+            var results = new List<Tuple<string, double>>();
+
+            // calculate prop
+            labelDist.ForEach(lf =>
+            {
+                var prob = nb.PosteriorProb(lf.Value, features, lf.Prob);
+                results.Add(new Tuple<string, double>(lf.Value, prob));
+            });
+
+            /*Parallel.ForEach(labelDist, (lf) =>
+            {
+                nb.Y = lf.Value;
+                lf.Prob = nb.PosteriorProb();
+            });*/
+
+            return results;
         }
     }
 

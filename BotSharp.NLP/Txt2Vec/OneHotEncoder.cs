@@ -38,10 +38,8 @@ namespace BotSharp.NLP.Txt2Vec
         public void EncodeAll()
         {
             InitDictionary();
-            Parallel.ForEach(Sentences, sent =>
-            {
-                Encode(sent);
-            });
+            Sentences.ForEach(sent => Encode(sent));
+            //Parallel.ForEach(Sentences, sent => Encode(sent));
         }
 
         private void InitDictionary()
