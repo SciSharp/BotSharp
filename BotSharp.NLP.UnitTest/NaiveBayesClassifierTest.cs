@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using BotSharp.Algorithm.Extensions;
+using BotSharp.NLP.Txt2Vec;
 
 namespace BotSharp.NLP.UnitTest
 {
@@ -31,9 +32,13 @@ namespace BotSharp.NLP.UnitTest
             {
                 newSentences[i].Label = sentences[i].Label;
             }
-            sentences = newSentences.Take(10).ToList();
+            sentences = newSentences.ToList();
             
             sentences.Shuffle();
+
+            var encoder = new OneHotEncoder();
+            encoder.Sentences = sentences;
+            encoder.EncodeAll();
 
             var options = new ClassifyOptions
             {

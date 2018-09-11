@@ -12,5 +12,7 @@ namespace BotSharp.NLP
         public String Label { get; set; }
 
         public String Text { get; set; }
+
+        public double[] Vector { get; set; }
     }
 }

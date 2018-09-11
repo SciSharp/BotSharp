@@ -12,5 +12,6 @@ namespace BotSharp.NLP.Classify
     public interface ITextFeatureExtractor
     {
         List<Feature> GetFeatures(List<Token> words);
+
     }
 }
