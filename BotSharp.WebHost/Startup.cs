@@ -1,23 +1,19 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
 using DotNetToolkit;
+using DotNetToolkit.JwtHelper;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
-using BotSharp.Core.Engines.BotSharp;
+using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using DotNetToolkit.JwtHelper;
-using BotSharp.Core.Agents;
+using System.IO;
+using System.Linq;
 
 namespace BotSharp.WebHost
 {
@@ -63,6 +59,7 @@ namespace BotSharp.WebHost
 
                 var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
                 c.IncludeXmlComments(filePath);
+                c.OperationFilter<SwaggerFileUploadOperation>();
             });
 
             // register platform dependency
@@ -110,12 +107,9 @@ namespace BotSharp.WebHost
                 if (!string.IsNullOrWhiteSpace(token) && (token = token.Split(' ').Last()).Length == 32)
                 {
                     var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-                    context.Request.Headers["ClientAccessToken"] = token;
+                    context.Request.Headers["Authorization"] = token;
 
-                    var dc = new DefaultDataContextLoader().GetDefaultDc();
-                    var userId = dc.Table<Agent>().FirstOrDefault(x => x.ClientAccessToken == token)?.UserId;
-
-                    context.Request.Headers["Authorization"] = "Bearer " + JwtToken.GenerateToken(config, userId);
+                    context.Request.Headers["Authorization"] = "Bearer " + JwtToken.GenerateToken(config, token);
                 }
 
                 await next.Invoke();
@@ -124,15 +118,15 @@ namespace BotSharp.WebHost
 
             app.UseMvc();
 
-            AppDomain.CurrentDomain.SetData("DataPath", Path.Join(env.ContentRootPath, "App_Data"));
+            AppDomain.CurrentDomain.SetData("DataPath", Path.Combine(env.ContentRootPath, "App_Data"));
             AppDomain.CurrentDomain.SetData("Configuration", Configuration);
             AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
             AppDomain.CurrentDomain.SetData("Assemblies", Configuration.GetValue<String>("Assemblies").Split(','));
 
-            InitializationLoader loader = new InitializationLoader();
+            /*InitializationLoader loader = new InitializationLoader();
             loader.Env = env;
             loader.Config = Configuration;
-            loader.Load();
+            loader.Load();*/
         }
     }
 }

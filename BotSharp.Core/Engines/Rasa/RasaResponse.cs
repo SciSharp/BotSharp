@@ -9,12 +9,18 @@ namespace BotSharp.Core.Models
     {
         public RasaResponseIntent Intent { get; set; }
 
+        public AIResponseFulfillment Fullfillment { get; set; }
+
         [JsonProperty("intent_ranking")]
         public List<RasaResponseIntent> IntentRanking { get; set; }
 
         public List<RasaResponseEntity> Entities { get; set; }
 
         public String Text { get; set; }
+
+        public String Project { get; set; }
+
+        public String Model { get; set; }
     }
 
     public class RasaResponseIntent

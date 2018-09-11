@@ -24,6 +24,8 @@ namespace BotSharp.Core.Intents
         [MaxLength(64)]
         public String Meta { get; set; }
 
+        public int Start { get; set; }
+
         public Boolean UserDefined { get; set; }
     }
 }

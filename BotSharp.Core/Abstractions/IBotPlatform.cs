@@ -10,6 +10,8 @@ namespace BotSharp.Core.Engines
 {
     public interface IBotPlatform
     {
+        AIConfiguration AiConfig { get; set; }
+
         /// <summary>
         /// Load agent profile
         /// </summary>
@@ -17,8 +19,16 @@ namespace BotSharp.Core.Engines
         /// <returns></returns>
         Agent LoadAgent(string id);
 
+        /// <summary>
+        /// Load agent from files.
+        /// There must contain a meta.json
+        /// </summary>
+        /// <param name="dataDir"></param>
+        /// <returns></returns>
+        Agent LoadAgentFromFile(string dataDir);
+
         AIResponse TextRequest(AIRequest request);
 
-        Task Train();
+        Task Train(BotTrainOptions options);
     }
 }

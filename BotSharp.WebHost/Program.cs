@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.WebHost
 {
@@ -19,15 +15,21 @@ namespace BotSharp.WebHost
 
         public static IWebHost BuildWebHost(string[] args) =>
             Microsoft.AspNetCore.WebHost.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((hostingContext, config) => {
-                    
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
                     var env = hostingContext.HostingEnvironment;
-                    var settings = Directory.GetFiles($"{env.ContentRootPath}{Path.DirectorySeparatorChar}Settings", "*.json");
-                    settings.ToList().ForEach(setting => {
+                    string dir = Path.GetFullPath(env.ContentRootPath + "/..");
+                    var settings = Directory.GetFiles(Path.Combine(dir, "Settings"), "*.json");
+                    settings.ToList().ForEach(setting =>
+                    {
                         config.AddJsonFile(setting, optional: false, reloadOnChange: true);
                     });
                 })
+#if RASA
+                .UseUrls("http://0.0.0.0:5000")
+#else
                 .UseUrls("http://0.0.0.0:3112")
+#endif
                 .UseStartup<Startup>()
                 .Build();
     }

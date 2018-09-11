@@ -4,14 +4,17 @@ using BotSharp.Core.Engines.BotSharp;
 using BotSharp.Core.Models;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.RestApi
 {
@@ -32,34 +35,56 @@ namespace BotSharp.RestApi
             _platform = platform;
         }
 
-        /// <summary>
-        /// Restore a agent from a uploaded zip file 
-        /// </summary>
-        /// <param name="agentId"></param>
-        /// <returns></returns>
-        [HttpGet("{agentId}")]
-        public ActionResult Restore([FromRoute] String agentId)
+        [HttpGet]
+        public ActionResult<List<Agent>> AllAgents()
         {
-            var botsHeaderFilePath = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), $"DbInitializer{Path.DirectorySeparatorChar}Agents{Path.DirectorySeparatorChar}agents.json");
-            var agents = JsonConvert.DeserializeObject<List<AgentImportHeader>>(System.IO.File.ReadAllText(botsHeaderFilePath));
+            var dc = new DefaultDataContextLoader().GetDefaultDc();
 
-            var rasa = new BotSharpAi();
-            var agentHeader = agents.First(x => x.Id == agentId);
-            rasa.RestoreAgent<AgentImporterInSebis>(agentHeader);
-
-            return Ok();
+            return dc.Table<Agent>().ToList();
         }
 
         /// <summary>
         /// Restore a agent from a uploaded zip file 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<ActionResult> Restore(IFormFile uploadedFile)
+        {
+            if (uploadedFile == null || uploadedFile.Length == 0)
+            {
+                return BadRequest();
+            }
+
+            var filePath = Path.GetTempFileName();
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await uploadedFile.CopyToAsync(stream);
+            }
+
+            string dest = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", uploadedFile.FileName.Split('.').First(), "model_" + DateTime.UtcNow.ToString("MMddyyyyHHmm"));
+            ZipFile.ExtractToDirectory(filePath, dest);
+
+            System.IO.File.Delete(filePath);
+
+            var agent = _platform.LoadAgentFromFile(dest);
+
+            return Ok(agent.Id);
+        }
+
+        /// <summary>
+        /// Train agent
         /// </summary>
         /// <param name="agentId"></param>
         /// <returns></returns>
         [HttpGet("{agentId}")]
         public string Train([FromRoute] String agentId)
         {
-            _platform.LoadAgent(agentId);
-            _platform.Train();
+            string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agentId);
+            string dest = Directory.GetDirectories(agentDir).Where(x => x.Contains("model_")).Last();
+            var agent = _platform.LoadAgentFromFile(dest);
+            _platform.Train(new BotTrainOptions { AgentDir = agentDir, Model = dest.Split(Path.DirectorySeparatorChar).Last() });
 
             return "";
         }

@@ -23,33 +23,26 @@ namespace BotSharp.Core.Engines
 
         private string agentId;
 
+        public BotTrainer()
+        {
+        }
+
         public BotTrainer(string agentId, Database dc)
         {
             this.dc = dc;
             this.agentId = agentId;
         }
 
-        public async Task<string> Train(Agent agent)
+        public async Task<ModelMetaData> Train(Agent agent, BotTrainOptions options)
         {
-            agent.Intents = dc.Table<Intent>()
-                .Include(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Contexts)
-                .Include(x => x.Responses).ThenInclude(x => x.Parameters).ThenInclude(x => x.Prompts)
-                .Include(x => x.Responses).ThenInclude(x => x.Messages)
-                .Include(x => x.UserSays).ThenInclude(x => x.Data)
-                .Where(x => x.AgentId == agentId)
-                .ToList();
-
-            var data = JObject.FromObject(new
-            {
-            });
+            var data = new NlpDoc();
 
             // Get NLP Provider
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
             var platform = config.GetSection($"BotPlatform").Value;
             string providerName = config.GetSection($"{platform}:Provider").Value;
-            var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpPipeline;
+            var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpProvider;
             provider.Configuration = config.GetSection(platform);
 
             var pipeModel = new PipeModel
@@ -60,7 +53,30 @@ namespace BotSharp.Core.Engines
                 Time = DateTime.UtcNow
             };
 
-            await provider.Train(agent, data, pipeModel);
+            await provider.Load(agent, pipeModel);
+
+            var settings = new PipeSettings
+            {
+                ProjectDir = options.AgentDir,
+                AlgorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
+            };
+
+            settings.ModelDir = Path.Combine(options.AgentDir, options.Model);
+
+            if (!Directory.Exists(settings.ProjectDir))
+            {
+                Directory.CreateDirectory(settings.ProjectDir);
+            }
+
+            if (!Directory.Exists(settings.TempDir))
+            {
+                Directory.CreateDirectory(settings.TempDir);
+            }
+
+            if (!Directory.Exists(settings.ModelDir))
+            {
+                Directory.CreateDirectory(settings.ModelDir);
+            }
 
             var meta = new ModelMetaData
             {
@@ -68,43 +84,44 @@ namespace BotSharp.Core.Engines
                 Language = agent.Language,
                 TrainingDate = DateTime.UtcNow,
                 Version = config.GetValue<String>($"Version"),
-                Pipeline = new List<PipeModel>() { pipeModel }
+                Pipeline = new List<PipeModel>() { pipeModel },
+                Model = settings.ModelDir
             };
 
             // pipe process
-            var pipelines = provider.Configuration.GetSection($"Pipe").Value
+            var pipelines = provider.Configuration.GetValue<String>($"Pipe:train")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
 
-            pipelines.ForEach(async pipeName =>
+            for (int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
-                var pipe = TypeHelper.GetInstance(pipeName, assemblies) as INlpPipeline;
+                var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpTrain;
                 pipe.Configuration = provider.Configuration;
+                pipe.Settings = settings;
                 pipeModel = new PipeModel
                 {
-                    Name = pipeName,
+                    Name = pipelines[pipeIdx],
                     Class = pipe.ToString(),
                     Time = DateTime.UtcNow
                 };
                 meta.Pipeline.Add(pipeModel);
 
                 await pipe.Train(agent, data, pipeModel);
-            });
+            }
 
             // save model meta data
-            var dir = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "ModelFiles", agent.Id);
             var metaJson = JsonConvert.SerializeObject(meta, new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
                 NullValueHandling = NullValueHandling.Ignore,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
-            File.WriteAllText(Path.Join(dir, "metadata.json"), metaJson);
+            File.WriteAllText(Path.Combine(settings.ModelDir, "model-meta.json"), metaJson);
 
             Console.WriteLine(metaJson);
 
-            return metaJson;
+            return meta;
         }
     }
 }

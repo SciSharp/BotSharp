@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Intents;
+using BotSharp.Models.NLP;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -32,6 +33,8 @@ namespace BotSharp.Core.Models
         }
 
         public Dictionary<string, object> Parameters { get; set; }
+
+        public List<NlpEntity> Entities { get; set; }
 
         public AIContext[] Contexts { get; set; }
 

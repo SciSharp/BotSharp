@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotSharp.NLP;
+using System;
 using System.Collections.Generic;
 using System.Text;
 

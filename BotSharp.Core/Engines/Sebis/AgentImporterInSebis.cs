@@ -20,16 +20,17 @@ namespace BotSharp.Core.Engines
     /// </summary>
     public class AgentImporterInSebis : IAgentImporter
     {
+        public string AgentDir { get; set; }
+
         /// <summary>
         /// Load agent meta
         /// </summary>
-        /// <param name="agentName"></param>
         /// <param name="agentDir"></param>
         /// <returns></returns>
-        public Agent LoadAgent(AgentImportHeader agentHeader, string agentDir)
+        public Agent LoadAgent(AgentImportHeader agentHeader)
         {
             // load agent profile
-            string data = File.ReadAllText(Path.Join(agentDir, "Sebis", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
+            string data = File.ReadAllText(Path.Combine(AgentDir, "Sebis", $"{agentHeader.Name}{Path.DirectorySeparatorChar}agent.json"));
             var agent = JsonConvert.DeserializeObject<SebisAgent>(data);
             agent.Name = agentHeader.Name;
             agent.Id = agentHeader.Id;
@@ -37,22 +38,18 @@ namespace BotSharp.Core.Engines
             var result = agent.ToObject<Agent>();
             result.ClientAccessToken = agentHeader.ClientAccessToken;
             result.DeveloperAccessToken = agentHeader.DeveloperAccessToken;
-            if(agentHeader.UserId != null)
-            {
-                result.UserId = agentHeader.UserId;
-            }
 
             return result;
         }
 
-        public void LoadCustomEntities(Agent agent, string agentDir)
+        public void LoadCustomEntities(Agent agent)
         {
             agent.Entities = new List<EntityType>();
         }
 
-        public void LoadIntents(Agent agent, string agentDir)
+        public void LoadIntents(Agent agent)
         {
-            string data = File.ReadAllText(Path.Join(agentDir, "Sebis", $"{agent.Name}{Path.DirectorySeparatorChar}corpus.json"));
+            string data = File.ReadAllText(Path.Combine(AgentDir, "Sebis", $"{agent.Name}{Path.DirectorySeparatorChar}corpus.json"));
             var sentences = JsonConvert.DeserializeObject<SebisAgent>(data).Sentences;
             
             agent.Intents = sentences.Select(x => x.Name).Distinct().Select(x => new Intent{Name = x}).ToList();
@@ -93,7 +90,8 @@ namespace BotSharp.Core.Engines
                     {
                         expression.Data.Add(new IntentExpressionPart
                         {
-                            Text = say.Text.Substring(pos, entity.Start - pos)
+                            Text = say.Text.Substring(pos, entity.Start - pos),
+                            Start = pos
                         });
                     }
 
@@ -102,7 +100,8 @@ namespace BotSharp.Core.Engines
                     {
                         Alias = entity.Entity,
                         Meta = entity.Entity,
-                        Text = say.Text.Substring(entity.Start, entity.Value.Length)
+                        Text = say.Text.Substring(entity.Start, entity.Value.Length),
+                        Start = entity.Start
                     });
 
                     pos = entity.End + 1;
@@ -112,7 +111,8 @@ namespace BotSharp.Core.Engines
                         // end
                         expression.Data.Add(new IntentExpressionPart
                         {
-                            Text = say.Text.Substring(pos)
+                            Text = say.Text.Substring(pos),
+                            Start = pos
                         });
                     }
                 }
@@ -130,7 +130,7 @@ namespace BotSharp.Core.Engines
             entity.End = entity.Start + entity.Value.Length - 1;
         }
 
-        public void LoadBuildinEntities(Agent agent, string agentDir)
+        public void LoadBuildinEntities(Agent agent)
         {
             agent.Intents.ForEach(intent =>
             {
@@ -181,6 +181,10 @@ namespace BotSharp.Core.Engines
                     }
                 });
             }
+        }
+
+        public void AssembleTrainData(Agent agent)
+        {
         }
     }
 

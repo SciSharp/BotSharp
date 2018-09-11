@@ -17,13 +17,8 @@ namespace BotSharp.Core.Abstractions
         IConfiguration Configuration { get; set; }
 
         /// <summary>
-        /// Process
+        /// Common settings for Pipeline
         /// </summary>
-        /// <param name="agent"></param>
-        /// <param name="data">Intermediate result</param>
-        /// <param name="meta">Meta data which is packed to model</param>
-        /// <returns></returns>
-        Task<bool> Train(Agent agent, JObject data, PipeModel meta);
-        Task<bool> Predict(Agent agent, JObject data, PipeModel meta);
+        PipeSettings Settings { get; set; }
     }
 }

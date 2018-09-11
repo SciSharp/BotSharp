@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Abstractions;
+using BotSharp.NLP.Tokenize;
 using EntityFrameworkCore.BootKit;
 using Newtonsoft.Json;
 using System;
@@ -20,8 +21,8 @@ namespace BotSharp.Core.Accounts
 
         private void ImportAccount(Database dc)
         {
-            var dataPath = Path.Join(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "DbInitializer", "Accounts");
-            string json = File.ReadAllText(Path.Join(dataPath, "users.json"));
+            var dataPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "DbInitializer", "Accounts");
+            string json = File.ReadAllText(Path.Combine(dataPath, "users.json"));
 
             var users = JsonConvert.DeserializeObject<List<User>>(json);
             users.ForEach(user =>

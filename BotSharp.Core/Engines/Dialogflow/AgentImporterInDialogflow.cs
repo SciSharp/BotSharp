@@ -19,16 +19,18 @@ namespace BotSharp.Core.Engines
     /// </summary>
     public class AgentImporterInDialogflow : IAgentImporter
     {
+        public string AgentDir { get; set; }
+
         /// <summary>
         /// Load agent meta
         /// </summary>
         /// <param name="agentName"></param>
         /// <param name="agentDir"></param>
         /// <returns></returns>
-        public Agent LoadAgent(AgentImportHeader agentHeader, string agentDir)
+        public Agent LoadAgent(AgentImportHeader agentHeader)
         {
             // load agent profile
-            string data = File.ReadAllText(Path.Join(agentDir, "Dialogflow", $"agentHeader.Name{Path.DirectorySeparatorChar}agent.json"));
+            string data = File.ReadAllText(Path.Combine(AgentDir, "agent.json"));
             var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);
             agent.Name = agentHeader.Name;
             agent.Id = agentHeader.Id;
@@ -36,10 +38,6 @@ namespace BotSharp.Core.Engines
             var result = agent.ToObject<Agent>();
             result.ClientAccessToken = agentHeader.ClientAccessToken;
             result.DeveloperAccessToken = agentHeader.DeveloperAccessToken;
-            if(agentHeader.UserId != null)
-            {
-                result.UserId = agentHeader.UserId;
-            }
 
             result.MlConfig = agent.ToObject<AgentMlConfig>();
             result.MlConfig.MinConfidence = agent.MlMinConfidence;
@@ -53,17 +51,17 @@ namespace BotSharp.Core.Engines
             return result;
         }
 
-        public void LoadCustomEntities(Agent agent, string agentDir)
+        public void LoadCustomEntities(Agent agent)
         {
             agent.Entities = new List<EntityType>();
-            string entityDir = Path.Join(agentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}entities");
+            string entityDir = Path.Combine(AgentDir, "entities");
             if (!Directory.Exists(entityDir)) return;
 
             Directory.EnumerateFiles(entityDir)
                 .ToList()
                 .ForEach(fileName =>
                 {
-                    string entityName = fileName.Split($"{Path.DirectorySeparatorChar}").Last();
+                    string entityName = fileName.Split(Path.DirectorySeparatorChar).Last();
                     if (!entityName.Contains("_"))
                     {
                         string entityJson = File.ReadAllText($"{fileName}");
@@ -88,10 +86,10 @@ namespace BotSharp.Core.Engines
                 });
         }
 
-        public void LoadIntents(Agent agent, string agentDir)
+        public void LoadIntents(Agent agent)
         {
             agent.Intents = new List<Intent>();
-            string intentDir = Path.Join(agentDir, "Dialogflow", $"{agent.Name}{Path.DirectorySeparatorChar}intents");
+            string intentDir = Path.Combine(AgentDir, "intents");
             if (!Directory.Exists(intentDir)) return;
 
             Directory.EnumerateFiles(intentDir)
@@ -153,6 +151,12 @@ namespace BotSharp.Core.Engines
 
                         // remove @
                         say.Data.Where(x => x.Meta != null && x.Meta.StartsWith("@")).ToList().ForEach(x => x.Meta = x.Meta.Substring(1));
+
+                        // calculate offset
+                        for(int i = 1; i < say.Data.Count; i++)
+                        {
+                            say.Data[i].Start = String.Join("", say.Data.Select(x => x.Text).Take(i)).Length;
+                        }
                     });
                 }
             }
@@ -232,11 +236,10 @@ namespace BotSharp.Core.Engines
             return newIntent;
         }
 
-        public void LoadBuildinEntities(Agent agent, string agentDir)
+        public void LoadBuildinEntities(Agent agent)
         {
             agent.Intents.ForEach(intent =>
             {
-
                 if (intent.UserSays != null)
                 {
                     intent.UserSays.ForEach(us =>
@@ -284,6 +287,35 @@ namespace BotSharp.Core.Engines
                     }
                 });
             }
+        }
+
+        public void AssembleTrainData(Agent agent)
+        {
+            // convert agent to training corpus
+            agent.Corpus = new TrainingCorpus
+            {
+                Entities = new List<TrainingEntity>(),
+                UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>()
+            };
+
+            agent.Intents.ForEach(intent =>
+            {
+                intent.UserSays.ForEach(say => {
+                    agent.Corpus.UserSays.Add(new TrainingIntentExpression<TrainingIntentExpressionPart>
+                    {
+                        Intent = intent.Name,
+                        Text = String.Join("", say.Data.Select(x => x.Text)),
+                        Entities = say.Data.Where(x => !String.IsNullOrEmpty(x.Meta))
+                        .Select(x => new TrainingIntentExpressionPart
+                        {
+                            Value = x.Text,
+                            Entity = x.Meta,
+                            Start = x.Start
+                        })
+                        .ToList()
+                    });
+                });
+            });
         }
     }
 }

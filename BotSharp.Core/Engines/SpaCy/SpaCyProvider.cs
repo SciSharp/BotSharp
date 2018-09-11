@@ -12,23 +12,22 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.SpaCy
 {
-    public class SpaCyProvider : INlpPipeline
+    public class SpaCyProvider : INlpProvider
     {
         public IConfiguration Configuration { get; set; }
-        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
+        public PipeSettings Settings { get; set; }
+
+        public async Task<bool> Load(Agent agent, PipeModel meta)
         {
             var client = new RestClient(Configuration.GetSection("SpaCyProvider:Url").Value);
             var request = new RestRequest("load", Method.GET);
             var response = client.Execute<Result>(request);
 
             meta.Meta = JObject.FromObject(response.Data);
+            meta.Meta.Remove("models");
+            meta.Model = response.Data.Models;
 
             return response.IsSuccessful;
-        }
-
-        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
-        {
-            return true;
         }
 
         private class Result

@@ -17,8 +17,9 @@ namespace BotSharp.Core.Engines.SpaCy
     {
         List<String> entitiesInTrainingSet = new List<string>();
         public IConfiguration Configuration { get; set; }
+        public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Train(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             String modelPath = "./entity_rec_output";
             String newModelName = "test";
@@ -51,12 +52,10 @@ namespace BotSharp.Core.Engines.SpaCy
 
             var response = client.Execute<Result>(request);
 
-            data["EntityModelTrained"] = response.Data.EntityModelTrained;
-
             return true;
         }
 
-        public async Task<bool> Predict(Agent agent, JObject data, PipeModel meta)
+        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
             return true;
         }

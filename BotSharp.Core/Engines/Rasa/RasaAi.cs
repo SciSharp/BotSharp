@@ -84,7 +84,7 @@ namespace BotSharp.Core.Engines
         private IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
         {
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-            var client = new RestClient($"{config.GetSection("Rasa:Nlu").Value}");
+            var client = new RestClient($"{config.GetSection("RasaNlu:url").Value}");
 
             var rest = new RestRequest("parse", Method.POST);
             string json = JsonConvert.SerializeObject(new { Project = projectId, Q = text, Model = model },
@@ -101,13 +101,13 @@ namespace BotSharp.Core.Engines
         {
             var trainingData = new RasaTrainingData
             {
-                Entities = new List<RasaTraningEntity>(),
+                Entities = new List<RasaTrainingEntity>(),
                 UserSays = new List<RasaIntentExpression>()
             };
 
             var corpus = GetIntentExpressions();
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-            var client = new RestClient($"{config.GetSection("Rasa:Nlu").Value}");
+            var client = new RestClient($"{config.GetSection("RasaNlu:url").Value}");
 
             var contextHashs = corpus.UserSays
                 .Select(x => x.ContextHash)
@@ -133,7 +133,7 @@ namespace BotSharp.Core.Engines
 
                 var data = new RasaTrainingData
                 {
-                    Entities = entity_synonyms.Select(x => x.ToObject<RasaTraningEntity>()).ToList(),
+                    Entities = entity_synonyms.Select(x => x.ToObject<RasaTrainingEntity>()).ToList(),
                     UserSays = common_examples.Select(x => x.ToObject<RasaIntentExpression>()).ToList()
                 };
 
@@ -198,7 +198,7 @@ namespace BotSharp.Core.Engines
                 rest.AddQueryParameter("model", ctx);
                 string trainingConfig = agent.Language == "zh" ? "config_jieba_mitie_sklearn.yml" : "config_mitie_sklearn.yml";
                 var contentRootPatch = AppDomain.CurrentDomain.GetData("ContentRootPath").ToString();
-                string body = File.ReadAllText(Path.Join(contentRootPatch, "Settings", trainingConfig));
+                string body = File.ReadAllText(Path.Combine(contentRootPatch, "Settings", trainingConfig));
                 body = $"{body}\r\ndata: {json}";
                 rest.AddParameter("application/x-yml", body, ParameterType.RequestBody);
 
@@ -208,7 +208,7 @@ namespace BotSharp.Core.Engines
                 {
                     var result = JObject.Parse(response.Content);
 
-                    string modelName = result["info"].Value<String>().Split(": ")[1];
+                    string modelName = result["info"].Value<String>().Split(new string[] { ": " }, StringSplitOptions.None)[1];
                 }
                 else
                 {
