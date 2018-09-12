@@ -53,6 +53,10 @@ namespace BotSharp.NLP.Classify
 
         public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
+            var tfidf = new TFIDF();
+            tfidf.Sentences = sentences;
+            words = tfidf.EncodeAll();
+
             var encoder = new OneHotEncoder();
             encoder.Sentences = sentences;
             words = encoder.EncodeAll();

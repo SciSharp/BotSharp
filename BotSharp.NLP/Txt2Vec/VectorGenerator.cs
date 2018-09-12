@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
-using BotSharp.NLP.Models.TF_IDF;
 //using AdvUtils;
 
 namespace Txt2Vec
@@ -37,8 +36,8 @@ namespace Txt2Vec
         public List<Vec> Sentence2Vec(List<string> sentences, WeightingScheme weightingScheme = WeightingScheme.AVG)
         {
             // Inplementing TF-IDF
-            TFIDFGenerator tfidfGenerator = new TFIDFGenerator();
-            List<List<double>> weights = tfidfGenerator.TFIDFWeightVectorsForSentences(sentences.ToArray());
+            // TFIDFGenerator tfidfGenerator = new TFIDFGenerator();
+            List<List<double>> weights = null;// tfidfGenerator.TFIDFWeightVectorsForSentences(sentences.ToArray());
 
             List<List<Vec>> matixList = new List<List<Vec>>();
             

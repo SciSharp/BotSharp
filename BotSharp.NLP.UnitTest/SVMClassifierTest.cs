@@ -1,6 +1,5 @@
 ﻿using BotSharp.NLP.Classify;
 using BotSharp.NLP.Corpus;
-using BotSharp.NLP.Models.TF_IDF;
 using BotSharp.NLP.Tokenize;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,8 +28,8 @@ namespace BotSharp.NLP.UnitTest
                 "see you Bolo",
                 "byebye Haiping"
             };
-            TFIDFGenerator tfidfGenerator = new TFIDFGenerator();
-            List<List<double>> weights = tfidfGenerator.TFIDFWeightVectorsForSentences(documents);
+            /*TFIDFGenerator tfidfGenerator = new TFIDFGenerator();
+            List<List<double>> weights = tfidfGenerator.TFIDFWeightVectorsForSentences(documents);*/
         }
 
         [TestMethod]
