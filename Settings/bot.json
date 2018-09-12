@@ -7,10 +7,13 @@
     },
 
     "Pipe": {
-      "train": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, BotSharpSVMClassifier",
-      "predict": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, BotSharpSVMClassifier"
+      "train": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, BotSharpNBayesClassifier",
+      "predict": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, BotSharpNBayesClassifier"
     },
-
+	
+	"BotSharpNBayesClassifier": {
+	},
+	
     "BotSharpSVMClassifier": {
       "wordvec": "C:\\Users\\bpeng\\Desktop\\BoloReborn\\BotSharp\\Data"
     },

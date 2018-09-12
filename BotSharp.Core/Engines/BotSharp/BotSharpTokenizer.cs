@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
+using BotSharp.Core.Intents;
 using BotSharp.NLP;
 using BotSharp.NLP.Tokenize;
 using Microsoft.Extensions.Configuration;
@@ -14,14 +15,12 @@ namespace BotSharp.Core.Engines.BotSharp
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
-        private TokenizerFactory<RegexTokenizer> _tokenizer;
+        private TokenizerFactory<TreebankTokenizer> _tokenizer;
 
         public BotSharpTokenizer()
         {
-            _tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            _tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions
             {
-                Pattern = RegexTokenizer.WORD_PUNC,
-                SpecialWords = new List<string> { "'s" }
             }, SupportedLanguage.English);
         }
 
@@ -48,7 +47,8 @@ namespace BotSharp.Core.Engines.BotSharp
                 doc.Sentences.Add(new NlpDocSentence
                 {
                     Tokens = _tokenizer.Tokenize(say.Text),
-                    Text = say.Text
+                    Text = say.Text,
+                    Intent = new TextClassificationResult { Label = say.Intent }
                 });
             });
 
