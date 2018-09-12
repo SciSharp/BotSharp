@@ -22,25 +22,22 @@ namespace BotSharp.Core.Engines.BotSharp
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
             meta.Model = "classification-nb.model";
-
             string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
 
-            var encoder = new OneHotEncoder();
-            encoder.Sentences = doc.Sentences.Select(x => new NLP.Sentence
+            var options = new ClassifyOptions
+            {
+                ModelFilePath = modelFileName
+            };
+            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+
+            var sentences = doc.Sentences.Select(x => new Sentence
             {
                 Label = x.Intent.Label,
                 Text = x.Text,
                 Words = x.Tokens
             }).ToList();
-            encoder.EncodeAll();
 
-            var options = new ClassifyOptions
-            {
-                TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange")
-            };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
-
-            classifier.Train(encoder.Sentences);
+            classifier.Train(sentences);
 
             Console.WriteLine($"Saved model to {modelFileName}");
             meta.Meta = new JObject();
@@ -51,6 +48,28 @@ namespace BotSharp.Core.Engines.BotSharp
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
+            var options = new ClassifyOptions
+            {
+                ModelFilePath = Path.Combine(Settings.ModelDir, meta.Model)
+            };
+            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+
+            var sentence = doc.Sentences.Select(s => new Sentence
+            {
+                Text = s.Text,
+                Words = s.Tokens
+            }).First();
+
+
+            var result = classifier.Classify(sentence);
+
+            doc.Sentences[0].Intent = new TextClassificationResult
+            {
+                Classifier = "BotSharpNBayesClassifier",
+                Label = result.First().Item1,
+                Confidence = (decimal)result.First().Item2
+            };
+
             return true;
         }
     }

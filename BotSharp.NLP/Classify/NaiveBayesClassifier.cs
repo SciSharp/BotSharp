@@ -22,6 +22,8 @@ using BotSharp.Algorithm.Estimators;
 using BotSharp.Algorithm.Extensions;
 using BotSharp.Algorithm.Features;
 using BotSharp.Algorithm.Statistics;
+using BotSharp.NLP.Txt2Vec;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -46,14 +48,24 @@ namespace BotSharp.NLP.Classify
 
         private Dictionary<string, double> condProbDictionary = new Dictionary<string, double>();
 
-        public void Train(List<Tuple<string, double[]>> featureSets, double[] values, ClassifyOptions options)
+        private List<string> words;
+        private double[] features = new double[] { 0, 1 };
+
+        public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
+            var encoder = new OneHotEncoder();
+            encoder.Sentences = sentences;
+            words = encoder.EncodeAll();
+
+            var featureSets = sentences.Select(x => new Tuple<string, double[]>(x.Label, x.Vector)).ToList();
+
             labelDist = featureSets.GroupBy(x => x.Item1)
                 .Select(x => new Probability
                 {
                     Value = x.Key,
                     Freq = x.Count()
                 })
+                .OrderBy(x => x.Value)
                 .ToList();
 
             nb.LabelDist = labelDist;
@@ -70,30 +82,27 @@ namespace BotSharp.NLP.Classify
             {
                 for (int x = 0; x < featureCount; x++)
                 {
-                    for (int v = 0; v < values.Length; v++)
+                    for (int v = 0; v < features.Length; v++)
                     {
-                        string key = $"{label.Value} f{x} {values[v]}";
-                        condProbDictionary[key] = nb.CalCondProb(x, label.Value, values[v]);
+                        string key = $"{label.Value} f{x} {features[v]}";
+                        condProbDictionary[key] = nb.CalCondProb(x, label.Value, features[v]);
                     }
                 }
             });
-
-            // save the model
-            var model = new MultinomiaNaiveBayesModel
-            {
-                LabelDist = labelDist,
-                CondProbDictionary = condProbDictionary
-            };
         }
 
-        public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
+        public List<Tuple<string, double>> Classify(Sentence sentence, ClassifyOptions options)
         {
+            var encoder = new OneHotEncoder();
+            encoder.Words = words;
+            encoder.Encode(sentence);
+
             var results = new List<Tuple<string, double>>();
 
             // calculate prop
             labelDist.ForEach(lf =>
             {
-                var prob = nb.CalPosteriorProb(lf.Value, features, lf.Prob, condProbDictionary);
+                var prob = nb.CalPosteriorProb(lf.Value, sentence.Vector, lf.Prob, condProbDictionary);
                 results.Add(new Tuple<string, double>(lf.Value, prob));
             });
 
@@ -104,6 +113,47 @@ namespace BotSharp.NLP.Classify
             });*/
 
             return results;
+        }
+
+        public string SaveModel(ClassifyOptions options)
+        {
+            // save the model
+            var model = new MultinomiaNaiveBayesModel
+            {
+                LabelDist = labelDist,
+                CondProbDictionary = condProbDictionary,
+                Values = words
+            };
+
+            //save the file
+            using (var bw = new BinaryWriter(new FileStream(options.ModelFilePath, FileMode.Create)))
+            {
+                var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(model));
+                bw.Write(bytes);
+            }
+
+            return options.ModelFilePath;
+        }
+
+        public Object LoadModel(ClassifyOptions options)
+        {
+            string json = String.Empty;
+
+            //read the file
+            using (var br = new BinaryReader(new FileStream(options.ModelFilePath, FileMode.Open)))
+            {
+                byte[] bytes = br.ReadBytes((int)br.BaseStream.Length);
+
+                json = Encoding.UTF8.GetString(bytes);
+            }
+
+            var model = JsonConvert.DeserializeObject<MultinomiaNaiveBayesModel>(json);
+
+            labelDist = model.LabelDist;
+            condProbDictionary = model.CondProbDictionary;
+            words = model.Values;
+
+            return model;
         }
     }
 

@@ -48,12 +48,12 @@ namespace BotSharp.NLP.Classify
             return Prediction.PredictLabelsProbability(options.Model, scaled);
         }
 
-        public void Train(List<Tuple<string, double[]>> featureSets, double[] values, ClassifyOptions options)
+        public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
             // SVMClassifierTrain(featureSets, options);
         }
 
-        public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
+        public List<Tuple<string, double>> Classify(Sentence sentence, ClassifyOptions options)
         {
             throw new NotImplementedException();
         }
@@ -153,6 +153,16 @@ namespace BotSharp.NLP.Classify
             labeledFeatureSet.Label = label;
 
             return labeledFeatureSet;
+        }
+
+        public string SaveModel(ClassifyOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        object IClassifier.LoadModel(ClassifyOptions options)
+        {
+            throw new NotImplementedException();
         }
     }
 }

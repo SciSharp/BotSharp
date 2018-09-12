@@ -15,17 +15,17 @@ namespace BotSharp.NLP.Txt2Vec
     {
         public List<Sentence> Sentences { get; set; }
 
-        private List<string> words;
+        public List<string> Words { get; set; }
 
         public void Encode(Sentence sentence)
         {
             InitDictionary();
 
-            var vector = words.Select(x => 0D).ToArray();
+            var vector = Words.Select(x => 0D).ToArray();
 
             sentence.Words.ForEach(w =>
             {
-                int index = words.IndexOf(w.Text.ToLower());
+                int index = Words.IndexOf(w.Text.ToLower());
                 if(index > 0)
                 {
                     vector[index] = 1;
@@ -35,24 +35,29 @@ namespace BotSharp.NLP.Txt2Vec
             sentence.Vector = vector;
         }
 
-        public void EncodeAll()
+        public List<string> EncodeAll()
         {
             InitDictionary();
+            
             Sentences.ForEach(sent => Encode(sent));
             //Parallel.ForEach(Sentences, sent => Encode(sent));
+
+            return Words;
         }
 
-        private void InitDictionary()
+        private List<string> InitDictionary()
         {
-            if (words == null)
+            if (Words == null)
             {
-                words = new List<string>();
+                Words = new List<string>();
                 Sentences.ForEach(x =>
                 {
-                    words.AddRange(x.Words.Where(w => w.IsAlpha).Select(w => w.Text.ToLower()));
+                    Words.AddRange(x.Words.Where(w => w.IsAlpha).Select(w => w.Text.ToLower()));
                 });
-                words = words.Distinct().OrderBy(x => x).ToList();
+                Words = Words.Distinct().OrderBy(x => x).ToList();
             }
+
+            return Words;
         }
     }
 }

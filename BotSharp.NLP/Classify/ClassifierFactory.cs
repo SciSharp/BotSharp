@@ -29,20 +29,20 @@ namespace BotSharp.NLP.Classify
 
         public void Train(List<Sentence> sentences)
         {
-            var vectors = new List<Tuple<string, double[]>>();
-
-            var sents = sentences.Select(x => new Tuple<string, double[]>(x.Label, x.Vector)).ToList();
-
-            _classifier.Train(sents, new double[] { 0, 1 }, _options);
+            _classifier.Train(sentences, _options);
+            _classifier.SaveModel(_options);
         }
 
         public List<Tuple<string, double>> Classify(Sentence sentence)
         {
             var options = new ClassifyOptions
             {
+                ModelFilePath = _options.ModelFilePath
             };
 
-            var classes = _classifier.Classify(sentence.Vector, options);
+            _classifier.LoadModel(options);
+
+            var classes = _classifier.Classify(sentence, options);
 
             return classes.OrderByDescending(x => x.Item2).ToList();
         }

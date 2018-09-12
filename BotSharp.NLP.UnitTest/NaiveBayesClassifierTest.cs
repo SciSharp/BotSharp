@@ -36,17 +36,14 @@ namespace BotSharp.NLP.UnitTest
             
             sentences.Shuffle();
 
-            var encoder = new OneHotEncoder();
-            encoder.Sentences = sentences;
-            encoder.EncodeAll();
-
             var options = new ClassifyOptions
             {
+                ModelFilePath = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange", "nb.model"),
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange")
             };
             var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
             
-            var dataset = sentences.Split(0.7M);
+            var dataset = sentences.Split(1M);
             classifier.Train(dataset.Item1);
 
             int correct = 0;
