@@ -22,6 +22,7 @@ using BotSharp.Algorithm.Estimators;
 using BotSharp.Algorithm.Extensions;
 using BotSharp.Algorithm.Features;
 using BotSharp.Algorithm.Statistics;
+using BotSharp.NLP.Featuring;
 using BotSharp.NLP.Txt2Vec;
 using Newtonsoft.Json;
 using System;
@@ -53,10 +54,11 @@ namespace BotSharp.NLP.Classify
 
         public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
-            var tfidf = new TFIDF();
+            var tfidf = new TfIdfFeatureExtractor();
             tfidf.Sentences = sentences;
-            words = tfidf.EncodeAll();
-
+            tfidf.CalBasedOnCategory();
+            var keyWords = tfidf.Features();
+            string keywords2 = String.Join(",", keyWords.ToArray());
             var encoder = new OneHotEncoder();
             encoder.Sentences = sentences;
             words = encoder.EncodeAll();

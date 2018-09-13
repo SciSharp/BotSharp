@@ -67,5 +67,7 @@ namespace BotSharp.NLP.Tokenize
         {
             return $"{Text} {Start} {Pos}";
         }
+
+        public double Vector { get; set; }
     }
 }

@@ -25,7 +25,7 @@ namespace BotSharp.NLP.Txt2Vec
 
             sentence.Words.ForEach(w =>
             {
-                int index = Words.IndexOf(w.Text.ToLower());
+                int index = Words.IndexOf(w.Lemma.ToLower());
                 if(index > 0)
                 {
                     vector[index] = 1;
@@ -49,12 +49,7 @@ namespace BotSharp.NLP.Txt2Vec
         {
             if (Words == null)
             {
-                Words = new List<string>();
-                Sentences.ForEach(x =>
-                {
-                    Words.AddRange(x.Words.Where(w => w.IsAlpha).Select(w => w.Text.ToLower()));
-                });
-                Words = Words.Distinct().OrderBy(x => x).ToList();
+                // Words = "shuffle,pause,resume,next,stop,previous,continue,mode,repeat,back,music,play,enough,off,them,playlist,skip,restart,favourites,on,add,go,again,turn,save,my,station,favourite,start,by,playing,please,now,running,move".Split(',').ToList();
             }
 
             return Words;
