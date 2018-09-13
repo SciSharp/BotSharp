@@ -15,17 +15,17 @@ namespace BotSharp.NLP.Txt2Vec
     {
         public List<Sentence> Sentences { get; set; }
 
-        private List<string> words;
+        public List<string> Words { get; set; }
 
         public void Encode(Sentence sentence)
         {
             InitDictionary();
 
-            var vector = words.Select(x => 0D).ToArray();
+            var vector = Words.Select(x => 0D).ToArray();
 
             sentence.Words.ForEach(w =>
             {
-                int index = words.IndexOf(w.Text.ToLower());
+                int index = Words.IndexOf(w.Lemma.ToLower());
                 if(index > 0)
                 {
                     vector[index] = 1;
@@ -35,26 +35,24 @@ namespace BotSharp.NLP.Txt2Vec
             sentence.Vector = vector;
         }
 
-        public void EncodeAll()
+        public List<string> EncodeAll()
         {
             InitDictionary();
-            Parallel.ForEach(Sentences, sent =>
-            {
-                Encode(sent);
-            });
+            
+            Sentences.ForEach(sent => Encode(sent));
+            //Parallel.ForEach(Sentences, sent => Encode(sent));
+
+            return Words;
         }
 
-        private void InitDictionary()
+        private List<string> InitDictionary()
         {
-            if (words == null)
+            if (Words == null)
             {
-                words = new List<string>();
-                Sentences.ForEach(x =>
-                {
-                    words.AddRange(x.Words.Where(w => w.IsAlpha).Select(w => w.Text.ToLower()));
-                });
-                words = words.Distinct().OrderBy(x => x).ToList();
+                // Words = "shuffle,pause,resume,next,stop,previous,continue,mode,repeat,back,music,play,enough,off,them,playlist,skip,restart,favourites,on,add,go,again,turn,save,my,station,favourite,start,by,playing,please,now,running,move".Split(',').ToList();
             }
+
+            return Words;
         }
     }
 }

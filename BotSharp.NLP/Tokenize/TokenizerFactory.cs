@@ -29,7 +29,9 @@ namespace BotSharp.NLP.Tokenize
 
         public List<Token> Tokenize(string sentence)
         {
-            return _tokenizer.Tokenize(sentence, _options);
+            var tokens = _tokenizer.Tokenize(sentence, _options);
+            tokens.ForEach(x => x.Lemma = x.Text.ToLower());
+            return tokens;
         }
 
         public List<Sentence> Tokenize(List<String> sentences)
@@ -39,6 +41,7 @@ namespace BotSharp.NLP.Tokenize
             Parallel.ForEach(sents, (sentence) =>
             {
                 sentence.Words = Tokenize(sentence.Text);
+                sentence.Words.ForEach(x => x.Lemma = x.Text.ToLower());
             });
 
             return sents;

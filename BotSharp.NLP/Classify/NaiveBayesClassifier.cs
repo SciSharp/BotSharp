@@ -22,6 +22,9 @@ using BotSharp.Algorithm.Estimators;
 using BotSharp.Algorithm.Extensions;
 using BotSharp.Algorithm.Features;
 using BotSharp.Algorithm.Statistics;
+using BotSharp.NLP.Featuring;
+using BotSharp.NLP.Txt2Vec;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,119 +43,123 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class NaiveBayesClassifier : IClassifier
     {
-        private List<FeaturesDistribution> featuresDist;
-
         private List<Probability> labelDist;
 
-        public void Train(List<FeaturesWithLabel> featureSets, ClassifyOptions options)
+        private MultinomiaNaiveBayes nb = new MultinomiaNaiveBayes();
+
+        private Dictionary<string, double> condProbDictionary = new Dictionary<string, double>();
+
+        private List<string> words;
+        private double[] features = new double[] { 0, 1 };
+
+        public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
-            labelDist = featureSets.GroupBy(x => x.Label)
-                .Select(x => new Probability
-                {
-                    Value = x.Key,
-                    Freq = x.Count()
-                })
-                .ToList();
+            var tfidf = new TfIdfFeatureExtractor();
+            tfidf.Sentences = sentences;
+            tfidf.CalBasedOnCategory();
+            var keyWords = tfidf.Features();
+            string keywords2 = String.Join(",", keyWords.ToArray());
+            var encoder = new OneHotEncoder();
+            encoder.Sentences = sentences;
+            words = encoder.EncodeAll();
 
-            var fNames = new List<string>();
+            var featureSets = sentences.Select(x => new Tuple<string, double[]>(x.Label, x.Vector)).ToList();
 
-            featureSets.ForEach(fs => fNames.AddRange(fs.Features.Select(x => x.Name)));
-            fNames = fNames.OrderBy(x => x).Distinct().ToList();
-
-            var featureValues = new Dictionary<string, List<Feature>>();
-
-            for (int i = 0; i < featureSets.Count; i++)
-            {
-                var fs = featureSets[i];
-                featureValues[fs.Label] = new List<Feature>();
-
-                fNames.ForEach(fn =>
-                {
-                    Feature feature = null;
-                    for (int j = 0; j < fs.Features.Count; j++)
-                    {
-                        if (fs.Features[j].Name == fn)
-                        {
-                            feature = fs.Features[j];
-                            break;
-                        }
-                    }
-
-                    var fv = new Feature(fn, feature == null ? "False" : feature.Value);
-                    featureValues[fs.Label].Add(fv);
-                });
-            }
-
-            featuresDist = new List<FeaturesDistribution>();
-
-            labelDist.Select(x => x.Value).ToList().ForEach(label =>
-            {
-                var fSets = featureValues[label];
-
-                fNames.ForEach(fName =>
-                {
-                    var fsv = fSets.Where(fs => fs.Name == fName)
-                        .GroupBy(fs => fs.Value)
-                        .Select(fs => new Probability
-                        {
-                            Value = fs.Key,
-                            Freq = fs.Count()
-                        })
-                        .OrderBy(fs => fs.Value)
-                        .ToList();
-
-                    featuresDist.Add(new FeaturesDistribution
-                    {
-                        Label = label,
-                        FeatureName = fName,
-                        FeatureValues = fsv
-                    });
-                });
-            });
-        }
-
-        public List<Tuple<string, double>> Classify(List<Feature> features, ClassifyOptions options)
-        {
-            // calculate prop
-            var nb = new NaiveBayes<Lidstone>();
-            nb.LabelDist = labelDist;
-            nb.FeaturesDist = featuresDist;
-
-            Parallel.ForEach(labelDist, (lf) => lf.Prob = nb.PosteriorProb(lf.Value, features));
-
-            // add log
-            double[] logs = labelDist.Select(x => x.Prob).ToArray();
-
-            var sumLogs = logs.Reduce((log1, next) =>
-            {
-                double min = log1;
-                if (next < log1)
-                {
-                    min = next;
-                }
-
-                return min + Math.Log(Math.Pow(2, log1 - min) + Math.Pow(2, next - min), 2);
-            });
-
-            labelDist.ForEach(d => d.Prob -= sumLogs);
-
-            return labelDist.Select(x => new Tuple<string, double>(x.Value, x.Prob)).ToList();
-        }
-
-        public void Train(List<Tuple<string, double[]>> featureSets, ClassifyOptions options)
-        {
             labelDist = featureSets.GroupBy(x => x.Item1)
                 .Select(x => new Probability
                 {
                     Value = x.Key,
                     Freq = x.Count()
                 })
+                .OrderBy(x => x.Value)
                 .ToList();
+
+            nb.LabelDist = labelDist;
+            nb.FeatureSet = featureSets;
+
+            // calculate prior prob
+            labelDist.ForEach(l => l.Prob = nb.CalPriorProb(l.Value));
+
+            // calculate posterior prob
+            // loop features
+            var featureCount = nb.FeatureSet[0].Item2.Length;
+
+            labelDist.ForEach(label =>
+            {
+                for (int x = 0; x < featureCount; x++)
+                {
+                    for (int v = 0; v < features.Length; v++)
+                    {
+                        string key = $"{label.Value} f{x} {features[v]}";
+                        condProbDictionary[key] = nb.CalCondProb(x, label.Value, features[v]);
+                    }
+                }
+            });
         }
 
-        public List<Tuple<string, double>> Classify(double[] features, ClassifyOptions options)
+        public List<Tuple<string, double>> Classify(Sentence sentence, ClassifyOptions options)
         {
-            throw new NotImplementedException();
+            var encoder = new OneHotEncoder();
+            encoder.Words = words;
+            encoder.Encode(sentence);
+
+            var results = new List<Tuple<string, double>>();
+
+            // calculate prop
+            labelDist.ForEach(lf =>
+            {
+                var prob = nb.CalPosteriorProb(lf.Value, sentence.Vector, lf.Prob, condProbDictionary);
+                results.Add(new Tuple<string, double>(lf.Value, prob));
+            });
+
+            /*Parallel.ForEach(labelDist, (lf) =>
+            {
+                nb.Y = lf.Value;
+                lf.Prob = nb.PosteriorProb();
+            });*/
+
+            return results;
+        }
+
+        public string SaveModel(ClassifyOptions options)
+        {
+            // save the model
+            var model = new MultinomiaNaiveBayesModel
+            {
+                LabelDist = labelDist,
+                CondProbDictionary = condProbDictionary,
+                Values = words
+            };
+
+            //save the file
+            using (var bw = new BinaryWriter(new FileStream(options.ModelFilePath, FileMode.Create)))
+            {
+                var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(model));
+                bw.Write(bytes);
+            }
+
+            return options.ModelFilePath;
+        }
+
+        public Object LoadModel(ClassifyOptions options)
+        {
+            string json = String.Empty;
+
+            //read the file
+            using (var br = new BinaryReader(new FileStream(options.ModelFilePath, FileMode.Open)))
+            {
+                byte[] bytes = br.ReadBytes((int)br.BaseStream.Length);
+
+                json = Encoding.UTF8.GetString(bytes);
+            }
+
+            var model = JsonConvert.DeserializeObject<MultinomiaNaiveBayesModel>(json);
+
+            labelDist = model.LabelDist;
+            condProbDictionary = model.CondProbDictionary;
+            words = model.Values;
+
+            return model;
         }
     }
 
