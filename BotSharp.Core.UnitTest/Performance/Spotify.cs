@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BotSharp.Algorithm.Extensions;
 
 namespace BotSharp.Core.UnitTest.Performance
 {
@@ -21,26 +22,24 @@ namespace BotSharp.Core.UnitTest.Performance
         public void IntentAccuracy()
         {
             int correct = 0;
+            List<Tuple<string, string>> errors = new List<Tuple<string, string>>();
+
             var agent = LoadAgent();
 
-            for(int i = 0; i < Samples.Count; i++)
+            for (int i = 0; i < Samples.Count; i++)
             {
-                try
+                var aIResponse = _platform.TextRequest(Samples[i].Item1);
+                if (aIResponse.Result.Metadata.IntentName == Samples[i].Item2)
                 {
-                    var aIResponse = _platform.TextRequest(Samples[i].Item1);
-                    if (aIResponse.Result.Metadata.IntentName == Samples[i].Item2)
-                    {
-                        correct++;
-                    }
+                    correct++;
                 }
-                catch (Exception)
+                else
                 {
-
+                    errors.Add(new Tuple<string, string>(Samples[i].Item2, Samples[i].Item1.Query[0]));
                 }
-
             }
 
-            double accuracy = correct / (Samples.Count + 0.0);
+           double accuracy = correct / (Samples.Count + 0.0);
         }
 
         private Agent LoadAgent()
@@ -55,6 +54,12 @@ namespace BotSharp.Core.UnitTest.Performance
 
             // Init samples
             Samples = new List<Tuple<AIRequest, string>>();
+            /*agent.Corpus.UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>
+            {
+                new TrainingIntentExpression<TrainingIntentExpressionPart>{ Intent = "music.play", Text = "play the 50 Great Beatles Songs playlist in Prime Music"},
+                new TrainingIntentExpression<TrainingIntentExpressionPart>{ Intent = "music.play", Text = "reproduce a the track Monster by Rihanna ft Eminem"},
+                new TrainingIntentExpression<TrainingIntentExpressionPart>{ Intent = "music_player_control.add_favorite", Text = "add this song to my favourites"}
+            };*/
             agent.Corpus.UserSays.ForEach(intent =>
             {
                 Samples.Add(new Tuple<AIRequest, string>(new AIRequest
@@ -68,8 +73,9 @@ namespace BotSharp.Core.UnitTest.Performance
                 }, intent.Intent));
             });
 
-            var samples = String.Join("\r\n", Samples.Select(x => $"__label__{x.Item2} {x.Item1.Query[0]}").ToList());
+            //Samples.Shuffle();
 
+            var samples = String.Join("\r\n", Samples.Select(x => $"__label__{x.Item2} {x.Item1.Query[0]}").ToList());
 
             return agent;
         }

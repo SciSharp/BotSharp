@@ -34,6 +34,7 @@ namespace BotSharp.NLP.Featuring
         private List<Tuple<String, double>> tfs;
 
         private List<string> Categories { get; set; }
+        public int Dimension { get; set; }
 
         public void Extract(Sentence sentence)
         {
@@ -42,10 +43,26 @@ namespace BotSharp.NLP.Featuring
 
         public List<string> Keywords()
         {
+            if(Dimension == 0)
+            {
+                Dimension = Categories.Count * 3;
+
+                if(Dimension > 300)
+                {
+                    Dimension = 300;
+                }
+
+                if(Dimension < 30)
+                {
+                    Dimension = 30;
+                }
+            }
+
             var tfs2 = tfs.OrderByDescending(x => x.Item2)
                 .Select(x => x.Item1)
                 .Distinct()
-                .Take((int)Math.Floor(Sentences.Count / Categories.Count * 1.5))
+                .Take(Dimension)
+                .OrderBy(x => x)
                 .ToList();
 
             return tfs2;
@@ -59,7 +76,7 @@ namespace BotSharp.NLP.Featuring
 
             Sentences.ForEach(sent =>
             {
-                sent.Words.ForEach(word =>
+                sent.Words.Where(x => x.IsAlpha).ToList().ForEach(word =>
                 {
                     // TF
                     int c1 = sent.Words.Count(x => x.Lemma == word.Lemma);
@@ -82,6 +99,17 @@ namespace BotSharp.NLP.Featuring
 
             Categories = Sentences.Select(x => x.Label).Distinct().ToList();
 
+            List<Tuple<string, string>> allTextByCategory = new List<Tuple<string, string>>();
+
+            Categories.ForEach(label =>
+            {
+                var allTokens = new List<Token>();
+                Sentences.Where(x => x.Label == label)
+                    .ToList()
+                    .ForEach(s => allTokens.AddRange(s.Words));
+                allTextByCategory.Add(new Tuple<string, string>(label, String.Join(" ", allTokens.Where(x => x.IsAlpha).Select(x => x.Lemma))));
+            });
+
             Categories.ForEach(label =>
             {
                 var allTokens = new List<Token>();
@@ -89,7 +117,7 @@ namespace BotSharp.NLP.Featuring
                     .ToList()
                     .ForEach(s => allTokens.AddRange(s.Words));
 
-                allTokens.Select(x => x.Lemma).Distinct()
+                allTokens.Where(x => x.IsAlpha).Select(x => x.Lemma).Distinct()
                     .ToList()
                     .ForEach(word =>
                     {
@@ -98,8 +126,15 @@ namespace BotSharp.NLP.Featuring
                         double tf = (c1 + 1.0) / allTokens.Count();
 
                         // IDF
-                        var c2 = Sentences.Where(s => s.Words.Select(x => x.Lemma).Contains(word))
-                            .GroupBy(x => x.Label).Count();
+                        var c2 = 0;
+                        allTextByCategory.ForEach(all =>
+                        {
+                            if(Regex.IsMatch(all.Item2, word))
+                            {
+                                c2++;
+                            }
+                        });
+
                         double idf = Math.Log(Categories.Count / (c2 + 1.0));
 
                         tfs.Add(new Tuple<string, double>(word, tf * idf));

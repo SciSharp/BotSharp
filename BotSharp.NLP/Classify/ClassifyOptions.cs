@@ -13,5 +13,10 @@ namespace BotSharp.NLP.Classify
         public string PrediceOutputFile { get; set; }
         public string TransformFilePath { get; set; }
         public RangeTransform Transform { get; set; }
+
+        /// <summary>
+        /// Feature dimension
+        /// </summary>
+        public int Dimension { get; set; }
     }
 }

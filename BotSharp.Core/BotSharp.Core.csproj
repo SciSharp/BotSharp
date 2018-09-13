@@ -66,8 +66,11 @@ If you feel that this project is helpful to you, please Star on the project, we 
 
   <ItemGroup>
     <Compile Remove="Accounts\**" />
+    <Compile Remove="Engines\CoreNlp\**" />
     <EmbeddedResource Remove="Accounts\**" />
+    <EmbeddedResource Remove="Engines\CoreNlp\**" />
     <None Remove="Accounts\**" />
+    <None Remove="Engines\CoreNlp\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -78,10 +81,6 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="RestSharp" Version="106.3.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Engines\CoreNlp\" />
   </ItemGroup>
 
   <ItemGroup>

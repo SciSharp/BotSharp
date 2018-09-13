@@ -55,12 +55,13 @@ namespace BotSharp.NLP.Classify
         public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
             var tfidf = new TfIdfFeatureExtractor();
+            tfidf.Dimension = options.Dimension;
             tfidf.Sentences = sentences;
             tfidf.CalBasedOnCategory();
-            var keyWords = tfidf.Keywords();
-            string keywords2 = String.Join(",", keyWords.ToArray());
+
             var encoder = new OneHotEncoder();
             encoder.Sentences = sentences;
+            encoder.Words = tfidf.Keywords();
             words = encoder.EncodeAll();
 
             var featureSets = sentences.Select(x => new Tuple<string, double[]>(x.Label, x.Vector)).ToList();
@@ -118,7 +119,8 @@ namespace BotSharp.NLP.Classify
                 lf.Prob = nb.PosteriorProb();
             });*/
 
-            return results;
+            double total = results.Select(x => x.Item2).Sum();
+            return results.Select(x => new Tuple<string, double>(x.Item1, x.Item2 / total)).ToList();
         }
 
         public string SaveModel(ClassifyOptions options)

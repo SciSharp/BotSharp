@@ -38,9 +38,22 @@ namespace BotSharp.RestApi
         [HttpGet]
         public ActionResult<List<Agent>> AllAgents()
         {
-            var dc = new DefaultDataContextLoader().GetDefaultDc();
+            List<Agent> agents = new List<Agent>();
 
-            return dc.Table<Agent>().ToList();
+            string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects");
+
+            var names = Directory.EnumerateDirectories(agentDir).Select(x => x.Split(Path.DirectorySeparatorChar).Last()).ToList();
+
+            names.ForEach(name =>
+            {
+                agents.Add(new Agent
+                {
+                    Name = name
+                });
+
+            });
+
+            return agents;
         }
 
         /// <summary>

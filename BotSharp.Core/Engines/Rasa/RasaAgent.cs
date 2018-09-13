@@ -21,4 +21,10 @@ namespace BotSharp.Core.Engines.Rasa
         [JsonProperty("regex_features")]
         public List<RasaTrainingRegex> Regex { get; set; }
     }
+
+    public class RasaAgentImportModel
+    {
+        [JsonProperty("rasa_nlu_data")]
+        public RasaAgent Data { get; set; }
+    }
 }
