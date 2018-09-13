@@ -49,7 +49,7 @@ namespace BotSharp.NLP.Txt2Vec
         {
             if (Words == null)
             {
-                // Words = "shuffle,pause,resume,next,stop,previous,continue,mode,repeat,back,music,play,enough,off,them,playlist,skip,restart,favourites,on,add,go,again,turn,save,my,station,favourite,start,by,playing,please,now,running,move".Split(',').ToList();
+                Words = "shuffle,pause,resume,next,stop,previous,continue,mode,repeat,back,music,play,enough,off,them,playlist,skip,restart,favourites,on,add,go,again,turn,save,my,station,favourite,start,by,playing,please,now,running,move,gym,yoga,backward,one,favorites,mark,as,remember,fave,what,forward,me,and,could,once,more,can".Split(',').ToList();
             }
 
             return Words;

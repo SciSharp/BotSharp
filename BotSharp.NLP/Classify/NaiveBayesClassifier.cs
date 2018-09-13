@@ -57,7 +57,7 @@ namespace BotSharp.NLP.Classify
             var tfidf = new TfIdfFeatureExtractor();
             tfidf.Sentences = sentences;
             tfidf.CalBasedOnCategory();
-            var keyWords = tfidf.Features();
+            var keyWords = tfidf.Keywords();
             string keywords2 = String.Join(",", keyWords.ToArray());
             var encoder = new OneHotEncoder();
             encoder.Sentences = sentences;

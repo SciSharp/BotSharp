@@ -40,12 +40,12 @@ namespace BotSharp.NLP.Featuring
 
         }
 
-        public List<string> Features()
+        public List<string> Keywords()
         {
             var tfs2 = tfs.OrderByDescending(x => x.Item2)
                 .Select(x => x.Item1)
                 .Distinct()
-                .Take(Sentences.Count / Categories.Count)
+                .Take((int)Math.Floor(Sentences.Count / Categories.Count * 1.5))
                 .ToList();
 
             return tfs2;
