@@ -7,19 +7,23 @@
     },
 
     "Pipe": {
-      "train": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, BotSharpNBayesClassifier",
-      "predict": "BotSharpTokenizer, BotSharpTagger, CRFsuiteEntityRecognizer, BotSharpNBayesClassifier"
+      "train": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpNBayesClassifier",
+      "predict": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpNBayesClassifier"
     },
 	
 	"BotSharpNBayesClassifier": {
 	},
 	
     "BotSharpSVMClassifier": {
-      "wordvec": "C:\\Users\\bpeng\\Desktop\\BoloReborn\\BotSharp\\Data"
+      "wordvec": ""
     },
 
     "BotSharpTagger": {
     },
+	
+	"BotSharpCRFNer": {
+		"template": "|App_Data|CRFLite\template.en"
+	},
 
     "CRFsuiteEntityRecognizer": {
       "fields": "y w pos chk",
