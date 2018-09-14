@@ -40,7 +40,7 @@ namespace BotSharp.Models.CRFLite.Decoder
         public DecoderOptions()
         {
             Thread = 1;
-            NBest = 1;
+            NBest = 2;
             ProbLevel = 0;
             MaxWord = 128;
         }

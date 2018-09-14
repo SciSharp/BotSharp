@@ -22,7 +22,7 @@
     },
 	
 	"BotSharpCRFNer": {
-		"template": "|App_Data|CRFLite\template.en"
+		"template": "|App_Data|CRFLite/template.en"
 	},
 
     "CRFsuiteEntityRecognizer": {

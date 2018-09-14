@@ -43,6 +43,8 @@ namespace BotSharp.Models.CRFLite.Encoder
         //Regenerate feature id and shrink features with lower frequency
         public void Shrink(EncoderTagger[] xList, int freq)
         {
+            Console.WriteLine($"Shrink features lower than {freq} frequency");
+
             var old2new = new CRFLite.Utils.BTreeDictionary<long, long>();
             featureLexicalDict.Shrink(freq);
             maxid_ = featureLexicalDict.RegenerateFeatureId(old2new, y_.Count);
@@ -86,7 +88,7 @@ namespace BotSharp.Models.CRFLite.Encoder
                     var oldValue = Interlocked.Increment(ref arrayEncoderTaggerSize) - 1;
                     arrayEncoderTagger[oldValue] = _x;
 
-                    if (oldValue % 10000 == 0)
+                    if (oldValue % 100 == 0)
                     {
                         //Show current progress on console
                         Console.Write("{0}...", oldValue);
@@ -94,10 +96,11 @@ namespace BotSharp.Models.CRFLite.Encoder
                 }
             });
 
+            Console.WriteLine($"Read {trainCorpusList.Count} records");
+
             trainCorpusList.Clear();
             trainCorpusList = null;
-
-            Console.WriteLine();
+            
             return arrayEncoderTagger;
         }
 
@@ -135,6 +138,8 @@ namespace BotSharp.Models.CRFLite.Encoder
             }
             //Save indexed feature set into file
             da.save(filename_featureset);
+
+            Console.WriteLine($"Saved featureset to {filename_featureset}");
 
             if (string.IsNullOrWhiteSpace(modelFileName))
             {
@@ -220,6 +225,7 @@ namespace BotSharp.Models.CRFLite.Encoder
 
             tofs.Close();
 
+            Console.WriteLine($"Saved meta data to {filename}");
             return true;
         }
 
@@ -277,6 +283,8 @@ namespace BotSharp.Models.CRFLite.Encoder
 
         bool OpenTemplateFile(string filename)
         {
+            Console.WriteLine($"Open template: {filename}");
+
             var ifs = new StreamReader(filename);
             unigram_templs_ = new List<string>();
             bigram_templs_ = new List<string>();
@@ -305,6 +313,8 @@ namespace BotSharp.Models.CRFLite.Encoder
 
         bool OpenTrainCorpusFile(string strTrainingCorpusFileName)
         {
+            Console.WriteLine($"Open corpus: {strTrainingCorpusFileName}");
+
             var ifs = new StreamReader(strTrainingCorpusFileName);
             y_ = new List<string>();
             trainCorpusList = new List<List<List<string>>>();

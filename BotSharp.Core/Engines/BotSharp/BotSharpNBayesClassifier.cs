@@ -40,8 +40,6 @@ namespace BotSharp.Core.Engines.BotSharp
             classifier.Train(sentences);
 
             Console.WriteLine($"Saved model to {modelFileName}");
-            meta.Meta = new JObject();
-            meta.Meta["compiled at"] = "Sep 12, 2018";
 
             return true;
         }

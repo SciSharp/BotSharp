@@ -1,8 +1,11 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.Models.CRFLite;
+using BotSharp.Models.CRFLite.Decoder;
 using BotSharp.Models.CRFLite.Encoder;
+using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
+using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -39,12 +42,12 @@ namespace BotSharp.Core.Engines.BotSharp
                         List<TrainingData> curLine = Merge(doc, doc.Sentences[i].Tokens, userSays[i].Entities);
                         curLine.ForEach(trainingData =>
                         {
-                            string[] wordParams = { trainingData.Entity, trainingData.Token, trainingData.Pos, trainingData.Chunk };
-                            string wordStr = string.Join(" ", wordParams);
-                            sw.Write(wordStr + "\n");
+                            string[] wordParams = { trainingData.Token, trainingData.Pos, trainingData.Entity };
+                            string wordStr = string.Join("\t", wordParams);
+                            sw.WriteLine(wordStr);
                         });
                         list.Add(curLine);
-                        sw.Write("\n");
+                        sw.WriteLine();
                     }
                     sw.Flush();
                 }
@@ -52,7 +55,7 @@ namespace BotSharp.Core.Engines.BotSharp
 
             string contentDir = AppDomain.CurrentDomain.GetData("DataPath").ToString();
             string template = Configuration.GetValue<String>($"BotSharpCRFNer:template");
-            template = template.Replace("|App_Data|", contentDir);
+            template = template.Replace("|App_Data|", contentDir + System.IO.Path.DirectorySeparatorChar);
 
             var encoder = new CRFEncoder();
             bool result = encoder.Learn(new EncoderOptions
@@ -65,7 +68,7 @@ namespace BotSharp.Core.Engines.BotSharp
             return result;
         }
 
-        public List<TrainingData> Merge(NlpDoc doc, List<Token> tokens, List<TrainingIntentExpressionPart> entities)
+        private List<TrainingData> Merge(NlpDoc doc, List<Token> tokens, List<TrainingIntentExpressionPart> entities)
         {
             List<TrainingData> trainingTuple = new List<TrainingData>();
             HashSet<String> entityWordBag = new HashSet<String>();
@@ -74,47 +77,75 @@ namespace BotSharp.Core.Engines.BotSharp
             for (int i = 0; i < tokens.Count; i++)
             {
                 TrainingIntentExpressionPart curEntity = null;
-                if (entities != null)
-                {
-                    bool entityFinded = false;
-                    entities.ForEach(entity => {
-                        if (!entityFinded)
-                        {
-                            var vDoc = new NlpDoc { Sentences = new List<NlpDocSentence> { new NlpDocSentence { Text = entity.Value } } };
-                            doc.Tokenizer.Predict(null, vDoc, null);
-                            string[] words = vDoc.Sentences[0].Tokens.Select(x => x.Text).ToArray();
+                if (entities == null) continue;
 
-                            for (int j = 0; j < words.Length; j++)
+                bool entityFinded = false;
+                for (int entityIndex = 0; entityIndex < entities.Count; entityIndex++)
+                {
+                    var entity = entities[entityIndex];
+
+                    if (!entityFinded)
+                    {
+                        var vDoc = new NlpDoc { Sentences = new List<NlpDocSentence> { new NlpDocSentence { Text = entity.Value } } };
+                        doc.Tokenizer.Predict(null, vDoc, null);
+                        string[] words = vDoc.Sentences[0].Tokens.Select(x => x.Text).ToArray();
+
+                        for (int j = 0; j < words.Length; j++)
+                        {
+                            if (tokens[i + j].Text == words[j])
                             {
-                                if (tokens[i + j].Text == words[j])
+                                wordCandidateCount++;
+                                if (j == words.Length - 1)
                                 {
-                                    wordCandidateCount++;
-                                    if (j == words.Length - 1)
+                                    curEntity = entity;
+                                }
+                            }
+                            else
+                            {
+                                wordCandidateCount = 0;
+                                break;
+                            }
+                        }
+                        if (wordCandidateCount != 0) // && entity.Start == tokens[i].Offset)
+                        {
+                            String entityName = curEntity.Entity.Contains(":") ? curEntity.Entity.Substring(curEntity.Entity.IndexOf(":") + 1) : curEntity.Entity;
+
+                            for(int wordIndex = 0; wordIndex < words.Length; wordIndex++)
+                            {
+                                var tag = entityName;
+
+                                if (wordIndex == 0)
+                                {
+                                    if (words.Length == 1)
                                     {
-                                        curEntity = entity;
+                                        tag = "S_" + entityName;
                                     }
+                                    else
+                                    {
+                                        tag = "B_" + entityName;
+                                    }
+                                }
+                                else if (wordIndex == words.Length - 1)
+                                {
+                                    tag = "E_" + entityName;
                                 }
                                 else
                                 {
-                                    wordCandidateCount = 0;
-                                    break;
+                                    tag = "M_" + entityName;
                                 }
+
+                                var word = words[wordIndex];
+                                trainingTuple.Add(new TrainingData(tag, word, tokens[i].Pos));
                             }
-                            if (wordCandidateCount != 0) // && entity.Start == tokens[i].Offset)
-                            {
-                                String entityName = curEntity.Entity.Contains(":") ? curEntity.Entity.Substring(curEntity.Entity.IndexOf(":") + 1) : curEntity.Entity;
-                                foreach (string s in words)
-                                {
-                                    trainingTuple.Add(new TrainingData(entityName, s, tokens[i].Pos, "I"));
-                                }
-                                entityFinded = true;
-                            }
+
+                            entityFinded = true;
                         }
-                    });
+                    }
                 }
+
                 if (wordCandidateCount == 0)
                 {
-                    trainingTuple.Add(new TrainingData("O", tokens[i].Text, tokens[i].Pos, "O"));
+                    trainingTuple.Add(new TrainingData("S", tokens[i].Text, tokens[i].Pos));
                 }
                 else
                 {
@@ -127,7 +158,92 @@ namespace BotSharp.Core.Engines.BotSharp
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            throw new NotImplementedException();
+            var decoder = new CRFDecoder();
+            var options = new DecoderOptions
+            {
+                ModelFileName = System.IO.Path.Combine(Settings.ModelDir, meta.Model)
+            };
+
+            //Load encoded model from file
+            decoder.LoadModel(options.ModelFileName);
+
+            //Create decoder tagger instance.
+            var tagger = decoder.CreateTagger(options.NBest, options.MaxWord);
+            tagger.set_vlevel(options.ProbLevel);
+
+            //Initialize result
+            var crf_out = new CRFSegOut[options.NBest];
+            for (var i = 0; i < options.NBest; i++)
+            {
+                crf_out[i] = new CRFSegOut(options.MaxWord);
+            }
+
+            doc.Sentences.ForEach(sent =>
+            {
+                List<List<String>> dataset = new List<List<string>>();
+                dataset.AddRange(sent.Tokens.Select(token => new List<String> { token.Text, token.Pos }).ToList());
+                //predict given string's tags
+                decoder.Segment(crf_out, tagger, dataset);
+
+                var entities = new List<NlpEntity>();
+
+                for (int i = 0; i < sent.Tokens.Count; i++)
+                {
+                    var entity = crf_out[0].result_;
+                    entities.Add(new NlpEntity
+                    {
+                        Entity = entity[i],
+                        Start = doc.Sentences[0].Tokens[i].Start,
+                        Value = doc.Sentences[0].Tokens[i].Text,
+                        Confidence = 0,
+                        Extrator = "BotSharpCRFNer"
+                    });
+                }
+
+                sent.Entities = MergeEntity(doc.Sentences[0].Text, entities);
+            });
+
+            return true;
+        }
+
+        private List<NlpEntity> MergeEntity(string sentence, List<NlpEntity> tokens)
+        {
+            List<NlpEntity> res = new List<NlpEntity>();
+
+            for(int i = 0; i < tokens.Count; i++)
+            {
+                var entity = tokens[i];
+
+                if (entity.Entity.StartsWith("S_"))
+                {
+                    entity.Entity = entity.Entity.Split('_')[1];
+                    res.Add(entity);
+                }
+                else if (entity.Entity.StartsWith("B_"))
+                {
+                    entity.Entity = entity.Entity.Split('_')[1];
+
+                    for(int j = i; j < tokens.Count; j++)
+                    {
+                        var token = tokens[j];
+                        if (token.Entity.StartsWith("E_"))
+                        {
+                            res.Add(new NlpEntity
+                            {
+                                Value = sentence.Substring(entity.Start, token.End - entity.Start + 1),
+                                Entity = entity.Entity,
+                                Extrator = entity.Extrator,
+                                Start = entity.Start,
+                                Confidence = entity.Confidence
+                            });
+                        }
+
+                        i++;
+                    }
+                }
+            }
+
+            return res;
         }
 
         public class TrainingData
@@ -135,14 +251,12 @@ namespace BotSharp.Core.Engines.BotSharp
             public String Token { get; set; }
             public String Entity { get; set; }
             public String Pos { get; set; }
-            public String Chunk { get; set; }
 
-            public TrainingData(string entity, string token, string pos, string chunk)
+            public TrainingData(string entity, string token, string pos)
             {
                 Token = token;
                 Entity = entity;
                 Pos = pos;
-                Chunk = chunk;
             }
         }
     }

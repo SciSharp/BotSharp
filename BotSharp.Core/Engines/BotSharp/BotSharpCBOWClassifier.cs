@@ -58,9 +58,6 @@ namespace BotSharp.Core.Engines.BotSharp
             var output = CmdHelper.Run(Path.Combine(Settings.AlgorithmDir, "fasttext"), $"supervised -input \"{parsedTrainingDataFileName}\" -output \"{modelFileName}\"", false);
 
             Console.WriteLine($"Saved model to {modelFileName}");
-            meta.Meta = new JObject();
-            meta.Meta["compiled at"] = "Aug 3, 2018";
-
 
             return true;
         }

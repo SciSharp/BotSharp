@@ -14,7 +14,7 @@ namespace BotSharp.Models.CRFLite.Encoder
         /// <summary>
         /// Minimum feature frequency, if one feature's frequency is less than this value, the feature will be dropped.
         /// </summary>
-        public int MinFeatureFreq = 2;
+        public int MinFeatureFreq = 1;
 
         /// <summary>
         /// Minimum diff value, when diff less than the value consecutive 3 times, the process will be ended.
@@ -79,7 +79,7 @@ namespace BotSharp.Models.CRFLite.Encoder
         public EncoderOptions()
         {
             MaxIteration = 100;
-            MinFeatureFreq = 2;
+            MinFeatureFreq = 1;
             MinDifference = 0.0001;
             SlotUsageRateThreshold = 0.95;
             ThreadsNum = 1;
