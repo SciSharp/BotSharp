@@ -54,10 +54,10 @@ namespace BotSharp.NLP.UnitTest.CRFLite
                 tagger.set_vlevel(options.ProbLevel);
 
                 //Initialize result
-                var crf_out = new crf_seg_out[options.NBest];
+                var crf_out = new CRFSegOut[options.NBest];
                 for (var i = 0; i < options.NBest; i++)
                 {
-                    crf_out[i] = new crf_seg_out(tagger.crf_max_word_num);
+                    crf_out[i] = new CRFSegOut(tagger.crf_max_word_num);
                 }
 
                 var inbuf = new List<List<string>>();
@@ -228,7 +228,7 @@ namespace BotSharp.NLP.UnitTest.CRFLite
         }
 
         //Convert CRFSharp output format to string list
-        private List<string> ConvertCRFTermOutToStringList(List<List<string>> inbuf, crf_seg_out[] crf_out)
+        private List<string> ConvertCRFTermOutToStringList(List<List<string>> inbuf, CRFSegOut[] crf_out)
         {
             var sb = new StringBuilder();
             for (var i = 0; i < inbuf.Count; i++)
@@ -250,8 +250,8 @@ namespace BotSharp.NLP.UnitTest.CRFLite
                 var crf_term_out = crf_out[i];
                 for (var j = 0; j < crf_term_out.Count; j++)
                 {
-                    var str = strText.Substring(crf_term_out.tokenList[j].offset, crf_term_out.tokenList[j].length);
-                    var strNE = crf_term_out.tokenList[j].strTag;
+                    var str = strText.Substring(crf_term_out.tokenList[j].Offset, crf_term_out.tokenList[j].Length);
+                    var strNE = crf_term_out.tokenList[j].Tag;
 
                     sb.Append(str);
                     if (strNE.Length > 0)

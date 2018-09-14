@@ -13,7 +13,7 @@ namespace BotSharp.Models.CRFLite
             crf_max_word_num = this_crf_max_word_num;
         }
 
-        int seg_termbuf_build(crf_seg_out term_buf)
+        int seg_termbuf_build(CRFSegOut term_buf)
         {
             term_buf.Clear();
 
@@ -42,24 +42,24 @@ namespace BotSharp.Models.CRFLite
                     i == x_.Count - 1)
                 {
                     var tkn = new SegToken();
-                    tkn.length = term_len;
-                    tkn.offset = term_buf.termTotalLength;
+                    tkn.Length = term_len;
+                    tkn.Offset = term_buf.termTotalLength;
 
                     var spos = strTag.IndexOf('_');
                     if (spos < 0)
                     {
                         if (strTag == "NOR")
                         {
-                            tkn.strTag = "";
+                            tkn.Tag = "";
                         }
                         else
                         {
-                            tkn.strTag = strTag;
+                            tkn.Tag = strTag;
                         }
                     }
                     else
                     {
-                        tkn.strTag = strTag.Substring(spos + 1);
+                        tkn.Tag = strTag.Substring(spos + 1);
                     }
 
                     term_buf.termTotalLength += term_len;
@@ -67,10 +67,10 @@ namespace BotSharp.Models.CRFLite
                     switch (vlevel_)
                     {
                         case 0:
-                            tkn.fWeight = 0.0;
+                            tkn.Weight = 0.0;
                             break;
                         case 2:
-                            tkn.fWeight = weight / num;
+                            tkn.Weight = weight / num;
                             weight = 0.0;
                             num = 0;
                             break;
@@ -86,7 +86,7 @@ namespace BotSharp.Models.CRFLite
         }
 
 
-        public int output(crf_seg_out[] pout)
+        public int output(CRFSegOut[] pout)
         {
             var n = 0;
             var ret = 0;

@@ -52,107 +52,40 @@ namespace BotSharp.NLP.UnitTest.CRFLite
             var decoder = new CRFDecoder();
             var options = new DecoderOptions
             {
-                /*
-                 * input data format
-                 * 
-                    In IN
-                    its	PRP$
-                    sixth JJ
-                    edition	NN
-                    , PUN
-                    the	DT
-                    Beijing	NNP
-                    . PUN
-                 */
-                InputFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\test.txt",
                 ModelFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\ner_model"
             };
-
-            var sr = new StreamReader(options.InputFileName);
 
             //Load encoded model from file
             decoder.LoadModel(options.ModelFileName);
 
-            var parallelOption = new ParallelOptions();
-            parallelOption.MaxDegreeOfParallelism = options.Thread;
-            Parallel.For(0, options.Thread, parallelOption, t =>
+            //Create decoder tagger instance.
+            var tagger = decoder.CreateTagger(options.NBest, options.MaxWord);
+            tagger.set_vlevel(options.ProbLevel);
+
+            //Initialize result
+            var crf_out = new CRFSegOut[options.NBest];
+            for (var i = 0; i < options.NBest; i++)
             {
+                crf_out[i] = new CRFSegOut(options.MaxWord);
+            }
 
-                //Create decoder tagger instance. If the running environment is multi-threads, each thread needs a separated instance
-                var tagger = decoder.CreateTagger(options.NBest, options.MaxWord);
-                tagger.set_vlevel(options.ProbLevel);
+            var dataset = GetTestData();
 
-                //Initialize result
-                var crf_out = new crf_seg_out[options.NBest];
-                for (var i = 0; i < options.NBest; i++)
-                {
-                    crf_out[i] = new crf_seg_out(tagger.crf_max_word_num);
-                }
-
-                var inbuf = new List<List<string>>();
-
-                inbuf.Add(new List<string>
-                {
-                    "'	PUN",
-                    "'	POS",
-                    "Duchy	NNP",
-                    "of	IN",
-                    "Lithuania	NNP"
-                });
-
-                while (true)
-                {
-                    lock (rdLocker)
-                    {
-                        if (ReadRecord(inbuf, sr) == false)
-                        {
-                            break;
-                        }
-                    }
-
-                    //Call CRFSharp wrapper to predict given string's tags
-                    decoder.Segment((CRFTermOut[])crf_out, (DecoderTagger)tagger, inbuf);
-                }
-            });
-
-
-            sr.Close();
+            //predict given string's tags
+            decoder.Segment(crf_out, tagger, dataset);
         }
 
-        private bool ReadRecord(List<List<string>> inbuf, StreamReader sr)
+        private List<List<string>> GetTestData()
         {
-            inbuf.Clear();
+            var dataset = new List<List<string>>();
 
-            while (true)
-            {
-                var strLine = sr.ReadLine();
-                if (strLine == null)
-                {
-                    //At the end of current file
-                    if (inbuf.Count == 0)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-                strLine = strLine.Trim();
-                if (strLine.Length == 0)
-                {
-                    return true;
-                }
+            dataset.Add(new List<string> { "'", "PUN" });
+            dataset.Add(new List<string> { "'", "POS" });
+            dataset.Add(new List<string> { "Duchy", "NNP" });
+            dataset.Add(new List<string> { "of", "IN" });
+            dataset.Add(new List<string> { "Lithuania", "NNP" });
 
-                //Read feature set for each record
-                var items = strLine.Split(new char[] { '\t' });
-                inbuf.Add(new List<string>());
-                for (int index = 0; index < items.Length; index++)
-                {
-                    var item = items[index];
-                    inbuf[inbuf.Count - 1].Add(item);
-                }
-            }
+            return dataset;
         }
     }
 }
