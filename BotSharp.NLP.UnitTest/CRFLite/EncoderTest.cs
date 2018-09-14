@@ -13,12 +13,29 @@ namespace BotSharp.NLP.UnitTest.CRFLite
     [TestClass]
     public class EncoderTest
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [TestMethod]
         public void TestEncode()
         {
             var encoder = new CRFEncoder();
             bool result = encoder.Learn(new EncoderOptions
             {
+                /*
+                 * traing corups format, split by tab, sentences is seperated by blank row
+                 * 
+                    ! PUN S
+                    Tokyo NNP S_LOCATION
+                    and	CC S
+                    New	NNP	B_LOCATION
+                    York NNP	E_LOCATION
+                    are	VBP	S
+                    major JJ S
+                    financial JJ S
+                    centers	NNS	S
+                    . PUN S
+                 */
                 TrainingCorpusFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\eng.1k.training",
                 TemplateFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\template.en",
                 ModelFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\ner_model"
@@ -35,29 +52,26 @@ namespace BotSharp.NLP.UnitTest.CRFLite
             var decoder = new CRFDecoder();
             var options = new DecoderOptions
             {
+                /*
+                 * input data format
+                 * 
+                    In IN
+                    its	PRP$
+                    sixth JJ
+                    edition	NN
+                    , PUN
+                    the	DT
+                    Beijing	NNP
+                    . PUN
+                 */
                 InputFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\test.txt",
-                OutputSegFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\test.seg.txt",
-                OutputFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\test.output.txt",
                 ModelFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\CRF\ner_model"
             };
 
             var sr = new StreamReader(options.InputFileName);
-            StreamWriter sw = null, swSeg = null;
-
-            if (options.OutputFileName != null && options.OutputFileName.Length > 0)
-            {
-                sw = new StreamWriter(options.OutputFileName);
-            }
-            if (options.OutputSegFileName != null && options.OutputSegFileName.Length > 0)
-            {
-                swSeg = new StreamWriter(options.OutputSegFileName);
-            }
 
             //Load encoded model from file
             decoder.LoadModel(options.ModelFileName);
-
-            var queueRecords = new ConcurrentQueue<List<List<string>>>();
-            var queueSegRecords = new ConcurrentQueue<List<List<string>>>();
 
             var parallelOption = new ParallelOptions();
             parallelOption.MaxDegreeOfParallelism = options.Thread;
@@ -76,6 +90,16 @@ namespace BotSharp.NLP.UnitTest.CRFLite
                 }
 
                 var inbuf = new List<List<string>>();
+
+                inbuf.Add(new List<string>
+                {
+                    "'	PUN",
+                    "'	POS",
+                    "Duchy	NNP",
+                    "of	IN",
+                    "Lithuania	NNP"
+                });
+
                 while (true)
                 {
                     lock (rdLocker)
@@ -84,64 +108,15 @@ namespace BotSharp.NLP.UnitTest.CRFLite
                         {
                             break;
                         }
-
-                        queueRecords.Enqueue(inbuf);
-                        queueSegRecords.Enqueue(inbuf);
                     }
 
                     //Call CRFSharp wrapper to predict given string's tags
-                    if (swSeg != null)
-                    {
-                        decoder.Segment(crf_out, tagger, inbuf);
-                    }
-                    else
-                    {
-                        decoder.Segment((CRFTermOut[])crf_out, (DecoderTagger)tagger, inbuf);
-                    }
-
-                    List<List<string>> peek = null;
-                    //Save segmented tagged result into file
-                    if (swSeg != null)
-                    {
-                        var rstList = ConvertCRFTermOutToStringList(inbuf, crf_out);
-                        while (peek != inbuf)
-                        {
-                            queueSegRecords.TryPeek(out peek);
-                        }
-                        for (int index = 0; index < rstList.Count; index++)
-                        {
-                            var item = rstList[index];
-                            swSeg.WriteLine(item);
-                        }
-                        queueSegRecords.TryDequeue(out peek);
-                        peek = null;
-                    }
-
-                    //Save raw tagged result (with probability) into file
-                    if (sw != null)
-                    {
-                        while (peek != inbuf)
-                        {
-                            queueRecords.TryPeek(out peek);
-                        }
-                        OutputRawResultToFile(inbuf, crf_out, tagger, sw);
-                        queueRecords.TryDequeue(out peek);
-
-                    }
+                    decoder.Segment((CRFTermOut[])crf_out, (DecoderTagger)tagger, inbuf);
                 }
             });
 
 
             sr.Close();
-
-            if (sw != null)
-            {
-                sw.Close();
-            }
-            if (swSeg != null)
-            {
-                swSeg.Close();
-            }
         }
 
         private bool ReadRecord(List<List<string>> inbuf, StreamReader sr)
@@ -178,101 +153,6 @@ namespace BotSharp.NLP.UnitTest.CRFLite
                     inbuf[inbuf.Count - 1].Add(item);
                 }
             }
-        }
-
-        private void OutputRawResultToFile(List<List<string>> inbuf, CRFTermOut[] crf_out, SegDecoderTagger tagger, StreamWriter sw)
-        {
-            for (var k = 0; k < crf_out.Length; k++)
-            {
-                if (crf_out[k] == null)
-                {
-                    //No more result
-                    break;
-                }
-
-                var sb = new StringBuilder();
-
-                var crf_seg_out = crf_out[k];
-                //Show the entire sequence probability
-                //For each token
-                for (var i = 0; i < inbuf.Count; i++)
-                {
-                    //Show all features
-                    for (var j = 0; j < inbuf[i].Count; j++)
-                    {
-                        sb.Append(inbuf[i][j]);
-                        sb.Append("\t");
-                    }
-
-                    //Show the best result and its probability
-                    sb.Append(crf_seg_out.result_[i]);
-
-                    if (tagger.vlevel_ > 1)
-                    {
-                        sb.Append("\t");
-                        sb.Append(crf_seg_out.weight_[i]);
-
-                        //Show the probability of all tags
-                        sb.Append("\t");
-                        for (var j = 0; j < tagger.ysize_; j++)
-                        {
-                            sb.Append(tagger.yname(j));
-                            sb.Append("/");
-                            sb.Append(tagger.prob(i, j));
-
-                            if (j < tagger.ysize_ - 1)
-                            {
-                                sb.Append("\t");
-                            }
-                        }
-                    }
-                    sb.AppendLine();
-                }
-                if (tagger.vlevel_ > 0)
-                {
-                    sw.WriteLine("#{0}", crf_seg_out.prob);
-                }
-                sw.WriteLine(sb.ToString().Trim());
-                sw.WriteLine();
-            }
-        }
-
-        private List<string> ConvertCRFTermOutToStringList(List<List<string>> inbuf, crf_seg_out[] crf_out)
-        {
-            var sb = new StringBuilder();
-            for (var i = 0; i < inbuf.Count; i++)
-            {
-                sb.Append(inbuf[i][0]);
-            }
-
-            var strText = sb.ToString();
-            var rstList = new List<string>();
-            for (var i = 0; i < crf_out.Length; i++)
-            {
-                if (crf_out[i] == null)
-                {
-                    //No more result
-                    break;
-                }
-
-                sb.Clear();
-                var crf_term_out = crf_out[i];
-                for (var j = 0; j < crf_term_out.Count; j++)
-                {
-                    var str = strText.Substring(crf_term_out.tokenList[j].offset, crf_term_out.tokenList[j].length);
-                    var strNE = crf_term_out.tokenList[j].strTag;
-
-                    sb.Append(str);
-                    if (strNE.Length > 0)
-                    {
-                        sb.Append("[" + strNE + "]");
-                    }
-                    sb.Append(" ");
-                }
-                rstList.Add(sb.ToString().Trim());
-            }
-
-            return rstList;
         }
     }
 }

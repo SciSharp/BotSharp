@@ -37,7 +37,6 @@
     <Compile Remove="App_Data\Corpus\**" />
     <Compile Remove="App_Data\DbInitializer\**" />
     <Compile Remove="App_Data\ModelFiles\**" />
-    <Compile Remove="App_Data\NewFolder\**" />
     <Compile Remove="App_Data\Projects\**" />
     <Compile Remove="App_Data\TrainingFiles\**" />
     <Compile Remove="PublishOutput\**" />
@@ -45,7 +44,6 @@
     <Content Remove="App_Data\Corpus\**" />
     <Content Remove="App_Data\DbInitializer\**" />
     <Content Remove="App_Data\ModelFiles\**" />
-    <Content Remove="App_Data\NewFolder\**" />
     <Content Remove="App_Data\Projects\**" />
     <Content Remove="App_Data\TrainingFiles\**" />
     <Content Remove="PublishOutput\**" />
@@ -53,7 +51,6 @@
     <EmbeddedResource Remove="App_Data\Corpus\**" />
     <EmbeddedResource Remove="App_Data\DbInitializer\**" />
     <EmbeddedResource Remove="App_Data\ModelFiles\**" />
-    <EmbeddedResource Remove="App_Data\NewFolder\**" />
     <EmbeddedResource Remove="App_Data\Projects\**" />
     <EmbeddedResource Remove="App_Data\TrainingFiles\**" />
     <EmbeddedResource Remove="PublishOutput\**" />
@@ -61,7 +58,6 @@
     <None Remove="App_Data\Corpus\**" />
     <None Remove="App_Data\DbInitializer\**" />
     <None Remove="App_Data\ModelFiles\**" />
-    <None Remove="App_Data\NewFolder\**" />
     <None Remove="App_Data\Projects\**" />
     <None Remove="App_Data\TrainingFiles\**" />
     <None Remove="PublishOutput\**" />

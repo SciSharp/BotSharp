@@ -21,7 +21,6 @@ namespace BotSharp.NLP.UnitTest.CRFLite
             {
                 InputFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\English\test\test.txt",
                 ModelFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\English\model\ner_model_eng",
-                OutputFileName = @"C:\Users\haipi\Documents\Projects\BotSharp\Data\English\test\output.txt"
             });
         }
 
@@ -35,14 +34,6 @@ namespace BotSharp.NLP.UnitTest.CRFLite
             var sr = new StreamReader(options.InputFileName);
             StreamWriter sw = null, swSeg = null;
 
-            if (options.OutputFileName != null && options.OutputFileName.Length > 0)
-            {
-                sw = new StreamWriter(options.OutputFileName);
-            }
-            if (options.OutputSegFileName != null && options.OutputSegFileName.Length > 0)
-            {
-                swSeg = new StreamWriter(options.OutputSegFileName);
-            }
 
             //Create CRFSharp wrapper instance. It's a global instance
             var crfWrapper = new CRFDecoder();
