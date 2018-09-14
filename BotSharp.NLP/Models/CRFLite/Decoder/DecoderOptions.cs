@@ -52,7 +52,7 @@ namespace BotSharp.Models.CRFLite.Decoder
             Thread = 1;
             NBest = 1;
             ProbLevel = 0;
-            MaxWord = 100;
+            MaxWord = 10;
         }
     }
 }
