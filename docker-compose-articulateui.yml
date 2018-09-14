@@ -2,7 +2,7 @@ version: '3.0'
 
 services:
   api:
-    image: samtecspg/articulate-api:repo-head
+    image: samtecspg/articulate-api:0.12.1
     ports: ['0.0.0.0:7500:7500']
     networks: ['botsharp-network']
     entrypoint: ['node', 'start.js']
@@ -10,7 +10,7 @@ services:
      - SWAGGER_BASE_PATH
 
   ui:
-    image: samtecspg/articulate-ui:repo-head
+    image: samtecspg/articulate-ui:0.12.1
     ports: ['0.0.0.0:3000:3000']
     networks: ['botsharp-network']
     environment:
@@ -21,10 +21,12 @@ services:
     image: botsharpdocker/botsharp:latest
     ports: ['0.0.0.0:5000:5000']
     networks: ['botsharp-network']
+
   duckling:
     image: samtecspg/duckling:0.1.6.0
     ports: ['0.0.0.0:8000:8000']
     networks: ['botsharp-network']
+
   redis:
     image: redis:4.0.6-alpine
     ports: ['0.0.0.0:6379:6379']

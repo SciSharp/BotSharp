@@ -286,21 +286,9 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-/App_Data
-/Bot.WebStarter/App_Data/bot-rasa.db
-/Bot.WebStarter/App_Data/DbInitializer/Agents/Dialogflow/VirtualAssistant
-/BotSharp.WebStarter/App_Data/DbInitializer/Agents/Dialogflow/VirtualAssistant
-/BotSharp.UnitTest/App_Data/DbInitializer/Agents
-/BotSharp.UnitTest/App_Data/BotSharp.db
 /BotSharp.WebHost/App_Data/BotSharp.db
 /BotSharp.UI
-/BotSharp.WebHost/App_Data/ModelFiles
-/BotSharp.WebHost/App_Data/TrainingFiles
-/BotSharp.WebHost/App_Data/PredictFiles
 /BotSharp.WebHost/App_Data/Projects
 /BotSharp.WebHost/PublishOutput
 /Data
-/docs/build
 /docs/_build
-/BotSharp.WebHost/App_Data/AgentArchive/Smart Niraj.zip
-/BotSharp.NLP.UnitTest/wordvec_enu.bin
