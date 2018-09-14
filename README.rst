@@ -1,11 +1,17 @@
-﻿The Open Source AI Bot Platform Builder for Enterprise
+﻿.. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
+   :height: 30px
+   
+.. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
+    :target: `gitter`_
+
+The Open Source AI Bot Platform Builder
 ======================================================
 
-*"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our enterprise developers using the BotSharp Bot Platform Builder to build a CaaP. It opens up as much learning power as possible for your enterprise robots and precisely control every step of the AI processing pipeline."*
+*"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our .NET developers using the BotSharp AI BOT Platform Builder to build a CaaP. It opens up as much learning power as possible for your own robots and precisely control every step of the AI processing pipeline."*
 
-**BotSharp** is an open source machine learning framework for AI Bot platform builder. This project involves natural language understanding, computer vision and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in enterprise information systems. Out-of-the-box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier. 
+**BotSharp** is an open source machine learning framework for AI Bot platform builder. This project involves natural language understanding, computer vision and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in information systems. Out-of-the-box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier. 
 
-It's witten  in C# running on .Net Core that is full cross-platform framework. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. More friendly to corporate developers. BotSharp adopts machine learning algrithm in C/C++ interfaces directly which skips the python interfaces. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
+It's witten  in C# running on .Net Core that is full cross-platform framework. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. More friendly to corporate developers. BotSharp adopts machine learning algrithm in C# directly. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
 
 Why we do this? because we all know python is not friendly programming language for enterprise developers, it's not only because it's low performance but also it's a type weak language, it will be a disater if you use python to build your bussiness system.
 
@@ -45,3 +51,4 @@ If you feel that this project is helpful to you, please Star on the project, we 
 .. _Docker: https://www.docker.com
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
 .. _Articulate UI: https://spg.ai/projects/articulate
+.. _gitter: https://gitter.im/botsharpcore/Lobby

@@ -6,6 +6,9 @@
 .. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
    :height: 30px
    
+.. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
+    :target: `gitter`_
+
 The Open Source AI Bot Platform Builder
 ======================================================
 
@@ -82,3 +85,4 @@ If you feel that this project is helpful to you, please Star us on the project, 
 
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
 .. _Articulate UI: https://spg.ai/projects/articulate
+.. _gitter: https://gitter.im/botsharpcore/Lobby
