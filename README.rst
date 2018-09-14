@@ -1,7 +1,4 @@
-﻿.. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
-   :height: 30px
-   
-.. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
+﻿.. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
     :target: `gitter`_
 
 The Open Source AI Bot Platform Builder
