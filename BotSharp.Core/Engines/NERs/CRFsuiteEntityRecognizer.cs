@@ -38,7 +38,6 @@ namespace BotSharp.Core.Engines.NERs
 
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            var dc = new DefaultDataContextLoader().GetDefaultDc();
             var corpus = agent.Corpus;
 
             meta.Model = "ner-crf.model";

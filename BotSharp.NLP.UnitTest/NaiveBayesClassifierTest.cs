@@ -39,16 +39,17 @@ namespace BotSharp.NLP.UnitTest
             var options = new ClassifyOptions
             {
                 ModelFilePath = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange", "nb.model"),
-                TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange")
+                TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange"),
+                Dimension = 100
             };
             var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
             
-            var dataset = sentences.Split(1M);
+            var dataset = sentences.Split(0.7M);
             classifier.Train(dataset.Item1);
 
             int correct = 0;
             int total = 0;
-            dataset.Item1.ForEach(td =>
+            dataset.Item2.ForEach(td =>
             {
                 var classes = classifier.Classify(td);
                 if (td.Label == classes[0].Item1)
@@ -127,5 +128,53 @@ namespace BotSharp.NLP.UnitTest
 
             return genders;
         }
+
+        [TestMethod]
+        public void SpotifyTest()
+        {
+            var reader = new FasttextDataReader();
+            var sentences = reader.Read(new ReaderOptions
+            {
+                DataDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "spotify"),
+                FileName = "spotify.txt"
+            });
+
+            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
+            var newSentences = tokenizer.Tokenize(sentences.Select(x => x.Text).ToList());
+            for (int i = 0; i < newSentences.Count; i++)
+            {
+                newSentences[i].Label = sentences[i].Label;
+            }
+            sentences = newSentences.ToList();
+
+            sentences.Shuffle();
+
+            var options = new ClassifyOptions
+            {
+                ModelFilePath = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "spotify", "nb.model"),
+                TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "spotify")
+            };
+            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+
+            var dataset = sentences.Split(0.7M);
+            classifier.Train(dataset.Item1);
+
+            int correct = 0;
+            int total = 0;
+            dataset.Item2.ForEach(td =>
+            {
+                var classes = classifier.Classify(td);
+                if (td.Label == classes[0].Item1)
+                {
+                    correct++;
+                }
+                total++;
+            });
+
+            var accuracy = (float)correct / total;
+
+            Assert.IsTrue(accuracy > 0.6);
+        }
+
     }
 }

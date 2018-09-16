@@ -7,13 +7,13 @@ namespace BotSharp.Models.CRFLite
 {
     public class SegToken
     {
-        public int offset;
-        public int length;
-        public string strTag; //CRF对应于term组合后的Tag字符串
-        public double fWeight;   //对应属性id的概率值，或者得分
+        public int Offset;
+        public int Length;
+        public string Tag;
+        public double Weight;
     };
 
-    public class crf_seg_out : CRFTermOut
+    public class CRFSegOut : CRFTermOut
     {
         //Segmented token by merging raw CRF model output
         public int termTotalLength;          // the total term length in character
@@ -30,7 +30,7 @@ namespace BotSharp.Models.CRFLite
             tokenList.Clear();
         }
 
-        public crf_seg_out(int max_word_num = BaseUtils.DEFAULT_CRF_MAX_WORD_NUM):
+        public CRFSegOut(int max_word_num = BaseUtils.DEFAULT_CRF_MAX_WORD_NUM):
             base(max_word_num)
         {
             termTotalLength = 0;

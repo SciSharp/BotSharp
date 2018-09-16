@@ -44,7 +44,9 @@ namespace BotSharp.NLP.Classify
 
             var classes = _classifier.Classify(sentence, options);
 
-            return classes.OrderByDescending(x => x.Item2).ToList();
+            classes = classes.OrderByDescending(x => x.Item2).ToList();
+
+            return classes;
         }
     }
 }

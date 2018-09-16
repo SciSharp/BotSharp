@@ -46,7 +46,7 @@ namespace BotSharp.Core.Engines
             {
                 doc.Sentences[0].Entities = new List<NlpEntity>();
             }
-            doc.Sentences[0].Entities.ForEach(x => parameters.Add(x.Entity, x.Value));
+            doc.Sentences[0].Entities.ForEach(x => parameters[x.Entity] = x.Value);
 
             return new AIResponse
             {

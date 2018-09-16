@@ -5,15 +5,13 @@ WORKDIR /source
 # copies the rest of your code
 COPY . .
 RUN dotnet build
-RUN dotnet publish --output /app/ --configuration Debug
+RUN dotnet publish --output /app --configuration RASA
 
-# install facebookresearch fasttext
-RUN wget https://github.com/facebookresearch/fastText/archive/v0.1.0.zip
-RUN apt-get update 
-RUN apt-get install -y unzip make g++
-RUN unzip v0.1.0.zip
-WORKDIR /source/fastText-0.1.0/ 
-RUN make
+# copy Settings folder
+COPY Settings /app/Settings
+
+# App_Data
+COPY BotSharp.WebHost/App_Data /app/App_Data
 
 # stage 2: run
 WORKDIR /app

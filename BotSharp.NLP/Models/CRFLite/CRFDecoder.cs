@@ -74,7 +74,7 @@ namespace BotSharp.Models.CRFLite
         }
 
         //Segment given text
-        public int Segment(crf_seg_out[] pout, //segment result
+        public int Segment(CRFSegOut[] pout, //segment result
             SegDecoderTagger tagger, //Tagger per thread
             List<List<string>> inbuf //feature set for segment
             )

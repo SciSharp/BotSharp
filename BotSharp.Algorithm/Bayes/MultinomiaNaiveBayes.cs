@@ -88,13 +88,16 @@ namespace BotSharp.Algorithm.Bayes
         {
             int featureCount = features.Length;
             
-            double postProb = priorProb;
+            double postProb = Math.Log(priorProb);
 
             // loop features
             for (int x = 0; x < featureCount; x++)
             {
                 string key = $"{Y} f{x} {features[x]}";
-                postProb += condProbDictionary[key];
+                if(features[x] == 1)
+                {
+                    postProb += condProbDictionary[key];
+                }
             }
 
             return Math.Pow(2, postProb);

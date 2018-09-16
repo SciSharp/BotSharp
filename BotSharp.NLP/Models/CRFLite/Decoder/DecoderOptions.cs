@@ -8,7 +8,7 @@ namespace BotSharp.Models.CRFLite.Decoder
     public class DecoderOptions
     {
         /// <summary>
-        /// 
+        /// Model file path
         /// </summary>
         public string ModelFileName;
 
@@ -16,16 +16,6 @@ namespace BotSharp.Models.CRFLite.Decoder
         /// 
         /// </summary>
         public string InputFileName;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string OutputFileName;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string OutputSegFileName;
 
         /// <summary>
         /// 
@@ -43,16 +33,16 @@ namespace BotSharp.Models.CRFLite.Decoder
         public int ProbLevel;
 
         /// <summary>
-        /// 
+        /// Max words length in one sentence
         /// </summary>
         public int MaxWord;
 
         public DecoderOptions()
         {
             Thread = 1;
-            NBest = 1;
+            NBest = 2;
             ProbLevel = 0;
-            MaxWord = 100;
+            MaxWord = 128;
         }
     }
 }

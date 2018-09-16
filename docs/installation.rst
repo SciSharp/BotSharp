@@ -2,7 +2,7 @@ Installation
 ============
 BotSharp strictly follows the modular design principle and adopts a structure in which views and logic are separated. 
 So you can choose the front-end Bot design and management interface. 
-If you want to use the `RASA UI`_ as a front end, you can use the rasaui-specific compose file to quickly experience BotSharp.
+If you want to use the `Articulate UI`_ as a front end, you can use the articulateui-specific compose file to quickly experience BotSharp.
 
 Docker Composer
 ^^^^^^^^^^^^^^^
@@ -20,6 +20,7 @@ You can use docker compose to run, make sure you've got `Docker`_ installed.
  PS D:\BotSharp\> docker-compose -f docker-compose-articulateui.yml up
 
 Point your web browser at http://localhost:3000 and enjoy Articulate-UI with BotSharp.
+|ArticulateHomeScreenshot|
 
 2. Integrate with `Rasa UI`_, you can use docker compose to run.
 
@@ -29,8 +30,14 @@ Point your web browser at http://localhost:3000 and enjoy Articulate-UI with Bot
 
 Point your web browser at http://localhost:5001 and enjoy Rasa-UI with BotSharp.
 
+|RasaUIHomeScreenshot|
+
+3. Integrate with `Rasa Talk`_
+
+
 Building BotSharp
 ^^^^^^^^^^^^^^^^^
+If you are a .NET developer and want to develop extensions or fix bug for BotSharp, you would CTRL + F5 to run it locally in debug mode. 
 Make sure the `Microsoft .NET Core`_ build environment is installed. 
 Building solution using dotnet CLI (preferred).
 
@@ -42,6 +49,8 @@ Building solution using dotnet CLI (preferred).
 
 Install in docker container
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you just want to run BotSharp as a backend NLU engine, you can run it standalone in docker.
 
 ::
  
@@ -61,7 +70,9 @@ Start a container:
  PS D:\BotSharp\> docker run -it -p 5000:5000 botsharp
 
  
+Access restful APIs: http://localhost:5000 if you are using RASA response format.
 
+|APIHomeScreenshot|
 
 
 Install in NuGet
@@ -81,5 +92,10 @@ Use BotSharp.NLP as a natural language processing toolkit alone.
 
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
 .. _Articulate UI: https://spg.ai/projects/articulate
+.. _Rasa Talk: https://github.com/jackdh/RasaTalk
 .. _Microsoft .NET Core: https://www.microsoft.com/net/download
 .. _Docker: https://www.docker.com
+
+.. |APIHomeScreenshot| image:: /static/screenshots/APIHome.png
+.. |ArticulateHomeScreenshot| image:: /static/screenshots/ArticulateHome.png
+.. |RasaUIHomeScreenshot| image:: /static/screenshots/RasaUIHome.png

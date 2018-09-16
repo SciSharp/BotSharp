@@ -68,7 +68,7 @@ namespace BotSharp.Models.CRFLite.Decoder
             LoadFeatureWeights();
         }
 
-        //获取key对应的特征id
+        //get key feature id
         public virtual int get_id(string str)
         {
             return da.SearchByPerfectMatch(str);
@@ -143,26 +143,20 @@ namespace BotSharp.Models.CRFLite.Decoder
                 var sr = new StreamReader(metadataStream);
                 string strLine;
 
-                //读入版本号
                 strLine = sr.ReadLine();
                 version = uint.Parse(strLine.Split(':')[1].Trim());
 
-                //读入cost_factor
                 strLine = sr.ReadLine();
                 cost_factor_ = double.Parse(strLine.Split(':')[1].Trim());
 
-                //读入maxid
                 strLine = sr.ReadLine();
                 maxid_ = long.Parse(strLine.Split(':')[1].Trim());
 
-                //读入xsize
                 strLine = sr.ReadLine();
                 xsize_ = uint.Parse(strLine.Split(':')[1].Trim());
 
-                //读入空行
                 strLine = sr.ReadLine();
 
-                //读入待标注的标签
                 y_ = new List<string>();
                 while (true)
                 {
@@ -174,7 +168,7 @@ namespace BotSharp.Models.CRFLite.Decoder
                     y_.Add(strLine);
                 }
 
-                //读入unigram和bigram模板
+                // load unigram and bigram template
                 unigram_templs_ = new List<string>();
                 bigram_templs_ = new List<string>();
                 while (sr.EndOfStream == false)

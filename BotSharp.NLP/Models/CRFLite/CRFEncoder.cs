@@ -61,23 +61,16 @@ namespace BotSharp.Models.CRFLite
 
             var xList = modelWriter.ReadAllRecords();
 
-
             modelWriter.Shrink(xList, args.MinFeatureFreq);
 
             if (!modelWriter.SaveModelMetaData(args.ModelFileName))
             {
                 return false;
             }
-            else
-            {
-            }
 
             if (!modelWriter.BuildFeatureSetIntoIndex(args.ModelFileName, args.SlotUsageRateThreshold, args.DebugLevel))
             {
                 return false;
-            }
-            else
-            {
             }
 
             if (xList.Length == 0)
@@ -101,6 +94,8 @@ namespace BotSharp.Models.CRFLite
 
         bool runCRF(EncoderTagger[] x, ModelWriter modelWriter, bool orthant, EncoderOptions args)
         {
+            Console.WriteLine("Running encoding process...");
+
             var old_obj = double.MaxValue;
             var converge = 0;
             var lbfgs = new LBFGS(args.ThreadsNum);
@@ -164,6 +159,9 @@ namespace BotSharp.Models.CRFLite
                     lbfgs.obj += processList[i].obj;
                     lbfgs.err += processList[i].err;
                     lbfgs.zeroone += processList[i].zeroone;
+
+                    Console.WriteLine($"Thread: {i}, Iterating {itr} / {args.MaxIteration}");
+                    Console.WriteLine($"{lbfgs.obj} {lbfgs.err} {lbfgs.zeroone}");
 
                     //Calculate error
                     for (var j = 0; j < modelWriter.y_.Count; j++)
@@ -262,6 +260,8 @@ namespace BotSharp.Models.CRFLite
                     return false;
                 }
             }
+
+            Console.WriteLine("Completed encoding process.");
 
             return true;
         }
