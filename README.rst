@@ -17,13 +17,16 @@ BotSharp is in accordance with components princple strictly, decouples every par
 Some Features
 -------------
 
+* Integrated debugging is easier without relying on any other machine learning algorithm libraries.
 * Built-in multi-Agents management, easy to build Bot as a Service platform.
 * Context In/ Out with lifespan to make conversion flow be controllable.
-* Use the natural language processing pipeline mechanism and the popular NLP algorithm library to build your own unique robot processing flow.
+* Use the natural language processing pipeline mechanism to work with extensions easily, and build your own unique robot processing flows. 
+* Rewrote NLP algorithm from ground without historical issues.
 * Support export/ import agent from other bot platforms directly. 
 * Support different UI providers like `Rasa UI`_ and `Articulate UI`_.
 * Support for multiple data request and response formats such as Rasa NLU and Dialogflow.
 * Integrate with popular social platforms like Facebook Messenger, Slack and Telegram.
+* Multi-core parallel computing optimization, High-Performance C# on GPUs in Hybridizer.
 
 Quick Started
 -------------
@@ -41,7 +44,10 @@ Documents
 ---------
 Read the docs: https://botsharp.readthedocs.io
 
-Github Wiki: https://github.com/Oceania2018/BotSharp/wiki
+Feel free to message me on 
+
+.. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
+    :target: `gitter`_
 
 If you feel that this project is helpful to you, please Star on the project, we will be very grateful.
 
