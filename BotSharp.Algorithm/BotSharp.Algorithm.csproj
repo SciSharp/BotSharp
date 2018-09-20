@@ -14,4 +14,8 @@
     <Copyright>MIT</Copyright>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
+    <OutputPath>bin\RASA</OutputPath>
+  </PropertyGroup>
+
 </Project>

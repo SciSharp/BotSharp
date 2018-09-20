@@ -12,7 +12,7 @@
     },
 	
 	"BotSharpTokenizer": {
-		"tokenizer": "JiebaTokenizer"
+		"tokenizer": "TreebankTokenizer"
 	},
 	
 	"BotSharpNBayesClassifier": {
@@ -23,7 +23,7 @@
     },
 
     "BotSharpTagger": {
-		"tagger": "JiebaTagger"
+		"tagger": "NGramTagger"
     },
 	
 	"BotSharpCRFNer": {
