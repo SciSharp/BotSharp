@@ -18,7 +18,7 @@ The Open Source AI Bot Platform Builder
 .. image:: https://img.shields.io/nuget/dt/EntityFrameworkCore.BootKit.svg
     :target: `botsharpnuget`_
     :alt: NuGet
-    :align: left
+    
     
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our .NET developers using the BotSharp AI BOT Platform Builder to build a CaaP. It opens up as much learning power as possible for your own robots and precisely control every step of the AI processing pipeline."*
     
