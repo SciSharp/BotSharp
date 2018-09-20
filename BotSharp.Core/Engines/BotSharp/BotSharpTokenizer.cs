@@ -15,17 +15,17 @@ namespace BotSharp.Core.Engines.BotSharp
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
-        private TokenizerFactory<TreebankTokenizer> _tokenizer;
+        private TokenizerFactory _tokenizer;
 
         public BotSharpTokenizer()
         {
-            _tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions
-            {
-            }, SupportedLanguage.English);
+
         }
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
+            Init();
+
             doc.Tokenizer = this;
 
             // same as train
@@ -39,6 +39,8 @@ namespace BotSharp.Core.Engines.BotSharp
 
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
+            Init();
+
             doc.Tokenizer = this;
             doc.Sentences = new List<NlpDocSentence>();
 
@@ -53,6 +55,21 @@ namespace BotSharp.Core.Engines.BotSharp
             });
 
             return true;
+        }
+
+        private void Init()
+        {
+            if(_tokenizer == null)
+            {
+                _tokenizer = new TokenizerFactory(new TokenizationOptions
+                {
+                    Pattern = Configuration.GetValue<String>("options:pattern")
+                }, SupportedLanguage.English);
+
+                string tokenizerName = Configuration.GetValue<String>($"tokenizer");
+
+                _tokenizer.GetTokenizer(tokenizerName);
+            }
         }
     }
 }

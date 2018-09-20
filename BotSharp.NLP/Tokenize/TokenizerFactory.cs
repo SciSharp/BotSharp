@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,19 +13,35 @@ namespace BotSharp.NLP.Tokenize
     /// The particular tokenizer requires implement interface 
     /// models to be installed.BotSharp.NLP also provides a simpler, regular-expression based tokenizer, which splits text on whitespace and punctuation.
     /// </summary>
-    public class TokenizerFactory<ITokenize> where ITokenize : ITokenizer, new()
+    public class TokenizerFactory
     {
         private SupportedLanguage _lang;
 
-        private ITokenize _tokenizer;
+        private ITokenizer _tokenizer;
 
         private TokenizationOptions _options;
+
+        public ITokenizer GetTokenizer<ITokenize>() where ITokenize : ITokenizer, new()
+        {
+            return _tokenizer = new ITokenize();
+        }
+
+        public ITokenizer GetTokenizer(string name)
+        {
+            List<Type> types = Assembly.Load(new AssemblyName("BotSharp.NLP"))
+                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList();
+
+            Type type = types.FirstOrDefault(x => x.Name == name);
+            var instance = (ITokenizer)Activator.CreateInstance(type);
+
+            return _tokenizer = instance;
+        }
 
         public TokenizerFactory(TokenizationOptions options, SupportedLanguage lang)
         {
             _lang = lang;
             _options = options;
-            _tokenizer = new ITokenize();
+            
         }
 
         public List<Token> Tokenize(string sentence)

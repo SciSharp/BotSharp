@@ -11,6 +11,10 @@
       "predict": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpNBayesClassifier"
     },
 	
+	"BotSharpTokenizer": {
+		"tokenizer": "TreebankTokenizer"
+	},
+	
 	"BotSharpNBayesClassifier": {
 	},
 	
@@ -19,6 +23,7 @@
     },
 
     "BotSharpTagger": {
+		
     },
 	
 	"BotSharpCRFNer": {
