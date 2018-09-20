@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace BotSharp.NLP.Tag
 {
-    public class TaggerFactory<ITag> where ITag : ITagger, new()
+    public class TaggerFactory
     {
         private SupportedLanguage _lang;
 
-        private ITag _tagger;
+        private ITagger _tagger;
 
         private TagOptions _options;
 
@@ -16,7 +18,27 @@ namespace BotSharp.NLP.Tag
         {
             _lang = lang;
             _options = options;
-            _tagger = new ITag();
+        }
+
+        public ITagger GetTagger<ITag>() where ITag : ITagger, new()
+        {
+            return _tagger = new ITag();
+        }
+
+        public ITagger GetTagger(string name)
+        {
+            List<Type> types = new List<Type>();
+
+            types.AddRange(Assembly.Load(new AssemblyName("BotSharp.Core"))
+                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList());
+
+            types.AddRange(Assembly.Load(new AssemblyName("BotSharp.NLP"))
+                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList());
+
+            Type type = types.FirstOrDefault(x => x.Name == name);
+            var instance = (ITagger)Activator.CreateInstance(type);
+
+            return _tagger = instance;
         }
 
         public void Tag(Sentence sentence)

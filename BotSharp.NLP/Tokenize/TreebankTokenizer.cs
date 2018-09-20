@@ -31,7 +31,7 @@ namespace BotSharp.NLP.Tokenize
     /// and available at ftp://ftp.cis.upenn.edu/pub/treebank/public_html/tokenizer.sed,
     /// or reference ftp://ftp.cis.upenn.edu/pub/treebank/public_html/tokenization.html.
     /// </summary>
-    public class TreebankTokenizer : ITokenizer
+    public class TreebankTokenizer : TokenizerBase, ITokenizer
     {
         private List<Tuple<String, String>> STARTING_QUOTES = new List<Tuple<string, string>>();
         private List<Tuple<String, String>> PUNCTUATION = new List<Tuple<string, string>>();
@@ -117,19 +117,6 @@ namespace BotSharp.NLP.Tokenize
             CorrectTokenPosition(sentence, tokens);
 
             return tokens;
-        }
-
-        private void CorrectTokenPosition(string sentence, List<Token> tokens)
-        {
-            int startPos = 0;
-
-            for(int i = 0; i < tokens.Count; i++)
-            {
-                var token = tokens[i];
-                token.Start = sentence.IndexOf(token.Text, startPos);
-
-                startPos = token.End;
-            }
         }
 
         private void Init()

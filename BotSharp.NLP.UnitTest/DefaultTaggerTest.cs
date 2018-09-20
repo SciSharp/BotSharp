@@ -19,10 +19,12 @@ namespace BotSharp.NLP.UnitTest
 
             var tokens = tokenizer.Tokenize("How are you doing?");
 
-            var tagger = new TaggerFactory<DefaultTagger>(new TagOptions
+            var tagger = new TaggerFactory(new TagOptions
             {
                 Tag = "NN"
             }, SupportedLanguage.English);
+
+            tagger.GetTagger<DefaultTagger>();
 
             tagger.Tag(new Sentence { Words = tokens });
         }

@@ -27,13 +27,14 @@ namespace BotSharp.NLP.UnitTest
             var tokens = tokenizer.Tokenize("Chancellor of the Exchequer Nigel Lawson's restated commitment");
 
             // test tag
-            var data = GetTaggedCorpus();
-            var tagger = new TaggerFactory<NGramTagger>(new TagOptions
+            var tagger = new TaggerFactory(new TagOptions
             {
+                CorpusDir = Configuration.GetValue<String>("BotSharp.NLP:dataDir"),
                 NGram = 1,
-                Tag = "NN",
-                Corpus = data
+                Tag = "NN"
             }, SupportedLanguage.English);
+
+            tagger.GetTagger<NGramTagger>();
 
             var watch = Stopwatch.StartNew();
             tagger.Tag(new Sentence { Words = tokens });
@@ -67,12 +68,14 @@ namespace BotSharp.NLP.UnitTest
             var tokens = tokenizer.Tokenize("Chancellor of the Exchequer Nigel Lawson's restated commitment");
 
             // test tag
-            var tagger = new TaggerFactory<NGramTagger>(new TagOptions
+            var tagger = new TaggerFactory(new TagOptions
             {
+                CorpusDir = Configuration.GetValue<String>("BotSharp.NLP:dataDir"),
                 NGram = 2,
-                Tag = "NN",
-                Corpus = GetTaggedCorpus()
+                Tag = "NN"
             }, SupportedLanguage.English);
+
+            tagger.GetTagger<NGramTagger>();
 
             tagger.Tag(new Sentence { Words = tokens });
 
@@ -95,12 +98,14 @@ namespace BotSharp.NLP.UnitTest
             var tokens = tokenizer.Tokenize("Chancellor of the Exchequer Nigel Lawson's restated commitment");
 
             // test tag
-            var tagger = new TaggerFactory<NGramTagger>(new TagOptions
+            var tagger = new TaggerFactory(new TagOptions
             {
+                CorpusDir = Configuration.GetValue<String>("BotSharp.NLP:dataDir"),
                 NGram = 3,
-                Tag = "NN",
-                Corpus = GetTaggedCorpus()
+                Tag = "NN"
             }, SupportedLanguage.English);
+
+            tagger.GetTagger<NGramTagger>();
 
             tagger.Tag(new Sentence { Words = tokens });
 
@@ -108,18 +113,6 @@ namespace BotSharp.NLP.UnitTest
             Assert.IsTrue(tokens[1].Pos == "IN");
             Assert.IsTrue(tokens[2].Pos == "DT");
             Assert.IsTrue(tokens[3].Pos == "NNP");
-        }
-
-        private List<Sentence> GetTaggedCorpus()
-        {
-            // get training corpus
-            string dataDir = Path.Combine(Configuration.GetValue<String>("BotSharp.NLP:dataDir"), "CoNLL");
-            return new CoNLLReader()
-                .Read(new ReaderOptions
-                {
-                    DataDir = dataDir,
-                    FileName = "conll2000_chunking_train.txt"
-                });
         }
     }
 }

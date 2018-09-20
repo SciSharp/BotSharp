@@ -19,9 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.NLP", "BotSharp.NL
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.NLP.UnitTest", "BotSharp.NLP.UnitTest\BotSharp.NLP.UnitTest.csproj", "{4AAA7A40-0389-41AC-B55E-CFAF7C8600B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Voice", "BotSharp.Voice\BotSharp.Voice.csproj", "{184F8B93-68C2-4849-9625-4023C4360990}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Voice", "BotSharp.Voice\BotSharp.Voice.csproj", "{184F8B93-68C2-4849-9625-4023C4360990}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Vision", "BotSharp.Vision\BotSharp.Vision.csproj", "{75B02A7C-EDB3-4082-9C1F-471773E760C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Vision", "BotSharp.Vision\BotSharp.Vision.csproj", "{75B02A7C-EDB3-4082-9C1F-471773E760C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

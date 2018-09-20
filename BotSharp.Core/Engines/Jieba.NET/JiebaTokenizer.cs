@@ -1,26 +1,44 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
+using BotSharp.NLP.Tokenize;
+using JiebaNet.Segmenter;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Token = BotSharp.NLP.Tokenize.Token;
 
 namespace BotSharp.Core.Engines.Jieba.NET
 {
-    public class JiebaTokenizer : INlpTrain, INlpPredict
+    public class JiebaTokenizer : TokenizerBase, ITokenizer
     {
-        public IConfiguration Configuration { get; set; }
-        public PipeSettings Settings { get; set; }
+        private JiebaSegmenter segmenter;
 
-        public Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
+        public List<Token> Tokenize(string sentence, TokenizationOptions options)
         {
-            throw new NotImplementedException();
+            Init();
+
+            var tokens = segmenter.Cut(sentence)
+                .Select(x => new Token
+                {
+                    Text = x
+                }).ToList();
+
+            CorrectTokenPosition(sentence, tokens);
+
+            return tokens;
         }
 
-        public Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        private void Init()
         {
-            throw new NotImplementedException();
+            if(segmenter == null)
+            {
+                segmenter = new JiebaSegmenter();
+                segmenter.LoadUserDict($"App_Data{Path.DirectorySeparatorChar}userdict.txt");
+            }
         }
     }
 }

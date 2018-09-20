@@ -28,8 +28,13 @@ namespace BotSharp.NLP.Tokenize
 
         public ITokenizer GetTokenizer(string name)
         {
-            List<Type> types = Assembly.Load(new AssemblyName("BotSharp.NLP"))
-                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList();
+            List<Type> types = new List<Type>();
+
+            types.AddRange(Assembly.Load(new AssemblyName("BotSharp.Core"))
+                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList());
+
+            types.AddRange(Assembly.Load(new AssemblyName("BotSharp.NLP"))
+                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList());
 
             Type type = types.FirstOrDefault(x => x.Name == name);
             var instance = (ITokenizer)Activator.CreateInstance(type);
@@ -41,7 +46,6 @@ namespace BotSharp.NLP.Tokenize
         {
             _lang = lang;
             _options = options;
-            
         }
 
         public List<Token> Tokenize(string sentence)

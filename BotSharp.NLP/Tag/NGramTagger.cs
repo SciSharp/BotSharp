@@ -18,8 +18,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using BotSharp.NLP.Corpus;
 using BotSharp.NLP.Tokenize;
 
 namespace BotSharp.NLP.Tag
@@ -37,7 +39,13 @@ namespace BotSharp.NLP.Tag
             // need training to generate model
             if(_contextMapping == null)
             {
-                Train(options.Corpus, options);
+                var corpus = new CoNLLReader().Read(new ReaderOptions
+                {
+                    DataDir = Path.Combine(options.CorpusDir, "CoNLL"),
+                    FileName = "conll2000_chunking_train.txt"
+                });
+
+                Train(corpus, options);
             }
 
             Fill(sentence, options);
@@ -63,9 +71,9 @@ namespace BotSharp.NLP.Tag
         {
             var cache = new List<NGramFreq>();
 
-            for (int idx = 0; idx < options.Corpus.Count; idx++)
+            for (int idx = 0; idx < sentences.Count; idx++)
             {
-                var sent = options.Corpus[idx];
+                var sent = sentences[idx];
 
                 Fill(sent, options);
 

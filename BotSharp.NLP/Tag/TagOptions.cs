@@ -22,9 +22,12 @@ namespace BotSharp.NLP.Tag
         /// </summary>
         public int NGram { get; set; }
 
-        /// <summary>
-        /// Tagged corpus used for training a model
-        /// </summary>
-        public List<Sentence> Corpus { get; set; }
+        public string CorpusDir { get; set; }
+
+        public TagOptions()
+        {
+            NGram = 1;
+            Tag = "NN";
+        }
     }
 }
