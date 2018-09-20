@@ -78,6 +78,7 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.9.1" />
+    <PackageReference Include="JiebaNet.Segmenter" Version="1.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="RestSharp" Version="106.3.1" />

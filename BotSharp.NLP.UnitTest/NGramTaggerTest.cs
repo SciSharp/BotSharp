@@ -18,10 +18,11 @@ namespace BotSharp.NLP.UnitTest
         public void UniGramInCoNLL2000()
         {
             // tokenization
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.WORD_PUNC
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             var tokens = tokenizer.Tokenize("Chancellor of the Exchequer Nigel Lawson's restated commitment");
 
@@ -57,10 +58,11 @@ namespace BotSharp.NLP.UnitTest
         public void BiGramInCoNLL2000()
         {
             // tokenization
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.WORD_PUNC
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             var tokens = tokenizer.Tokenize("Chancellor of the Exchequer Nigel Lawson's restated commitment");
 
@@ -84,10 +86,11 @@ namespace BotSharp.NLP.UnitTest
         public void TriGramInCoNLL2000()
         {
             // tokenization
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.WORD_PUNC
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             var tokens = tokenizer.Tokenize("Chancellor of the Exchequer Nigel Lawson's restated commitment");
 

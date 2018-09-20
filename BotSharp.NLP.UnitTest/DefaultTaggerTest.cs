@@ -14,7 +14,9 @@ namespace BotSharp.NLP.UnitTest
         [TestMethod]
         public void TagInCoNLL2000()
         {
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
+            var tokenizer = new TokenizerFactory(new TokenizationOptions { }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
+
             var tokens = tokenizer.Tokenize("How are you doing?");
 
             var tagger = new TaggerFactory<DefaultTagger>(new TagOptions

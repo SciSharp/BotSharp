@@ -10,10 +10,11 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void TokenizeInWhiteSpace()
         {
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.WHITE_SPACE
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             var tokens = tokenizer.Tokenize("Chop into pieces, isn't it?");
 
@@ -36,11 +37,12 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void TokenizeInWordPunctuation()
         {
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.WORD_PUNC,
                 SpecialWords = new List<string> { "n't" }
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             var tokens = tokenizer.Tokenize("Chop into pieces, isn't it?");
 
@@ -72,10 +74,11 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void TokenizeInBlankLine()
         {
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.BLANK_LINE
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             var tokens = tokenizer.Tokenize(@"Chop into pieces, 
 

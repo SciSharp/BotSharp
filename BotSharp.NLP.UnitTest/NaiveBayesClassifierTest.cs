@@ -26,7 +26,9 @@ namespace BotSharp.NLP.UnitTest
                 FileName = "cooking.stackexchange.txt"
             });
 
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);     
+            var tokenizer = new TokenizerFactory(new TokenizationOptions { }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
+
             var newSentences = tokenizer.Tokenize(sentences.Select(x => x.Text).ToList());
             for(int i = 0; i < newSentences.Count; i++)
             {
@@ -75,10 +77,11 @@ namespace BotSharp.NLP.UnitTest
 
             var corpus = GetLabeledCorpus(options);
 
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.WORD_PUNC
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             corpus.ForEach(x => x.Words = tokenizer.Tokenize(x.Text));
 
@@ -139,7 +142,9 @@ namespace BotSharp.NLP.UnitTest
                 FileName = "spotify.txt"
             });
 
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
+            var tokenizer = new TokenizerFactory(new TokenizationOptions { }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
+
             var newSentences = tokenizer.Tokenize(sentences.Select(x => x.Text).ToList());
             for (int i = 0; i < newSentences.Count; i++)
             {
