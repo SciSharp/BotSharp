@@ -67,10 +67,16 @@ Start a container:
 
 ::
 
- PS D:\BotSharp\> docker run -it -p 5000:5000 botsharp
+ PS D:\BotSharp\> docker run --name botsharp -it -p 5000:5000 botsharp
 
  
 Access restful APIs: http://localhost:5000 if you are using RASA response format.
+
+Get a bash shell if you want to update config in the container.
+
+::
+
+ PS D:\BotSharp\> docker exec -it botsharp /bin/bash
 
 |APIHomeScreenshot|
 
