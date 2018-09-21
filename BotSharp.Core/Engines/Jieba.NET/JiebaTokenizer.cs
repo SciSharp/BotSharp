@@ -34,10 +34,13 @@ namespace BotSharp.Core.Engines.Jieba.NET
 
         private void Init()
         {
-            if(segmenter == null)
+            if (segmenter == null)
             {
+                string contentDir = AppDomain.CurrentDomain.GetData("DataPath").ToString();
+                AppDomain.CurrentDomain.SetData("JiebaConfigFileDir", contentDir);
+
                 segmenter = new JiebaSegmenter();
-                segmenter.LoadUserDict($"App_Data{Path.DirectorySeparatorChar}userdict.txt");
+                segmenter.LoadUserDict(Path.Combine(contentDir, "userdict.txt"));
             }
         }
     }

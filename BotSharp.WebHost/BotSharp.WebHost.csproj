@@ -12,7 +12,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;RASA</DefineConstants>
+    <OutputPath>bin\RASA</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

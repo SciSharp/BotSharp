@@ -2,6 +2,7 @@
 using BotSharp.Core.Agents;
 using BotSharp.NLP;
 using BotSharp.NLP.Tag;
+using JiebaNet.Segmenter;
 using JiebaNet.Segmenter.PosSeg;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -39,6 +40,9 @@ namespace BotSharp.Core.Engines.Jieba.NET
         {
             if (posSeg == null)
             {
+                string contentDir = AppDomain.CurrentDomain.GetData("DataPath").ToString();
+                AppDomain.CurrentDomain.SetData("JiebaConfigFileDir", contentDir);
+
                 posSeg = new PosSegmenter();
             }
         }

@@ -6,7 +6,7 @@
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
     <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA</Configurations>
+    <Configurations>Debug;Release;DIALOGFLOW;RASA</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -37,48 +37,18 @@ If you feel that this project is helpful to you, please Star on the project, we 
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|x64'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|x64'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;RASA</DefineConstants>
+    <OutputPath>bin\RASA</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE;MODEL_PER_CONTEXTS</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DefineConstants>TRACE;MODEL_PER_CONTEXTS</DefineConstants>
+    <DefineConstants>TRACE;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Accounts\**" />
-    <Compile Remove="Engines\CoreNlp\**" />
-    <EmbeddedResource Remove="Accounts\**" />
-    <EmbeddedResource Remove="Engines\CoreNlp\**" />
-    <None Remove="Accounts\**" />
-    <None Remove="Engines\CoreNlp\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="BotSharp.NLP" Version="0.3.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.9.1" />
-    <PackageReference Include="JiebaNet.Segmenter" Version="1.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="RestSharp" Version="106.3.1" />

@@ -27,6 +27,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
     <DocumentationFile>BotSharp.RestApi.xml</DocumentationFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <OutputPath>bin\RASA</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|AnyCPU'">
