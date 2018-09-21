@@ -289,3 +289,4 @@ __pycache__/
 /BotSharp.WebHost/PublishOutput
 /Data
 /docs/_build
+*.RestApi.xml

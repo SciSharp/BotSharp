@@ -27,6 +27,12 @@ namespace BotSharp.Core.Engines
         /// <returns></returns>
         Agent LoadAgentFromFile(string dataDir);
 
+        /// <summary>
+        /// Save agent data to database
+        /// </summary>
+        /// <returns></returns>
+        String SaveAgentToDb();
+
         AIResponse TextRequest(AIRequest request);
 
         Task Train(BotTrainOptions options);

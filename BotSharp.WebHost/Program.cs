@@ -35,11 +35,7 @@ namespace BotSharp.WebHost
                         config.AddJsonFile(setting, optional: false, reloadOnChange: true);
                     });
                 })
-#if RASA
                 .UseUrls("http://0.0.0.0:5000")
-#else
-                .UseUrls("http://0.0.0.0:3112")
-#endif
                 .UseStartup<Startup>()
                 .Build();
     }

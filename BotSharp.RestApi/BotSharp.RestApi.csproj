@@ -62,12 +62,17 @@
     <WarningLevel>1</WarningLevel>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <DocumentationFile>BotSharp.RestApi.xml</DocumentationFile>
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Authentication\**" />
     <EmbeddedResource Remove="Authentication\**" />
     <None Remove="Authentication\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="BotSharp.RestApi.xml" />
   </ItemGroup>
 
   <ItemGroup>

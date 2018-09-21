@@ -35,6 +35,11 @@ Naive Bayes Classifier</Description>
     <OutputPath>bin\RASA</OutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;DIALOGFLOW;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>

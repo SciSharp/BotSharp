@@ -44,6 +44,8 @@ namespace BotSharp.RestApi.Rasa
             var model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last().Split(Path.DirectorySeparatorChar).Last();
             string dataDir = Path.Combine(projectPath, model);
             
+            Console.WriteLine($"LoadAgentFromFile {dataDir}");
+
             var agent = _platform.LoadAgentFromFile(dataDir);
 
             var info = await trainer.Train(agent, new BotTrainOptions

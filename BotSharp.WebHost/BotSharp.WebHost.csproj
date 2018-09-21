@@ -16,6 +16,11 @@
     <OutputPath>bin\RASA</OutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;DIALOGFLOW;NETCOREAPP;NETCOREAPP2_1</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="App_Data\AgentArchive\**" />
     <Compile Remove="App_Data\Corpus\**" />
