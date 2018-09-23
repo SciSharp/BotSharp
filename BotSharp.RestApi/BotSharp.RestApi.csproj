@@ -81,6 +81,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\BotSharp.Voice\BotSharp.Voice.csproj" />
   </ItemGroup>
 
 </Project>

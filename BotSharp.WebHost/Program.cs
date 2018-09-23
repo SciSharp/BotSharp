@@ -27,11 +27,10 @@ namespace BotSharp.WebHost
                     }
 
                     settingsFolder = Path.Combine(dir, "Settings");
-                    Console.WriteLine($"Settings folder: {settingsFolder}");
+                    Console.WriteLine($"Read settings from {settingsFolder}");
                     var settings = Directory.GetFiles(settingsFolder, "*.json");
                     settings.ToList().ForEach(setting =>
                     {
-                        Console.WriteLine($"Read {setting}");
                         config.AddJsonFile(setting, optional: false, reloadOnChange: true);
                     });
                 })
