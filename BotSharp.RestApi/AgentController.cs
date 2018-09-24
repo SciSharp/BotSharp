@@ -95,22 +95,6 @@ namespace BotSharp.RestApi
         }
 
         /// <summary>
-        /// Train agent
-        /// </summary>
-        /// <param name="agentId"></param>
-        /// <returns></returns>
-        /*[HttpGet("{agentId}")]
-        public string Train([FromRoute] String agentId)
-        {
-            string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agentId);
-            string dest = Directory.GetDirectories(agentDir).Where(x => x.Contains("model_")).Last();
-            var agent = _platform.LoadAgentFromFile(dest);
-            _platform.Train(new BotTrainOptions { AgentDir = agentDir, Model = dest.Split(Path.DirectorySeparatorChar).Last() });
-
-            return "";
-        }*/
-
-        /// <summary>
         /// Dump agent
         /// </summary>
         /// <param name="agentId"></param>

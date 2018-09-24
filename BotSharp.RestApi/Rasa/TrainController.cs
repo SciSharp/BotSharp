@@ -43,33 +43,51 @@ namespace BotSharp.RestApi.Rasa
         [HttpPost]
         public async Task<ActionResult<String>> Train([FromQuery] string project, [FromQuery] string model)
         {
-            string body = "";
-            using (var reader = new StreamReader(Request.Body))
+            string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", project);
+            if (!Directory.Exists(agentDir))
             {
-                body = reader.ReadToEnd();
+                Directory.CreateDirectory(agentDir);
             }
 
-            string lang = Regex.Match(body, @"language:.+")?.Value;
-            if (!String.IsNullOrEmpty(lang))
+            if (string.IsNullOrEmpty(model))
             {
-                lang = lang.Substring(11, 2);
-            }
-            string data = Regex.Match(body, @"data:([\s\S]*)")?.Value;
-            if (String.IsNullOrEmpty(data))
-            {
-                data = body;
+                string dest = Directory.GetDirectories(agentDir).Where(x => x.Contains("model_")).Last();
+                var agent = _platform.LoadAgentFromFile(dest);
+                model = dest.Split(Path.DirectorySeparatorChar).Last();
+                await _platform.Train(new BotTrainOptions { AgentDir = agentDir, Model = model });
+
+                return Ok(new { info = model });
             }
             else
             {
-                data = data.Substring(6);
+                string body = "";
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    body = reader.ReadToEnd();
+                }
+
+                string lang = Regex.Match(body, @"language:.+")?.Value;
+                if (!String.IsNullOrEmpty(lang))
+                {
+                    lang = lang.Substring(11, 2);
+                }
+                string data = Regex.Match(body, @"data:([\s\S]*)")?.Value;
+                if (String.IsNullOrEmpty(data))
+                {
+                    data = body;
+                }
+                else
+                {
+                    data = data.Substring(6);
+                }
+
+                var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(data);
+                rasa_nlu_data.Model = model;
+                rasa_nlu_data.Project = project;
+                var trainResult = await Train(rasa_nlu_data, project);
+
+                return trainResult;
             }
-
-            var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(data);
-            rasa_nlu_data.Model = model;
-            rasa_nlu_data.Project = project;
-            var trainResult = await Train(rasa_nlu_data, project);
-
-            return trainResult;
         }
 
         private async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestModel request, [FromQuery] string project)
@@ -99,7 +117,7 @@ namespace BotSharp.RestApi.Rasa
             // in order to unify the process.
             var fileName = Path.Combine(modelPath, "corpus.json");
 
-            System.IO.File.WriteAllText(fileName, JsonConvert.SerializeObject(request.Corpus, new JsonSerializerSettings
+            System.IO.File.WriteAllText(fileName, JsonConvert.SerializeObject(request, new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
                 NullValueHandling = NullValueHandling.Ignore,

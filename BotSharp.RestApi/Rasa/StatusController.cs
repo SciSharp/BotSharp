@@ -40,6 +40,12 @@ namespace BotSharp.RestApi.Rasa
 
             // scan dir, get all models
             var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects");
+
+            if (!Directory.Exists(projectPath))
+            {
+                Directory.CreateDirectory(projectPath);
+            }
+
             var projectDirs = Directory.GetDirectories(projectPath);
             for(int idx = 0; idx < projectDirs.Length; idx++)
             {
