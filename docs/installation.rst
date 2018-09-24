@@ -20,7 +20,7 @@ You can use docker compose to run, make sure you've got `Docker`_ installed.
 
 ::
 
- PS D:\BotSharp\> docker-compose -f docker-compose-articulateui.yml up
+ PS D:\BotSharp\> docker-compose -f dockerfiles/docker-compose-articulateui.yml up
 
 Point your web browser at http://localhost:3000 and enjoy Articulate-UI with BotSharp.
 |ArticulateHomeScreenshot|
