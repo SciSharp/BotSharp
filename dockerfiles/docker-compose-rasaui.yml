@@ -9,7 +9,7 @@ services:
      - rasanluendpoint=http://botsharp:5000
      
   botsharp:
-    image: botsharpdocker/botsharp:latest
+    image: botsharpdocker/botsharp-rasa:latest
     ports: ['0.0.0.0:5000:5000']
     networks: ['botsharp-network']
 
