@@ -1,5 +1,5 @@
 # stage 1: build
-FROM microsoft/dotnet AS botsharp
+FROM microsoft/dotnet AS botsharp-dialogflow
 WORKDIR /source
 
 # copies the rest of your code
