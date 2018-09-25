@@ -29,6 +29,11 @@
             <param name="agentId"></param>
             <returns></returns>
         </member>
+        <member name="T:BotSharp.RestApi.Dialogflow.EntitiesController">
+            <summary>
+            The /entities endpoint is used to create, retrieve, update, and delete developer-defined entity objects.
+            </summary>
+        </member>
         <member name="T:BotSharp.RestApi.Dialogflow.QueryController">
             <summary>
             Dialogflow mode query controller
