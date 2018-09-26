@@ -7,28 +7,29 @@
     },
 
     "Pipe": {
-      "train": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpNBayesClassifier",
-      "predict": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpNBayesClassifier"
+      "train": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier",
+      "predict": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier"
     },
-	
-	"BotSharpTokenizer": {
-		"tokenizer": "TreebankTokenizer"
-	},
-	
-	"BotSharpNBayesClassifier": {
-	},
-	
+
+    "BotSharpTokenizer": {
+      "tokenizer": "TreebankTokenizer"
+    },
+
+    "BotSharpIntentClassifier": {
+      "classifer": "NaiveBayesClassifier"
+    },
+
     "BotSharpSVMClassifier": {
       "wordvec": ""
     },
 
     "BotSharpTagger": {
-		"tagger": "NGramTagger"
+      "tagger": "NGramTagger"
     },
-	
-	"BotSharpCRFNer": {
-		"template": "|App_Data|CRFLite/template.en"
-	},
+
+    "BotSharpCRFNer": {
+      "template": "|App_Data|CRFLite/template.en"
+    },
 
     "CRFsuiteEntityRecognizer": {
       "fields": "y w pos chk",

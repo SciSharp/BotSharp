@@ -44,7 +44,7 @@ namespace BotSharp.NLP.UnitTest
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange"),
                 Dimension = 100
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
             
             var dataset = sentences.Split(0.7M);
             classifier.Train(dataset.Item1);
@@ -73,7 +73,7 @@ namespace BotSharp.NLP.UnitTest
             {
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Gender")
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, WordFeatureExtractor>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<WordFeatureExtractor>(options, SupportedLanguage.English);
 
             var corpus = GetLabeledCorpus(options);
 
@@ -159,7 +159,7 @@ namespace BotSharp.NLP.UnitTest
                 ModelFilePath = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "spotify", "nb.model"),
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "spotify")
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
 
             var dataset = sentences.Split(0.7M);
             classifier.Train(dataset.Item1);

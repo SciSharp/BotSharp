@@ -3,17 +3,17 @@ using BotSharp.NLP.Tokenize;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace BotSharp.NLP.Classify
 {
-    public class ClassifierFactory<IClassify, IFeatureExtractor> 
-        where IClassify : IClassifier, new() 
+    public class ClassifierFactory<IFeatureExtractor> 
         where IFeatureExtractor : ITextFeatureExtractor, new()
     {
         private SupportedLanguage _lang;
 
-        private IClassify _classifier;
+        private IClassifier _classifier;
 
         private ClassifyOptions _options;
 
@@ -23,8 +23,23 @@ namespace BotSharp.NLP.Classify
         {
             _lang = lang;
             _options = options;
-            _classifier = new IClassify();
             featureExtractor = new IFeatureExtractor();
+        }
+
+        public IClassifier GetClassifer(string name)
+        {
+            List<Type> types = new List<Type>();
+
+            types.AddRange(Assembly.Load(new AssemblyName("BotSharp.Core"))
+                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList());
+
+            types.AddRange(Assembly.Load(new AssemblyName("BotSharp.NLP"))
+                .GetTypes().Where(x => !x.IsAbstract && !x.FullName.StartsWith("<>f__AnonymousType")).ToList());
+
+            Type type = types.FirstOrDefault(x => x.Name == name);
+            var instance = (IClassifier)Activator.CreateInstance(type);
+
+            return _classifier = instance;
         }
 
         public void Train(List<Sentence> sentences)

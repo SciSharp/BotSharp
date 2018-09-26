@@ -14,21 +14,15 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.BotSharp
 {
-    public class BotSharpNBayesClassifier : INlpTrain, INlpPredict
+    public class BotSharpIntentClassifier : INlpTrain, INlpPredict
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
+        private ClassifierFactory<SentenceFeatureExtractor> _classifier;
 
         public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            meta.Model = "classification-nb.model";
-            string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
-
-            var options = new ClassifyOptions
-            {
-                ModelFilePath = modelFileName
-            };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+            Init(meta);
 
             var sentences = doc.Sentences.Select(x => new Sentence
             {
@@ -37,20 +31,16 @@ namespace BotSharp.Core.Engines.BotSharp
                 Words = x.Tokens
             }).ToList();
 
-            classifier.Train(sentences);
+            _classifier.Train(sentences);
 
-            Console.WriteLine($"Saved model to {modelFileName}");
+            Console.WriteLine($"Saved model to {Settings.ModelDir}");
 
             return true;
         }
 
         public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
         {
-            var options = new ClassifyOptions
-            {
-                ModelFilePath = Path.Combine(Settings.ModelDir, meta.Model)
-            };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+            Init(meta);
 
             var sentence = doc.Sentences.Select(s => new Sentence
             {
@@ -59,16 +49,37 @@ namespace BotSharp.Core.Engines.BotSharp
             }).First();
 
 
-            var result = classifier.Classify(sentence);
+            var result = _classifier.Classify(sentence);
 
             doc.Sentences[0].Intent = new TextClassificationResult
             {
-                Classifier = "BotSharpNBayesClassifier",
+                Classifier = "BotSharpIntentClassifier",
                 Label = result.First().Item1,
                 Confidence = (decimal)result.First().Item2
             };
 
             return true;
+        }
+
+        private void Init(PipeModel meta)
+        {
+            if (_classifier == null)
+            {
+                meta.Model = "intent.model";
+
+                string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
+
+                var options = new ClassifyOptions
+                {
+                    ModelFilePath = modelFileName
+                };
+
+                _classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
+
+                string classifierName = Configuration.GetValue<String>($"classifer");
+
+                _classifier.GetClassifer(classifierName);
+            }
         }
     }
 }

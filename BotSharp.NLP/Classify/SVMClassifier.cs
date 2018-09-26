@@ -22,6 +22,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using BotSharp.Algorithm.Features;
+using BotSharp.NLP.Featuring;
+using BotSharp.NLP.Txt2Vec;
 using SVM.BotSharp.MachineLearning;
 using Txt2Vec;
 
@@ -32,6 +34,8 @@ namespace BotSharp.NLP.Classify
     /// </summary>
     public class SVMClassifier : IClassifier
     {
+        private List<string> words;
+
         public double[][] Predict(FeaturesWithLabel featureSet, ClassifyOptions options)
         {
             Problem predict = new Problem();
@@ -50,7 +54,26 @@ namespace BotSharp.NLP.Classify
 
         public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
-            // SVMClassifierTrain(featureSets, options);
+            var tfidf = new TfIdfFeatureExtractor();
+            tfidf.Dimension = options.Dimension;
+            tfidf.Sentences = sentences;
+            tfidf.CalBasedOnCategory();
+
+            var encoder = new OneHotEncoder();
+            encoder.Sentences = sentences;
+            encoder.Words = tfidf.Keywords();
+            words = encoder.EncodeAll();
+
+            var featureSets = new List<FeaturesWithLabel>();
+            sentences.ForEach(sent =>
+            {
+                var fl = new FeaturesWithLabel();
+                fl.Label = sent.Label;
+                fl.Features = sent.Words.Select(x => new Feature(words.IndexOf(x.Lemma).ToString(), words.Contains(x.Lemma) ? "1" : "0")).ToList();
+                featureSets.Add(fl);
+            });
+
+            SVMClassifierTrain(featureSets, options);
         }
 
         public List<Tuple<string, double>> Classify(Sentence sentence, ClassifyOptions options)
@@ -93,10 +116,11 @@ namespace BotSharp.NLP.Classify
 
         public List<double> GetLabels(List<FeaturesWithLabel> featureSets)
         {
+            var categories = featureSets.Select(x => x.Label).Distinct().OrderBy(x => x).ToList();
             List<double> labels = new List<double>();
             foreach (var labelFeatureSet in featureSets)
             {
-                labels.Add(double.Parse(labelFeatureSet.Label));
+                labels.Add(double.Parse(categories.IndexOf(labelFeatureSet.Label).ToString()));
             }
 
             return labels;
