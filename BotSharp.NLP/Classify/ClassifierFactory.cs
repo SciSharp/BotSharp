@@ -52,7 +52,9 @@ namespace BotSharp.NLP.Classify
         {
             var options = new ClassifyOptions
             {
-                ModelFilePath = _options.ModelFilePath
+                ModelFilePath = _options.ModelFilePath,
+                ModelDir = _options.ModelDir,
+                ModelName = _options.ModelName
             };
 
             _classifier.LoadModel(options);

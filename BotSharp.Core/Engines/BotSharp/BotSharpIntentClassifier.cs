@@ -67,11 +67,11 @@ namespace BotSharp.Core.Engines.BotSharp
             {
                 meta.Model = "intent.model";
 
-                string modelFileName = Path.Combine(Settings.ModelDir, meta.Model);
-
                 var options = new ClassifyOptions
                 {
-                    ModelFilePath = modelFileName
+                    ModelFilePath = Path.Combine(Settings.ModelDir, meta.Model),
+                    ModelDir = Settings.ModelDir,
+                    ModelName = meta.Model
                 };
 
                 _classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
