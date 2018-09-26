@@ -73,6 +73,12 @@ Feel free to message me on
 
 If you feel that this project is helpful to you, please Star on the project, we will be very grateful.
 
+Scan to join group in Wechat
+
+.. raw:: html
+
+    <img src="https://github.com/Oceania2018/BotSharp/blob/master/docs/static/logos/WechatQRCode.png" width="150px">
+
 .. _Docker: https://www.docker.com
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
 .. _Articulate UI: https://spg.ai/projects/articulate
