@@ -6,21 +6,14 @@
     "BotSharpProvider": {
     },
 
-    "Pipe": {
-      "train": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier",
-      "predict": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier"
-    },
+    "Pipe": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier",
 
     "BotSharpTokenizer": {
       "tokenizer": "TreebankTokenizer"
     },
 
     "BotSharpIntentClassifier": {
-      "classifer": "NaiveBayesClassifier"
-    },
-
-    "BotSharpSVMClassifier": {
-      "wordvec": ""
+      "classifer": "SVMClassifier"
     },
 
     "BotSharpTagger": {

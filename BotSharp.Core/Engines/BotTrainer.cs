@@ -89,7 +89,7 @@ namespace BotSharp.Core.Engines
             };
 
             // pipe process
-            var pipelines = provider.Configuration.GetValue<String>($"Pipe:train")
+            var pipelines = provider.Configuration.GetValue<String>($"pipe")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();

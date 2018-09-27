@@ -73,7 +73,7 @@ namespace BotSharp.Core.UnitTest.Performance
                 }, intent.Intent));
             });
 
-            //Samples.Shuffle();
+            Samples.Shuffle();
 
             var samples = String.Join("\r\n", Samples.Select(x => $"__label__{x.Item2} {x.Item1.Query[0]}").ToList());
 

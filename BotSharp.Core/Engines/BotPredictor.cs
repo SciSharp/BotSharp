@@ -57,7 +57,7 @@ namespace BotSharp.Core.Engines
 
 
             // pipe process
-            var pipelines = provider.Configuration.GetValue<String>($"Pipe:predict")
+            var pipelines = provider.Configuration.GetValue<String>($"Pipe")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
