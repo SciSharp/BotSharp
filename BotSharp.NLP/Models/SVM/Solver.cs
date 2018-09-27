@@ -1514,6 +1514,8 @@ namespace SVM.BotSharp.MachineLearning
             }
             for (i = 0; i < nr_fold; i++)
             {
+                Console.WriteLine($"Cross-validation decision values for probability estimates {i}");
+
                 int begin = i * prob.Count / nr_fold;
                 int end = (i + 1) * prob.Count / nr_fold;
                 int j, k;
@@ -1724,6 +1726,7 @@ namespace SVM.BotSharp.MachineLearning
                 model.SupportVectorIndices = new int[nSV];
                 int j = 0;
                 for (i = 0; i < prob.Count; i++)
+                {
                     if (Math.Abs(f.alpha[i]) > 0)
                     {
                         model.SupportVectors[j] = prob.X[i];
@@ -1731,6 +1734,8 @@ namespace SVM.BotSharp.MachineLearning
                         model.SupportVectorIndices[j] = i + 1;
                         ++j;
                     }
+                }
+
             }
             else
             {

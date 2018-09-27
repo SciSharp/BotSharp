@@ -22,18 +22,36 @@
             <param name="file"></param>
             <returns></returns>
         </member>
-        <member name="M:BotSharp.RestApi.AgentController.Train(System.String)">
-            <summary>
-            Train agent
-            </summary>
-            <param name="agentId"></param>
-            <returns></returns>
-        </member>
         <member name="M:BotSharp.RestApi.AgentController.Dump(System.String)">
             <summary>
             Dump agent
             </summary>
             <param name="agentId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:BotSharp.RestApi.Dialogflow.EntitiesController">
+            <summary>
+            The /entities endpoint is used to create, retrieve, update, and delete developer-defined entity objects.
+            </summary>
+        </member>
+        <member name="T:BotSharp.RestApi.Dialogflow.QueryController">
+            <summary>
+            Dialogflow mode query controller
+            </summary>
+        </member>
+        <member name="M:BotSharp.RestApi.Dialogflow.QueryController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
+            <summary>
+            Initialize dialog controller and get a platform instance
+            </summary>
+            <param name="platform"></param>
+        </member>
+        <member name="M:BotSharp.RestApi.Dialogflow.QueryController.Query(BotSharp.RestApi.Dialogflow.QueryModel)">
+            <summary>
+            The query endpoint is used to process natural language in the form of text. 
+            The query requests return structured data in JSON format with an action and parameters for that action.
+            Both GET and POST methods return the same JSON response.
+            </summary>
+            <param name="request"></param>
             <returns></returns>
         </member>
         <member name="P:BotSharp.RestApi.Dialogflow.QueryModel.Contexts">
@@ -68,41 +86,6 @@
             Time zone from IANA Time Zone Database Examples: America/New_York, Europe/Paris
             </summary>
         </member>
-        <member name="T:BotSharp.RestApi.Rasa.ParseController">
-            <summary>
-            send a text request
-            </summary>
-        </member>
-        <member name="M:BotSharp.RestApi.Rasa.ParseController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
-            <summary>
-            Initialize dialog controller and get a platform instance
-            </summary>
-            <param name="platform"></param>
-        </member>
-        <member name="M:BotSharp.RestApi.Rasa.ParseController.Parse(BotSharp.RestApi.Rasa.RasaRequestModel)">
-            <summary>
-            parse request
-            </summary>
-            <param name="request"></param>
-            <returns></returns>
-        </member>
-        <member name="T:BotSharp.RestApi.Rasa.StatusController">
-            <summary>
-            This returns all the currently available projects.
-            </summary>
-        </member>
-        <member name="M:BotSharp.RestApi.Rasa.StatusController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
-            <summary>
-            Initialize status controller and get a platform instance
-            </summary>
-            <param name="platform"></param>
-        </member>
-        <member name="M:BotSharp.RestApi.Rasa.StatusController.Get">
-            <summary>
-            Returns a list of available projects the server can use to fulfill /parse requests.
-            </summary>
-            <returns></returns>
-        </member>
         <member name="T:BotSharp.RestApi.Rasa.TrainController">
             <summary>
             You can post your training data to this endpoint to train a new model for a project.
@@ -114,14 +97,6 @@
             Initialize dialog controller and get a platform instance
             </summary>
             <param name="platform"></param>
-        </member>
-        <member name="M:BotSharp.RestApi.Rasa.TrainController.Train(System.String,System.String)">
-            <summary>
-            Using the HTTP server, you must specify the project you want to train a new model for to be able to use it during parse requests later on : /train?project=my_project.
-            </summary>
-            <param name="model">Model name</param>
-            <param name="project">Agent name or agent id</param>
-            <returns></returns>
         </member>
         <member name="P:BotSharp.RestApi.Integrations.FacebookMessenger.WebhookMessageRecipient.Id">
             <summary>

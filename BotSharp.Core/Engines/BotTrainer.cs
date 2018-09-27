@@ -89,7 +89,7 @@ namespace BotSharp.Core.Engines
             };
 
             // pipe process
-            var pipelines = provider.Configuration.GetValue<String>($"Pipe:train")
+            var pipelines = provider.Configuration.GetValue<String>($"pipe")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
@@ -97,7 +97,8 @@ namespace BotSharp.Core.Engines
             for (int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
                 var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpTrain;
-                pipe.Configuration = provider.Configuration;
+                // set configuration to current section
+                pipe.Configuration = provider.Configuration.GetSection(pipelines[pipeIdx]);
                 pipe.Settings = settings;
                 pipeModel = new PipeModel
                 {

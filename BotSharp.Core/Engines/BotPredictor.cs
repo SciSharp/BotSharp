@@ -52,13 +52,12 @@ namespace BotSharp.Core.Engines
             var settings = new PipeSettings
             {
                 ModelDir = dir,
-                ProjectDir = request.AgentDir,
-                AlgorithmDir = Path.Combine(AppDomain.CurrentDomain.GetData("ContentRootPath").ToString(), "Algorithms")
+                ProjectDir = request.AgentDir
             };
 
 
             // pipe process
-            var pipelines = provider.Configuration.GetValue<String>($"Pipe:predict")
+            var pipelines = provider.Configuration.GetValue<String>($"Pipe")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
@@ -66,7 +65,7 @@ namespace BotSharp.Core.Engines
             for(int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
                 var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpPredict;
-                pipe.Configuration = provider.Configuration;
+                pipe.Configuration = provider.Configuration.GetSection(pipelines[pipeIdx]);
                 pipe.Settings = settings;
                 await pipe.Predict(agent, data, meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]));
             }

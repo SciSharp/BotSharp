@@ -70,6 +70,7 @@ namespace BotSharp.RestApi
             }
 
             var filePath = Path.GetTempFileName();
+            Console.WriteLine($"Temp file saved to {filePath}");
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
@@ -77,29 +78,20 @@ namespace BotSharp.RestApi
             }
 
             string dest = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", uploadedFile.FileName.Split('.').First(), "model_" + DateTime.UtcNow.ToString("MMddyyyyHHmm"));
+
+            Console.WriteLine($"Extract zip file to {dest}");
             ZipFile.ExtractToDirectory(filePath, dest);
 
             System.IO.File.Delete(filePath);
 
+            Console.WriteLine($"LoadAgentFromFile {dest}");
             var agent = _platform.LoadAgentFromFile(dest);
+
+#if DIALOGFLOW
+            _platform.SaveAgentToDb();
+#endif
 
             return Ok(agent.Id);
-        }
-
-        /// <summary>
-        /// Train agent
-        /// </summary>
-        /// <param name="agentId"></param>
-        /// <returns></returns>
-        [HttpGet("{agentId}")]
-        public string Train([FromRoute] String agentId)
-        {
-            string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agentId);
-            string dest = Directory.GetDirectories(agentDir).Where(x => x.Contains("model_")).Last();
-            var agent = _platform.LoadAgentFromFile(dest);
-            _platform.Train(new BotTrainOptions { AgentDir = agentDir, Model = dest.Split(Path.DirectorySeparatorChar).Last() });
-
-            return "";
         }
 
         /// <summary>

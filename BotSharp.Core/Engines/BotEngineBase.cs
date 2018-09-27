@@ -92,22 +92,6 @@ namespace BotSharp.Core.Engines
             return agent;
         }
 
-        /// <summary>
-        /// Restore a agent instance from backup json files
-        /// </summary>
-        /// <param name="importer"></param>
-        /// <param name="dataDir"></param>
-        /// <returns></returns>
-        public bool RestoreAgent<TAgentImporter>(string dataDir) where TAgentImporter : IAgentImporter, new()
-        {
-            int row = dc.DbTran(() => {
-                LoadAgentFromFile(dataDir);
-                SaveAgent();
-            });
-
-            return row > 0;
-        }
-
         public Agent LoadAgentFromFile(string dataDir)
         {
             var meta = LoadMeta(dataDir);
@@ -159,19 +143,22 @@ namespace BotSharp.Core.Engines
             return JsonConvert.DeserializeObject<AgentImportHeader>(metaJson);
         }
 
-        public String SaveAgent()
+        public String SaveAgentToDb()
         {
-            var existedAgent = dc.Table<Agent>().FirstOrDefault(x => x.Id == agent.Id || x.Name == agent.Name);
-            if (existedAgent == null)
+            dc.DbTran(() =>
             {
-                dc.Table<Agent>().Add(agent);
-                return agent.Id;
-            }
-            else
-            {
-                agent.Id = existedAgent.Id;
-                return existedAgent.Id;
-            }
+                var existedAgent = dc.Table<Agent>().FirstOrDefault(x => x.Id == agent.Id || x.Name == agent.Name);
+                if (existedAgent == null)
+                {
+                    dc.Table<Agent>().Add(agent);
+                }
+                else
+                {
+                    agent.Id = existedAgent.Id;
+                }
+            });
+
+            return agent.Id;
         }
 
         public TrainingCorpus GetIntentExpressions(Agent agent)

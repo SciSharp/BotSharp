@@ -25,8 +25,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
-    <DocumentationFile>BotSharp.RestApi.xml</DocumentationFile>
+    <DocumentationFile>bin\RASA\netstandard2.0\BotSharp.RestApi.xml</DocumentationFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <OutputPath>bin\RASA</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|AnyCPU'">
@@ -60,7 +61,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
     <WarningLevel>1</WarningLevel>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile>BotSharp.RestApi.xml</DocumentationFile>
+    <DocumentationFile>bin\DIALOGFLOW\netstandard2.0\BotSharp.RestApi.xml</DocumentationFile>
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
@@ -70,11 +72,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="BotSharp.RestApi.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\BotSharp.Voice\BotSharp.Voice.csproj" />
   </ItemGroup>
 
 </Project>

@@ -76,6 +76,13 @@ namespace BotSharp.RestApi.Dialogflow
             // Load agent
             string model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last().Split(Path.DirectorySeparatorChar).Last();
             string dataDir = Path.Combine(projectPath, model);
+            
+            if(!System.IO.File.Exists(Path.Combine(dataDir, "model-meta.json")))
+            {
+                return BadRequest("The agent hasn't been trained. Please train the agent before querying.");
+            }
+
+            Console.WriteLine($"LoadAgentFromFile {dataDir}");
 
             _platform.LoadAgentFromFile(dataDir);
 

@@ -26,7 +26,9 @@ namespace BotSharp.NLP.UnitTest
                 FileName = "cooking.stackexchange.txt"
             });
 
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);     
+            var tokenizer = new TokenizerFactory(new TokenizationOptions { }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
+
             var newSentences = tokenizer.Tokenize(sentences.Select(x => x.Text).ToList());
             for(int i = 0; i < newSentences.Count; i++)
             {
@@ -42,7 +44,7 @@ namespace BotSharp.NLP.UnitTest
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "cooking.stackexchange"),
                 Dimension = 100
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
             
             var dataset = sentences.Split(0.7M);
             classifier.Train(dataset.Item1);
@@ -71,14 +73,15 @@ namespace BotSharp.NLP.UnitTest
             {
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Gender")
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, WordFeatureExtractor>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<WordFeatureExtractor>(options, SupportedLanguage.English);
 
             var corpus = GetLabeledCorpus(options);
 
-            var tokenizer = new TokenizerFactory<RegexTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
                 Pattern = RegexTokenizer.WORD_PUNC
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<RegexTokenizer>();
 
             corpus.ForEach(x => x.Words = tokenizer.Tokenize(x.Text));
 
@@ -139,7 +142,9 @@ namespace BotSharp.NLP.UnitTest
                 FileName = "spotify.txt"
             });
 
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
+            var tokenizer = new TokenizerFactory(new TokenizationOptions { }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
+
             var newSentences = tokenizer.Tokenize(sentences.Select(x => x.Text).ToList());
             for (int i = 0; i < newSentences.Count; i++)
             {
@@ -154,7 +159,7 @@ namespace BotSharp.NLP.UnitTest
                 ModelFilePath = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "spotify", "nb.model"),
                 TrainingCorpusDir = Path.Combine(Configuration.GetValue<String>("MachineLearning:dataDir"), "Text Classification", "spotify")
             };
-            var classifier = new ClassifierFactory<NaiveBayesClassifier, SentenceFeatureExtractor>(options, SupportedLanguage.English);
+            var classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
 
             var dataset = sentences.Split(0.7M);
             classifier.Train(dataset.Item1);

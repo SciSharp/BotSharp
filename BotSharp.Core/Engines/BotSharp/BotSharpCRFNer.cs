@@ -54,7 +54,7 @@ namespace BotSharp.Core.Engines.BotSharp
             }
 
             string contentDir = AppDomain.CurrentDomain.GetData("DataPath").ToString();
-            string template = Configuration.GetValue<String>($"BotSharpCRFNer:template");
+            string template = Configuration.GetValue<String>($"template");
             template = template.Replace("|App_Data|", contentDir + System.IO.Path.DirectorySeparatorChar);
 
             var encoder = new CRFEncoder();

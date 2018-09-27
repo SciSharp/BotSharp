@@ -24,7 +24,9 @@ namespace BotSharp.NLP.UnitTest.Vector
                 FileName = "cooking.stackexchange.txt"
             });
 
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions { }, SupportedLanguage.English);
+            var tokenizer = new TokenizerFactory(new TokenizationOptions { }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
+
             var newSentences = tokenizer.Tokenize(sentences.Select(x => x.Text).ToList());
             for (int i = 0; i < newSentences.Count; i++)
             {

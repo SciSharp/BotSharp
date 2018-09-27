@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RuntimeIdentifiers>Portable;win10-x64;centos.7-x64</RuntimeIdentifiers>
     <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA</Configurations>
+    <Configurations>Debug;Release;DIALOGFLOW;RASA</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -12,54 +12,34 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE;RASA;NETCOREAPP;NETCOREAPP2_1;RASA;NETCOREAPP;NETCOREAPP2_1;RASA;NETCOREAPP;NETCOREAPP2_1;RASA;NETCOREAPP;NETCOREAPP2_1</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;RASA</DefineConstants>
+    <OutputPath>bin\RASA</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
     <Optimize>false</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DefineConstants>TRACE;DEBUG;MODE_RASA</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|x64'">
-    <DefineConstants>TRACE;DEBUG;MODE_RASA</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA NLU|x64'">
-    <DefineConstants>TRACE;DEBUG;MODE_RASA</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;DIALOGFLOW;NETCOREAPP;NETCOREAPP2_1</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="App_Data\AgentArchive\**" />
     <Compile Remove="App_Data\Corpus\**" />
-    <Compile Remove="App_Data\DbInitializer\**" />
-    <Compile Remove="App_Data\ModelFiles\**" />
     <Compile Remove="App_Data\Projects\**" />
-    <Compile Remove="App_Data\TrainingFiles\**" />
     <Compile Remove="PublishOutput\**" />
     <Content Remove="App_Data\AgentArchive\**" />
     <Content Remove="App_Data\Corpus\**" />
     <Content Remove="App_Data\DbInitializer\**" />
-    <Content Remove="App_Data\ModelFiles\**" />
     <Content Remove="App_Data\Projects\**" />
     <Content Remove="App_Data\TrainingFiles\**" />
     <Content Remove="PublishOutput\**" />
     <EmbeddedResource Remove="App_Data\AgentArchive\**" />
     <EmbeddedResource Remove="App_Data\Corpus\**" />
-    <EmbeddedResource Remove="App_Data\DbInitializer\**" />
-    <EmbeddedResource Remove="App_Data\ModelFiles\**" />
     <EmbeddedResource Remove="App_Data\Projects\**" />
-    <EmbeddedResource Remove="App_Data\TrainingFiles\**" />
     <EmbeddedResource Remove="PublishOutput\**" />
     <None Remove="App_Data\AgentArchive\**" />
     <None Remove="App_Data\Corpus\**" />
     <None Remove="App_Data\DbInitializer\**" />
-    <None Remove="App_Data\ModelFiles\**" />
     <None Remove="App_Data\Projects\**" />
-    <None Remove="App_Data\TrainingFiles\**" />
     <None Remove="PublishOutput\**" />
   </ItemGroup>
 
@@ -68,7 +48,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="App_Data\Corpus\CoNLL\conll2000_chunking_train.txt" />
+    <Content Include="App_Data\Corpus\CoNLL\conll2000_chunking_train.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -88,6 +70,18 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App_Data\CRFLite\template.en">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="App_Data\Resources\dict.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="App_Data\userdict.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

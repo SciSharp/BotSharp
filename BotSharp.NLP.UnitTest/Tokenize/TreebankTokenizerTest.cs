@@ -12,9 +12,10 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void ReplaceStartingQuoting()
         {
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
 
             var tokens = tokenizer.Tokenize("«Hello!");
 
@@ -31,9 +32,10 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void ReplaceEndingQuoting()
         {
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
 
             var tokens = tokenizer.Tokenize("Aren't you");
 
@@ -50,9 +52,10 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void ReplacePunctuation()
         {
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
 
             var tokens = tokenizer.Tokenize("Hello World...");
 
@@ -69,9 +72,10 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void ReplaceBrackets()
         {
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
 
             var tokens = tokenizer.Tokenize("<Hello.>");
 
@@ -91,9 +95,10 @@ namespace BotSharp.NLP.UnitTest.Tokenize
         [TestMethod]
         public void ReplaceConventions()
         {
-            var tokenizer = new TokenizerFactory<TreebankTokenizer>(new TokenizationOptions
+            var tokenizer = new TokenizerFactory(new TokenizationOptions
             {
             }, SupportedLanguage.English);
+            tokenizer.GetTokenizer<TreebankTokenizer>();
 
             var tokens = tokenizer.Tokenize("I cannot jump.");
 

@@ -3,14 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
-   :height: 30px
-   
+The Open Source AI Bot Platform Builder
+======================================================
+
 .. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
     :target: `gitter`_
 
-The Open Source AI Bot Platform Builder
-======================================================
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to .NET developers using the BotSharp Bot Platform Builder to build a CaaP. It opens up as much learning power as possible for your robots and precisely control every step of the AI processing pipeline."*
 
@@ -21,6 +19,9 @@ It's witten  in C# running on .Net Core that is full cross-platform framework. C
 Why we do this? because we all know python is not friendly programming language for enterprise developers, it's not only because it's low performance but also it's a type weak language, it will be a disater if you use python to build your bussiness system.
 
 BotSharp is in accordance with components princple strictly, decouples every part that needed in the platform builder. So you can choose different UI/UX, or pick up a different NLP Tagger, or select a more advanced algrithm to do NER task. They are all modulized based an unfied interfaces.
+
+.. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
+   :height: 30px
 
 Some Features
 -------------

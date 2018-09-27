@@ -91,6 +91,12 @@ namespace BotSharp.WebHost
             {
                 var info = Configuration.GetSection("Swagger").Get<Info>();
 
+#if DIALOGFLOW
+                info.Title += " (DIALOGFLOW)";
+#elif RASA
+                info.Title += " (RASA)";
+#endif
+
                 c.SupportedSubmitMethods(SubmitMethod.Get, SubmitMethod.Post, SubmitMethod.Put, SubmitMethod.Patch, SubmitMethod.Delete);
                 c.ShowExtensions();
                 c.SwaggerEndpoint(Configuration.GetValue<String>("Swagger:Endpoint"), info.Title);

@@ -67,10 +67,18 @@ namespace SVM.BotSharp.MachineLearning
             {
                 for (int j = 0; j < prob.X[i].Length; j++)
                 {
-                    int index = prob.X[i][j].Index - 1;
-                    double value = prob.X[i][j].Value;
-                    minVals[index] = Math.Min(minVals[index], value);
-                    maxVals[index] = Math.Max(maxVals[index], value);
+                    try
+                    {
+                        int index = prob.X[i][j].Index;
+                        double value = prob.X[i][j].Value;
+                        minVals[index] = Math.Min(minVals[index], value);
+                        maxVals[index] = Math.Max(maxVals[index], value);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                    
                 }
             }
             for (int i = 0; i < prob.MaxIndex; i++)
@@ -145,7 +153,6 @@ namespace SVM.BotSharp.MachineLearning
         /// <returns>The scaled value</returns>
         public double Transform(double input, int index)
         {
-            index--;
             double tmp = input - _inputStart[index];
             if (_inputScale[index] == 0)
                 return 0;
