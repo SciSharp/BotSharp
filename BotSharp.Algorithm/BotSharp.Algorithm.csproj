@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Configurations>Debug;Release;RASA;DIALOGFLOW</Configurations>
+    <Configurations>Debug;Release;RASA;DIALOGFLOW;ARTICULATE</Configurations>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
@@ -22,6 +22,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;DIALOGFLOW;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
     <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ARTICULATE|AnyCPU'">
+    <DefineConstants>TRACE;ARTICULATE</DefineConstants>
   </PropertyGroup>
 
 </Project>

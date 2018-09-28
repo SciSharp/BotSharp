@@ -8,5 +8,6 @@ namespace BotSharp.RestApi
     [Route("v1/[controller]/[action]")]
     public class IntentController : ControllerBase
     {
+        
     }
 }

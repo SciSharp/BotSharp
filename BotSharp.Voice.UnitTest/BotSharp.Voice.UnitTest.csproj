@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <Configurations>Debug;Release;DIALOGFLOW;RASA</Configurations>
+    <Configurations>Debug;Release;DIALOGFLOW;RASA;ARTICULATE</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,0 +1,2693 @@
+{
+  "swagger": "2.0",
+  "host": "localhost:7500",
+  "basePath": "/",
+  "schemes": [ "http" ],
+  "info": {
+    "title": "Articulate API Documentation",
+    "version": "0.0.1",
+    "contact": { "name": "Smart Platform Group" }
+  },
+  "tags": [],
+  "paths": {
+    "/agent": {
+      "get": {
+        "summary": "Find all instances of the model from the data source",
+        "operationId": "getAgent",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "The index of the first element to return. 0 is the default start.",
+            "name": "start",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Number of elements to return from start. All the elements are returned by default",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new instance of the model and persist it into the data source",
+        "operationId": "postAgent",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 1" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/settings": {
+      "get": {
+        "summary": "Return all the setings of the system",
+        "operationId": "getSettings",
+        "tags": [ "settings" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Modifies the settings",
+        "operationId": "putSettings",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/settings" }
+          }
+        ],
+        "tags": [ "settings" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}": {
+      "get": {
+        "summary": "Find a model instance by id from the data source",
+        "operationId": "getAgentId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes for a model instance and persist it into the data source",
+        "operationId": "putAgentId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 29" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a model instance by id from the data source",
+        "operationId": "deleteAgentId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/context/{sessionId}": {
+      "get": {
+        "summary": "Find a model instance by id from the data source",
+        "operationId": "getContextSessionid",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Id of the session",
+            "name": "sessionId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "context" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new instance of the model and persist it into the data source",
+        "operationId": "postContextSessionid",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Id of the session",
+            "name": "sessionId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 21" }
+          }
+        ],
+        "tags": [ "context" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletes a session",
+        "operationId": "deleteContextSessionid",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Id of the session",
+            "name": "sessionId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "context" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/doc/{id}": {
+      "get": {
+        "summary": "Return all the setings of the system",
+        "operationId": "getDocId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the document",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "doc" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/domain/{id}": {
+      "get": {
+        "summary": "Find a model instance by id from the data source",
+        "operationId": "getDomainId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "domain" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes for a model instance and persist it into the data source",
+        "operationId": "putDomainId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 30" }
+          }
+        ],
+        "tags": [ "domain" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a model instance by id from the data source",
+        "operationId": "deleteDomainId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "domain" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/entity/{id}": {
+      "get": {
+        "summary": "Find a model instance by id from the data source",
+        "operationId": "getEntityId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the entity",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "entity" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes for a model instance and persist it into the data source",
+        "operationId": "putEntityId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the entity",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 32" }
+          }
+        ],
+        "tags": [ "entity" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a model instance by id from the data source",
+        "operationId": "deleteEntityId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the entity",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "entity" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/intent/{id}": {
+      "get": {
+        "summary": "Find a model instance by id from the data source",
+        "operationId": "getIntentId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes for a model instance and persist it into the data source",
+        "operationId": "putIntentId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 37" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a model instance by id from the data source",
+        "operationId": "deleteIntentId",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/settings/{name}": {
+      "get": {
+        "summary": "Return the settings value for the specified name",
+        "operationId": "getSettingsName",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the setting",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "settings" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/name/{agentName}": {
+      "get": {
+        "summary": "Find a model instance by name from the data source",
+        "operationId": "getAgentNameAgentname",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The name of the agent",
+            "x-convert": { "trim": true },
+            "name": "agentName",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/export": {
+      "get": {
+        "summary": "Export agent data",
+        "operationId": "getAgentIdExport",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "description": "Flag to indicate if method should exports ids and ancestors of an element",
+            "default": false,
+            "name": "withReferences",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/postFormat": {
+      "get": {
+        "summary": "Find a post format by agent id from the data source",
+        "operationId": "getAgentIdPostformat",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new instance of a post format for the agent and persist it into the data source",
+        "operationId": "postAgentIdPostformat",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 22" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes of the post format of the agent and persist it into the data source",
+        "operationId": "putAgentIdPostformat",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/postFormat" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a post format by agent id from the data source",
+        "operationId": "deleteAgentIdPostformat",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/domain": {
+      "get": {
+        "summary": "Find list of domains linked with a model instance specified by id",
+        "operationId": "getAgentIdDomain",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "The index of the first element to return. 0 is the default start.",
+            "name": "start",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Number of elements to return from start. All the elements are returned by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "String that will filter values to return only those domains with part of this filter in their names",
+            "name": "filter",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/train": {
+      "get": {
+        "summary": "Train the specified agent",
+        "operationId": "getAgentIdTrain",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/parse": {
+      "get": {
+        "summary": "Parse a text for each domain in the agent",
+        "operationId": "getAgentIdParse",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Text to parse",
+            "name": "text",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Timezone for duckling parse. Default UTC",
+            "name": "timezone",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Parse a text for each domain in the agent",
+        "operationId": "postAgentIdParse",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 25" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/settings": {
+      "get": {
+        "summary": "Return all the setings of the agent",
+        "operationId": "getAgentIdSettings",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Modifies the agent settings",
+        "operationId": "putAgentIdSettings",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/settings" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/intent": {
+      "get": {
+        "summary": "Find list of intents linked with a model instance specified by id",
+        "operationId": "getAgentIdIntent",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "The index of the first element to return. 0 is the default start.",
+            "name": "start",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Number of elements to return from start. All the elements are returned by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "String that will filter values to return only those intents with part of this filter in their names",
+            "name": "filter",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/webhook": {
+      "get": {
+        "summary": "Find a webhook by agent id from the data source",
+        "operationId": "getAgentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new instance of a webhook for the agent and persist it into the data source",
+        "operationId": "postAgentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 23" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes of the webhook of the agent and persist it into the data source",
+        "operationId": "putAgentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 38" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a webhook instance by id from the data source",
+        "operationId": "deleteAgentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/converse": {
+      "get": {
+        "summary": "Converse with a trained agent",
+        "operationId": "getAgentIdConverse",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Id of the session",
+            "name": "sessionId",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Text to parse",
+            "name": "text",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Timezone for duckling parse. Default UTC",
+            "name": "timezone",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Converse with a trained agent",
+        "operationId": "postAgentIdConverse",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 24" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/entity": {
+      "get": {
+        "summary": "Find list of entities linked with a model instance specified by id",
+        "operationId": "getAgentIdEntity",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "The index of the first element to return. 0 is the default start.",
+            "name": "start",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Number of elements to return from start. All the elements are returned by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "String that will filter values to return only those entities with part of this filter in their names",
+            "name": "filter",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/domain/{id}/intent": {
+      "get": {
+        "summary": "Find list of intents linked with a domain",
+        "operationId": "getDomainIdIntent",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "The index of the first element to return. 0 is the default start.",
+            "name": "start",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Number of elements to return from start. All the elements are returned by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "String that will filter values to return only those intents with part of this filter in their names",
+            "name": "filter",
+            "in": "query"
+          }
+        ],
+        "tags": [ "domain" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/domain/{id}/train": {
+      "get": {
+        "summary": "Train the specified domain",
+        "operationId": "getDomainIdTrain",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "domain" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/domain/{id}/entity": {
+      "get": {
+        "summary": "Find list of entities linked with a domain",
+        "operationId": "getDomainIdEntity",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "domain" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/entity/{id}/intent": {
+      "get": {
+        "summary": "Find a model instance by id from the data source",
+        "operationId": "getEntityIdIntent",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the entity",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "entity" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/intent/{id}/postFormat": {
+      "get": {
+        "summary": "Find a post format by intent id from the data source",
+        "operationId": "getIntentIdPostformat",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Id of the intent",
+            "x-convert": { "trim": true },
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new instance of a post format for the intent and persist it into the data source",
+        "operationId": "postIntentIdPostformat",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Id of the intent",
+            "x-convert": { "trim": true },
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 28" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes of the post format of the intent and persist it into the data source",
+        "operationId": "putIntentIdPostformat",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Id of the intent",
+            "x-convert": { "trim": true },
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 42" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a webhook instance by id from the data source",
+        "operationId": "deleteIntentIdPostformat",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/intent/{id}/scenario": {
+      "get": {
+        "summary": "Find a scenario by intent id from the data source",
+        "operationId": "getIntentIdScenario",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new instance of a scenario for the intent and persist it into the data source",
+        "operationId": "postIntentIdScenario",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 26" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes of the scenario of the intent and persist it into the data source",
+        "operationId": "putIntentIdScenario",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 40" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a scenario instance by id from the data source",
+        "operationId": "deleteIntentIdScenario",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/intent/{id}/webhook": {
+      "get": {
+        "summary": "Find a webhook by intent id from the data source",
+        "operationId": "getIntentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new instance of a webhook for the intent and persist it into the data source",
+        "operationId": "postIntentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 27" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update attributes of the webhook of the intent and persist it into the data source",
+        "operationId": "putIntentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 41" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a webhook instance by id from the data source",
+        "operationId": "deleteIntentIdWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/domain/{domainId}": {
+      "get": {
+        "summary": "Find a domain by id that belongs to the specified model instance",
+        "operationId": "getAgentIdDomainDomainid",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "domainId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/settings/{name}": {
+      "get": {
+        "summary": "Return the settings value for the specified name for the agent",
+        "operationId": "getAgentIdSettingsName",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The name of the setting",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/entity/{entityId}": {
+      "get": {
+        "summary": "Find an entity by id that belongs to the specified model instance",
+        "operationId": "getAgentIdEntityEntityid",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the entity",
+            "name": "entityId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/domain/{domainId}/intent": {
+      "get": {
+        "summary": "Find list of intents for the given domain and agent",
+        "operationId": "getAgentIdDomainDomainidIntent",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "domainId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "The index of the first element to return. 0 is the default start.",
+            "name": "start",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Number of elements to return from start. All the elements are returned by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "String that will filter values to return only those intents with part of this filter in their names",
+            "name": "filter",
+            "in": "query"
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/domain/{domainId}/intent/{intentId}": {
+      "get": {
+        "summary": "Find an intent by id given a domain and an agent",
+        "operationId": "getAgentIdDomainDomainidIntentIntentid",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "domainId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "intentId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/domain/{domainId}/intent/{intentId}/scenario": {
+      "get": {
+        "summary": "Find the scenario related with an intent, for the given domain and agent",
+        "operationId": "getAgentIdDomainDomainidIntentIntentidScenario",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "domainId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "intentId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/domain/{domainId}/intent/{intentId}/webhook": {
+      "get": {
+        "summary": "Find the webhook related with an intent, for the given domain and agent",
+        "operationId": "getAgentIdDomainDomainidIntentIntentidWebhook",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "domainId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "intentId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/{id}/domain/{domainId}/intent/{intentId}/postFormat": {
+      "get": {
+        "summary": "Find the post format related with an intent, for the given domain and agent",
+        "operationId": "getAgentIdDomainDomainidIntentIntentidPostformat",
+        "parameters": [
+          {
+            "type": "number",
+            "description": "Id of the agent",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the domain",
+            "name": "domainId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Id of the intent",
+            "name": "intentId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/domain": {
+      "post": {
+        "summary": "Create a new instance of the model and persist it into the data source",
+        "operationId": "postDomain",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 2" }
+          }
+        ],
+        "tags": [ "domain" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/entity": {
+      "post": {
+        "summary": "Create a new instance of the model and persist it into the data source",
+        "operationId": "postEntity",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 4" }
+          }
+        ],
+        "tags": [ "entity" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/intent": {
+      "post": {
+        "summary": "Create a new instance of the model and persist it into the data source",
+        "operationId": "postIntent",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 8" }
+          }
+        ],
+        "tags": [ "intent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/agent/import": {
+      "post": {
+        "summary": "Create a new instance of the model and persist it into the data source based on a given dataset",
+        "operationId": "postAgentImport",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 20" }
+          }
+        ],
+        "tags": [ "agent" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    },
+    "/context/{sessionId}/{id}": {
+      "put": {
+        "summary": "Update attributes for a model instance and persist it into the data source",
+        "operationId": "putContextSessionidId",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Id of the session",
+            "name": "sessionId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Id of the context element",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": { "$ref": "#/definitions/Model 39" }
+          }
+        ],
+        "tags": [ "context" ],
+        "responses": {
+          "default": {
+            "schema": { "type": "string" },
+            "description": "Successful"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "fallbackResponses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "x-convert": { "trim": true }
+      }
+    },
+    "Model 1": {
+      "type": "object",
+      "properties": {
+        "agentName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "description": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "language": {
+          "type": "string",
+          "enum": [ "en", "es", "de", "fr", "pt" ],
+          "x-convert": { "trim": true }
+        },
+        "timezone": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "useWebhook": { "type": "boolean" },
+        "usePostFormat": { "type": "boolean" },
+        "domainClassifierThreshold": { "type": "number" },
+        "fallbackResponses": {
+          "$ref": "#/definitions/fallbackResponses",
+          "type": "array"
+        },
+        "extraTrainingData": { "type": "boolean" },
+        "enableModelsPerDomain": { "type": "boolean" }
+      },
+      "required": [ "agentName", "language", "timezone", "useWebhook", "usePostFormat", "domainClassifierThreshold", "fallbackResponses" ]
+    },
+    "Model 2": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "domainName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "enabled": { "type": "boolean" },
+        "intentThreshold": { "type": "number" },
+        "lastTraining": {
+          "type": "string",
+          "format": "date"
+        },
+        "model": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "extraTrainingData": { "type": "boolean" }
+      },
+      "required": [ "agent", "domainName", "enabled", "intentThreshold" ]
+    },
+    "synonyms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "x-convert": { "trim": true }
+      }
+    },
+    "Model 3": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "synonyms": {
+          "$ref": "#/definitions/synonyms",
+          "type": "array"
+        }
+      },
+      "required": [ "value", "synonyms" ]
+    },
+    "examples": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Model 3" }
+    },
+    "Model 4": {
+      "type": "object",
+      "properties": {
+        "entityName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "uiColor": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "regex": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "type": {
+          "type": "string",
+          "default": "learned",
+          "enum": [ "learned", "regex" ],
+          "x-convert": { "trim": true }
+        },
+        "examples": {
+          "$ref": "#/definitions/examples",
+          "type": "array"
+        }
+      },
+      "required": [ "entityName", "agent", "examples" ]
+    },
+    "Model 5": {
+      "type": "object",
+      "properties": {
+        "entityId": { "type": "number" },
+        "start": { "type": "number" },
+        "end": { "type": "number" },
+        "value": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "entity": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "extractor": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "entityId", "start", "end", "value", "entity" ]
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 5" }
+    },
+    "Model 6": {
+      "type": "object",
+      "properties": {
+        "userSays": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "entities": {
+          "$ref": "#/definitions/entities",
+          "type": "array"
+        }
+      },
+      "required": [ "userSays", "entities" ]
+    },
+    "Model 7": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/definitions/Model 6" }
+    },
+    "Model 8": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "domain": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "intentName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "useWebhook": { "type": "boolean" },
+        "usePostFormat": { "type": "boolean" },
+        "examples": {
+          "$ref": "#/definitions/Model 7",
+          "type": "array"
+        }
+      },
+      "required": [ "agent", "domain", "intentName", "useWebhook", "usePostFormat", "examples" ]
+    },
+    "postFormat": {
+      "type": "object",
+      "properties": {
+        "postFormatPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "postFormatPayload" ]
+    },
+    "webhook": {
+      "type": "object",
+      "properties": {
+        "webhookUrl": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookVerb": {
+          "type": "string",
+          "enum": [ "GET", "PUT", "POST", "DELETE", "PATCH" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayloadType": {
+          "type": "string",
+          "enum": [ "None", "JSON", "XML" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "webhookUrl", "webhookVerb", "webhookPayloadType" ]
+    },
+    "settings": { "type": "object" },
+    "Model 9": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "synonyms": {
+          "$ref": "#/definitions/synonyms",
+          "type": "array"
+        }
+      },
+      "required": [ "value" ]
+    },
+    "Model 10": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 9" }
+    },
+    "Model 11": {
+      "type": "object",
+      "properties": {
+        "entityName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "uiColor": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "type": {
+          "type": "string",
+          "default": "learned",
+          "enum": [ "learned", "regex" ],
+          "x-convert": { "trim": true }
+        },
+        "regex": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "examples": {
+          "$ref": "#/definitions/Model 10",
+          "type": "array"
+        }
+      },
+      "required": [ "entityName", "examples" ]
+    },
+    "Model 12": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 11" }
+    },
+    "Model 13": {
+      "type": "object",
+      "properties": {
+        "start": { "type": "number" },
+        "end": { "type": "number" },
+        "value": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "entity": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "extractor": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "start", "end", "value", "entity" ]
+    },
+    "Model 14": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 13" }
+    },
+    "Model 15": {
+      "type": "object",
+      "properties": {
+        "userSays": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "entities": {
+          "$ref": "#/definitions/Model 14",
+          "type": "array"
+        }
+      },
+      "required": [ "userSays", "entities" ]
+    },
+    "Model 16": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/definitions/Model 15" }
+    },
+    "Model 17": {
+      "type": "object",
+      "properties": {
+        "slotName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "entity": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "isList": { "type": "boolean" },
+        "isRequired": { "type": "boolean" },
+        "textPrompts": {
+          "$ref": "#/definitions/synonyms",
+          "type": "array"
+        }
+      },
+      "required": [ "slotName", "entity", "isList", "isRequired" ]
+    },
+    "slots": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 17" }
+    },
+    "scenario": {
+      "type": "object",
+      "properties": {
+        "scenarioName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "slots": {
+          "$ref": "#/definitions/slots",
+          "type": "array"
+        },
+        "intentResponses": {
+          "$ref": "#/definitions/synonyms",
+          "type": "array"
+        }
+      },
+      "required": [ "scenarioName", "intentResponses" ]
+    },
+    "Model 18": {
+      "type": "object",
+      "properties": {
+        "intentName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "examples": {
+          "$ref": "#/definitions/Model 16",
+          "type": "array"
+        },
+        "scenario": { "$ref": "#/definitions/scenario" },
+        "useWebhook": { "type": "boolean" },
+        "webhook": { "$ref": "#/definitions/webhook" },
+        "usePostFormat": { "type": "boolean" },
+        "postFormat": { "$ref": "#/definitions/postFormat" }
+      },
+      "required": [ "intentName", "examples", "useWebhook", "usePostFormat" ]
+    },
+    "intents": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 18" }
+    },
+    "Model 19": {
+      "type": "object",
+      "properties": {
+        "domainName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "enabled": { "type": "boolean" },
+        "intentThreshold": { "type": "number" },
+        "lastTraining": {
+          "type": "string",
+          "format": "date"
+        },
+        "model": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "status": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "extraTrainingData": { "type": "boolean" },
+        "intents": {
+          "$ref": "#/definitions/intents",
+          "type": "array"
+        }
+      },
+      "required": [ "domainName", "enabled", "intentThreshold" ]
+    },
+    "domains": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 19" }
+    },
+    "Model 20": {
+      "type": "object",
+      "properties": {
+        "agentName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "description": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "language": {
+          "type": "string",
+          "enum": [ "en", "es", "de", "fr", "pt" ],
+          "x-convert": { "trim": true }
+        },
+        "timezone": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "domainClassifierThreshold": { "type": "number" },
+        "fallbackResponses": {
+          "$ref": "#/definitions/synonyms",
+          "type": "array"
+        },
+        "useWebhook": { "type": "boolean" },
+        "usePostFormat": { "type": "boolean" },
+        "postFormat": { "$ref": "#/definitions/postFormat" },
+        "status": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "lastTraining": {
+          "type": "string",
+          "format": "date"
+        },
+        "extraTrainingData": { "type": "boolean" },
+        "enableModelsPerDomain": { "type": "boolean" },
+        "model": { "type": "string" },
+        "webhook": { "$ref": "#/definitions/webhook" },
+        "settings": { "$ref": "#/definitions/settings" },
+        "entities": {
+          "$ref": "#/definitions/Model 12",
+          "type": "array"
+        },
+        "domains": {
+          "$ref": "#/definitions/domains",
+          "type": "array"
+        }
+      },
+      "required": [ "agentName", "language", "timezone", "domainClassifierThreshold", "fallbackResponses", "useWebhook", "usePostFormat" ]
+    },
+    "Model 21": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "scenario": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "slots": { "$ref": "#/definitions/settings" }
+      },
+      "required": [ "name", "scenario" ]
+    },
+    "Model 22": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "postFormatPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "id": { "type": "string" }
+      },
+      "required": [ "agent", "postFormatPayload" ]
+    },
+    "Model 23": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookUrl": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookVerb": {
+          "type": "string",
+          "enum": [ "GET", "PUT", "POST", "DELETE", "PATCH" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayloadType": {
+          "type": "string",
+          "enum": [ "None", "JSON", "XML" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "agent", "webhookUrl", "webhookVerb", "webhookPayloadType" ]
+    },
+    "Model 24": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "description": "Id of the session"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text to parse"
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Timezone for duckling parse. Default UTC"
+        }
+      },
+      "required": [ "sessionId", "text" ]
+    },
+    "Model 25": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Text to parse"
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Timezone for duckling parse. Default UTC"
+        }
+      },
+      "required": [ "text" ]
+    },
+    "Model 26": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "domain": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "intent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "scenarioName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "slots": {
+          "$ref": "#/definitions/slots",
+          "type": "array"
+        },
+        "intentResponses": {
+          "$ref": "#/definitions/synonyms",
+          "type": "array"
+        }
+      },
+      "required": [ "agent", "domain", "intent", "scenarioName" ]
+    },
+    "Model 27": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "domain": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "intent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookUrl": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookVerb": {
+          "type": "string",
+          "enum": [ "GET", "PUT", "POST", "DELETE", "PATCH" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayloadType": {
+          "type": "string",
+          "enum": [ "None", "JSON", "XML", "URL Encoded" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookUsername": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookPassword": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "agent", "domain", "intent", "webhookUrl", "webhookVerb", "webhookPayloadType" ]
+    },
+    "Model 28": {
+      "type": "object",
+      "properties": {
+        "agent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "domain": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "intent": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "postFormatPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "agent", "domain", "intent", "postFormatPayload" ]
+    },
+    "Model 29": {
+      "type": "object",
+      "properties": {
+        "agentName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "description": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "language": {
+          "type": "string",
+          "enum": [ "en", "es", "de", "fr", "pt" ],
+          "x-convert": { "trim": true }
+        },
+        "timezone": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "useWebhook": { "type": "boolean" },
+        "usePostFormat": { "type": "boolean" },
+        "domainClassifierThreshold": { "type": "number" },
+        "fallbackResponses": {
+          "$ref": "#/definitions/fallbackResponses",
+          "type": "array"
+        },
+        "status": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "lastTraining": {
+          "type": "string",
+          "format": "date"
+        },
+        "extraTrainingData": { "type": "boolean" },
+        "enableModelsPerDomain": { "type": "boolean" },
+        "model": { "type": "string" }
+      }
+    },
+    "Model 30": {
+      "type": "object",
+      "properties": {
+        "domainName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "enabled": { "type": "boolean" },
+        "intentThreshold": { "type": "number" },
+        "lastTraining": {
+          "type": "string",
+          "format": "date"
+        },
+        "status": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "model": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "extraTrainingData": { "type": "boolean" }
+      }
+    },
+    "Model 31": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 3" }
+    },
+    "Model 32": {
+      "type": "object",
+      "properties": {
+        "entityName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "uiColor": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "regex": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "type": {
+          "type": "string",
+          "default": "learned",
+          "enum": [ "learned", "regex" ],
+          "x-convert": { "trim": true }
+        },
+        "examples": {
+          "$ref": "#/definitions/Model 31",
+          "type": "array"
+        }
+      }
+    },
+    "Model 33": {
+      "type": "object",
+      "properties": {
+        "entityId": { "type": "number" },
+        "start": { "type": "number" },
+        "end": { "type": "number" },
+        "value": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "entity": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "extractor": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      },
+      "required": [ "start", "end", "value", "entity" ]
+    },
+    "Model 34": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Model 33" }
+    },
+    "Model 35": {
+      "type": "object",
+      "properties": {
+        "userSays": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "entities": {
+          "$ref": "#/definitions/Model 34",
+          "type": "array"
+        }
+      },
+      "required": [ "userSays", "entities" ]
+    },
+    "Model 36": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/definitions/Model 35" }
+    },
+    "Model 37": {
+      "type": "object",
+      "properties": {
+        "intentName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "useWebhook": { "type": "boolean" },
+        "usePostFormat": { "type": "boolean" },
+        "examples": {
+          "$ref": "#/definitions/Model 36",
+          "type": "array"
+        }
+      }
+    },
+    "Model 38": {
+      "type": "object",
+      "properties": {
+        "webhookUrl": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookVerb": {
+          "type": "string",
+          "enum": [ "GET", "PUT", "POST", "DELETE", "PATCH" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayloadType": {
+          "type": "string",
+          "enum": [ "None", "JSON", "XML" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      }
+    },
+    "Model 39": {
+      "type": "object",
+      "properties": { "slots": { "$ref": "#/definitions/settings" } }
+    },
+    "Model 40": {
+      "type": "object",
+      "properties": {
+        "scenarioName": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "slots": {
+          "$ref": "#/definitions/slots",
+          "type": "array"
+        },
+        "intentResponses": {
+          "$ref": "#/definitions/synonyms",
+          "type": "array"
+        }
+      }
+    },
+    "Model 41": {
+      "type": "object",
+      "properties": {
+        "webhookUrl": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookVerb": {
+          "type": "string",
+          "enum": [ "GET", "PUT", "POST", "DELETE", "PATCH" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayloadType": {
+          "type": "string",
+          "enum": [ "None", "JSON", "XML", "URL Encoded" ],
+          "x-convert": { "trim": true }
+        },
+        "webhookPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookUsername": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        },
+        "webhookPassword": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      }
+    },
+    "Model 42": {
+      "type": "object",
+      "properties": {
+        "postFormatPayload": {
+          "type": "string",
+          "x-convert": { "trim": true }
+        }
+      }
+    }
+  }
+}

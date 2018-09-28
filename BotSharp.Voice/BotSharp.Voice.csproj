@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Configurations>Debug;Release;RASA;DIALOGFLOW</Configurations>
+    <Configurations>Debug;Release;RASA;DIALOGFLOW;ARTICULATE</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -12,6 +12,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ARTICULATE|AnyCPU'">
+    <DefineConstants>TRACE;ARTICULATE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

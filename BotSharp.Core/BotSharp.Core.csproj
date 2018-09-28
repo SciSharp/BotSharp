@@ -6,7 +6,7 @@
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
     <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;DIALOGFLOW;RASA</Configurations>
+    <Configurations>Debug;Release;DIALOGFLOW;RASA;ARTICULATE</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -47,6 +47,11 @@ If you feel that this project is helpful to you, please Star on the project, we 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;DIALOGFLOW;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ARTICULATE|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;ARTICULATE</DefineConstants>
     <Optimize>false</Optimize>
   </PropertyGroup>
 

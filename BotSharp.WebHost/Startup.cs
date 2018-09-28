@@ -83,6 +83,8 @@ namespace BotSharp.WebHost
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
@@ -95,6 +97,8 @@ namespace BotSharp.WebHost
                 info.Title += " (DIALOGFLOW)";
 #elif RASA
                 info.Title += " (RASA)";
+#elif ARTICULATE
+                info.Title += " (ARTICULATE)";
 #endif
 
                 c.SupportedSubmitMethods(SubmitMethod.Get, SubmitMethod.Post, SubmitMethod.Put, SubmitMethod.Patch, SubmitMethod.Delete);
@@ -104,8 +108,6 @@ namespace BotSharp.WebHost
                 c.DocumentTitle = info.Title;
                 c.InjectStylesheet(Configuration.GetValue<String>("Swagger:Stylesheet"));
             });
-
-            app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
 
             app.Use(async (context, next) =>
             {

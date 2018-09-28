@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA</Configurations>
+    <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA;ARTICULATE</Configurations>
 
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
