@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Engines.Articulate
+namespace Platform.Articulate.Models
 {
     public class AgentModel
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         public string Status { get; set; }
 

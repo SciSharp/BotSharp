@@ -66,6 +66,8 @@ If you feel that this project is helpful to you, please Star on the project, we 
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.NLP\BotSharp.NLP.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Abstraction\BotSharp.Platform.Abstraction.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Models\BotSharp.Platform.Models.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,13 +1,14 @@
-﻿using BotSharp.Core.Engines.Articulate;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Platform.Articulate.Models;
+using Platform.Articulate.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace BotSharp.RestApi.Articulate
+namespace Platform.Articulate.Controllers
 {
 #if ARTICULATE
     [Route("[controller]")]

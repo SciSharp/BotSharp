@@ -1,9 +1,9 @@
-﻿using BotSharp.Core.Engines.Articulate;
+﻿using Platform.Articulate.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.RestApi.Articulate
+namespace Platform.Articulate.ViewModels
 {
     public class IntentPageViewModel
     {

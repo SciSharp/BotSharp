@@ -65,6 +65,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\BotSharp.RestApi\BotSharp.RestApi.csproj" />
+    <ProjectReference Include="..\Platform.Articulate\Platform.Articulate.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,13 +1,15 @@
-﻿using BotSharp.Core.Engines.Articulate;
+﻿using BotSharp.Core;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Platform.Articulate.Models;
+using Platform.Articulate.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace BotSharp.RestApi.Articulate
+namespace Platform.Articulate.Controllers
 {
 #if ARTICULATE
     [Route("[controller]")]
@@ -32,19 +34,28 @@ namespace BotSharp.RestApi.Articulate
         {
             var entities = new List<EntityModel>();
 
-            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
+            return new EntityPageViewModel { Entities = entities, Total = entities.Count };
+        }
 
-            var agentPaths = Directory.GetFiles(dataDir).Where(x => x.Contains($"agent-{agentId}-entity-")).ToList();
-            for (int i = 0; i < agentPaths.Count; i++)
+        [HttpPost]
+        public EntityModel PostEntity()
+        {
+            EntityModel entity = null;
+
+            using (var reader = new StreamReader(Request.Body))
             {
-                string json = System.IO.File.ReadAllText(agentPaths[i]);
-
-                var entity = JsonConvert.DeserializeObject<EntityModel>(json);
-
-                entities.Add(entity);
+                string body = reader.ReadToEnd();
+                entity = JsonConvert.DeserializeObject<EntityModel>(body);
             }
 
-            return new EntityPageViewModel { Entities = entities, Total = entities.Count };
+            var builder = new ArticulateAi<AgentStorageInMemory<DomainModel, EntityModel>, AgentModel, DomainModel, EntityModel>();
+            var agent = builder.GetAgentByName(entity.Agent);
+
+            agent.Entities.Add(entity);
+
+            builder.SaveAgent(agent);
+
+            return entity;
         }
     }
 #endif

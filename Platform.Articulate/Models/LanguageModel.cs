@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Engines.Articulate
+namespace Platform.Articulate.Models
 {
     public class LanguageModel
     {

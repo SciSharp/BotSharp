@@ -1,0 +1,40 @@
+{
+  "ArticulateAi": {
+    "Lang": "en",
+
+    "Provider": "BotSharpProvider",
+    "BotSharpProvider": {
+    },
+
+    "Pipe": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier",
+
+    "BotSharpTokenizer": {
+      "tokenizer": "TreebankTokenizer"
+    },
+
+    "BotSharpIntentClassifier": {
+      "classifer": "SVMClassifier"
+    },
+
+    "BotSharpTagger": {
+      "tagger": "NGramTagger"
+    },
+
+    "BotSharpCRFNer": {
+      "template": "|App_Data|CRFLite/template.en"
+    },
+
+    "CRFsuiteEntityRecognizer": {
+      "fields": "y w pos chk",
+      "uniFeatures": "w wl pos chk shape shaped type p1 p2 p3 p4 s1 s2 s3 s4 2d 4d d&a d&- d&/ d&, d&. up iu au al ad ao cu cl ca cd cs",
+      "biFeatures": "w pos chk shaped type"
+    },
+
+    "WitAiEntityRecognizer": {
+      "url": "https://api.wit.ai",
+      "resource": "message",
+      "serverAccessToken": "SERVER_ACCESS_TOKEN",
+      "version": "20180811"
+    }
+  }
+}

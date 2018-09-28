@@ -1,7 +1,9 @@
-﻿using BotSharp.Core.Engines.Articulate;
+﻿using BotSharp.Core;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Platform.Articulate.Models;
+using Platform.Articulate.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace BotSharp.RestApi.Articulate
+namespace Platform.Articulate.Controllers
 {
 #if ARTICULATE
     [Route("[controller]")]
@@ -29,8 +31,22 @@ namespace BotSharp.RestApi.Articulate
         }
 
         [HttpPost]
-        public void PostModel([FromBody] DomainModel domain)
+        public DomainModel PostDomain()
         {
+            DomainModel domain = null;
+
+            using (var reader = new StreamReader(Request.Body))
+            {
+                string body = reader.ReadToEnd();
+                domain = JsonConvert.DeserializeObject<DomainModel>(body);
+            }
+
+            var builder = new ArticulateAi<AgentStorageInMemory<DomainModel, EntityModel>, AgentModel, DomainModel, EntityModel>();
+            var agent = builder.GetAgentByName(domain.Agent);
+            agent.ExtraData = domain;
+            builder.SaveAgent(agent);
+
+            return domain;
         }
 
         [HttpGet("/agent/{agentId}/domain")]
