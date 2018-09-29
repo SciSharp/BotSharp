@@ -21,11 +21,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Algorithm.Features;
+using Bigtree.Algorithm.Features;
+using Bigtree.Algorithm.SVM;
 using BotSharp.NLP.Featuring;
 using BotSharp.NLP.Txt2Vec;
 using Newtonsoft.Json;
-using SVM.BotSharp.MachineLearning;
 using Txt2Vec;
 
 namespace BotSharp.NLP.Classify
@@ -39,7 +39,7 @@ namespace BotSharp.NLP.Classify
         private List<Tuple<string, int>> dictionary;
         private List<string> categories;
         private RangeTransform transform;
-        private SVM.BotSharp.MachineLearning.Model model;
+        private Bigtree.Algorithm.SVM.Model model;
 
         public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
@@ -187,7 +187,7 @@ namespace BotSharp.NLP.Classify
             File.WriteAllText(options.CategoriesFileName, JsonConvert.SerializeObject(categories));
 
             RangeTransform.Write(options.TransformFilePath, transform);
-            SVM.BotSharp.MachineLearning.Model.Write(options.ModelFilePath, model);
+            Bigtree.Algorithm.SVM.Model.Write(options.ModelFilePath, model);
 
             return options.ModelFilePath;
         }
@@ -206,7 +206,7 @@ namespace BotSharp.NLP.Classify
 
             categories = JsonConvert.DeserializeObject<List<String>>(File.ReadAllText(options.CategoriesFileName));
             
-            model = SVM.BotSharp.MachineLearning.Model.Read(options.ModelFilePath);
+            model = Bigtree.Algorithm.SVM.Model.Read(options.ModelFilePath);
 
             options.Transform = RangeTransform.Read(options.TransformFilePath);
 

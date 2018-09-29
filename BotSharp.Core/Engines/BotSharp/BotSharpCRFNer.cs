@@ -1,8 +1,8 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
-using BotSharp.Models.CRFLite;
-using BotSharp.Models.CRFLite.Decoder;
-using BotSharp.Models.CRFLite.Encoder;
+using Bigtree.Algorithm.CRFLite;
+using Bigtree.Algorithm.CRFLite.Decoder;
+using Bigtree.Algorithm.CRFLite.Encoder;
 using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
 using DotNetToolkit;

@@ -1,4 +1,5 @@
-﻿using BotSharp.Core.Agents;
+﻿using Bigtree.Algorithm.Extensions;
+using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
 using BotSharp.Core.Engines.BotSharp;
 using BotSharp.Core.Models;
@@ -8,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Algorithm.Extensions;
 
 namespace BotSharp.Core.UnitTest.Performance
 {

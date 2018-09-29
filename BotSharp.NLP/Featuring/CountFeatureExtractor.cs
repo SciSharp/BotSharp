@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using BotSharp.Algorithm.Matrix;
+using Bigtree.Algorithm.Matrix;
 using BotSharp.NLP.Tokenize;
 using System;
 using System.Collections.Generic;
