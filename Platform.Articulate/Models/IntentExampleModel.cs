@@ -14,6 +14,6 @@ namespace Platform.Articulate.Models
 
     public class ArticulateTrainingIntentExpressionPart : TrainingIntentExpressionPart
     {
-        public int EntityId { get; set; }
+        public string EntityId { get; set; }
     }
 }

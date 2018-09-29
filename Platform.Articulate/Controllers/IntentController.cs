@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BotSharp.Core;
+using BotSharp.Platform.Models;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Platform.Articulate.Models;
 using Platform.Articulate.ViewModels;
@@ -14,8 +16,15 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class IntentController : ControllerBase
     {
+        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
+
+        public IntentController()
+        {
+            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+        }
+
         [HttpGet("{intentId}")]
-        public IntentModel GetIntent([FromRoute] int intentId)
+        public IntentModel GetIntent([FromRoute] string intentId)
         {
             string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
 
@@ -28,8 +37,27 @@ namespace Platform.Articulate.Controllers
             return intent;
         }
 
+        [HttpPost]
+        public IntentModel PostIntent()
+        {
+            IntentModel intent = null;
+
+            using (var reader = new StreamReader(Request.Body))
+            {
+                string body = reader.ReadToEnd();
+                intent = JsonConvert.DeserializeObject<IntentModel>(body);
+            }
+
+            var agent = builder.GetAgentByName(intent.Agent);
+            intent.Id = Guid.NewGuid().ToString();
+            agent.Domains[0].Intents.Add(intent);
+            builder.SaveAgent(agent);
+
+            return intent;
+        }
+
         [HttpGet("{intentId}/scenario")]
-        public IntentScenarioModel GetIntentScenario([FromRoute] int intentId)
+        public IntentScenarioViewModel GetIntentScenario([FromRoute] string intentId)
         {
             string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
 
@@ -37,25 +65,25 @@ namespace Platform.Articulate.Controllers
 
             string json = System.IO.File.ReadAllText(dataPath);
 
-            var scenario = JsonConvert.DeserializeObject<IntentScenarioModel>(json);
+            var scenario = JsonConvert.DeserializeObject<IntentScenarioViewModel>(json);
 
             return scenario;
         }
 
         [HttpGet("{intentId}/webhook")]
-        public void GetIntentWebhook([FromRoute] int intentId)
+        public void GetIntentWebhook([FromRoute] string intentId)
         {
             
         }
 
         [HttpGet("{intentId}/postFormat")]
-        public void GetIntentPostFormat([FromRoute] int intentId)
+        public void GetIntentPostFormat([FromRoute] string intentId)
         {
             
         }
 
         [HttpGet("/agent/{agentId}/intent")]
-        public IntentPageViewModel GetAgentIntents([FromRoute] int agentId, [FromQuery] int start, [FromQuery] int limit)
+        public IntentPageViewModel GetAgentIntents([FromRoute] string agentId, [FromQuery] int start, [FromQuery] int limit)
         {
             var intents = new List<IntentModel>();
 
@@ -75,7 +103,7 @@ namespace Platform.Articulate.Controllers
         }
 
         [HttpGet("/entity/{entityId}/intent")]
-        public List<IntentModel> GetReferencedIntentsByEntity([FromRoute] int entityId, [FromQuery] int start, [FromQuery] int limit)
+        public List<IntentModel> GetReferencedIntentsByEntity([FromRoute] string entityId, [FromQuery] int start, [FromQuery] int limit)
         {
             var intents = new List<IntentModel>();
 
@@ -107,33 +135,12 @@ namespace Platform.Articulate.Controllers
         }
 
         [HttpGet("/domain/{domainId}/intent")]
-        public IntentPageViewModel GetReferencedIntentsByDomain([FromRoute] int domainId, [FromQuery] int start, [FromQuery] int limit)
+        public IntentPageViewModel GetReferencedIntentsByDomain([FromRoute] string domainId, [FromQuery] int start, [FromQuery] int limit)
         {
             var intents = new List<IntentModel>();
 
-            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
-
-            string domainPath = Directory.GetFiles(dataDir).FirstOrDefault(x => x.Contains($"-domain-{domainId}.json"));
-            var domain = JsonConvert.DeserializeObject<DomainModel>(System.IO.File.ReadAllText(domainPath));
-
-            string agentId = domainPath.Split(Path.DirectorySeparatorChar).Last().Split('-')[1];
-
-            string agentPath = Directory.GetFiles(dataDir).FirstOrDefault(x => x.Contains($"agent-{agentId}.json"));
-            var agent = JsonConvert.DeserializeObject<AgentModel>(System.IO.File.ReadAllText(agentPath));
-
-            var intentPaths = Directory.GetFiles(dataDir).Where(x => x.Contains($"agent-{agentId}-intent-")).ToList();
-
-            for (int i = 0; i < intentPaths.Count; i++)
-            {
-                string json = System.IO.File.ReadAllText(intentPaths[i]);
-
-                var intent = JsonConvert.DeserializeObject<IntentModel>(json);
-
-                if (intent.Domain == domain.DomainName)
-                {
-                    intents.Add(intent);
-                }
-            }
+            var results = builder.GetAllAgents();
+            //var agents = results.Select(x => builder.RecoverAgent(x) as AgentModel).Where(x => x.).ToList();
 
             return new IntentPageViewModel { Intents = intents, Total = intents.Count };
         }

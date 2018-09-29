@@ -21,6 +21,7 @@ namespace Platform.Articulate.Controllers
     public class AgentController : ControllerBase
     {
         private readonly IBotPlatform _platform;
+        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
 
         /// <summary>
         /// Initialize agent controller and get a platform instance
@@ -29,6 +30,7 @@ namespace Platform.Articulate.Controllers
         public AgentController(IBotPlatform platform)
         {
             _platform = platform;
+            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
         }
 
         [HttpPost]
@@ -43,11 +45,10 @@ namespace Platform.Articulate.Controllers
             }
 
             // convert to standard Agent structure
-            var builder = new ArticulateAi<AgentStorageInMemory<DomainModel, EntityModel>, AgentModel, DomainModel, EntityModel>();
-            var standardAgent = builder.StandardizeAgent(agent);
-            builder.SaveAgent(standardAgent);
-
-            agent.Id = standardAgent.Id;
+            var builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+            agent.Id = Guid.NewGuid().ToString();
+            agent.Name = agent.AgentName;
+            builder.SaveAgent(agent);
 
             return agent;
         }
@@ -55,24 +56,8 @@ namespace Platform.Articulate.Controllers
         [HttpGet]
         public List<AgentModel> GetAgent()
         {
-            /*var agents = new List<AgentModel>();
-
-            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
-
-            var agentPaths = Directory.GetFiles(dataDir).Where(x => Regex.IsMatch(x, @"agent-\d+.json")).ToList();
-            for (int i = 0; i< agentPaths.Count; i++)
-            {
-                string json = System.IO.File.ReadAllText(agentPaths[i]);
-
-                var agent = JsonConvert.DeserializeObject<AgentModel>(json);
-
-                agents.Add(agent);
-            }*/
-
-            var builder = new ArticulateAi<AgentStorageInMemory<DomainModel, EntityModel>, AgentModel, DomainModel, EntityModel>();
-
             var results = builder.GetAllAgents();
-            var agents = results.Select(x => builder.RecoverAgent(x)).ToList();
+            var agents = results.Select(x => x as AgentModel).ToList();
 
             return agents;
         }
@@ -80,9 +65,7 @@ namespace Platform.Articulate.Controllers
         [HttpGet("{agentId}")]
         public AgentModel GetAgentById([FromRoute] string agentId)
         {
-            var builder = new ArticulateAi<AgentStorageInMemory<DomainModel, EntityModel>, AgentModel, DomainModel, EntityModel>();
-            var standardAgent = builder.GetAgentById(agentId);
-            var agent = builder.RecoverAgent(standardAgent);
+            var agent = builder.GetAgentById(agentId);
 
             return agent;
         }
@@ -102,7 +85,7 @@ namespace Platform.Articulate.Controllers
 
                 var agentTmp = JsonConvert.DeserializeObject<AgentModel>(json);
 
-                if(agentTmp.AgentName == agentName)
+                if(agentTmp.Name == agentName)
                 {
                     agent = agentTmp;
                 }

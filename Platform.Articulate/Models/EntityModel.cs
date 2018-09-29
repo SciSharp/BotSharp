@@ -1,10 +1,12 @@
-﻿using System;
+﻿using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Models;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Platform.Articulate.Models
 {
-    public class EntityModel
+    public class EntityModel : EntityBase
     {
         public int Id { get; set; }
 

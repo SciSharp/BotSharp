@@ -4,10 +4,8 @@ using System.Text;
 
 namespace Platform.Articulate.Models
 {
-    public class IntentScenarioModel
+    public class IntentScenarioViewModel
     {
-        public int Id { get; set; }
-
         public string Domain { get; set; }
 
         public string Agent { get; set; }

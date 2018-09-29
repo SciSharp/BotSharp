@@ -10,8 +10,8 @@ namespace BotSharp.Platform.Abstraction
     /// Platform abstraction
     /// Implement this interface to build a Chatbot platform
     /// </summary>
-    public interface IPlatformBuilder<TStorage, TAgent, TExtraData, TEntity> 
-        where TStorage : IAgentStorage<TExtraData, TEntity>, new()
+    public interface IPlatformBuilder<TStorage, TAgent> 
+        where TStorage : IAgentStorage<TAgent>, new()
     {
         /// <summary>
         /// Parse options for the incoming text or voice request from the sender.
@@ -23,14 +23,14 @@ namespace BotSharp.Platform.Abstraction
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        StandardAgent<TExtraData, TEntity> StandardizeAgent(TAgent agent);
+        StandardAgent StandardizeAgent(TAgent agent);
 
         /// <summary>
         /// Recover standard agent to specific agent format
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        TAgent RecoverAgent(StandardAgent<TExtraData, TEntity> agent);
+        TAgent RecoverAgent(StandardAgent agent);
 
         /// <summary>
         /// 
@@ -38,8 +38,6 @@ namespace BotSharp.Platform.Abstraction
         /// <typeparam name="TStorage"></typeparam>
         /// <param name="agent"></param>
         /// <returns></returns>
-        bool SaveAgent(StandardAgent<TExtraData, TEntity> agent);
-
-        StandardAgent<TExtraData, TEntity> GetAgentById(string agentId);
+        bool SaveAgent(TAgent agent);
     }
 }

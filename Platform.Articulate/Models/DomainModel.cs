@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotSharp.Platform.Models;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,7 +7,7 @@ namespace Platform.Articulate.Models
 {
     public class DomainModel
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         public string Agent { get; set; }
 
@@ -19,5 +20,7 @@ namespace Platform.Articulate.Models
         public decimal IntentThreshold { get; set; }
 
         public string Status { get; set; }
+
+        public List<IntentBase> Intents { get; set; }
     }
 }

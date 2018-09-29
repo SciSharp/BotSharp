@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core;
+using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Platform.Articulate.Models;
@@ -15,8 +16,15 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class EntityController : ControllerBase
     {
+        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
+
+        public EntityController()
+        {
+            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+        }
+
         [HttpGet("{entityId}")]
-        public EntityModel GetEntity([FromRoute] int entityId)
+        public EntityModel GetEntity([FromRoute] string entityId)
         {
             string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
 
@@ -30,7 +38,7 @@ namespace Platform.Articulate.Controllers
         }
 
         [HttpGet("/agent/{agentId}/entity")]
-        public EntityPageViewModel GetAgentEntities([FromRoute] int agentId, [FromQuery] int start, [FromQuery] int limit)
+        public EntityPageViewModel GetAgentEntities([FromRoute] string agentId, [FromQuery] int start, [FromQuery] int limit)
         {
             var entities = new List<EntityModel>();
 
@@ -48,7 +56,6 @@ namespace Platform.Articulate.Controllers
                 entity = JsonConvert.DeserializeObject<EntityModel>(body);
             }
 
-            var builder = new ArticulateAi<AgentStorageInMemory<DomainModel, EntityModel>, AgentModel, DomainModel, EntityModel>();
             var agent = builder.GetAgentByName(entity.Agent);
 
             agent.Entities.Add(entity);

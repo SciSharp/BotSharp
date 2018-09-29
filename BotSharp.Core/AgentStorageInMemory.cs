@@ -11,16 +11,16 @@ namespace BotSharp.Core
     /// Save agent instance into memory. 
     /// Caution: Data will be lost once application restarts.
     /// </summary>
-    public class AgentStorageInMemory<TExtraData, TEntity> : IAgentStorage<TExtraData, TEntity>
+    public class AgentStorageInMemory<TAgent> : IAgentStorage<TAgent> where TAgent : AgentBase
     {
-        private static Dictionary<string, StandardAgent<TExtraData, TEntity>> agents;
+        private static Dictionary<string, TAgent> agents;
 
         public AgentStorageInMemory()
         {
-            if (agents == null) agents = new Dictionary<string, StandardAgent<TExtraData, TEntity>>();
+            if (agents == null) agents = new Dictionary<string, TAgent>();
         }
 
-        public StandardAgent<TExtraData, TEntity> FetchById(string agentId)
+        public TAgent FetchById(string agentId)
         {
             if (agents.ContainsKey(agentId))
             {
@@ -32,14 +32,14 @@ namespace BotSharp.Core
             }
         }
 
-        public StandardAgent<TExtraData, TEntity> FetchByName(string agentName)
+        public TAgent FetchByName(string agentName)
         {
             var data = agents.FirstOrDefault(x => x.Value.Name == agentName);
 
             return data.Value;
         }
 
-        public bool Persist(StandardAgent<TExtraData, TEntity> agent)
+        public bool Persist(TAgent agent)
         {
             if (String.IsNullOrEmpty(agent.Id))
             {
@@ -54,7 +54,7 @@ namespace BotSharp.Core
             return true;
         }
 
-        public List<StandardAgent<TExtraData, TEntity>> Query()
+        public List<TAgent> Query()
         {
             return agents.Select(x => x.Value).ToList();
         }

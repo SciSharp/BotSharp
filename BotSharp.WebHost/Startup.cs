@@ -107,6 +107,8 @@ namespace BotSharp.WebHost
                 c.RoutePrefix = String.Empty;
                 c.DocumentTitle = info.Title;
                 c.InjectStylesheet(Configuration.GetValue<String>("Swagger:Stylesheet"));
+
+                Console.WriteLine($"Current Mode: {info.Title}");
             });
 
             app.Use(async (context, next) =>

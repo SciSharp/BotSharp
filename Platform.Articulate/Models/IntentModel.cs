@@ -1,14 +1,15 @@
-﻿using System;
+﻿using BotSharp.Platform.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Platform.Articulate.Models
 {
-    public class IntentModel
+    public class IntentModel : IntentBase
     {
-        public int Id { get; set; }
-
-        public string IntentName { get; set; }
+        [JsonProperty("IntentName")]
+        public new string Name { get; set; }
 
         public string Agent { get; set; }
 
@@ -19,5 +20,7 @@ namespace Platform.Articulate.Models
         public bool UseWebhook { get; set; }
 
         public List<IntentExampleModel> Examples { get; set; }
+
+        public IntentResponseBase Response { get; set; }
     }
 }
