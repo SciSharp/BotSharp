@@ -8,8 +8,6 @@ namespace Platform.Articulate.Models
 {
     public class EntityModel : EntityBase
     {
-        public int Id { get; set; }
-
         public string Regex { get; set; }
 
         public string Agent { get; set; }

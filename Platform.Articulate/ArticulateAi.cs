@@ -4,6 +4,7 @@ using BotSharp.Platform.Models;
 using Platform.Articulate.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Platform.Articulate
@@ -20,19 +21,40 @@ namespace Platform.Articulate
     {
         public DialogRequestOptions RequestOptions { get; set; }
 
-        public TAgent RecoverAgent(StandardAgent agent)
+        public Tuple<TAgent, DomainModel> GetAgentByDomainId(String domainId)
         {
-            if (agent == null) return default(TAgent);
+            var results = GetAllAgents();
 
-            var agent1 = new AgentModel
+            foreach (TAgent agent in results)
             {
-                Id = agent.Id,
-                Name = agent.Name,
-                Description = agent.Description,
-                Language = agent.Language
-            };
+                var domain = (agent as AgentModel).Domains.FirstOrDefault(x => x.Id == domainId);
 
-            return (TAgent)(agent1 as Object);
+                if (domain != null)
+                {
+                    return new Tuple<TAgent, DomainModel>(agent, domain);
+                }
+            }
+
+            return null;
+        }
+
+        public Tuple<TAgent, DomainModel, IntentModel> GetAgentByIntentId(String intentId)
+        {
+            var results = GetAllAgents();
+
+            foreach (TAgent agent in results)
+            {
+                foreach (DomainModel domain in (agent as AgentModel).Domains)
+                {
+                    var intent = domain.Intents.FirstOrDefault(x => x.Id == intentId);
+                    if (intent != null)
+                    {
+                        return new Tuple<TAgent, DomainModel, IntentModel>(agent, domain, intent);
+                    }
+                }
+            }
+
+            return null;
         }
 
         public StandardAgent StandardizeAgent(TAgent specificAgent)

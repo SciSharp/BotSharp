@@ -7,6 +7,11 @@ namespace Platform.Articulate.Models
 {
     public class DomainModel
     {
+        public DomainModel()
+        {
+            Intents = new List<IntentModel>();
+        }
+
         public string Id { get; set; }
 
         public string Agent { get; set; }
@@ -21,6 +26,6 @@ namespace Platform.Articulate.Models
 
         public string Status { get; set; }
 
-        public List<IntentBase> Intents { get; set; }
+        public List<IntentModel> Intents { get; set; }
     }
 }

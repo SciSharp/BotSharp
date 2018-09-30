@@ -8,8 +8,7 @@ namespace Platform.Articulate.Models
 {
     public class IntentModel : IntentBase
     {
-        [JsonProperty("IntentName")]
-        public new string Name { get; set; }
+        public string IntentName { get; set; }
 
         public string Agent { get; set; }
 
@@ -21,6 +20,6 @@ namespace Platform.Articulate.Models
 
         public List<IntentExampleModel> Examples { get; set; }
 
-        public IntentResponseBase Response { get; set; }
+        public ScenarioModel Scenario { get; set; }
     }
 }

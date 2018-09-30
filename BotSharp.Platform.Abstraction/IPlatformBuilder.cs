@@ -26,13 +26,6 @@ namespace BotSharp.Platform.Abstraction
         StandardAgent StandardizeAgent(TAgent agent);
 
         /// <summary>
-        /// Recover standard agent to specific agent format
-        /// </summary>
-        /// <param name="agent"></param>
-        /// <returns></returns>
-        TAgent RecoverAgent(StandardAgent agent);
-
-        /// <summary>
         /// 
         /// </summary>
         /// <typeparam name="TStorage"></typeparam>

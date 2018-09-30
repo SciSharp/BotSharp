@@ -26,15 +26,9 @@ namespace Platform.Articulate.Controllers
         [HttpGet("{intentId}")]
         public IntentModel GetIntent([FromRoute] string intentId)
         {
-            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
+            var agent = builder.GetAgentByIntentId(intentId);
 
-            string dataPath = Directory.GetFiles(dataDir).FirstOrDefault(x => x.EndsWith($"-intent-{intentId}.json"));
-
-            string json = System.IO.File.ReadAllText(dataPath);
-
-            var intent = JsonConvert.DeserializeObject<IntentModel>(json);
-
-            return intent;
+            return agent.Item3;
         }
 
         [HttpPost]
@@ -54,20 +48,6 @@ namespace Platform.Articulate.Controllers
             builder.SaveAgent(agent);
 
             return intent;
-        }
-
-        [HttpGet("{intentId}/scenario")]
-        public IntentScenarioViewModel GetIntentScenario([FromRoute] string intentId)
-        {
-            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
-
-            string dataPath = Directory.GetFiles(dataDir).FirstOrDefault(x => x.Contains($"-intent-{intentId}-scenario-"));
-
-            string json = System.IO.File.ReadAllText(dataPath);
-
-            var scenario = JsonConvert.DeserializeObject<IntentScenarioViewModel>(json);
-
-            return scenario;
         }
 
         [HttpGet("{intentId}/webhook")]
@@ -137,10 +117,8 @@ namespace Platform.Articulate.Controllers
         [HttpGet("/domain/{domainId}/intent")]
         public IntentPageViewModel GetReferencedIntentsByDomain([FromRoute] string domainId, [FromQuery] int start, [FromQuery] int limit)
         {
-            var intents = new List<IntentModel>();
-
-            var results = builder.GetAllAgents();
-            //var agents = results.Select(x => builder.RecoverAgent(x) as AgentModel).Where(x => x.).ToList();
+            var agent = builder.GetAgentByDomainId(domainId);
+            var intents = agent.Item2.Intents.Select(x => x as IntentModel).ToList();
 
             return new IntentPageViewModel { Intents = intents, Total = intents.Count };
         }

@@ -61,9 +61,8 @@ namespace Platform.Articulate.Controllers
         public DomainPageViewModel GetAgentDomains([FromRoute] string agentId, [FromQuery] int start, [FromQuery] int limit)
         {
             var agent = builder.GetAgentById(agentId);
-            
 
-            return new DomainPageViewModel { /*Domains = agent.d, Total = domains.Count*/ };
+            return new DomainPageViewModel { Domains = agent.Domains, Total = agent.Domains.Count };
         }
     }
 #endif
