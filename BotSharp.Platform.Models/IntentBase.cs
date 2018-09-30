@@ -12,12 +12,5 @@ namespace BotSharp.Platform.Models
         /// </summary>
         [StringLength(36)]
         public String Id { get; set; }
-
-        /// <summary>
-        /// Name of chatbot
-        /// </summary>
-        [Required]
-        [MaxLength(64)]
-        public String Name { get; set; }
     }
 }

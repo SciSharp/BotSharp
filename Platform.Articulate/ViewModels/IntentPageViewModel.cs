@@ -7,7 +7,7 @@ namespace Platform.Articulate.ViewModels
 {
     public class IntentPageViewModel
     {
-        public List<IntentModel> Intents { get; set; }
+        public List<IntentViewModel> Intents { get; set; }
 
         public int Total { get; set; }
     }

@@ -73,23 +73,7 @@ namespace Platform.Articulate.Controllers
         [HttpGet("name/{agentName}")]
         public AgentModel GetAgentByName([FromRoute] string agentName)
         {
-            AgentModel agent = null;
-
-            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
-
-            var agentPaths = Directory.GetFiles(dataDir).Where(x => Regex.IsMatch(x, @"agent-\d+\.json")).ToList();
-
-            for (int i = 0; i < agentPaths.Count; i++)
-            {
-                string json = System.IO.File.ReadAllText(agentPaths[i]);
-
-                var agentTmp = JsonConvert.DeserializeObject<AgentModel>(json);
-
-                if(agentTmp.Name == agentName)
-                {
-                    agent = agentTmp;
-                }
-            }
+            var agent = builder.GetAgentByName(agentName);
 
             return agent;
         }

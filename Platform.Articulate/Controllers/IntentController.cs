@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core;
 using BotSharp.Platform.Models;
+using DotNetToolkit;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Platform.Articulate.Models;
@@ -24,27 +25,27 @@ namespace Platform.Articulate.Controllers
         }
 
         [HttpGet("{intentId}")]
-        public IntentModel GetIntent([FromRoute] string intentId)
+        public IntentViewModel GetIntent([FromRoute] string intentId)
         {
             var agent = builder.GetAgentByIntentId(intentId);
 
-            return agent.Item3;
+            return agent.Item3.ToObject<IntentViewModel>();
         }
 
         [HttpPost]
-        public IntentModel PostIntent()
+        public IntentViewModel PostIntent()
         {
-            IntentModel intent = null;
+            IntentViewModel intent = null;
 
             using (var reader = new StreamReader(Request.Body))
             {
                 string body = reader.ReadToEnd();
-                intent = JsonConvert.DeserializeObject<IntentModel>(body);
+                intent = JsonConvert.DeserializeObject<IntentViewModel>(body);
             }
 
             var agent = builder.GetAgentByName(intent.Agent);
             intent.Id = Guid.NewGuid().ToString();
-            agent.Domains[0].Intents.Add(intent);
+            agent.Domains[0].Intents.Add(intent.ToObject<IntentModel>());
             builder.SaveAgent(agent);
 
             return intent;
@@ -65,7 +66,7 @@ namespace Platform.Articulate.Controllers
         [HttpGet("/agent/{agentId}/intent")]
         public IntentPageViewModel GetAgentIntents([FromRoute] string agentId, [FromQuery] int start, [FromQuery] int limit)
         {
-            var intents = new List<IntentModel>();
+            var intents = new List<IntentViewModel>();
 
             string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
 
@@ -74,7 +75,7 @@ namespace Platform.Articulate.Controllers
             {
                 string json = System.IO.File.ReadAllText(agentPaths[i]);
 
-                var intent = JsonConvert.DeserializeObject<IntentModel>(json);
+                var intent = JsonConvert.DeserializeObject<IntentViewModel>(json);
 
                 intents.Add(intent);
             }
@@ -118,7 +119,7 @@ namespace Platform.Articulate.Controllers
         public IntentPageViewModel GetReferencedIntentsByDomain([FromRoute] string domainId, [FromQuery] int start, [FromQuery] int limit)
         {
             var agent = builder.GetAgentByDomainId(domainId);
-            var intents = agent.Item2.Intents.Select(x => x as IntentModel).ToList();
+            var intents = agent.Item2.Intents.Select(x => x.ToObject<IntentViewModel>()).ToList();
 
             return new IntentPageViewModel { Intents = intents, Total = intents.Count };
         }

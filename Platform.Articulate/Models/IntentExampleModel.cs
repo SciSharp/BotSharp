@@ -7,7 +7,7 @@ namespace Platform.Articulate.Models
 {
     public class IntentExampleModel
     {
-        public string userSays { get; set; }
+        public string UserSays { get; set; }
 
         public List<ArticulateTrainingIntentExpressionPart> Entities { get; set; }
     }
