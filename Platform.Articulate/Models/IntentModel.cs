@@ -18,8 +18,14 @@ namespace Platform.Articulate.Models
 
         public bool UseWebhook { get; set; }
 
+        /// <summary>
+        /// User says
+        /// </summary>
         public List<IntentExampleModel> Examples { get; set; }
 
+        /// <summary>
+        /// Intent responses
+        /// </summary>
         public ScenarioModel Scenario { get; set; }
     }
 }

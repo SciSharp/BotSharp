@@ -15,11 +15,11 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class ScenarioController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
+        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
 
         public ScenarioController()
         {
-            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
         }
 
         [HttpGet("/intent/{intentId}/scenario")]
@@ -51,12 +51,9 @@ namespace Platform.Articulate.Controllers
 
             var agent = builder.GetAgentByName(scenario.Agent);
 
-            var model = scenario.ToObject<ScenarioModel>();
-
-            agent.Domains.First(x => x.DomainName == scenario.Domain)
-                .Intents
-                .First(x => x.IntentName == scenario.Intent)
-                .Scenario = model;
+            var domain = agent.Domains.FirstOrDefault(x => x.DomainName == scenario.Domain);
+            var intent = domain.Intents.FirstOrDefault(x => x.IntentName == scenario.Intent);
+            intent.Scenario = scenario.ToObject<ScenarioModel>();
 
             builder.SaveAgent(agent);
 

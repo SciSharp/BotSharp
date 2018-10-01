@@ -18,11 +18,11 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class DomainController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
+        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
 
         public DomainController()
         {
-            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
         }
 
         [HttpGet("{domainId}")]

@@ -57,6 +57,29 @@ namespace Platform.Articulate
             return null;
         }
 
+        public List<IntentModel> GetReferencedIntentsByEntity(string entityId)
+        {
+            var intents = new List<IntentModel>();
+            var allAgents = GetAllAgents();
+            foreach (TAgent agt in allAgents)
+            {
+                var agent = agt as AgentModel;
+
+                foreach (DomainModel domain in agent.Domains)
+                {
+                    foreach (IntentModel intent in domain.Intents)
+                    {
+                        if(intent.Examples.Exists(x => x.Entities.Exists(y => y.EntityId == entityId)))
+                        {
+                            intents.Add(intent);
+                        }
+                    }
+                }
+            }
+
+            return intents;
+        }
+
         public StandardAgent StandardizeAgent(TAgent specificAgent)
         {
             var agent1 = specificAgent as AgentModel;

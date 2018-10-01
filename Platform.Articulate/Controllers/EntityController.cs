@@ -16,11 +16,11 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class EntityController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
+        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
 
         public EntityController()
         {
-            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
         }
 
         [HttpGet("{entityId}")]

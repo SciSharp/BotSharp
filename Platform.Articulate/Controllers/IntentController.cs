@@ -17,11 +17,11 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class IntentController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
+        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
 
         public IntentController()
         {
-            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
         }
 
         [HttpGet("{intentId}")]
@@ -45,7 +45,8 @@ namespace Platform.Articulate.Controllers
 
             var agent = builder.GetAgentByName(intent.Agent);
             intent.Id = Guid.NewGuid().ToString();
-            agent.Domains[0].Intents.Add(intent.ToObject<IntentModel>());
+            var domain = agent.Domains.First(x => x.DomainName == intent.Domain);
+            domain.Intents.Add(intent.ToObject<IntentModel>());
             builder.SaveAgent(agent);
 
             return intent;
@@ -84,35 +85,9 @@ namespace Platform.Articulate.Controllers
         }
 
         [HttpGet("/entity/{entityId}/intent")]
-        public List<IntentModel> GetReferencedIntentsByEntity([FromRoute] string entityId, [FromQuery] int start, [FromQuery] int limit)
+        public List<IntentViewModel> GetReferencedIntentsByEntity([FromRoute] string entityId, [FromQuery] int start, [FromQuery] int limit)
         {
-            var intents = new List<IntentModel>();
-
-            string dataDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Articulate");
-
-            string entityPath = Directory.GetFiles(dataDir).FirstOrDefault(x => x.Contains($"-entity-{entityId}.json"));
-            var entity = JsonConvert.DeserializeObject<EntityModel>(System.IO.File.ReadAllText(entityPath));
-
-            string agentId = entityPath.Split(Path.DirectorySeparatorChar).Last().Split('-')[1];
-
-            string agentPath = Directory.GetFiles(dataDir).FirstOrDefault(x => x.Contains($"agent-{agentId}.json"));
-            var agent = JsonConvert.DeserializeObject<AgentModel>(System.IO.File.ReadAllText(agentPath));
-
-            var intentPaths = Directory.GetFiles(dataDir).Where(x => x.Contains($"agent-{agent.Id}-intent-")).ToList();
-
-            for (int i = 0; i < intentPaths.Count; i++)
-            {
-                string json = System.IO.File.ReadAllText(intentPaths[i]);
-
-                var intent = JsonConvert.DeserializeObject<IntentModel>(json);
-
-                if (intent.Examples.Exists(x => x.Entities.Exists(e => e.EntityId == entityId)))
-                {
-                    intents.Add(intent);
-                }
-            }
-
-            return intents;
+            return builder.GetReferencedIntentsByEntity(entityId).Select(x => x.ToObject<IntentViewModel>()).ToList();
         }
 
         [HttpGet("/domain/{domainId}/intent")]

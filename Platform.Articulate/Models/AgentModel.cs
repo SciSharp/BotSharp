@@ -11,7 +11,7 @@ namespace Platform.Articulate.Models
         public AgentModel()
         {
             Domains = new List<DomainModel>();
-            Entities = new List<EntityBase>();
+            Entities = new List<EntityModel>();
         }
 
         public string Status { get; set; }
@@ -34,6 +34,6 @@ namespace Platform.Articulate.Models
 
         public List<DomainModel> Domains { get; set; }
 
-        public List<EntityBase> Entities { get; set; }
+        public List<EntityModel> Entities { get; set; }
     }
 }

@@ -21,7 +21,7 @@ namespace Platform.Articulate.Controllers
     public class AgentController : ControllerBase
     {
         private readonly IBotPlatform _platform;
-        private ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel> builder;
+        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
 
         /// <summary>
         /// Initialize agent controller and get a platform instance
@@ -30,7 +30,7 @@ namespace Platform.Articulate.Controllers
         public AgentController(IBotPlatform platform)
         {
             _platform = platform;
-            builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
         }
 
         [HttpPost]
@@ -45,7 +45,7 @@ namespace Platform.Articulate.Controllers
             }
 
             // convert to standard Agent structure
-            var builder = new ArticulateAi<AgentStorageInMemory<AgentModel>, AgentModel>();
+            var builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
             agent.Id = Guid.NewGuid().ToString();
             agent.Name = agent.AgentName;
             builder.SaveAgent(agent);
