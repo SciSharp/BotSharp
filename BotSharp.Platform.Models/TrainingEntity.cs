@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Engines
+namespace BotSharp.Platform.Models
 {
     public class TrainingEntity
     {
-        public virtual String EntityType { get; set; }
-
-        public virtual String EntityValue { get; set; }
+        public virtual String Entity { get; set; }
 
         public List<String> Synonyms { get; set; }
     }

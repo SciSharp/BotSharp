@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Engines;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
+using BotSharp.Platform.Models;
 using EntityFrameworkCore.BootKit;
 using Newtonsoft.Json;
 using System;

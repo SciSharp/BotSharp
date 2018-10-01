@@ -57,7 +57,7 @@ namespace Platform.Articulate.Controllers
         public List<AgentModel> GetAgent()
         {
             var results = builder.GetAllAgents();
-            var agents = results.Select(x => x as AgentModel).ToList();
+            var agents = results.ToList();
 
             return agents;
         }

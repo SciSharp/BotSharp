@@ -37,5 +37,11 @@ namespace BotSharp.Platform.Abstraction
         /// </summary>
         /// <returns></returns>
         List<TAgent> Query();
+
+        /// <summary>
+        /// Delete agents
+        /// </summary>
+        /// <returns></returns>
+        int PurgeAllAgents();
     }
 }

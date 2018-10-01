@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Adapters.Rasa;
 using BotSharp.Core.Engines;
+using BotSharp.Platform.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

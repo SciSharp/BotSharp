@@ -19,11 +19,11 @@ namespace BotSharp.Platform.Abstraction
         // DialogRequestOptions RequestOptions { get; set; }
 
         /// <summary>
-        /// Convert platform specific agent to standard agent format
+        /// Convert platform specific data to standard training corpus format
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        StandardAgent StandardizeAgent(TAgent agent);
+        TrainingCorpus ExtractorCorpus(TAgent agent);
 
         /// <summary>
         /// 
@@ -32,5 +32,7 @@ namespace BotSharp.Platform.Abstraction
         /// <param name="agent"></param>
         /// <returns></returns>
         bool SaveAgent(TAgent agent);
+
+        bool Train(TrainingCorpus corpus);
     }
 }

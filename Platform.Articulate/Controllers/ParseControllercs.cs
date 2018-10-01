@@ -9,8 +9,8 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class ParseControllercs : ControllerBase
     {
-        [HttpGet("/agent/{agentId}/parse")]
-        public void ParseText([FromRoute] string agentId, [FromQuery] string text)
+        [HttpGet("/agent/{agentId}/converse")]
+        public void ParseText([FromRoute] string agentId, [FromQuery] string text, [FromQuery] string sessionId)
         {
             
         }

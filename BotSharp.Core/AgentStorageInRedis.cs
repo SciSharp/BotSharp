@@ -1,6 +1,7 @@
 ﻿using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using CSRedis;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,12 +14,19 @@ namespace BotSharp.Core
         where TAgent : AgentBase
     {
         private static CSRedisClient csredis;
+        private string prefix = String.Empty;
 
         public AgentStorageInRedis()
         {
             if (csredis == null)
             {
-                csredis = new CSRedisClient("127.0.0.1:6379,defaultDatabase=botsharp,poolsize=50,ssl=false,writeBuffer=10240,prefix=agent.");
+                IConfiguration config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
+                var db = config.GetSection("Database:Default").Value;
+                var dbConnStr = config.GetSection($"Database:ConnectionStrings:{db}").Value;
+
+                prefix = dbConnStr.Split(',').First(x => x.StartsWith("prefix=")).Split('=')[1];
+
+                csredis = new CSRedisClient(dbConnStr);
             }
         }
 
@@ -39,10 +47,10 @@ namespace BotSharp.Core
         {
             var agents = new List<TAgent>();
 
-            var keys = csredis.Keys("agent.*");
+            var keys = csredis.Keys($"{prefix }*");
             foreach (string key in keys)
             {
-                var data = csredis.Get(key.Split('.')[1]);
+                var data = csredis.Get(key.Substring(prefix.Length));
                 var agent = JsonConvert.DeserializeObject<TAgent>(data);
                 
                 if(agent.Name == agentName)
@@ -66,14 +74,23 @@ namespace BotSharp.Core
             return true;
         }
 
+        public int PurgeAllAgents()
+        {
+            var keys = csredis.Keys($"{prefix}*");
+
+            csredis.Remove(keys.Select(x => x.Substring(prefix.Length)).ToArray());
+
+            return keys.Count();
+        }
+
         public List<TAgent> Query()
         {
             var agents = new List<TAgent>();
 
-            var keys = csredis.Keys("agent.*");
+            var keys = csredis.Keys($"{prefix}*");
             foreach (string key in keys)
             {
-                var data = csredis.Get(key.Split('.')[1]);
+                var data = csredis.Get(key.Substring(prefix.Length));
                 var agent = JsonConvert.DeserializeObject<TAgent>(data);
                 agents.Add(agent);
             }

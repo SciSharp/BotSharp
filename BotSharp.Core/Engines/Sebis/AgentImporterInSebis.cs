@@ -9,6 +9,7 @@ using BotSharp.Core.Agents;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Models;
 using DotNetToolkit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

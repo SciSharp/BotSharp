@@ -129,7 +129,7 @@ namespace BotSharp.Core.Engines
                 });
                 usedEntities = usedEntities.Distinct().ToList();
 
-                var entity_synonyms = corpus.Entities.Where(x => usedEntities.Contains(x.EntityType)).ToList();
+                var entity_synonyms = corpus.Entities.Where(x => usedEntities.Contains(x.Entity)).ToList();
 
                 var data = new RasaTrainingData
                 {

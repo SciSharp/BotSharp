@@ -5,6 +5,7 @@ using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using BotSharp.Models.NLP;
+using BotSharp.Platform.Models;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;

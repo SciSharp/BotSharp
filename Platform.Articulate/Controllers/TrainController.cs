@@ -23,7 +23,9 @@ namespace Platform.Articulate.Controllers
         {
             var agent = builder.GetAgentById(agentId);
 
-            agent.Status = "ready";
+
+
+            agent.Status = "Ready";
 
             return agent;
         }

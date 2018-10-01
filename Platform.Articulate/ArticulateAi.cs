@@ -80,7 +80,7 @@ namespace Platform.Articulate
             return intents;
         }
 
-        public StandardAgent StandardizeAgent(TAgent specificAgent)
+        public TrainingCorpus ExtractorCorpus(TAgent specificAgent)
         {
             var agent1 = specificAgent as AgentModel;
 
@@ -91,7 +91,12 @@ namespace Platform.Articulate
                 Description = agent1.Description
             };
 
-            return standardAgent;
+            return new TrainingCorpus();
+        }
+
+        public bool Train(TrainingCorpus corpus)
+        {
+            throw new NotImplementedException();
         }
     }
 }

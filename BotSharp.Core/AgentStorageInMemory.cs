@@ -54,6 +54,15 @@ namespace BotSharp.Core
             return true;
         }
 
+        public int PurgeAllAgents()
+        {
+            int count = agents.Count;
+
+            agents.Clear();
+
+            return count;
+        }
+
         public List<TAgent> Query()
         {
             return agents.Select(x => x.Value).ToList();
