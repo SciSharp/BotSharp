@@ -2,6 +2,7 @@
 using BotSharp.Platform.Models;
 using DotNetToolkit;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Platform.Articulate.Models;
 using Platform.Articulate.ViewModels;
@@ -17,11 +18,13 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class IntentController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
+        private readonly IConfiguration configuration;
+        private ArticulateAi<AgentModel> builder;
 
-        public IntentController()
+        public IntentController(IConfiguration configuration)
         {
-            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentModel>();
+            builder.PlatformConfig = configuration.GetSection("ArticulateAi");
         }
 
         [HttpGet("{intentId}")]
@@ -48,6 +51,31 @@ namespace Platform.Articulate.Controllers
             var domain = agent.Domains.First(x => x.DomainName == intent.Domain);
             domain.Intents.Add(intent.ToObject<IntentModel>());
             builder.SaveAgent(agent);
+
+            return intent;
+        }
+
+        [HttpPut("{intentId}")]
+        public IntentViewModel PutIntent([FromRoute] string intentId)
+        {
+            IntentViewModel intent = null;
+
+            using (var reader = new StreamReader(Request.Body))
+            {
+                string body = reader.ReadToEnd();
+                intent = JsonConvert.DeserializeObject<IntentViewModel>(body);
+            }
+
+            var agent = builder.GetAgentByIntentId(intentId);
+
+            var updateAgent = agent.Item1;
+            var updateIntents = updateAgent.Domains.First(x => x.Id == agent.Item2.Id).Intents;
+            var updateIntent = updateIntents.First(x => x.Id == agent.Item3.Id);
+
+            updateIntent.IntentName = intent.IntentName;
+            updateIntent.Examples = intent.Examples;
+
+            builder.SaveAgent(updateAgent);
 
             return intent;
         }

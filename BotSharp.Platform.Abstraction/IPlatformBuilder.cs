@@ -10,9 +10,13 @@ namespace BotSharp.Platform.Abstraction
     /// Platform abstraction
     /// Implement this interface to build a Chatbot platform
     /// </summary>
-    public interface IPlatformBuilder<TStorage, TAgent> 
-        where TStorage : IAgentStorage<TAgent>, new()
+    public interface IPlatformBuilder<TAgent>
     {
+        /// <summary>
+        /// Agent storage
+        /// </summary>
+        IAgentStorage<TAgent> Storage { get; set; }
+
         /// <summary>
         /// Parse options for the incoming text or voice request from the sender.
         /// </summary>
@@ -33,6 +37,6 @@ namespace BotSharp.Platform.Abstraction
         /// <returns></returns>
         bool SaveAgent(TAgent agent);
 
-        bool Train(TrainingCorpus corpus);
+        Task<bool> Train(TAgent agent, TrainingCorpus corpus);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core;
 using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Platform.Articulate.Models;
@@ -18,11 +19,13 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class DomainController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
+        private readonly IConfiguration configuration;
+        private ArticulateAi<AgentModel> builder;
 
-        public DomainController()
+        public DomainController(IConfiguration configuration)
         {
-            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentModel>();
+            builder.PlatformConfig = configuration.GetSection("ArticulateAi");
         }
 
         [HttpGet("{domainId}")]

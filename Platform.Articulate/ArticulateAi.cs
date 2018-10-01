@@ -1,11 +1,16 @@
 ﻿using BotSharp.Core;
+using BotSharp.Core.Agents;
+using BotSharp.Core.Engines;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
+using DotNetToolkit;
 using Platform.Articulate.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Platform.Articulate
 {
@@ -14,10 +19,10 @@ namespace Platform.Articulate
     /// http://spg.ai/projects/articulate
     /// This implementation takes over APIs of Articulate's 7500 port.
     /// </summary>
-    public class ArticulateAi<TStorage, TAgent> : 
-        PlatformBuilderBase<TStorage, TAgent>, 
-        IPlatformBuilder<TStorage, TAgent> 
-        where TStorage : IAgentStorage<TAgent>, new()
+    public class ArticulateAi<TAgent> : 
+        PlatformBuilderBase<TAgent>, 
+        IPlatformBuilder<TAgent> 
+        where TAgent : AgentBase
     {
         public DialogRequestOptions RequestOptions { get; set; }
 
@@ -80,23 +85,67 @@ namespace Platform.Articulate
             return intents;
         }
 
-        public TrainingCorpus ExtractorCorpus(TAgent specificAgent)
+        public TrainingCorpus ExtractorCorpus(TAgent agent)
         {
-            var agent1 = specificAgent as AgentModel;
-
-            var standardAgent = new StandardAgent
+            var corpus = new TrainingCorpus();
+            var agt = agent as AgentModel;
+            corpus.Entities = agt.Entities.Select(x => new TrainingEntity
             {
-                Name = agent1.Name,
-                Language = agent1.Language,
-                Description = agent1.Description
-            };
+                Entity = x.EntityName,
+                Values = x.Examples.Select(y => new TrainingEntitySynonym
+                {
+                    Value = y.Value,
+                    Synonyms = y.Synonyms
+                }).ToList()
+            }).ToList();
 
-            return new TrainingCorpus();
+            corpus.UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>();
+
+            foreach(DomainModel domain in agt.Domains)
+            {
+                foreach(IntentModel intent in domain.Intents)
+                {
+                    foreach(IntentExampleModel example in intent.Examples)
+                    {
+                        var say = new TrainingIntentExpression<TrainingIntentExpressionPart>()
+                        {
+                            Intent = intent.IntentName,
+                            Text = example.UserSays,
+                            Entities = example.Entities.Select(x => new TrainingIntentExpressionPart
+                            {
+                                Entity = x.Entity,
+                                Start = x.Start,
+                                Value = x.Value
+                            }).ToList()
+                        };
+
+                        corpus.UserSays.Add(say);
+                    }
+                }
+            }
+
+            return corpus;
         }
 
-        public bool Train(TrainingCorpus corpus)
+        public async Task<bool> Train(TAgent agent, TrainingCorpus corpus)
         {
-            throw new NotImplementedException();
+            string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id);
+
+            // save corpus to agent dir
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id);
+            var model = "model_" + DateTime.UtcNow.ToString("yyyyMMdd");
+            var modelPath = Path.Combine(projectPath, model);
+
+            var trainer = new BotTrainer();
+            var parsedAgent = agent.ToObject<Agent>();
+
+            var info = await trainer.Train(parsedAgent, new BotTrainOptions
+            {
+                AgentDir = projectPath,
+                Model = model
+            });
+
+            return true;
         }
     }
 }

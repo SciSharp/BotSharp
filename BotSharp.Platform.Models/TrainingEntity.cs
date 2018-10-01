@@ -8,6 +8,6 @@ namespace BotSharp.Platform.Models
     {
         public virtual String Entity { get; set; }
 
-        public List<String> Synonyms { get; set; }
+        public List<TrainingEntitySynonym> Values { get; set; }
     }
 }

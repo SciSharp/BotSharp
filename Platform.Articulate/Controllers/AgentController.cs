@@ -4,6 +4,7 @@ using BotSharp.Core.Engines;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Platform.Articulate;
 using Platform.Articulate.Models;
@@ -20,17 +21,19 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class AgentController : ControllerBase
     {
+        private readonly IConfiguration configuration;
         private readonly IBotPlatform _platform;
-        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
+        private ArticulateAi<AgentModel> builder;
 
         /// <summary>
         /// Initialize agent controller and get a platform instance
         /// </summary>
         /// <param name="platform"></param>
-        public AgentController(IBotPlatform platform)
+        public AgentController(IBotPlatform platform, IConfiguration configuration)
         {
             _platform = platform;
-            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentModel>();
+            builder.PlatformConfig = configuration.GetSection("ArticulateAi");
         }
 
         [HttpPost]
@@ -45,7 +48,6 @@ namespace Platform.Articulate.Controllers
             }
 
             // convert to standard Agent structure
-            var builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
             agent.Id = Guid.NewGuid().ToString();
             agent.Name = agent.AgentName;
             builder.SaveAgent(agent);

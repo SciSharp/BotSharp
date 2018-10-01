@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;

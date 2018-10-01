@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core;
 using DotNetToolkit;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Platform.Articulate.Models;
 using System;
@@ -15,11 +16,13 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class ScenarioController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
+        private readonly IConfiguration configuration;
+        private ArticulateAi<AgentModel> builder;
 
-        public ScenarioController()
+        public ScenarioController(IConfiguration configuration)
         {
-            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentModel>();
+            builder.PlatformConfig = configuration.GetSection("ArticulateAi");
         }
 
         [HttpGet("/intent/{intentId}/scenario")]

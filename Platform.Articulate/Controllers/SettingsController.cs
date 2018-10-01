@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Platform.Articulate.Models;
 using System;
@@ -12,6 +13,8 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class SettingsController : ControllerBase
     {
+        private readonly IConfiguration configuration;
+
         [HttpGet]
         public SettingsModel GetSettings()
         {

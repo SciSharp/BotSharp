@@ -2,6 +2,8 @@
   "ArticulateAi": {
     "Lang": "en",
 
+    "AgentStorage": "AgentStorageInRedis",
+
     "Provider": "BotSharpProvider",
     "BotSharpProvider": {
     },

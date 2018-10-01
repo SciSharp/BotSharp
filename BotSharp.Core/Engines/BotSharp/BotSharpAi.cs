@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Models;
 
 namespace BotSharp.Core.Engines.BotSharp
 {

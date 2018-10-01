@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Engines
+namespace BotSharp.Platform.Models
 {
     public class BotTrainOptions
     {

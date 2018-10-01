@@ -14,7 +14,7 @@ namespace BotSharp.Core
         where TAgent : AgentBase
     {
         private static CSRedisClient csredis;
-        private string prefix = String.Empty;
+        private static string prefix = String.Empty;
 
         public AgentStorageInRedis()
         {
@@ -47,7 +47,7 @@ namespace BotSharp.Core
         {
             var agents = new List<TAgent>();
 
-            var keys = csredis.Keys($"{prefix }*");
+            var keys = csredis.Keys($"{prefix}*");
             foreach (string key in keys)
             {
                 var data = csredis.Get(key.Substring(prefix.Length));

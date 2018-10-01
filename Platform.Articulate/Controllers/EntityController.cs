@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core;
 using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Platform.Articulate.Models;
 using Platform.Articulate.ViewModels;
@@ -16,11 +17,13 @@ namespace Platform.Articulate.Controllers
     [Route("[controller]")]
     public class EntityController : ControllerBase
     {
-        private ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel> builder;
+        private readonly IConfiguration configuration;
+        private ArticulateAi<AgentModel> builder;
 
-        public EntityController()
+        public EntityController(IConfiguration configuration)
         {
-            builder = new ArticulateAi<AgentStorageInRedis<AgentModel>, AgentModel>();
+            builder = new ArticulateAi<AgentModel>();
+            builder.PlatformConfig = configuration.GetSection("ArticulateAi");
         }
 
         [HttpGet("{entityId}")]
