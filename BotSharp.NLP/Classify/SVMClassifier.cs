@@ -66,8 +66,9 @@ namespace BotSharp.NLP.Classify
             int numberOfClasses = train.Y.OrderBy(x => x).Distinct().Count();
             if (numberOfClasses == 1)
             {
-                throw new ArgumentException("Number of classes can't be one!");
+                Console.Write("Number of classes must greater than one!");
             }
+
             if (svm == SvmType.C_SVC)
             {
                 for (int i = 0; i < numberOfClasses; i++)

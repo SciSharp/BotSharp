@@ -13,9 +13,9 @@ namespace Platform.Articulate.Controllers
         private readonly IConfiguration configuration;
 
         [HttpGet("/agent/{agentId}/converse")]
-        public void ParseText([FromRoute] string agentId, [FromQuery] string text, [FromQuery] string sessionId)
+        public ActionResult ParseText([FromRoute] string agentId, [FromQuery] string text, [FromQuery] string sessionId)
         {
-            
+            return Ok();
         }
     }
 #endif

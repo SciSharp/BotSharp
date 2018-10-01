@@ -9,13 +9,5 @@ namespace BotSharp.Core.Engines
     {
         public string ProjectDir { get; set; }
         public string ModelDir { get; set; }
-        public string AlgorithmDir { get; set; }
-        public string TempDir
-        {
-            get
-            {
-                return Path.Combine(ProjectDir, "Temp");
-            }
-        }
     }
 }

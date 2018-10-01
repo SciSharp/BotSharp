@@ -1,6 +1,9 @@
 ﻿using BotSharp.Core;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
+using BotSharp.Core.Entities;
+using BotSharp.Core.Intents;
+using BotSharp.Core.Models;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using DotNetToolkit;
@@ -139,11 +142,53 @@ namespace Platform.Articulate
             var trainer = new BotTrainer();
             var parsedAgent = agent.ToObject<Agent>();
 
-            var info = await trainer.Train(parsedAgent, new BotTrainOptions
+            var intents = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>();
+
+            foreach (DomainModel domain in (agent as AgentModel).Domains)
+            {
+                foreach (IntentModel intent in domain.Intents)
+                {
+                    foreach (IntentExampleModel example in intent.Examples)
+                    {
+                        var parsedIntent = new TrainingIntentExpression<TrainingIntentExpressionPart>
+                        {
+                            Intent = intent.IntentName,
+                            Text = example.UserSays,
+                            Entities = example.Entities.Select(x => new TrainingIntentExpressionPart
+                            {
+                                Entity = x.Entity,
+                                Start = x.Start,
+                                Value = x.Value
+                            }).ToList()
+                        };
+
+                        intents.Add(parsedIntent);
+                    }
+                }
+            }
+
+            parsedAgent.Corpus = new TrainingCorpus
+            {
+                Entities = (agent as AgentModel).Entities.Select(x => new TrainingEntity
+                {
+                    Entity = x.EntityName,
+                    Values = x.Examples.Select(y => new TrainingEntitySynonym
+                    {
+                        Value = y.Value,
+                        Synonyms = y.Synonyms
+                    }).ToList()
+                }).ToList(),
+
+                UserSays = intents
+            };
+
+            var trainOptions = new BotTrainOptions
             {
                 AgentDir = projectPath,
                 Model = model
-            });
+            };
+
+            var info = await trainer.Train(parsedAgent, trainOptions);
 
             return true;
         }

@@ -26,9 +26,14 @@ namespace Platform.Articulate.Controllers
         public async Task<AgentModel> TrainAgent([FromRoute] string agentId)
         {
             var agent = builder.GetAgentById(agentId);
+
             var corpus = builder.ExtractorCorpus(agent);
+
             await builder.Train(agent, corpus);
+
             agent.Status = "Ready";
+
+            builder.SaveAgent(agent);
 
             return agent;
         }

@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Engines;
 using BotSharp.Core.Engines.BotSharp;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
