@@ -1,7 +1,3 @@
-.. raw:: html
-
-    <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png" width="100px">
-    
 The Open Source AI Bot Platform Builder
 ======================================================
 
@@ -18,6 +14,10 @@ The Open Source AI Bot Platform Builder
 .. image:: https://img.shields.io/nuget/dt/EntityFrameworkCore.BootKit.svg
     :target: `botsharpnuget`_
     :alt: NuGet
+
+.. raw:: html
+
+    <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png" width="100px">
 
 This project is for learning purposes only, please do not use it in a production environment.
 **********************************************************************************************
@@ -81,7 +81,7 @@ Scan to join group in Wechat
 
 .. _Docker: https://www.docker.com
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
-.. _Articulate UI: https://spg.ai/projects/articulate
+.. _Articulate UI: https://github.com/Oceania2018/articulate-ui
 .. _gitter: https://gitter.im/botsharpcore/Lobby
 .. _license: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/LICENSE
 .. _botsharpnuget: https://www.nuget.org/packages/BotSharp.Core

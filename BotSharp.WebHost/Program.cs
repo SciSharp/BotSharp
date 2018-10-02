@@ -18,16 +18,27 @@ namespace BotSharp.WebHost
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     var env = hostingContext.HostingEnvironment;
+                    Console.WriteLine($"ContentRootPath: {env.ContentRootPath}");
                     string dir = Path.GetFullPath(env.ContentRootPath);
                     string settingsFolder = Path.Combine(dir, "Settings");
 
+                    // locate setting folder
                     if (!Directory.Exists(settingsFolder))
                     {
                         dir = Path.GetFullPath(env.ContentRootPath + "/..");
                     }
 
                     settingsFolder = Path.Combine(dir, "Settings");
+
+                    if (!Directory.Exists(settingsFolder))
+                    {
+                        dir = Path.GetFullPath(env.ContentRootPath + "/bin");
+                    }
+
+                    settingsFolder = Path.Combine(dir, "Settings");
+
                     Console.WriteLine($"Read settings from {settingsFolder}");
+
                     var settings = Directory.GetFiles(settingsFolder, "*.json");
                     settings.ToList().ForEach(setting =>
                     {

@@ -38,19 +38,41 @@ Point your web browser at http://localhost:5001 and enjoy Rasa-UI with BotSharp.
 4. Integrate with `Rasa Talk`_
 
 
-Building BotSharp
-^^^^^^^^^^^^^^^^^
+Building & Run locally
+^^^^^^^^^^^^^^^^^^^^^^
 If you are a .NET developer and want to develop extensions or fix bug for BotSharp, you would CTRL + F5 to run it locally in debug mode. 
-Make sure the `Microsoft .NET Core`_ build environment is installed. 
+Make sure the `Microsoft .NET Core`_ build environment and `Node.js`_ is installed. 
 Building solution using dotnet CLI (preferred).
 
+* Build NLU API
 ::
 
     PS D:\> git clone https://github.com/Oceania2018/BotSharp
     PS D:\> cd BotSharp
-    PS D:\> dotnet build
+    PS D:\> dotnet build -v m -o ../bin -c ARTICULATE
+    PS D:\> dotnet bin\BotSharp.WebHost.dll
 
-Install in docker container
+If you don't have Redis installed, please update ArticulateAi.json:
+
+::
+
+"AgentStorage": "AgentStorageInRedis"
+
+to 
+
+::
+
+"AgentStorage": "AgentStorageInMemory" 
+  
+* Build Chatbot Designer
+::
+
+    PS D:\> git clone https://github.com/Oceania2018/articulate-ui
+    PS D:\> cd articulate-ui
+    PS D:\> npm install
+    PS D:\> npm start
+
+Building docker image
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you just want to run BotSharp as a backend NLU engine, you can run it standalone in docker.
@@ -100,9 +122,10 @@ Use BotSharp.NLP as a natural language processing toolkit alone.
 
 .. _Botpress: https://github.com/botpress/botpress
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
-.. _Articulate UI: https://spg.ai/projects/articulate
+.. _Articulate UI: https://github.com/Oceania2018/articulate-ui
 .. _Rasa Talk: https://github.com/jackdh/RasaTalk
 .. _Microsoft .NET Core: https://www.microsoft.com/net/download
+.. _Node.js: https://nodejs.org
 .. _Docker: https://www.docker.com
 
 .. |APIHomeScreenshot| image:: /static/screenshots/APIHome.png
