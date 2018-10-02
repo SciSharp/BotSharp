@@ -35,5 +35,7 @@ namespace Platform.Articulate.Models
         public List<DomainModel> Domains { get; set; }
 
         public List<EntityModel> Entities { get; set; }
+
+        public DateTime LastTraining { get; set; }
     }
 }

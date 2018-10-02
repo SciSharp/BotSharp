@@ -28,7 +28,7 @@ namespace Platform.Articulate
     public class ArticulateAi<TAgent> : 
         PlatformBuilderBase<TAgent>, 
         IPlatformBuilder<TAgent> 
-        where TAgent : AgentBase
+        where TAgent : AgentModel
     {
         public DialogRequestOptions RequestOptions { get; set; }
 
@@ -38,7 +38,7 @@ namespace Platform.Articulate
 
             foreach (TAgent agent in results)
             {
-                var domain = (agent as AgentModel).Domains.FirstOrDefault(x => x.Id == domainId);
+                var domain = agent.Domains.FirstOrDefault(x => x.Id == domainId);
 
                 if (domain != null)
                 {
@@ -55,7 +55,7 @@ namespace Platform.Articulate
 
             foreach (TAgent agent in results)
             {
-                foreach (DomainModel domain in (agent as AgentModel).Domains)
+                foreach (DomainModel domain in agent.Domains)
                 {
                     var intent = domain.Intents.FirstOrDefault(x => x.Id == intentId);
                     if (intent != null)
@@ -72,10 +72,8 @@ namespace Platform.Articulate
         {
             var intents = new List<IntentModel>();
             var allAgents = GetAllAgents();
-            foreach (TAgent agt in allAgents)
+            foreach (TAgent agent in allAgents)
             {
-                var agent = agt as AgentModel;
-
                 foreach (DomainModel domain in agent.Domains)
                 {
                     foreach (IntentModel intent in domain.Intents)
@@ -94,8 +92,7 @@ namespace Platform.Articulate
         public TrainingCorpus ExtractorCorpus(TAgent agent)
         {
             var corpus = new TrainingCorpus();
-            var agt = agent as AgentModel;
-            corpus.Entities = agt.Entities.Select(x => new TrainingEntity
+            corpus.Entities = agent.Entities.Select(x => new TrainingEntity
             {
                 Entity = x.EntityName,
                 Values = x.Examples.Select(y => new TrainingEntitySynonym
@@ -107,7 +104,7 @@ namespace Platform.Articulate
 
             corpus.UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>();
 
-            foreach(DomainModel domain in agt.Domains)
+            foreach(DomainModel domain in agent.Domains)
             {
                 foreach(IntentModel intent in domain.Intents)
                 {
@@ -131,6 +128,13 @@ namespace Platform.Articulate
             }
 
             return corpus;
+        }
+
+        public override bool SaveAgent(TAgent agent)
+        {
+            agent.Status = "Changed";
+            agent.LastTraining = DateTime.UtcNow;
+            return base.SaveAgent(agent);
         }
 
         public async Task<bool> Train(TAgent agent, TrainingCorpus corpus)

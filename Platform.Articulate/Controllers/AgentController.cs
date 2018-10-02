@@ -68,7 +68,7 @@ namespace Platform.Articulate.Controllers
         public AgentModel GetAgentById([FromRoute] string agentId)
         {
             var agent = builder.GetAgentById(agentId);
-
+            
             return agent;
         }
 
@@ -76,7 +76,7 @@ namespace Platform.Articulate.Controllers
         public AgentModel GetAgentByName([FromRoute] string agentName)
         {
             var agent = builder.GetAgentByName(agentName);
-
+            
             return agent;
         }
     }
