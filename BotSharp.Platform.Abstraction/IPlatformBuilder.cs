@@ -1,4 +1,6 @@
 ﻿using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.AiRequest;
+using BotSharp.Platform.Models.AiResponse;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -38,5 +40,7 @@ namespace BotSharp.Platform.Abstraction
         bool SaveAgent(TAgent agent);
 
         Task<bool> Train(TAgent agent, TrainingCorpus corpus);
+
+        AiResponse TextRequest(AiRequest request);
     }
 }

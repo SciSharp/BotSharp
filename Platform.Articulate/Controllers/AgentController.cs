@@ -48,7 +48,7 @@ namespace Platform.Articulate.Controllers
             }
 
             // convert to standard Agent structure
-            agent.Id = Guid.NewGuid().ToString();
+            agent.Id = new Random().Next(Int32.MaxValue).ToString();
             agent.Name = agent.AgentName;
             builder.SaveAgent(agent);
 

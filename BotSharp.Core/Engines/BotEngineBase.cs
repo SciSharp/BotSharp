@@ -6,6 +6,7 @@ using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
 using BotSharp.Models.NLP;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.AiRequest;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,13 @@ namespace BotSharp.Core.Engines
         public AIResponse TextRequest(AIRequest request)
         {
             var preditor = new BotPredictor();
-            var doc = preditor.Predict(agent, request).Result;
+            var doc = preditor.Predict(agent, new AiRequest
+            {
+                AgentDir = request.AgentDir,
+                Model = request.Model,
+                SessionId = request.SessionId,
+                Text = request.Query.First()
+            }).Result;
 
             var parameters = new Dictionary<String, Object>();
             if(doc.Sentences[0].Entities == null)

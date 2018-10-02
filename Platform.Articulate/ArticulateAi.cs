@@ -4,8 +4,11 @@ using BotSharp.Core.Engines;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
+using BotSharp.Models.NLP;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.AiRequest;
+using BotSharp.Platform.Models.AiResponse;
 using DotNetToolkit;
 using Platform.Articulate.Models;
 using System;
@@ -191,6 +194,35 @@ namespace Platform.Articulate
             var info = await trainer.Train(parsedAgent, trainOptions);
 
             return true;
+        }
+
+        public AiResponse TextRequest(AiRequest request)
+        {
+            var aiResponse = new AiResponse();
+
+            // Load agent
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.AgentId);
+            var model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last().Split(Path.DirectorySeparatorChar).Last();
+            var modelPath = Path.Combine(projectPath, model);
+            request.AgentDir = projectPath;
+            request.Model = model;
+
+            var agent = GetAgentById(request.AgentId);
+
+            var preditor = new BotPredictor();
+            var doc = preditor.Predict(agent.ToObject<Agent>(), request).Result;
+
+            var parameters = new Dictionary<String, Object>();
+            if (doc.Sentences[0].Entities == null)
+            {
+                doc.Sentences[0].Entities = new List<NlpEntity>();
+            }
+            doc.Sentences[0].Entities.ForEach(x => parameters[x.Entity] = x.Value);
+
+            aiResponse.Intent = doc.Sentences[0].Intent.Label;
+            aiResponse.Speech = aiResponse.Intent;
+
+            return aiResponse;
         }
     }
 }

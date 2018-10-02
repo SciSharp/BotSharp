@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Core.Adapters.Dialogflow;
 using BotSharp.Core.Adapters.Sebis;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Entities;

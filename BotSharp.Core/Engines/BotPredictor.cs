@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Models.AiRequest;
 using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ namespace BotSharp.Core.Engines
 {
     public class BotPredictor
     {
-        public async Task<NlpDoc> Predict(Agent agent, AIRequest request)
+        public async Task<NlpDoc> Predict(Agent agent, AiRequest request)
         {
             // load model
             var dir = Path.Combine(request.AgentDir, request.Model);
@@ -41,7 +42,7 @@ namespace BotSharp.Core.Engines
                 {
                     new NlpDocSentence
                     {
-                        Text = request.Query.FirstOrDefault()
+                        Text = request.Text
                     }
                 }
             };
