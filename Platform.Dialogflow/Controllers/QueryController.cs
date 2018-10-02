@@ -4,6 +4,7 @@ using BotSharp.NLP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Platform.Dialogflow.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 
-namespace BotSharp.RestApi.Dialogflow
+namespace Platform.Dialogflow.Controllers
 {
 #if DIALOGFLOW
     /// <summary>

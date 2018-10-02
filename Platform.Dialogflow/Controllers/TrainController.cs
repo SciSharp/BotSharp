@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
 using BotSharp.Core.Engines.Rasa;
+using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,7 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace BotSharp.RestApi.Rasa
+namespace Platform.Dialogflow.Controllers
 {
 #if DIALOGFLOW
     /// <summary>
