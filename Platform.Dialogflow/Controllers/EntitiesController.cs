@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Platform.Dialogflow.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.RestApi.Dialogflow
+namespace Platform.Dialogflow.Controllers
 {
 #if DIALOGFLOW
     /// <summary>

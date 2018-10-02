@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace BotSharp.RestApi.Dialogflow
+namespace Platform.Dialogflow.ViewModels
 {
     public class QueryModel
     {
