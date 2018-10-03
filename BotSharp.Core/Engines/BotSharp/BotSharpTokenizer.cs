@@ -1,6 +1,5 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
-using BotSharp.Core.Intents;
 using BotSharp.NLP;
 using BotSharp.NLP.Tokenize;
 using Microsoft.Extensions.Configuration;

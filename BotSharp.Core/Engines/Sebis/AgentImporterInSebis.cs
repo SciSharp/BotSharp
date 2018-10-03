@@ -8,6 +8,7 @@ using BotSharp.Core.Agents;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using DotNetToolkit;
 using Newtonsoft.Json;
@@ -18,7 +19,7 @@ namespace BotSharp.Core.Engines
     /// <summary>
     /// Import Sebis NLU benchmark corpus
     /// </summary>
-    public class AgentImporterInSebis : IAgentImporter
+    public class AgentImporterInSebis<TAgent> : IAgentImporter<TAgent>
     {
         public string AgentDir { get; set; }
 

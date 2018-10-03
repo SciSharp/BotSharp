@@ -73,8 +73,11 @@
 
   <ItemGroup>
     <Compile Remove="Authentication\**" />
+    <Compile Remove="Rasa\**" />
     <EmbeddedResource Remove="Authentication\**" />
+    <EmbeddedResource Remove="Rasa\**" />
     <None Remove="Authentication\**" />
+    <None Remove="Rasa\**" />
   </ItemGroup>
 
   <ItemGroup>

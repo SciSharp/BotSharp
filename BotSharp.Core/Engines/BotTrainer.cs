@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
-using BotSharp.Core.Intents;
 using BotSharp.Platform.Models;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;

@@ -1,9 +1,6 @@
 ﻿using BotSharp.Core;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
-using BotSharp.Core.Entities;
-using BotSharp.Core.Intents;
-using BotSharp.Core.Models;
 using BotSharp.Models.NLP;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;

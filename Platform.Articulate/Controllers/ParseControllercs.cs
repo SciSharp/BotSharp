@@ -1,5 +1,4 @@
-﻿using BotSharp.Core.Models;
-using BotSharp.NLP;
+﻿using BotSharp.NLP;
 using BotSharp.Platform.Models.AiRequest;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;

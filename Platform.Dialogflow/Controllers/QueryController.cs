@@ -1,9 +1,10 @@
 ﻿using BotSharp.Core.Engines;
-using BotSharp.Core.Models;
 using BotSharp.NLP;
+using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Platform.Dialogflow.Models;
 using Platform.Dialogflow.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -44,8 +45,8 @@ namespace Platform.Dialogflow.Controllers
         public ActionResult<AIResponse> Query(QueryModel request)
         {
             String clientAccessToken = (User.Identity as ClaimsIdentity).Claims.FirstOrDefault(x => x.Type == "UserId")?.Value;
-            _platform.AiConfig = new AIConfiguration(clientAccessToken, SupportedLanguage.English);
-            _platform.AiConfig.SessionId = request.SessionId;
+            //_platform.AiConfig = new AIConfiguration(clientAccessToken, SupportedLanguage.English);
+            //_platform.AiConfig.SessionId = request.SessionId;
 
             // find a model according to clientAccessToken
             string projectPath = String.Empty;
@@ -85,9 +86,9 @@ namespace Platform.Dialogflow.Controllers
 
             Console.WriteLine($"LoadAgentFromFile {dataDir}");
 
-            _platform.LoadAgentFromFile(dataDir);
+            //_platform.LoadAgentFromFile(dataDir);
 
-            var aIResponse = _platform.TextRequest(new AIRequest
+            /*var aIResponse = _platform.TextRequest(new AIRequest
             {
                 Timezone = request.Timezone,
                 Contexts = request?.Contexts?.Select(x => new AIContext { Name = x })?.ToList(),
@@ -95,9 +96,9 @@ namespace Platform.Dialogflow.Controllers
                 Query = new String[] { request.Query },
                 AgentDir = projectPath,
                 Model = model
-            });
+            });*/
 
-            return aIResponse;
+            return null;
         }
     }
 #endif

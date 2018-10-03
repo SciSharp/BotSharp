@@ -1,6 +1,6 @@
-﻿using BotSharp.Core.Adapters.Dialogflow;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Platform.Dialogflow.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;

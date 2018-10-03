@@ -7,13 +7,14 @@ using BotSharp.Core.Agents;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using DotNetToolkit;
 using Newtonsoft.Json;
 
 namespace BotSharp.Core.Engines.Rasa
 {
-    public class AgentImporterInRasa : IAgentImporter
+    public class AgentImporterInRasa<TAgent> : IAgentImporter<TAgent>
     {
         public string AgentDir { get; set; }
 

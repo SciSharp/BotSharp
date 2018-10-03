@@ -1,9 +1,12 @@
-﻿using BotSharp.Platform.Abstraction;
+﻿using BotSharp.Core.Engines;
+using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -23,6 +26,38 @@ namespace BotSharp.Core
             return Storage.Query();
         }
 
+        public TAgent LoadAgentFromFile<TImporter>(string dataDir) where TImporter : IAgentImporter<TAgent>, new()
+        {
+            var meta = LoadMeta(dataDir);
+            var importer = new TImporter();
+
+            importer.AgentDir = dataDir;
+
+            // Load agent summary
+            var agent = importer.LoadAgent(meta);
+
+            // Load user custom entities
+            importer.LoadCustomEntities(agent);
+
+            // Load agent intents
+            importer.LoadIntents(agent);
+
+            // Load system buildin entities
+            importer.LoadBuildinEntities(agent);
+
+            // Generate corpus
+            importer.AssembleTrainData(agent);
+
+            return default(TAgent);
+        }
+
+        private AgentImportHeader LoadMeta(string dataDir)
+        {
+            // load meta
+            string metaJson = File.ReadAllText(Path.Combine(dataDir, "meta.json"));
+
+            return JsonConvert.DeserializeObject<AgentImportHeader>(metaJson);
+        }
 
         public TAgent GetAgentById(string agentId)
         {

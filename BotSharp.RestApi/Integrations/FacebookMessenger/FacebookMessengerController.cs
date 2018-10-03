@@ -1,8 +1,7 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
-using BotSharp.Core.Engines.Dialogflow;
-using BotSharp.Core.Models;
 using BotSharp.NLP;
+using BotSharp.Platform.Models;
 using BotSharp.RestApi.Integrations.FacebookMessenger;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
@@ -79,7 +78,7 @@ namespace BotSharp.RestApi.Integrations
         {
             Console.WriteLine($"OnTextMessaged: {message.Message.Text}");
 
-            var ai = new ApiAi();
+            /*var ai = new ApiAi();
             var agent = ai.LoadAgent(agentId);
             ai.AiConfig = new AIConfiguration(agent.ClientAccessToken, SupportedLanguage.English) { AgentId = agentId };
             ai.AiConfig.SessionId = message.Sender.Id;
@@ -95,7 +94,7 @@ namespace BotSharp.RestApi.Integrations
                 {
                     Text = String.IsNullOrEmpty(aiResponse.Result.Fulfillment.Speech) ? aiResponse.Result.Action : aiResponse.Result.Fulfillment.Speech
                 }
-            });
+            });*/
         }
 
         private void SendTextMessage(string accessToken, WebhookMessage<WebhookTextMessage> body)

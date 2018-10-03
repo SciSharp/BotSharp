@@ -1,6 +1,5 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Core.Agents;
-using BotSharp.Core.Models;
 using BotSharp.Platform.Models.AiRequest;
 using DotNetToolkit;
 using Microsoft.Extensions.Configuration;

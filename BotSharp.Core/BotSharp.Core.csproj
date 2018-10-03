@@ -56,6 +56,24 @@ If you feel that this project is helpful to you, please Star on the project, we 
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Engines\NERs\**" />
+    <Compile Remove="Engines\QuickQA\**" />
+    <Compile Remove="Engines\Rasa\**" />
+    <Compile Remove="Engines\Sebis\**" />
+    <Compile Remove="Engines\SpaCy\**" />
+    <EmbeddedResource Remove="Engines\NERs\**" />
+    <EmbeddedResource Remove="Engines\QuickQA\**" />
+    <EmbeddedResource Remove="Engines\Rasa\**" />
+    <EmbeddedResource Remove="Engines\Sebis\**" />
+    <EmbeddedResource Remove="Engines\SpaCy\**" />
+    <None Remove="Engines\NERs\**" />
+    <None Remove="Engines\QuickQA\**" />
+    <None Remove="Engines\Rasa\**" />
+    <None Remove="Engines\Sebis\**" />
+    <None Remove="Engines\SpaCy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="CSRedisCore" Version="2.6.13" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />

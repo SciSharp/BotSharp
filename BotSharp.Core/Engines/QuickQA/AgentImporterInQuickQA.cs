@@ -6,11 +6,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Intents;
+using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Models;
 using Newtonsoft.Json;
 
 namespace BotSharp.Core.Engines.QuickQA
 {
-    public class AgentImporterInQuickQA : IAgentImporter
+    public class AgentImporterInQuickQA<TAgent> : IAgentImporter<TAgent>
     {
         public string AgentDir { get; set; }
 

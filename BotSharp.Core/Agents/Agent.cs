@@ -1,6 +1,4 @@
 ﻿using BotSharp.Core.Engines;
-using BotSharp.Core.Entities;
-using BotSharp.Core.Intents;
 using BotSharp.Platform.Models;
 using EntityFrameworkCore.BootKit;
 using Newtonsoft.Json;
@@ -46,11 +44,11 @@ namespace BotSharp.Core.Agents
         public String DeveloperAccessToken { get; set; }
 
         [ForeignKey("AgentId")]
-        public List<Intent> Intents { get; set; }
+        public List<Platform.Models.Intents.Intent> Intents { get; set; }
 
-        [ForeignKey("AgentId")]
+        /*[ForeignKey("AgentId")]
         [JsonProperty("entity_types")]
-        public List<EntityType> Entities { get; set; }
+        public List<EntityType> Entities { get; set; }*/
 
         public String Birthday
         {

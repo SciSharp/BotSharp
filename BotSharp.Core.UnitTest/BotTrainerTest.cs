@@ -1,6 +1,4 @@
 ﻿using BotSharp.Core.Engines;
-using BotSharp.Core.Engines.BotSharp;
-using BotSharp.Core.Models;
 using BotSharp.Platform.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -15,9 +13,6 @@ namespace BotSharp.Core.UnitTest
         [TestMethod]
         public async void TrainingTest()
         {
-            var ai = new BotSharpAi();
-            ai.LoadAgent(BOT_ID);
-            await ai.Train(new BotTrainOptions { });
         }
     }
 }

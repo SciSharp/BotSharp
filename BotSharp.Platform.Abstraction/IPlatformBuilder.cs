@@ -32,6 +32,14 @@ namespace BotSharp.Platform.Abstraction
         TrainingCorpus ExtractorCorpus(TAgent agent);
 
         /// <summary>
+        /// Load agent from files.
+        /// There must contain a meta.json
+        /// </summary>
+        /// <param name="dataDir"></param>
+        /// <returns></returns>
+        TAgent LoadAgentFromFile<TImporter>(string dataDir) where TImporter : IAgentImporter<TAgent>, new();
+
+        /// <summary>
         /// 
         /// </summary>
         /// <typeparam name="TStorage"></typeparam>

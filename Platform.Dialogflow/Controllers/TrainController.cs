@@ -1,6 +1,5 @@
 ﻿using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
-using BotSharp.Core.Engines.Rasa;
 using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -47,7 +46,7 @@ namespace Platform.Dialogflow.Controllers
             
             Console.WriteLine($"LoadAgentFromFile {dataDir}");
 
-            var agent = _platform.LoadAgentFromFile(dataDir);
+            /*var agent = _platform.LoadAgentFromFile(dataDir);
 
             var info = await trainer.Train(agent, new BotTrainOptions
             {
@@ -55,7 +54,9 @@ namespace Platform.Dialogflow.Controllers
                 Model = model
             });
 
-            return Ok(new { info = info });
+            return Ok(new { info = info });*/
+
+            return Ok();
         }
     }
 #endif
