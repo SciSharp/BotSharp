@@ -91,7 +91,7 @@
     <Content Update="Settings\auth.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="Settings\BotSharpAi.json">
+    <Content Update="Settings\BotSharpNLU.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Settings\db.json">

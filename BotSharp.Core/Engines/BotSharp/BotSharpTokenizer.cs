@@ -2,6 +2,7 @@
 using BotSharp.NLP;
 using BotSharp.NLP.Tokenize;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;

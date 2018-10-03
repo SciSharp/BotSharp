@@ -20,8 +20,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Users\haipi\Documents\Projects\BotSharp\BotSharp.RestApi\BotSharp.RestApi.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netstandard2.0\BotSharp.RestApi.xml</DocumentationFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <OutputPath />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">

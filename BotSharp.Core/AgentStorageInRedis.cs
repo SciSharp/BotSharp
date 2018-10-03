@@ -69,7 +69,13 @@ namespace BotSharp.Core
                 agent.Id = Guid.NewGuid().ToString();
             }
 
-            csredis.Set(agent.Id, JsonConvert.SerializeObject(agent));
+            var json = JsonConvert.SerializeObject(agent, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                Formatting = Formatting.Indented,
+            });
+
+            csredis.Set(agent.Id, json);
 
             return true;
         }

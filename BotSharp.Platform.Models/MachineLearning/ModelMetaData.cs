@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Engines
+namespace BotSharp.Platform.Models.MachineLearning
 {
     public class ModelMetaData
     {
         public string Platform { get; set; }
+        public string BotEngine { get; set; }
         public string Language { get; set; }
 
         public string Version { get; set; }
@@ -16,7 +16,6 @@ namespace BotSharp.Core.Engines
         /// <summary>
         /// Model file fullpath
         /// </summary>
-        [JsonIgnore]
         public string Model { get; set; }
 
         public List<PipeModel> Pipeline { get; set; }

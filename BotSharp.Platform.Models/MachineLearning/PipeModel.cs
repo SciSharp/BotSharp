@@ -1,9 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Engines
+namespace BotSharp.Platform.Models.MachineLearning
 {
     public class PipeModel
     {
@@ -24,6 +23,6 @@ namespace BotSharp.Core.Engines
         /// <summary>
         /// Extra meta data according to pipe
         /// </summary>
-        public JObject Meta { get; set; }
+        public Object Meta { get; set; }
     }
 }

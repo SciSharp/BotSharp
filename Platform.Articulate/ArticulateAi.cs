@@ -5,6 +5,7 @@ using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
+using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using Platform.Articulate.Models;
 using System;
@@ -133,7 +134,7 @@ namespace Platform.Articulate
             return base.SaveAgent(agent);
         }
 
-        public async Task<bool> Train(TAgent agent, TrainingCorpus corpus)
+        public async Task<ModelMetaData> Train(TAgent agent, TrainingCorpus corpus)
         {
             string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id);
             var model = "model_" + DateTime.UtcNow.ToString("yyyyMMdd");
@@ -149,7 +150,7 @@ namespace Platform.Articulate
 
             var info = await trainer.Train(agent, trainOptions);
 
-            return true;
+            return info;
         }
 
         public AiResponse TextRequest(AiRequest request)

@@ -3,6 +3,7 @@ using BotSharp.NLP;
 using BotSharp.NLP.Classify;
 using BotSharp.NLP.Txt2Vec;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;

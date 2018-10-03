@@ -1,36 +1,7 @@
 {
-  "ArticulateAi": {
-    "Lang": "en",
+  "articulateAi": {
+    "botEngine": "BotSharpNLU",
 
-    "AgentStorage": "AgentStorageInRedis",
-
-    "Provider": "BotSharpProvider",
-    "BotSharpProvider": {
-    },
-
-    "Pipe": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier",
-
-    "BotSharpTokenizer": {
-      "tokenizer": "TreebankTokenizer"
-    },
-
-    "BotSharpIntentClassifier": {
-      "classifer": "NaiveBayesClassifier"
-    },
-
-    "BotSharpTagger": {
-      "tagger": "NGramTagger"
-    },
-
-    "BotSharpCRFNer": {
-      "template": "|App_Data|CRFLite/template.en"
-    },
-
-    "WitAiEntityRecognizer": {
-      "url": "https://api.wit.ai",
-      "resource": "message",
-      "serverAccessToken": "SERVER_ACCESS_TOKEN",
-      "version": "20180811"
-    }
+    "agentStorage": "AgentStorageInRedis"
   }
 }

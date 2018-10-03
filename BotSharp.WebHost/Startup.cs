@@ -1,8 +1,5 @@
-﻿using BotSharp.Core.Engines;
-using BotSharp.Platform.Abstraction;
-using DotNetToolkit;
+﻿using Colorful;
 using DotNetToolkit.JwtHelper;
-using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -12,8 +9,10 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using Console = Colorful.Console;
 
 namespace BotSharp.WebHost
 {
@@ -63,17 +62,10 @@ namespace BotSharp.WebHost
             });
 
             // register platform dependency
-            services.AddTransient<IBotEngine>((provider) =>
+            /*services.AddTransient<IBotEngine>((provider) =>
             {
-                var assemblies = (String[])AppDomain.CurrentDomain.GetData("Assemblies");
-                var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-                var implements = TypeHelper.GetClassesWithInterface<IBotEngine>(assemblies);
-                string platform = config.GetValue<String>("BotPlatform");
-                var implement = implements.FirstOrDefault(x => x.Name.Split('.').Last() == platform);
-                var instance = (IBotEngine)Activator.CreateInstance(implement);
-
                 return instance;
-            });
+            });*/
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -100,7 +92,9 @@ namespace BotSharp.WebHost
                 c.DocumentTitle = info.Title;
                 c.InjectStylesheet(Configuration.GetValue<String>("Swagger:Stylesheet"));
 
-                Console.WriteLine($"Current Mode: {info.Title}");
+                Console.WriteLine($"{info.Title} {info.Version} {info.License.Name}", Color.Gray);
+                Console.WriteLine($"{info.Description}", Color.Gray);
+                Console.WriteLine($"{info.Contact.Name}", Color.Gray);
             });
 
             app.Use(async (context, next) =>
@@ -129,6 +123,16 @@ namespace BotSharp.WebHost
             loader.Env = env;
             loader.Config = Configuration;
             loader.Load();*/
+
+            var platform = Configuration.GetValue<string>("Platform");
+            var engine = Configuration.GetValue<string>($"{platform}:BotEngine");
+            Formatter[] settings = new Formatter[]
+            {
+                new Formatter(platform, Color.Yellow),
+                new Formatter(engine, Color.Yellow),
+            };
+
+            Console.WriteLineFormatted("Platform Emulator: {0} powered by {1} NLU engine.", Color.White, settings);
         }
     }
 }

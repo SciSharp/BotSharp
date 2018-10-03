@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Engines;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using System;
 using System.Collections.Generic;
 using System.Text;

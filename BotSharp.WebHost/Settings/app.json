@@ -1,9 +1,11 @@
 ﻿{
-  "Assemblies": "BotSharp.Core",
-  "BotEngine": "BotSharpAi",
-  "Version": "0.1.0",
+  "assemblies": "BotSharp.Core",
 
-  "MachineLearning": {
+  "platform": "DialogflowAi",
+
+  "version": "0.1.0",
+
+  "machineLearning": {
     "dataDir": "D:\\Projects\\BotSharp\\Data"
   }
 }

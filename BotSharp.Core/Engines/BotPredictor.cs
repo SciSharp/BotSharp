@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
+using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;

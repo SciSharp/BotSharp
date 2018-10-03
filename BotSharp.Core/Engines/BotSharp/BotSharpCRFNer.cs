@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 
 namespace BotSharp.Core.Engines.BotSharp
 {

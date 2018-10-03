@@ -7,7 +7,7 @@ using BotSharp.Platform.Models;
 
 namespace BotSharp.Core.Engines.BotSharp
 {
-    public class BotSharpAi : BotEngineBase, IBotEngine
+    public class BotSharpNLU : BotEngineBase, IBotEngine
     {
         public override async Task Train(BotTrainOptions options)
         {
