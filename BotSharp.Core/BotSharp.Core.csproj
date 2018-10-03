@@ -89,4 +89,8 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <ProjectReference Include="..\BotSharp.Platform.Models\BotSharp.Platform.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Agents\" />
+  </ItemGroup>
+
 </Project>

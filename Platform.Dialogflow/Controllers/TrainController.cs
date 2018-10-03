@@ -1,10 +1,11 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
 using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Platform.Dialogflow.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,40 +24,29 @@ namespace Platform.Dialogflow.Controllers
     [Route("v1/[controller]")]
     public class TrainController : ControllerBase
     {
-        private readonly IBotPlatform _platform;
+        private DialogflowAi<AgentModel> builder;
 
-        /// <summary>
-        /// Initialize dialog controller and get a platform instance
-        /// </summary>
-        /// <param name="platform"></param>
-        public TrainController(IBotPlatform platform)
+        public TrainController(IConfiguration configuration)
         {
-            _platform = platform;
+            builder = new DialogflowAi<AgentModel>();
+            builder.PlatformConfig = configuration.GetSection("DialogflowAi");
         }
 
         [HttpPost]
-        public async Task<ActionResult<String>> Train([FromQuery] string agentId)
+        public async Task<ActionResult<AgentModel>> Train([FromQuery] string agentId)
         {
-            var trainer = new BotTrainer();
+            var agent = builder.GetAgentById(agentId);
 
-            // save corpus to agent dir
-            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agentId);
-            var model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last().Split(Path.DirectorySeparatorChar).Last();
-            string dataDir = Path.Combine(projectPath, model);
-            
-            Console.WriteLine($"LoadAgentFromFile {dataDir}");
-
-            /*var agent = _platform.LoadAgentFromFile(dataDir);
-
-            var info = await trainer.Train(agent, new BotTrainOptions
+            if(agent == null)
             {
-                AgentDir = projectPath,
-                Model = model
-            });
+                agent = builder.GetAgentByName(agentId);
+            }
 
-            return Ok(new { info = info });*/
+            var corpus = builder.ExtractorCorpus(agent);
 
-            return Ok();
+            await builder.Train(agent, corpus);
+
+            return agent;
         }
     }
 #endif

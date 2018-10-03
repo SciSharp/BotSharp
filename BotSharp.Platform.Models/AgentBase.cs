@@ -7,6 +7,11 @@ namespace BotSharp.Platform.Models
 {
     public abstract class AgentBase
     {
+        public AgentBase()
+        {
+            CreatedDate = DateTime.UtcNow;
+        }
+
         /// <summary>
         /// Guid
         /// </summary>
@@ -32,5 +37,10 @@ namespace BotSharp.Platform.Models
         [Required]
         [MaxLength(5)]
         public String Language { get; set; }
+
+        [Required]
+        public DateTime CreatedDate { get; set; }
+
+        public TrainingCorpus Corpus { get; set; }
     }
 }

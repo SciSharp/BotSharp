@@ -1,5 +1,4 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
 using Bigtree.Algorithm.CRFLite;
 using Bigtree.Algorithm.CRFLite.Decoder;
 using Bigtree.Algorithm.CRFLite.Encoder;
@@ -22,7 +21,7 @@ namespace BotSharp.Core.Engines.BotSharp
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Train(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             var corpus = agent.Corpus;
 
@@ -157,7 +156,7 @@ namespace BotSharp.Core.Engines.BotSharp
             return trainingTuple;
         }
 
-        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Predict(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             var decoder = new CRFDecoder();
             var options = new DecoderOptions

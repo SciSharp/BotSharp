@@ -45,10 +45,7 @@ namespace BotSharp.Core
             // Load system buildin entities
             importer.LoadBuildinEntities(agent);
 
-            // Generate corpus
-            importer.AssembleTrainData(agent);
-
-            return default(TAgent);
+            return agent;
         }
 
         private AgentImportHeader LoadMeta(string dataDir)

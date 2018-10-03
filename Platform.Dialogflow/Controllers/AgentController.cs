@@ -1,5 +1,4 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Http;
@@ -58,15 +57,19 @@ namespace Platform.Dialogflow.Controllers
             }
 
             string dest = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", uploadedFile.FileName.Split('.').First(), "tmp");
-            System.IO.Directory.Delete(dest, true);
+            if (Directory.Exists(dest))
+            {
+                System.IO.Directory.Delete(dest, true);
+            }
 
             Console.WriteLine($"Extract zip file to {dest}");
             ZipFile.ExtractToDirectory(filePath, dest);
 
             System.IO.File.Delete(filePath);
 
-            Console.WriteLine($"LoadAgentFromFile {dest}");
+            Console.WriteLine($"Loading agent from folder {dest}");
             var agent = builder.LoadAgentFromFile<AgentImporterInDialogflow<AgentModel>>(dest);
+            builder.SaveAgent(agent);
 
             return Ok(agent.Id);
         }
@@ -77,7 +80,7 @@ namespace Platform.Dialogflow.Controllers
         /// <param name="agentId"></param>
         /// <returns></returns>
         [HttpGet("{agentId}")]
-        public ActionResult<Agent> Dump([FromRoute] String agentId)
+        public ActionResult Dump([FromRoute] String agentId)
         {
             return Ok();
         }

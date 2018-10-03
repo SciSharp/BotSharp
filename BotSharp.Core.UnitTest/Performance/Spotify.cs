@@ -1,6 +1,6 @@
 ﻿using Bigtree.Algorithm.Extensions;
-using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
+using BotSharp.Platform.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ namespace BotSharp.Core.UnitTest.Performance
            //double accuracy = correct / (Samples.Count + 0.0);
         }
 
-        private Agent LoadAgent()
+        private AgentBase LoadAgent()
         {
             //_platform = new BotSharpAi();
 

@@ -1,8 +1,8 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
 using BotSharp.NLP;
 using BotSharp.NLP.Classify;
 using BotSharp.NLP.Txt2Vec;
+using BotSharp.Platform.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
@@ -20,7 +20,7 @@ namespace BotSharp.Core.Engines.BotSharp
         public PipeSettings Settings { get; set; }
         private ClassifierFactory<SentenceFeatureExtractor> _classifier;
 
-        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Train(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             Init(meta);
 
@@ -38,7 +38,7 @@ namespace BotSharp.Core.Engines.BotSharp
             return true;
         }
 
-        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Predict(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             Init(meta);
 

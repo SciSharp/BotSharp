@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Platform.Dialogflow.Models
 {
-    public class DialogflowAgent
+    public class DialogflowAgentImportModel
     {
         public String Id { get; set; }
         public String Name { get; set; }

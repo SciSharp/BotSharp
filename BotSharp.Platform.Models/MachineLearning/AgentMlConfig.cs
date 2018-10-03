@@ -1,14 +1,12 @@
-﻿using EntityFrameworkCore.BootKit;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace BotSharp.Core.Agents
+namespace BotSharp.Platform.Models.MachineLearning
 {
-    [Table("Bot_AgentMlConfig")]
-    public class AgentMlConfig : DbRecord, IDbRecord
+    public class AgentMlConfig
     {
         [Required]
         [StringLength(36)]

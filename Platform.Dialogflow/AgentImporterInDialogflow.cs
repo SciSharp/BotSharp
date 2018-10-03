@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Core.Agents;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.Intents;
+using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -32,12 +32,12 @@ namespace Platform.Dialogflow
         {
             // load agent profile
             string data = File.ReadAllText(Path.Combine(AgentDir, "agent.json"));
-            var agent = JsonConvert.DeserializeObject<DialogflowAgent>(data);
+            var agent = JsonConvert.DeserializeObject<DialogflowAgentImportModel>(data);
             agent.Name = agentHeader.Name;
             agent.Id = agentHeader.Id;
 
             var result = agent.ToObject<TAgent>();
-            /*result.ClientAccessToken = agentHeader.ClientAccessToken;
+            result.ClientAccessToken = agentHeader.ClientAccessToken;
             result.DeveloperAccessToken = agentHeader.DeveloperAccessToken;
 
             result.MlConfig = agent.ToObject<AgentMlConfig>();
@@ -47,14 +47,14 @@ namespace Platform.Dialogflow
             {
                 agentHeader.Integrations.ForEach(x => x.AgentId = agent.Id);
                 result.Integrations = agentHeader.Integrations;
-            }*/
+            }
 
             return result;
         }
 
         public void LoadCustomEntities(TAgent agent)
         {
-            //agent.Entities = new List<EntityType>();
+            agent.Entities = new List<EntityType>();
             string entityDir = Path.Combine(AgentDir, "entities");
             if (!Directory.Exists(entityDir)) return;
 
@@ -82,14 +82,14 @@ namespace Platform.Dialogflow
                         }
 
                         var entityType = entity.ToObject<EntityType>();
-                        //agent.Entities.Add(entityType);
+                        agent.Entities.Add(entityType);
                     }
                 });
         }
 
         public void LoadIntents(TAgent agent)
         {
-            //agent.Intents = new List<Intent>();
+            agent.Intents = new List<Intent>();
             string intentDir = Path.Combine(AgentDir, "intents");
             if (!Directory.Exists(intentDir)) return;
 
@@ -109,7 +109,7 @@ namespace Platform.Dialogflow
 
                         var intent = JsonConvert.DeserializeObject<DialogflowIntent>(intentJson);
                         var newIntent = ImportIntentUserSays(agent, intent, fileName);
-                        //agent.Intents.Add(newIntent);
+                        agent.Intents.Add(newIntent);
                     }
                 });
         }
@@ -239,7 +239,7 @@ namespace Platform.Dialogflow
 
         public void LoadBuildinEntities(TAgent agent)
         {
-            /*agent.Intents.ForEach(intent =>
+            agent.Intents.ForEach(intent =>
             {
                 if (intent.UserSays != null)
                 {
@@ -254,7 +254,7 @@ namespace Platform.Dialogflow
                     });
                 }
 
-            });*/
+            });
         }
 
         private void LoadBuildinEntityTypePerUserSay(TAgent agent, IntentExpressionPart data)
@@ -263,17 +263,17 @@ namespace Platform.Dialogflow
 
             if (existedEntityType == null)
             {
-                /*existedEntityType = new EntityType
+                existedEntityType = new EntityType
                 {
                     Name = data.Meta,
                     Entries = new List<EntityEntry>(),
                     IsOverridable = true
-                };*/
+                };
 
                 agent.Entities.Add(existedEntityType);
             }
 
-            /*var entries = existedEntityType.Entries.Select(x => x.Value.ToLower()).ToList();
+            var entries = existedEntityType.Entries.Select(x => x.Value.ToLower()).ToList();
             if (!entries.Contains(data.Text.ToLower()))
             {
                 existedEntityType.Entries.Add(new EntityEntry
@@ -287,36 +287,7 @@ namespace Platform.Dialogflow
                         }
                     }
                 });
-            }*/
-        }
-
-        public void AssembleTrainData(TAgent agent)
-        {
-            // convert agent to training corpus
-            /*agent.Corpus = new TrainingCorpus
-            {
-                Entities = new List<TrainingEntity>(),
-                UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>()
-            };
-
-            agent.Intents.ForEach(intent =>
-            {
-                intent.UserSays.ForEach(say => {
-                    agent.Corpus.UserSays.Add(new TrainingIntentExpression<TrainingIntentExpressionPart>
-                    {
-                        Intent = intent.Name,
-                        Text = String.Join("", say.Data.Select(x => x.Text)),
-                        Entities = say.Data.Where(x => !String.IsNullOrEmpty(x.Meta))
-                        .Select(x => new TrainingIntentExpressionPart
-                        {
-                            Value = x.Text,
-                            Entity = x.Meta,
-                            Start = x.Start
-                        })
-                        .ToList()
-                    });
-                });
-            });*/
+            }
         }
     }
 }

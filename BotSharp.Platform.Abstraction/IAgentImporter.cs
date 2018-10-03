@@ -35,11 +35,5 @@ namespace BotSharp.Platform.Abstraction
         /// </summary>
         /// <param name="agent"></param>
         void LoadBuildinEntities(TAgent agent);
-
-        /// <summary>
-        /// generate training data
-        /// </summary>
-        /// <param name="agent"></param>
-        void AssembleTrainData(TAgent agent);
     }
 }

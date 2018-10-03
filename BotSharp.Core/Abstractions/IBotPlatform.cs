@@ -1,5 +1,4 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Platform.Models;
+﻿using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
 using Newtonsoft.Json.Linq;

@@ -1,5 +1,4 @@
 ﻿using BotSharp.Core;
-using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
 using BotSharp.Models.NLP;
 using BotSharp.Platform.Abstraction;
@@ -144,7 +143,7 @@ namespace Platform.Articulate
             var modelPath = Path.Combine(projectPath, model);
 
             var trainer = new BotTrainer();
-            var parsedAgent = agent.ToObject<Agent>();
+            var parsedAgent = agent.ToObject<AgentModel>();
 
             var intents = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>();
 
@@ -211,7 +210,7 @@ namespace Platform.Articulate
             var agent = GetAgentById(request.AgentId);
 
             var preditor = new BotPredictor();
-            var doc = preditor.Predict(agent.ToObject<Agent>(), request).Result;
+            var doc = preditor.Predict(agent, request).Result;
 
             var parameters = new Dictionary<String, Object>();
             if (doc.Sentences[0].Entities == null)

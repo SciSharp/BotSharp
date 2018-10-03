@@ -1,5 +1,4 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
 using BotSharp.NLP;
 using BotSharp.Platform.Models;
 using BotSharp.RestApi.Integrations.FacebookMessenger;

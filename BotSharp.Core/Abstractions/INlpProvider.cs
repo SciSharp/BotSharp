@@ -1,5 +1,5 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
+using BotSharp.Platform.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +9,6 @@ namespace BotSharp.Core.Abstractions
 {
     public interface INlpProvider : INlpPipeline
     {
-        Task<bool> Load(Agent agent, PipeModel meta);
+        Task<bool> Load(AgentBase agent, PipeModel meta);
     }
 }

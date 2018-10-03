@@ -1,6 +1,6 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Platform.Models;
+﻿using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.Intents;
+using BotSharp.Platform.Models.MachineLearning;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,21 +13,10 @@ namespace Platform.Dialogflow.Models
     {
         public AgentModel()
         {
-            CreatedDate = DateTime.UtcNow;
+            
         }
 
-        [Required]
-        [MaxLength(64)]
-        public String Name { get; set; }
-
-        [MaxLength(256)]
-        public String Description { get; set; }
-
         public Boolean Published { get; set; }
-
-        [Required]
-        [MaxLength(5)]
-        public String Language { get; set; }
 
         /// <summary>
         /// Only access text/ audio rquest
@@ -54,14 +43,9 @@ namespace Platform.Dialogflow.Models
             }
         }
 
-        [Required]
-        public DateTime CreatedDate { get; set; }
-
         public Boolean IsSkillSet { get; set; }
 
         public AgentMlConfig MlConfig { get; set; }
-
-        public TrainingCorpus Corpus { get; set; }
 
         public List<AgentIntegration> Integrations { get; set; }
     }

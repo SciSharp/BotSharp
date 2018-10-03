@@ -1,9 +1,9 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Models.NLP;
+﻿using BotSharp.Models.NLP;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
+using BotSharp.Platform.Models.Intents;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +26,7 @@ namespace BotSharp.Core.Engines
     {
         protected Database dc;
 
-        protected Agent agent { get; set; }
+        protected AgentBase agent { get; set; }
 
         public BotEngineBase()
         {
@@ -75,7 +75,7 @@ namespace BotSharp.Core.Engines
             };
         }
 
-        public TrainingCorpus GetIntentExpressions(Agent agent)
+        /*public TrainingCorpus GetIntentExpressions(AgentBase agent)
         {
             TrainingCorpus corpus = new TrainingCorpus()
             {
@@ -83,7 +83,7 @@ namespace BotSharp.Core.Engines
                 Entities = new List<TrainingEntity>()
             };
 
-            //var expressParts = new List<IntentExpressionPart>();
+            var expressParts = new List<IntentExpressionPart>();
 
             var intents = agent.Intents;
 
@@ -116,7 +116,7 @@ namespace BotSharp.Core.Engines
                         say.Entities.Add(part);
 
                         // assemble entity synonmus
-                        /*if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
+                        if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
                         {
                             var allSynonyms = (from e in dc.Table<EntityType>()
                                                join ee in dc.Table<EntityEntry>() on e.Id equals ee.EntityId
@@ -132,7 +132,7 @@ namespace BotSharp.Core.Engines
                             };
 
                             trainingData.Entities.Add(te);
-                        }*/
+                        }
                     });
 
                     corpus.UserSays.Add(say);
@@ -143,7 +143,7 @@ namespace BotSharp.Core.Engines
             corpus.UserSays = corpus.UserSays.Where(x => x.Intent != "Default Fallback Intent").ToList();
 
             return corpus;
-        }
+        }*/
 
         public TrainingCorpus GetIntentExpressions()
         {

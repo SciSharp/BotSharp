@@ -18,7 +18,6 @@ namespace BotSharp.WebHost
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     var env = hostingContext.HostingEnvironment;
-                    Console.WriteLine($"ContentRootPath: {env.ContentRootPath}");
                     string dir = Path.GetFullPath(env.ContentRootPath);
                     string settingsFolder = Path.Combine(dir, "Settings");
 

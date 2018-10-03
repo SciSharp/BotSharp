@@ -1,5 +1,4 @@
 ﻿using BotSharp.Core;
-using BotSharp.Core.Agents;
 using BotSharp.Core.Engines;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;

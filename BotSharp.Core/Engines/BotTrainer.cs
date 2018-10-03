@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
 using BotSharp.Platform.Models;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
@@ -33,7 +32,7 @@ namespace BotSharp.Core.Engines
             this.agentId = agentId;
         }
 
-        public async Task<ModelMetaData> Train(Agent agent, BotTrainOptions options)
+        public async Task<ModelMetaData> Train(AgentBase agent, BotTrainOptions options)
         {
             var data = new NlpDoc();
 

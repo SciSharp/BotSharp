@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using BotSharp.Core.Agents;
 using BotSharp.Platform.Models;
 
 namespace BotSharp.Core.Engines.BotSharp
@@ -11,9 +10,9 @@ namespace BotSharp.Core.Engines.BotSharp
     {
         public override async Task Train(BotTrainOptions options)
         {
-            agent.Corpus = GetIntentExpressions(agent);
+            /*agent.Corpus = GetIntentExpressions(agent);
             var trainer = new BotTrainer(agent.Id, dc);
-            await trainer.Train(agent, options);
+            await trainer.Train(agent, options);*/
         }
     }
 }
