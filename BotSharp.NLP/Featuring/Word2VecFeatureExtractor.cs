@@ -42,7 +42,7 @@ namespace BotSharp.NLP.Featuring
             if(Vg == null)
             {
                 Args args = new Args();
-                args.ModelFile = @"C:\Users\bpeng\Desktop\BoloReborn\Txt2VecDemo\wordvec_enu.bin";
+                args.ModelFile = ModelFile;
                 Vg = new VectorGenerator(args);
                 SentenceVectorSize = this.Vg.Model.VectorSize;
                 Features = new List<string>();
