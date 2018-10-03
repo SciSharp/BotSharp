@@ -11,11 +11,13 @@ namespace Txt2Vec
 {
     public class VectorGenerator
     {
-        Txt2Vec.Model model = new Txt2Vec.Model();
+        public Model Model { get; set; }
+        // Txt2Vec.Model model = new Txt2Vec.Model();
         Dictionary<string, Vec> dict = new Dictionary<string, Vec>();
 
         public VectorGenerator(Args args)
         {
+            this.Model = new Txt2Vec.Model();
             bool bTxtFormat = false;
             string strModelFileName = args.ModelFile;
 
@@ -30,7 +32,7 @@ namespace Txt2Vec
                 throw new IOException();
             }
 
-            model.LoadModel(strModelFileName, bTxtFormat);
+            this.Model.LoadModel(strModelFileName, bTxtFormat);
         }
 
         public List<Vec> Sentence2Vec(List<string> sentences, WeightingScheme weightingScheme = WeightingScheme.AVG)
@@ -40,18 +42,20 @@ namespace Txt2Vec
             List<List<double>> weights = null;// tfidfGenerator.TFIDFWeightVectorsForSentences(sentences.ToArray());
 
             List<List<Vec>> matixList = new List<List<Vec>>();
-            
+            List<Vec> sentenceVectorList = new List<Vec>();
             sentences.ForEach (sentence=>{
-                List<Vec> sentenceVectorList = new List<Vec>();
-                string[] words = sentence.Split(' ');
-                foreach (string word in words)
-                {
-                    Vec vec = Word2Vec(word.ToLower());
-                    sentenceVectorList.Add(vec);
-                }
-                matixList.Add(sentenceVectorList);
+                //List<Vec> sentenceVectorList = new List<Vec>();
+                //string[] words = sentence.Split(' ');
+                //foreach (string word in words)
+                //{
+                //    Vec vec = Word2Vec(word.ToLower());
+                //    sentenceVectorList.Add(vec);
+                //}
+                //matixList.Add(sentenceVectorList);
             });
 
+            return sentenceVectorList;
+            /*
             List<Vec> vectorList = new List<Vec>();
             // Traverse each sentence
             for (int i = 0; i < sentences.Count; i++)
@@ -98,6 +102,7 @@ namespace Txt2Vec
                 
             }
             return vectorList;
+            */
         }
 
         public Vec SingleSentence2Vec(string sentence, WeightingScheme weightingScheme = WeightingScheme.AVG)
@@ -156,7 +161,7 @@ namespace Txt2Vec
         {
             Vec vec= new Vec();
 
-            Txt2Vec.Decoder decoder = new Txt2Vec.Decoder(model);
+            Txt2Vec.Decoder decoder = new Txt2Vec.Decoder(Model);
             string[] termList = new string[1];
             termList[0] = word;
             vec.VecNodes = decoder.ToVector(termList).ToList();
@@ -167,7 +172,7 @@ namespace Txt2Vec
         public double Similarity(Vec vec1, Vec vec2)
         {
             double score = 0;
-            for (int i = 0; i < model.VectorSize; i++)
+            for (int i = 0; i < Model.VectorSize; i++)
             {
                 score += vec1.VecNodes[i] * vec2.VecNodes[i];
             }

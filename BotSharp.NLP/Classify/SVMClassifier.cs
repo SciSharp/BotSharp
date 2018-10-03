@@ -124,7 +124,8 @@ namespace BotSharp.NLP.Classify
 
         public List<Node[]> GetData(List<Sentence> sentences)
         {
-            var extractor = new CountFeatureExtractor();
+            // var extractor = new CountFeatureExtractor();
+            var extractor = new Word2VecFeatureExtractor();
             extractor.Sentences = sentences;
             if(features != null)
             {
