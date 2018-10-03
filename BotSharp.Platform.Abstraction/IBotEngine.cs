@@ -1,15 +1,17 @@
 ﻿using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Core.Engines
+namespace BotSharp.Platform.Abstraction
 {
-    public interface IBotPlatform
+    /// <summary>
+    /// BotEngine is the NLU of bot platform
+    /// </summary>
+    public interface IBotEngine
     {
         AiResponse TextRequest(AiRequest request);
 

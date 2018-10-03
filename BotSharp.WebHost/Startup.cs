@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Engines;
+using BotSharp.Platform.Abstraction;
 using DotNetToolkit;
 using DotNetToolkit.JwtHelper;
 using EntityFrameworkCore.BootKit;
@@ -62,14 +63,14 @@ namespace BotSharp.WebHost
             });
 
             // register platform dependency
-            services.AddTransient<IBotPlatform>((provider) =>
+            services.AddTransient<IBotEngine>((provider) =>
             {
                 var assemblies = (String[])AppDomain.CurrentDomain.GetData("Assemblies");
                 var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-                var implements = TypeHelper.GetClassesWithInterface<IBotPlatform>(assemblies);
+                var implements = TypeHelper.GetClassesWithInterface<IBotEngine>(assemblies);
                 string platform = config.GetValue<String>("BotPlatform");
                 var implement = implements.FirstOrDefault(x => x.Name.Split('.').Last() == platform);
-                var instance = (IBotPlatform)Activator.CreateInstance(implement);
+                var instance = (IBotEngine)Activator.CreateInstance(implement);
 
                 return instance;
             });
@@ -91,14 +92,6 @@ namespace BotSharp.WebHost
             app.UseSwaggerUI(c =>
             {
                 var info = Configuration.GetSection("Swagger").Get<Info>();
-
-#if DIALOGFLOW
-                info.Title += " (DIALOGFLOW)";
-#elif RASA
-                info.Title += " (RASA)";
-#elif ARTICULATE
-                info.Title += " (ARTICULATE)";
-#endif
 
                 c.SupportedSubmitMethods(SubmitMethod.Get, SubmitMethod.Post, SubmitMethod.Put, SubmitMethod.Patch, SubmitMethod.Delete);
                 c.ShowExtensions();

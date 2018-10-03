@@ -9,12 +9,9 @@ using System.Text;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class SettingsController : ControllerBase
     {
-        private readonly IConfiguration configuration;
-
         [HttpGet]
         public SettingsModel GetSettings()
         {
@@ -51,5 +48,4 @@ namespace Platform.Articulate.Controllers
             return settings;
         }
     }
-#endif
 }

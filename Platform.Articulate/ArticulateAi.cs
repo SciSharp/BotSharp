@@ -136,62 +136,18 @@ namespace Platform.Articulate
         public async Task<bool> Train(TAgent agent, TrainingCorpus corpus)
         {
             string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id);
-
-            // save corpus to agent dir
-            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id);
             var model = "model_" + DateTime.UtcNow.ToString("yyyyMMdd");
-            var modelPath = Path.Combine(projectPath, model);
 
             var trainer = new BotTrainer();
-            var parsedAgent = agent.ToObject<AgentModel>();
-
-            var intents = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>();
-
-            foreach (DomainModel domain in (agent as AgentModel).Domains)
-            {
-                foreach (IntentModel intent in domain.Intents)
-                {
-                    foreach (IntentExampleModel example in intent.Examples)
-                    {
-                        var parsedIntent = new TrainingIntentExpression<TrainingIntentExpressionPart>
-                        {
-                            Intent = intent.IntentName,
-                            Text = example.UserSays,
-                            Entities = example.Entities.Select(x => new TrainingIntentExpressionPart
-                            {
-                                Entity = x.Entity,
-                                Start = x.Start,
-                                Value = x.Value
-                            }).ToList()
-                        };
-
-                        intents.Add(parsedIntent);
-                    }
-                }
-            }
-
-            parsedAgent.Corpus = new TrainingCorpus
-            {
-                Entities = (agent as AgentModel).Entities.Select(x => new TrainingEntity
-                {
-                    Entity = x.EntityName,
-                    Values = x.Examples.Select(y => new TrainingEntitySynonym
-                    {
-                        Value = y.Value,
-                        Synonyms = y.Synonyms
-                    }).ToList()
-                }).ToList(),
-
-                UserSays = intents
-            };
+            agent.Corpus = corpus;
 
             var trainOptions = new BotTrainOptions
             {
-                AgentDir = projectPath,
+                AgentDir = agentDir,
                 Model = model
             };
 
-            var info = await trainer.Train(parsedAgent, trainOptions);
+            var info = await trainer.Train(agent, trainOptions);
 
             return true;
         }

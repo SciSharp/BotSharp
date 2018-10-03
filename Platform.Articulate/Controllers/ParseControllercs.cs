@@ -14,7 +14,6 @@ using Console = Colorful.Console;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class ParseControllercs : ControllerBase
     {
@@ -45,5 +44,4 @@ namespace Platform.Articulate.Controllers
             return Ok(response);
         }
     }
-#endif
 }

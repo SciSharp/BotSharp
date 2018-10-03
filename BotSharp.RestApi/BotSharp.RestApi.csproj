@@ -74,10 +74,13 @@
   <ItemGroup>
     <Compile Remove="Authentication\**" />
     <Compile Remove="Rasa\**" />
+    <Compile Remove="Voice\**" />
     <EmbeddedResource Remove="Authentication\**" />
     <EmbeddedResource Remove="Rasa\**" />
+    <EmbeddedResource Remove="Voice\**" />
     <None Remove="Authentication\**" />
     <None Remove="Rasa\**" />
+    <None Remove="Voice\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -91,7 +94,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
-    <ProjectReference Include="..\BotSharp.Voice\BotSharp.Voice.csproj" />
   </ItemGroup>
 
 </Project>

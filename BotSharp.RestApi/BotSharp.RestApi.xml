@@ -14,11 +14,5 @@
             PSID
             </summary>
         </member>
-        <member name="M:BotSharp.RestApi.Ontology.EntityController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
-            <summary>
-            Initialize dialog controller and get a platform instance
-            </summary>
-            <param name="platform"></param>
-        </member>
     </members>
 </doc>

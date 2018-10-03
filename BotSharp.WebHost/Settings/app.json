@@ -1,6 +1,6 @@
 ﻿{
   "Assemblies": "BotSharp.Core",
-  "BotPlatform": "BotSharpAi",
+  "BotEngine": "BotSharpAi",
   "Version": "0.1.0",
 
   "MachineLearning": {

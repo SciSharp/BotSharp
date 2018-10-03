@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class TrainController : ControllerBase
     {
@@ -38,5 +37,4 @@ namespace Platform.Articulate.Controllers
             return agent;
         }
     }
-#endif
 }

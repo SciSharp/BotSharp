@@ -13,7 +13,6 @@ using System.Text;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class EntityController : ControllerBase
     {
@@ -67,5 +66,4 @@ namespace Platform.Articulate.Controllers
             return entity;
         }
     }
-#endif
 }

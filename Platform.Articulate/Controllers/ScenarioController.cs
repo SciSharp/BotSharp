@@ -12,7 +12,6 @@ using System.Text;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class ScenarioController : ControllerBase
     {
@@ -63,5 +62,4 @@ namespace Platform.Articulate.Controllers
             return scenario;
         }
     }
-#endif
 }

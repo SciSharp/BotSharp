@@ -16,19 +16,17 @@ using System.Text.RegularExpressions;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class AgentController : ControllerBase
     {
-        private readonly IConfiguration configuration;
-        private readonly IBotPlatform _platform;
+        private readonly IBotEngine _platform;
         private ArticulateAi<AgentModel> builder;
 
         /// <summary>
         /// Initialize agent controller and get a platform instance
         /// </summary>
         /// <param name="platform"></param>
-        public AgentController(IBotPlatform platform, IConfiguration configuration)
+        public AgentController(IBotEngine platform, IConfiguration configuration)
         {
             _platform = platform;
             builder = new ArticulateAi<AgentModel>();
@@ -79,5 +77,4 @@ namespace Platform.Articulate.Controllers
             return agent;
         }
     }
-#endif
 }

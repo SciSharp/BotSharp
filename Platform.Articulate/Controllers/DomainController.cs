@@ -15,7 +15,6 @@ using System.Text.RegularExpressions;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class DomainController : ControllerBase
     {
@@ -68,5 +67,4 @@ namespace Platform.Articulate.Controllers
             return new DomainPageViewModel { Domains = agent.Domains, Total = agent.Domains.Count };
         }
     }
-#endif
 }

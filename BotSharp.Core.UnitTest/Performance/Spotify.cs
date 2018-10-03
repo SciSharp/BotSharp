@@ -1,5 +1,6 @@
 ﻿using Bigtree.Algorithm.Extensions;
 using BotSharp.Core.Engines;
+using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -14,7 +15,7 @@ namespace BotSharp.Core.UnitTest.Performance
     public class Spotify : TestEssential
     {
         //private List<Tuple<AIRequest, string>> Samples;
-        private IBotPlatform _platform;
+        private IBotEngine _platform;
 
         [TestMethod]
         public void IntentAccuracy()

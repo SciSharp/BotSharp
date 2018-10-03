@@ -64,6 +64,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Abstraction\BotSharp.Platform.Abstraction.csproj" />
     <ProjectReference Include="..\BotSharp.RestApi\BotSharp.RestApi.csproj" />
   </ItemGroup>
 

@@ -39,10 +39,10 @@ namespace BotSharp.Core.Engines
             // Get NLP Provider
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
-            var platform = config.GetSection($"BotPlatform").Value;
-            string providerName = config.GetSection($"{platform}:Provider").Value;
+            var engine = config.GetSection($"BotEngine").Value;
+            string providerName = config.GetSection($"{engine}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpProvider;
-            provider.Configuration = config.GetSection(platform);
+            provider.Configuration = config.GetSection(engine);
 
             var pipeModel = new PipeModel
             {
@@ -73,7 +73,7 @@ namespace BotSharp.Core.Engines
 
             var meta = new ModelMetaData
             {
-                Platform = platform,
+                Platform = engine,
                 Language = agent.Language,
                 TrainingDate = DateTime.UtcNow,
                 Version = config.GetValue<String>($"Version"),

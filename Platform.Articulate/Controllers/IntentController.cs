@@ -14,7 +14,6 @@ using System.Text;
 
 namespace Platform.Articulate.Controllers
 {
-#if ARTICULATE
     [Route("[controller]")]
     public class IntentController : ControllerBase
     {
@@ -127,5 +126,4 @@ namespace Platform.Articulate.Controllers
             return new IntentPageViewModel { Intents = intents, Total = intents.Count };
         }
     }
-#endif
 }
