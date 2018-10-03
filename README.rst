@@ -16,10 +16,6 @@ The Open Source AI Bot Platform Builder
     :alt: NuGet
 
 
-.. raw:: html
-
-    <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png" width="100px">
-
 This project is for learning purposes only, please do not use it in a production environment.
 **********************************************************************************************
 
