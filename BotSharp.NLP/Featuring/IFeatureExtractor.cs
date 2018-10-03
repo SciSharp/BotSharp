@@ -30,7 +30,7 @@ namespace BotSharp.NLP.Featuring
         /// <summary>
         /// Vectorize sentence
         /// </summary>
-        void Vectorize();
+        void Vectorize(List<string> features);
 
         /// <summary>
         /// Array shape

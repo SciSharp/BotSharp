@@ -13,6 +13,7 @@ namespace BotSharp.NLP.Classify
         public string ModelName { get; set; }
 
         public string FeaturesFileName { get; set; }
+        public string FeaturesInTfIdfFileName { get; set; }
         public string DictionaryFileName { get; set; }
         public string CategoriesFileName { get; set; }
 

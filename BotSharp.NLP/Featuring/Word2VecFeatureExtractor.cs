@@ -18,30 +18,48 @@ namespace BotSharp.NLP.Featuring
 
         public Word2VecFeatureExtractor()
         {
-            Args args = new Args();
-            args.ModelFile = "C:\\Users\\bpeng\\Desktop\\BoloReborn\\BotSharp\\BotSharp.WebHost\\App_Data\\wordvec_enu.bin";
-            this.Vg = new VectorGenerator(args);
-            this.SentenceVectorSize = this.Vg.Model.VectorSize * MaxSentenceTokenCounts();
+
         }
 
-        public void Vectorize()
+        public void Vectorize(List<string> features)
         {
+            Init();
+
             Sentences.ForEach(s => {
-                Vec sentenceVec = new Vec();
+                List<string> wordLemmas = new List<string>();
                 s.Words.ForEach(word => {
-                    Vec wordVec = Vg.Word2Vec(word.Text);
-                    sentenceVec.VecNodes.AddRange(wordVec.VecNodes);
+                    if (features.Contains(word.Lemma))
+                    {
+                        wordLemmas.Add(word.Lemma);
+                    }
                 });
-                while (sentenceVec.VecNodes.Count != SentenceVectorSize)
-                {
-                    sentenceVec.VecNodes.Add(0);
-                }
+                Vec sentenceVec = Vg.Sent2Vec(wordLemmas);
+
                 s.Vector = sentenceVec.VecNodes.ToArray();
             });
+
+
+        }
+
+        private void Init()
+        {
+            if(Vg == null)
+            {
+                Args args = new Args();
+                args.ModelFile = @"C:\Users\bpeng\Desktop\BoloReborn\Txt2VecDemo\wordvec_enu.bin";
+                Vg = new VectorGenerator(args);
+                SentenceVectorSize = this.Vg.Model.VectorSize * MaxSentenceTokenCounts();
+                Features = new List<string>();
+                for (int i = 0; i < SentenceVectorSize; i++)
+                {
+                    Features.Add($"f-{i}");
+                }
+            }
         }
 
         private int MaxSentenceTokenCounts()
         {
+            return 1;
             int maxCount = 0;
             Sentences.ForEach(s=> {
                 if (s.Words.Count > maxCount)

@@ -37,7 +37,7 @@ namespace BotSharp.NLP.Featuring
         public List<string> Features { get; set; }
         public Shape Shape { get; set; }
 
-        public void Vectorize()
+        public void Vectorize(List<string> features)
         {
             CalculateDictionary();
 

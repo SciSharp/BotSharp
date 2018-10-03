@@ -169,6 +169,30 @@ namespace Txt2Vec
             return vec;
         }
 
+        public Vec Sent2Vec(List<string> words)
+        {
+            Vec vec = new Vec();
+
+            Txt2Vec.Decoder decoder = new Txt2Vec.Decoder(Model);
+            string[] termList = words.ToArray();
+            vec.VecNodes = decoder.ToVector(termList).ToList();
+
+            return vec;
+        }
+
+        public void Distance(List<string> words)
+        {
+
+            Txt2Vec.Decoder decoder = new Txt2Vec.Decoder(Model);
+            words.ForEach(word=> {
+                Console.WriteLine($"current word: {word}");
+                List<Result> sysnonyms = decoder.Distance(word);
+                sysnonyms.ForEach(s=> {
+                    Console.WriteLine($"{s.strTerm}: {s.score}");
+                });
+            });
+        }
+
         public double Similarity(Vec vec1, Vec vec2)
         {
             double score = 0;

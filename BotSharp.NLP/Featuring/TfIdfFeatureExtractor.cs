@@ -192,7 +192,7 @@ namespace BotSharp.NLP.Featuring
             return result;
         }
 
-        public void Vectorize()
+        public void Vectorize(List<string> features)
         {
             throw new NotImplementedException();
         }
