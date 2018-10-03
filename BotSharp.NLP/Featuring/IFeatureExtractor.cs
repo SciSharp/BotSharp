@@ -36,5 +36,10 @@ namespace BotSharp.NLP.Featuring
         /// Array shape
         /// </summary>
         Shape Shape { get; set; }
+
+        /// <summary>
+        /// Pre-trained model file path
+        /// </summary>
+        string ModelFile { get; set; }
     }
 }

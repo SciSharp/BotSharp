@@ -11,6 +11,7 @@ namespace BotSharp.NLP.Classify
         public string ModelFilePath { get; set; }
         public string ModelDir { get; set; }
         public string ModelName { get; set; }
+        public string Word2VecFilePath { get; set; }
 
         public string FeaturesFileName { get; set; }
         public string FeaturesInTfIdfFileName { get; set; }

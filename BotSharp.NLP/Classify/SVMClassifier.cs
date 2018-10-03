@@ -57,7 +57,7 @@ namespace BotSharp.NLP.Classify
 
             // copy test multiclass Model
             Problem train = new Problem();
-            train.X = GetData(sentences).ToArray();
+            train.X = GetData(sentences, options).ToArray();
             train.Y = GetLabels(sentences).ToArray();
             train.Count = train.X.Count();
             train.MaxIndex = train.X[0].Count();//int.MaxValue;
@@ -104,7 +104,7 @@ namespace BotSharp.NLP.Classify
         public double[][] Predict(Sentence sentence, ClassifyOptions options)
         {
             Problem predict = new Problem();
-            predict.X = GetData(new List<Sentence> { sentence }).ToArray();
+            predict.X = GetData(new List<Sentence> { sentence }, options).ToArray();
             predict.Y = new double[1];
             predict.Count = predict.X.Count();
             predict.MaxIndex = features.Count;
@@ -129,10 +129,11 @@ namespace BotSharp.NLP.Classify
             return labels;
         }
 
-        public List<Node[]> GetData(List<Sentence> sentences)
+        public List<Node[]> GetData(List<Sentence> sentences, ClassifyOptions options)
         {
             //var extractor = new CountFeatureExtractor();
             var extractor = new Word2VecFeatureExtractor();
+            extractor.ModelFile = options.Word2VecFilePath;
             extractor.Sentences = sentences;
             if(features != null)
             {

@@ -72,8 +72,15 @@ namespace BotSharp.Core.Engines.BotSharp
                 {
                     ModelFilePath = Path.Combine(Settings.ModelDir, meta.Model),
                     ModelDir = Settings.ModelDir,
-                    ModelName = meta.Model
+                    ModelName = meta.Model,
+                    Word2VecFilePath = Configuration.GetValue<string>("wordvecModel")
                 };
+
+                if (!String.IsNullOrEmpty(options.Word2VecFilePath))
+                {
+                    string contentDir = AppDomain.CurrentDomain.GetData("DataPath").ToString();
+                    options.Word2VecFilePath = options.Word2VecFilePath.Replace("|App_Data|", contentDir + System.IO.Path.DirectorySeparatorChar);
+                }
 
                 _classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
 

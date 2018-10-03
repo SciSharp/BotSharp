@@ -14,7 +14,8 @@
     },
 
     "botSharpIntentClassifier": {
-      "classifer": "NaiveBayesClassifier"
+      "classifer": "SVMClassifier",
+      "wordvecModel": "|App_Data|wordvec_enu.bin"
     },
 
     "botSharpTagger": {
