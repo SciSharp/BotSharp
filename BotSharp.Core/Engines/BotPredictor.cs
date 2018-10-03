@@ -58,7 +58,7 @@ namespace BotSharp.Core.Engines
 
 
             // pipe process
-            var pipelines = provider.Configuration.GetValue<String>($"Pipe")
+            var pipelines = config.GetValue<String>($"{meta.BotEngine}:pipe")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
@@ -66,9 +66,10 @@ namespace BotSharp.Core.Engines
             for(int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
                 var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpPredict;
-                pipe.Configuration = provider.Configuration.GetSection(pipelines[pipeIdx]);
+                pipe.Configuration = config.GetSection(meta.BotEngine).GetSection(pipelines[pipeIdx]);
                 pipe.Settings = settings;
-                await pipe.Predict(agent, data, meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]));
+                var pipeModel = meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]);
+                await pipe.Predict(agent, data, pipeModel);
             }
 
             Console.WriteLine($"Prediction result:", Color.Green);
