@@ -39,7 +39,7 @@ namespace BotSharp.NLP.UnitTest
             sentences.Add("The sun in the sky is bright.");
             sentences.Add("We can see the shining sun, the bright sun.");
             Args args = new Args();
-            args.ModelFile = "C:\\Users\\bpeng\\Desktop\\BoloReborn\\BotSharp.NLP\\BotSharp.NLP.UnitTest\\wordvec_enu.bin";
+            args.ModelFile = "C:\\Users\\bpeng\\Desktop\\BoloReborn\\BotSharp\\BotSharp.WebHost\\App_Data\\wordvec_enu.bin";
             VectorGenerator vg = new VectorGenerator(args);
             var list = vg.Sentence2Vec(sentences);
         }

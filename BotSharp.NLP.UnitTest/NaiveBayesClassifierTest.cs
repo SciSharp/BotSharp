@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Algorithm.Extensions;
+using Bigtree.Algorithm.Extensions;
 using BotSharp.NLP.Txt2Vec;
 
 namespace BotSharp.NLP.UnitTest

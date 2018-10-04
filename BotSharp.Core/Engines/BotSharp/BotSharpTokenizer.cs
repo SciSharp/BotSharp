@@ -1,8 +1,8 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
-using BotSharp.Core.Intents;
 using BotSharp.NLP;
 using BotSharp.NLP.Tokenize;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ namespace BotSharp.Core.Engines.BotSharp
 
         }
 
-        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Predict(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             Init();
 
@@ -37,7 +37,7 @@ namespace BotSharp.Core.Engines.BotSharp
             return true;
         }
 
-        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Train(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             Init();
 

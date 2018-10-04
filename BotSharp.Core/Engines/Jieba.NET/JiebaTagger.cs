@@ -1,5 +1,4 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
 using BotSharp.NLP;
 using BotSharp.NLP.Tag;
 using JiebaNet.Segmenter;

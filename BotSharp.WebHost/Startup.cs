@@ -1,8 +1,5 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines;
-using DotNetToolkit;
+﻿using Colorful;
 using DotNetToolkit.JwtHelper;
-using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -12,8 +9,11 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using Console = Colorful.Console;
 
 namespace BotSharp.WebHost
 {
@@ -57,23 +57,17 @@ namespace BotSharp.WebHost
                 var info = Configuration.GetSection("Swagger").Get<Info>();
                 c.SwaggerDoc(info.Version, info);
 
-                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
-                c.IncludeXmlComments(filePath);
+                //var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
+                //c.IncludeXmlComments(filePath);
+
                 c.OperationFilter<SwaggerFileUploadOperation>();
             });
 
             // register platform dependency
-            services.AddTransient<IBotPlatform>((provider) =>
+            /*services.AddTransient<IBotEngine>((provider) =>
             {
-                var assemblies = (String[])AppDomain.CurrentDomain.GetData("Assemblies");
-                var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-                var implements = TypeHelper.GetClassesWithInterface<IBotPlatform>(assemblies);
-                string platform = config.GetValue<String>("BotPlatform");
-                var implement = implements.FirstOrDefault(x => x.Name.Split('.').Last() == platform);
-                var instance = (IBotPlatform)Activator.CreateInstance(implement);
-
                 return instance;
-            });
+            });*/
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -83,6 +77,8 @@ namespace BotSharp.WebHost
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
@@ -91,21 +87,17 @@ namespace BotSharp.WebHost
             {
                 var info = Configuration.GetSection("Swagger").Get<Info>();
 
-#if DIALOGFLOW
-                info.Title += " (DIALOGFLOW)";
-#elif RASA
-                info.Title += " (RASA)";
-#endif
-
                 c.SupportedSubmitMethods(SubmitMethod.Get, SubmitMethod.Post, SubmitMethod.Put, SubmitMethod.Patch, SubmitMethod.Delete);
                 c.ShowExtensions();
                 c.SwaggerEndpoint(Configuration.GetValue<String>("Swagger:Endpoint"), info.Title);
                 c.RoutePrefix = String.Empty;
                 c.DocumentTitle = info.Title;
                 c.InjectStylesheet(Configuration.GetValue<String>("Swagger:Stylesheet"));
-            });
 
-            app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+                Console.WriteLine($"{info.Title} [{info.Version}] {info.License.Name}", Color.Gray);
+                Console.WriteLine($"{info.Description}", Color.Gray);
+                Console.WriteLine($"{info.Contact.Name}", Color.Gray);
+            });
 
             app.Use(async (context, next) =>
             {
@@ -133,6 +125,25 @@ namespace BotSharp.WebHost
             loader.Env = env;
             loader.Config = Configuration;
             loader.Load();*/
+
+            // load dll dynamic
+            /*Assembly library = Assembly.LoadFile(Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.Platform.Articulate.dll"));
+            Type myClass = (from type in library.GetExportedTypes()
+                where typeof(IMyInterface).IsAssignableFrom(type)
+                select type)
+                .Single();*/
+
+            var platform = Configuration.GetValue<string>("Platform");
+            var engine = Configuration.GetValue<string>($"{platform}:BotEngine");
+            Formatter[] settings = new Formatter[]
+            {
+                new Formatter(platform, Color.Yellow),
+                new Formatter(engine, Color.Yellow),
+            };
+
+            Console.WriteLine();
+            Console.WriteLineFormatted("Platform Emulator: {0} powered by {1} engine.", Color.White, settings);
+            Console.WriteLine();
         }
     }
 }

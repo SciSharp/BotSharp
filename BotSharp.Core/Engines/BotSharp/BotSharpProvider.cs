@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
@@ -14,7 +15,7 @@ namespace BotSharp.Core.Engines.BotSharp
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Load(Agent agent, PipeModel meta)
+        public async Task<bool> Load(AgentBase agent, PipeModel meta)
         {
             meta.Meta = JObject.FromObject(new { version = "0.1.0" });
 

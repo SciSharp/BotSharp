@@ -16,12 +16,13 @@
     <PackageTags>NLU, Chatbot, Bot, AI Bot</PackageTags>
     <PackageReleaseNotes>Restful API for BotSharp.Core</PackageReleaseNotes>
     <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA</Configurations>
+    <Configurations>Debug;Release;RASA NLU;DIALOGFLOW;RASA;ARTICULATE</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>bin\Debug\netstandard2.0\BotSharp.RestApi.xml</DocumentationFile>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <OutputPath />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RASA|AnyCPU'">
@@ -65,10 +66,22 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ARTICULATE|AnyCPU'">
+    <DefineConstants>TRACE;ARTICULATE</DefineConstants>
+    <DocumentationFile>bin\ARTICULATE\BotSharp.RestApi.xml</DocumentationFile>
+    <OutputPath>bin\ARTICULATE</OutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Authentication\**" />
+    <Compile Remove="Rasa\**" />
+    <Compile Remove="Voice\**" />
     <EmbeddedResource Remove="Authentication\**" />
+    <EmbeddedResource Remove="Rasa\**" />
+    <EmbeddedResource Remove="Voice\**" />
     <None Remove="Authentication\**" />
+    <None Remove="Rasa\**" />
+    <None Remove="Voice\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -76,12 +89,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
-    <ProjectReference Include="..\BotSharp.Voice\BotSharp.Voice.csproj" />
   </ItemGroup>
 
 </Project>

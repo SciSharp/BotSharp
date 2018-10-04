@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using BotSharp.Models.CRFLite.Utils;
+using Bigtree.Algorithm.CRFLite.Utils;
 
 namespace Txt2Vec
 {

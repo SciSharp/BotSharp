@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
-using BotSharp.Core.Models;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.AiRequest;
+using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ namespace BotSharp.Core.Engines
 {
     public class BotPredictor
     {
-        public async Task<NlpDoc> Predict(Agent agent, AIRequest request)
+        public async Task<NlpDoc> Predict(AgentBase agent, AiRequest request)
         {
             // load model
             var dir = Path.Combine(request.AgentDir, request.Model);
@@ -41,7 +42,7 @@ namespace BotSharp.Core.Engines
                 {
                     new NlpDocSentence
                     {
-                        Text = request.Query.FirstOrDefault()
+                        Text = request.Text
                     }
                 }
             };
@@ -57,7 +58,7 @@ namespace BotSharp.Core.Engines
 
 
             // pipe process
-            var pipelines = provider.Configuration.GetValue<String>($"Pipe")
+            var pipelines = config.GetValue<String>($"{meta.BotEngine}:pipe")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
@@ -65,9 +66,10 @@ namespace BotSharp.Core.Engines
             for(int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
                 var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpPredict;
-                pipe.Configuration = provider.Configuration.GetSection(pipelines[pipeIdx]);
+                pipe.Configuration = config.GetSection(meta.BotEngine).GetSection(pipelines[pipeIdx]);
                 pipe.Settings = settings;
-                await pipe.Predict(agent, data, meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]));
+                var pipeModel = meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]);
+                await pipe.Predict(agent, data, pipeModel);
             }
 
             Console.WriteLine($"Prediction result:", Color.Green);

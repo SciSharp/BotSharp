@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using BotSharp.Algorithm;
-using BotSharp.Algorithm.Bayes;
-using BotSharp.Algorithm.Estimators;
-using BotSharp.Algorithm.Extensions;
-using BotSharp.Algorithm.Features;
-using BotSharp.Algorithm.Statistics;
+using Bigtree.Algorithm;
+using Bigtree.Algorithm.Bayes;
+using Bigtree.Algorithm.Estimators;
+using Bigtree.Algorithm.Extensions;
+using Bigtree.Algorithm.Features;
+using Bigtree.Algorithm.Statistics;
 using BotSharp.NLP.Featuring;
 using BotSharp.NLP.Txt2Vec;
 using Newtonsoft.Json;

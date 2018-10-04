@@ -4,100 +4,6 @@
         <name>BotSharp.RestApi</name>
     </assembly>
     <members>
-        <member name="T:BotSharp.RestApi.AgentController">
-            <summary>
-            Agent
-            </summary>
-        </member>
-        <member name="M:BotSharp.RestApi.AgentController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
-            <summary>
-            Initialize dialog controller and get a platform instance
-            </summary>
-            <param name="platform"></param>
-        </member>
-        <member name="M:BotSharp.RestApi.AgentController.Restore(Microsoft.AspNetCore.Http.IFormFile)">
-            <summary>
-            Restore a agent from a uploaded zip file 
-            </summary>
-            <param name="file"></param>
-            <returns></returns>
-        </member>
-        <member name="M:BotSharp.RestApi.AgentController.Dump(System.String)">
-            <summary>
-            Dump agent
-            </summary>
-            <param name="agentId"></param>
-            <returns></returns>
-        </member>
-        <member name="T:BotSharp.RestApi.Dialogflow.EntitiesController">
-            <summary>
-            The /entities endpoint is used to create, retrieve, update, and delete developer-defined entity objects.
-            </summary>
-        </member>
-        <member name="T:BotSharp.RestApi.Dialogflow.QueryController">
-            <summary>
-            Dialogflow mode query controller
-            </summary>
-        </member>
-        <member name="M:BotSharp.RestApi.Dialogflow.QueryController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
-            <summary>
-            Initialize dialog controller and get a platform instance
-            </summary>
-            <param name="platform"></param>
-        </member>
-        <member name="M:BotSharp.RestApi.Dialogflow.QueryController.Query(BotSharp.RestApi.Dialogflow.QueryModel)">
-            <summary>
-            The query endpoint is used to process natural language in the form of text. 
-            The query requests return structured data in JSON format with an action and parameters for that action.
-            Both GET and POST methods return the same JSON response.
-            </summary>
-            <param name="request"></param>
-            <returns></returns>
-        </member>
-        <member name="P:BotSharp.RestApi.Dialogflow.QueryModel.Contexts">
-            <summary>
-            Array of additional context objects. Should be sent via a POST /query request. 
-            Contexts sent in a query are activated before the query.
-            </summary>
-        </member>
-        <member name="P:BotSharp.RestApi.Dialogflow.QueryModel.Event">
-            <summary>
-            Object containing event name and additional data. 
-            The "data" parameter can be submitted only in POST requests.
-            </summary>
-        </member>
-        <member name="P:BotSharp.RestApi.Dialogflow.QueryModel.Lang">
-            <summary>
-            Language tag, e.g., en, es etc.
-            </summary>
-        </member>
-        <member name="P:BotSharp.RestApi.Dialogflow.QueryModel.Query">
-            <summary>
-            Natural language text to be processed. Query length should not exceed 256 characters.
-            </summary>
-        </member>
-        <member name="P:BotSharp.RestApi.Dialogflow.QueryModel.SessionId">
-            <summary>
-            A string token up to 36 symbols long, used to identify the client and to manage session parameters (including contexts) per client.
-            </summary>
-        </member>
-        <member name="P:BotSharp.RestApi.Dialogflow.QueryModel.Timezone">
-            <summary>
-            Time zone from IANA Time Zone Database Examples: America/New_York, Europe/Paris
-            </summary>
-        </member>
-        <member name="T:BotSharp.RestApi.Rasa.TrainController">
-            <summary>
-            You can post your training data to this endpoint to train a new model for a project.
-            This request will wait for the server answer: either the model was trained successfully or the training exited with an error. 
-            </summary>
-        </member>
-        <member name="M:BotSharp.RestApi.Rasa.TrainController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
-            <summary>
-            Initialize dialog controller and get a platform instance
-            </summary>
-            <param name="platform"></param>
-        </member>
         <member name="P:BotSharp.RestApi.Integrations.FacebookMessenger.WebhookMessageRecipient.Id">
             <summary>
             PAGE_ID
@@ -107,12 +13,6 @@
             <summary>
             PSID
             </summary>
-        </member>
-        <member name="M:BotSharp.RestApi.Ontology.EntityController.#ctor(BotSharp.Core.Engines.IBotPlatform)">
-            <summary>
-            Initialize dialog controller and get a platform instance
-            </summary>
-            <param name="platform"></param>
         </member>
     </members>
 </doc>

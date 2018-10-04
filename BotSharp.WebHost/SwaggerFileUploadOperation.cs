@@ -11,7 +11,7 @@ namespace BotSharp.WebHost
     {
         public void Apply(Operation operation, OperationFilterContext context)
         {
-            if (operation.OperationId == "V1AgentRestorePost")
+            if (operation.OperationId == "V1AgentImportPost")
             {
                 operation.Parameters.Clear();
 

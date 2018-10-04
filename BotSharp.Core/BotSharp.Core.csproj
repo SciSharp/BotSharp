@@ -6,7 +6,7 @@
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
     <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;DIALOGFLOW;RASA</Configurations>
+    <Configurations>Debug;Release;DIALOGFLOW;RASA;ARTICULATE</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -50,17 +50,43 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <Optimize>false</Optimize>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ARTICULATE|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;ARTICULATE</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Engines\NERs\**" />
+    <Compile Remove="Engines\QuickQA\**" />
+    <Compile Remove="Engines\Rasa\**" />
+    <Compile Remove="Engines\Sebis\**" />
+    <Compile Remove="Engines\SpaCy\**" />
+    <EmbeddedResource Remove="Engines\NERs\**" />
+    <EmbeddedResource Remove="Engines\QuickQA\**" />
+    <EmbeddedResource Remove="Engines\Rasa\**" />
+    <EmbeddedResource Remove="Engines\Sebis\**" />
+    <EmbeddedResource Remove="Engines\SpaCy\**" />
+    <None Remove="Engines\NERs\**" />
+    <None Remove="Engines\QuickQA\**" />
+    <None Remove="Engines\Rasa\**" />
+    <None Remove="Engines\Sebis\**" />
+    <None Remove="Engines\SpaCy\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
+    <PackageReference Include="CSRedisCore" Version="2.6.13" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.9.1" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="RestSharp" Version="106.3.1" />
+    <PackageReference Include="RestSharp" Version="106.4.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.NLP\BotSharp.NLP.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Abstraction\BotSharp.Platform.Abstraction.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Models\BotSharp.Platform.Models.csproj" />
   </ItemGroup>
 
 </Project>

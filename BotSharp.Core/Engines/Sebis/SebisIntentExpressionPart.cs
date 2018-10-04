@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using BotSharp.Core.Engines;
+using BotSharp.Platform.Models;
 using Newtonsoft.Json;
 
 namespace BotSharp.Core.Adapters.Sebis

@@ -1,10 +1,9 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines.QuickQA;
-using BotSharp.Core.Engines.Rasa;
-using BotSharp.Core.Entities;
-using BotSharp.Core.Intents;
-using BotSharp.Core.Models;
-using BotSharp.Models.NLP;
+﻿using BotSharp.Models.NLP;
+using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.AiRequest;
+using BotSharp.Platform.Models.AiResponse;
+using BotSharp.Platform.Models.Intents;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.EntityFrameworkCore;
@@ -27,19 +26,23 @@ namespace BotSharp.Core.Engines
     {
         protected Database dc;
 
-        public AIConfiguration AiConfig { get; set; }
-
-        protected Agent agent { get; set; }
+        protected AgentBase agent { get; set; }
 
         public BotEngineBase()
         {
             dc = new DefaultDataContextLoader().GetDefaultDc();
         }
 
-        public AIResponse TextRequest(AIRequest request)
+        public AiResponse TextRequest(AiRequest request)
         {
             var preditor = new BotPredictor();
-            var doc = preditor.Predict(agent, request).Result;
+            var doc = preditor.Predict(agent, new AiRequest
+            {
+                AgentDir = request.AgentDir,
+                Model = request.Model,
+                SessionId = request.SessionId,
+                Text = request.Text
+            }).Result;
 
             var parameters = new Dictionary<String, Object>();
             if(doc.Sentences[0].Entities == null)
@@ -48,9 +51,9 @@ namespace BotSharp.Core.Engines
             }
             doc.Sentences[0].Entities.ForEach(x => parameters[x.Entity] = x.Value);
 
-            return new AIResponse
+            return new AiResponse
             {
-                Lang = request.Language,
+                /*Lang = request.Language,
                 Timestamp = DateTime.UtcNow,
                 SessionId = request.SessionId,
                 Status = new AIResponseStatus(),
@@ -68,100 +71,11 @@ namespace BotSharp.Core.Engines
                     {
                         IntentName = doc.Sentences[0].Intent?.Label
                     }
-                }
+                }*/
             };
         }
 
-        public Agent LoadAgent(string id)
-        {
-            if (agent == null)
-            {
-                agent = dc.Table<Agent>()
-                    .Include(x => x.Intents).ThenInclude(x => x.Contexts)
-                    .Include(x => x.Entities).ThenInclude(x => x.Entries).ThenInclude(x => x.Synonyms)
-                    .Include(x => x.MlConfig)
-                    .FirstOrDefault(x => x.Id == id ||
-                        x.ClientAccessToken == id ||
-                        x.DeveloperAccessToken == id);
-            }
-            else
-            {
-                return agent;
-            }
-
-            return agent;
-        }
-
-        public Agent LoadAgentFromFile(string dataDir)
-        {
-            var meta = LoadMeta(dataDir);
-            IAgentImporter importer = null;
-
-            switch (meta.Platform)
-            {
-                case PlatformType.Dialogflow:
-                    importer = new AgentImporterInDialogflow();
-                    break;
-                case PlatformType.Rasa:
-                    importer = new AgentImporterInRasa();
-                    break;
-                case PlatformType.Sebis:
-                    importer = new AgentImporterInSebis();
-                    break;
-                case PlatformType.QuickQA:
-                    importer = new AgentImporterInQuickQA();
-                    break;
-                default:
-                    break;
-            }
-            
-            importer.AgentDir = dataDir;
-
-            // Load agent summary
-            agent = importer.LoadAgent(meta);
-
-            // Load user custom entities
-            importer.LoadCustomEntities(agent);
-
-            // Load agent intents
-            importer.LoadIntents(agent);
-
-            // Load system buildin entities
-            importer.LoadBuildinEntities(agent);
-
-            // Generate corpus
-            importer.AssembleTrainData(agent);
-
-            return agent;
-        }
-
-        private AgentImportHeader LoadMeta(string dataDir)
-        {
-            // load meta
-            string metaJson = File.ReadAllText(Path.Combine(dataDir, "meta.json"));
-
-            return JsonConvert.DeserializeObject<AgentImportHeader>(metaJson);
-        }
-
-        public String SaveAgentToDb()
-        {
-            dc.DbTran(() =>
-            {
-                var existedAgent = dc.Table<Agent>().FirstOrDefault(x => x.Id == agent.Id || x.Name == agent.Name);
-                if (existedAgent == null)
-                {
-                    dc.Table<Agent>().Add(agent);
-                }
-                else
-                {
-                    agent.Id = existedAgent.Id;
-                }
-            });
-
-            return agent.Id;
-        }
-
-        public TrainingCorpus GetIntentExpressions(Agent agent)
+        /*public TrainingCorpus GetIntentExpressions(AgentBase agent)
         {
             TrainingCorpus corpus = new TrainingCorpus()
             {
@@ -202,7 +116,7 @@ namespace BotSharp.Core.Engines
                         say.Entities.Add(part);
 
                         // assemble entity synonmus
-                        /*if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
+                        if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
                         {
                             var allSynonyms = (from e in dc.Table<EntityType>()
                                                join ee in dc.Table<EntityEntry>() on e.Id equals ee.EntityId
@@ -218,7 +132,7 @@ namespace BotSharp.Core.Engines
                             };
 
                             trainingData.Entities.Add(te);
-                        }*/
+                        }
                     });
 
                     corpus.UserSays.Add(say);
@@ -229,7 +143,7 @@ namespace BotSharp.Core.Engines
             corpus.UserSays = corpus.UserSays.Where(x => x.Intent != "Default Fallback Intent").ToList();
 
             return corpus;
-        }
+        }*/
 
         public TrainingCorpus GetIntentExpressions()
         {
@@ -239,7 +153,7 @@ namespace BotSharp.Core.Engines
                 Entities = new List<TrainingEntity>()
             };
 
-            var expressParts = new List<IntentExpressionPart>();
+            /*var expressParts = new List<IntentExpressionPart>();
 
             var intents = dc.Table<Intent>()
                 .Include(x => x.Contexts)
@@ -276,7 +190,7 @@ namespace BotSharp.Core.Engines
                         say.Entities.Add(part);
 
                         // assemble entity synonmus
-                        /*if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
+                        if (!trainingData.Entities.Any(y => y.EntityType == x.Alias && y.EntityValue == x.Text))
                         {
                             var allSynonyms = (from e in dc.Table<EntityType>()
                                                join ee in dc.Table<EntityEntry>() on e.Id equals ee.EntityId
@@ -292,7 +206,7 @@ namespace BotSharp.Core.Engines
                             };
 
                             trainingData.Entities.Add(te);
-                        }*/
+                        }
                     });
 
                     corpus.UserSays.Add(say);
@@ -300,7 +214,7 @@ namespace BotSharp.Core.Engines
             });
 
             // remove Default Fallback Intent
-            corpus.UserSays = corpus.UserSays.Where(x => x.Intent != "Default Fallback Intent").ToList();
+            corpus.UserSays = corpus.UserSays.Where(x => x.Intent != "Default Fallback Intent").ToList();*/
 
             return corpus;
         }

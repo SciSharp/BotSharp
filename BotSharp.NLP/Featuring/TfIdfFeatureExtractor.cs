@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using BotSharp.Algorithm.Matrix;
+using Bigtree.Algorithm.Matrix;
 using BotSharp.NLP.Tokenize;
 using System;
 using System.Collections.Generic;
@@ -40,6 +40,7 @@ namespace BotSharp.NLP.Featuring
         public List<Tuple<string, int>> Dictionary { get; set; }
         public List<string> Features { get; set; }
         public Shape Shape { get; set; }
+        public string ModelFile { get; set; }
 
         public void Extract(Sentence sentence)
         {
@@ -192,7 +193,7 @@ namespace BotSharp.NLP.Featuring
             return result;
         }
 
-        public void Vectorize()
+        public void Vectorize(List<string> features)
         {
             throw new NotImplementedException();
         }

@@ -21,11 +21,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Algorithm.Features;
+using Bigtree.Algorithm.Features;
+using Bigtree.Algorithm.SVM;
 using BotSharp.NLP.Featuring;
 using BotSharp.NLP.Txt2Vec;
 using Newtonsoft.Json;
-using SVM.BotSharp.MachineLearning;
 using Txt2Vec;
 
 namespace BotSharp.NLP.Classify
@@ -39,7 +39,8 @@ namespace BotSharp.NLP.Classify
         private List<Tuple<string, int>> dictionary;
         private List<string> categories;
         private RangeTransform transform;
-        private SVM.BotSharp.MachineLearning.Model model;
+        private Bigtree.Algorithm.SVM.Model model;
+        private List<string> featuresInTfIdf;
 
         public void Train(List<Sentence> sentences, ClassifyOptions options)
         {
@@ -48,9 +49,15 @@ namespace BotSharp.NLP.Classify
 
         public void SVMClassifierTrain(List<Sentence> sentences, ClassifyOptions options, SvmType svm = SvmType.C_SVC, KernelType kernel = KernelType.RBF, bool probability = true, string outputFile = null)
         {
+            var tfidf = new TfIdfFeatureExtractor();
+            tfidf.Dimension = options.Dimension;
+            tfidf.Sentences = sentences;
+            tfidf.CalBasedOnCategory();
+            featuresInTfIdf = tfidf.Keywords();
+
             // copy test multiclass Model
             Problem train = new Problem();
-            train.X = GetData(sentences).ToArray();
+            train.X = GetData(sentences, options).ToArray();
             train.Y = GetLabels(sentences).ToArray();
             train.Count = train.X.Count();
             train.MaxIndex = train.X[0].Count();//int.MaxValue;
@@ -66,8 +73,9 @@ namespace BotSharp.NLP.Classify
             int numberOfClasses = train.Y.OrderBy(x => x).Distinct().Count();
             if (numberOfClasses == 1)
             {
-                throw new ArgumentException("Number of classes can't be one!");
+                Console.Write("Number of classes must greater than one!");
             }
+
             if (svm == SvmType.C_SVC)
             {
                 for (int i = 0; i < numberOfClasses; i++)
@@ -96,7 +104,7 @@ namespace BotSharp.NLP.Classify
         public double[][] Predict(Sentence sentence, ClassifyOptions options)
         {
             Problem predict = new Problem();
-            predict.X = GetData(new List<Sentence> { sentence }).ToArray();
+            predict.X = GetData(new List<Sentence> { sentence }, options).ToArray();
             predict.Y = new double[1];
             predict.Count = predict.X.Count();
             predict.MaxIndex = features.Count;
@@ -121,9 +129,11 @@ namespace BotSharp.NLP.Classify
             return labels;
         }
 
-        public List<Node[]> GetData(List<Sentence> sentences)
+        public List<Node[]> GetData(List<Sentence> sentences, ClassifyOptions options)
         {
-            var extractor = new CountFeatureExtractor();
+            //var extractor = new CountFeatureExtractor();
+            var extractor = new Word2VecFeatureExtractor();
+            extractor.ModelFile = options.Word2VecFilePath;
             extractor.Sentences = sentences;
             if(features != null)
             {
@@ -135,7 +145,7 @@ namespace BotSharp.NLP.Classify
                 extractor.Dictionary = dictionary;
             }
 
-            extractor.Vectorize();
+            extractor.Vectorize(featuresInTfIdf);
 
             if(features == null)
             {
@@ -155,8 +165,9 @@ namespace BotSharp.NLP.Classify
 
                 for(int i = 0; i < extractor.Features.Count; i++)
                 {
+
                     int name = i;
-                    var xx = sentence.Words.Find(x => x.Lemma == extractor.Features[i]);
+                    /*var xx = sentence.Words.Find(x => x.Lemma == extractor.Features[i]);
 
                     if (xx == null)
                     {
@@ -165,7 +176,9 @@ namespace BotSharp.NLP.Classify
                     else
                     {
                         curNodes.Add(new Node(name, xx.Vector));
-                    }
+                    }*/
+
+                   curNodes.Add(new Node(i, sentence.Vector[i]));
                 }
 
                 datas.Add(curNodes.ToArray());
@@ -179,15 +192,18 @@ namespace BotSharp.NLP.Classify
             options.FeaturesFileName = Path.Combine(options.ModelDir, "features");
             options.DictionaryFileName = Path.Combine(options.ModelDir, "dictionary");
             options.CategoriesFileName = Path.Combine(options.ModelDir, "categories");
+            options.FeaturesInTfIdfFileName = Path.Combine(options.ModelDir, "featuresInTfIdf");
 
             File.WriteAllText(options.FeaturesFileName, JsonConvert.SerializeObject(features));
+
+            File.WriteAllText(options.FeaturesInTfIdfFileName, JsonConvert.SerializeObject(featuresInTfIdf));
 
             File.WriteAllText(options.DictionaryFileName, JsonConvert.SerializeObject(dictionary));
 
             File.WriteAllText(options.CategoriesFileName, JsonConvert.SerializeObject(categories));
 
             RangeTransform.Write(options.TransformFilePath, transform);
-            SVM.BotSharp.MachineLearning.Model.Write(options.ModelFilePath, model);
+            Bigtree.Algorithm.SVM.Model.Write(options.ModelFilePath, model);
 
             return options.ModelFilePath;
         }
@@ -199,14 +215,17 @@ namespace BotSharp.NLP.Classify
             options.ModelFilePath = Path.Combine(options.ModelDir, options.ModelName);
             options.TransformFilePath = Path.Combine(options.ModelDir, "transform");
             options.CategoriesFileName = Path.Combine(options.ModelDir, "categories");
+            options.FeaturesInTfIdfFileName = Path.Combine(options.ModelDir, "featuresInTfIdf");
 
             features = JsonConvert.DeserializeObject<List<String>>(File.ReadAllText(options.FeaturesFileName));
+
+            featuresInTfIdf = JsonConvert.DeserializeObject<List<String>>(File.ReadAllText(options.FeaturesInTfIdfFileName));
 
             dictionary = JsonConvert.DeserializeObject<List<Tuple<string, int>>>(File.ReadAllText(options.DictionaryFileName));
 
             categories = JsonConvert.DeserializeObject<List<String>>(File.ReadAllText(options.CategoriesFileName));
             
-            model = SVM.BotSharp.MachineLearning.Model.Read(options.ModelFilePath);
+            model = Bigtree.Algorithm.SVM.Model.Read(options.ModelFilePath);
 
             options.Transform = RangeTransform.Read(options.TransformFilePath);
 

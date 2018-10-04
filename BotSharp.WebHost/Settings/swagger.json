@@ -1,11 +1,11 @@
 ﻿{
   "Swagger": {
     "Contact": {
-      "Email": "haiping008@gmail.com",
+      "Email": "botsharp2018@gmail.com",
       "Name": "BotSharp AI",
       "Url": "https://github.com/Oceania2018"
     },
-    "Description": "BotSharp is a chatbot platform written in C# (.net core), and it's developed for enterprise usage.",
+    "Description": "BotSharp is a chatbot platform builder running in .NET Core",
     "Endpoint": "/swagger/v1/swagger.json",
     "License": {
       "Name": "Apache License 2.0",

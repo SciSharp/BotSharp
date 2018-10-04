@@ -1,8 +1,7 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
-using BotSharp.Models.CRFLite;
-using BotSharp.Models.CRFLite.Decoder;
-using BotSharp.Models.CRFLite.Encoder;
+using Bigtree.Algorithm.CRFLite;
+using Bigtree.Algorithm.CRFLite.Decoder;
+using Bigtree.Algorithm.CRFLite.Encoder;
 using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
 using DotNetToolkit;
@@ -13,6 +12,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 
 namespace BotSharp.Core.Engines.BotSharp
 {
@@ -21,7 +22,7 @@ namespace BotSharp.Core.Engines.BotSharp
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
 
-        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Train(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             var corpus = agent.Corpus;
 
@@ -30,7 +31,7 @@ namespace BotSharp.Core.Engines.BotSharp
             List<TrainingIntentExpression<TrainingIntentExpressionPart>> userSays = corpus.UserSays;
             List<List<TrainingData>> list = new List<List<TrainingData>>();
 
-            string rawTrainingDataFileName = System.IO.Path.Combine(Settings.TempDir, "ner-crf.corpus.txt");
+            string rawTrainingDataFileName = System.IO.Path.Combine(Settings.ModelDir, "ner-crf.corpus.txt");
             string modelFileName = System.IO.Path.Combine(Settings.ModelDir, meta.Model);
 
             using (FileStream fs = new FileStream(rawTrainingDataFileName, FileMode.Create))
@@ -156,7 +157,7 @@ namespace BotSharp.Core.Engines.BotSharp
             return trainingTuple;
         }
 
-        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Predict(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             var decoder = new CRFDecoder();
             var options = new DecoderOptions

@@ -1,0 +1,7 @@
+{
+  "dialogflowAi": {
+    "botEngine": "BotSharpNLU",
+
+    "agentStorage": "AgentStorageInRedis"
+  }
+}

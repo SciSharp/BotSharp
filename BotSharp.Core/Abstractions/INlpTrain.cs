@@ -1,5 +1,6 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,6 +17,6 @@ namespace BotSharp.Core.Abstractions
         /// <param name="doc">Intermediate result</param>
         /// <param name="meta">Meta data which is packed to model</param>
         /// <returns></returns>
-        Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta);
+        Task<bool> Train(AgentBase agent, NlpDoc doc, PipeModel meta);
     }
 }

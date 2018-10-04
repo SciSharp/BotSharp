@@ -21,20 +21,30 @@ namespace BotSharp.WebHost
                     string dir = Path.GetFullPath(env.ContentRootPath);
                     string settingsFolder = Path.Combine(dir, "Settings");
 
+                    // locate setting folder
                     if (!Directory.Exists(settingsFolder))
                     {
                         dir = Path.GetFullPath(env.ContentRootPath + "/..");
                     }
 
                     settingsFolder = Path.Combine(dir, "Settings");
+
+                    if (!Directory.Exists(settingsFolder))
+                    {
+                        dir = Path.GetFullPath(env.ContentRootPath + "/bin");
+                    }
+
+                    settingsFolder = Path.Combine(dir, "Settings");
+
                     Console.WriteLine($"Read settings from {settingsFolder}");
+
                     var settings = Directory.GetFiles(settingsFolder, "*.json");
                     settings.ToList().ForEach(setting =>
                     {
                         config.AddJsonFile(setting, optional: false, reloadOnChange: true);
                     });
                 })
-                .UseUrls("http://0.0.0.0:5000")
+                .UseUrls("http://0.0.0.0:3112")
                 .UseStartup<Startup>()
                 .Build();
     }

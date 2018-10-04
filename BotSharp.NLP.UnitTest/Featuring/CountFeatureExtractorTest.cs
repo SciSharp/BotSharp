@@ -18,7 +18,7 @@ namespace BotSharp.NLP.UnitTest.Featuring
 
             var extractor = new CountFeatureExtractor();
             extractor.Sentences = tokenizer.Tokenize(Corpus());
-            extractor.Vectorize();
+            extractor.Vectorize(new List<string>());
 
             var vectors = Vectors();
 

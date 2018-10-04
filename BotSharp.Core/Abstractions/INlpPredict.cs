@@ -1,5 +1,6 @@
-﻿using BotSharp.Core.Agents;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,6 @@ namespace BotSharp.Core.Abstractions
 {
     public interface INlpPredict : INlpPipeline
     {
-        Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta);
+        Task<bool> Predict(AgentBase agent, NlpDoc doc, PipeModel meta);
     }
 }

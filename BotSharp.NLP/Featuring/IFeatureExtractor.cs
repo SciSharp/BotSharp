@@ -1,4 +1,4 @@
-﻿using BotSharp.Algorithm.Matrix;
+﻿using Bigtree.Algorithm.Matrix;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -30,11 +30,16 @@ namespace BotSharp.NLP.Featuring
         /// <summary>
         /// Vectorize sentence
         /// </summary>
-        void Vectorize();
+        void Vectorize(List<string> features);
 
         /// <summary>
         /// Array shape
         /// </summary>
         Shape Shape { get; set; }
+
+        /// <summary>
+        /// Pre-trained model file path
+        /// </summary>
+        string ModelFile { get; set; }
     }
 }

@@ -44,12 +44,13 @@ The main documentation for the site is organized into a couple sections:
 * :ref:`User Documentation <user-docs>`
 * :ref:`Integration Documentation <integration-docs>`
 * :ref:`NLP Documentation <nlp-docs>`
+* :ref:`Architecture Documentation <architecture-docs>`
 * :ref:`search`
 
 .. _user-docs:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: User Documentation:
 
    installation
@@ -69,10 +70,19 @@ The main documentation for the site is organized into a couple sections:
    integrations/telegram
    integrations/skype
 
+.. _architecture-docs:
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Architecture Documentation:
+   
+   configuration/db
+   configuration/platform
+
 .. _nlp-docs:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: NLP Documentation:
 
    models/crf
@@ -85,5 +95,5 @@ The main documentation for the site is organized into a couple sections:
 If you feel that this project is helpful to you, please Star us on the project, we will be very grateful.
 
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
-.. _Articulate UI: https://spg.ai/projects/articulate
+.. _Articulate UI: https://github.com/Oceania2018/articulate-ui
 .. _gitter: https://gitter.im/botsharpcore/Lobby

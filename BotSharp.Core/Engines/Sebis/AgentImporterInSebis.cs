@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Core.Adapters.Dialogflow;
 using BotSharp.Core.Adapters.Sebis;
 using BotSharp.Core.Agents;
 using BotSharp.Core.Entities;
 using BotSharp.Core.Intents;
 using BotSharp.Core.Models;
+using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Models;
 using DotNetToolkit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,7 +19,7 @@ namespace BotSharp.Core.Engines
     /// <summary>
     /// Import Sebis NLU benchmark corpus
     /// </summary>
-    public class AgentImporterInSebis : IAgentImporter
+    public class AgentImporterInSebis<TAgent> : IAgentImporter<TAgent>
     {
         public string AgentDir { get; set; }
 

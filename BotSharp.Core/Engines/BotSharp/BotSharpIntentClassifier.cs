@@ -1,8 +1,9 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Core.Agents;
 using BotSharp.NLP;
 using BotSharp.NLP.Classify;
 using BotSharp.NLP.Txt2Vec;
+using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
@@ -20,7 +21,7 @@ namespace BotSharp.Core.Engines.BotSharp
         public PipeSettings Settings { get; set; }
         private ClassifierFactory<SentenceFeatureExtractor> _classifier;
 
-        public async Task<bool> Train(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Train(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             Init(meta);
 
@@ -38,7 +39,7 @@ namespace BotSharp.Core.Engines.BotSharp
             return true;
         }
 
-        public async Task<bool> Predict(Agent agent, NlpDoc doc, PipeModel meta)
+        public async Task<bool> Predict(AgentBase agent, NlpDoc doc, PipeModel meta)
         {
             Init(meta);
 
@@ -71,8 +72,15 @@ namespace BotSharp.Core.Engines.BotSharp
                 {
                     ModelFilePath = Path.Combine(Settings.ModelDir, meta.Model),
                     ModelDir = Settings.ModelDir,
-                    ModelName = meta.Model
+                    ModelName = meta.Model,
+                    Word2VecFilePath = Configuration.GetValue<string>("wordvecModel")
                 };
+
+                if (!String.IsNullOrEmpty(options.Word2VecFilePath))
+                {
+                    string contentDir = AppDomain.CurrentDomain.GetData("DataPath").ToString();
+                    options.Word2VecFilePath = options.Word2VecFilePath.Replace("|App_Data|", contentDir + System.IO.Path.DirectorySeparatorChar);
+                }
 
                 _classifier = new ClassifierFactory<SentenceFeatureExtractor>(options, SupportedLanguage.English);
 
