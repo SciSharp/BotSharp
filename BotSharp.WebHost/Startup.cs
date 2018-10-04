@@ -94,7 +94,7 @@ namespace BotSharp.WebHost
                 c.DocumentTitle = info.Title;
                 c.InjectStylesheet(Configuration.GetValue<String>("Swagger:Stylesheet"));
 
-                Console.WriteLine($"{info.Title} {info.Version} {info.License.Name}", Color.Gray);
+                Console.WriteLine($"{info.Title} [{info.Version}] {info.License.Name}", Color.Gray);
                 Console.WriteLine($"{info.Description}", Color.Gray);
                 Console.WriteLine($"{info.Contact.Name}", Color.Gray);
             });
@@ -141,7 +141,9 @@ namespace BotSharp.WebHost
                 new Formatter(engine, Color.Yellow),
             };
 
-            Console.WriteLineFormatted("Platform Emulator: {0} powered by {1} NLU engine.", Color.White, settings);
+            Console.WriteLine();
+            Console.WriteLineFormatted("Platform Emulator: {0} powered by {1} engine.", Color.White, settings);
+            Console.WriteLine();
         }
     }
 }

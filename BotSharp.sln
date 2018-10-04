@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Models", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Dialogflow", "..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj", "{B865F070-9693-47C6-B901-40121F659C6F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Articulate", "..\botsharp-articulate\BotSharp.Platform.Articulate\BotSharp.Platform.Articulate.csproj", "{17BAE152-DDCF-4605-8DCB-9F14D403002F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Rasa", "..\botsharp-rasa\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj", "{87C265EF-3A8A-4290-8AD2-33504168F653}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,14 +98,14 @@ Global
 		{B865F070-9693-47C6-B901-40121F659C6F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B865F070-9693-47C6-B901-40121F659C6F}.Release|x64.ActiveCfg = Release|Any CPU
 		{B865F070-9693-47C6-B901-40121F659C6F}.Release|x64.Build.0 = Release|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Debug|x64.Build.0 = Debug|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Release|x64.ActiveCfg = Release|Any CPU
-		{17BAE152-DDCF-4605-8DCB-9F14D403002F}.Release|x64.Build.0 = Release|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Debug|x64.Build.0 = Debug|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Release|x64.ActiveCfg = Release|Any CPU
+		{87C265EF-3A8A-4290-8AD2-33504168F653}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
