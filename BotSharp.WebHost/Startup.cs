@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Console = Colorful.Console;
 
 namespace BotSharp.WebHost
@@ -56,8 +57,9 @@ namespace BotSharp.WebHost
                 var info = Configuration.GetSection("Swagger").Get<Info>();
                 c.SwaggerDoc(info.Version, info);
 
-                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
-                c.IncludeXmlComments(filePath);
+                //var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
+                //c.IncludeXmlComments(filePath);
+
                 c.OperationFilter<SwaggerFileUploadOperation>();
             });
 
@@ -123,6 +125,13 @@ namespace BotSharp.WebHost
             loader.Env = env;
             loader.Config = Configuration;
             loader.Load();*/
+
+            // load dll dynamic
+            /*Assembly library = Assembly.LoadFile(Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.Platform.Articulate.dll"));
+            Type myClass = (from type in library.GetExportedTypes()
+                where typeof(IMyInterface).IsAssignableFrom(type)
+                select type)
+                .Single();*/
 
             var platform = Configuration.GetValue<string>("Platform");
             var engine = Configuration.GetValue<string>($"{platform}:BotEngine");

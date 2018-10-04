@@ -44,7 +44,7 @@ namespace BotSharp.WebHost
                         config.AddJsonFile(setting, optional: false, reloadOnChange: true);
                     });
                 })
-                .UseUrls("http://0.0.0.0:3112")
+                .UseUrls("http://0.0.0.0:7500")
                 .UseStartup<Startup>()
                 .Build();
     }
