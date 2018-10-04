@@ -142,7 +142,7 @@ namespace BotSharp.WebHost
             };
 
             Console.WriteLine();
-            Console.WriteLineFormatted("Platform Emulator: {0} powered by {1} engine.", Color.White, settings);
+            Console.WriteLineFormatted("{0} platform emulator powered by {1} engine.", Color.White, settings);
             Console.WriteLine();
         }
     }

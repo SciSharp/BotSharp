@@ -1,6 +1,7 @@
 ﻿using BotSharp.Core.Engines;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core
 {
@@ -68,6 +70,26 @@ namespace BotSharp.Core
             GetStorage();
 
             return Storage.FetchByName(agentName);
+        }
+
+        public virtual async Task<ModelMetaData> Train(TAgent agent, TrainingCorpus corpus, BotTrainOptions options)
+        {
+            if (String.IsNullOrEmpty(options.AgentDir))
+            {
+                options.AgentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", agent.Id);
+            }
+
+            if (String.IsNullOrEmpty(options.Model))
+            {
+                options.Model = "model_" + DateTime.UtcNow.ToString("yyyyMMdd");
+            }
+
+            var trainer = new BotTrainer();
+            agent.Corpus = corpus;
+
+            var info = await trainer.Train(agent, options);
+
+            return info;
         }
 
         public virtual bool SaveAgent(TAgent agent)

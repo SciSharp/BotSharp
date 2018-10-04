@@ -75,10 +75,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Update="Settings\app.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
