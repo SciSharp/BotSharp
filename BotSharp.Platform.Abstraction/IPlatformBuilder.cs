@@ -2,9 +2,6 @@
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.MachineLearning;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Platform.Abstraction
@@ -30,7 +27,7 @@ namespace BotSharp.Platform.Abstraction
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        TrainingCorpus ExtractorCorpus(TAgent agent);
+        Task<TrainingCorpus> ExtractorCorpus(TAgent agent);
 
         /// <summary>
         /// Load agent from files.
@@ -38,7 +35,7 @@ namespace BotSharp.Platform.Abstraction
         /// </summary>
         /// <param name="dataDir"></param>
         /// <returns></returns>
-        TAgent LoadAgentFromFile<TImporter>(string dataDir) where TImporter : IAgentImporter<TAgent>, new();
+        Task<TAgent> LoadAgentFromFile<TImporter>(string dataDir) where TImporter : IAgentImporter<TAgent>, new();
 
         /// <summary>
         /// 
@@ -46,10 +43,10 @@ namespace BotSharp.Platform.Abstraction
         /// <typeparam name="TStorage"></typeparam>
         /// <param name="agent"></param>
         /// <returns></returns>
-        bool SaveAgent(TAgent agent);
+        Task<bool> SaveAgent(TAgent agent);
 
         Task<ModelMetaData> Train(TAgent agent, TrainingCorpus corpus, BotTrainOptions options);
 
-        AiResponse TextRequest(AiRequest request);
+        Task<AiResponse> TextRequest(AiRequest request);
     }
 }

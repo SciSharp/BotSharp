@@ -1,9 +1,6 @@
 ﻿using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Platform.Abstraction
@@ -13,7 +10,7 @@ namespace BotSharp.Platform.Abstraction
     /// </summary>
     public interface IBotEngine
     {
-        AiResponse TextRequest(AiRequest request);
+        Task<AiResponse> TextRequest(AiRequest request);
 
         Task Train(BotTrainOptions options);
     }

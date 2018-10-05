@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Models", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Dialogflow", "..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj", "{83D56CDD-7122-48D3-9CDC-BCE21CB10681}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Rasa", "..\botsharp-rasa\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj", "{2902810C-F8F2-400E-88DB-72CBE393B175}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +132,18 @@ Global
 		{83D56CDD-7122-48D3-9CDC-BCE21CB10681}.Release|Any CPU.Build.0 = Release|Any CPU
 		{83D56CDD-7122-48D3-9CDC-BCE21CB10681}.Release|x64.ActiveCfg = Release|Any CPU
 		{83D56CDD-7122-48D3-9CDC-BCE21CB10681}.Release|x64.Build.0 = Release|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Debug|x64.Build.0 = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.DIALOGFLOW|Any CPU.ActiveCfg = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.DIALOGFLOW|Any CPU.Build.0 = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.DIALOGFLOW|x64.ActiveCfg = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.DIALOGFLOW|x64.Build.0 = Debug|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Release|x64.ActiveCfg = Release|Any CPU
+		{2902810C-F8F2-400E-88DB-72CBE393B175}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

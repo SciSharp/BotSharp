@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Platform.Abstraction
 {
@@ -16,24 +17,24 @@ namespace BotSharp.Platform.Abstraction
         /// Load agent summary
         /// </summary>
         /// <returns></returns>
-        TAgent LoadAgent(AgentImportHeader agentHeader);
+        Task<TAgent> LoadAgent(AgentImportHeader agentHeader);
 
         /// <summary>
         /// Load user customized entity type which defined in dictionary
         /// </summary>
         /// <param name="agent"></param>
-        void LoadCustomEntities(TAgent agent);
+        Task LoadCustomEntities(TAgent agent);
 
         /// <summary>
         /// Load user customized intents
         /// </summary>
         /// <param name="agent"></param>
-        void LoadIntents(TAgent agent);
+        Task LoadIntents(TAgent agent);
 
         /// <summary>
         /// Add entities that labeled in intent.UserSays into user customized entity dictionary 
         /// </summary>
         /// <param name="agent"></param>
-        void LoadBuildinEntities(TAgent agent);
+        Task LoadBuildinEntities(TAgent agent);
     }
 }

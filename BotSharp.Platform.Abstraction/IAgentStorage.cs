@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Platform.Abstraction
 {
@@ -16,32 +17,32 @@ namespace BotSharp.Platform.Abstraction
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
-        bool Persist(TAgent agent);
+        Task<bool> Persist(TAgent agent);
 
         /// <summary>
         /// Get agent by id
         /// </summary>
         /// <param name="agentId"></param>
         /// <returns></returns>
-        TAgent FetchById(string agentId);
+        Task<TAgent> FetchById(string agentId);
 
         /// <summary>
         /// Get agent by name
         /// </summary>
         /// <param name="agentName"></param>
         /// <returns></returns>
-        TAgent FetchByName(string agentName);
+        Task<TAgent> FetchByName(string agentName);
 
         /// <summary>
         /// Query agents
         /// </summary>
         /// <returns></returns>
-        List<TAgent> Query();
+        Task<List<TAgent>> Query();
 
         /// <summary>
         /// Delete agents
         /// </summary>
         /// <returns></returns>
-        int PurgeAllAgents();
+        Task<int> PurgeAllAgents();
     }
 }

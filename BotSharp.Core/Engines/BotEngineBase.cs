@@ -24,19 +24,19 @@ namespace BotSharp.Core.Engines
     /// </summary>
     public abstract class BotEngineBase
     {
-        protected Database dc;
+        protected Database Dc;
 
-        protected AgentBase agent { get; set; }
+        protected AgentBase Agent { get; set; }
 
         public BotEngineBase()
         {
-            dc = new DefaultDataContextLoader().GetDefaultDc();
+            Dc = new DefaultDataContextLoader().GetDefaultDc();
         }
 
-        public AiResponse TextRequest(AiRequest request)
+        public async Task<AiResponse> TextRequest(AiRequest request)
         {
             var preditor = new BotPredictor();
-            var doc = preditor.Predict(agent, new AiRequest
+            var doc = preditor.Predict(Agent, new AiRequest
             {
                 AgentDir = request.AgentDir,
                 Model = request.Model,

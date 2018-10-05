@@ -1,4 +1,5 @@
-﻿using DotNetToolkit.JwtHelper;
+﻿using BotSharp.Core.Modules;
+using DotNetToolkit.JwtHelper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +19,10 @@ namespace BotSharp.WebHost
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            this.modulesStartup = new ModulesStartup(configuration);
         }
+
+        private readonly ModulesStartup modulesStartup;
 
         public IConfiguration Configuration { get; }
 
@@ -36,7 +40,8 @@ namespace BotSharp.WebHost
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
-            services.AddPlatformEmulator(Configuration, assembly => mvcBuilder.AddApplicationPart(assembly));
+            this.modulesStartup.ConfigureServices(services);
+            //services.AddPlatformEmulator(Configuration, assembly => mvcBuilder.AddApplicationPart(assembly));
 
             services.AddSwaggerGen(c =>
             {
