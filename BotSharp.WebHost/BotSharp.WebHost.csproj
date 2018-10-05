@@ -31,21 +31,25 @@
     <Compile Remove="App_Data\Corpus\**" />
     <Compile Remove="App_Data\Projects\**" />
     <Compile Remove="PublishOutput\**" />
+    <Compile Remove="publish\**" />
     <Content Remove="App_Data\AgentArchive\**" />
     <Content Remove="App_Data\Corpus\**" />
     <Content Remove="App_Data\DbInitializer\**" />
     <Content Remove="App_Data\Projects\**" />
     <Content Remove="App_Data\TrainingFiles\**" />
     <Content Remove="PublishOutput\**" />
+    <Content Remove="publish\**" />
     <EmbeddedResource Remove="App_Data\AgentArchive\**" />
     <EmbeddedResource Remove="App_Data\Corpus\**" />
     <EmbeddedResource Remove="App_Data\Projects\**" />
     <EmbeddedResource Remove="PublishOutput\**" />
+    <EmbeddedResource Remove="publish\**" />
     <None Remove="App_Data\AgentArchive\**" />
     <None Remove="App_Data\Corpus\**" />
     <None Remove="App_Data\DbInitializer\**" />
     <None Remove="App_Data\Projects\**" />
     <None Remove="PublishOutput\**" />
+    <None Remove="publish\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,7 +67,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.4" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
@@ -75,7 +78,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
+    <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

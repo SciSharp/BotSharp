@@ -2,6 +2,7 @@
   "assemblies": "BotSharp.Core",
 
   "platform": "DialogflowAi",
+  "platformAssemblyName": "BotSharp.Platform.Dialogflow",
 
   "version": "0.1.0",
 
