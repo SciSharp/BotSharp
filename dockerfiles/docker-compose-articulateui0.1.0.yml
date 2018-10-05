@@ -1,0 +1,17 @@
+version: '3.0'
+
+services:
+  ui:
+    image: botsharpdocker/botsharp-articulateui:0.1.0
+    ports: ['0.0.0.0:3000:3000']
+    networks: ['botsharp-network']
+    environment:
+     - rasanluendpoint=http://botsharp:7500
+     
+  botsharp:
+    image: botsharpdocker/botsharp-articulate:0.1.0
+    ports: ['0.0.0.0:7500:7500']
+    networks: ['botsharp-network']
+
+
+networks: {botsharp-network: {}}
