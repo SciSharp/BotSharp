@@ -8,5 +8,10 @@
 
   "machineLearning": {
     "dataDir": "D:\\Projects\\BotSharp\\Data"
-  }
+  },
+
+  "Modules": [
+    { "Type": "BotSharp.Platform.Dialogflow.DialogflowModule, BotSharp.Platform.Dialogflow" },
+    //{ "Type": "BotSharp.Platform.Rasa.RasaModule, BotSharp.Platform.Rasa" }
+  ]
 }

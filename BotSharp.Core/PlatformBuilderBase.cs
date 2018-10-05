@@ -18,34 +18,39 @@ namespace BotSharp.Core
     {
         public IAgentStorage<TAgent> Storage { get; set; }
 
-        public IConfiguration PlatformConfig { get; set; }
+        private readonly IAgentStorageFactory agentStorageFactory;
 
-
-        public List<TAgent> GetAllAgents()
+        public PlatformBuilderBase(IAgentStorageFactory agentStorageFactory)
         {
-            GetStorage();
-
-            return Storage.Query();
+            this.agentStorageFactory = agentStorageFactory;
         }
 
-        public TAgent LoadAgentFromFile<TImporter>(string dataDir) where TImporter : IAgentImporter<TAgent>, new()
+        public async Task<List<TAgent>> GetAllAgents()
+        {
+            await GetStorage();
+
+            return await Storage.Query();
+        }
+
+        public async Task<TAgent> LoadAgentFromFile<TImporter>(string dataDir) where TImporter : IAgentImporter<TAgent>, new()
         {
             var meta = LoadMeta(dataDir);
-            var importer = new TImporter();
-
-            importer.AgentDir = dataDir;
+            var importer = new TImporter
+            {
+                AgentDir = dataDir
+            };
 
             // Load agent summary
-            var agent = importer.LoadAgent(meta);
+            var agent = await importer.LoadAgent(meta);
 
             // Load user custom entities
-            importer.LoadCustomEntities(agent);
+            await importer.LoadCustomEntities(agent);
 
             // Load agent intents
-            importer.LoadIntents(agent);
+            await importer.LoadIntents(agent);
 
             // Load system buildin entities
-            importer.LoadBuildinEntities(agent);
+            await importer.LoadBuildinEntities(agent);
 
             return agent;
         }
@@ -58,18 +63,18 @@ namespace BotSharp.Core
             return JsonConvert.DeserializeObject<AgentImportHeader>(metaJson);
         }
 
-        public TAgent GetAgentById(string agentId)
+        public async Task<TAgent> GetAgentById(string agentId)
         {
             GetStorage();
 
-            return Storage.FetchById(agentId);
+            return await Storage.FetchById(agentId);
         }
 
-        public TAgent GetAgentByName(string agentName)
+        public async Task<TAgent> GetAgentByName(string agentName)
         {
-            GetStorage();
+            await GetStorage();
 
-            return Storage.FetchByName(agentName);
+            return await Storage.FetchByName(agentName);
         }
 
         public virtual async Task<ModelMetaData> Train(TAgent agent, TrainingCorpus corpus, BotTrainOptions options)
@@ -92,32 +97,22 @@ namespace BotSharp.Core
             return info;
         }
 
-        public virtual bool SaveAgent(TAgent agent)
+        public virtual async Task<bool> SaveAgent(TAgent agent)
         {
-            GetStorage();
+            await GetStorage();
 
             // default save agent in FileStorage
-            Storage.Persist(agent);
+            await Storage.Persist(agent);
 
             return true;
         }
 
-        private IAgentStorage<TAgent> GetStorage()
+        protected async Task<IAgentStorage<TAgent>> GetStorage()
         {
             if (Storage == null)
             {
-                string storageName = PlatformConfig.GetValue<String>("AgentStorage");
-                switch (storageName)
-                {
-                    case "AgentStorageInRedis":
-                        Storage = Activator.CreateInstance<AgentStorageInRedis<TAgent>>();
-                        break;
-                    case "AgentStorageInMemory":
-                        Storage = Activator.CreateInstance<AgentStorageInMemory<TAgent>>();
-                        break;
-                }
+                Storage = await agentStorageFactory.Get<TAgent>();
             }
-
             return Storage;
         }
     }

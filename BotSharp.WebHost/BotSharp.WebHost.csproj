@@ -78,6 +78,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
+    <ProjectReference Include="..\..\botsharp-rasa\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj" />
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 

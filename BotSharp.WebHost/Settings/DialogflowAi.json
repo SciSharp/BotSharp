@@ -2,6 +2,6 @@
   "dialogflowAi": {
     "botEngine": "BotSharpNLU",
 
-    "agentStorage": "AgentStorageInRedis"
+    "agentStorage": "AgentStorageInMemory"
   }
 }

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core
 {
@@ -30,7 +31,7 @@ namespace BotSharp.Core
             }
         }
 
-        public TAgent FetchById(string agentId)
+        public async Task<TAgent> FetchById(string agentId)
         {
             var key = agentId;
             if (csredis.Exists(key))
@@ -43,7 +44,7 @@ namespace BotSharp.Core
             }
         }
 
-        public TAgent FetchByName(string agentName)
+        public async Task<TAgent> FetchByName(string agentName)
         {
             var agents = new List<TAgent>();
 
@@ -62,7 +63,7 @@ namespace BotSharp.Core
             return default(TAgent);
         }
 
-        public bool Persist(TAgent agent)
+        public async Task<bool> Persist(TAgent agent)
         {
             if (String.IsNullOrEmpty(agent.Id))
             {
@@ -80,7 +81,7 @@ namespace BotSharp.Core
             return true;
         }
 
-        public int PurgeAllAgents()
+        public async Task<int> PurgeAllAgents()
         {
             var keys = csredis.Keys($"{prefix}*");
 
@@ -89,7 +90,7 @@ namespace BotSharp.Core
             return keys.Count();
         }
 
-        public List<TAgent> Query()
+        public async Task<List<TAgent>> Query()
         {
             var agents = new List<TAgent>();
 

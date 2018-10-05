@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core
 {
@@ -20,7 +21,7 @@ namespace BotSharp.Core
             if (agents == null) agents = new Dictionary<string, TAgent>();
         }
 
-        public TAgent FetchById(string agentId)
+        public async Task<TAgent> FetchById(string agentId)
         {
             if (agents.ContainsKey(agentId))
             {
@@ -32,14 +33,14 @@ namespace BotSharp.Core
             }
         }
 
-        public TAgent FetchByName(string agentName)
+        public async Task<TAgent> FetchByName(string agentName)
         {
             var data = agents.FirstOrDefault(x => x.Value.Name == agentName);
 
             return data.Value;
         }
 
-        public bool Persist(TAgent agent)
+        public async Task<bool> Persist(TAgent agent)
         {
             if (String.IsNullOrEmpty(agent.Id))
             {
@@ -54,7 +55,7 @@ namespace BotSharp.Core
             return true;
         }
 
-        public int PurgeAllAgents()
+        public async Task<int> PurgeAllAgents()
         {
             int count = agents.Count;
 
@@ -63,7 +64,7 @@ namespace BotSharp.Core
             return count;
         }
 
-        public List<TAgent> Query()
+        public async Task<List<TAgent>> Query()
         {
             return agents.Select(x => x.Value).ToList();
         }

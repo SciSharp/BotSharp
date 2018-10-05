@@ -11,8 +11,8 @@ namespace BotSharp.Core.Engines.BotSharp
     {
         public override async Task Train(BotTrainOptions options)
         {
-            var trainer = new BotTrainer(agent.Id, dc);
-            await trainer.Train(agent, options);
+            var trainer = new BotTrainer(Agent.Id, Dc);
+            await trainer.Train(Agent, options);
         }
     }
 }

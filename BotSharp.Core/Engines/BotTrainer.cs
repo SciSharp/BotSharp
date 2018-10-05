@@ -19,9 +19,9 @@ namespace BotSharp.Core.Engines
 {
     public class BotTrainer
     {
-        private Database dc;
+        private readonly Database dc;
 
-        private string agentId;
+        private readonly string agentId;
 
         public BotTrainer()
         {
