@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace BotSharp.Core.Modules
@@ -30,7 +31,7 @@ namespace BotSharp.Core.Modules
 
             this._modules = options.Modules
                 .Select(s =>
-                {
+                {                   
                     Type type = Type.GetType(s.Type);
 
                     if (type == null)
