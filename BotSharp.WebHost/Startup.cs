@@ -40,8 +40,9 @@ namespace BotSharp.WebHost
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
+            PlatformAssembyLoader.LoadPlatformEmulatorAssemblies(Configuration, assembly => mvcBuilder.AddApplicationPart(assembly));
+
             this.modulesStartup.ConfigureServices(services);
-            //services.AddPlatformEmulator(Configuration, assembly => mvcBuilder.AddApplicationPart(assembly));
 
             services.AddSwaggerGen(c =>
             {
