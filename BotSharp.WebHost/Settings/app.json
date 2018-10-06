@@ -1,17 +1,29 @@
 ﻿{
+  "version": "0.1.0",
   "assemblies": "BotSharp.Core",
 
-  "platform": "DialogflowAi",
-  "platformAssemblyName": "BotSharp.Platform.Dialogflow",
-
-  "version": "0.1.0",
+  "platformModuleName": "DialogflowAi",
 
   "machineLearning": {
     "dataDir": "D:\\Projects\\BotSharp\\Data"
   },
 
-  "Modules": [
-    { "Type": "BotSharp.Platform.Dialogflow.DialogflowModule, BotSharp.Platform.Dialogflow" },
-    //{ "Type": "BotSharp.Platform.Rasa.RasaModule, BotSharp.Platform.Rasa" }
+  "moduleBasePath": "D:\\Projects",
+  "modules": [
+    {
+      "Name": "DialogflowAi",
+      "Type": "BotSharp.Platform.Dialogflow",
+      "Path": "botsharp-dialogflow\\BotSharp.Platform.Dialogflow\\bin\\Debug\\netstandard2.0"
+    },
+    {
+      "Name": "RasaAi",
+      "Type": "BotSharp.Platform.Rasa",
+      "Path": "botsharp-rasa\\BotSharp.Platform.Rasa\\bin\\Debug\\netstandard2.0"
+    },
+    {
+      "Name": "ArticulateAi",
+      "Type": "BotSharp.Platform.Articulate",
+      "Path": "botsharp-articulate\\BotSharp.Platform.Articulate\\bin\\Debug\\netstandard2.0"
+    }
   ]
 }

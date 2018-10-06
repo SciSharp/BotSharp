@@ -3,9 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Console = Colorful.Console;
 
 namespace BotSharp.Core.Modules
 {
@@ -31,17 +33,22 @@ namespace BotSharp.Core.Modules
 
             this._modules = options.Modules
                 .Select(s =>
-                {                   
-                    Type type = Type.GetType(s.Type);
+                {
+                    Type type = Type.GetType($"{s.Type}.ModuleInjector, {s.Type}");
 
                     if (type == null)
                     {
-                        throw new TypeLoadException(
-                            $"Cannot load type \"{s.Type}\"");
+                        /* hard to debug in docker */
+                        /* throw new TypeLoadException(
+                            $"Cannot load type \"{s.Type}\"");*/
+                        Console.WriteLine($"Cannot load type \"{s.Type}\"", Color.Red);
+                        return null;
                     }
-
-                    IModule module = (IModule)Activator.CreateInstance(type);
-                    return module;
+                    else
+                    {
+                        IModule module = (IModule)Activator.CreateInstance(type);
+                        return module;
+                    }
                 }
             );
         }
@@ -59,6 +66,7 @@ namespace BotSharp.Core.Modules
         {
             foreach (IModule module in this._modules)
             {
+                if (module == null) continue;
                 module.ConfigureServices(services, this._configuration);
             }
         }
