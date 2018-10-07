@@ -58,7 +58,7 @@ You can use docker compose to run BotSharp quickly, make sure you've got `Docker
 
 Point your web browser at http://localhost:3000 and enjoy BotSharp with Articulate-UI.
 
-Extension Library
+Extension Libraries
 -----------------
 BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate.
 
