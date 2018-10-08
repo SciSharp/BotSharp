@@ -67,6 +67,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 * BotSharp platform emulator extension which is compatible with Articulate AI. `botsharp-articulate`_
 * A channel module of BotSharp for Facebook Messenger. `botsharp-channel-fbmessenger`_
 * A channel module of BotSharp for Tencent Weixin. `botsharp-channel-weixin`_
+* Articulate UI customized for BotSharp NLU. `articulate-ui`_
 
 Documents
 ---------
@@ -96,4 +97,4 @@ Scan to join group in Wechat
 .. _botsharp-articulate: https://github.com/Oceania2018/botsharp-articulate
 .. _botsharp-channel-fbmessenger: https://github.com/Oceania2018/botsharp-channel-fbmessenger
 .. _botsharp-channel-weixin: https://github.com/Oceania2018/botsharp-channel-weixin
-
+.. _articulate-ui: https://github.com/Oceania2018/articulate-ui
