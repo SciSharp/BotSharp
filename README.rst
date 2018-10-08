@@ -63,7 +63,7 @@ Extension Libraries
 BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate.
 
 * BotSharp platform emulator extension which is compatible with RASA NLU. `botsharp-rasa`_
-* BotSharp platform extension which is compatible with Google Dialogflow. `botsharp-dialogflow`_
+* BotSharp platform emulator extension which is compatible with Google Dialogflow. `botsharp-dialogflow`_
 * BotSharp platform emulator extension which is compatible with Articulate AI. `botsharp-articulate`_
 * A channel module of BotSharp for Facebook Messenger. `botsharp-channel-fbmessenger`_
 * A channel module of BotSharp for Tencent Weixin. `botsharp-channel-weixin`_

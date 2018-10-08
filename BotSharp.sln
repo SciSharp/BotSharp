@@ -24,9 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Models", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Dialogflow", "..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj", "{3599EC12-BE49-4BA2-B02F-86602BC1240C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Rasa", "..\botsharp-rasa\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj", "{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Articulate", "..\botsharp-articulate\BotSharp.Platform.Articulate\BotSharp.Platform.Articulate.csproj", "{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Channel.FacebookMessenger", "..\botsharp-channel-fbmessenger\BotSharp.Channel.FacebookMessenger\BotSharp.Channel.FacebookMessenger.csproj", "{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -134,30 +132,18 @@ Global
 		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Release|x64.ActiveCfg = Release|Any CPU
 		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Release|x64.Build.0 = Release|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Debug|x64.Build.0 = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.DIALOGFLOW|Any CPU.ActiveCfg = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.DIALOGFLOW|Any CPU.Build.0 = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.DIALOGFLOW|x64.ActiveCfg = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.DIALOGFLOW|x64.Build.0 = Debug|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Release|x64.ActiveCfg = Release|Any CPU
-		{3DE700F6-16AE-4A14-9119-E72BFBE85AB0}.Release|x64.Build.0 = Release|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Debug|x64.Build.0 = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.DIALOGFLOW|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.DIALOGFLOW|Any CPU.Build.0 = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.DIALOGFLOW|x64.ActiveCfg = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.DIALOGFLOW|x64.Build.0 = Debug|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Release|x64.ActiveCfg = Release|Any CPU
-		{ED94ADD1-B8BA-4103-ABF9-662B19E450DD}.Release|x64.Build.0 = Release|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|x64.Build.0 = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|Any CPU.Build.0 = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|x64.ActiveCfg = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|x64.Build.0 = Debug|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|x64.ActiveCfg = Release|Any CPU
+		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
