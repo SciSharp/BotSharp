@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <Description>Botsharp.NLP is a set of tools for building C# programs to work with human language data. It can be used in common tasks like POS, NER and text classification in the NLP or NLU field.
 
 BotSharp.NLP has implemented below machine learning algorithms:

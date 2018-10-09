@@ -22,10 +22,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Abstracti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Models", "BotSharp.Platform.Models\BotSharp.Platform.Models.csproj", "{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Dialogflow", "..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj", "{3599EC12-BE49-4BA2-B02F-86602BC1240C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Channel.FacebookMessenger", "..\botsharp-channel-fbmessenger\BotSharp.Channel.FacebookMessenger\BotSharp.Channel.FacebookMessenger.csproj", "{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -120,30 +116,6 @@ Global
 		{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}.Release|x64.ActiveCfg = Release|Any CPU
 		{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}.Release|x64.Build.0 = Release|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Debug|x64.Build.0 = Debug|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.DIALOGFLOW|Any CPU.ActiveCfg = DIALOGFLOW|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.DIALOGFLOW|Any CPU.Build.0 = DIALOGFLOW|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.DIALOGFLOW|x64.ActiveCfg = DIALOGFLOW|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.DIALOGFLOW|x64.Build.0 = DIALOGFLOW|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Release|x64.ActiveCfg = Release|Any CPU
-		{3599EC12-BE49-4BA2-B02F-86602BC1240C}.Release|x64.Build.0 = Release|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Debug|x64.Build.0 = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|Any CPU.Build.0 = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|x64.ActiveCfg = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.DIALOGFLOW|x64.Build.0 = Debug|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|x64.ActiveCfg = Release|Any CPU
-		{BDAEF806-D1B0-479E-AAF6-21252E3FA3CE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

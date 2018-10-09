@@ -1,4 +1,4 @@
-The Open Source AI Bot Platform Builder
+The Open Source AI Chatbot Platform Builder
 ======================================================
 
 .. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
