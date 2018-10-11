@@ -18,9 +18,9 @@ namespace BotSharp.Core
     {
         public IAgentStorage<TAgent> Storage { get; set; }
 
-        private readonly IAgentStorageFactory agentStorageFactory;
+        private readonly IAgentStorageFactory<TAgent> agentStorageFactory;
 
-        public PlatformBuilderBase(IAgentStorageFactory agentStorageFactory)
+        public PlatformBuilderBase(IAgentStorageFactory<TAgent> agentStorageFactory)
         {
             this.agentStorageFactory = agentStorageFactory;
         }
@@ -111,7 +111,7 @@ namespace BotSharp.Core
         {
             if (Storage == null)
             {
-                Storage = await agentStorageFactory.Get<TAgent>();
+                Storage = await agentStorageFactory.Get();
             }
             return Storage;
         }

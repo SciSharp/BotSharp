@@ -40,7 +40,7 @@ namespace BotSharp.Core.Engines
             // Get NLP Provider
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
-            var platform = config.GetSection($"platform").Value;
+            var platform = config.GetSection($"platformModuleName").Value;
             var engine = config.GetSection($"{platform}:botEngine").Value;
             string providerName = config.GetSection($"{engine}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpProvider;
