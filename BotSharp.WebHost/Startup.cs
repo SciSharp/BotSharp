@@ -98,9 +98,11 @@ namespace BotSharp.WebHost
                 c.DocumentTitle = info.Title;
                 c.InjectStylesheet(Configuration.GetValue<String>("Swagger:Stylesheet"));
 
+                Console.WriteLine();
                 Console.WriteLine($"{info.Title} [{info.Version}] {info.License.Name}");
                 Console.WriteLine($"{info.Description}");
-                Console.WriteLine($"{info.Contact.Name}");
+                Console.WriteLine($"{info.Contact.Name}, {DateTime.UtcNow.ToString()}");
+                Console.WriteLine();
             });
 
             app.Use(async (context, next) =>

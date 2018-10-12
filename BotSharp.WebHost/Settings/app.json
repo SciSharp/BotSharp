@@ -8,7 +8,7 @@
     "dataDir": "D:\\Projects\\BotSharp\\Data"
   },
 
-  "moduleBasePath": "D:\\Projects",
+  "moduleBasePath": "C:\\Users\\haipi\\Documents\\Projects",
   "modules": [
     {
       "Name": "DialogflowAi",

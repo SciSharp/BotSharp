@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Core
+namespace BotSharp.Core.AgentStorage
 {
     public class AgentStorageFactory<TAgent> : IAgentStorageFactory<TAgent> where TAgent : AgentBase
     {

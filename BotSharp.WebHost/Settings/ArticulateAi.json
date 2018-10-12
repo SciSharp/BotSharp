@@ -1,7 +1,0 @@
-{
-  "articulateAi": {
-    "botEngine": "BotSharpNLU",
-
-    "agentStorage": "AgentStorageInRedis"
-  }
-}

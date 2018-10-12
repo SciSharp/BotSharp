@@ -20,14 +20,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var platform = configuration.GetValue<string>("platformModuleName");
             var module = options.Modules.Find(x => x.Name == platform);
-            var engine = configuration.GetValue<string>($"{platform}:BotEngine");
-
-            Formatter[] settings = new Formatter[]
-            {
-                new Formatter(platform, Color.Yellow),
-                new Formatter(module.Name, Color.Yellow),
-                new Formatter(engine, Color.Yellow),
-            };
 
             // load platform emulator dynamically
             Console.WriteLine();
@@ -37,12 +29,19 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 Assembly library = AssemblyLoadContext.Default.LoadFromAssemblyPath(platformDllPath);
                 action(library);
-                Console.WriteLineFormatted("Loaded {0} platform emulator from {1} assembly which is using {2} engine.", Color.White, settings);
+
+                Formatter[] settings = new Formatter[]
+                {
+                    new Formatter(platform, Color.Yellow),
+                    new Formatter(platformDllPath, Color.Yellow)
+                };
+                Console.WriteLineFormatted("Loaded {0} platform emulator from {1} assembly.", Color.White, settings);
             }
             else
             {
-                Console.WriteLine($"Can't load {module.Type} assembly.");
+                Console.WriteLine($"Can't load {module.Type} assembly from {platformDllPath}.");
             }
+
             Console.WriteLine();
         }
     }
