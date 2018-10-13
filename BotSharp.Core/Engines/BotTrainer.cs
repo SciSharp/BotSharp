@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Core.Abstractions;
+using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,9 +22,11 @@ namespace BotSharp.Core.Engines
         private readonly Database dc;
 
         private readonly string agentId;
+        private readonly IPlatformSettings settings;
 
-        public BotTrainer()
+        public BotTrainer(IPlatformSettings setting)
         {
+            this.settings = setting;
         }
 
         public BotTrainer(string agentId, Database dc)
@@ -41,7 +43,7 @@ namespace BotSharp.Core.Engines
             var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
             var platform = config.GetSection($"platformModuleName").Value;
-            var engine = config.GetSection($"{platform}:botEngine").Value;
+            var engine = this.settings.BotEngine;
             string providerName = config.GetSection($"{engine}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpProvider;
             provider.Configuration = config.GetSection(engine);
