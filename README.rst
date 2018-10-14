@@ -1,4 +1,4 @@
-The Open Source AI Bot Platform Builder
+The Open Source AI Chatbot Platform Builder
 ======================================================
 
 .. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
@@ -58,6 +58,16 @@ You can use docker compose to run BotSharp quickly, make sure you've got `Docker
 
 Point your web browser at http://localhost:3000 and enjoy BotSharp with Articulate-UI.
 
+Extension Libraries
+-----------------
+BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate.
+
+* BotSharp platform emulator extension which is compatible with RASA NLU. `botsharp-rasa`_
+* BotSharp platform emulator extension which is compatible with Google Dialogflow. `botsharp-dialogflow`_
+* BotSharp platform emulator extension which is compatible with Articulate AI. `botsharp-articulate`_
+* A channel module of BotSharp for Facebook Messenger. `botsharp-channel-fbmessenger`_
+* A channel module of BotSharp for Tencent Weixin. `botsharp-channel-weixin`_
+* Articulate UI customized for BotSharp NLU. `articulate-ui`_
 
 Documents
 ---------
@@ -82,4 +92,9 @@ Scan to join group in Wechat
 .. _gitter: https://gitter.im/botsharpcore/Lobby
 .. _license: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/LICENSE
 .. _botsharpnuget: https://www.nuget.org/packages/BotSharp.Core
-
+.. _botsharp-rasa: https://github.com/Oceania2018/botsharp-rasa
+.. _botsharp-dialogflow: https://github.com/Oceania2018/botsharp-dialogflow
+.. _botsharp-articulate: https://github.com/Oceania2018/botsharp-articulate
+.. _botsharp-channel-fbmessenger: https://github.com/Oceania2018/botsharp-channel-fbmessenger
+.. _botsharp-channel-weixin: https://github.com/Oceania2018/botsharp-channel-weixin
+.. _articulate-ui: https://github.com/Oceania2018/articulate-ui

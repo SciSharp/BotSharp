@@ -4,7 +4,8 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RuntimeIdentifiers>Portable;win10-x64;centos.7-x64</RuntimeIdentifiers>
     <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;DIALOGFLOW;RASA;ARTICULATE</Configurations>
+    <Configurations>Debug;Release;</Configurations>
+    <UserSecretsId>4ee89154-9131-4e6b-8fd5-d4f04a8d77c4</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,7 +19,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DIALOGFLOW|AnyCPU'">
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;DIALOGFLOW;NETCOREAPP;NETCOREAPP2_1</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NETCOREAPP;NETCOREAPP2_1</DefineConstants>
     <OutputPath></OutputPath>
   </PropertyGroup>
 
@@ -79,6 +80,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\botsharp-channel-weixin\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj" />
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
@@ -86,13 +88,7 @@
     <Content Update="Settings\app.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="Settings\RasaAi.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Update="Settings\DialogflowAi.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="Settings\ArticulateAi.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Settings\auth.json">

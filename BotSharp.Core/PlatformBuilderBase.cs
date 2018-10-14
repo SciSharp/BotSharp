@@ -18,11 +18,13 @@ namespace BotSharp.Core
     {
         public IAgentStorage<TAgent> Storage { get; set; }
 
-        private readonly IAgentStorageFactory agentStorageFactory;
+        private readonly IAgentStorageFactory<TAgent> agentStorageFactory;
+        private readonly IPlatformSettings settings;
 
-        public PlatformBuilderBase(IAgentStorageFactory agentStorageFactory)
+        public PlatformBuilderBase(IAgentStorageFactory<TAgent> agentStorageFactory, IPlatformSettings settings)
         {
             this.agentStorageFactory = agentStorageFactory;
+            this.settings = settings;
         }
 
         public async Task<List<TAgent>> GetAllAgents()
@@ -89,7 +91,7 @@ namespace BotSharp.Core
                 options.Model = "model_" + DateTime.UtcNow.ToString("yyyyMMdd");
             }
 
-            var trainer = new BotTrainer();
+            var trainer = new BotTrainer(settings);
             agent.Corpus = corpus;
 
             var info = await trainer.Train(agent, options);
@@ -111,7 +113,7 @@ namespace BotSharp.Core
         {
             if (Storage == null)
             {
-                Storage = await agentStorageFactory.Get<TAgent>();
+                Storage = await agentStorageFactory.Get();
             }
             return Storage;
         }

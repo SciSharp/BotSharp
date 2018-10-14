@@ -21,13 +21,13 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <RepositoryType>MIT</RepositoryType>
     <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
     <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence, RPA</PackageTags>
-    <Version>1.5.0</Version>
+    <Version>1.6.0</Version>
     <PackageReleaseNotes>Monthly Update.
 Integrated with Articulate UI.
 If you feel that this project is helpful to you, please Star on the project, we will be very grateful.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
-    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <AssemblyVersion>1.6.0.0</AssemblyVersion>
     <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
     <PackageLicenseUrl>https://github.com/Oceania2018/BotSharp/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
@@ -81,7 +81,6 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="RestSharp" Version="106.4.2" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>
 

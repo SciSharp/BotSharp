@@ -1,7 +1,0 @@
-{
-  "rasaAi": {
-    "botEngine": "BotSharpNLU",
-
-    "agentStorage": "AgentStorageInMemory"
-  }
-}

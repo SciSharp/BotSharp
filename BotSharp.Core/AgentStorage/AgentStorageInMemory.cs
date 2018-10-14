@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Core
+namespace BotSharp.Core.AgentStorage
 {
     /// <summary>
     /// Save agent instance into memory. 

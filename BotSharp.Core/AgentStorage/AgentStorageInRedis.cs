@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Core
+namespace BotSharp.Core.AgentStorage
 {
     public class AgentStorageInRedis<TAgent> : IAgentStorage<TAgent> 
         where TAgent : AgentBase

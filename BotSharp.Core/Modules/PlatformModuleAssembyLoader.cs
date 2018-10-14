@@ -18,31 +18,32 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             ModulesOptions options = configuration.Get<ModulesOptions>();
 
-            var platform = configuration.GetValue<string>("platformModuleName");
-            var module = options.Modules.Find(x => x.Name == platform);
-            var engine = configuration.GetValue<string>($"{platform}:BotEngine");
-
-            Formatter[] settings = new Formatter[]
-            {
-                new Formatter(platform, Color.Yellow),
-                new Formatter(module.Name, Color.Yellow),
-                new Formatter(engine, Color.Yellow),
-            };
-
             // load platform emulator dynamically
             Console.WriteLine();
 
-            var platformDllPath = Path.Combine(options.ModuleBasePath, module.Path, $"{module.Type}.dll");
-            if (File.Exists(platformDllPath))
-            {
-                Assembly library = AssemblyLoadContext.Default.LoadFromAssemblyPath(platformDllPath);
-                action(library);
-                Console.WriteLineFormatted("Loaded {0} platform emulator from {1} assembly which is using {2} engine.", Color.White, settings);
-            }
-            else
-            {
-                Console.WriteLine($"Can't load {module.Type} assembly.");
-            }
+            options.Modules.ForEach(module => {
+
+                var dllPath = Path.Combine(options.ModuleBasePath, module.Path, $"{module.Type}.dll");
+                if (File.Exists(dllPath))
+                {
+                    Assembly library = AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
+                    action(library);
+
+                    Formatter[] settings = new Formatter[]
+                    {
+                        new Formatter(module.Name, Color.Yellow),
+                        new Formatter(module.Type, Color.Yellow),
+                        new Formatter(dllPath, Color.Yellow)
+                    };
+                    Console.WriteLineFormatted("Loaded {0} module, type: {1}, path: {2}", Color.White, settings);
+                }
+                else
+                {
+                    Console.WriteLine($"Can't load {module.Type} assembly from {dllPath}.");
+                }
+
+            });
+
             Console.WriteLine();
         }
     }
