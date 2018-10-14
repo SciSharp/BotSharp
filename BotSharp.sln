@@ -22,6 +22,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Abstracti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Models", "BotSharp.Platform.Models\BotSharp.Platform.Models.csproj", "{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Dialogflow", "..\botsharp-dialogflow\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj", "{4F74387F-7101-428C-B918-38BC5ACCB0A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Channel.Weixin", "..\botsharp-channel-weixin\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj", "{0F34140A-3714-4586-8A8C-3ABA56221D06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -116,6 +120,30 @@ Global
 		{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}.Release|x64.ActiveCfg = Release|Any CPU
 		{C4F2EAE5-F2C7-4F52-9DB2-7E76D7080C72}.Release|x64.Build.0 = Release|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Debug|x64.Build.0 = Debug|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.DIALOGFLOW|Any CPU.ActiveCfg = DIALOGFLOW|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.DIALOGFLOW|Any CPU.Build.0 = DIALOGFLOW|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.DIALOGFLOW|x64.ActiveCfg = DIALOGFLOW|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.DIALOGFLOW|x64.Build.0 = DIALOGFLOW|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Release|x64.ActiveCfg = Release|Any CPU
+		{4F74387F-7101-428C-B918-38BC5ACCB0A6}.Release|x64.Build.0 = Release|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Debug|x64.Build.0 = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.DIALOGFLOW|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.DIALOGFLOW|Any CPU.Build.0 = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.DIALOGFLOW|x64.ActiveCfg = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.DIALOGFLOW|x64.Build.0 = Debug|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Release|x64.ActiveCfg = Release|Any CPU
+		{0F34140A-3714-4586-8A8C-3ABA56221D06}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -77,11 +78,11 @@ namespace BotSharp.Core.Modules
         /// <param name="app">
         /// Instance of <see cref="IApplicationBuilder"/>.
         /// </param>
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             foreach (IModule module in this._modules)
             {
-                module.Configure(app);
+                module.Configure(app, env);
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -27,6 +28,6 @@ namespace BotSharp.Core.Modules
         /// <param name="app">
         /// Instance of <see cref="IApplicationBuilder"/>.
         /// </param>
-        void Configure(IApplicationBuilder app);
+        void Configure(IApplicationBuilder app, IHostingEnvironment env);
     }
 }

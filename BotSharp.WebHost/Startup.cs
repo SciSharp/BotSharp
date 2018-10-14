@@ -122,6 +122,8 @@ namespace BotSharp.WebHost
 
             app.UseMvc();
 
+            this.modulesStartup.Configure(app, env);
+
             AppDomain.CurrentDomain.SetData("DataPath", Path.Combine(env.ContentRootPath, "App_Data"));
             AppDomain.CurrentDomain.SetData("Configuration", Configuration);
             AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
