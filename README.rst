@@ -49,9 +49,9 @@ Some Features
 
 Quick Started
 -------------
-1 Make sure that you have downloaded the related components.`_
-2 See the file "BotSharp\BotSharp.WebHost\Settings\app.json",change the path to your own project's path`_
-3 Select dialogflow or articulate to make it work.`_
+*  Make sure that you have downloaded the related components.
+*  See the file "BotSharp\BotSharp.WebHost\Settings\app.json",change the path to your own project's path
+*  Select dialogflow or articulate to make it work.
 
 You can use docker compose to run BotSharp quickly, make sure you've got `Docker`_ installed.
 ::
