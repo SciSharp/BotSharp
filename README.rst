@@ -49,6 +49,10 @@ Some Features
 
 Quick Started
 -------------
+1 Make sure that you have downloaded the related components.
+2 See the file "BotSharp\BotSharp.WebHost\Settings\app.json",change the path to your own project's path
+3 Select dialogflow or articulate to make it work.
+
 You can use docker compose to run BotSharp quickly, make sure you've got `Docker`_ installed.
 ::
 
@@ -56,7 +60,7 @@ You can use docker compose to run BotSharp quickly, make sure you've got `Docker
  PS D:\> cd BotSharp
  PS D:\BotSharp\> docker-compose -f dockerfiles/docker-compose-articulateui.yml up
 
-Point your web browser at http://localhost:3000 and enjoy BotSharp with Articulate-UI.
+Point your web browser at http://localhost:**** and enjoy BotSharp with Articulate-UI.
 
 Extension Libraries
 -----------------
