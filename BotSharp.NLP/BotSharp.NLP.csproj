@@ -43,8 +43,11 @@ Naive Bayes Classifier</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bigtree.Algorithm" Version="0.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Bigtree.MachineLearning\Bigtree.Algorithm\Bigtree.Algorithm.csproj" />
   </ItemGroup>
 
 </Project>
