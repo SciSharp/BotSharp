@@ -1,4 +1,4 @@
-﻿using Bigtree.Algorithm.Matrix;
+﻿//using Bigtree.Algorithm.Matrix;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -35,7 +35,7 @@ namespace BotSharp.NLP.Featuring
         /// <summary>
         /// Array shape
         /// </summary>
-        Shape Shape { get; set; }
+        //Shape Shape { get; set; }
 
         /// <summary>
         /// Pre-trained model file path
