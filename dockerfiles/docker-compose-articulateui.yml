@@ -7,6 +7,14 @@ services:
     networks: ['botsharp-network']
     environment:
      - API_URL
+  
+  api:
+    image: samtecspg/articulate-api:0.12.1
+    ports: ['0.0.0.0:7500:7500']
+    networks: ['botsharp-network']
+    entrypoint: ['node', 'start.js']
+    environment:
+     - SWAGGER_BASE_PATH
 
   botsharp:
     image: botsharpdocker/botsharp-rasa:latest
