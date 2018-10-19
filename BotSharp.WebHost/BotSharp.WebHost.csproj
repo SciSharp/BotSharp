@@ -80,12 +80,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\botsharp-channel-weixin\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj" />
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Update="Settings\app.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Settings\channels.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Settings\DialogflowAi.json">

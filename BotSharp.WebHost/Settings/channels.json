@@ -1,0 +1,9 @@
+﻿{
+  "TokenAuthentication": {
+    "SecretKey": "lfo54FYneUCJNL2EjP9ZxQ==",
+    "Issuer": "BotSharp",
+    "Audience": "BotSharp",
+    "CookieName": "token",
+    "Subject": "BotSharp"
+  }
+}
