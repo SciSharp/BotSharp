@@ -52,7 +52,8 @@ The main documentation for the site is organized into a couple sections:
 .. toctree::
    :maxdepth: 3
    :caption: User Documentation:
-
+   
+   overview
    installation
    agent/import-agent
    agent/train-agent
