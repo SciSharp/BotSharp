@@ -14,12 +14,12 @@
       "Name": "DialogflowAi",
       "Type": "BotSharp.Platform.Dialogflow",
       "Path": "botsharp-dialogflow\\BotSharp.Platform.Dialogflow\\bin\\Debug\\netcoreapp2.1"
-    },
+    } /*,
     {
       "Name": "WeixinChannel",
       "Type": "BotSharp.Channel.Weixin",
       "Path": "botsharp-channel-weixin\\BotSharp.Channel.Weixin\\bin\\Debug\\netcoreapp2.1"
-    } /*,
+    },
     {
       "Name": "RasaAi",
       "Type": "BotSharp.Platform.Rasa",
