@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Bigtree.Algorithm.Matrix;
+//using Bigtree.Algorithm.Matrix;
 using Txt2Vec;
 
 namespace BotSharp.NLP.Featuring
@@ -12,7 +12,7 @@ namespace BotSharp.NLP.Featuring
         public List<Sentence> Sentences { get; set; }
         public List<Tuple<string, int>> Dictionary { get; set; }
         public List<string> Features { get; set; }
-        public Shape Shape { get; set; }
+        //public Shape Shape { get; set; }
         public VectorGenerator Vg { get; set; }
         public int SentenceVectorSize { get; set; }
         public string ModelFile { get; set; }
