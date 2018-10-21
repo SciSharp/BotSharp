@@ -1,12 +1,12 @@
 ﻿{
-    "version": "0.1.0",
-    "assemblies": "BotSharp.Core",
+  "version": "0.1.0",
+  "assemblies": "BotSharp.Core",
 
-    "platformModuleName": "ArticulateAi",
+  "platformModuleName": "DialogflowAi",
 
-    "machineLearning": {
-        "dataDir": "D:\\Projects\\BotSharp\\Data"
-    },
+  "machineLearning": {
+    "dataDir": "D:\\Projects\\BotSharp\\Data"
+  },
 
   "modules": [
     {
