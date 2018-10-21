@@ -47,6 +47,6 @@ namespace BotSharp.Platform.Abstraction
 
         Task<ModelMetaData> Train(TAgent agent, TrainingCorpus corpus, BotTrainOptions options);
 
-        Task<AiResponse> TextRequest(AiRequest request);
+        Task<TResult> TextRequest<TResult>(AiRequest request);
     }
 }

@@ -72,13 +72,13 @@ namespace BotSharp.Core.Engines
                 await pipe.Predict(agent, data, pipeModel);
             }
 
-            Console.WriteLine($"Prediction result:", Color.Green);
+            /*Console.WriteLine($"Prediction result:", Color.Green);
             Console.WriteLine(JsonConvert.SerializeObject(data, new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
                 NullValueHandling = NullValueHandling.Ignore,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
-            }));
+            }));*/
 
             return data;
         }

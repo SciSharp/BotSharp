@@ -20,14 +20,14 @@
 If you feel that this project is helpful to you, please Star on the project, we will be very grateful.</Description>
     <RepositoryType>MIT</RepositoryType>
     <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
-    <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence, RPA</PackageTags>
-    <Version>1.6.0</Version>
+    <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence</PackageTags>
+    <Version>1.7.1</Version>
     <PackageReleaseNotes>Monthly Update.
-Integrated with Articulate UI.
+Integrated with Tencent Wechat.
 If you feel that this project is helpful to you, please Star on the project, we will be very grateful.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
-    <AssemblyVersion>1.6.0.0</AssemblyVersion>
+    <AssemblyVersion>1.7.1.0</AssemblyVersion>
     <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
     <PackageLicenseUrl>https://github.com/Oceania2018/BotSharp/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
@@ -75,7 +75,7 @@ If you feel that this project is helpful to you, please Star on the project, we 
 
   <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
-    <PackageReference Include="CSRedisCore" Version="2.6.13" />
+    <PackageReference Include="CSRedisCore" Version="3.0.5" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.9.1" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />

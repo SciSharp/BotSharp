@@ -131,8 +131,8 @@ namespace BotSharp.NLP.Classify
 
         public List<Node[]> GetData(List<Sentence> sentences, ClassifyOptions options)
         {
-            //var extractor = new CountFeatureExtractor();
-            var extractor = new Word2VecFeatureExtractor();
+            var extractor = new CountFeatureExtractor();
+            //var extractor = new Word2VecFeatureExtractor();
             extractor.ModelFile = options.Word2VecFilePath;
             extractor.Sentences = sentences;
             if(features != null)

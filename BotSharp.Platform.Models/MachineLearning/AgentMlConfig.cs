@@ -13,7 +13,7 @@ namespace BotSharp.Platform.Models.MachineLearning
         public String AgentId { get; set; }
 
         [Required]
-        public decimal MinConfidence { get; set; }
+        public double MinConfidence { get; set; }
 
         [Required]
         [MaxLength(64)]

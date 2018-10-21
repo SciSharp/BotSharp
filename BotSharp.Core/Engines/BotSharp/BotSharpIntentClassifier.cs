@@ -56,7 +56,7 @@ namespace BotSharp.Core.Engines.BotSharp
             {
                 Classifier = "BotSharpIntentClassifier",
                 Label = result.First().Item1,
-                Confidence = (decimal)result.First().Item2
+                Confidence = result.First().Item2
             };
 
             return true;

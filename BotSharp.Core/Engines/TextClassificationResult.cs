@@ -10,6 +10,6 @@ namespace BotSharp.Core.Engines
 
         public String Label { get; set; }
 
-        public Decimal Confidence { get; set; }
+        public double Confidence { get; set; }
     }
 }

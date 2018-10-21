@@ -10,7 +10,7 @@
     "pipe": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier",
 
     "botSharpTokenizer": {
-      "tokenizer": "TreebankTokenizer"
+      "tokenizer": "JiebaTokenizer"
     },
 
     "botSharpIntentClassifier": {
@@ -19,18 +19,11 @@
     },
 
     "botSharpTagger": {
-      "tagger": "NGramTagger"
+      "tagger": "JiebaTagger"
     },
 
     "botSharpCRFNer": {
       "template": "|App_Data|CRFLite/template.en"
-    },
-
-    "witAiEntityRecognizer": {
-      "url": "https://api.wit.ai",
-      "resource": "message",
-      "serverAccessToken": "SERVER_ACCESS_TOKEN",
-      "version": "20180811"
     }
   }
 }
