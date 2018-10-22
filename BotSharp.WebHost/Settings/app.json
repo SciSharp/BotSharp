@@ -4,19 +4,11 @@
 
   "platformModuleName": "DialogflowAi",
 
-  "machineLearning": {
-    "dataDir": "D:\\Projects\\BotSharp\\Data"
-  },
-
   "modules": [
-    {
+    /*{
       "Name": "DialogflowAi",
       "Type": "BotSharp.Platform.Dialogflow"
     },
-    {
-      "Name": "WeixinChannel",
-      "Type": "BotSharp.Channel.Weixin"
-    }/*,
     {
       "Name": "RasaAi",
       "Type": "BotSharp.Platform.Rasa",

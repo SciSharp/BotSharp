@@ -290,3 +290,4 @@ __pycache__/
 /Data
 /docs/_build
 *.RestApi.xml
+/BotSharp.WebHost/App_Data/AgentStorage

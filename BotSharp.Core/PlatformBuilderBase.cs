@@ -36,6 +36,8 @@ namespace BotSharp.Core
 
         public async Task<TAgent> LoadAgentFromFile<TImporter>(string dataDir) where TImporter : IAgentImporter<TAgent>, new()
         {
+            Console.WriteLine($"Loading agent from folder {dataDir}");
+
             var meta = LoadMeta(dataDir);
             var importer = new TImporter
             {
@@ -53,6 +55,8 @@ namespace BotSharp.Core
 
             // Load system buildin entities
             await importer.LoadBuildinEntities(agent);
+
+            Console.WriteLine($"Loaded agent: {agent.Name} {agent.Id}");
 
             return agent;
         }

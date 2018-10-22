@@ -17,6 +17,7 @@ namespace BotSharp.Core.AgentStorage
 
             services.AddSingleton<AgentStorageInMemory<TAgent>>();
             services.AddSingleton<AgentStorageInRedis<TAgent>>();
+            services.AddSingleton<AgentStorageInFile<TAgent>>();
 
             services.AddSingleton(factory =>
             {
@@ -29,6 +30,10 @@ namespace BotSharp.Core.AgentStorage
                     else if (key.Equals("AgentStorageInMemory"))
                     {
                         return factory.GetService<AgentStorageInMemory<TAgent>>();
+                    }
+                    else if (key.Equals("AgentStorageInFile"))
+                    {
+                        return factory.GetService<AgentStorageInFile<TAgent>>();
                     }
                     else
                     {
