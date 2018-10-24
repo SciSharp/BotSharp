@@ -60,7 +60,7 @@ grammar_cjkRuby: true
 **2)填写接口配置信息**
 
 url填写： http://外网IP/wx
-Token：自主设置，这个token与公众平台wiki中常提的access_token不是一回事。这个token只用于验证开发者服务器。
+Token：自主设置，这个token与公众平台wiki中常提的access_token不是一回事，这个token只用于验证开发者服务器。
 
 ![](./集成微信公众号图片/配置接口url.png)
 
