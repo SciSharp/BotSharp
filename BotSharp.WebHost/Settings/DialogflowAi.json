@@ -1,7 +1,7 @@
 {
   // if you want to override platform setting, please set corresponding value, otherwise you don't need this section.
-    "dialogflowAi": {
-        "botEngine": "BotSharpNLU",
-        "agentStorage": "AgentStorageInMemory"
-    }
+  "dialogflowAi": {
+    "botEngine": "BotSharpNLU",
+    "agentStorage": "AgentStorageInFile"
+  }
 }

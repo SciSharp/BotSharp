@@ -46,7 +46,7 @@ namespace BotSharp.NLP.Tokenize
         {
             get
             {
-                return Regex.IsMatch(Text, @"^[a-zA-Z]+$");
+                return Regex.IsMatch(Text, @"^[a-zA-Z]+|[\u4e00-\u9fa5]+$");
             }
         }
 

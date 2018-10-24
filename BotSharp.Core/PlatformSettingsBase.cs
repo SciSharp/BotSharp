@@ -15,7 +15,7 @@ namespace BotSharp.Core
         public PlatformSettingsBase()
         {
             BotEngine = "BotSharpNLU";
-            AgentStorage = "AgentStorageInMemory";
+            AgentStorage = "AgentStorageInFile";
         }
 
         public string BotEngine { get; set; }

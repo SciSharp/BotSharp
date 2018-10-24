@@ -15,7 +15,8 @@ grammar_cjkRuby: true
 加载的项目为botsharp-channel-weixin和botsharp-dialogflow两个项目。
 项目botsharp-channel-weixin为腾讯微信BotSharp的通道模块，加载此项目可以省去编写微信通道模块的过程，当然也可以根据自己的需求去编写微信的通道模块。
 
-项目文件botsharp-channel-weixin下载地址(https://github.com/Oceania2018/botsharp-channel-weixin)  将botsharp-channel-weixin和botsharp-dialogflow项目放置到BotSharp同级的目录下。并加载到BotSharp中。
+
+项目文件botsharp-channel-weixin下载地址(https://github.com/Oceania2018/botsharp-channel-weixin)将botsharp-channel-weixin和botsharp-dialogflow项目放置到BotSharp同级的目录下。并加载到BotSharp中。
 
 ![](./集成微信公众号图片/图片1.png)
 
@@ -31,6 +32,7 @@ grammar_cjkRuby: true
 加载项目完毕，运行BotSharp项目，出现如下的黑色的控制台程序，表示程序找到了botsharp-dialogflow的.dll,项目运行成功。
 
 ![](./集成微信公众号图片/BotSharp运行结果.png)
+
 
 运行成功后，打开网址为(http://localhost:3112/index.html)  的网页，此网页所显示的为BotSharp的接口列表。
 
@@ -54,6 +56,7 @@ grammar_cjkRuby: true
 也有其它的方法得到外网网址，如通过路由器映射，可自行通过百度上网查询。
 
 ![](./集成微信公众号图片/ngrok黑窗体.png)
+
 
 其中http://sss.ngrok.xiaomiqiu.cn  即为映射的外网IP。
 

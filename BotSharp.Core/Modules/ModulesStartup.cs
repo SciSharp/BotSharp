@@ -32,6 +32,11 @@ namespace BotSharp.Core.Modules
                 throw new ArgumentNullException(nameof(configuration));
             ModulesOptions options = configuration.Get<ModulesOptions>();
 
+            if (options.Modules.Count == 0)
+            {
+                Console.WriteLine($"Platform emulator not found.", Color.Red);
+            }
+
             this._modules = options.Modules
                 .Select(s =>
                 {
@@ -48,6 +53,7 @@ namespace BotSharp.Core.Modules
                     else
                     {
                         IModule module = (IModule)Activator.CreateInstance(type);
+                        Console.WriteLine($"Loaded module \"{s.Type}\"", Color.Green);
                         return module;
                     }
                 }
@@ -82,6 +88,7 @@ namespace BotSharp.Core.Modules
         {
             foreach (IModule module in this._modules)
             {
+                if (module == null) continue;
                 module.Configure(app, env);
             }
         }

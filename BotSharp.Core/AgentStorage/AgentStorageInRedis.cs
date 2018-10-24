@@ -85,7 +85,7 @@ namespace BotSharp.Core.AgentStorage
         {
             var keys = csredis.Keys($"{prefix}*");
 
-            csredis.Remove(keys.Select(x => x.Substring(prefix.Length)).ToArray());
+            csredis.Del(keys.Select(x => x.Substring(prefix.Length)).ToArray());
 
             return keys.Count();
         }
