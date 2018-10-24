@@ -1,6 +1,9 @@
 ﻿using BotSharp.Core.Engines;
+using BotSharp.Models.NLP;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.AiRequest;
+using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +19,8 @@ namespace BotSharp.Core
 {
     public abstract class PlatformBuilderBase<TAgent> where TAgent : AgentBase
     {
+        public TAgent Agent { get; set; }
+
         public IAgentStorage<TAgent> Storage { get; set; }
 
         private readonly IAgentStorageFactory<TAgent> agentStorageFactory;
@@ -58,6 +63,8 @@ namespace BotSharp.Core
 
             Console.WriteLine($"Loaded agent: {agent.Name} {agent.Id}");
 
+            Agent = agent;
+
             return agent;
         }
 
@@ -95,12 +102,81 @@ namespace BotSharp.Core
                 options.Model = "model_" + DateTime.UtcNow.ToString("yyyyMMdd");
             }
 
-            var trainer = new BotTrainer(settings);
-            agent.Corpus = corpus;
+            ModelMetaData meta = null;
 
-            var info = await trainer.Train(agent, options);
+            // train by contexts
+            corpus.UserSays.GroupBy(x => x.ContextHash).Select(g => new
+            {
+                Context = g.Key,
+                Corpus = new TrainingCorpus
+                {
+                    Entities = corpus.Entities,
+                    UserSays = corpus.UserSays.Where(x => x.ContextHash == g.Key).ToList()
+                }
+            })
+            .ToList()
+            .ForEach(async c =>
+            {
+                var trainer = new BotTrainer(settings);
+                agent.Corpus = c.Corpus;
 
-            return info;
+                meta = await trainer.Train(agent, new BotTrainOptions
+                {
+                    AgentDir = options.AgentDir,
+                    Model = options.Model + $"{Path.DirectorySeparatorChar}{c.Context}"
+                });
+            });
+
+            meta.Pipeline.Clear();
+            meta.Model = options.Model;
+
+            return meta;
+        }
+
+        public virtual async Task<TResult> TextRequest<TResult>(AiRequest request)
+        {
+            string contexts = String.Join("_", request.Contexts);
+            string contextHash = contexts.GetMd5Hash();
+
+            Console.WriteLine($"TextRequest: {request.Text}, {contexts}, {request.SessionId}");
+
+            // Load agent
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.AgentId);
+            var model = Directory.GetDirectories(projectPath).Where(x => x.Contains("model_")).Last().Split(Path.DirectorySeparatorChar).Last();
+            var modelPath = Path.Combine(projectPath, model);
+            request.AgentDir = projectPath;
+            request.Model = model + $"{Path.DirectorySeparatorChar}{contextHash}";
+
+            Agent = await GetAgentById(request.AgentId);
+
+            var preditor = new BotPredictor();
+            var doc = await preditor.Predict(Agent, request);
+
+            var parameters = new Dictionary<String, Object>();
+            if (doc.Sentences[0].Entities == null)
+            {
+                doc.Sentences[0].Entities = new List<NlpEntity>();
+            }
+            doc.Sentences[0].Entities.ForEach(x => parameters[x.Entity] = x.Value);
+
+            var predictedIntent = doc.Sentences[0].Intent;
+
+            var aiResponse = new AiResponse
+            {
+                ResolvedQuery = request.Text,
+                Score = predictedIntent.Confidence,
+                Source = predictedIntent.Classifier,
+                Intent = predictedIntent.Label
+            };
+
+            Console.WriteLine($"TextResponse: {aiResponse.Intent}, {request.SessionId}");
+
+            return await AssembleResult<TResult>(aiResponse);
+        }
+
+        public virtual async Task<TResult> AssembleResult<TResult>(AiResponse response)
+        {
+            throw new NotImplementedException();
         }
 
         public virtual async Task<bool> SaveAgent(TAgent agent)

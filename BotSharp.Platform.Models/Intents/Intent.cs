@@ -32,16 +32,7 @@ namespace BotSharp.Platform.Models.Intents
         /// Get input contexts hash
         /// </summary>
         [NotMapped]
-        public String ContextHash
-        {
-            get
-            {
-                return string.Empty;
-                /*return Contexts == null || Contexts.Count == 0
-                    ? Guid.Empty.ToString("N")
-                    : $"{String.Join(",", Contexts.OrderBy(x => x.Name).Select(x => x.Name))}".GetMd5Hash();*/
-            }
-        }
+        public String ContextHash { get; set; }
 
         [ForeignKey("IntentId")]
         public List<IntentExpression> UserSays { get; set; }

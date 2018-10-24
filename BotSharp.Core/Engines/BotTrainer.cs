@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -94,6 +95,9 @@ namespace BotSharp.Core.Engines
 
             for (int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+
                 var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpTrain;
                 // set configuration to current section
                 pipe.Configuration = provider.Configuration.GetSection(pipelines[pipeIdx]);
@@ -105,8 +109,11 @@ namespace BotSharp.Core.Engines
                     Time = DateTime.UtcNow
                 };
                 meta.Pipeline.Add(pipeModel);
-
+                
                 await pipe.Train(agent, data, pipeModel);
+
+                stopwatch.Stop();
+                Console.WriteLine($"Executed pipe {pipeModel.Name} elapsed {stopwatch.Elapsed}");
             }
 
             // save model meta data
@@ -117,8 +124,6 @@ namespace BotSharp.Core.Engines
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
             File.WriteAllText(Path.Combine(settings.ModelDir, "model-meta.json"), metaJson);
-
-            Console.WriteLine(metaJson);
 
             return meta;
         }

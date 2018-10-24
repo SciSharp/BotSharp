@@ -22,7 +22,7 @@ namespace BotSharp.Core.Engines
     {
         public async Task<NlpDoc> Predict(AgentBase agent, AiRequest request)
         {
-            // load model
+            // load model per context
             var dir = Path.Combine(request.AgentDir, request.Model);
             Console.WriteLine($"Load model from {dir}");
             var metaJson = File.ReadAllText(Path.Combine(dir, "model-meta.json"));
