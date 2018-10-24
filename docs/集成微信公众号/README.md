@@ -15,7 +15,7 @@ grammar_cjkRuby: true
 加载的项目为botsharp-channel-weixin和botsharp-dialogflow两个项目。
 项目botsharp-channel-weixin为腾讯微信BotSharp的通道模块，加载此项目可以省去编写微信通道模块的过程，当然也可以根据自己的需求去编写微信的通道模块。
 
-项目文件botsharp-channel-weixin下载地址(https://github.com/Oceania2018/botsharp-channel-weixin)将botsharp-channel-weixin和botsharp-dialogflow项目放置到BotSharp同级的目录下。并加载到BotSharp中。
+项目文件botsharp-channel-weixin下载地址(https://github.com/Oceania2018/botsharp-channel-weixin)  将botsharp-channel-weixin和botsharp-dialogflow项目放置到BotSharp同级的目录下。并加载到BotSharp中。
 
 ![](./集成微信公众号图片/图片1.png)
 
@@ -32,7 +32,7 @@ grammar_cjkRuby: true
 
 ![](./集成微信公众号图片/BotSharp运行结果.png)
 
-运行成功后，打开网址为(http://localhost:3112/index.html)的网页，此网页所显示的为BotSharp的接口列表。
+运行成功后，打开网址为(http://localhost:3112/index.html)  的网页，此网页所显示的为BotSharp的接口列表。
 
 ![](./集成微信公众号图片/3112.png)
 
@@ -47,7 +47,7 @@ grammar_cjkRuby: true
 
 ![](./集成微信公众号图片/微信接口配置信息1.png)
 
-我们需要把内网映射出去变成能够访问的外网，我们采取一个简单的方法，通过ngrok进行内网穿透。ngrok工具的下载地址：(http://ngrok.ciqiuwl.cn/)下载完成后解压缩。
+我们需要把内网映射出去变成能够访问的外网，我们采取一个简单的方法，通过ngrok进行内网穿透。ngrok工具的下载地址：(http://ngrok.ciqiuwl.cn/)  下载完成后解压缩。
 
 找到apps.bat文件，点击右键打开记事本进行编辑，,执行 *ngrok -config=ngrok.cfg -subdomain xxx 80*//(xxx 是你自定义的域名前缀)，如执行*ngrok -config=ngrok.cfg -subdomain sss 3112* ，双击弹出一个黑窗体，该黑窗体显示的域名就是映射出去的网址。
 
@@ -55,7 +55,7 @@ grammar_cjkRuby: true
 
 ![](./集成微信公众号图片/ngrok黑窗体.png)
 
-其中http://sss.ngrok.xiaomiqiu.cn即为映射的外网IP。
+其中http://sss.ngrok.xiaomiqiu.cn  即为映射的外网IP
 
 **2)填写接口配置信息**
 
