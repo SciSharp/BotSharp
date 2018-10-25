@@ -1,7 +1,5 @@
 {
-  "botSharpNLU": {
-    "lang": "en",
-
+  "botSharpNLU_zh-cn": {
     "provider": "BotSharpProvider",
 
     "botSharpProvider": {
@@ -10,7 +8,7 @@
     "pipe": "BotSharpTokenizer, BotSharpTagger, BotSharpNER, BotSharpIntentClassifier",
 
     "botSharpTokenizer": {
-      "tokenizer": "TreebankTokenizer"
+      "tokenizer": "JiebaTokenizer"
     },
 
     "botSharpIntentClassifier": {
@@ -19,7 +17,7 @@
     },
 
     "botSharpTagger": {
-      "tagger": "NGramTagger"
+      "tagger": "JiebaTagger"
     },
 
     "botSharpNER": {

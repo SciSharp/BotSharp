@@ -45,9 +45,9 @@ namespace BotSharp.Core.Engines
             var assemblies = (string[])AppDomain.CurrentDomain.GetData("Assemblies");
             var platform = config.GetSection($"platformModuleName").Value;
             var engine = this.settings.BotEngine;
-            string providerName = config.GetSection($"{engine}:Provider").Value;
+            string providerName = config.GetSection($"{engine}_{agent.Language}:Provider").Value;
             var provider = TypeHelper.GetInstance(providerName, assemblies) as INlpProvider;
-            provider.Configuration = config.GetSection(engine);
+            provider.Configuration = config.GetSection($"{engine}_{agent.Language}");
 
             var pipeModel = new PipeModel
             {

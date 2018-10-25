@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotSharp.Platform.Models.MachineLearning;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -39,5 +40,9 @@ namespace BotSharp.Platform.Models.Intents
 
         [ForeignKey("IntentId")]
         public List<IntentResponse> Responses { get; set; }
+
+        public AgentMlConfig MlConfig { get; set; }
+
+        public List<AgentIntegration> Integrations { get; set; }
     }
 }

@@ -4,13 +4,16 @@ using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.Entities;
+using BotSharp.Platform.Models.Intents;
 using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -151,12 +154,52 @@ namespace BotSharp.Core
             var preditor = new BotPredictor();
             var doc = await preditor.Predict(Agent, request);
 
-            if (doc.Sentences[0].Entities == null)
-            {
-                doc.Sentences[0].Entities = new List<NlpEntity>();
-            }
-
             var predictedIntent = doc.Sentences[0].Intent;
+
+            if (predictedIntent.Confidence < Agent.MlConfig.MinConfidence)
+            {
+                var data = new
+                {
+                    token = "openbot",
+                    info = request.Text
+                };
+
+                using (var client = new HttpClient())
+                {
+                    var response = await client.PostAsync(
+                        "https://api.ownthink.com/bot",
+                        new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json"));
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<JObject>(content);
+
+                    predictedIntent = new TextClassificationResult
+                    {
+                        Confidence = Agent.MlConfig.MinConfidence,
+                        Classifier = "ownthink",
+                        Label = "fallback"
+                    };
+
+                    Agent.Intents.Add(new Intent
+                    {
+                        Name = predictedIntent.Label,
+                        Responses = new List<IntentResponse>
+                        {
+                            new IntentResponse
+                            {
+                                IntentName = predictedIntent.Label,
+                                Messages = new List<IntentResponseMessage>
+                                {
+                                    new IntentResponseMessage
+                                    {
+                                        Speech = "[\"" + result["text"] + "\"]",
+                                        Type = AIResponseMessageType.Text
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
 
             var aiResponse = new AiResponse
             {

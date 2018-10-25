@@ -34,7 +34,14 @@ namespace BotSharp.Core.Modules
 
             if (options.Modules.Count == 0)
             {
+                options.Modules.Add(new ModuleOptions
+                {
+                    Name = "DialogflowAi",
+                    Type = "BotSharp.Platform.Dialogflow"
+                });
+
                 Console.WriteLine($"Platform emulator not found.", Color.Red);
+                Console.WriteLine($"Using default emulator: DialogflowAi, BotSharp.Platform.Dialogflow.");
             }
 
             this._modules = options.Modules
