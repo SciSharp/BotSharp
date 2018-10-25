@@ -7,10 +7,10 @@
     "botSharpProvider": {
     },
 
-    "pipe": "BotSharpTokenizer, BotSharpTagger, BotSharpCRFNer, BotSharpIntentClassifier",
+    "pipe": "BotSharpTokenizer, BotSharpTagger, BotSharpNER, BotSharpIntentClassifier",
 
     "botSharpTokenizer": {
-      "tokenizer": "JiebaTokenizer"
+      "tokenizer": "TreebankTokenizer"
     },
 
     "botSharpIntentClassifier": {
@@ -19,10 +19,10 @@
     },
 
     "botSharpTagger": {
-      "tagger": "JiebaTagger"
+      "tagger": "NGramTagger"
     },
 
-    "botSharpCRFNer": {
+    "botSharpNER": {
       "template": "|App_Data|CRFLite/template.en"
     }
   }

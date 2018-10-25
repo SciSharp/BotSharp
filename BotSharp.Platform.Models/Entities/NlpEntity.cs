@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Models.NLP
+namespace BotSharp.Platform.Models.Entities
 {
     public class NlpEntity
     {

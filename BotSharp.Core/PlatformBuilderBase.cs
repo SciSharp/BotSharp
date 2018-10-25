@@ -1,12 +1,11 @@
 ﻿using BotSharp.Core.Engines;
-using BotSharp.Models.NLP;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
+using BotSharp.Platform.Models.Entities;
 using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -152,12 +151,10 @@ namespace BotSharp.Core
             var preditor = new BotPredictor();
             var doc = await preditor.Predict(Agent, request);
 
-            var parameters = new Dictionary<String, Object>();
             if (doc.Sentences[0].Entities == null)
             {
                 doc.Sentences[0].Entities = new List<NlpEntity>();
             }
-            doc.Sentences[0].Entities.ForEach(x => parameters[x.Entity] = x.Value);
 
             var predictedIntent = doc.Sentences[0].Intent;
 
@@ -166,7 +163,8 @@ namespace BotSharp.Core
                 ResolvedQuery = request.Text,
                 Score = predictedIntent.Confidence,
                 Source = predictedIntent.Classifier,
-                Intent = predictedIntent.Label
+                Intent = predictedIntent.Label,
+                Entities = doc.Sentences[0].Entities
             };
 
             Console.WriteLine($"TextResponse: {aiResponse.Intent}, {request.SessionId}");

@@ -2,9 +2,7 @@
 using Bigtree.Algorithm.CRFLite;
 using Bigtree.Algorithm.CRFLite.Decoder;
 using Bigtree.Algorithm.CRFLite.Encoder;
-using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
-using DotNetToolkit;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -14,10 +12,11 @@ using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.MachineLearning;
+using BotSharp.Platform.Models.Entities;
 
 namespace BotSharp.Core.Engines.BotSharp
 {
-    public class BotSharpCRFNer : INlpTrain, INlpPredict
+    public class BotSharpNER : INlpTrain, INlpPredict
     {
         public IConfiguration Configuration { get; set; }
         public PipeSettings Settings { get; set; }
@@ -197,7 +196,7 @@ namespace BotSharp.Core.Engines.BotSharp
                         Start = doc.Sentences[0].Tokens[i].Start,
                         Value = doc.Sentences[0].Tokens[i].Text,
                         Confidence = 0,
-                        Extrator = "BotSharpCRFNer"
+                        Extrator = "BotSharpNER"
                     });
                 }
 

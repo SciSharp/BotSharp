@@ -1,6 +1,6 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.Models.NLP;
 using BotSharp.NLP.Tokenize;
+using BotSharp.Platform.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
