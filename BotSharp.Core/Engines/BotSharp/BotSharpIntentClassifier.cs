@@ -1,16 +1,13 @@
 ﻿using BotSharp.Core.Abstractions;
 using BotSharp.NLP;
 using BotSharp.NLP.Classify;
-using BotSharp.NLP.Txt2Vec;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.MachineLearning;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Core.Engines.BotSharp

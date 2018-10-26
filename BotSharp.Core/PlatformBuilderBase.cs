@@ -158,31 +158,15 @@ namespace BotSharp.Core
 
             if (predictedIntent.Confidence < Agent.MlConfig.MinConfidence)
             {
-                var data = new
+                predictedIntent = await FallbackResponse(request);
+
+                predictedIntent.Confidence = Agent.MlConfig.MinConfidence;
+                predictedIntent.Label = "fallback";
+
+                Agent.Intents.Add(new Intent
                 {
-                    token = "openbot",
-                    info = request.Text
-                };
-
-                using (var client = new HttpClient())
-                {
-                    var response = await client.PostAsync(
-                        "https://api.ownthink.com/bot",
-                        new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json"));
-                    var content = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<JObject>(content);
-
-                    predictedIntent = new TextClassificationResult
-                    {
-                        Confidence = Agent.MlConfig.MinConfidence,
-                        Classifier = "ownthink",
-                        Label = "fallback"
-                    };
-
-                    Agent.Intents.Add(new Intent
-                    {
-                        Name = predictedIntent.Label,
-                        Responses = new List<IntentResponse>
+                    Name = predictedIntent.Label,
+                    Responses = new List<IntentResponse>
                         {
                             new IntentResponse
                             {
@@ -191,14 +175,13 @@ namespace BotSharp.Core
                                 {
                                     new IntentResponseMessage
                                     {
-                                        Speech = "[\"" + result["text"] + "\"]",
+                                        Speech = "\"" + predictedIntent.Text + "\"",
                                         Type = AIResponseMessageType.Text
                                     }
                                 }
                             }
                         }
-                    });
-                }
+                });
             }
 
             var aiResponse = new AiResponse
@@ -213,6 +196,30 @@ namespace BotSharp.Core
             Console.WriteLine($"TextResponse: {aiResponse.Intent}, {request.SessionId}");
 
             return await AssembleResult<TResult>(aiResponse);
+        }
+
+        public virtual async Task<TextClassificationResult> FallbackResponse(AiRequest request)
+        {
+            var data = new
+            {
+                token = "openbot",
+                info = request.Text
+            };
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.PostAsync(
+                    "https://api.ownthink.com/bot",
+                    new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json"));
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<JObject>(content);
+
+                return new TextClassificationResult
+                {
+                    Classifier = "ownthink",
+                    Text = result["text"].ToString()
+                };
+            }
         }
 
         public virtual async Task<TResult> AssembleResult<TResult>(AiResponse response)
