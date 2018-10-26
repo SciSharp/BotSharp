@@ -14,6 +14,9 @@ The Open Source AI Chatbot Platform Builder
 .. image:: https://img.shields.io/nuget/dt/EntityFrameworkCore.BootKit.svg
     :target: `botsharpnuget`_
     :alt: NuGet
+    :align: left
+    
+.. image:: https://ci.appveyor.com/api/projects/status/uqyf823c9strb1q6?svg=true
 
 
 This project is for learning purposes only, please do not use it in a production environment.
