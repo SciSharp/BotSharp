@@ -2,7 +2,7 @@
 using Bigtree.Algorithm.CRFLite;
 using Bigtree.Algorithm.CRFLite.Decoder;
 using Bigtree.Algorithm.CRFLite.Encoder;
-using BotSharp.NLP.Tokenize;
+using CherubNLP.Tokenize;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;

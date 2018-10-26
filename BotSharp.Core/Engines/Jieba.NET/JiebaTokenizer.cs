@@ -1,5 +1,5 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.NLP.Tokenize;
+using CherubNLP.Tokenize;
 using JiebaNet.Segmenter;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Token = BotSharp.NLP.Tokenize.Token;
+using Token = CherubNLP.Tokenize.Token;
 
 namespace BotSharp.Core.Engines.Jieba.NET
 {

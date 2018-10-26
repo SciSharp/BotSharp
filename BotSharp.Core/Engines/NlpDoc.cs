@@ -1,5 +1,5 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.NLP.Tokenize;
+using CherubNLP.Tokenize;
 using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.Entities;
 using System;

@@ -1,8 +1,8 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.NLP;
-using BotSharp.NLP.Corpus;
-using BotSharp.NLP.Tag;
-using BotSharp.NLP.Tokenize;
+using CherubNLP;
+using CherubNLP.Corpus;
+using CherubNLP.Tag;
+using CherubNLP.Tokenize;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.MachineLearning;
 using Microsoft.Extensions.Configuration;

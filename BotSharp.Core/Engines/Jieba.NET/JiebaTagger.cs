@@ -1,6 +1,6 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.NLP;
-using BotSharp.NLP.Tag;
+using CherubNLP;
+using CherubNLP.Tag;
 using JiebaNet.Segmenter;
 using JiebaNet.Segmenter.PosSeg;
 using Microsoft.Extensions.Configuration;

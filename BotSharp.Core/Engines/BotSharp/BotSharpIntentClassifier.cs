@@ -1,6 +1,6 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.NLP;
-using BotSharp.NLP.Classify;
+using CherubNLP;
+using CherubNLP.Classify;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.MachineLearning;
