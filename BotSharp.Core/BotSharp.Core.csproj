@@ -74,6 +74,7 @@ If you feel that this project is helpful to you, please Star on the project, we 
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CherubNLP" Version="0.1.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="CSRedisCore" Version="3.0.13" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
@@ -85,7 +86,6 @@ If you feel that this project is helpful to you, please Star on the project, we 
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CherubNLP\CherubNLP\CherubNLP.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.Abstraction\BotSharp.Platform.Abstraction.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.Models\BotSharp.Platform.Models.csproj" />
   </ItemGroup>
