@@ -14,6 +14,9 @@
 .. image:: https://img.shields.io/nuget/dt/EntityFrameworkCore.BootKit.svg
     :target: `botsharpnuget`_
     :alt: NuGet
+    :align: left
+    
+.. image:: https://ci.appveyor.com/api/projects/status/kar0mxwbnu8rbwkm?svg=true
 
 本项目用于学习和交流人工智能聊天机器人平台构建的相关技术，本人对于任何用于生产环境而产生的风险和损失不负责任
 **************************************************************************************************
@@ -64,8 +67,11 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 * BotSharp platform emulator extension which is compatible with RASA NLU. `botsharp-rasa`_
 * BotSharp platform emulator extension which is compatible with Google Dialogflow. `botsharp-dialogflow`_
 * BotSharp platform emulator extension which is compatible with Articulate AI. `botsharp-articulate`_
+* BotSharp platform emulator extension which is compatible with RasaTalk. `botsharp-rasatalk`_
 * A channel module of BotSharp for Facebook Messenger. `botsharp-channel-fbmessenger`_
-* A channel module of BotSharp for Tencent Weixin. `botsharp-channel-weixin`_
+* A channel module of BotSharp for Tencent Wechat. `botsharp-channel-weixin`_
+* A channel module of BotSharp for Telegram. `botsharp-channel-telegram`_
+* Articulate UI customized for BotSharp NLU. `articulate-ui`_
 
 Documents
 ---------
@@ -86,13 +92,16 @@ Scan to join group in Wechat
 
 .. _Docker: https://www.docker.com
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
-.. _Articulate UI: https://spg.ai/projects/articulate
+.. _Articulate UI: https://github.com/Oceania2018/articulate-ui
 .. _gitter: https://gitter.im/botsharpcore/Lobby
 .. _license: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/LICENSE
 .. _botsharpnuget: https://www.nuget.org/packages/BotSharp.Core
 .. _botsharp-rasa: https://github.com/Oceania2018/botsharp-rasa
 .. _botsharp-dialogflow: https://github.com/Oceania2018/botsharp-dialogflow
 .. _botsharp-articulate: https://github.com/Oceania2018/botsharp-articulate
+.. _botsharp-rasatalk: https://github.com/Obrain2016/botsharp-rasatalk
 .. _botsharp-channel-fbmessenger: https://github.com/Oceania2018/botsharp-channel-fbmessenger
 .. _botsharp-channel-weixin: https://github.com/Oceania2018/botsharp-channel-weixin
+.. _botsharp-channel-telegram: https://github.com/Oceania2018/botsharp-channel-telegram
+.. _articulate-ui: https://github.com/Oceania2018/articulate-ui
 

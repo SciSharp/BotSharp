@@ -23,7 +23,7 @@ namespace BotSharp.Core.UnitTest.Performance
             int correct = 0;
             List<Tuple<string, string>> errors = new List<Tuple<string, string>>();
 
-            var agent = LoadAgent();
+            // var agent = LoadAgent();
 
             /*for (int i = 0; i < Samples.Count; i++)
             {
