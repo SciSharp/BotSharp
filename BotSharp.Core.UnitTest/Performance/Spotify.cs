@@ -1,5 +1,4 @@
-﻿using Bigtree.Algorithm.Extensions;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

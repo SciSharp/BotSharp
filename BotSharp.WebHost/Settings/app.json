@@ -6,17 +6,9 @@
   "overrideFallback": false,
 
   "modules": [
-    /*{
+    {
       "Name": "DialogflowAi",
       "Type": "BotSharp.Platform.Dialogflow"
-    },
-    {
-      "Name": "RasaAi",
-      "Type": "BotSharp.Platform.Rasa",
-    },
-    {
-      "Name": "ArticulateAi",
-      "Type": "BotSharp.Platform.Articulate",
-    }*/
+    }
   ]
 }
