@@ -34,9 +34,9 @@ namespace BotSharp.Core.AgentStorage
         public async Task<TAgent> FetchById(string agentId)
         {
             var key = agentId;
-            if (csredis.Exists(key))
+            if (await csredis.ExistsAsync(key))
             {
-                return JsonConvert.DeserializeObject<TAgent>(csredis.Get(key));
+                return JsonConvert.DeserializeObject<TAgent>(await csredis.GetAsync(key));
             }
             else
             {
@@ -51,7 +51,7 @@ namespace BotSharp.Core.AgentStorage
             var keys = csredis.Keys($"{prefix}*");
             foreach (string key in keys)
             {
-                var data = csredis.Get(key.Substring(prefix.Length));
+                var data = await csredis.GetAsync(key.Substring(prefix.Length));
                 var agent = JsonConvert.DeserializeObject<TAgent>(data);
                 
                 if(agent.Name == agentName)
@@ -76,7 +76,7 @@ namespace BotSharp.Core.AgentStorage
                 Formatting = Formatting.Indented,
             });
 
-            csredis.Set(agent.Id, json);
+            await csredis.SetAsync(agent.Id, json);
 
             return true;
         }
@@ -85,7 +85,7 @@ namespace BotSharp.Core.AgentStorage
         {
             var keys = csredis.Keys($"{prefix}*");
 
-            csredis.Del(keys.Select(x => x.Substring(prefix.Length)).ToArray());
+            await csredis.DelAsync(keys.Select(x => x.Substring(prefix.Length)).ToArray());
 
             return keys.Count();
         }
@@ -97,7 +97,7 @@ namespace BotSharp.Core.AgentStorage
             var keys = csredis.Keys($"{prefix}*");
             foreach (string key in keys)
             {
-                var data = csredis.Get(key.Substring(prefix.Length));
+                var data = await csredis.GetAsync(key.Substring(prefix.Length));
                 var agent = JsonConvert.DeserializeObject<TAgent>(data);
                 agents.Add(agent);
             }
