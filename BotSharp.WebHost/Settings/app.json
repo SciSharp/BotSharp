@@ -9,6 +9,10 @@
     {
       "Name": "DialogflowAi",
       "Type": "BotSharp.Platform.Dialogflow"
+    },
+    {
+      "Name": "WeixinChannel",
+      "Type": "BotSharp.Channel.Weixin"
     }
   ]
 }

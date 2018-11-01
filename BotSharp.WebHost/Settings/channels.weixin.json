@@ -2,6 +2,7 @@
   "weixinChannel": {
     "token": "botsharp",
     "encodingAESKey": "",
-    "appId": ""
+    "appId": "",
+    "agentId": ""
   }
 }
