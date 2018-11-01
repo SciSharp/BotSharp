@@ -20,8 +20,8 @@ Why we do this? because we all know python is not friendly programming language 
 
 BotSharp is in accordance with components princple strictly, decouples every part that needed in the platform builder. So you can choose different UI/UX, or pick up a different NLP Tagger, or select a more advanced algrithm to do NER task. They are all modulized based an unfied interfaces.
 
-.. image:: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png
-   :height: 30px
+.. image:: static/logos/BotSharp.png
+   :height: 64px
 
 Some Features
 -------------

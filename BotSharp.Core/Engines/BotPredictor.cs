@@ -22,7 +22,7 @@ namespace BotSharp.Core.Engines
     {
         public async Task<NlpDoc> Predict(AgentBase agent, AiRequest request)
         {
-            // load model
+            // load model per context
             var dir = Path.Combine(request.AgentDir, request.Model);
             Console.WriteLine($"Load model from {dir}");
             var metaJson = File.ReadAllText(Path.Combine(dir, "model-meta.json"));
@@ -58,7 +58,7 @@ namespace BotSharp.Core.Engines
 
 
             // pipe process
-            var pipelines = config.GetValue<String>($"{meta.BotEngine}:pipe")
+            var pipelines = config.GetValue<String>($"{meta.BotEngine}_{agent.Language}:pipe")
                 .Split(',')
                 .Select(x => x.Trim())
                 .ToList();
@@ -66,7 +66,7 @@ namespace BotSharp.Core.Engines
             for(int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
                 var pipe = TypeHelper.GetInstance(pipelines[pipeIdx], assemblies) as INlpPredict;
-                pipe.Configuration = config.GetSection(meta.BotEngine).GetSection(pipelines[pipeIdx]);
+                pipe.Configuration = config.GetSection($"{meta.BotEngine}_{agent.Language}").GetSection(pipelines[pipeIdx]);
                 pipe.Settings = settings;
                 var pipeModel = meta.Pipeline.FirstOrDefault(x => x.Name == pipelines[pipeIdx]);
                 await pipe.Predict(agent, data, pipeModel);

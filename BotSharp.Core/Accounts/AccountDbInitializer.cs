@@ -1,5 +1,5 @@
 ﻿using BotSharp.Core.Abstractions;
-using BotSharp.NLP.Tokenize;
+using CherubNLP.Tokenize;
 using EntityFrameworkCore.BootKit;
 using Newtonsoft.Json;
 using System;

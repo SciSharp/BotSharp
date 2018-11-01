@@ -84,11 +84,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Update="Settings\app.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Settings\BotSharpNLU_zh-cn.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Settings\channels.json">
@@ -100,7 +103,7 @@
     <Content Update="Settings\auth.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="Settings\BotSharpNLU.json">
+    <Content Update="Settings\BotSharpNLU_en.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Settings\db.json">

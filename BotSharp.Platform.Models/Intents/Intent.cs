@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BotSharp.Platform.Models.MachineLearning;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -32,21 +33,16 @@ namespace BotSharp.Platform.Models.Intents
         /// Get input contexts hash
         /// </summary>
         [NotMapped]
-        public String ContextHash
-        {
-            get
-            {
-                return string.Empty;
-                /*return Contexts == null || Contexts.Count == 0
-                    ? Guid.Empty.ToString("N")
-                    : $"{String.Join(",", Contexts.OrderBy(x => x.Name).Select(x => x.Name))}".GetMd5Hash();*/
-            }
-        }
+        public String ContextHash { get; set; }
 
         [ForeignKey("IntentId")]
         public List<IntentExpression> UserSays { get; set; }
 
         [ForeignKey("IntentId")]
         public List<IntentResponse> Responses { get; set; }
+
+        public AgentMlConfig MlConfig { get; set; }
+
+        public List<AgentIntegration> Integrations { get; set; }
     }
 }

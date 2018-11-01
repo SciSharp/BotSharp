@@ -3,6 +3,7 @@ using BotSharp.Platform.Models;
 using CSRedis;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -76,6 +77,11 @@ namespace BotSharp.Core.AgentStorage
             {
                 NullValueHandling = NullValueHandling.Ignore,
                 Formatting = Formatting.Indented,
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                Converters = new List<JsonConverter>
+                {
+                    new Newtonsoft.Json.Converters.StringEnumConverter()
+                }
             });
 
             string dataPath = Path.Combine(storageDir, agent.Id + ".json");
