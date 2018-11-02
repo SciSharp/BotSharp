@@ -1,5 +1,5 @@
 ﻿{
-  "version": "0.1.0",
+  "version": "0.2.0",
   "assemblies": "BotSharp.Core",
 
   "platformModuleName": "DialogflowAi",
@@ -13,6 +13,10 @@
     {
       "Name": "WeixinChannel",
       "Type": "BotSharp.Channel.Weixin"
+    },
+    {
+      "Name": "FacebookMessengerChannel",
+      "Type": "BotSharp.Channel.FacebookMessenger"
     }
   ]
 }
