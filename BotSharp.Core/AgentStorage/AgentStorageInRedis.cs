@@ -46,8 +46,6 @@ namespace BotSharp.Core.AgentStorage
 
         public async Task<TAgent> FetchByName(string agentName)
         {
-            var agents = new List<TAgent>();
-
             var keys = csredis.Keys($"{prefix}*");
             foreach (string key in keys)
             {
