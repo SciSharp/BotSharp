@@ -59,23 +59,23 @@ Quick Started
 You can use docker compose to run BotSharp quickly, make sure you've got `Docker`_ installed.
 ::
 
- PS D:\> git clone https://github.com/Oceania2018/BotSharp
+ PS D:\> git clone https://github.com/dotnetcore/BotSharp
  PS D:\> cd BotSharp
- PS D:\BotSharp\> docker-compose -f dockerfiles/docker-compose-articulateui.yml up
+ PS D:\BotSharp\> docker-compose -f dockerfiles/docker-compose-core.yml up
 
-Point your web browser at http://localhost:**** and enjoy BotSharp with Articulate-UI.
+Point your web browser at http://localhost:3112 and enjoy BotSharp Core.
 
 Extension Libraries
 -----------------
 BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate.
 
 * BotSharp platform emulator extension which is compatible with RASA NLU. `botsharp-rasa`_
-* BotSharp platform emulator extension which is compatible with Google Dialogflow. `botsharp-dialogflow`_
+* BotSharp platform emulator extension which is compatible with Google Dialogflow.
 * BotSharp platform emulator extension which is compatible with Articulate AI. `botsharp-articulate`_
 * BotSharp platform emulator extension which is compatible with RasaTalk. `botsharp-rasatalk`_
-* A channel module of BotSharp for Facebook Messenger. `botsharp-channel-fbmessenger`_
-* A channel module of BotSharp for Tencent Wechat. `botsharp-channel-weixin`_
-* A channel module of BotSharp for Telegram. `botsharp-channel-telegram`_
+* A channel module of BotSharp for Facebook Messenger.
+* A channel module of BotSharp for Tencent Wechat.
+* A channel module of BotSharp for Telegram.
 * Articulate UI customized for BotSharp NLU. `articulate-ui`_
 
 Documents
@@ -102,10 +102,6 @@ Scan to join group in Wechat
 .. _license: https://raw.githubusercontent.com/Oceania2018/BotSharp/master/LICENSE
 .. _botsharpnuget: https://www.nuget.org/packages/BotSharp.Core
 .. _botsharp-rasa: https://github.com/Oceania2018/botsharp-rasa
-.. _botsharp-dialogflow: https://github.com/Oceania2018/botsharp-dialogflow
 .. _botsharp-articulate: https://github.com/Oceania2018/botsharp-articulate
 .. _botsharp-rasatalk: https://github.com/Obrain2016/botsharp-rasatalk
-.. _botsharp-channel-fbmessenger: https://github.com/Oceania2018/botsharp-channel-fbmessenger
-.. _botsharp-channel-weixin: https://github.com/Oceania2018/botsharp-channel-weixin
-.. _botsharp-channel-telegram: https://github.com/Oceania2018/botsharp-channel-telegram
 .. _articulate-ui: https://github.com/Oceania2018/articulate-ui
