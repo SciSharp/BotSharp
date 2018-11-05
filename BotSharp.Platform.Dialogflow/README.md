@@ -23,3 +23,7 @@ var aIResponse = nluPlatform.TextRequest<AIResponseResult>(new AiRequest
 });
 
 ```
+### How to run locally
+```
+git clone https://github.com/dotnetcore/BotSharp
+```
