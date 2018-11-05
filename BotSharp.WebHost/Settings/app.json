@@ -1,34 +1,22 @@
 ﻿{
-    "version": "0.1.0",
-    "assemblies": "BotSharp.Core",
+  "version": "0.2.0",
+  "assemblies": "BotSharp.Core",
 
-    "platformModuleName": "ArticulateAi",
+  "platformModuleName": "DialogflowAi",
+  "overrideFallback": false,
 
-    "machineLearning": {
-        "dataDir": "D:\\Projects\\BotSharp\\Data"
-    },
-
-  "moduleBasePath": "C:\\Users\\haipi\\Documents\\Projects",
   "modules": [
     {
       "Name": "DialogflowAi",
-      "Type": "BotSharp.Platform.Dialogflow",
-      "Path": "botsharp-dialogflow\\BotSharp.Platform.Dialogflow\\bin\\Debug\\netcoreapp2.1"
-    } /*,
+      "Type": "BotSharp.Platform.Dialogflow"
+    },
     {
       "Name": "WeixinChannel",
-      "Type": "BotSharp.Channel.Weixin",
-      "Path": "botsharp-channel-weixin\\BotSharp.Channel.Weixin\\bin\\Debug\\netcoreapp2.1"
+      "Type": "BotSharp.Channel.Weixin"
     },
     {
-      "Name": "RasaAi",
-      "Type": "BotSharp.Platform.Rasa",
-      "Path": "botsharp-rasa\\BotSharp.Platform.Rasa\\bin\\Debug\\netcoreapp2.1"
-    },
-    {
-      "Name": "ArticulateAi",
-      "Type": "BotSharp.Platform.Articulate",
-      "Path": "botsharp-articulate\\BotSharp.Platform.Articulate\\bin\\Debug\\netcoreapp2.1"
-    }*/
+      "Name": "FacebookMessengerChannel",
+      "Type": "BotSharp.Channel.FacebookMessenger"
+    }
   ]
 }

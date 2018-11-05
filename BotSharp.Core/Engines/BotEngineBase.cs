@@ -1,14 +1,8 @@
-﻿using BotSharp.Models.NLP;
-using BotSharp.Platform.Abstraction;
-using BotSharp.Platform.Models;
+﻿using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
-using BotSharp.Platform.Models.Intents;
-using DotNetToolkit;
+using BotSharp.Platform.Models.Entities;
 using EntityFrameworkCore.BootKit;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Drawing;

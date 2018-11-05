@@ -9,10 +9,10 @@ namespace BotSharp.Core.Modules
     /// </summary>
     public class ModulesOptions
     {
-        /// <summary>
-        /// Module base directory
-        /// </summary>
-        public String ModuleBasePath { get; set; }
+        public ModulesOptions()
+        {
+            Modules = new List<ModuleOptions>();
+        }
 
         /// <summary>
         /// List of module configurations.

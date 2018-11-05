@@ -8,6 +8,13 @@ namespace BotSharp.Platform.Models.Intents
 {
     public class IntentResponse
     {
+        public IntentResponse()
+        {
+            Parameters = new List<IntentResponseParameter>();
+            Contexts = new List<IntentResponseContext>();
+            Messages = new List<IntentResponseMessage>();
+        }
+
         /// <summary>
         /// Guid
         /// </summary>

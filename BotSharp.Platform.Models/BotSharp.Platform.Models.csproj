@@ -3,8 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.1.0</Version>
+    <Version>0.2.1</Version>
+    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
+    <Authors>Haipin Chen</Authors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.ComponentModel.Annotations">

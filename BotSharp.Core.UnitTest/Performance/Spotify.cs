@@ -1,5 +1,4 @@
-﻿using Bigtree.Algorithm.Extensions;
-using BotSharp.Core.Engines;
+﻿using BotSharp.Core.Engines;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,7 +22,7 @@ namespace BotSharp.Core.UnitTest.Performance
             int correct = 0;
             List<Tuple<string, string>> errors = new List<Tuple<string, string>>();
 
-            var agent = LoadAgent();
+            // var agent = LoadAgent();
 
             /*for (int i = 0; i < Samples.Count; i++)
             {

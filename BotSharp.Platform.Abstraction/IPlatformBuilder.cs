@@ -12,6 +12,8 @@ namespace BotSharp.Platform.Abstraction
     /// </summary>
     public interface IPlatformBuilder<TAgent>
     {
+        TAgent Agent { get; set; }
+
         /// <summary>
         /// Agent storage
         /// </summary>
@@ -47,6 +49,10 @@ namespace BotSharp.Platform.Abstraction
 
         Task<ModelMetaData> Train(TAgent agent, TrainingCorpus corpus, BotTrainOptions options);
 
-        Task<AiResponse> TextRequest(AiRequest request);
+        Task<TResult> TextRequest<TResult>(AiRequest request);
+
+        Task<TResult> AssembleResult<TResult>(AiResponse response);
+
+        Task<TextClassificationResult> FallbackResponse(AiRequest request);
     }
 }

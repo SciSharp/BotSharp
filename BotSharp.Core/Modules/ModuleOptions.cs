@@ -9,6 +9,11 @@ namespace BotSharp.Core.Modules
     /// </summary>
     public class ModuleOptions
     {
+        public ModuleOptions()
+        {
+            Path = String.Empty;
+        }
+
         /// <summary>
         /// Module name
         /// </summary>

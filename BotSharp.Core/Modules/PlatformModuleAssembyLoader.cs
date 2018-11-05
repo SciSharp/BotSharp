@@ -22,8 +22,11 @@ namespace Microsoft.Extensions.DependencyInjection
             Console.WriteLine();
 
             options.Modules.ForEach(module => {
-
-                var dllPath = Path.Combine(options.ModuleBasePath, module.Path, $"{module.Type}.dll");
+                if (String.IsNullOrEmpty(module.Path))
+                {
+                    module.Path = AppContext.BaseDirectory;
+                }
+                var dllPath = Path.Combine(module.Path, $"{module.Type}.dll");
                 if (File.Exists(dllPath))
                 {
                     Assembly library = AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
@@ -36,15 +39,14 @@ namespace Microsoft.Extensions.DependencyInjection
                         new Formatter(dllPath, Color.Yellow)
                     };
                     Console.WriteLineFormatted("Loaded {0} module, type: {1}, path: {2}", Color.White, settings);
+                    Console.WriteLine();
                 }
                 else
                 {
-                    Console.WriteLine($"Can't load {module.Type} assembly from {dllPath}.");
+                    Console.WriteFormatted($"Can't load {module.Type} assembly from {dllPath}.", Color.Red);
+                    Console.WriteLine();
                 }
-
             });
-
-            Console.WriteLine();
         }
     }
 }

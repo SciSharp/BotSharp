@@ -30,11 +30,13 @@
 
   <ItemGroup>
     <Compile Remove="App_Data\AgentArchive\**" />
+    <Compile Remove="App_Data\AgentStorage\**" />
     <Compile Remove="App_Data\Corpus\**" />
     <Compile Remove="App_Data\Projects\**" />
     <Compile Remove="PublishOutput\**" />
     <Compile Remove="publish\**" />
     <Content Remove="App_Data\AgentArchive\**" />
+    <Content Remove="App_Data\AgentStorage\**" />
     <Content Remove="App_Data\Corpus\**" />
     <Content Remove="App_Data\DbInitializer\**" />
     <Content Remove="App_Data\Projects\**" />
@@ -42,11 +44,13 @@
     <Content Remove="PublishOutput\**" />
     <Content Remove="publish\**" />
     <EmbeddedResource Remove="App_Data\AgentArchive\**" />
+    <EmbeddedResource Remove="App_Data\AgentStorage\**" />
     <EmbeddedResource Remove="App_Data\Corpus\**" />
     <EmbeddedResource Remove="App_Data\Projects\**" />
     <EmbeddedResource Remove="PublishOutput\**" />
     <EmbeddedResource Remove="publish\**" />
     <None Remove="App_Data\AgentArchive\**" />
+    <None Remove="App_Data\AgentStorage\**" />
     <None Remove="App_Data\Corpus\**" />
     <None Remove="App_Data\DbInitializer\**" />
     <None Remove="App_Data\Projects\**" />
@@ -80,11 +84,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\BotSharp.Channel.FacebookMessenger\BotSharp.Channel.FacebookMessenger.csproj" />
+    <ProjectReference Include="..\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Update="Settings\app.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Settings\BotSharpNLU_zh-cn.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Settings\channels.json">
@@ -96,7 +105,7 @@
     <Content Update="Settings\auth.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="Settings\BotSharpNLU.json">
+    <Content Update="Settings\BotSharpNLU_en.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="Settings\db.json">
