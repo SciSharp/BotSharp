@@ -19,9 +19,6 @@ The Open Source AI Chatbot Platform Builder
 .. image:: https://ci.appveyor.com/api/projects/status/kar0mxwbnu8rbwkm?svg=true
 
 
-This project is for learning purposes only, please do not use it in a production environment.
-**********************************************************************************************
-
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our .NET developers using the BotSharp AI BOT Platform Builder to build a CaaP. It opens up as much learning power as possible for your own robots and precisely control every step of the AI processing pipeline."*
     
 **BotSharp** is an open source machine learning framework for AI Bot platform builder. This project involves natural language understanding, computer vision and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in information systems. Out-of-the-box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier. 
