@@ -18,8 +18,6 @@
     
 .. image:: https://ci.appveyor.com/api/projects/status/kar0mxwbnu8rbwkm?svg=true
 
-本项目用于学习和交流人工智能聊天机器人平台构建的相关技术，本人对于任何用于生产环境而产生的风险和损失不负责任
-**************************************************************************************************
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our .NET developers using the BotSharp AI BOT Platform Builder to build a CaaP. It opens up as much learning power as possible for your own robots and precisely control every step of the AI processing pipeline."*
     

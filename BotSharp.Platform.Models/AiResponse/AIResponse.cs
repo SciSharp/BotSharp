@@ -18,6 +18,8 @@ namespace BotSharp.Platform.Models.AiResponse
 
         public string Source { get; set; }
 
+        public string Text { get; set; }
+
         public double Score { get; set; }
 
         public List<NlpEntity> Entities { get; set; }
