@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj" />
   </ItemGroup>
 
 </Project>

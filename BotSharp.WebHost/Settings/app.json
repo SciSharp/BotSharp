@@ -11,6 +11,10 @@
       "Type": "BotSharp.Platform.Dialogflow"
     },
     {
+      "Name": "RasaAi",
+      "Type": "BotSharp.Platform.Rasa"
+    },
+    {
       "Name": "WeixinChannel",
       "Type": "BotSharp.Channel.Weixin"
     },
