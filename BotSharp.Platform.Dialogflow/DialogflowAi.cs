@@ -133,7 +133,9 @@ namespace BotSharp.Platform.Dialogflow
             });
 
             var matches = Regex.Matches(presetResponse.Messages.Random().Speech, "\".*?\"").Cast<Match>();
-            var speech = matches.ToList().Random();
+            var speech = matches.Count() == 0 ? String.Empty : matches.ToList().Random().Value;
+
+            var contexts = HandleContexts(presetResponse);
 
             var aiResponse = new AIResponseResult
             {
@@ -143,17 +145,33 @@ namespace BotSharp.Platform.Dialogflow
                 {
                     IntentName = response.Intent
                 },
+                Intent = response.Intent,
                 Fulfillment = new AIResponseFulfillment
                 {
                     Messages = presetResponse.Messages.ToList<object>(),
-                    Speech = speech.Value.Substring(1, speech.Length - 2)
+                    Speech = speech.Length > 1 ? speech.Substring(1, speech.Length - 2) : String.Empty
                 },
                 Score = response.Score,
                 Source = response.Source,
+                Contexts = contexts.ToArray(),
                 Parameters = presetResponse.Parameters.Where(x => !String.IsNullOrEmpty(x.Value)).ToDictionary(item => item.Name, item => (object)item.Value)
             };
 
             return (TResult)(object)aiResponse;
+        }
+
+        private List<AIContext> HandleContexts(IntentResponse response)
+        {
+            var newContexts = response.Contexts.Select(x => new AIContext
+            {
+                Name = x.Name,
+                Lifespan = x.Lifespan,
+                Parameters = response.Parameters.Select(p => new KeyValuePair<string, object>(p.Name, p.Value)).ToDictionary(d => d.Key, d => d.Value == null ? String.Empty : d.Value)
+            }).ToList();
+
+            // persist
+
+            return newContexts;
         }
     }
 }
