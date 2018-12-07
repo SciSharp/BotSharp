@@ -51,7 +51,7 @@ namespace BotSharp.Platform.Abstraction
 
         Task<TResult> TextRequest<TResult>(AiRequest request);
 
-        Task<TResult> AssembleResult<TResult>(AiResponse response);
+        Task<TResult> AssembleResult<TResult>(AiRequest request, AiResponse response);
 
         Task<TextClassificationResult> FallbackResponse(AiRequest request);
     }

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Platform.Abstraction
 {
-    public interface IAgentStorageFactory<TAgent> where TAgent : AgentBase
+    public interface IContextStorageFactory<T>
     {
-        IAgentStorage<TAgent> Get();
+        IContextStorage<T> Get();
     }
 }

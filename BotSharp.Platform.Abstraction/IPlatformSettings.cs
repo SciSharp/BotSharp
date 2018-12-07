@@ -9,5 +9,7 @@ namespace BotSharp.Platform.Abstraction
         string BotEngine { get; set; }
 
         string AgentStorage { get; set; }
+
+        string ContextStorage { get; set; }
     }
 }

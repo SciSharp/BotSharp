@@ -16,9 +16,6 @@ namespace BotSharp.Core.AgentStorage
     public class AgentStorageInFile<TAgent> : IAgentStorage<TAgent> 
         where TAgent : AgentBase
     {
-        private static CSRedisClient csredis;
-        private static string prefix = String.Empty;
-
         private static string storageDir;
 
         public AgentStorageInFile()
@@ -27,7 +24,7 @@ namespace BotSharp.Core.AgentStorage
             var db = config.GetSection("Database:Default").Value;
             storageDir = config.GetSection($"Database:ConnectionStrings:{db}").Value;
             string contentDir = AppDomain.CurrentDomain.GetData("DataPath").ToString();
-            storageDir = storageDir.Replace("|DataDirectory|", contentDir + Path.DirectorySeparatorChar);
+            storageDir = storageDir.Replace("|DataDirectory|", contentDir + Path.DirectorySeparatorChar + "AgentStorage" + Path.DirectorySeparatorChar);
 
             if (!Directory.Exists(storageDir))
             {

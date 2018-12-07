@@ -24,11 +24,13 @@ namespace BotSharp.Platform.Dialogflow
         where TAgent : AgentModel
     {
         IConfiguration config;
+        IContextStorageFactory<AIContext> contextStorageFactory;
 
-        public DialogflowAi(IAgentStorageFactory<TAgent> agentStorageFactory, IPlatformSettings settings, IConfiguration config)
+        public DialogflowAi(IAgentStorageFactory<TAgent> agentStorageFactory, IContextStorageFactory<AIContext> contextStorageFactory, IPlatformSettings settings, IConfiguration config)
             :base(agentStorageFactory, settings)
         {
             this.config = config;
+            this.contextStorageFactory = contextStorageFactory;
         }
 
         public async Task<TrainingCorpus> ExtractorCorpus(TAgent agent)
@@ -110,7 +112,7 @@ namespace BotSharp.Platform.Dialogflow
             }
         }
 
-        public override async Task<TResult> AssembleResult<TResult>(AiResponse response)
+        public override async Task<TResult> AssembleResult<TResult>(AiRequest request, AiResponse response)
         {
             var intent = Agent.Intents.Find(x => x.Name == response.Intent);
             var presetResponse = intent.Responses.FirstOrDefault();
@@ -135,7 +137,7 @@ namespace BotSharp.Platform.Dialogflow
             var matches = Regex.Matches(presetResponse.Messages.Random().Speech, "\".*?\"").Cast<Match>();
             var speech = matches.Count() == 0 ? String.Empty : matches.ToList().Random().Value;
 
-            var contexts = HandleContexts(presetResponse);
+            var contexts = HandleContexts(request.SessionId, presetResponse);
 
             var aiResponse = new AIResponseResult
             {
@@ -160,7 +162,7 @@ namespace BotSharp.Platform.Dialogflow
             return (TResult)(object)aiResponse;
         }
 
-        private List<AIContext> HandleContexts(IntentResponse response)
+        private List<AIContext> HandleContexts(string sessionId, IntentResponse response)
         {
             var newContexts = response.Contexts.Select(x => new AIContext
             {
@@ -170,6 +172,8 @@ namespace BotSharp.Platform.Dialogflow
             }).ToList();
 
             // persist
+            var ctxStore = contextStorageFactory.Get();
+            ctxStore.Persist(sessionId, newContexts.ToArray());
 
             return newContexts;
         }

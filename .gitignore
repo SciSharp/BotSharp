@@ -291,3 +291,4 @@ __pycache__/
 /docs/_build
 *.RestApi.xml
 /BotSharp.WebHost/App_Data/AgentStorage
+/BotSharp.WebHost/App_Data/SessionStorage

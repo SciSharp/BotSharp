@@ -19,7 +19,7 @@ namespace BotSharp.Core.AgentStorage
             this.platformSetting = setting;
         }
 
-        public async Task<IAgentStorage<TAgent>> Get()
+        public IAgentStorage<TAgent> Get()
         {
             IAgentStorage<TAgent> storage = null;
             string storageName = this.platformSetting.AgentStorage;

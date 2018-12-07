@@ -32,12 +32,11 @@ namespace BotSharp.Core
         {
             this.agentStorageFactory = agentStorageFactory;
             this.settings = settings;
+            GetAgentStorage();
         }
 
         public async Task<List<TAgent>> GetAllAgents()
         {
-            await GetStorage();
-
             return await Storage.Query();
         }
 
@@ -80,15 +79,11 @@ namespace BotSharp.Core
 
         public async Task<TAgent> GetAgentById(string agentId)
         {
-            GetStorage();
-
             return await Storage.FetchById(agentId);
         }
 
         public async Task<TAgent> GetAgentByName(string agentName)
         {
-            await GetStorage();
-
             return await Storage.FetchByName(agentName);
         }
 
@@ -195,7 +190,7 @@ namespace BotSharp.Core
 
             Console.WriteLine($"TextResponse: {aiResponse.Intent}, {request.SessionId}");
 
-            return await AssembleResult<TResult>(aiResponse);
+            return await AssembleResult<TResult>(request, aiResponse);
         }
 
         public virtual async Task<TextClassificationResult> FallbackResponse(AiRequest request)
@@ -222,27 +217,25 @@ namespace BotSharp.Core
             }
         }
 
-        public virtual async Task<TResult> AssembleResult<TResult>(AiResponse response)
+        public virtual async Task<TResult> AssembleResult<TResult>(AiRequest request, AiResponse response)
         {
             throw new NotImplementedException();
         }
 
         public virtual async Task<bool> SaveAgent(TAgent agent)
         {
-            await GetStorage();
-
             // default save agent in FileStorage
             await Storage.Persist(agent);
 
             return true;
         }
-
-        protected async Task<IAgentStorage<TAgent>> GetStorage()
+        protected IAgentStorage<TAgent> GetAgentStorage()
         {
             if (Storage == null)
             {
-                Storage = await agentStorageFactory.Get();
+                Storage = agentStorageFactory.Get();
             }
+
             return Storage;
         }
     }
