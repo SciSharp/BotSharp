@@ -76,12 +76,12 @@ If you feel that this project is helpful to you, please Star on the project, we 
   <ItemGroup>
     <PackageReference Include="CherubNLP" Version="0.1.1" />
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
-    <PackageReference Include="CSRedisCore" Version="3.0.20" />
+    <PackageReference Include="CSRedisCore" Version="3.0.27" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.10.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>
 
