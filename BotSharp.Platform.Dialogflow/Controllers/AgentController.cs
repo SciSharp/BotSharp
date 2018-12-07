@@ -1,4 +1,6 @@
 ﻿using BotSharp.Platform.Dialogflow.Models;
+using BotSharp.Platform.Dialogflow.ViewModels;
+using BotSharp.Platform.Models.Agents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -32,7 +34,8 @@ namespace BotSharp.Platform.Dialogflow.Controllers
         /// <param name="file"></param>
         /// <returns></returns>
         [HttpPost("import")]
-        public async Task<ActionResult> Import(IFormFile uploadedFile)
+        [ProducesResponseType(typeof(ImportedAgentViewModel), 200)]
+        public async Task<IActionResult> Import(IFormFile uploadedFile)
         {
             if (uploadedFile == null || uploadedFile.Length == 0)
             {
@@ -61,7 +64,13 @@ namespace BotSharp.Platform.Dialogflow.Controllers
             var agent = await builder.LoadAgentFromFile<AgentImporterInDialogflow<AgentModel>>(dest);
             await builder.SaveAgent(agent);
 
-            return Ok(agent.Id);
+            return Ok(new ImportedAgentViewModel
+            {
+                Id = agent.Id,
+                Name = agent.Name,
+                Description = agent.Description,
+                ClientAccessToken = agent.ClientAccessToken
+            });
         }
 
         /// <summary>
