@@ -5,6 +5,7 @@ using BotSharp.Core.Modules;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Dialogflow.Models;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.Contexts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

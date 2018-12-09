@@ -8,5 +8,6 @@ namespace BotSharp.Platform.Abstraction
     public interface IContextStorage<T>
     {
         Task<bool> Persist(string sessionId, T[] context);
+        Task<T[]> Fetch(string sessionId);
     }
 }

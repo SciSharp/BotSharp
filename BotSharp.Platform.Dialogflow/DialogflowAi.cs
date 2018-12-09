@@ -15,6 +15,7 @@ using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.AiRequest;
 using Turing.NET;
 using System.Text.RegularExpressions;
+using BotSharp.Platform.Models.Contexts;
 
 namespace BotSharp.Platform.Dialogflow
 {
@@ -24,13 +25,11 @@ namespace BotSharp.Platform.Dialogflow
         where TAgent : AgentModel
     {
         IConfiguration config;
-        IContextStorageFactory<AIContext> contextStorageFactory;
 
         public DialogflowAi(IAgentStorageFactory<TAgent> agentStorageFactory, IContextStorageFactory<AIContext> contextStorageFactory, IPlatformSettings settings, IConfiguration config)
-            :base(agentStorageFactory, settings)
+            :base(agentStorageFactory, contextStorageFactory, settings)
         {
             this.config = config;
-            this.contextStorageFactory = contextStorageFactory;
         }
 
         public async Task<TrainingCorpus> ExtractorCorpus(TAgent agent)

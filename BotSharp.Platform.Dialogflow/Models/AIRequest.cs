@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using BotSharp.Platform.Models.Contexts;
 using System;
 using System.Collections.Generic;
 using System.Text;

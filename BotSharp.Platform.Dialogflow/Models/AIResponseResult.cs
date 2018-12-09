@@ -1,5 +1,5 @@
 ﻿using BotSharp.Platform.Models.AiResponse;
-using BotSharp.Platform.Models.Entities;
+using BotSharp.Platform.Models.Contexts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -17,8 +17,6 @@ namespace BotSharp.Platform.Dialogflow.Models
         public String Action { get; set; }
 
         public Dictionary<string, object> Parameters { get; set; }
-
-        public List<NlpEntity> Entities { get; set; }
 
         public AIContext[] Contexts { get; set; }
 

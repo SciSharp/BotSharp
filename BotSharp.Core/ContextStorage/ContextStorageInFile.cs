@@ -28,6 +28,20 @@ namespace BotSharp.Core.ContextStorage
             }
         }
 
+        public async Task<T[]> Fetch(string sessionId)
+        {
+            string dataPath = Path.Combine(storageDir, sessionId + ".json");
+            if (File.Exists(dataPath))
+            {
+                string json = File.ReadAllText(dataPath);
+                return JsonConvert.DeserializeObject<T[]>(json);
+            }
+            else
+            {
+                return default(T[]);
+            }
+        }
+
         public async Task<bool> Persist(string sessionId, T[] context)
         {
             var json = JsonConvert.SerializeObject(context, new JsonSerializerSettings

@@ -3,10 +3,12 @@ using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
+using BotSharp.Platform.Models.Contexts;
 using BotSharp.Platform.Models.Entities;
 using BotSharp.Platform.Models.Intents;
 using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -25,12 +27,14 @@ namespace BotSharp.Core
 
         public IAgentStorage<TAgent> Storage { get; set; }
 
-        private readonly IAgentStorageFactory<TAgent> agentStorageFactory;
-        private readonly IPlatformSettings settings;
+        protected readonly IAgentStorageFactory<TAgent> agentStorageFactory;
+        protected readonly IContextStorageFactory<AIContext> contextStorageFactory;
+        protected readonly IPlatformSettings settings;
 
-        public PlatformBuilderBase(IAgentStorageFactory<TAgent> agentStorageFactory, IPlatformSettings settings)
+        public PlatformBuilderBase(IAgentStorageFactory<TAgent> agentStorageFactory, IContextStorageFactory<AIContext> contextStorageFactory, IPlatformSettings settings)
         {
             this.agentStorageFactory = agentStorageFactory;
+            this.contextStorageFactory = contextStorageFactory;
             this.settings = settings;
             GetAgentStorage();
         }
@@ -132,10 +136,10 @@ namespace BotSharp.Core
 
         public virtual async Task<TResult> TextRequest<TResult>(AiRequest request)
         {
-            string contexts = String.Join("_", request.Contexts);
-            string contextHash = contexts.GetMd5Hash();
+            // merge last contexts
+            string contextHash = await GetContextsHash(request);
 
-            Console.WriteLine($"TextRequest: {request.Text}, {contexts}, {request.SessionId}");
+            Console.WriteLine($"TextRequest: {request.Text}, {request.Contexts}, {request.SessionId}");
 
             // Load agent
             var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.AgentId);
@@ -191,6 +195,24 @@ namespace BotSharp.Core
             Console.WriteLine($"TextResponse: {aiResponse.Intent}, {request.SessionId}");
 
             return await AssembleResult<TResult>(request, aiResponse);
+        }
+
+        private async Task<string> GetContextsHash(AiRequest request)
+        {
+            var ctxStore = contextStorageFactory.Get();
+            var contexts = await ctxStore.Fetch(request.SessionId);
+            for(int i = 0; i < contexts.Length; i++)
+            {
+                var ctx = contexts[i];
+                if (ctx.Lifespan > 0 && !request.Contexts.Exists(x => x == ctx.Name))
+                {
+                    request.Contexts.Add(ctx.Name);
+                }
+            }
+
+            request.Contexts = request.Contexts.OrderBy(x => x).ToList();
+
+            return String.Join("_", request.Contexts).GetMd5Hash();
         }
 
         public virtual async Task<TextClassificationResult> FallbackResponse(AiRequest request)

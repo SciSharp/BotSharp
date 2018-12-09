@@ -4,6 +4,7 @@ using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
+using BotSharp.Platform.Models.Contexts;
 using BotSharp.Platform.Rasa.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,8 +20,8 @@ namespace BotSharp.Platform.Rasa
         where TAgent : AgentModel
     {
 
-        public RasaAi(IAgentStorageFactory<TAgent> agentStorageFactory, IPlatformSettings settings)
-            : base(agentStorageFactory, settings)
+        public RasaAi(IAgentStorageFactory<TAgent> agentStorageFactory, IContextStorageFactory<AIContext> contextStorageFactory, IPlatformSettings settings)
+            : base(agentStorageFactory, contextStorageFactory, settings)
         {
 
         }
