@@ -13,7 +13,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Haiping Chen</Authors>
-    <Company />
+    <Company>BotSharp AI</Company>
     <Product>AI Bot Platform Builder</Product>
     <Description>Open source AI Bot platform builder which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.
 
@@ -22,8 +22,7 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
     <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence</PackageTags>
     <Version>1.9.0</Version>
-    <PackageReleaseNotes>Monthly Update.
-Support dialogue status tracking.</PackageReleaseNotes>
+    <PackageReleaseNotes>Support dialogue status tracking.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
     <AssemblyVersion>1.9.0.0</AssemblyVersion>
@@ -73,6 +72,8 @@ Support dialogue status tracking.</PackageReleaseNotes>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BotSharp.Platform.Abstraction" Version="0.2.1" />
+    <PackageReference Include="BotSharp.Platform.Models" Version="0.2.1" />
     <PackageReference Include="CherubNLP" Version="0.1.1" />
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="CSRedisCore" Version="3.0.30" />

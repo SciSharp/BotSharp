@@ -4,8 +4,12 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>0.3.0</Version>
-    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/dotnetcore/BotSharp</PackageProjectUrl>
     <Authors>Haipin Chen</Authors>
+    <Company>BotSharp AI</Company>
+    <RepositoryUrl>https://github.com/dotnetcore/BotSharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Apache 2.0</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

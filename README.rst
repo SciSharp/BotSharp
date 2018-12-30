@@ -11,7 +11,7 @@ The Open Source AI Chatbot Platform Builder
     :alt: Hex.pm
     :align: left
 
-.. image:: https://img.shields.io/nuget/dt/EntityFrameworkCore.BootKit.svg
+.. image:: https://img.shields.io/nuget/dt/BotSharp.Core.svg
     :target: `botsharpnuget`_
     :alt: NuGet
     :align: left
@@ -25,7 +25,7 @@ The Open Source AI Chatbot Platform Builder
 
 .. raw:: html
 
-    <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/docs/static/logos/BotSharpEngine.jpg" width="100%">
+    <img src="/docs/static/screenshots/BotSharp_arch.png" width="100%">
     
 It's witten  in C# running on .Net Core that is full cross-platform framework. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. More friendly to corporate developers. BotSharp adopts machine learning algrithm in C# directly. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
 
@@ -84,13 +84,15 @@ Feel free to message me on
 .. image:: https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg
     :target: `gitter`_
 
-If you feel that this project is helpful to you, please Star on the project, we will be very grateful.
+If you feel that this project is helpful to you, please Star the project, we would be very grateful.
+
+Powered by `SciSharp`_ which is the .NET based ecosystem of open-source software for mathematics, science, and engineering.
 
 Scan to join group in Wechat
 
 .. raw:: html
 
-    <img src="https://raw.githubusercontent.com/Oceania2018/BotSharp/master/docs/static/logos/WechatQRCode.png" width="150px">
+    <img src="/docs/static/logos/WechatQRCode.png" width="150px">
 
 .. _Docker: https://www.docker.com
 .. _Rasa UI: https://github.com/paschmann/rasa-ui
@@ -102,3 +104,4 @@ Scan to join group in Wechat
 .. _botsharp-articulate: https://github.com/Oceania2018/botsharp-articulate
 .. _botsharp-rasatalk: https://github.com/Obrain2016/botsharp-rasatalk
 .. _articulate-ui: https://github.com/Oceania2018/articulate-ui
+.. _SciSharp: https://github.com/SciSharp
