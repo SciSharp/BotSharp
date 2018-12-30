@@ -38,7 +38,7 @@ namespace BotSharp.Core.ContextStorage
             }
             else
             {
-                return default(T[]);
+                return new T[0];
             }
         }
 
