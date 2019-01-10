@@ -17,6 +17,11 @@ The Open Source AI Chatbot Platform Builder
     :align: left
     
 .. image:: https://ci.appveyor.com/api/projects/status/kar0mxwbnu8rbwkm?svg=true
+   :align: left
+   
+.. image:: https://img.shields.io/badge/member%20project%20of-NCC-9e20c9.svg
+   :target: `ncc`_
+   :alt: Member project of .NET Core Community
 
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our .NET developers using the BotSharp AI BOT Platform Builder to build a CaaP. It opens up as much learning power as possible for your own robots and precisely control every step of the AI processing pipeline."*
@@ -105,3 +110,4 @@ Scan to join group in Wechat
 .. _botsharp-rasatalk: https://github.com/Obrain2016/botsharp-rasatalk
 .. _articulate-ui: https://github.com/Oceania2018/articulate-ui
 .. _SciSharp: https://github.com/SciSharp
+.. _ncc: https://github.com/dotnetcore
