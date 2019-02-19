@@ -1,19 +1,14 @@
 ﻿using BotSharp.Channel.Weixin.Models;
 using BotSharp.Platform.Abstraction;
-using BotSharp.Platform.Dialogflow;
 using BotSharp.Platform.Dialogflow.Models;
-using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Senparc.CO2NET;
 using Senparc.CO2NET.HttpUtility;
 using Senparc.Weixin.MP;
 using Senparc.Weixin.MP.Entities.Request;
 using Senparc.Weixin.MP.MvcExtension;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Channel.Weixin.Controllers
@@ -107,7 +102,7 @@ namespace BotSharp.Channel.Weixin.Controllers
 
             #endregion
 
-            await messageHandler.ExecuteAsync(); //执行微信处理过程
+            await messageHandler.ExecuteAsync(new System.Threading.CancellationToken()); //执行微信处理过程
 
             #region 记录 Response 日志
 
