@@ -1,6 +1,9 @@
 # The Open Source AI Chatbot Platform Builder
 
-[![Join the chat at https://gitter.im/publiclab/publiclab](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sci-sharp/community)[![Apache 2.0](https://img.shields.io/hexpm/l/plug.svg)](https://raw.githubusercontent.com/Oceania2018/BotSharp/master/LICENSE)[![NuGet](https://img.shields.io/nuget/dt/BotSharp.Core.svg)](https://www.nuget.org/packages/BotSharp.Core)[![Appveyor](https://ci.appveyor.com/api/projects/status/kar0mxwbnu8rbwkm?svg=true)](https://www.nuget.org/packages/BotSharp.Core)
+[![Join the chat at https://gitter.im/publiclab/publiclab](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sci-sharp/community) 
+[![Apache 2.0](https://img.shields.io/hexpm/l/plug.svg)](https://raw.githubusercontent.com/Oceania2018/BotSharp/master/LICENSE) 
+[![NuGet](https://img.shields.io/nuget/dt/BotSharp.Core.svg)](https://www.nuget.org/packages/BotSharp.Core) 
+[![Appveyor](https://ci.appveyor.com/api/projects/status/kar0mxwbnu8rbwkm?svg=true)](https://www.nuget.org/packages/BotSharp.Core)
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our .NET developers using the BotSharp AI BOT Platform Builder to build a CaaP. It opens up as much learning power as possible for your own robots and precisely control every step of the AI processing pipeline."*
     
@@ -66,4 +69,4 @@ Powered by [SciSharp STACK](https://github.com/SciSharp) which is the .NET based
 
 Scan QR code to join TIM group:
 
-![SciSharp STACK](https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/docs/TIM.png)
+![SciSharp STACK](https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/docs/TIM.jpg)
