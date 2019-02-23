@@ -72,23 +72,17 @@ If you feel that this project is helpful to you, please Star on the project, we 
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BotSharp.Platform.Abstraction" Version="0.3.0" />
-    <PackageReference Include="BotSharp.Platform.Models" Version="0.3.0" />
     <PackageReference Include="CherubNLP" Version="0.1.1" />
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
-    <PackageReference Include="CSRedisCore" Version="3.0.37" />
+    <PackageReference Include="CSRedisCore" Version="3.0.39" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="NumSharp" Version="0.7.2" />
+    <PackageReference Include="NumSharp" Version="0.7.3" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Platform.Abstraction\BotSharp.Platform.Abstraction.csproj" />
-    <ProjectReference Include="..\BotSharp.Platform.Models\BotSharp.Platform.Models.csproj" />
+    <PackageReference Include="TensorFlow.NET" Version="0.4.0" />
   </ItemGroup>
 
 </Project>
