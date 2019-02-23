@@ -3,7 +3,8 @@
 [![Join the chat at https://gitter.im/publiclab/publiclab](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sci-sharp/community) 
 [![Apache 2.0](https://img.shields.io/hexpm/l/plug.svg)](https://raw.githubusercontent.com/Oceania2018/BotSharp/master/LICENSE) 
 [![NuGet](https://img.shields.io/nuget/dt/BotSharp.Core.svg)](https://www.nuget.org/packages/BotSharp.Core) 
-[![Appveyor](https://ci.appveyor.com/api/projects/status/kar0mxwbnu8rbwkm?svg=true)](https://www.nuget.org/packages/BotSharp.Core)
+[![Build status](https://ci.appveyor.com/api/projects/status/qx2dx5ca5hjqodm5?svg=true)](https://ci.appveyor.com/project/Haiping-Chen/botsharp)
+[![Documentation Status](https://readthedocs.org/projects/botsharp/badge/?version=latest)](https://botsharp.readthedocs.io/en/latest/?badge=latest)
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to our .NET developers using the BotSharp AI BOT Platform Builder to build a CaaP. It opens up as much learning power as possible for your own robots and precisely control every step of the AI processing pipeline."*
     
@@ -65,7 +66,7 @@ Read the docs: https://botsharp.readthedocs.io
 
 If you feel that this project is helpful to you, please Star the project, we would be very grateful.
 
-Powered by [SciSharp STACK](https://github.com/SciSharp) which is the .NET based ecosystem of open-source software for mathematics, science, and engineering.
+Member project of [SciSharp STACK](https://github.com/SciSharp) which is the .NET based ecosystem of open-source software for mathematics, science, and engineering.
 
 Scan QR code to join TIM group:
 
