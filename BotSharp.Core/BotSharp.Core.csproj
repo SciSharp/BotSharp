@@ -13,21 +13,21 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Haiping Chen</Authors>
-    <Company>BotSharp AI</Company>
+    <Company>SciSharp STACK</Company>
     <Product>AI Bot Platform Builder</Product>
     <Description>Open source AI Bot platform builder which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.
 
 If you feel that this project is helpful to you, please Star on the project, we will be very grateful.</Description>
-    <RepositoryType>MIT</RepositoryType>
-    <RepositoryUrl>https://github.com/Oceania2018/BotSharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/SciSharp/BotSharp</RepositoryUrl>
     <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence</PackageTags>
-    <Version>1.9.0</Version>
+    <Version>0.4.0</Version>
     <PackageReleaseNotes>Support dialogue status tracking.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
-    <PackageProjectUrl>https://github.com/Oceania2018/BotSharp</PackageProjectUrl>
-    <AssemblyVersion>1.9.0.0</AssemblyVersion>
-    <PackageIconUrl>https://raw.githubusercontent.com/Oceania2018/BotSharp/master/BotSharp.WebHost/wwwroot/images/BotSharp.png</PackageIconUrl>
-    <PackageLicenseUrl>https://github.com/Oceania2018/BotSharp/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SciSharp/BotSharp</PackageProjectUrl>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <PackageIconUrl>https://raw.githubusercontent.com/SciSharp/BotSharp/master/docs/static/logos/BotSharp.png</PackageIconUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/SciSharp/BotSharp/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

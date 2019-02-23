@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <RepositoryUrl>https://github.com/dotnetcore/BotSharp</RepositoryUrl>
     <Authors>Haiping Chen</Authors>
     <PackageProjectUrl>https://github.com/dotnetcore/BotSharp</PackageProjectUrl>
