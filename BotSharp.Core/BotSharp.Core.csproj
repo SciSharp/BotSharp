@@ -72,9 +72,9 @@ If you feel that this project is helpful to you, please Star on the project, we 
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CherubNLP" Version="0.1.1" />
+    <PackageReference Include="CherubNLP" Version="0.2.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
-    <PackageReference Include="CSRedisCore" Version="3.0.39" />
+    <PackageReference Include="CSRedisCore" Version="3.0.40" />
     <PackageReference Include="DotNetToolkit" Version="1.6.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="2.2.0" />
@@ -82,7 +82,7 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="NumSharp" Version="0.7.3" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="TensorFlow.NET" Version="0.4.0" />
+    <PackageReference Include="TensorFlow.NET" Version="0.4.1" />
   </ItemGroup>
 
 </Project>

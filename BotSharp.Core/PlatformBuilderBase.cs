@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Engines;
+using BotSharp.Core.Engines.OwnThink;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
@@ -219,8 +220,9 @@ namespace BotSharp.Core
         {
             var data = new
             {
-                token = "openbot",
-                info = request.Text
+                appid = "openbot",
+                userid = "yener",
+                spoken = request.Text
             };
 
             using (var client = new HttpClient())
@@ -229,12 +231,12 @@ namespace BotSharp.Core
                     "https://api.ownthink.com/bot",
                     new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json"));
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<JObject>(content);
+                var result = JsonConvert.DeserializeObject<OwnThinkChatResponse>(content);
 
                 return new TextClassificationResult
                 {
                     Classifier = "ownthink",
-                    Text = result["text"].ToString()
+                    Text = result.Data.Info.Text
                 };
             }
         }

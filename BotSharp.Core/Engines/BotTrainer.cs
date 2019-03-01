@@ -95,6 +95,8 @@ namespace BotSharp.Core.Engines
 
             for (int pipeIdx = 0; pipeIdx < pipelines.Count; pipeIdx++)
             {
+                Console.WriteLine("");
+                Console.WriteLine($"Executing {pipeModel.Name}");
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
@@ -109,7 +111,8 @@ namespace BotSharp.Core.Engines
                     Time = DateTime.UtcNow
                 };
                 meta.Pipeline.Add(pipeModel);
-                
+
+                Console.WriteLine(JsonConvert.SerializeObject(pipeModel, Formatting.Indented));
                 await pipe.Train(agent, data, pipeModel);
 
                 stopwatch.Stop();
