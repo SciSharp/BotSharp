@@ -14,21 +14,21 @@ namespace BotSharp.Core.Accounts
     public class UserAuth : DbRecord, IDbRecord
     {
         [StringLength(36)]
-        public String UserId { get; set; }
+        public string UserId { get; set; }
 
         [Required]
         [StringLength(256)]
         [DataType(DataType.Password)]
-        public String Password { get; set; }
+        public string Password { get; set; }
 
         [Required]
         [StringLength(64)]
-        public String Salt { get; set; }
+        public string Salt { get; set; }
 
         [StringLength(32)]
-        public String ActivationCode { get; set; }
+        public string ActivationCode { get; set; }
 
-        public Boolean IsActivated { get; set; }
+        public bool IsActivated { get; set; }
 
         [ForeignKey("UserId")]
         public User User { get; set; }

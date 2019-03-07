@@ -4,7 +4,7 @@ BotSharp Web Console
 ## How to install
 #### Download source code
 ````sh
-git clone https://github.com/Oceania2018/BotSharp
+git clone https://github.com/SciSharp/BotSharp
 ````
 #### Run node.js server
 ````sh

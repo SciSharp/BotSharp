@@ -15,21 +15,21 @@ namespace BotSharp.Core.Accounts
     {
         [Required]
         [StringLength(64)]
-        public String UserName { get; set; }
+        public string UserName { get; set; }
 
         [Required]
         [StringLength(64)]
         [DataType(DataType.EmailAddress)]
-        public String Email { get; set; }
+        public string Email { get; set; }
 
         [StringLength(32)]
-        public String FirstName { get; set; }
+        public string FirstName { get; set; }
 
         [StringLength(32)]
-        public String LastName { get; set; }
+        public string LastName { get; set; }
 
         [MaxLength(256)]
-        public String Description { get; set; }
+        public string Description { get; set; }
 
         [Required]
         [DataType(DataType.DateTime)]
@@ -39,14 +39,14 @@ namespace BotSharp.Core.Accounts
         public DateTime? Birthday { get; set; }
 
         [MaxLength(36)]
-        public String Nationality { get; set; }
+        public string Nationality { get; set; }
 
         [NotMapped]
-        public String FullName
+        public string FullName
         {
             get
             {
-                return FirstName + (String.IsNullOrEmpty(LastName) ? "" : " " + LastName);
+                return FirstName + (string.IsNullOrEmpty(LastName) ? "" : " " + LastName);
             }
         }
 

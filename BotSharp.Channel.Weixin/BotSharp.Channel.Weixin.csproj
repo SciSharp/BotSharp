@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.2" />
-    <PackageReference Include="Senparc.Weixin.MP.MVC" Version="7.2.5" />
+    <PackageReference Include="Senparc.Weixin.MP.MVC" Version="7.2.6" />
   </ItemGroup>
 
   <ItemGroup>

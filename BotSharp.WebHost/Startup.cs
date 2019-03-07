@@ -29,7 +29,16 @@ namespace BotSharp.WebHost
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllHeaders", builder =>
+                {
+                    builder.WithOrigins("http://localhost:3110")
+                        .AllowCredentials()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
             services.AddJwtAuth(Configuration);
 
             var mvcBuilder = services.AddMvc(options =>
@@ -82,7 +91,7 @@ namespace BotSharp.WebHost
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+            app.UseCors("AllowAllHeaders");
 
             app.UseDefaultFiles();
             app.UseStaticFiles();

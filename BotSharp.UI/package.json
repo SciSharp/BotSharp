@@ -17,8 +17,8 @@
   "dependencies": {
     "axios": "^0.16.2",
     "iview": "^2.14.3",
-    "localStorage": "^1.0.3",
-    "vue": "^2.5.17",
+    "localStorage": "^1.0.4",
+    "vue": "^2.6.8",
     "vue-avatar-editor": "^1.0.4",
     "vue-input-tag": "0.0.16",
     "vue-localstorage": "^0.3.0",
@@ -47,9 +47,9 @@
     "vue-html-loader": "^1.2.3",
     "vue-loader": "^11.0.0",
     "vue-style-loader": "^1.0.0",
-    "vue-template-compiler": "^2.5.17",
+    "vue-template-compiler": "^2.6.8",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.11.2",
+    "webpack-dev-server": "^2.11.3",
     "webpack-merge": "^3.0.0"
   },
   "bugs": {
