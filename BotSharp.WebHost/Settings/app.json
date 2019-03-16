@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "assemblies": "BotSharp.Core",
 
-  "platformModuleName": "DialogflowAi",
+  "platformModuleName": "OwnThinkAi",
   "overrideFallback": false,
 
   "modules": [
@@ -13,6 +13,10 @@
     {
       "Name": "RasaAi",
       "Type": "BotSharp.Platform.Rasa"
+    },
+    {
+      "Name": "OwnThink",
+      "Type": "BotSharp.Platform.OwnThink"
     },
     {
       "Name": "WeixinChannel",

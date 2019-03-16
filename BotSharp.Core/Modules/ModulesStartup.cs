@@ -60,7 +60,7 @@ namespace BotSharp.Core.Modules
                     else
                     {
                         IModule module = (IModule)Activator.CreateInstance(type);
-                        Console.WriteLine($"Loaded module \"{s.Type}\"", Color.Green);
+                        Console.WriteLine($"Loaded {s.Type.Split('.')[1]} \"{s.Type}\"", Color.Green);
                         return module;
                     }
                 }

@@ -1,5 +1,4 @@
 ﻿using BotSharp.Core.Engines;
-using BotSharp.Core.Engines.OwnThink;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
@@ -140,7 +139,7 @@ namespace BotSharp.Core
             // merge last contexts
             string contextHash = await GetContextsHash(request);
 
-            Console.WriteLine($"TextRequest: {request.Text}, {request.Contexts}, {request.SessionId}");
+            Console.WriteLine($"TextRequest: {request.Text}, {request.AgentId}, {string.Join(",", request.Contexts)}, {request.SessionId}");
 
             // Load agent
             var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", request.AgentId);
@@ -218,27 +217,7 @@ namespace BotSharp.Core
 
         public virtual async Task<TextClassificationResult> FallbackResponse(AiRequest request)
         {
-            var data = new
-            {
-                appid = "openbot",
-                userid = "yener",
-                spoken = request.Text
-            };
-
-            using (var client = new HttpClient())
-            {
-                var response = await client.PostAsync(
-                    "https://api.ownthink.com/bot",
-                    new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json"));
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<OwnThinkChatResponse>(content);
-
-                return new TextClassificationResult
-                {
-                    Classifier = "ownthink",
-                    Text = result.Data.Info.Text
-                };
-            }
+            throw new NotImplementedException("FallbackResponse");
         }
 
         public virtual async Task<TResult> AssembleResult<TResult>(AiRequest request, AiResponse response)

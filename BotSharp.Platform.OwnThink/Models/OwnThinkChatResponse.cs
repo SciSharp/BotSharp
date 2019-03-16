@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Engines.OwnThink
+namespace BotSharp.Platform.OwnThink.Models
 {
     public class OwnThinkChatResponse
     {

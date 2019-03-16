@@ -86,4 +86,8 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <PackageReference Include="TensorFlow.NET" Version="0.4.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Engines\OwnThink\" />
+  </ItemGroup>
+
 </Project>

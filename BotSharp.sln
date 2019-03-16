@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Channel.FacebookMe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Rasa", "BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj", "{2EDE5F82-9219-4827-B636-13717DCDDF01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Platform.OwnThink", "BotSharp.Platform.OwnThink\BotSharp.Platform.OwnThink.csproj", "{96820DD6-0806-40A3-943A-7F2EF69E8EDB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,14 @@ Global
 		{2EDE5F82-9219-4827-B636-13717DCDDF01}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2EDE5F82-9219-4827-B636-13717DCDDF01}.Release|x64.ActiveCfg = Release|Any CPU
 		{2EDE5F82-9219-4827-B636-13717DCDDF01}.Release|x64.Build.0 = Release|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Debug|x64.Build.0 = Debug|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Release|x64.ActiveCfg = Release|Any CPU
+		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
