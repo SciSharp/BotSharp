@@ -90,6 +90,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Channel.FacebookMessenger\BotSharp.Channel.FacebookMessenger.csproj" />
     <ProjectReference Include="..\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Articulate\BotSharp.Platform.Articulate.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.OwnThink\BotSharp.Platform.OwnThink.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj" />

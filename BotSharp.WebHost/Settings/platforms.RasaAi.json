@@ -1,0 +1,9 @@
+{
+  // if you want to override platform setting, please set corresponding value, 
+  // otherwise you don't need this section.
+  "rasaAi": {
+    "botEngine": "BotSharpNLU",
+    "agentStorage": "AgentStorageInFile",
+    "contextStorage": "ContextStorageInFile"
+  }
+}

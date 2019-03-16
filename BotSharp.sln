@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Rasa", "B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Platform.OwnThink", "BotSharp.Platform.OwnThink\BotSharp.Platform.OwnThink.csproj", "{96820DD6-0806-40A3-943A-7F2EF69E8EDB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Platform.Articulate", "BotSharp.Platform.Articulate\BotSharp.Platform.Articulate.csproj", "{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,14 @@ Global
 		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Release|x64.ActiveCfg = Release|Any CPU
 		{96820DD6-0806-40A3-943A-7F2EF69E8EDB}.Release|x64.Build.0 = Release|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Debug|x64.Build.0 = Debug|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Release|x64.ActiveCfg = Release|Any CPU
+		{7290AC89-88DE-4CF8-946A-A1BB0E4C30EB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
