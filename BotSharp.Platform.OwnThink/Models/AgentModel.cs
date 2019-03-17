@@ -11,6 +11,8 @@ namespace BotSharp.Platform.OwnThink.Models
 {
     public class AgentModel : AgentBase
     {
+        public string AppId { get; set; }
+
         public AgentModel()
         {
             

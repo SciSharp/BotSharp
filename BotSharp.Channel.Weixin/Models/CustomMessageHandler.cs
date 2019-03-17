@@ -31,8 +31,8 @@ using Senparc.Weixin;
 using Senparc.Weixin.MP;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Abstractions;
-using BotSharp.Platform.Dialogflow.Models;
 using Microsoft.Extensions.Configuration;
+using BotSharp.Platform.OwnThink.Models;
 
 #if NET45
 using System.Web;

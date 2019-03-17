@@ -10,13 +10,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.2" />
+    <PackageReference Include="RestSharp" Version="106.6.9" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Platform.Articulate\BotSharp.Platform.Articulate.csproj" />
-    <ProjectReference Include="..\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.OwnThink\BotSharp.Platform.OwnThink.csproj" />
-    <ProjectReference Include="..\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj" />
   </ItemGroup>
 
 </Project>

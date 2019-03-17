@@ -15,12 +15,12 @@
       "Type": "BotSharp.Platform.Rasa"
     },
     {
-      "Name": "OwnThink",
-      "Type": "BotSharp.Platform.OwnThink"
-    },
-    {
       "Name": "Articulate",
       "Type": "BotSharp.Platform.Articulate"
+    },
+    {
+      "Name": "OwnThink",
+      "Type": "BotSharp.Platform.OwnThink"
     },
     {
       "Name": "WeixinChannel",

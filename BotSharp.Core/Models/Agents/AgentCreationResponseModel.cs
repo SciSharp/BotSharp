@@ -4,10 +4,12 @@ using System.Text;
 
 namespace BotSharp.Platform.Models.Agents
 {
-    public class AgentCreationViewModel
+    public class AgentCreationResponseModel
     {
+        public string AgentId { get; set; }
+
         public string Name { get; set; }
 
-        public string Description { get; set; }
+        public string ClientAccessToken { get; set; }
     }
 }
