@@ -1,14 +1,10 @@
 ﻿using BotSharp.Core.Modules;
-using BotSharp.Platform.Abstraction;
-using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Senparc.CO2NET;
 using Senparc.CO2NET.RegisterServices;
 using Senparc.Weixin.RegisterServices;
-using System;
 
 namespace BotSharp.Channel.Weixin
 {

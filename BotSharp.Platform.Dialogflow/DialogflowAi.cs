@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Core;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Models;
 using DotNetToolkit;
 using BotSharp.Platform.Dialogflow.Models;
@@ -27,7 +27,7 @@ namespace BotSharp.Platform.Dialogflow
         IConfiguration config;
 
         public DialogflowAi(IAgentStorageFactory<TAgent> agentStorageFactory, IContextStorageFactory<AIContext> contextStorageFactory, IPlatformSettings settings, IConfiguration config)
-            :base(agentStorageFactory, contextStorageFactory, settings)
+            : base(agentStorageFactory, contextStorageFactory, settings)
         {
             this.config = config;
         }

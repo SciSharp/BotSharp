@@ -1,4 +1,4 @@
-﻿using BotSharp.Platform.Abstraction;
+﻿using BotSharp.Platform.Abstractions;
 using Colorful;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Core.Abstractions;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.MachineLearning;
 using DotNetToolkit;

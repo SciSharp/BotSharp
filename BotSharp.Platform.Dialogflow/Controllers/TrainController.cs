@@ -1,20 +1,13 @@
-﻿using BotSharp.Core.Engines;
-using BotSharp.Platform.Models;
+﻿using BotSharp.Platform.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using BotSharp.Platform.Dialogflow.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BotSharp.Platform.Models.MachineLearning;
-using BotSharp.Platform.Abstraction;
 
 namespace BotSharp.Platform.Dialogflow.Controllers
 {

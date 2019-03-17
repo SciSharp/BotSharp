@@ -1,5 +1,5 @@
 ﻿using BotSharp.Core.Engines;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;

@@ -1,6 +1,6 @@
 ﻿using BotSharp.Core;
 using BotSharp.Core.Engines;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Articulate.Models;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;

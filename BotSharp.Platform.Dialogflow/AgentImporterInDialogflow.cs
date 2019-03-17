@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.Intents;
@@ -13,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using BotSharp.Platform.Dialogflow.Models;
 using System.Threading.Tasks;
+using BotSharp.Platform.Abstractions;
 
 namespace BotSharp.Platform.Dialogflow
 {

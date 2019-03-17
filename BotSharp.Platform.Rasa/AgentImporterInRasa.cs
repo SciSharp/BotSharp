@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.Intents;
 using BotSharp.Platform.Rasa.Models;

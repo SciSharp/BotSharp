@@ -4,7 +4,7 @@ using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.MachineLearning;
 using System.Threading.Tasks;
 
-namespace BotSharp.Platform.Abstraction
+namespace BotSharp.Platform.Abstractions
 {
     /// <summary>
     /// Platform abstraction

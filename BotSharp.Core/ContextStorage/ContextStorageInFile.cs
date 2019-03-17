@@ -1,4 +1,4 @@
-﻿using BotSharp.Platform.Abstraction;
+﻿using BotSharp.Platform.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;

@@ -3,7 +3,7 @@ using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
 using System.Threading.Tasks;
 
-namespace BotSharp.Platform.Abstraction
+namespace BotSharp.Platform.Abstractions
 {
     /// <summary>
     /// BotEngine is the NLU of bot platform

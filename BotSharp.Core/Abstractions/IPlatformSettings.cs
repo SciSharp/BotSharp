@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Platform.Abstraction
+namespace BotSharp.Platform.Abstractions
 {
     public interface IPlatformSettings
     {

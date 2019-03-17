@@ -1,4 +1,4 @@
-﻿using BotSharp.Platform.Abstraction;
+﻿using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

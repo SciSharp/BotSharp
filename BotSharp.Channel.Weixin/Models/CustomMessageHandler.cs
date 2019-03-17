@@ -30,7 +30,7 @@ using Senparc.NeuChar.Entities;
 using Senparc.Weixin;
 using Senparc.Weixin.MP;
 using BotSharp.Platform.Models.AiRequest;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Dialogflow.Models;
 using Microsoft.Extensions.Configuration;
 

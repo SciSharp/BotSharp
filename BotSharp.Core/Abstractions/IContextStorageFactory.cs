@@ -1,8 +1,6 @@
-﻿using BotSharp.Platform.Abstraction;
-using BotSharp.Platform.Models;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-namespace BotSharp.Platform.Abstraction
+namespace BotSharp.Platform.Abstractions
 {
     public interface IContextStorageFactory<T>
     {

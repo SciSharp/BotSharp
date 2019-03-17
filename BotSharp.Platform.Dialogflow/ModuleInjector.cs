@@ -2,7 +2,7 @@
 using BotSharp.Core.AgentStorage;
 using BotSharp.Core.ContextStorage;
 using BotSharp.Core.Modules;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Dialogflow.Models;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.Contexts;

@@ -1,5 +1,4 @@
-﻿using BotSharp.Platform.Abstraction;
-using BotSharp.Platform.Models;
+﻿using BotSharp.Platform.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;

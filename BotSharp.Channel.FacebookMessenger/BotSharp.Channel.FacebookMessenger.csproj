@@ -13,7 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Platform.Articulate\BotSharp.Platform.Articulate.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.OwnThink\BotSharp.Platform.OwnThink.csproj" />
     <ProjectReference Include="..\BotSharp.Platform.Rasa\BotSharp.Platform.Rasa.csproj" />
   </ItemGroup>
 

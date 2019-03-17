@@ -1,9 +1,5 @@
-﻿using BotSharp.Core;
-using BotSharp.Core.Engines;
-using BotSharp.Platform.Abstraction;
-using BotSharp.Platform.Articulate.Models;
+﻿using BotSharp.Platform.Articulate.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

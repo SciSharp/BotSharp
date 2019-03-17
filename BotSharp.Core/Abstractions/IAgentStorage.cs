@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Platform.Abstraction
+namespace BotSharp.Platform.Abstractions
 {
     /// <summary>
     /// Agent could be persisted in any kind of storage.

@@ -1,5 +1,5 @@
 ﻿using BotSharp.Channel.Weixin.Models;
-using BotSharp.Platform.Abstraction;
+using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Dialogflow.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
