@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Platform.OwnThink\BotSharp.Platform.OwnThink.csproj" />
+    <ProjectReference Include="..\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
   </ItemGroup>
 
 </Project>

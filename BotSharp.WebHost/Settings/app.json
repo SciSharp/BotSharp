@@ -1,8 +1,8 @@
 ﻿{
-  "version": "0.2.0",
+  "version": "0.5.0",
   "assemblies": "BotSharp.Core",
 
-  "platformModuleName": "OwnThinkAi",
+  "platformModuleName": "DialogflowAi",
   "overrideFallback": false,
 
   "modules": [

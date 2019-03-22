@@ -1,6 +1,6 @@
 ﻿using BotSharp.Channel.Weixin.Models;
 using BotSharp.Platform.Abstractions;
-using BotSharp.Platform.OwnThink.Models;
+using BotSharp.Platform.Dialogflow.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Senparc.CO2NET.HttpUtility;

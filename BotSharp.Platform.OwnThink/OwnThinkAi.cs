@@ -102,7 +102,7 @@ namespace BotSharp.Platform.OwnThink
                         "https://api.ownthink.com/bot",
                         new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json"));
                     var content = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<OwnThinkChatResponse>(content);
+                    var result = JsonConvert.DeserializeObject<OwnThinkAiResponse>(content);
 
                     return new TextClassificationResult
                     {

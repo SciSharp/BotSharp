@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BotSharp.Platform.OwnThink.Models
 {
-    public class OwnThinkChatResponse
+    public class OwnThinkAiResponse
     {
         public OwnThinkChatResponseData Data { get; set; }
 

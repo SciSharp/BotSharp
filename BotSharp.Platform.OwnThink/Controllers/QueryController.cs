@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BotSharp.Platform.OwnThink.Controllers
 {
@@ -19,8 +20,8 @@ namespace BotSharp.Platform.OwnThink.Controllers
             builder = platform;
         }
 
-        /*[HttpGet, HttpPost]
-        public async Task<ActionResult<AIResponse>> Query(QueryModel request)
+        [HttpGet, HttpPost]
+        public async Task<ActionResult<OwnThinkAiResponse>> Query(OwnThinkAiRequest request)
         {
             String clientAccessToken = (User.Identity as ClaimsIdentity).Claims.FirstOrDefault(x => x.Type == "UserId")?.Value;
 
@@ -36,20 +37,15 @@ namespace BotSharp.Platform.OwnThink.Controllers
 
             var aIResponse = await builder.TextRequest<AIResponseResult>(new AiRequest
             {
-                Text = request.Query,
+                Text = request.Spoken,
                 AgentId = agent.Id,
-                SessionId = request.SessionId
+                SessionId = request.AppId
             });
 
-            return new AIResponse
+            return new OwnThinkAiResponse
             {
-                Result = aIResponse,
-                Id = Guid.NewGuid().ToString(),
-                Lang = request.Lang,
-                SessionId = request.SessionId,
-                Status = new AIResponseStatus(),
-                Timestamp = DateTime.UtcNow
+
             };
-        }*/
+        }
     }
 }
