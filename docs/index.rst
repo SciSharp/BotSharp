@@ -51,8 +51,9 @@ The main documentation for the site is organized into a couple sections:
 
 .. toctree::
    :maxdepth: 3
-   :caption: User Documentation:
+   :caption: Hands-On Chatbot Platform:
    
+   FrontCover
    overview
    installation
    agent/import-agent
