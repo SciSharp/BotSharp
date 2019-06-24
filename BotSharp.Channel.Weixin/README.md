@@ -38,10 +38,14 @@ F5 run BotSharp.WebHost
 
 Access http://localhost:3112
 
-Import demo (Spotify.zip) agent located at App_Data
+Import demo (Spotify.zip) agent located at App_Data  
+导入botsharp_zh_cn
 
 Train agent (id: 60bee6f9-ba58-4fe8-8b95-94af69d6fd41)
+训练导入时生成的id
 
 Or refer [BotSharp docs](https://botsharp.readthedocs.io) to design your new chatbot.
 
 Setup Wechat webhood from https://mp.weixin.qq.com/.
+
+aibot测试接口

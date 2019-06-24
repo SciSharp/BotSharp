@@ -26,6 +26,7 @@ namespace BotSharp.Channel.Weixin.Controllers
         readonly IConfiguration config;
         private IPlatformBuilder<AgentModel> builder;
 
+
         public WeixinAsyncController(IPlatformBuilder<AgentModel> platform, IConfiguration configuration)
         {
             config = configuration;
