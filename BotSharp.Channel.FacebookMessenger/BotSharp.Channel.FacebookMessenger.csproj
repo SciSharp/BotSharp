@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-    <PackageReference Include="RestSharp" Version="106.6.9" />
+    <PackageReference Include="RestSharp" Version="106.6.10" />
   </ItemGroup>
 
   <ItemGroup>
