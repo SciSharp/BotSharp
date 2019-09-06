@@ -19,10 +19,6 @@
       "Type": "BotSharp.Platform.Articulate"
     },
     {
-      "Name": "OwnThink",
-      "Type": "BotSharp.Platform.OwnThink"
-    },
-    {
       "Name": "WeixinChannel",
       "Type": "BotSharp.Channel.Weixin"
     },
