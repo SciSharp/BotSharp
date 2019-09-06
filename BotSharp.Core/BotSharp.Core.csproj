@@ -64,6 +64,7 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <PackageReference Include="CherubNLP" Version="0.2.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="CSRedisCore" Version="3.1.5" />
+    <PackageReference Include="Ding.Core" Version="1.0.0-preview-20190906-01" />
     <PackageReference Include="DotNetToolkit" Version="1.7.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.14.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
