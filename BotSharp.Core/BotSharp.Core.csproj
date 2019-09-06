@@ -65,7 +65,7 @@ If you feel that this project is helpful to you, please Star on the project, we 
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="CSRedisCore" Version="3.0.45" />
     <PackageReference Include="DotNetToolkit" Version="1.7.0" />
-    <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.12.0" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.14.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="NumSharp" Version="0.8.0" />
