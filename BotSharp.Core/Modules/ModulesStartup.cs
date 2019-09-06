@@ -44,6 +44,8 @@ namespace BotSharp.Core.Modules
                 Console.WriteLine($"Using default emulator: DialogflowAi, BotSharp.Platform.Dialogflow.");
             }
 
+            Console.WriteLine($"Note: The red part information shown below can be ignored because the corresponding item is not referenced.", Color.Yellow);
+
             this._modules = options.Modules
                 .Select(s =>
                 {
