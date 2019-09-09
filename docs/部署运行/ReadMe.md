@@ -19,3 +19,12 @@
 ![运行成功](https://images.gitee.com/uploads/images/2019/0909/192612_6aceb74e_130171.jpeg "4.JPG")
 
 如图所示，我们运行成功了。
+
+
+接下来开始通过上面的接口文档在线导入和训练并测试代理。
+
+![接口操作](https://images.gitee.com/uploads/images/2019/0909/193255_897b251c_130171.jpeg "5.JPG")
+
+![接口操作](https://images.gitee.com/uploads/images/2019/0909/193349_38366ca2_130171.jpeg "6.JPG")
+
+![接口操作](https://images.gitee.com/uploads/images/2019/0909/194412_edf0f024_130171.jpeg "7.JPG")
