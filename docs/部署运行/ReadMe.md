@@ -23,8 +23,25 @@
 
 接下来开始通过上面的接口文档在线导入和训练并测试代理。
 
+先导入训练代理所需要的压缩包，里面包含有语料库
+
 ![接口操作](https://images.gitee.com/uploads/images/2019/0909/193255_897b251c_130171.jpeg "5.JPG")
 
 ![接口操作](https://images.gitee.com/uploads/images/2019/0909/193349_38366ca2_130171.jpeg "6.JPG")
 
 ![接口操作](https://images.gitee.com/uploads/images/2019/0909/194412_edf0f024_130171.jpeg "7.JPG")
+
+上图中圈中的部分要记录下来，接下来会有用。其中id是刚导入文档生成的代理ID，clientAccessToken是授权ID，训练代理模型是需要这个授权ID的。
+
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0909/195938_0b68c3c4_130171.jpeg "8.JPG")
+
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0909/195950_18b84a44_130171.jpeg "9.JPG")
+
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0909/200000_34596964_130171.jpeg "10.JPG")
+
+上面几张图片的操作就是保存当前接口所需要授权信息的方法，尤其是要注意圈中部分，另Bearer后面跟一个空格再跟上clientAccessToken的值，且训练不同的代理这个clientAccessToken的值也不一样。
+
+在下图中填入前面生成的代理ID并点击Execute执行即可
+
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0909/200258_7ea18c61_130171.jpeg "11.JPG")
+
