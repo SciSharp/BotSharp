@@ -45,3 +45,10 @@
 
 ![输入图片说明](https://images.gitee.com/uploads/images/2019/0909/200258_7ea18c61_130171.jpeg "11.JPG")
 
+然后按下面图片操作输入测试数据执行输出
+
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0909/204756_99e489c3_130171.jpeg "12.JPG")
+
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0909/204939_6b75f8cd_130171.png "屏幕截图.png")
+
+上图中圈中部分即为执行得到的结果
