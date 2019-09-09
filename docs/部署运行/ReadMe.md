@@ -15,3 +15,7 @@
 ![移除红色项目](https://images.gitee.com/uploads/images/2019/0909/192213_87385c4d_130171.jpeg "3.JPG")
 
 接下来我们通过第二张图片上运行之后的地址打开查看Swagger的接口文档是否正常显示。
+
+![运行成功](https://images.gitee.com/uploads/images/2019/0909/192612_6aceb74e_130171.jpeg "4.JPG")
+
+如图所示，我们运行成功了。
