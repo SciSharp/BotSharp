@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Platform.Models.MachineLearning;
+using Ding.Log;
+using Ding.Serialization;
 
 namespace BotSharp.Platform.Dialogflow.Controllers
 {

@@ -16,6 +16,8 @@ using BotSharp.Platform.Models.AiRequest;
 using Turing.NET;
 using System.Text.RegularExpressions;
 using BotSharp.Platform.Models.Contexts;
+using Ding.Log;
+using Ding.Serialization;
 
 namespace BotSharp.Platform.Dialogflow
 {

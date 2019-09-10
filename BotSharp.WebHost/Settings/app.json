@@ -3,7 +3,7 @@
   "assemblies": "BotSharp.Core",
 
   "platformModuleName": "DialogflowAi",
-  "overrideFallback": false,
+  "overrideFallback": true,
 
   "modules": [
     {
