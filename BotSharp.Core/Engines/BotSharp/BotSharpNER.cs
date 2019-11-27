@@ -189,15 +189,24 @@ namespace BotSharp.Core.Engines.BotSharp
 
                 for (int i = 0; i < sent.Tokens.Count; i++)
                 {
-                    var entity = crf_out[0].result_;
-                    entities.Add(new NlpEntity
+                    for (int crf_index = 0; crf_index < crf_out.Length; crf_index++)
                     {
-                        Entity = entity[i],
-                        Start = doc.Sentences[0].Tokens[i].Start,
-                        Value = doc.Sentences[0].Tokens[i].Text,
-                        Confidence = 0,
-                        Extrator = "BotSharpNER"
-                    });
+                        //entity can be extract in more than 1 run/index
+                        //var entity = crf_out[0].result_; 
+                        var entity = crf_out[crf_index].result_;
+                        var contains = entities.Exists(x => x.Entity == entity[i]);
+                        if (!contains)
+                        {
+                            entities.Add(new NlpEntity
+                            {
+                                Entity = entity[i],
+                                Start = doc.Sentences[0].Tokens[i].Start,
+                                Value = doc.Sentences[0].Tokens[i].Text,
+                                Confidence = 0,
+                                Extrator = "BotSharpNER"
+                            });
+                        }
+                    }
                 }
 
                 sent.Entities = MergeEntity(doc.Sentences[0].Text, entities);
