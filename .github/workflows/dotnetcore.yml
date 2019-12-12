@@ -1,0 +1,22 @@
+name: .NET Core
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.2.108
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: Train Intellicode Model
+      uses: osobeso/intellicode-team-model@releases/v1
+      with: 
+        pat-token: ${{ secrets.VSIC_PAT_TOKEN }}
+        directory: ${{ github.workspace }}
