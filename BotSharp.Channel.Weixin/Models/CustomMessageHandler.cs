@@ -1,4 +1,4 @@
-﻿/*----------------------------------------------------------------
+/*----------------------------------------------------------------
     Copyright (C) 2018 Senparc
 
     文件名：CustomMessageHandler.cs
@@ -112,20 +112,22 @@ namespace BotSharp.Channel.Weixin.Models
             };
         }
 
-        public override void OnExecuting()
+        public override async Task OnExecutingAsync(CancellationToken cancellationToken)
         {
+            var CurrentMessageContext = await GetCurrentMessageContext();
             //测试MessageContext.StorageData
             if (CurrentMessageContext.StorageData == null)
             {
                 CurrentMessageContext.StorageData = 0;
             }
-            base.OnExecuting();
+            await base.OnExecutingAsync(cancellationToken);
         }
 
-        public override void OnExecuted()
+        public override async Task OnExecutedAsync(CancellationToken cancellationToken)
         {
-            base.OnExecuted();
+            var CurrentMessageContext = await GetCurrentMessageContext();
             CurrentMessageContext.StorageData = ((int)CurrentMessageContext.StorageData) + 1;
+            await base.OnExecutedAsync(cancellationToken);
         }
 
         /// <summary>

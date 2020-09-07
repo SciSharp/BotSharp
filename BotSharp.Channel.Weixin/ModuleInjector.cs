@@ -1,4 +1,4 @@
-﻿using BotSharp.Core.Modules;
+using BotSharp.Core.Modules;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +17,7 @@ namespace BotSharp.Channel.Weixin
                 .AddSenparcWeixinServices(config);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env/*, IOptions<SenparcSetting> senparcSetting, IOptions<SenparcWeixinSetting> senparcWeixinSetting*/)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env/*, IOptions<SenparcSetting> senparcSetting, IOptions<SenparcWeixinSetting> senparcWeixinSetting*/)
         {
             
             //https://github.com/Senparc/Senparc.CO2NET/blob/master/Sample/Senparc.CO2NET.Sample.netcore/Startup.cs

@@ -1,5 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.4.0</Version>
+  </PropertyGroup>
+  
   <PropertyGroup Label="Globals">
     <SccProjectName>SAK</SccProjectName>
     <SccProvider>SAK</SccProvider>
@@ -10,22 +16,20 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Haiping Chen</Authors>
     <Company>SciSharp STACK</Company>
     <Product>AI Bot Platform Builder</Product>
-    <Description>Open source AI Bot platform builder which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.
+    <Description>
+      Open source AI Bot platform builder which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.
 
-If you feel that this project is helpful to you, please Star on the project, we will be very grateful.</Description>
+      If you feel that this project is helpful to you, please Star on the project, we will be very grateful.
+    </Description>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/SciSharp/BotSharp</RepositoryUrl>
     <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence</PackageTags>
-    <Version>0.4.0</Version>
     <PackageReleaseNotes>Support dialogue status tracking.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/SciSharp/BotSharp</PackageProjectUrl>
-    <AssemblyVersion>0.4.0.0</AssemblyVersion>
     <PackageIconUrl>https://raw.githubusercontent.com/SciSharp/BotSharp/master/docs/static/logos/BotSharp.png</PackageIconUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/SciSharp/BotSharp/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
@@ -61,17 +65,19 @@ If you feel that this project is helpful to you, please Star on the project, we 
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CherubNLP" Version="0.2.0" />
-    <PackageReference Include="Colorful.Console" Version="1.2.9" />
-    <PackageReference Include="CSRedisCore" Version="3.1.5" />
-    <PackageReference Include="Ding.Core" Version="1.0.0-preview-20190906-01" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CherubNLP" Version="0.3.0" />
+    <PackageReference Include="Colorful.Console" Version="1.2.11" />
+    <PackageReference Include="CSRedisCore" Version="3.6.5" />
+    <PackageReference Include="Ding.Core" Version="1.1.8" />
     <PackageReference Include="DotNetToolkit" Version="1.7.0" />
-    <PackageReference Include="EntityFrameworkCore.BootKit" Version="1.14.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="NumSharp" Version="0.20.1" />
-    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="TensorFlow.NET" Version="0.11.2" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="2.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="NumSharp" Version="0.20.5" />
+    <PackageReference Include="TensorFlow.NET" Version="0.15.1" />
   </ItemGroup>
 
 </Project>

@@ -1,9 +1,11 @@
-﻿using BotSharp.Core.Modules;
+using BotSharp.Core.Modules;
 using DotNetToolkit.JwtHelper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -15,7 +17,7 @@ using System.Linq;
 
 namespace BotSharp.WebHost
 {
-    public partial class Startup
+    public class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -41,14 +43,15 @@ namespace BotSharp.WebHost
             });
             services.AddJwtAuth(Configuration);
 
-            var mvcBuilder = services.AddMvc(options =>
-            {
-                options.RespectBrowserAcceptHeader = true;
-            }).AddJsonOptions(options =>
-            {
-                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            });
+            services.AddMvc(options =>
+             {
+                 options.RespectBrowserAcceptHeader = true;
+             })
+                .AddNewtonsoftJson(options =>
+                 {
+                     options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                 });
 
             //PlatformModuleAssembyLoader.LoadAssemblies(Configuration, assembly => mvcBuilder.AddApplicationPart(assembly));
 
@@ -56,26 +59,27 @@ namespace BotSharp.WebHost
 
             services.AddSwaggerGen(c =>
             {
-                c.AddSecurityDefinition("Bearer", new ApiKeyScheme()
+                var scheme = new OpenApiSecurityScheme()
                 {
-                    In = "header",
+                    In = ParameterLocation.Header,
                     Description = "Please insert JWT with Bearer schema. Example: \"Authorization: Bearer {token}\"",
                     Name = "Authorization",
-                    Type = "apiKey"
-                });
+                    Type = SecuritySchemeType.ApiKey
+                };
+                c.AddSecurityDefinition("Bearer", scheme);
 
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
-                  { "Bearer", Enumerable.Empty<string>() },
-                });
-
-                var info = Configuration.GetSection("Swagger").Get<Info>();
+                var info = Configuration.GetSection("Swagger").Get<OpenApiInfo>();
                 c.SwaggerDoc(info.Version, info);
 
-                //var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "BotSharp.RestApi.xml");
-                //c.IncludeXmlComments(filePath);
+                var filePath = Path.Combine(AppContext.BaseDirectory, "BotSharp.RestApi.xml");
+                if (File.Exists(filePath))
+                {
+                    c.IncludeXmlComments(filePath);
+                }
+                
 
-                c.OperationFilter<SwaggerFileUploadOperation>();
-            });
+                //c.OperationFilter<SwaggerFileUploadOperation>();
+            }).AddSwaggerGenNewtonsoftSupport();
 
             // register platform dependency
             /*services.AddTransient<IBotEngine>((provider) =>
@@ -84,7 +88,7 @@ namespace BotSharp.WebHost
             });*/
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -95,11 +99,11 @@ namespace BotSharp.WebHost
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
-
+            app.UseRouting();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                var info = Configuration.GetSection("Swagger").Get<Info>();
+                var info = Configuration.GetSection("Swagger").Get<OpenApiInfo>();
 
                 c.SupportedSubmitMethods(SubmitMethod.Get, SubmitMethod.Post, SubmitMethod.Put, SubmitMethod.Patch, SubmitMethod.Delete);
                 c.ShowExtensions();
@@ -129,8 +133,11 @@ namespace BotSharp.WebHost
                 await next.Invoke();
             });
             app.UseAuthentication();
-
-            app.UseMvc();
+            app.UseAuthorization();
+            app.UseEndpoints(routes=>
+            {
+                routes.MapControllers();
+            });
 
             this.modulesStartup.Configure(app, env);
 

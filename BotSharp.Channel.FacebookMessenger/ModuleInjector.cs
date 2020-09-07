@@ -1,4 +1,4 @@
-﻿using BotSharp.Core.Modules;
+using BotSharp.Core.Modules;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +14,7 @@ namespace BotSharp.Channel.FacebookMessenger
 
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env/*, IOptions<SenparcSetting> senparcSetting, IOptions<SenparcWeixinSetting> senparcWeixinSetting*/)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env/*, IOptions<SenparcSetting> senparcSetting, IOptions<SenparcWeixinSetting> senparcWeixinSetting*/)
         {
             
         }
