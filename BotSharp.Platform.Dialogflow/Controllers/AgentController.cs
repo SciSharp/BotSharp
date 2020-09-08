@@ -1,4 +1,4 @@
-﻿using BotSharp.Platform.Dialogflow.Models;
+using BotSharp.Platform.Dialogflow.Models;
 using BotSharp.Platform.Dialogflow.ViewModels;
 using BotSharp.Platform.Models.Agents;
 using Microsoft.AspNetCore.Http;
@@ -31,7 +31,7 @@ namespace BotSharp.Platform.Dialogflow.Controllers
         /// <summary>
         /// Import a agent from a uploaded zip file 
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="uploadedFile">Upload Zip File， meta.json is the extra data for customized function.</param>
         /// <returns></returns>
         [HttpPost("import")]
         [ProducesResponseType(typeof(ImportedAgentViewModel), 200)]

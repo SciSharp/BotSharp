@@ -4,6 +4,11 @@
     <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>0.2.2</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Authors>Haiping Chen</Authors>
     <Description>BotSharp platform emulator which is compatible with Google Dialogflow.</Description>
     <PackageProjectUrl>https://github.com/Oceania2018/botsharp-dialogflow</PackageProjectUrl>

@@ -11,6 +11,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -59,14 +60,20 @@ namespace BotSharp.WebHost
 
             services.AddSwaggerGen(c =>
             {
-                var scheme = new OpenApiSecurityScheme()
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
                 {
                     In = ParameterLocation.Header,
                     Description = "Please insert JWT with Bearer schema. Example: \"Authorization: Bearer {token}\"",
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey
-                };
-                c.AddSecurityDefinition("Bearer", scheme);
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { new OpenApiSecurityScheme(){
+                        Reference = new OpenApiReference{Type = ReferenceType.SecurityScheme ,Id = "Bearer"}
+                    }, new List<string>(0) }
+                });
 
                 var info = Configuration.GetSection("Swagger").Get<OpenApiInfo>();
                 c.SwaggerDoc(info.Version, info);
@@ -76,9 +83,14 @@ namespace BotSharp.WebHost
                 {
                     c.IncludeXmlComments(filePath);
                 }
-                
 
-                //c.OperationFilter<SwaggerFileUploadOperation>();
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, "BotSharp.Platform.Dialogflow.xml");
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
+
+                c.OperationFilter<SwaggerFileUploadOperation>();
             }).AddSwaggerGenNewtonsoftSupport();
 
             // register platform dependency

@@ -8,26 +8,20 @@ using System.Text;
 
 namespace BotSharp.WebHost
 {
-    //public class SwaggerFileUploadOperation : IOperationFilter
-    //{
+    public class SwaggerFileUploadOperation : IOperationFilter
+    {
 
-    //    public void Apply(OpenApiOperation operation, OperationFilterContext context)
-    //    {
-    //        if (operation.OperationId == "Import")
-    //        {
-    //            operation.Parameters.Clear();
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        {
+            if(context.MethodInfo.Name == "Import")
+            {
+                if(operation.RequestBody.Content.FirstOrDefault().Value?.Schema?.Properties.ContainsKey("uploadedFile") == true)
+                {
+                    var p = operation.RequestBody.Content.FirstOrDefault();
+                    p.Value.Schema.Properties["uploadedFile"].Description = "Upload Zip File， meta.json is the extra data for customized function.";
+                }
+            }
 
-    //            operation.Parameters.Add(new OpenApiParameter
-    //            {
-    //                Name = "uploadedFile",
-    //                In = "formData",
-    //                Description = "Upload Zip File， meta.json is the extra data for customized function.",
-    //                Required = true,
-    //                Type = "file"
-    //            });
-    //            operation.Consumes.Add("multipart/form-data");
-    //            operation.
-    //        }
-    //    }
-    //}
+        }
+    }
 }
