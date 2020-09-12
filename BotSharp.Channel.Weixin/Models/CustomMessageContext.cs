@@ -1,4 +1,4 @@
-﻿/*----------------------------------------------------------------
+/*----------------------------------------------------------------
     Copyright (C) 2018 Senparc
     
     文件名：CustomMessageContext.cs
@@ -12,17 +12,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
+using Senparc.NeuChar;
 using Senparc.NeuChar.Context;
 using Senparc.NeuChar.Entities;
+using Senparc.Weixin.MP.MessageContexts;
 
 namespace BotSharp.Channel.Weixin.Models
 {
-    public class CustomMessageContext : MessageContext<IRequestMessageBase, IResponseMessageBase>
+    public class CustomMessageContext : DefaultMpMessageContext
     {
         public CustomMessageContext()
-        {
+        { 
             base.MessageContextRemoved += CustomMessageContext_MessageContextRemoved;
         }
+
+        
 
 
         /// <summary>

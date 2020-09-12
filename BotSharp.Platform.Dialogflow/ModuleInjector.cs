@@ -1,4 +1,4 @@
-﻿using BotSharp.Core;
+using BotSharp.Core;
 using BotSharp.Core.AgentStorage;
 using BotSharp.Core.ContextStorage;
 using BotSharp.Core.Modules;
@@ -26,7 +26,7 @@ namespace BotSharp.Platform.Dialogflow
             ContextStorageServiceRegister.Register<AIContext>(services);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
 
         }

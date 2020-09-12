@@ -1,4 +1,4 @@
-﻿using BotSharp.Core;
+using BotSharp.Core;
 using BotSharp.Core.AgentStorage;
 using BotSharp.Core.Modules;
 using BotSharp.Platform.Articulate.Models;
@@ -20,7 +20,7 @@ namespace BotSharp.Platform.Articulate
             PlatformConfigServiceRegister.Register<PlatformSettings>("articulateAi", services, config);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
 
         }

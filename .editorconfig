@@ -1,0 +1,11 @@
+
+# All files
+[*]
+indent_style = space
+charset = utf-8
+# prevent linux/windows problem
+end_of_line = lf 
+
+# Xml files
+[*.{xml,csproj}]
+indent_size = 2

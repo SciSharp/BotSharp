@@ -1,8 +1,9 @@
-﻿using BotSharp.Channel.Weixin.Models;
+using BotSharp.Channel.Weixin.Models;
 using BotSharp.Platform.Abstractions;
 using BotSharp.Platform.Dialogflow.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Senparc.CO2NET.AspNet.HttpUtility;
 using Senparc.CO2NET.HttpUtility;
 using Senparc.Weixin.MP;
 using Senparc.Weixin.MP.Entities.Request;
@@ -93,7 +94,7 @@ namespace BotSharp.Channel.Weixin.Controllers
             messageHandler.RequestDocument.Save(Path.Combine(logPath, string.Format("{0}_Request_{1}_{2}.txt", _getRandomFileName(),
                 messageHandler.RequestMessage.FromUserName,
                 messageHandler.RequestMessage.MsgType)));
-            if (messageHandler.UsingEcryptMessage)
+            if (messageHandler.UsingEncryptMessage)
             {
                 messageHandler.EcryptRequestDocument.Save(Path.Combine(logPath, string.Format("{0}_Request_Ecrypt_{1}_{2}.txt", _getRandomFileName(),
                     messageHandler.RequestMessage.FromUserName,
@@ -119,7 +120,7 @@ namespace BotSharp.Channel.Weixin.Controllers
                     messageHandler.ResponseMessage.MsgType)));
             }
 
-            if (messageHandler.UsingEcryptMessage && messageHandler.FinalResponseDocument != null)
+            if (messageHandler.UsingEncryptMessage && messageHandler.FinalResponseDocument != null)
             {
                 //记录加密后的响应信息
                 messageHandler.FinalResponseDocument.Save(Path.Combine(logPath, string.Format("{0}_Response_Final_{1}_{2}.txt", _getRandomFileName(),

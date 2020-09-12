@@ -1,4 +1,5 @@
-﻿using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
@@ -9,22 +10,18 @@ namespace BotSharp.WebHost
 {
     public class SwaggerFileUploadOperation : IOperationFilter
     {
-        public void Apply(Operation operation, OperationFilterContext context)
-        {
-            if (operation.OperationId == "Import")
-            {
-                operation.Parameters.Clear();
 
-                operation.Parameters.Add(new NonBodyParameter
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        {
+            if(context.MethodInfo.Name == "Import")
+            {
+                if(operation.RequestBody.Content.FirstOrDefault().Value?.Schema?.Properties.ContainsKey("uploadedFile") == true)
                 {
-                    Name = "uploadedFile",
-                    In = "formData",
-                    Description = "Upload Zip File， meta.json is the extra data for customized function.",
-                    Required = true,
-                    Type = "file"
-                });
-                operation.Consumes.Add("multipart/form-data");
+                    var p = operation.RequestBody.Content.FirstOrDefault();
+                    p.Value.Schema.Properties["uploadedFile"].Description = "Upload Zip File， meta.json is the extra data for customized function.";
+                }
             }
+
         }
     }
 }

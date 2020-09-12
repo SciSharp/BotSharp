@@ -1,9 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>0.2.2</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Authors>Haiping Chen</Authors>
     <Description>BotSharp platform emulator which is compatible with Google Dialogflow.</Description>
     <PackageProjectUrl>https://github.com/Oceania2018/botsharp-dialogflow</PackageProjectUrl>
@@ -18,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Turing.NET" Version="1.0.0" />
   </ItemGroup>
 

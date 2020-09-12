@@ -1,4 +1,4 @@
-﻿using BotSharp.Platform.Models;
+using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
 using BotSharp.Platform.Models.Entities;
@@ -27,7 +27,7 @@ namespace BotSharp.Core.Engines
             Dc = new DefaultDataContextLoader().GetDefaultDc();
         }
 
-        public async Task<AiResponse> TextRequest(AiRequest request)
+        public Task<AiResponse> TextRequest(AiRequest request)
         {
             var preditor = new BotPredictor();
             var doc = preditor.Predict(Agent, new AiRequest
@@ -44,8 +44,7 @@ namespace BotSharp.Core.Engines
                 doc.Sentences[0].Entities = new List<NlpEntity>();
             }
             doc.Sentences[0].Entities.ForEach(x => parameters[x.Entity] = x.Value);
-
-            return new AiResponse
+            return Task.FromResult(new AiResponse
             {
                 /*Lang = request.Language,
                 Timestamp = DateTime.UtcNow,
@@ -66,7 +65,7 @@ namespace BotSharp.Core.Engines
                         IntentName = doc.Sentences[0].Intent?.Label
                     }
                 }*/
-            };
+            });
         }
 
         /*public TrainingCorpus GetIntentExpressions(AgentBase agent)

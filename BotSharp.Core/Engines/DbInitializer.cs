@@ -1,4 +1,4 @@
-﻿using BotSharp.Core.Abstractions;
+using BotSharp.Core.Abstractions;
 using DotNetToolkit;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +14,7 @@ namespace BotSharp.Core.Engines
     {
         public int Priority => 1;
 
-        public void Initialize(IConfiguration config, IHostingEnvironment env)
+        public void Initialize(IConfiguration config, IWebHostEnvironment env)
         {
             var dc = new DefaultDataContextLoader().GetDefaultDc();
 

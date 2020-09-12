@@ -1,15 +1,19 @@
-﻿{
+{
   "Logging": {
-    "IncludeScopes": false,
-    "Debug": {
-      "LogLevel": {
-        "Default": "Warning"
-      }
-    },
-    "Console": {
-      "LogLevel": {
-        "Default": "Warning"
-      }
-    }
+    //"IncludeScopes": false,
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }//,
+    //"Debug": {
+    //  "LogLevel": {
+    //    "Default": "Warning"
+    //  }
+    //},
+    //"Console": {
+    //  "LogLevel": {
+    //    "Default": "Warning"
+    //  }
+    //}
   }
 }
