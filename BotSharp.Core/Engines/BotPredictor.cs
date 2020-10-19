@@ -82,5 +82,9 @@ namespace BotSharp.Core.Engines
 
             return data;
         }
+
+        public async Task<NlpDoc> PredictOther(AgentBase agent, AiRequest request){
+            return await Predict(agent, request);
+        }
     }
 }

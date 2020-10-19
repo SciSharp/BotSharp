@@ -30,13 +30,14 @@ namespace BotSharp.Core.Engines
         public async Task<AiResponse> TextRequest(AiRequest request)
         {
             var preditor = new BotPredictor();
-            var doc = preditor.Predict(Agent, new AiRequest
+            var doc = preditor.PredictOther(Agent, new AiRequest
             {
                 AgentDir = request.AgentDir,
                 Model = request.Model,
                 SessionId = request.SessionId,
                 Text = request.Text
             }).Result;
+            
 
             var parameters = new Dictionary<String, Object>();
             if(doc.Sentences[0].Entities == null)
