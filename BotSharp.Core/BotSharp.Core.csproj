@@ -75,7 +75,7 @@
     <PackageReference Include="Ding.Core" Version="1.1.8" />
     <PackageReference Include="DotNetToolkit" Version="1.7.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="2.4.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="NumSharp" Version="0.20.5" />
     <PackageReference Include="TensorFlow.NET" Version="0.15.1" />
   </ItemGroup>
