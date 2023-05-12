@@ -1,13 +1,11 @@
-﻿using BotSharp.Channel.FacebookMessenger.Models;
+using BotSharp.Channel.FacebookMessenger.Models;
 using BotSharp.Platform.Models;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using RestSharp;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -97,7 +95,7 @@ namespace BotSharp.Channel.FacebookMessenger.Controllers
         {
             var client = new RestClient("https://graph.facebook.com");
 
-            var rest = new RestRequest("v2.6/me/messages", Method.POST);
+            var rest = new RestRequest("v2.6/me/messages", Method.Post);
             string json = JsonConvert.SerializeObject(body,
             new JsonSerializerSettings
             {

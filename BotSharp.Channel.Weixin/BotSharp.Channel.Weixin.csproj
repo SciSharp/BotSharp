@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Senparc.Weixin.MP.MVC" Version="7.5.510" />
+    <PackageReference Include="Senparc.Weixin.MP.MVC" Version="7.12.5.7" />
   </ItemGroup>
 
   <ItemGroup>
