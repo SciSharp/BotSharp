@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "0.5.0",
   "assemblies": "BotSharp.Core",
 
@@ -13,10 +13,6 @@
     {
       "Name": "RasaAi",
       "Type": "BotSharp.Platform.Rasa"
-    },
-    {
-      "Name": "Articulate",
-      "Type": "BotSharp.Platform.Articulate"
     },
     {
       "Name": "WeixinChannel",

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Haiping Chen</Authors>
+    <RepositoryUrl>https://github.com/Oceania2018/botsharp-channel-weixin</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/Oceania2018/botsharp-channel-weixin</PackageProjectUrl>
+    <Copyright>Apache 2.0</Copyright>
+    <PackageTags>botsharp, wechat, wexin, chatbot</PackageTags>
+    <Version>0.1.1</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Senparc.Weixin.MP.MVC" Version="7.12.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\..\Platforms\BotSharp.Platform.Dialogflow\BotSharp.Platform.Dialogflow.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -79,8 +79,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Channel.FacebookMessenger\BotSharp.Channel.FacebookMessenger.csproj" />
-    <ProjectReference Include="..\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj" />
+    <ProjectReference Include="..\Channels\BotSharp.Channel.FacebookMessenger\BotSharp.Channel.FacebookMessenger.csproj" />
+    <ProjectReference Include="..\Channels\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj" />
   </ItemGroup>
 
   <ItemGroup>
