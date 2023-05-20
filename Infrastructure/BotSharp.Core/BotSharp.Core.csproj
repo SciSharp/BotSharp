@@ -1,7 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>10.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>0.4.0</Version>
   </PropertyGroup>
@@ -44,28 +45,12 @@
 
   <ItemGroup>
     <Compile Remove="Accounts\**" />
-    <Compile Remove="Engines\NERs\**" />
-    <Compile Remove="Engines\QuickQA\**" />
-    <Compile Remove="Engines\Sebis\**" />
-    <Compile Remove="Engines\SpaCy\**" />
     <EmbeddedResource Remove="Accounts\**" />
-    <EmbeddedResource Remove="Engines\NERs\**" />
-    <EmbeddedResource Remove="Engines\QuickQA\**" />
-    <EmbeddedResource Remove="Engines\Sebis\**" />
-    <EmbeddedResource Remove="Engines\SpaCy\**" />
     <None Remove="Accounts\**" />
-    <None Remove="Engines\NERs\**" />
-    <None Remove="Engines\QuickQA\**" />
-    <None Remove="Engines\Sebis\**" />
-    <None Remove="Engines\SpaCy\**" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="CoreController.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,6 +59,10 @@
     <PackageReference Include="Ding.Core" Version="1.1.8" />
     <PackageReference Include="DotNetToolkit" Version="1.7.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 
 </Project>
