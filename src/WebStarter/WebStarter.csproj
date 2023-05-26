@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>4fb8c9df-7975-4926-ba73-46c8ca440691</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotUIs\ChatbotUI\ChatbotUI.csproj" />
+    <ProjectReference Include="..\Channels\BotSharp.Channel.FacebookMessenger\BotSharp.Channel.FacebookMessenger.csproj" />
+    <ProjectReference Include="..\Channels\BotSharp.Channel.Weixin\BotSharp.Channel.Weixin.csproj" />
+    <ProjectReference Include="..\Platforms\BotSharp.Platform.OpenAi\BotSharp.Platform.OpenAi.csproj" />
+  </ItemGroup>
+
+</Project>
