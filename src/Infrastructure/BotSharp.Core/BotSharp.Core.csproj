@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>10.0</LangVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Version>0.4.0</Version>
   </PropertyGroup>
   
@@ -56,8 +56,6 @@
   <ItemGroup>
     <PackageReference Include="CherubNLP" Version="0.5.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
-    <PackageReference Include="Ding.Core" Version="1.1.8" />
-    <PackageReference Include="DotNetToolkit" Version="1.7.0" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.2.0" />
   </ItemGroup>
 

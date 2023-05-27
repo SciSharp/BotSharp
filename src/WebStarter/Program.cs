@@ -1,3 +1,5 @@
+using BotSharp.Core;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -8,9 +10,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpContextAccessor();
 
-// Streaming response to Redis
-// var multiplexer = ConnectionMultiplexer.Connect("192.168.0.26:6379");
-// builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+// Add BotSharp
+builder.Services.AddBotSharp();
+builder.Services.AddLlamaSharp(builder.Configuration);
 
 var app = builder.Build();
 
@@ -24,5 +26,8 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Use BotSharp
+app.UseBotSharp();
 
 app.Run();
