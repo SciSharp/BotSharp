@@ -1,7 +1,9 @@
 using BotSharp.Abstraction;
+using BotSharp.Abstraction.Models;
 using BotSharp.Platform.LlamaSharp;
 using LLama;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,16 +33,21 @@ public class ChatCompletionHandler : IChatCompletionHandler
         _model.InitChatAntiprompt(new string[] { "User:" });
     }
 
-    public Task GetChatCompletionsAsync(string text, Func<string, bool, Task> onChunkReceived)
+    public async Task GetChatCompletionsAsync(string text,
+        Func<string> GetInstruction,
+        Func<List<RoleDialogModel>> GetChatHistory,
+        Func<string, Task> onChunkReceived,
+        Func<Task> onChunkCompleted)
     {
         string totalResponse = "";
         foreach (var response in _model.Chat(text, "", "UTF-8"))
         {
-            Console.WriteLine(response);
+            Console.Write(response);
             totalResponse += response;
-            onChunkReceived(response, false);
+            await onChunkReceived(response);
         }
-        onChunkReceived("", true);
-        return Task.CompletedTask;
+
+        Console.WriteLine();
+        await onChunkCompleted();
     }
 }

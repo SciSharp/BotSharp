@@ -59,22 +59,23 @@ public class ChatbotUiController : ControllerBase, IBotUiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
-        await _platform.GetChatCompletionsAsync(input.Messages.Last().Content, async (content, end) =>
-        {
-            if (end)
+        await _platform.GetChatCompletionsAsync(input.Messages.Last().Content,
+            delegate
             {
-                if (content.Length > 0)
-                {
-                    await OnChunkReceived(outputStream, content);
-                }
-
-                await OnEventCompleted(outputStream);
-            }
-            else
+                return "";
+            }, 
+            delegate
+            {
+                return new List<RoleDialogModel>();
+            }, 
+            async content =>
             {
                 await OnChunkReceived(outputStream, content);
-            }
-        });
+            },
+            async () => 
+            {
+                await OnEventCompleted(outputStream);
+            });
     }
 
     private async Task OnChunkReceived(Stream outputStream, string content)

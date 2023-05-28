@@ -12,7 +12,8 @@ builder.Services.AddHttpContextAccessor();
 
 // Add BotSharp
 builder.Services.AddBotSharp();
-builder.Services.AddLlamaSharp(builder.Configuration);
+// builder.Services.AddLlamaSharp(builder.Configuration);
+builder.Services.AddAzureOpenAi(builder.Configuration);
 
 var app = builder.Build();
 
