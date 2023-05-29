@@ -5,6 +5,8 @@ using LLama;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,28 +21,24 @@ public class ChatCompletionHandler : IChatCompletionHandler
     {
         _settings = settings;
         _model = new LLamaModel(new LLamaParams(model: _settings.ModelPath, 
-            n_ctx: 512, 
-            interactive: true, 
-            repeat_penalty: 1.0f, 
-            verbose_prompt: false));
+            n_ctx: _settings.MaxContextLength, 
+            interactive: _settings.Interactive, 
+            repeat_penalty: _settings.RepeatPenalty, 
+            verbose_prompt: _settings.VerbosePrompt,
+            n_gpu_layers: _settings.NumberOfGpuLayer));
 
-        if (!string.IsNullOrEmpty(settings.InstructionFile))
-        {
-            var prompt = File.ReadAllText(settings.InstructionFile);
-            _model.InitChatPrompt(prompt, "UTF-8");
-        }
-
-        _model.InitChatAntiprompt(new string[] { "User:" });
+        var prompt = GetInstruction();
+        _model.InitChatPrompt(prompt, "UTF-8");
+        _model.InitChatAntiprompt(new string[] { "user:" });
     }
 
-    public async Task GetChatCompletionsAsync(string text,
-        Func<string> GetInstruction,
-        Func<List<RoleDialogModel>> GetChatHistory,
-        Func<string, Task> onChunkReceived,
-        Func<Task> onChunkCompleted)
+    public async Task GetChatCompletionsAsync(List<RoleDialogModel> conversations,
+        Func<string, Task> onChunkReceived)
     {
         string totalResponse = "";
-        foreach (var response in _model.Chat(text, "", "UTF-8"))
+        // var prompt = GetInstruction();
+        // var content = string.Join("\n", conversations.Select(x => $"\n{x.Content}"));
+        foreach (var response in _model.Chat(conversations.Last().Content, "", "UTF-8"))
         {
             Console.Write(response);
             totalResponse += response;
@@ -48,6 +46,44 @@ public class ChatCompletionHandler : IChatCompletionHandler
         }
 
         Console.WriteLine();
-        await onChunkCompleted();
+    }
+
+    public List<RoleDialogModel> GetChatSamples()
+    {
+        var samples = new List<RoleDialogModel>();
+        if (!string.IsNullOrEmpty(_settings.ChatSampleFile))
+        {
+            var lines = File.ReadAllLines(_settings.ChatSampleFile);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                var role = line.Substring(0, line.IndexOf(' ') - 1);
+                var content = line.Substring(line.IndexOf(' ') + 1);
+
+                samples.Add(new RoleDialogModel
+                {
+                    Role = role,
+                    Content = content
+                });
+            }
+        }
+        return samples;
+    }
+
+    public string GetInstruction()
+    {
+        var instruction = "";
+        if (!string.IsNullOrEmpty(_settings.InstructionFile))
+        {
+            instruction = File.ReadAllText(_settings.InstructionFile);
+        }
+
+        instruction += "\n";
+        foreach (var message in GetChatSamples())
+        {
+            instruction += $"\n{message.Role}: {message.Content}";
+        }
+
+        return instruction;
     }
 }

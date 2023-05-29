@@ -16,7 +16,7 @@ public static class LlamaSharplServiceCollectionExtensions
             config.Bind("LlamaSharp", settings);
             return settings;
         });
-        services.AddScoped<IChatCompletionHandler, ChatCompletionHandler>();
+        services.AddSingleton<IChatCompletionHandler, ChatCompletionHandler>();
         return services;
     }
 }

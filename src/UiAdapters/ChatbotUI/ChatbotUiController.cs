@@ -30,7 +30,6 @@ public class ChatbotUiController : ControllerBase, IBotUiAdapter
     }
 
     [HttpGet("/v1/models")]
-    [HttpGet("/openai/deployments")]
     public OpenAiModels GetOpenAiModels()
     {
         return new OpenAiModels
@@ -50,8 +49,7 @@ public class ChatbotUiController : ControllerBase, IBotUiAdapter
     }
 
     [HttpPost("/v1/chat/completions")]
-    [HttpPost("/openai/deployments/one/chat/completions")]
-    public async Task SendMessage([FromBody] OpenAiMessageInput input, [FromQuery(Name = "api-version")] string apiVersion = "2023-03-15-preview")
+    public async Task SendMessage([FromBody] OpenAiMessageInput input)
     {
         Response.StatusCode = 200;
         Response.Headers.Add(HeaderNames.ContentType, "text/event-stream");
@@ -59,23 +57,19 @@ public class ChatbotUiController : ControllerBase, IBotUiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
-        await _platform.GetChatCompletionsAsync(input.Messages.Last().Content,
-            delegate
-            {
-                return "";
-            }, 
-            delegate
-            {
-                return new List<RoleDialogModel>();
-            }, 
+        var conversations = input.Messages.Skip(1).Select(x => new RoleDialogModel
+        {
+            Role = x.Role,
+            Content = x.Content
+        }).ToList();
+
+        await _platform.GetChatCompletionsAsync(conversations,
             async content =>
             {
                 await OnChunkReceived(outputStream, content);
-            },
-            async () => 
-            {
-                await OnEventCompleted(outputStream);
             });
+
+        await OnEventCompleted(outputStream);
     }
 
     private async Task OnChunkReceived(Stream outputStream, string content)

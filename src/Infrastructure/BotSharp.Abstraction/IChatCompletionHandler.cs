@@ -4,9 +4,9 @@ namespace BotSharp.Abstraction;
 
 public interface IChatCompletionHandler
 {
-    Task GetChatCompletionsAsync(string text, 
-        Func<string> GetInstruction, 
-        Func<List<RoleDialogModel>> GetChatHistory,
-        Func<string, Task> onChunkReceived,
-        Func<Task> onChunkCompleted);
+    string GetInstruction();
+    List<RoleDialogModel> GetChatSamples();
+
+    Task GetChatCompletionsAsync(List<RoleDialogModel> conversations, 
+        Func<string, Task> onChunkReceived);
 }

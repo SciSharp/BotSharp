@@ -2,8 +2,9 @@ namespace BotSharp.Platform.AzureAi;
 
 public class AzureAiSettings
 {
-    public string ApiKey { get; set; }
-    public string Endpoint { get; set; }
-    public string DeploymentModel { get; set; }
-    public string InstructionFile { get; set; }
+    public string ApiKey { get; set; } = string.Empty;
+    public string Endpoint { get; set; } = string.Empty;
+    public string DeploymentModel { get; set; } = string.Empty;
+    public string InstructionFile { get; set; } = string.Empty;
+    public string ChatSampleFile { get; set; } = string.Empty;
 }

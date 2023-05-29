@@ -11,21 +11,15 @@ public class PlatformMidware : IPlatformMidware
         _services = services;
     }
 
-    public async Task GetChatCompletionsAsync(string text,
-        Func<string> GetInstruction,
-        Func<List<RoleDialogModel>> GetChatHistory,
-        Func<string, Task> onChunkReceived,
-        Func<Task> onChunkCompleted)
+    public async Task GetChatCompletionsAsync(List<RoleDialogModel> conversations,
+        Func<string, Task> onChunkReceived)
     {
         var handlers = _services.GetServices<IChatCompletionHandler>().ToList();
         for (int i = 0; i < handlers.Count(); i++)
         {
             var handler = handlers[i];
-            await handler.GetChatCompletionsAsync(text,
-                GetInstruction,
-                GetChatHistory,
-                onChunkReceived,
-                onChunkCompleted);
+            await handler.GetChatCompletionsAsync(conversations,
+                onChunkReceived);
         }
     }
 }
