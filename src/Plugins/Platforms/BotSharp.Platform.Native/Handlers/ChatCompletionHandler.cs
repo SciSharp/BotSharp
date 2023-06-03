@@ -37,8 +37,8 @@ public class ChatCompletionHandler : IChatCompletionHandler
     {
         string totalResponse = "";
         var prompt = GetInstruction();
-        var content = string.Join(". ", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
-        content += ". assistant: ";
+        var content = string.Join("\n ", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
+        content += "\n assistant: ";
         foreach (var response in _model.Chat(content, prompt, "UTF-8"))
         {
             Console.Write(response);
