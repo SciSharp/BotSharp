@@ -31,6 +31,7 @@
     <ProjectReference Include="..\Platforms\BotSharp.Platform.LlamaSharp\BotSharp.Platform.LlamaSharp.csproj" />
     <ProjectReference Include="..\Platforms\BotSharp.Platform.OpenAi\BotSharp.Platform.OpenAi.csproj" />
     <ProjectReference Include="..\UiAdapters\ChatbotUI\ChatbotUI.csproj" />
+    <ProjectReference Include="..\UiAdapters\HuggingChatUI\HuggingChatUI.csproj" />
   </ItemGroup>
 
 </Project>

@@ -15,6 +15,17 @@ builder.Services.AddBotSharp();
 builder.Services.AddLlamaSharp(builder.Configuration);
 // builder.Services.AddAzureOpenAi(builder.Configuration);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("MyCorsPolicy",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,5 +41,9 @@ app.MapControllers();
 
 // Use BotSharp
 app.UseBotSharp();
+
+#if DEBUG
+app.UseCors("MyCorsPolicy");
+#endif
 
 app.Run();
