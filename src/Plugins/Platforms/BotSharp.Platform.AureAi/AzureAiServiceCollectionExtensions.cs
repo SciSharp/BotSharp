@@ -7,7 +7,7 @@ namespace BotSharp.Core;
 
 public static class AzureAiServiceCollectionExtensions
 {
-    public static IServiceCollection AddAzureOpenAi(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddAzureOpenAiPlatform(this IServiceCollection services, IConfiguration config)
     {
         services.AddSingleton(x =>
         {

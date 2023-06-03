@@ -8,7 +8,7 @@ namespace BotSharp.Core;
 
 public static class BotSharplServiceCollectionExtensions
 {
-    public static IServiceCollection AddBotSharpCommunityPlatform(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddBotSharpPlatform(this IServiceCollection services, IConfiguration config)
     {
         services.AddSingleton(x =>
         {

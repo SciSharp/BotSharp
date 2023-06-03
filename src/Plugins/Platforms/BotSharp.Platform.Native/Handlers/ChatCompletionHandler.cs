@@ -36,9 +36,10 @@ public class ChatCompletionHandler : IChatCompletionHandler
         Func<string, Task> onChunkReceived)
     {
         string totalResponse = "";
-        // var prompt = GetInstruction();
-        // var content = string.Join("\n", conversations.Select(x => $"\n{x.Content}"));
-        foreach (var response in _model.Chat(conversations.Last().Content, "", "UTF-8"))
+        var prompt = GetInstruction();
+        var content = string.Join(". ", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
+        content += ". assistant: ";
+        foreach (var response in _model.Chat(content, prompt, "UTF-8"))
         {
             Console.Write(response);
             totalResponse += response;
