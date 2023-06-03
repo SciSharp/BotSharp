@@ -11,8 +11,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
 
 // Add BotSharp
-builder.Services.AddBotSharp();
-builder.Services.AddLlamaSharp(builder.Configuration);
+builder.Services.AddBotSharp(builder.Configuration);
+builder.Services.AddBotSharpCommunityPlatform(builder.Configuration);
 // builder.Services.AddAzureOpenAi(builder.Configuration);
 
 builder.Services.AddCors(options =>

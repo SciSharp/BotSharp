@@ -11,11 +11,13 @@ namespace BotSharp.Core;
 
 public static class BotSharpServiceCollectionExtensions
 {
-    public static IServiceCollection AddBotSharp(this IServiceCollection services)
+    public static IServiceCollection AddBotSharp(this IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IPlatformMidware, PlatformMidware>();
+        services.AddSingleton<ISessionService, SessionService>();
         services.AddSingleton<IConversationService, ConversationService>();
 
+        RegisterRepository(services, config);
         return services;
     }
 
@@ -33,7 +35,7 @@ public static class BotSharpServiceCollectionExtensions
         return app;
     }
 
-    public static void RegisterRepository(this IServiceCollection services, IConfiguration config)
+    public static void RegisterRepository(IServiceCollection services, IConfiguration config)
     {
         var databaseSettings = new DatabaseSettings();
         config.Bind("Database", databaseSettings);

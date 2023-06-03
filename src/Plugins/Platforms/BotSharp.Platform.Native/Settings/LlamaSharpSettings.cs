@@ -1,4 +1,4 @@
-namespace BotSharp.Platform.Community;
+namespace BotSharp.Platform.Native.Settings;
 
 public class LlamaSharpSettings
 {

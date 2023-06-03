@@ -1,15 +1,17 @@
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Core.Repository;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Core.Conversations;
 
 public class SessionService : ISessionService
 {
-    Dictionary<string, List<string>> _sessions;
+    private readonly IServiceProvider _services;
 
-    public SessionService()
+    public SessionService(IServiceProvider services)
     {
-        _sessions = new Dictionary<string, List<string>>();
+        _services = services;
     }
 
     public void DeleteSession(string sessionId)
@@ -24,6 +26,8 @@ public class SessionService : ISessionService
 
     public SessionModel NewSession(string userId)
     {
+        var mongo = _services.CreateScope().ServiceProvider.GetRequiredService<MongoDbContext>();
+
         return new SessionModel
         {
             SessionId = Guid.NewGuid().ToString()

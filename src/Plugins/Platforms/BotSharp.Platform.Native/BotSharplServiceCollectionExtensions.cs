@@ -1,14 +1,14 @@
 using BotSharp.Abstraction;
-using BotSharp.Platform.Community;
-using BotSharp.Platform.Community.Handlers;
+using BotSharp.Platform.Native.Handlers;
+using BotSharp.Platform.Native.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Core;
 
-public static class LlamaSharplServiceCollectionExtensions
+public static class BotSharplServiceCollectionExtensions
 {
-    public static IServiceCollection AddLlamaSharp(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddBotSharpCommunityPlatform(this IServiceCollection services, IConfiguration config)
     {
         services.AddSingleton(x =>
         {
