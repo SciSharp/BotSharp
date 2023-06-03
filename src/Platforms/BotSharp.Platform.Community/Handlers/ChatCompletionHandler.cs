@@ -1,6 +1,5 @@
 using BotSharp.Abstraction;
 using BotSharp.Abstraction.Models;
-using BotSharp.Platform.LlamaSharp;
 using LLama;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Platform.Local.Handlers;
+namespace BotSharp.Platform.Community.Handlers;
 
 public class ChatCompletionHandler : IChatCompletionHandler
 {

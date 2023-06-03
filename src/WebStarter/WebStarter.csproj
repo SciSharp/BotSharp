@@ -28,7 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\Platforms\BotSharp.Platform.AureAi\BotSharp.Platform.AzureAi.csproj" />
-    <ProjectReference Include="..\Platforms\BotSharp.Platform.LlamaSharp\BotSharp.Platform.LlamaSharp.csproj" />
+    <ProjectReference Include="..\Platforms\BotSharp.Platform.Community\BotSharp.Platform.Community.csproj" />
     <ProjectReference Include="..\Platforms\BotSharp.Platform.OpenAi\BotSharp.Platform.OpenAi.csproj" />
     <ProjectReference Include="..\UiAdapters\ChatbotUI\ChatbotUI.csproj" />
     <ProjectReference Include="..\UiAdapters\HuggingChatUI\HuggingChatUI.csproj" />

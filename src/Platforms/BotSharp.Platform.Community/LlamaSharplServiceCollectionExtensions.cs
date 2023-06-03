@@ -1,6 +1,6 @@
 using BotSharp.Abstraction;
-using BotSharp.Platform.LlamaSharp;
-using BotSharp.Platform.Local.Handlers;
+using BotSharp.Platform.Community;
+using BotSharp.Platform.Community.Handlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
