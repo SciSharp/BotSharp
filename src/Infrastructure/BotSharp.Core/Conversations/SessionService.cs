@@ -1,7 +1,11 @@
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Core.Repository;
+using BotSharp.Core.Repository.Collections;
+using EntityFrameworkCore.BootKit;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace BotSharp.Core.Conversations;
 
@@ -24,13 +28,23 @@ public class SessionService : ISessionService
         throw new NotImplementedException();
     }
 
-    public SessionModel NewSession(string userId)
+    public async Task<SessionModel> NewSession(string userId)
     {
         var mongo = _services.CreateScope().ServiceProvider.GetRequiredService<MongoDbContext>();
 
+        var record = new Conversation
+        {
+            CreatedAt = DateTime.UtcNow,
+            Messages = new List<MessageModel>(),
+            UserId = "anonymous",
+            Model = "OpenAssistant/oasst-sft-4-pythia-12b-epoch-3.5"
+        };
+        await mongo.Conversations.InsertOneAsync(record);
+
         return new SessionModel
         {
-            SessionId = Guid.NewGuid().ToString()
+            SessionId = record.Id.ToString(),
+            UserId = record.UserId
         };
     }
 }

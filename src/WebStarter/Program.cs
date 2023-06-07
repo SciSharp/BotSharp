@@ -12,7 +12,6 @@ builder.Services.AddHttpContextAccessor();
 
 // Add BotSharp
 builder.Services.AddBotSharp(builder.Configuration);
-builder.Services.AddBotSharpPlatform(builder.Configuration);
 // builder.Services.AddAzureOpenAiPlatform(builder.Configuration);
 
 builder.Services.AddCors(options =>

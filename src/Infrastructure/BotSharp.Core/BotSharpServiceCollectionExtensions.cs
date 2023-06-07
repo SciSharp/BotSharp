@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.TextCompletions;
 using BotSharp.Core.Conversations;
+using BotSharp.Core.Plugins.TextCompletions.LLamaSharp;
 using BotSharp.Core.Repository;
 using BotSharp.Core.Services;
 using EntityFrameworkCore.BootKit;
@@ -55,5 +57,13 @@ public static class BotSharpServiceCollectionExtensions
         {
             return DataContextHelper.GetDbContext<MongoDbContext>(myDatabaseSettings, x);
         });
+
+        services.AddSingleton(x =>
+        {
+            var settings = new LlamaSharpSettings();
+            config.Bind("LlamaSharp", settings);
+            return settings;
+        });
+        services.AddSingleton<ITextCompletionProvider, LlamaSharpCompletionProvider>();
     }
 }

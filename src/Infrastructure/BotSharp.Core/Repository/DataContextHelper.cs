@@ -1,5 +1,5 @@
 using EntityFrameworkCore.BootKit;
-using Microsoft.Data.SqlClient;
+using System.Data.Common;
 
 namespace BotSharp.Core.Repository;
 
@@ -14,13 +14,13 @@ public static class DataContextHelper
         AppDomain.CurrentDomain.SetData("Assemblies", settings.Assemblies);
 
         var dc = new T();
-        if (typeof(T) == typeof(DbContext4MongoDb))
+        if (typeof(T) == typeof(MongoDbContext))
         {
             dc.BindDbContext<IMongoDbCollection, DbContext4MongoDb>(new DatabaseBind
             {
                 ServiceProvider = serviceProvider,
-                MasterConnection = new MongoDbConnection("mongodb://user:password@localhost:27017"),
-                CreateDbIfNotExist = true
+                MasterConnection = new MongoDbConnection(settings.MongoDb.Master),
+                IsRelational = false
             });
         }
         return dc;
