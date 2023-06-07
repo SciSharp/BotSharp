@@ -1,5 +1,6 @@
-using BotSharp.Abstraction.TextCompletions;
+using BotSharp.Abstraction.TextGeneratives;
 using BotSharp.Platform.AzureAi;
+using BotSharp.Plugin.AzureOpenAI.TextGeneratives;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,7 +16,7 @@ public static class AzureAiServiceCollectionExtensions
             config.Bind("AzureAi", settings);
             return settings;
         });
-        services.AddScoped<ITextCompletionProvider, ChatCompletionHandler>();
+        services.AddScoped<IChatCompletionProvider, ChatCompletionProvider>();
         return services;
     }
 }

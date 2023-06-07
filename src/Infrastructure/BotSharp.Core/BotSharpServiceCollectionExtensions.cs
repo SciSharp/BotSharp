@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.TextCompletions;
+using BotSharp.Abstraction.TextGeneratives;
 using BotSharp.Core.Conversations;
-using BotSharp.Core.Plugins.TextCompletions.LLamaSharp;
+using BotSharp.Core.Plugins.TextGeneratives.LLamaSharp;
 using BotSharp.Core.Repository;
 using BotSharp.Core.Services;
 using EntityFrameworkCore.BootKit;
@@ -64,6 +64,6 @@ public static class BotSharpServiceCollectionExtensions
             config.Bind("LlamaSharp", settings);
             return settings;
         });
-        services.AddSingleton<ITextCompletionProvider, LlamaSharpCompletionProvider>();
+        services.AddSingleton<IChatCompletionProvider, ChatCompletionProvider>();
     }
 }

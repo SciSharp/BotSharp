@@ -1,17 +1,17 @@
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Plugins;
-using BotSharp.Abstraction.TextCompletions;
+using BotSharp.Abstraction.TextGeneratives;
 using LLama;
 using System.IO;
 
-namespace BotSharp.Core.Plugins.TextCompletions.LLamaSharp;
+namespace BotSharp.Core.Plugins.TextGeneratives.LLamaSharp;
 
-public class LlamaSharpCompletionProvider : ITextCompletionProvider, IBotSharpPlugin
+public class ChatCompletionProvider : IChatCompletionProvider, IBotSharpPlugin
 {
     private readonly IChatModel _model;
     private readonly LlamaSharpSettings _settings;
 
-    public LlamaSharpCompletionProvider(LlamaSharpSettings settings)
+    public ChatCompletionProvider(LlamaSharpSettings settings)
     {
         _settings = settings;
         _model = new LLamaModel(new LLamaParams(model: _settings.ModelPath,

@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Models;
 
-namespace BotSharp.Abstraction.TextCompletions;
+namespace BotSharp.Abstraction.TextGeneratives;
 
-public interface ITextCompletionProvider
+public interface IChatCompletionProvider
 {
     string GetInstruction();
     List<RoleDialogModel> GetChatSamples();

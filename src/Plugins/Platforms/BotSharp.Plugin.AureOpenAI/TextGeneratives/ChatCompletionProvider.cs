@@ -1,19 +1,20 @@
 using Azure;
 using Azure.AI.OpenAI;
 using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.TextCompletions;
+using BotSharp.Abstraction.TextGeneratives;
+using BotSharp.Platform.AzureAi;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace BotSharp.Platform.AzureAi;
-
-public class ChatCompletionHandler : ITextCompletionProvider
+namespace BotSharp.Plugin.AzureOpenAI.TextGeneratives;
+    
+public class ChatCompletionProvider : IChatCompletionProvider
 {
     private readonly AzureAiSettings _settings;
 
-    public ChatCompletionHandler(AzureAiSettings settings)
+    public ChatCompletionProvider(AzureAiSettings settings)
     {
         _settings = settings;
     }

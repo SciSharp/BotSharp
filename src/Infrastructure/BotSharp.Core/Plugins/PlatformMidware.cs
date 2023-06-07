@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.TextCompletions;
+using BotSharp.Abstraction.TextGeneratives;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Core.Services;
@@ -21,7 +21,7 @@ public class PlatformMidware : IPlatformMidware
     public async Task GetChatCompletionsAsync(List<RoleDialogModel> conversations,
         Func<string, Task> onChunkReceived)
     {
-        var handlers = _services.GetServices<ITextCompletionProvider>().ToList();
+        var handlers = _services.GetServices<IChatCompletionProvider>().ToList();
         for (int i = 0; i < handlers.Count(); i++)
         {
             var handler = handlers[i];
