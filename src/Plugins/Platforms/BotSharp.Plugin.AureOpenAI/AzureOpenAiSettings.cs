@@ -1,6 +1,6 @@
 namespace BotSharp.Platform.AzureAi;
 
-public class AzureAiSettings
+public class AzureOpenAiSettings
 {
     public string ApiKey { get; set; } = string.Empty;
     public string Endpoint { get; set; } = string.Empty;

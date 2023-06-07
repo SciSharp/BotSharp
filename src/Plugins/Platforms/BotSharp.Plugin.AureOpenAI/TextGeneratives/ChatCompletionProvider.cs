@@ -12,9 +12,9 @@ namespace BotSharp.Plugin.AzureOpenAI.TextGeneratives;
     
 public class ChatCompletionProvider : IChatCompletionProvider
 {
-    private readonly AzureAiSettings _settings;
+    private readonly AzureOpenAiSettings _settings;
 
-    public ChatCompletionProvider(AzureAiSettings settings)
+    public ChatCompletionProvider(AzureOpenAiSettings settings)
     {
         _settings = settings;
     }
