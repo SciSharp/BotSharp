@@ -30,8 +30,8 @@
     <ProjectReference Include="..\Plugins\Messages\BotSharp.Channel.FacebookMessenger\BotSharp.Plugin.FacebookMessenger.csproj" />
     <ProjectReference Include="..\Plugins\Messages\BotSharp.Channel.Weixin\BotSharp.Plugin.Weixin.csproj" />
     <ProjectReference Include="..\Plugins\Platforms\BotSharp.Plugin.AureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
+    <ProjectReference Include="..\Plugins\Platforms\BotSharp.Plugin.HuggingFace\BotSharp.Plugin.HuggingFace.csproj" />
     <ProjectReference Include="..\Plugins\UIs\BotSharp.Plugin.ChatbotUI\BotSharp.Plugin.ChatbotUI.csproj" />
-    <ProjectReference Include="..\Plugins\UIs\BotSharp.Plugin.HuggingChatUI\BotSharp.Plugin.HuggingChatUI.csproj" />
   </ItemGroup>
 
 </Project>

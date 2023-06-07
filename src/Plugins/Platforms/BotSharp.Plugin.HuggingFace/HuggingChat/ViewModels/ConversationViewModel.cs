@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.HuggingChatUI.ViewModels;
+namespace BotSharp.Plugin.HuggingFace.HuggingChat.ViewModels;
 
 public class ConversationViewModel
 {
