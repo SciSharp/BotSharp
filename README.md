@@ -24,7 +24,7 @@ BotSharp is in accordance with components principle strictly, decouples every pa
 * Built-in multi-agents and conversation management.
 * Support multiple LLM platforms.
 * Support export/ import agent from other bot platforms directly. 
-* Support different open source UI [Chatbot UI](src\BotUIs\ChatbotUI\Chatbot-UI.md).
+* Support different open source UI [Chatbot UI](src\Plugins\BotSharp.Plugin.ChatbotUI\Chatbot-UI.md), [HuggingChat UI](src\Plugins\BotSharp.Plugin.HuggingFace\HuggingChat-UI.md).
 * Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
 
 ### Quick Started
