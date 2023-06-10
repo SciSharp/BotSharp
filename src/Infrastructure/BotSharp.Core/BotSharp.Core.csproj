@@ -62,15 +62,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CherubNLP" Version="0.5.0" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.2.1" />
     <PackageReference Include="LLamaSharp" Version="0.3.0" />
     <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.3.0" />
+    <PackageReference Include="TensorFlow.Keras" Version="0.10.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Infrastructures\" />
   </ItemGroup>
 
 </Project>

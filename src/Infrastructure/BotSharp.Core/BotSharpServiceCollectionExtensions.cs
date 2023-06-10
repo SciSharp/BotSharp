@@ -3,7 +3,6 @@ using BotSharp.Abstraction.TextGeneratives;
 using BotSharp.Core.Conversations;
 using BotSharp.Core.Plugins.TextGeneratives.LLamaSharp;
 using BotSharp.Core.Repository;
-using BotSharp.Core.Services;
 using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -15,11 +14,13 @@ public static class BotSharpServiceCollectionExtensions
 {
     public static IServiceCollection AddBotSharp(this IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<IPlatformMidware, PlatformMidware>();
         services.AddSingleton<ISessionService, SessionService>();
         services.AddSingleton<IConversationService, ConversationService>();
 
         RegisterRepository(services, config);
+
+        RegisterPlugins(services, config);
+
         return services;
     }
 
@@ -65,5 +66,10 @@ public static class BotSharpServiceCollectionExtensions
             return settings;
         });
         services.AddSingleton<IChatCompletionProvider, ChatCompletionProvider>();
+    }
+
+    public static void RegisterPlugins(IServiceCollection services, IConfiguration config)
+    {
+        
     }
 }

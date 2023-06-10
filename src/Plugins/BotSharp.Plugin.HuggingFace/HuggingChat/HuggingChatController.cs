@@ -16,13 +16,13 @@ namespace BotSharp.Plugin.HuggingFace.HuggingChat;
 
 public class HuggingChatController : ControllerBase, IApiAdapter
 {
-    private readonly IPlatformMidware _platform;
-    public HuggingChatController(IPlatformMidware platform)
+    private readonly IChatCompletionProvider _chatCompletionProvider;
+    public HuggingChatController(IChatCompletionProvider chatCompletionProvider)
     {
-        _platform = platform;
+        _chatCompletionProvider = chatCompletionProvider;
     }
 
-    [HttpPost("/conversation")]
+    /*[HttpPost("/conversation")]
     public async Task<ConversationViewModel> NewSession([FromBody] ConversationCreationModel conversationCreationModel)
     {
         var session = await _platform.SessionService.NewSession("anonymous");
@@ -36,7 +36,7 @@ public class HuggingChatController : ControllerBase, IApiAdapter
     public string SummarizeTitle([FromRoute] string id)
     {
         return "SummarizeTitle";
-    }
+    }*/
 
     [HttpPost("/models/OpenAssistant/{model}")]
     public async Task SendMessage([FromRoute] string model, [FromBody] ChatInput message)

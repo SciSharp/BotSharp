@@ -1,4 +1,3 @@
-using BotSharp.Abstraction;
 using BotSharp.Abstraction.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,6 +13,7 @@ using System;
 using Azure.AI.OpenAI;
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Plugin.ChatbotUI.ViewModels;
+using BotSharp.Abstraction.TextGeneratives;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
@@ -21,13 +21,13 @@ namespace BotSharp.Plugin.ChatbotUI.Controllers;
 public class ChatbotUiController : ControllerBase, IApiAdapter
 {
     private readonly ILogger<ChatbotUiController> _logger;
-    private readonly IPlatformMidware _platform;
+    private readonly IChatCompletionProvider _chatCompletionProvider;
 
     public ChatbotUiController(ILogger<ChatbotUiController> logger,
-        IPlatformMidware platform)
+        IChatCompletionProvider chatCompletionProvider)
     {
         _logger = logger;
-        _platform = platform;
+        _chatCompletionProvider = chatCompletionProvider;
     }
 
     [HttpGet("/v1/models")]
@@ -64,7 +64,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             Content = x.Content
         }).ToList();
 
-        await _platform.GetChatCompletionsAsync(conversations,
+        await _chatCompletionProvider.GetChatCompletionsAsync(conversations,
             async content =>
             {
                 await OnChunkReceived(outputStream, content);
