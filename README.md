@@ -24,7 +24,7 @@ BotSharp is in accordance with components principle strictly, decouples every pa
 * Built-in multi-agents and conversation management.
 * Support multiple LLM platforms.
 * Support export/ import agent from other bot platforms directly. 
-* Support different open source UI [Chatbot UI](src\Plugins\BotSharp.Plugin.ChatbotUI\Chatbot-UI.md), [HuggingChat UI](src\Plugins\BotSharp.Plugin.HuggingFace\HuggingChat-UI.md).
+* Support different open source UI [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md), [HuggingChat UI](src/Plugins/BotSharp.Plugin.HuggingFace/HuggingChat-UI.md).
 * Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
 
 ### Quick Started
@@ -34,7 +34,7 @@ BotSharp is in accordance with components principle strictly, decouples every pa
  PS D:\> cd BotSharp
  PS D:\BotSharp\> dotnet run -p .\src\WebStarter
 ```
-2. Run UI project, reference to [Chatbot UI](src\Plugins\BotSharp.Plugin.ChatbotUI\Chatbot-UI.md).
+2. Run UI project, reference to [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md).
 
 ### Extension Libraries
 

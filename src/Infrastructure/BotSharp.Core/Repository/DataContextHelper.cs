@@ -1,4 +1,6 @@
+using BotSharp.Core.Repository.Abstraction;
 using EntityFrameworkCore.BootKit;
+using Microsoft.Data.SqlClient;
 using System.Data.Common;
 
 namespace BotSharp.Core.Repository;
@@ -21,6 +23,18 @@ public static class DataContextHelper
                 ServiceProvider = serviceProvider,
                 MasterConnection = new MongoDbConnection(settings.MongoDb.Master),
                 IsRelational = false
+            });
+        }
+        else if (typeof(T) == typeof(AgentDbContext))
+        {
+            dc.BindDbContext<IAgentTable, DbContext4SqlServer2>(new DatabaseBind
+            {
+                ServiceProvider = serviceProvider,
+                MasterConnection = new SqlConnection(settings.Agent.Master),
+                SlaveConnections = settings.Agent.Slavers.Length == 0 ?
+                    new List<DbConnection> { new SqlConnection(settings.Agent.Master) } :
+                    settings.Agent.Slavers.Select(x => new SqlConnection(x) as DbConnection).ToList(),
+                CreateDbIfNotExist = true
             });
         }
         return dc;

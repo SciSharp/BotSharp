@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+
 namespace BotSharp.Abstraction.Agents;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace BotSharp.Abstraction.Agents;
 /// </summary>
 public interface IAgentService
 {
-    void NewAgent();
-    void DeleteAgent();
-    void UpdateAgent();
+    Task<string> CreateAgent(Agent agent);
+    Task<bool> DeleteAgent(string id);
+    Task UpdateAgent(Agent agent);
 }

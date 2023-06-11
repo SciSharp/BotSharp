@@ -1,10 +1,9 @@
 using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.TextGeneratives;
 using LLama;
 using System.IO;
 
-namespace BotSharp.Core.Plugins.TextGeneratives.LLamaSharp;
+namespace BotSharp.Plugins.LLamaSharp;
 
 public class ChatCompletionProvider : IChatCompletionProvider, IBotSharpPlugin
 {

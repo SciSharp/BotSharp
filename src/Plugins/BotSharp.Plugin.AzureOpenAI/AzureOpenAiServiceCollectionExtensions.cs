@@ -11,7 +11,7 @@ public static class AzureOpenAiServiceCollectionExtensions
     public static IServiceCollection AddAzureOpenAiPlatform(this IServiceCollection services, IConfiguration config)
     {
         var settings = new AzureOpenAiSettings();
-        config.Bind("AzureAi", settings);
+        config.Bind("AzureOpenAi", settings);
 
         services.AddSingleton(x =>
         {

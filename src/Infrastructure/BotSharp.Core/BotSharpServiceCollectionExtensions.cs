@@ -1,9 +1,10 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.TextGeneratives;
+using BotSharp.Abstraction.Users;
+using BotSharp.Core.Agents.Services;
 using BotSharp.Core.Conversations;
-using BotSharp.Core.Plugins.TextGeneratives.LLamaSharp;
-using BotSharp.Core.Repository;
-using EntityFrameworkCore.BootKit;
+using BotSharp.Core.Users.Services;
+using BotSharp.Plugins.LLamaSharp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,9 @@ public static class BotSharpServiceCollectionExtensions
 {
     public static IServiceCollection AddBotSharp(this IServiceCollection services, IConfiguration config)
     {
+        services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAgentService, AgentService>();
         services.AddSingleton<ISessionService, SessionService>();
         services.AddSingleton<IConversationService, ConversationService>();
 
@@ -59,17 +63,22 @@ public static class BotSharpServiceCollectionExtensions
             return DataContextHelper.GetDbContext<MongoDbContext>(myDatabaseSettings, x);
         });
 
-        services.AddSingleton(x =>
+        services.AddScoped((IServiceProvider x) =>
         {
-            var settings = new LlamaSharpSettings();
-            config.Bind("LlamaSharp", settings);
-            return settings;
+            return DataContextHelper.GetDbContext<AgentDbContext>(myDatabaseSettings, x);
         });
-        services.AddSingleton<IChatCompletionProvider, ChatCompletionProvider>();
     }
 
     public static void RegisterPlugins(IServiceCollection services, IConfiguration config)
     {
-        
+        var settings = new LlamaSharpSettings();
+        config.Bind("LlamaSharp", settings);
+        services.AddSingleton(x =>
+        {
+
+            return settings;
+        });
+
+        // services.AddSingleton<IChatCompletionProvider, ChatCompletionProvider>();
     }
 }

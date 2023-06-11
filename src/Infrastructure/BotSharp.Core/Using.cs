@@ -5,3 +5,6 @@ global using System.Threading.Tasks;
 global using BotSharp.Abstraction;
 global using System.Linq;
 global using BotSharp.Abstraction.Plugins;
+global using EntityFrameworkCore.BootKit;
+global using BotSharp.Core.Repository;
+global using BotSharp.Core.Repository.Abstraction;
