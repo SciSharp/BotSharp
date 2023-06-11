@@ -28,19 +28,13 @@ BotSharp is in accordance with components principle strictly, decouples every pa
 * Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
 
 ### Quick Started
-
-*  Make sure that you have downloaded the related components.
-*  See the file "BotSharp\BotSharp.WebHost\Settings\app.json",change the path to your own project's path.
-
-You can use docker compose to run BotSharp quickly, make sure you've got `Docker`_ installed.
-
+1. Run backend service
 ```sh
  PS D:\> git clone https://github.com/dotnetcore/BotSharp
  PS D:\> cd BotSharp
- PS D:\BotSharp\> docker-compose -f dockerfiles/docker-compose-core.yml up
+ PS D:\BotSharp\> dotnet run -p .\src\WebStarter
 ```
-
-Point your web browser at http://localhost:5500 and enjoy BotSharp Core.
+2. Run UI project, reference to [Chatbot UI](src\Plugins\BotSharp.Plugin.ChatbotUI\Chatbot-UI.md).
 
 ### Extension Libraries
 

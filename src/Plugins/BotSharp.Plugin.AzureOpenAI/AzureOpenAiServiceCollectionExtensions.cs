@@ -10,13 +10,16 @@ public static class AzureOpenAiServiceCollectionExtensions
 {
     public static IServiceCollection AddAzureOpenAiPlatform(this IServiceCollection services, IConfiguration config)
     {
+        var settings = new AzureOpenAiSettings();
+        config.Bind("AzureAi", settings);
+
         services.AddSingleton(x =>
         {
-            var settings = new AzureOpenAiSettings();
-            config.Bind("AzureAi", settings);
             return settings;
         });
+
         services.AddScoped<IChatCompletionProvider, ChatCompletionProvider>();
+
         return services;
     }
 }

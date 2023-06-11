@@ -13,4 +13,4 @@ npm run dev
 # Change host to BotSharp service
 OPENAI_API_HOST=http://localhost:5500
 ```
-
+Access `http://localhost:3000`
