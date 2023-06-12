@@ -34,4 +34,17 @@ public class AgentRecord : DbRecord, IAgentTable
             OwnerId = agent.OwerId
         };
     }
+
+    public Agent ToAgent()
+    {
+        return new Agent
+        {
+            Id = Id,
+            Name = Name,
+            Description = Description,
+            OwerId = OwnerId,
+            CreatedDateTime = CreatedDateTime,
+            UpdatedDateTime = UpdatedDateTime
+        };
+    }
 }

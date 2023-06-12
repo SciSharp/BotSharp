@@ -17,8 +17,9 @@ public class AgentController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/agent")]
-    public async Task<string> CreateAgent(AgentCreationModel agent)
+    public async Task<AgentViewModel> CreateAgent(AgentCreationModel agent)
     {
-        return await _agentService.CreateAgent(agent.ToAgent());
+        var createdAgent = await _agentService.CreateAgent(agent.ToAgent());
+        return AgentViewModel.FromAgent(createdAgent);
     }
 }

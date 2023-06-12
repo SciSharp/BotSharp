@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Core.Conversations;
+namespace BotSharp.Core.Conversations.Services;
 
 public class ConversationService : IConversationService
 {

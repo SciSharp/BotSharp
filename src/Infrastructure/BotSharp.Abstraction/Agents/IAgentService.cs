@@ -7,7 +7,7 @@ namespace BotSharp.Abstraction.Agents;
 /// </summary>
 public interface IAgentService
 {
-    Task<string> CreateAgent(Agent agent);
+    Task<Agent> CreateAgent(Agent agent);
     Task<bool> DeleteAgent(string id);
     Task UpdateAgent(Agent agent);
 }

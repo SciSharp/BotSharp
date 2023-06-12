@@ -2,12 +2,11 @@ using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core.Agents.Services;
-using BotSharp.Core.Conversations;
+using BotSharp.Core.Conversations.Services;
 using BotSharp.Core.Users.Services;
 using BotSharp.Plugins.LLamaSharp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Core;
 
@@ -18,8 +17,8 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAgentService, AgentService>();
-        services.AddSingleton<ISessionService, SessionService>();
-        services.AddSingleton<IConversationService, ConversationService>();
+        services.AddScoped<ISessionService, SessionService>();
+        services.AddScoped<IConversationService, ConversationService>();
 
         RegisterRepository(services, config);
 
