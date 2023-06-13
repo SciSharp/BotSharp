@@ -1,11 +1,12 @@
+using BotSharp.Abstraction.Infrastructures.ContentTransfers;
+using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
 using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.TextGeneratives;
 using LLama;
 using System.IO;
 
 namespace BotSharp.Plugins.LLamaSharp;
 
-public class ChatCompletionProvider : IChatCompletionProvider, IBotSharpPlugin
+public class ChatCompletionProvider : IBotSharpPlugin, IServiceZone
 {
     private readonly IChatModel _model;
     private readonly LlamaSharpSettings _settings;
@@ -79,5 +80,10 @@ public class ChatCompletionProvider : IChatCompletionProvider, IBotSharpPlugin
         }
 
         return instruction;
+    }
+
+    public async Task Serving(ContentContainer content)
+    {
+        
     }
 }

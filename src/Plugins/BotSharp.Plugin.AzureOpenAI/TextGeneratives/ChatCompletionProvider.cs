@@ -1,7 +1,8 @@
 using Azure;
 using Azure.AI.OpenAI;
+using BotSharp.Abstraction.Infrastructures.ContentTransfers;
+using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
 using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.TextGeneratives;
 using BotSharp.Platform.AzureAi;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.TextGeneratives;
     
-public class ChatCompletionProvider : IChatCompletionProvider
+public class ChatCompletionProvider : IServiceZone
 {
     private readonly AzureOpenAiSettings _settings;
 
@@ -73,6 +74,34 @@ public class ChatCompletionProvider : IChatCompletionProvider
             return File.ReadAllText(_settings.InstructionFile);
         }
         return string.Empty;
+    }
+
+    public async Task Serving(ContentContainer content)
+    {
+        var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
+        var chatCompletionsOptions = PrepareOptions(content.Conversations);
+
+        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentModel, chatCompletionsOptions);
+        using StreamingChatCompletions streaming = response.Value;
+
+        string output = "";
+        await foreach (var choice in streaming.GetChoicesStreaming())
+        {
+            await foreach (var message in choice.GetMessageStreaming())
+            {
+                if (message.Content == null)
+                    continue;
+                Console.Write(message.Content);
+                output += message.Content;
+            }
+        }
+
+        Console.WriteLine();
+        content.Output = new RoleDialogModel
+        {
+            Role = ChatRole.Assistant.ToString(),
+            Content = output
+        };
     }
 
     private ChatCompletionsOptions PrepareOptions(List<RoleDialogModel> conversations)

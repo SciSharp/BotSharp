@@ -13,21 +13,21 @@ using System;
 using Azure.AI.OpenAI;
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Plugin.ChatbotUI.ViewModels;
-using BotSharp.Abstraction.TextGeneratives;
+using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
 [ApiController]
 public class ChatbotUiController : ControllerBase, IApiAdapter
 {
+    private readonly IServiceProvider _services;
     private readonly ILogger<ChatbotUiController> _logger;
-    private readonly IChatCompletionProvider _chatCompletionProvider;
 
-    public ChatbotUiController(ILogger<ChatbotUiController> logger,
-        IChatCompletionProvider chatCompletionProvider)
+    public ChatbotUiController(ILogger<ChatbotUiController> logger, IServiceProvider services)
     {
         _logger = logger;
-        _chatCompletionProvider = chatCompletionProvider;
+        _services = services;
     }
 
     [HttpGet("/v1/models")]
@@ -64,12 +64,22 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             Content = x.Content
         }).ToList();
 
-        await _chatCompletionProvider.GetChatCompletionsAsync(conversations,
+        /*await _chatCompletionProvider.GetChatCompletionsAsync(conversations,
             async content =>
             {
                 await OnChunkReceived(outputStream, content);
-            });
+            });*/
 
+        var transmitter = _services.GetRequiredService<IContentTransfer>();
+
+        var container = new ContentContainer
+        {
+            Conversations = conversations
+        };
+
+        var result = await transmitter.Transport(container);
+
+        await OnChunkReceived(outputStream, container.Output.Content);
         await OnEventCompleted(outputStream);
     }
 

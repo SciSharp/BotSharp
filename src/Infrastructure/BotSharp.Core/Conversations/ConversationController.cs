@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
+using BotSharp.Abstraction.Models;
 using BotSharp.Core.Conversations.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,5 +32,30 @@ public class ConversationController : ControllerBase, IApiAdapter
     public async Task DeleteSession([FromRoute] string sessionId)
     {
         var service = _services.GetRequiredService<ISessionService>();
+    }
+
+    [HttpPost("/conversation/{sessionId}")]
+    public async Task<MessageResponseModel> SendMessage([FromBody] NewMessageModel input)
+    {
+        var transmitter = _services.GetRequiredService<IContentTransfer>();
+
+        var container = new ContentContainer
+        {
+            Conversations = new List<RoleDialogModel>
+            {
+                new RoleDialogModel
+                {
+                    Role = "user",
+                    Content = input.Content
+                }
+            }
+        };
+
+        var result = await transmitter.Transport(container);
+
+        return new MessageResponseModel
+        {
+            Content = container.Output.Content
+        };
     }
 }

@@ -1,4 +1,3 @@
-using BotSharp.Abstraction;
 using BotSharp.Abstraction.ApiAdapters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
@@ -10,16 +9,13 @@ using System.Threading.Tasks;
 using BotSharp.Plugin.HuggingFace.HuggingChat.ViewModels;
 using BotSharp.Abstraction.TextGeneratives;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace BotSharp.Plugin.HuggingFace.HuggingChat;
 
 public class HuggingChatController : ControllerBase, IApiAdapter
 {
-    private readonly IChatCompletionProvider _chatCompletionProvider;
-    public HuggingChatController(IChatCompletionProvider chatCompletionProvider)
+    public HuggingChatController()
     {
-        _chatCompletionProvider = chatCompletionProvider;
     }
 
     /*[HttpPost("/conversation")]

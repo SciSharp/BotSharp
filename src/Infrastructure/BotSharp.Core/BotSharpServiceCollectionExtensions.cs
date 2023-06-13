@@ -1,8 +1,10 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core.Agents.Services;
 using BotSharp.Core.Conversations.Services;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Core.Users.Services;
 using BotSharp.Plugins.LLamaSharp;
 using Microsoft.AspNetCore.Builder;
@@ -19,6 +21,8 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IAgentService, AgentService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IConversationService, ConversationService>();
+
+        services.AddScoped<IContentTransfer, ContentTransfer>();
 
         RegisterRepository(services, config);
 
@@ -78,6 +82,6 @@ public static class BotSharpServiceCollectionExtensions
             return settings;
         });
 
-        // services.AddSingleton<IChatCompletionProvider, ChatCompletionProvider>();
+        // services.AddScoped<IServiceZone, ChatCompletionProvider>();
     }
 }
