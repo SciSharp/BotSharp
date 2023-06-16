@@ -22,4 +22,11 @@ public class AgentController : ControllerBase, IApiAdapter
         var createdAgent = await _agentService.CreateAgent(agent.ToAgent());
         return AgentViewModel.FromAgent(createdAgent);
     }
+
+    [HttpGet("/agents")]
+    public async Task<List<AgentViewModel>> GetAgents()
+    {
+        var agents = await _agentService.GetAgents();
+        return agents.Select(x => AgentViewModel.FromAgent(x)).ToList();
+    }
 }

@@ -43,6 +43,15 @@ public class AgentService : IAgentService
         throw new NotImplementedException();
     }
 
+    public async Task<List<Agent>> GetAgents()
+    {
+        var db = _services.GetRequiredService<AgentDbContext>();
+        var query = from agent in db.Agent
+                    where agent.OwnerId == _user.Id
+                    select agent.ToAgent();
+        return query.ToList();
+    }
+
     public Task UpdateAgent(Agent agent)
     {
         throw new NotImplementedException();
