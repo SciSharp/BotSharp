@@ -13,9 +13,9 @@ namespace BotSharp.Core.Users.Services;
 public class UserService : IUserService
 {
     private readonly IServiceProvider _services;
-    private readonly ICurrentUser _user;
+    private readonly IUserIdentity _user;
 
-    public UserService(IServiceProvider services, ICurrentUser user)
+    public UserService(IServiceProvider services, IUserIdentity user)
     {
         _services = services;
         _user = user;

@@ -1,10 +1,13 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
+using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core.Agents.Services;
 using BotSharp.Core.Conversations.Services;
 using BotSharp.Core.Infrastructures;
+using BotSharp.Core.Knowledges.Services;
+using BotSharp.Core.Plugins;
 using BotSharp.Core.Users.Services;
 using BotSharp.Plugins.LLamaSharp;
 using Microsoft.AspNetCore.Builder;
@@ -16,11 +19,12 @@ public static class BotSharpServiceCollectionExtensions
 {
     public static IServiceCollection AddBotSharp(this IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<IUserIdentity, UserIdentity>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAgentService, AgentService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IConversationService, ConversationService>();
+        services.AddScoped<IKnowledgeService, KnowledgeService>();
 
         services.AddScoped<IContentTransfer, ContentTransfer>();
 
@@ -74,14 +78,10 @@ public static class BotSharpServiceCollectionExtensions
 
     public static void RegisterPlugins(IServiceCollection services, IConfiguration config)
     {
-        var settings = new LlamaSharpSettings();
-        config.Bind("LlamaSharp", settings);
-        services.AddSingleton(x =>
-        {
+        var pluginSettings = new PluginLoaderSettings();
+        config.Bind("PluginLoader", pluginSettings);
 
-            return settings;
-        });
-
-        // services.AddScoped<IServiceZone, ChatCompletionProvider>();
+        var loader = new PluginLoader(services, config, pluginSettings);
+        loader.Load();
     }
 }

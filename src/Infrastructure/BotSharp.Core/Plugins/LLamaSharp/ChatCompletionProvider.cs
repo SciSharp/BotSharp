@@ -6,7 +6,7 @@ using System.IO;
 
 namespace BotSharp.Plugins.LLamaSharp;
 
-public class ChatCompletionProvider : IBotSharpPlugin, IServiceZone
+public class ChatCompletionProvider : IServiceZone
 {
     private readonly IChatModel _model;
     private readonly LlamaSharpSettings _settings;

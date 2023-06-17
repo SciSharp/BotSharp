@@ -7,9 +7,9 @@ namespace BotSharp.Core.Conversations.Services;
 public class SessionService : ISessionService
 {
     private readonly IServiceProvider _services;
-    private readonly ICurrentUser _user;
+    private readonly IUserIdentity _user;
 
-    public SessionService(IServiceProvider services, ICurrentUser user)
+    public SessionService(IServiceProvider services, IUserIdentity user)
     {
         _services = services;
         _user = user;
