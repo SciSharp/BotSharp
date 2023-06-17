@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Users;
 using BotSharp.Core;
+using BotSharp.Core.Users.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -36,7 +38,6 @@ builder.Services.AddAuthentication(options =>
 
 // Add BotSharp
 builder.Services.AddBotSharp(builder.Configuration);
-builder.Services.AddAzureOpenAiPlatform(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
