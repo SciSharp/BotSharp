@@ -33,6 +33,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{32FAFFFE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTest", "tests\UnitTest\UnitTest.csproj", "{0B6E1D7F-ABDE-47F6-8B2D-4483C2CFF2D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.MetaAI", "src\Plugins\BotSharp.Plugin.MetaAI\BotSharp.Plugin.MetaAI.csproj", "{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,14 @@ Global
 		{0B6E1D7F-ABDE-47F6-8B2D-4483C2CFF2D6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0B6E1D7F-ABDE-47F6-8B2D-4483C2CFF2D6}.Release|x64.ActiveCfg = Release|Any CPU
 		{0B6E1D7F-ABDE-47F6-8B2D-4483C2CFF2D6}.Release|x64.Build.0 = Release|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Debug|x64.Build.0 = Debug|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Release|x64.ActiveCfg = Release|Any CPU
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,6 +139,7 @@ Global
 		{0149F6C2-4CF8-4904-A545-54F3278BEA74} = {64264688-0F5C-4AB0-8F2B-B59B717CCE00}
 		{2323A7A3-E938-488D-A57E-638638054BC4} = {64264688-0F5C-4AB0-8F2B-B59B717CCE00}
 		{0B6E1D7F-ABDE-47F6-8B2D-4483C2CFF2D6} = {32FAFFFE-A4CB-4FEE-BF7C-84518BBC6DCC}
+		{6D8D18A9-86D7-455E-81EC-9682C30AB7E7} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}

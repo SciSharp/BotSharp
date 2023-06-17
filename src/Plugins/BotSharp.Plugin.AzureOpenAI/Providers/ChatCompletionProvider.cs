@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.AzureOpenAI.TextGeneratives;
+namespace BotSharp.Plugin.AzureOpenAI.Providers;
     
 public class ChatCompletionProvider : IServiceZone
 {
@@ -26,7 +26,7 @@ public class ChatCompletionProvider : IServiceZone
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
         var chatCompletionsOptions = PrepareOptions(conversations);
 
-        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentModel, chatCompletionsOptions);
+        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentName, chatCompletionsOptions);
         using StreamingChatCompletions streaming = response.Value;
 
         string content = "";
@@ -81,7 +81,7 @@ public class ChatCompletionProvider : IServiceZone
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
         var chatCompletionsOptions = PrepareOptions(content.Conversations);
 
-        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentModel, chatCompletionsOptions);
+        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentName, chatCompletionsOptions);
         using StreamingChatCompletions streaming = response.Value;
 
         string output = "";

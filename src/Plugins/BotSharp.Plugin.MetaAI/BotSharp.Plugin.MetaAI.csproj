@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>10</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="C:\Users\haipi\.nuget\packages\fasttext.netwrapper\1.3.0\contentFiles\any\any\fasttext.dll" />
+    <None Remove="C:\Users\haipi\.nuget\packages\fasttext.netwrapper\1.3.0\contentFiles\any\any\libfasttext.dylib" />
+    <None Remove="C:\Users\haipi\.nuget\packages\fasttext.netwrapper\1.3.0\contentFiles\any\any\libfasttext.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="FastText.NetWrapper" Version="1.3.0" />
+  </ItemGroup>
+</Project>

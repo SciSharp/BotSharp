@@ -5,7 +5,7 @@ using BotSharp.Platform.AzureAi;
 using System;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.AzureOpenAI.TextTasks;
+namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class TextCompletionProvider : ITextCompletion
 {

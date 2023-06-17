@@ -1,8 +1,7 @@
 using BotSharp.Abstraction.Infrastructures.ContentTransfers;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
-using BotSharp.Plugin.AzureOpenAI.TextGeneratives;
-using BotSharp.Plugin.AzureOpenAI.TextTasks;
+using BotSharp.Plugin.AzureOpenAI.Providers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
