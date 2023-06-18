@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\BotSharp.Plugin.Qdrant\BotSharp.Plugin.Qdrant.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AzureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatbotUI\BotSharp.Plugin.ChatbotUI.csproj" />

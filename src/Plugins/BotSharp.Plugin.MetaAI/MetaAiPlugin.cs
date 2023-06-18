@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Plugin.MetaAI.Providers;
@@ -18,5 +19,6 @@ public class MetaAiPlugin : IBotSharpPlugin
         services.AddSingleton(x => settings.fastText);
 
         services.AddSingleton<ITextEmbedding, fastTextEmbeddingProvider>();
+        services.AddSingleton<IVectorDb, FaissDb>();
     }
 }

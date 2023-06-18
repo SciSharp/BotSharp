@@ -1,15 +1,3 @@
-using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
-using BotSharp.Abstraction.Knowledges;
-using BotSharp.Abstraction.Users;
-using BotSharp.Core.Agents.Services;
-using BotSharp.Core.Conversations.Services;
-using BotSharp.Core.Infrastructures;
-using BotSharp.Core.Knowledges.Services;
-using BotSharp.Core.Plugins;
-using BotSharp.Core.Users.Services;
-using BotSharp.Plugins.LLamaSharp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 

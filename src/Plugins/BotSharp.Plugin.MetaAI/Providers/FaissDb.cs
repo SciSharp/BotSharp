@@ -1,6 +1,11 @@
-namespace BotSharp.Core.Knowledges;
+using BotSharp.Abstraction.Knowledges;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-public class KnowledgeBase : IVectorDb
+namespace BotSharp.Plugin.MetaAI.Providers;
+
+public class FaissDb : IVectorDb
 {
     public Task CreateCollection(string collectionName)
     {

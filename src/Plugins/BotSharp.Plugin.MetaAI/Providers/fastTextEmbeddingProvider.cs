@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.MetaAI.Settings;
 using FastText.NetWrapper;
+using System.IO;
 
 namespace BotSharp.Plugin.MetaAI.Providers;
 
@@ -13,6 +14,11 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     {
         _settings = settings;
         _fastText = new FastTextWrapper();
+
+        if (!File.Exists(settings.ModelPath))
+        {
+            throw new FileNotFoundException($"Can't load pre-trained word vectors from {settings.ModelPath}.\n Try to download from https://fasttext.cc/docs/en/english-vectors.html.");
+        }
 
         if (!_fastText.IsModelReady())
         {
