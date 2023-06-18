@@ -20,14 +20,18 @@ public class KnowledgeController : ControllerBase, IApiAdapter
         _knowledgeService = knowledgeService;
     }
 
-    [HttpGet("/knowledge")]
-    public async Task<string> GetAnswer([FromQuery(Name = "q")] string question)
+    [HttpGet("/knowledge/{agentId}")]
+    public async Task<string> RetrieveKnowledge([FromRoute] string agentId, [FromQuery(Name = "q")] string question)
     {
-        return await _knowledgeService.GetAnswer(question);
+        return await _knowledgeService.GetAnswer(new KnowledgeRetrievalModel
+        {
+            AgentId = agentId,
+            Question = question
+        });
     }
 
-    [HttpPost("/knowledge/feed/{agentId}")]
-    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files)
+    [HttpPost("/knowledge/{agentId}")]
+    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, [FromForm] string name, List<IFormFile> files)
     {
         long size = files.Sum(f => f.Length);
 
@@ -58,6 +62,7 @@ public class KnowledgeController : ControllerBase, IApiAdapter
             await _knowledgeService.Feed(new KnowledgeFeedModel
             {
                 AgentId = agentId,
+                Name = name,
                 Content = content
             });
         }

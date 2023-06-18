@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Knowledges.Models;
 using System.IO;
-using System.Collections;
 using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Core.Knowledges.Services;
@@ -10,49 +8,74 @@ public class KnowledgeService : IKnowledgeService
 {
     private readonly ITextEmbedding _textEmbedding;
     private readonly ITextCompletion _textCompletion;
+    private readonly ITextChopper _textChopper;
     private readonly IVectorDb _db;
-    string collectionName = "my_collection";
+    
     public KnowledgeService(ITextEmbedding textEmbedding, 
         ITextCompletion textCompletion, 
+        ITextChopper textChopper,
         IVectorDb db)
     {
         _textEmbedding = textEmbedding;
         _textCompletion = textCompletion;
+        _textChopper = textChopper;
         _db = db;
     }
 
     public async Task Feed(KnowledgeFeedModel knowledge)
     {
         var idStart = 0;
-        var lines = knowledge.Content.Split(". ");
-        lines = lines.Select((x, i) => $"{i+1} {x}").ToArray();
-        File.WriteAllLines(collectionName + ".txt", lines);
+        var lines = _textChopper.Chop(knowledge.Content, new ChunkOption
+        {
+            Size = 256,
+            Conjunction = 32
+        });
 
+        // Store chunks in local file system
+        var knowledgeStoreDir = Path.Combine("knowledge_chunks", knowledge.AgentId);
+        if(!Directory.Exists(knowledgeStoreDir))
+        {
+            Directory.CreateDirectory(knowledgeStoreDir);
+        }
+
+        var knowledgePath = Path.Combine(knowledgeStoreDir, knowledge.Name);
+        File.WriteAllLines(knowledgePath + ".txt", lines);
+
+        await _db.CreateCollection(knowledge.Name, _textEmbedding.Dimension);
         foreach (var line in lines)
         {
+            await _db.Upsert(knowledge.Name, idStart, _textEmbedding.GetVector(line));
             idStart++;
-            await _db.Upsert(collectionName, idStart, _textEmbedding.GetVector(line));
         }
     }
 
-    public async Task<string> GetAnswer(string question)
+    public async Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel)
     {
-        var vector = _textEmbedding.GetVector(question);
+        var vector = _textEmbedding.GetVector(retrievalModel.Question);
 
-        // Vector search
-        var result = await _db.Search(collectionName, vector);
+        // Scan local knowledge directory
+        var knowledgeName = "";
+        var chunks = new string[0];
 
-        var prompt = "";
-        var lines = File.ReadAllLines(collectionName + ".txt");
-        foreach (var r in result)
+        foreach (var file in Directory.GetFiles(Path.Combine("knowledge_chunks", retrievalModel.AgentId)))
         {
-            prompt += lines[r - 1] + "\n";
+            knowledgeName = new FileInfo(file).Name.Split('.').First();
+            chunks = File.ReadAllLines(file);
         }
 
-        prompt += "###\r\n";
+        // Vector search
+        var result = await _db.Search(knowledgeName, vector);
+
+        // Restore 
+        var prompt = "";
+        foreach (var r in result)
+        {
+            prompt += chunks[r] + "\n";
+        }
+
+        prompt += "\r\n###\r\n";
         prompt += "Answer the user's question based on the content provided above, and your reply should be as concise and organized as possible.\r\n";
-        prompt += "Q: how to turn on Hood Light? \r\nA: Press the Hood Light keypad to turn the light beneath the hood on or off.\r\n";
-        prompt += $"Q: {question}\r\nA: ";
+        prompt += $"Question: {retrievalModel.Question}\r\nAnswer: ";
 
         var completion = await _textCompletion.GetCompletion(prompt);
         return completion;

@@ -30,18 +30,18 @@ public class QdrantDb : IVectorDb
         return collections.Result.Collections.Select(x => x.Name).ToList();
     }
 
-    public async Task CreateCollection(string collectionName)
+    public async Task CreateCollection(string collectionName, int dim)
     {
         var collections = await GetCollections();
         if (!collections.Contains(collectionName))
         {
             // Create a new collection
-            await _client.CreateCollection(collectionName, new VectorParams(size: 300, distance: Distance.COSINE));
+            await _client.CreateCollection(collectionName, new VectorParams(size: dim, distance: Distance.COSINE));
         }
 
         // Get collection info
         var collectionInfo = await _client.GetCollection(collectionName);
-        if(collectionInfo == null)
+        if (collectionInfo == null)
         {
             throw new Exception($"Create {collectionName} failed.");
         }

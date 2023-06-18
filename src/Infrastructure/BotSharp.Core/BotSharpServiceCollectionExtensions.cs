@@ -12,6 +12,8 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IAgentService, AgentService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IConversationService, ConversationService>();
+
+        services.AddScoped<ITextChopper, TextChopperService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
 
         services.AddScoped<IContentTransfer, ContentTransfer>();

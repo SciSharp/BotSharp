@@ -2,7 +2,7 @@ namespace BotSharp.Core.Knowledges;
 
 public class KnowledgeBase : IVectorDb
 {
-    public Task CreateCollection(string collectionName)
+    public Task CreateCollection(string collectionName, int dim)
     {
         throw new NotImplementedException();
     }

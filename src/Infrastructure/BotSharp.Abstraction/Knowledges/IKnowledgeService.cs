@@ -5,5 +5,5 @@ namespace BotSharp.Abstraction.Knowledges;
 public interface IKnowledgeService
 {
     Task Feed(KnowledgeFeedModel knowledge);
-    Task<string> GetAnswer(string question);
+    Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel);
 }
