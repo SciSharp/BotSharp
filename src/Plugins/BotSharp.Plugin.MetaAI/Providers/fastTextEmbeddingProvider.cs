@@ -10,6 +10,8 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     private FastTextWrapper _fastText;
     private readonly fastTextSetting _settings;
 
+    public int Dimension => _fastText.GetModelDimension();
+
     public fastTextEmbeddingProvider(fastTextSetting settings)
     {
         _settings = settings;
@@ -22,7 +24,7 @@ public class fastTextEmbeddingProvider : ITextEmbedding
 
         if (!_fastText.IsModelReady())
         {
-            _fastText.LoadModel(settings.ModelPath);
+            _fastText.LoadModel(_settings.ModelPath);
         }
     }
 
