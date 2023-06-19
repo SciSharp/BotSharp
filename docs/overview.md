@@ -1,5 +1,5 @@
 # BotSharp Overview
-*Bo Peng & Haiping Chen --10/10/2018*
+*Haiping Chen --06/18/2023*
 
 BotSharp is an open source machine learning framework for AI Bot platform builder. This project involves natural language understanding and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in information systems. Out of the box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier.
 

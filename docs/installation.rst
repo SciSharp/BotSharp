@@ -2,75 +2,58 @@ Installation
 ============
 BotSharp strictly follows the modular design principle and adopts a structure in which views and logic are separated. 
 So you can choose the front-end Bot design and management interface. 
-If you want to use the `Articulate UI`_ as a front end, you can use the articulateui-specific compose file to quickly experience BotSharp.
-
-Docker Composer
-^^^^^^^^^^^^^^^
-You can use docker compose to run, make sure you've got `Docker`_ installed.
-
-::
-
-    PS D:\> git clone https://github.com/Oceania2018/BotSharp
-    PS D:\> cd BotSharp
-
-1. Integrate with `Botpress`_
-
-
-2. Integrate with `Articulate UI`_
-
-::
-
- PS D:\BotSharp\> docker-compose -f dockerfiles/docker-compose-articulateui.yml up
-
-Point your web browser at http://localhost:3000 and enjoy Articulate-UI with BotSharp.
-|ArticulateHomeScreenshot|
-
-3. Integrate with `Rasa UI`_, you can use docker compose to run.
-
-::
-
- PS D:\BotSharp\> docker-compose -f dockerfiles/docker-compose-rasaui.yml up
-
-Point your web browser at http://localhost:5001 and enjoy Rasa-UI with BotSharp.
-
-|RasaUIHomeScreenshot|
-
-4. Integrate with `Rasa Talk`_
 
 
 Building & Run locally
 ^^^^^^^^^^^^^^^^^^^^^^
-If you are a .NET developer and want to develop extensions or fix bug for BotSharp, you would CTRL + F5 to run it locally in debug mode. 
-Make sure the `Microsoft .NET Core`_ build environment and `Node.js`_ is installed. 
+If you are a .NET developer and want to develop extensions or fix bug for BotSharp, you would hit F5 to run it locally in debug mode. 
+Make sure the `Microsoft .NET SDK`_ 6.0+ build environment and `Node.js`_ is installed. 
 Building solution using dotnet CLI (preferred).
 
-* Build NLU API
+* Build BotSharp backend API
 ::
 
     PS D:\> git clone https://github.com/Oceania2018/BotSharp
     PS D:\> cd BotSharp
-    PS D:\> dotnet build -v m -o ../bin -c ARTICULATE
-    PS D:\> dotnet bin\BotSharp.WebHost.dll
+    PS D:\> dotnet build
 
-If you don't have Redis installed, please update ArticulateAi.json:
-
+* Update `appsettings.json`, BotSharp can work with serveral LLM providers. Below config is tasking Azure OpenAI as the LLM backend
 ::
 
-"AgentStorage": "AgentStorageInRedis"
+    "AzureOpenAi": {
+        "ApiKey": "",
+        "Endpoint": "https://.openai.azure.com/",
+        "DeploymentName": ""
+    }
 
-to 
-
+* Run backend web project
 ::
 
-"AgentStorage": "AgentStorageInMemory" 
-  
-* Build Chatbot Designer
+    PS D:\> dotnet run --project src/WebStarter
+
+|BackendServiceHomeScreenshot|
+
+* Open REST API in browser http://localhost:5500/swagger
+
+|APIHomeScreenshot|
+
+* Launch a chatbot UI
+If you want to use the `Chatbot UI`_ as a front end.
 ::
 
-    PS D:\> git clone https://github.com/Oceania2018/articulate-ui
-    PS D:\> cd articulate-ui
-    PS D:\> npm install
-    PS D:\> npm start
+    PS D:\> git clone https://github.com/mckaywrigley/chatbot-ui
+    PS D:\> cd chatbot-ui
+    PS D:\> cd npm i
+    PS D:\> cd npm run dev
+
+Update API url in `.env.local` to your localhost BotSharp backend service.
+::
+    OPENAI_API_HOST=http://localhost:5500
+
+
+* Point your web browser at http://localhost:3000 and enjoy Chatbot with BotSharp.
+|ChatbotUIHomeScreenshot|
+
 
 Building docker image
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -103,8 +86,6 @@ Get a bash shell if you want to update config in the container.
 
  PS D:\BotSharp\> docker exec -it botsharp /bin/bash
 
-|APIHomeScreenshot|
-
 
 Install in NuGet
 ^^^^^^^^^^^^^^^^
@@ -112,7 +93,6 @@ Install in NuGet
 ::
  
  PM> Install-Package BotSharp.Core
- PM> Install-Package BotSharp.RestApi
 
 Use BotSharp.NLP as a natural language processing toolkit alone.
 
@@ -120,14 +100,11 @@ Use BotSharp.NLP as a natural language processing toolkit alone.
 
  PM> Install-Package BotSharp.NLP
 
-.. _Botpress: https://github.com/botpress/botpress
-.. _Rasa UI: https://github.com/paschmann/rasa-ui
-.. _Articulate UI: https://github.com/Oceania2018/articulate-ui
-.. _Rasa Talk: https://github.com/jackdh/RasaTalk
-.. _Microsoft .NET Core: https://www.microsoft.com/net/download
+.. _Chatbot UI: https://github.com/mckaywrigley/chatbot-ui
+.. _Microsoft .NET SDK: https://www.microsoft.com/net/download
 .. _Node.js: https://nodejs.org
 .. _Docker: https://www.docker.com
 
+.. |BackendServiceHomeScreenshot| image:: /static/screenshots/BackendServiceHomeScreenshot.png
 .. |APIHomeScreenshot| image:: /static/screenshots/APIHome.png
-.. |ArticulateHomeScreenshot| image:: /static/screenshots/ArticulateHome.png
-.. |RasaUIHomeScreenshot| image:: /static/screenshots/RasaUIHome.png
+.. |ChatbotUIHomeScreenshot| image:: /static/screenshots/ChatbotUIHome.png

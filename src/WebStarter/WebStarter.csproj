@@ -8,6 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="knowledge_chunks\**" />
+    <Content Remove="knowledge_chunks\**" />
+    <EmbeddedResource Remove="knowledge_chunks\**" />
+    <None Remove="knowledge_chunks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="crawl-300d-2M-subword.bin" />
     <None Remove="Prompts\chat-samples.txt" />
     <None Remove="Prompts\chat-with-bob.txt" />
   </ItemGroup>
