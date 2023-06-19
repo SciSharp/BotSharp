@@ -1,9 +1,9 @@
 using Azure.AI.OpenAI;
 using Azure;
 using BotSharp.Abstraction.MLTasks;
-using BotSharp.Platform.AzureAi;
 using System;
 using System.Threading.Tasks;
+using BotSharp.Plugin.AzureOpenAI.Settings;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
@@ -31,7 +31,7 @@ public class TextCompletionProvider : ITextCompletion
         };
 
         var response = await client.GetCompletionsAsync(
-            deploymentOrModelName: _settings.DeploymentName,
+            deploymentOrModelName: _settings.DeploymentModel.TextCompletionModel,
             completionsOptions);
 
         // OpenAI

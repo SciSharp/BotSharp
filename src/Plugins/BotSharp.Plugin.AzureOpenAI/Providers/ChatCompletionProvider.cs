@@ -2,16 +2,17 @@ using Azure;
 using Azure.AI.OpenAI;
 using BotSharp.Abstraction.Infrastructures.ContentTransfers;
 using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
+using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Models;
-using BotSharp.Platform.AzureAi;
+using BotSharp.Plugin.AzureOpenAI.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
-    
-public class ChatCompletionProvider : IServiceZone
+
+public class ChatCompletionProvider : IChatCompletion
 {
     private readonly AzureOpenAiSettings _settings;
 
@@ -26,7 +27,7 @@ public class ChatCompletionProvider : IServiceZone
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
         var chatCompletionsOptions = PrepareOptions(conversations);
 
-        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentName, chatCompletionsOptions);
+        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
         using StreamingChatCompletions streaming = response.Value;
 
         string content = "";
@@ -76,12 +77,12 @@ public class ChatCompletionProvider : IServiceZone
         return string.Empty;
     }
 
-    public async Task Serving(ContentContainer content)
+    public async Task<string> GetChatCompletionsAsync(List<RoleDialogModel> conversations)
     {
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
-        var chatCompletionsOptions = PrepareOptions(content.Conversations);
+        var chatCompletionsOptions = PrepareOptions(conversations);
 
-        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentName, chatCompletionsOptions);
+        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
         using StreamingChatCompletions streaming = response.Value;
 
         string output = "";
@@ -96,12 +97,7 @@ public class ChatCompletionProvider : IServiceZone
             }
         }
 
-        Console.WriteLine();
-        content.Output = new RoleDialogModel
-        {
-            Role = ChatRole.Assistant.ToString(),
-            Content = output
-        };
+        return output;
     }
 
     private ChatCompletionsOptions PrepareOptions(List<RoleDialogModel> conversations)

@@ -9,6 +9,6 @@ public class PaddleSharpPlugin : IBotSharpPlugin
 {
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        throw new NotImplementedException();
+        
     }
 }
