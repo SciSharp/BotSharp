@@ -10,6 +10,6 @@ public class LLamaSharpPlugin : IBotSharpPlugin
         config.Bind("LlamaSharp", llamaSharpSettings);
         services.AddSingleton(x => llamaSharpSettings);
 
-        // services.AddScoped<IServiceZone, ChatCompletionProvider>();
+        services.AddScoped<IServiceZone, ChatCompletionProvider>();
     }
 }

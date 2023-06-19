@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Infrastructures.ContentTransfers;
-using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
 using BotSharp.Abstraction.Models;
+using BotSharp.Core.Repository.Collections;
 using LLama;
 using System.IO;
 
@@ -84,6 +84,16 @@ public class ChatCompletionProvider : IServiceZone
 
     public async Task Serving(ContentContainer content)
     {
-        
+        string output = "";
+        var prompt = GetInstruction();
+        var conversations = string.Join("\n ", content.Conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
+        conversations += "\n assistant: ";
+        foreach (var response in _model.Chat(conversations, prompt, "UTF-8"))
+        {
+            Console.Write(response);
+            output += response;
+        }
+
+        Console.WriteLine();
     }
 }

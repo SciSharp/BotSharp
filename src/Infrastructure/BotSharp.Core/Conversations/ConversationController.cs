@@ -55,7 +55,7 @@ public class ConversationController : ControllerBase, IApiAdapter
 
         return new MessageResponseModel
         {
-            Content = container.Output.Content
+            Content = result.IsSuccess ? container.Output.Content : result.Messages.First()
         };
     }
 }

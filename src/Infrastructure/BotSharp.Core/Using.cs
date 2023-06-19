@@ -9,6 +9,7 @@ global using EntityFrameworkCore.BootKit;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
+global using BotSharp.Abstraction.Infrastructures.ContentTransfers;
 global using BotSharp.Abstraction.Knowledges;
 global using BotSharp.Abstraction.Users;
 global using BotSharp.Core.Repository;

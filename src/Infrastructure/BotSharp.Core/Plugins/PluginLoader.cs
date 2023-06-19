@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
+using Console = Colorful.Console;
 
 namespace BotSharp.Core.Plugins;
 
@@ -38,8 +40,15 @@ public class PluginLoader
 
                 foreach (var module in modules)
                 {
-                    module.RegisterDI(_services, _config);
-                    Console.WriteLine($"Loaded plugin {module.GetType().Name} from {assemblyName}.");
+                    if (_settings.Plugins.Contains(module.GetType().Name))
+                    {
+                        module.RegisterDI(_services, _config);
+                        Console.WriteLine($"Loaded plugin {module.GetType().Name} from {assemblyName}.", Color.Green);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Skipped plugin {module.GetType().Name} from {assemblyName}.", Color.Yellow);
+                    }
                 }
 
                 _modules.AddRange(modules);
