@@ -12,6 +12,7 @@ global using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
 global using BotSharp.Abstraction.Infrastructures.ContentTransfers;
 global using BotSharp.Abstraction.Knowledges;
 global using BotSharp.Abstraction.Users;
+global using BotSharp.Abstraction.Models;
 global using BotSharp.Core.Repository;
 global using BotSharp.Core.Repository.Abstraction;
 global using BotSharp.Core.Repository.DbTables;

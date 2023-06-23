@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Infrastructures.ContentTransfers;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Plugin.AzureOpenAI.Providers;
@@ -19,6 +19,6 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
 
         services.AddSingleton<ITextCompletion, TextCompletionProvider>();
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
-        services.AddScoped<IServiceZone, ChatCompletionService>();
+        services.AddScoped<IChatServiceZone, ChatCompletionService>();
     }
 }

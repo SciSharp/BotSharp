@@ -61,7 +61,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         var conversations = input.Messages.Skip(1).Select(x => new RoleDialogModel
         {
             Role = x.Role,
-            Content = x.Content
+            Text = x.Content
         }).ToList();
 
         /*await _chatCompletionProvider.GetChatCompletionsAsync(conversations,
@@ -79,7 +79,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
 
         var result = await transmitter.Transport(container);
 
-        await OnChunkReceived(outputStream, container.Output.Content);
+        await OnChunkReceived(outputStream, container.Output.Text);
         await OnEventCompleted(outputStream);
     }
 

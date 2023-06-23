@@ -1,12 +1,9 @@
-using BotSharp.Abstraction.Infrastructures.ContentTransfers;
-using BotSharp.Abstraction.Models;
-using BotSharp.Core.Repository.Collections;
 using LLama;
 using System.IO;
 
 namespace BotSharp.Plugins.LLamaSharp;
 
-public class ChatCompletionProvider : IServiceZone
+public class ChatCompletionProvider : IChatServiceZone
 {
     private readonly IChatModel _model;
     private readonly LlamaSharpSettings _settings;
@@ -26,12 +23,14 @@ public class ChatCompletionProvider : IServiceZone
         _model.InitChatAntiprompt(new string[] { "user:" });
     }
 
+    public int Priority => 100;
+
     public async Task GetChatCompletionsAsync(List<RoleDialogModel> conversations,
         Func<string, Task> onChunkReceived)
     {
         string totalResponse = "";
         var prompt = GetInstruction();
-        var content = string.Join("\n ", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
+        var content = string.Join("\n ", conversations.Select(x => $"{x.Role}: {x.Text.Replace("user:", "")}")).Trim();
         content += "\n assistant: ";
         foreach (var response in _model.Chat(content, prompt, "UTF-8"))
         {
@@ -58,7 +57,7 @@ public class ChatCompletionProvider : IServiceZone
                 samples.Add(new RoleDialogModel
                 {
                     Role = role,
-                    Content = content
+                    Text = content
                 });
             }
         }
@@ -76,7 +75,7 @@ public class ChatCompletionProvider : IServiceZone
         instruction += "\n";
         foreach (var message in GetChatSamples())
         {
-            instruction += $"\n{message.Role}: {message.Content}";
+            instruction += $"\n{message.Role}: {message.Text}";
         }
 
         return instruction;
@@ -86,7 +85,7 @@ public class ChatCompletionProvider : IServiceZone
     {
         string output = "";
         var prompt = GetInstruction();
-        var conversations = string.Join("\n ", content.Conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
+        var conversations = string.Join("\n ", content.Conversations.Select(x => $"{x.Role}: {x.Text.Replace("user:", "")}")).Trim();
         conversations += "\n assistant: ";
         foreach (var response in _model.Chat(conversations, prompt, "UTF-8"))
         {

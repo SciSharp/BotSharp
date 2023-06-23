@@ -9,8 +9,12 @@ public static class BotSharpServiceCollectionExtensions
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
         services.AddScoped<IUserService, UserService>();
+
         services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<IChatServiceZone, AgentService>();
+
         services.AddScoped<ISessionService, SessionService>();
+
         services.AddScoped<IConversationService, ConversationService>();
 
         services.AddScoped<ITextChopper, TextChopperService>();

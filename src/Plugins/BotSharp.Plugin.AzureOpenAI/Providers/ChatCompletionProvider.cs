@@ -61,7 +61,7 @@ public class ChatCompletionProvider : IChatCompletion
                 samples.Add(new RoleDialogModel
                 {
                     Role = role,
-                    Content = content
+                    Text = content
                 });
             }
         }
@@ -113,12 +113,12 @@ public class ChatCompletionProvider : IChatCompletion
 
         foreach (var message in GetChatSamples())
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
+            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Text));
         }
 
         foreach (var message in conversations)
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
+            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Text));
         }
 
         return chatCompletionsOptions;

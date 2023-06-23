@@ -1,23 +1,17 @@
-using BotSharp.Abstraction.Infrastructures.ContentTransfers;
-using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
-using BotSharp.Abstraction.Users;
-
 namespace BotSharp.Core.Infrastructures;
 
 public class ContentTransfer : IContentTransfer
 {
     private readonly IServiceProvider _services;
-    private readonly IUserIdentity _user;
 
-    public ContentTransfer(IServiceProvider services, IUserIdentity user)
+    public ContentTransfer(IServiceProvider services)
     {
         _services = services;
-        _user = user;
     }
 
     public async Task<TransportResult> Transport(ContentContainer input)
     {
-        input.UserId = _user.Id;
+        input.Output = new RoleDialogModel();
 
         var result = new TransportResult
         {
@@ -25,12 +19,12 @@ public class ContentTransfer : IContentTransfer
             Messages = new List<string>()
         };
 
-        var zones = _services.GetServices<IServiceZone>();
+        var zones = _services.GetServices<IChatServiceZone>()
+            .OrderBy(x => x.Priority)
+            .ToList();
 
         foreach (var zone in zones)
         {
-            input.Output = null;
-
             try
             {
                 await zone.Serving(input);
