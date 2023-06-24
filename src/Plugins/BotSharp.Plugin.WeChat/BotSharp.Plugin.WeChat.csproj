@@ -20,7 +20,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Senparc.Weixin.MP.MVC" Version="7.12.5.7" />
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Senparc.Weixin.MP.MVC" Version="7.12.7" />
+    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
   </ItemGroup>
 
 </Project>
