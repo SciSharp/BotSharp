@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.ApiAdapters;
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Knowledges.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +7,7 @@ using System.IO;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig;
 
-namespace BotSharp.Core.Knowledges;
+namespace BotSharp.Core.Plugins.Knowledges;
 
 [Authorize]
 [ApiController]
@@ -31,7 +30,7 @@ public class KnowledgeController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/knowledge/{agentId}")]
-    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, [FromForm] string name, List<IFormFile> files)
+    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files)
     {
         long size = files.Sum(f => f.Length);
 
@@ -62,7 +61,6 @@ public class KnowledgeController : ControllerBase, IApiAdapter
             await _knowledgeService.Feed(new KnowledgeFeedModel
             {
                 AgentId = agentId,
-                Name = name,
                 Content = content
             });
         }

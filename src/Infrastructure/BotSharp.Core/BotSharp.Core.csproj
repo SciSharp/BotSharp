@@ -67,7 +67,7 @@
     <PackageReference Include="LLamaSharp" Version="0.3.0" />
     <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.3.0" />
     <PackageReference Include="PdfPig" Version="0.1.8" />
-    <PackageReference Include="TensorFlow.Keras" Version="0.10.5" />
+    <PackageReference Include="TensorFlow.Keras" Version="0.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
   </ItemGroup>
 

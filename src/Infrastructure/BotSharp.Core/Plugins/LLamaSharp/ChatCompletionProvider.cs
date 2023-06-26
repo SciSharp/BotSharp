@@ -1,7 +1,7 @@
 using LLama;
 using System.IO;
 
-namespace BotSharp.Plugins.LLamaSharp;
+namespace BotSharp.Core.Plugins.LLamaSharp;
 
 public class ChatCompletionProvider : IChatServiceZone
 {

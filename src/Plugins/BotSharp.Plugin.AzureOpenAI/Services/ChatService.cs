@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Services;
 
-public class ChatCompletionService : IChatServiceZone
+public class ChatService : IChatServiceZone
 {
     private readonly IChatCompletion _chatCompletion;
 
-    public ChatCompletionService(IChatCompletion chatCompletion)
+    public ChatService(IChatCompletion chatCompletion)
     {
         _chatCompletion = chatCompletion;
     }

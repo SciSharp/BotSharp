@@ -1,25 +1,26 @@
 using BotSharp.Abstraction.Knowledges.Models;
 using System.IO;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.VectorStorage;
 
-namespace BotSharp.Core.Knowledges.Services;
+namespace BotSharp.Core.Plugins.Knowledges.Services;
 
 public class KnowledgeService : IKnowledgeService
 {
-    private readonly ITextEmbedding _textEmbedding;
+    private readonly IServiceProvider _services;
+    private readonly KnowledgeBaseSettings _settings;
     private readonly ITextCompletion _textCompletion;
     private readonly ITextChopper _textChopper;
-    private readonly IVectorDb _db;
-    
-    public KnowledgeService(ITextEmbedding textEmbedding, 
-        ITextCompletion textCompletion, 
-        ITextChopper textChopper,
-        IVectorDb db)
+
+    public KnowledgeService(IServiceProvider services,
+        KnowledgeBaseSettings settings,
+        ITextCompletion textCompletion,
+        ITextChopper textChopper)
     {
-        _textEmbedding = textEmbedding;
+        _services = services;
+        _settings = settings;
         _textCompletion = textCompletion;
         _textChopper = textChopper;
-        _db = db;
     }
 
     public async Task Feed(KnowledgeFeedModel knowledge)
@@ -33,25 +34,30 @@ public class KnowledgeService : IKnowledgeService
 
         // Store chunks in local file system
         var knowledgeStoreDir = Path.Combine("knowledge_chunks", knowledge.AgentId);
-        if(!Directory.Exists(knowledgeStoreDir))
+        if (!Directory.Exists(knowledgeStoreDir))
         {
             Directory.CreateDirectory(knowledgeStoreDir);
         }
 
-        var knowledgePath = Path.Combine(knowledgeStoreDir, knowledge.Name);
+        var knowledgePath = Path.Combine(knowledgeStoreDir, "chuncks");
         File.WriteAllLines(knowledgePath + ".txt", lines);
 
-        await _db.CreateCollection(knowledge.Name, _textEmbedding.Dimension);
+        var db = GetVectorDb();
+        var textEmbedding = GetTextEmbedding();
+
+        await db.CreateCollection(knowledge.AgentId, textEmbedding.Dimension);
         foreach (var line in lines)
         {
-            await _db.Upsert(knowledge.Name, idStart, _textEmbedding.GetVector(line));
+            var vec = textEmbedding.GetVector(line);
+            await db.Upsert(knowledge.AgentId, idStart, vec);
             idStart++;
         }
     }
 
     public async Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel)
     {
-        var vector = _textEmbedding.GetVector(retrievalModel.Question);
+        var textEmbedding = GetTextEmbedding();
+        var vector = textEmbedding.GetVector(retrievalModel.Question);
 
         // Scan local knowledge directory
         var knowledgeName = "";
@@ -64,7 +70,7 @@ public class KnowledgeService : IKnowledgeService
         }
 
         // Vector search
-        var result = await _db.Search(knowledgeName, vector);
+        var result = await GetVectorDb().Search(knowledgeName, vector);
 
         // Restore 
         var prompt = "";
@@ -79,5 +85,19 @@ public class KnowledgeService : IKnowledgeService
 
         var completion = await _textCompletion.GetCompletion(prompt);
         return completion;
+    }
+
+    public IVectorDb GetVectorDb()
+    {
+        var db = _services.GetServices<IVectorDb>()
+            .FirstOrDefault(x => x.GetType().Name == _settings.VectorDb);
+        return db;
+    }
+
+    public ITextEmbedding GetTextEmbedding()
+    {
+        var embedding = _services.GetServices<ITextEmbedding>()
+            .FirstOrDefault(x => x.GetType().Name == _settings.TextEmbedding);
+        return embedding;
     }
 }

@@ -11,12 +11,24 @@ public class AgentRecord : DbRecord, IAgentTable
     [MaxLength(64)]
     public string Name { get; set; } = string.Empty;
 
-    [MaxLength(512)]
-    public string? Description { get; set; }
-
     [Required]
     [MaxLength(36)]
     public string OwnerId { get; set; } = string.Empty;
+
+    [MaxLength(512)]
+    public string Description { get; set; }
+
+    /// <summary>
+    /// Instruction
+    /// </summary>
+    [StringLength(int.MaxValue)]
+    public string Instruction { get; set; }
+
+    /// <summary>
+    /// Samples
+    /// </summary>
+    [StringLength(int.MaxValue)]
+    public string Samples { get; set; }
 
     [Required]
     public DateTime CreatedDateTime { get; set; }

@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Knowledges.Models;
 
-namespace BotSharp.Core.Knowledges.Services;
+namespace BotSharp.Core.Plugins.Knowledges.Services;
 
 public class TextChopperService : ITextChopper
 {
@@ -10,8 +10,8 @@ public class TextChopperService : ITextChopper
         var currentPos = 0;
         while (currentPos < content.Length)
         {
-            var len = content.Length - currentPos > option.Size ? 
-                option.Size : 
+            var len = content.Length - currentPos > option.Size ?
+                option.Size :
                 content.Length - currentPos;
             var chunk = content.Substring(currentPos, len);
             chunks.Add(chunk);

@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Plugins;
+using BotSharp.Abstraction.VectorStorage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

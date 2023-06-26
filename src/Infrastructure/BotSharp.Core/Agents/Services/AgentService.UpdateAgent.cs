@@ -6,6 +6,17 @@ public partial class AgentService
 {
     public async Task UpdateAgent(Agent agent)
     {
-        throw new NotImplementedException();
+        var db = _services.GetRequiredService<AgentDbContext>();
+
+        db.Transaction<IAgentTable>(delegate
+        {
+            var record = db.Agent.FirstOrDefault(x => x.OwnerId == agent.OwerId && x.Id == agent.Id);
+
+            record.Name = agent.Name;
+            record.Description = agent.Description;
+            record.Instruction = agent.Instruction;
+            record.Samples = agent.Samples;
+            record.UpdatedDateTime = DateTime.UtcNow;
+        });
     }
 }
