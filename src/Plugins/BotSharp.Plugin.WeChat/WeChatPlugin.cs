@@ -13,6 +13,10 @@ using System.Text;
 using Senparc.Weixin;
 using Senparc.Weixin.MP;
 using Senparc.Weixin.MP.MessageHandlers.Middleware;
+using Senparc.Weixin.Entities;
+using Senparc.CO2NET.RegisterServices;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace BotSharp.Plugin.WeChat
 {
@@ -23,7 +27,12 @@ namespace BotSharp.Plugin.WeChat
         {
             services.AddMemoryCache();
 
-            services.AddSenparcWeixinServices(config);
+            services.Configure<SenparcWeixinSetting>(config.GetSection("WeChat"));
+
+            if (!Senparc.CO2NET.RegisterServices.RegisterServiceExtension.SenparcGlobalServicesRegistered)
+            {
+                services = services.AddSenparcGlobalServices(config);
+            }
 
             services.AddHostedService<WeChatBackgroundService>();
 
@@ -33,16 +42,20 @@ namespace BotSharp.Plugin.WeChat
         public void Configure(IApplicationBuilder app)
         {
             var env = app.ApplicationServices.GetRequiredService<IHostEnvironment>();
+            var logger = app.ApplicationServices.GetRequiredService<ILogger<WeChatPlugin>>();
+
             var register = app.UseSenparcGlobal(env);
             register.UseSenparcWeixin(null, (svc, settings) =>
             {
                 svc.RegisterMpAccount(settings, "WeChat");
             }, app.ApplicationServices);
 
-            app.UseMessageHandlerForMp("/WeixinAsync", BotSharpMessageHandler.GenerateMessageHandler, options =>
+            app.UseMessageHandlerForMp("/WeChatAsync", BotSharpMessageHandler.GenerateMessageHandler, options =>
             {
                 options.AccountSettingFunc = context => Senparc.Weixin.Config.SenparcWeixinSetting;
             });
+
+            logger.LogInformation("WeChat Message Handler is running on /WeChatAsync.");
 
         }
     }

@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
 using BotSharp.Abstraction.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,23 +14,26 @@ namespace BotSharp.Plugin.WeChat
     public class WeChatBackgroundService : IHostedService, IMessageQueue
     {
         private readonly Channel<WeChatMessage> _queue;
-        private readonly IConversationService _conversationService;
-        private readonly IContentTransfer _contentTransfer;
+        private readonly IServiceProvider _service;
         private readonly ILogger<WeChatBackgroundService> _logger;
 
-        public WeChatBackgroundService(IConversationService conversationService,
-            IContentTransfer contentTransfer,
+        public WeChatBackgroundService(
+            IServiceProvider service,
             ILogger<WeChatBackgroundService> logger)
         {
-            this._conversationService = conversationService;
-            this._contentTransfer = contentTransfer;
+            
+            this._service = service;
             this._logger = logger;
             this._queue = Channel.CreateUnbounded<WeChatMessage>();
         }
 
         private async Task HandleTextMessageAsync(string openid, string message)
         {
-            var conversations = _conversationService.GetDialogHistory(openid);
+            var scoped = _service.CreateScope().ServiceProvider;
+            var conversationService = scoped.GetRequiredService<IConversationService>();
+            var contentTransfer = scoped.GetRequiredService<IContentTransfer>();
+
+            var conversations = conversationService.GetDialogHistory(openid);
             conversations.Add(new RoleDialogModel
             {
                 Role = "User",
@@ -41,13 +45,13 @@ namespace BotSharp.Plugin.WeChat
                 Conversations = conversations
             };
 
-            var result = await _contentTransfer.Transport(container);
+            var result = await contentTransfer.Transport(container);
 
             if (result.IsSuccess)
             {
                 var output = container.Output.Text.Trim();
                 await ReplyTextMessageAsync(openid, output);
-                _conversationService.AddDialog(new RoleDialogModel()
+                conversationService.AddDialog(new RoleDialogModel()
                 {
                     Role = "Assistant",
                     Text = output,
