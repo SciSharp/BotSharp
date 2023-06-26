@@ -18,6 +18,9 @@ namespace BotSharp.Plugin.WeChat
 {
     public class BotSharpMessageHandler : Senparc.Weixin.MP.MessageHandlers.MessageHandler<DefaultMpMessageContext>
     {
+        public static Func<Stream, PostModel, int, IServiceProvider, BotSharpMessageHandler> GenerateMessageHandler = (stream, postModel, maxRecordCount, serviceProvider)
+                         => new BotSharpMessageHandler(stream, postModel, maxRecordCount, false /* 是否只允许处理加密消息，以提高安全性 */, serviceProvider: serviceProvider);
+
         public BotSharpMessageHandler(Stream inputStream, PostModel postModel, int maxRecordCount = 0, bool onlyAllowEncryptMessage = false, DeveloperInfo developerInfo = null, IServiceProvider serviceProvider = null) : base(inputStream, postModel, maxRecordCount, onlyAllowEncryptMessage, developerInfo, serviceProvider)
         {
         }
