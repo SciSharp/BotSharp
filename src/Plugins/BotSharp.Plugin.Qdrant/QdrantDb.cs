@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Knowledges;
+using BotSharp.Abstraction.VectorStorage;
 using QdrantCSharp;
 using QdrantCSharp.Enums;
 using QdrantCSharp.Models;

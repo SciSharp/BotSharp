@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Knowledges;
+using BotSharp.Abstraction.VectorStorage;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

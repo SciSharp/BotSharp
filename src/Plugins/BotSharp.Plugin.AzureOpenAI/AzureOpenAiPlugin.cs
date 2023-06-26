@@ -19,6 +19,6 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
 
         services.AddSingleton<ITextCompletion, TextCompletionProvider>();
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
-        services.AddScoped<IChatServiceZone, ChatCompletionService>();
+        services.AddScoped<IChatServiceZone, ChatService>();
     }
 }

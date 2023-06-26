@@ -11,6 +11,6 @@ public partial class AgentService : IChatServiceZone
     /// <returns></returns>
     public async Task Serving(ContentContainer content)
     {
-        
+
     }
 }

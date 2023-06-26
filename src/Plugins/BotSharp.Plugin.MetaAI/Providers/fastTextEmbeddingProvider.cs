@@ -10,7 +10,17 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     private FastTextWrapper _fastText;
     private readonly fastTextSetting _settings;
 
-    public int Dimension => _fastText.GetModelDimension();
+    public int Dimension
+    {
+        get
+        {
+            if (!_fastText.IsModelReady())
+            {
+                _fastText.LoadModel(_settings.ModelPath);
+            }
+            return _fastText.GetModelDimension();
+        }
+    }
 
     public fastTextEmbeddingProvider(fastTextSetting settings)
     {
@@ -21,15 +31,15 @@ public class fastTextEmbeddingProvider : ITextEmbedding
         {
             throw new FileNotFoundException($"Can't load pre-trained word vectors from {settings.ModelPath}.\n Try to download from https://fasttext.cc/docs/en/english-vectors.html.");
         }
-
-        if (!_fastText.IsModelReady())
-        {
-            _fastText.LoadModel(_settings.ModelPath);
-        }
     }
 
     public float[] GetVector(string text)
     {
+        if (!_fastText.IsModelReady())
+        {
+            _fastText.LoadModel(_settings.ModelPath);
+        }
+
         return _fastText.GetSentenceVector(text);
     }
 }

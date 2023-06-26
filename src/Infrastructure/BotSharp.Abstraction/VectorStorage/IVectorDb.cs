@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Knowledges;
+namespace BotSharp.Abstraction.VectorStorage;
 
 public interface IVectorDb
 {

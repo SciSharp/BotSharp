@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
+using BotSharp.Abstraction.VectorStorage;
 using BotSharp.Plugin.MetaAI.Providers;
 using BotSharp.Plugin.MetaAI.Settings;
 using Microsoft.Extensions.Configuration;

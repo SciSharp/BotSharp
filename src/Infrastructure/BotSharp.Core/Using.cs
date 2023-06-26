@@ -19,6 +19,5 @@ global using BotSharp.Core.Repository.DbTables;
 global using BotSharp.Core.Agents.Services;
 global using BotSharp.Core.Conversations.Services;
 global using BotSharp.Core.Infrastructures;
-global using BotSharp.Core.Knowledges.Services;
 global using BotSharp.Core.Plugins;
 global using BotSharp.Core.Users.Services;

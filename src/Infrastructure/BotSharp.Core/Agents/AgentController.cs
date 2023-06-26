@@ -11,9 +11,11 @@ namespace BotSharp.Core.Agents;
 public class AgentController : ControllerBase, IApiAdapter
 {
     private readonly IAgentService _agentService;
-    public AgentController(IAgentService agentService)
+    private readonly IUserIdentity _user;
+    public AgentController(IAgentService agentService, IUserIdentity user)
     {
         _agentService = agentService;
+        _user = user;
     }
 
     [HttpPost("/agent")]
@@ -21,6 +23,16 @@ public class AgentController : ControllerBase, IApiAdapter
     {
         var createdAgent = await _agentService.CreateAgent(agent.ToAgent());
         return AgentViewModel.FromAgent(createdAgent);
+    }
+
+    [HttpPut("/agent/{agentId}")]
+    public async Task UpdateAgent([FromRoute] string agentId, 
+        [FromBody] AgentUpdateModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        model.OwerId = _user.Id;
+        await _agentService.UpdateAgent(model);
     }
 
     [HttpGet("/agents")]
