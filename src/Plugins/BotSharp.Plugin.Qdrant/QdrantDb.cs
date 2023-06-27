@@ -1,9 +1,12 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.VectorStorage;
+using Microsoft.Extensions.DependencyInjection;
 using QdrantCSharp;
 using QdrantCSharp.Enums;
 using QdrantCSharp.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,9 +16,13 @@ public class QdrantDb : IVectorDb
 {
     private readonly QdrantHttpClient _client;
     private readonly QdrantSetting _setting;
-    public QdrantDb(QdrantSetting setting)
+    private readonly IServiceProvider _services;
+
+    public QdrantDb(QdrantSetting setting,
+        IServiceProvider services)
     {
         _setting = setting;
+        _services = services;
         _client = new QdrantHttpClient
         (
             url: _setting.Url,
@@ -37,6 +44,11 @@ public class QdrantDb : IVectorDb
         {
             // Create a new collection
             await _client.CreateCollection(collectionName, new VectorParams(size: dim, distance: Distance.COSINE));
+
+            var agentService = _services.GetRequiredService<IAgentService>();
+            var agentDataDir = agentService.GetAgentDataDir(collectionName);
+            var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
+            File.WriteAllLines(knowledgePath, new string[0]);
         }
 
         // Get collection info
@@ -47,18 +59,30 @@ public class QdrantDb : IVectorDb
         }
     }
 
-    public async Task Upsert(string collectionName, int id, float[] vector)
+    public async Task Upsert(string collectionName, int id, float[] vector, string text)
     {
         // Insert vectors
         await _client.Upsert(collectionName, points: new List<PointStruct>
         {
             new PointStruct(id: id, vector: vector)
         });
+
+        // Store chunks in local file system
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agentDataDir = agentService.GetAgentDataDir(collectionName);
+        var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
+        File.WriteAllLines(knowledgePath, new string[] { text });
     }
 
-    public async Task<List<int>> Search(string collectionName, float[] vector, int limit = 10)
+    public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 10)
     {
         var result = await _client.Search(collectionName, vector, limit);
-        return result.Result.Select(x => x.Id).ToList();
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agentDataDir = agentService.GetAgentDataDir(collectionName);
+        var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
+        var texts = File.ReadAllLines(knowledgePath);
+
+        return result.Result.Select(x => texts[x.Id]).ToList();
     }
 }

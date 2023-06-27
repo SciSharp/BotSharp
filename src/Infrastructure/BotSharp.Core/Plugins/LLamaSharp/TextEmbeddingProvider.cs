@@ -1,19 +1,25 @@
 using BotSharp.Abstraction.MLTasks;
+using LLama;
+using LLama.Common;
 
 namespace BotSharp.Core.Plugins.LLamaSharp;
 
 public class TextEmbeddingProvider : ITextEmbedding
 {
+    private readonly IServiceProvider _services;
     public int Dimension => throw new NotImplementedException();
-    private readonly LlamaAiModel _llama;
 
-    public TextEmbeddingProvider(LlamaAiModel llama)
+    public TextEmbeddingProvider(IServiceProvider services)
     {
-        _llama = llama;
+        _services = services;
     }
 
     public float[] GetVector(string text)
     {
-        return new float[0];
+        var llama = _services.GetRequiredService<LlamaAiModel>();
+
+        var executor = new LLamaEmbedder(new ModelParams(llama.Settings.ModelPath));
+
+        return executor.GetEmbeddings(text);
     }
 }

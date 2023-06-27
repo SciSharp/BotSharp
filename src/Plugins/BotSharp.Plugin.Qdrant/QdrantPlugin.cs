@@ -13,6 +13,6 @@ public class QdrantPlugin : IBotSharpPlugin
         config.Bind("Qdrant", settings);
         services.AddSingleton(x => settings);
         
-        services.AddSingleton<IVectorDb, QdrantDb>();
+        services.AddScoped<IVectorDb, QdrantDb>();
     }
 }

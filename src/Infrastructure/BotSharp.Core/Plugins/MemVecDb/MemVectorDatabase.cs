@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.VectorStorage;
-using Tensorflow;
+using System.IO;
 using Tensorflow.NumPy;
 
 namespace BotSharp.Core.Plugins.MemVecDb;
@@ -20,7 +20,7 @@ public class MemVectorDatabase : IVectorDb
         return Task.FromResult(_collections.Select(x => x.Key).ToList());
     }
 
-    public Task<List<int>> Search(string collectionName, float[] vector, int limit = 10)
+    public Task<List<string>> Search(string collectionName, float[] vector, int limit = 10)
     {
         var similarities = new float[_vectors[collectionName].Count];
         for (int i = 0; i < _vectors[collectionName].Count; i++)
@@ -28,20 +28,22 @@ public class MemVectorDatabase : IVectorDb
             similarities[i] = CalCosineSimilarity(vector, _vectors[collectionName][i].Vector);
         }
 
-        var indice = np.argsort(similarities).ToArray<int>()
+        var texts = np.argsort(similarities).ToArray<int>()
             .Reverse()
             .Take(limit)
+            .Select(i => _vectors[collectionName][i].Text)
             .ToList();
 
-        return Task.FromResult(indice);
+        return Task.FromResult(texts);
     }
 
-    public Task Upsert(string collectionName, int id, float[] vector)
+    public Task Upsert(string collectionName, int id, float[] vector, string text)
     {
         _vectors[collectionName].Add(new VecRecord
         {
             Id = id,
-            Vector = vector
+            Vector = vector,
+            Text = text
         });
 
         return Task.CompletedTask;

@@ -1,9 +1,12 @@
 using LLama;
+using LLama.Common;
+
 namespace BotSharp.Core.Plugins.LLamaSharp;
 
 public class LlamaAiModel
 {
     private readonly LlamaSharpSettings _settings;
+    public LlamaSharpSettings Settings => _settings;
 
     LLamaModel _model;
 
@@ -22,11 +25,8 @@ public class LlamaAiModel
             return;
         }
 
-        _model = new LLamaModel(new LLamaParams(model: _settings.ModelPath,
-            n_ctx: _settings.MaxContextLength,
-            interactive: _settings.Interactive,
-            repeat_penalty: _settings.RepeatPenalty,
-            verbose_prompt: _settings.VerbosePrompt,
-            n_gpu_layers: _settings.NumberOfGpuLayer));
+        _model = new LLamaModel(new ModelParams(_settings.ModelPath,
+            contextSize: _settings.MaxContextLength,
+            gpuLayerCount: _settings.NumberOfGpuLayer));
     }
 }

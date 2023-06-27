@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Users;
 using BotSharp.Core;
-using BotSharp.Core.Users.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;

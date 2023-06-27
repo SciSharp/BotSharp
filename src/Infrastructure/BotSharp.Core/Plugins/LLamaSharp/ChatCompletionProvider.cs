@@ -2,37 +2,16 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
 using LLama;
-using System.IO;
+using LLama.Common;
 
 namespace BotSharp.Core.Plugins.LLamaSharp;
 
 public class ChatCompletionProvider : IChatCompletion
 {
-    private IChatModel _model;
-
-
-    public ChatCompletionProvider(LlamaAiModel model)
+    private readonly IServiceProvider _services;
+    public ChatCompletionProvider(IServiceProvider services)
     {
-        model.LoadModel();
-        _model = model.Model;
-        // _model.InitChatPrompt(prompt, "UTF-8");
-        // _model.InitChatAntiprompt(new string[] { "user:" });
-    }
-
-    public async Task GetChatCompletionsAsync(List<RoleDialogModel> conversations,
-        Func<string, Task> onChunkReceived)
-    {
-        string totalResponse = "";
-        var content = string.Join("\n ", conversations.Select(x => $"{x.Role}: {x.Text.Replace("user:", "")}")).Trim();
-        content += "\n assistant: ";
-        foreach (var response in _model.Chat(content, "", "UTF-8"))
-        {
-            Console.Write(response);
-            totalResponse += response;
-            await onChunkReceived(response);
-        }
-
-        Console.WriteLine();
+        _services = services;
     }
 
     public Task<string> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations)
@@ -40,12 +19,14 @@ public class ChatCompletionProvider : IChatCompletion
         string totalResponse = "";
         var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Text.Replace("user:", "")}")).Trim();
         content += "\nassistant: ";
-        foreach (var response in _model.Chat(content, agent.Instruction, "UTF-8"))
+
+        var llama = _services.GetRequiredService<LlamaAiModel>();
+        llama.LoadModel();
+        var executor = new StatelessExecutor(llama.Model);
+        var inferenceParams = new InferenceParams() { Temperature = 1.0f, AntiPrompts = new List<string> { "user:" }, MaxTokens = 64 };
+
+        foreach (var response in executor.Infer(agent.Instruction, inferenceParams))
         {
-            if (response == "\n")
-            {
-                break;
-            }
             Console.Write(response);
             totalResponse += response;
         }
