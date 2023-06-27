@@ -18,18 +18,6 @@ public class AgentRecord : DbRecord, IAgentTable
     [MaxLength(512)]
     public string Description { get; set; }
 
-    /// <summary>
-    /// Instruction
-    /// </summary>
-    [StringLength(int.MaxValue)]
-    public string Instruction { get; set; }
-
-    /// <summary>
-    /// Samples
-    /// </summary>
-    [StringLength(int.MaxValue)]
-    public string Samples { get; set; }
-
     [Required]
     public DateTime CreatedDateTime { get; set; }
 

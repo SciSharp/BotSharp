@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
-using BotSharp.Abstraction.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Senparc.NeuChar.App.AppStore;
 using Senparc.NeuChar.Entities;

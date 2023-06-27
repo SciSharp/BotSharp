@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Core.Conversations.ViewModels;
 
-public class SessionViewModel
+public class ConversationViewModel
 {
     public string Id { get; set; }
     public string AgentId { get; set; }
@@ -10,9 +10,9 @@ public class SessionViewModel
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
-    public static SessionViewModel FromSession(Session sess)
+    public static ConversationViewModel FromSession(Conversation sess)
     {
-        return new SessionViewModel
+        return new ConversationViewModel
         {
             Id = sess.Id,
             AgentId = sess.AgentId,

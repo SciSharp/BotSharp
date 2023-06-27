@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Core.Agents.ViewModels;
 using Microsoft.AspNetCore.Authorization;

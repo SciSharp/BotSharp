@@ -21,50 +21,39 @@ public class ConversationController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/conversation/{agentId}")]
-    public async Task<SessionViewModel> NewSession([FromRoute] string agentId)
+    public async Task<ConversationViewModel> NewConversation([FromRoute] string agentId)
     {
-        var service = _services.GetRequiredService<ISessionService>();
-        var sess = new Session
+        var service = _services.GetRequiredService<IConversationService>();
+        var sess = new Conversation
         {
             AgentId = agentId
         };
-        sess = await service.NewSession(sess);
-        return SessionViewModel.FromSession(sess);
+        sess = await service.NewConversation(sess);
+        return ConversationViewModel.FromSession(sess);
     }
 
-    [HttpDelete("/conversation/{agentId}/{sessionId}")]
-    public async Task DeleteSession([FromRoute] string agentId, [FromRoute] string sessionId)
+    [HttpDelete("/conversation/{agentId}/{conversationId}")]
+    public async Task DeleteConversation([FromRoute] string agentId, [FromRoute] string conversationId)
     {
-        var service = _services.GetRequiredService<ISessionService>();
+        var service = _services.GetRequiredService<IConversationService>();
     }
 
-    [HttpPost("/conversation/{agentId}/{sessionId}")]
+    [HttpPost("/conversation/{agentId}/{conversationId}")]
     public async Task<MessageResponseModel> SendMessage([FromRoute] string agentId, 
-        [FromRoute] string sessionId, 
+        [FromRoute] string conversationId, 
         [FromBody] NewMessageModel input)
     {
-        var transmitter = _services.GetRequiredService<IContentTransfer>();
+        var conv = _services.GetRequiredService<IConversationService>();
 
-        var container = new ContentContainer
+        var result = await conv.SendMessage(agentId, conversationId, new RoleDialogModel
         {
-            AgentId = agentId,
-            SessionId = sessionId,
-            Conversations = new List<RoleDialogModel>
-            {
-                new RoleDialogModel
-                {
-                    Role = "user",
-                    Text = input.Text
-                }
-            },
-            UserId = _user.Id
-        };
-
-        var result = await transmitter.Transport(container);
+            Role = "user",
+            Text = input.Text
+        });
 
         return new MessageResponseModel
         {
-            Content = result.IsSuccess ? container.Output.Text : result.Messages.First()
+            Content = result
         };
     }
 }

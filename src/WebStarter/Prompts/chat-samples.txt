@@ -1,2 +1,0 @@
-user: Hi
-assistant: Hello, I'm a AI assistant to help you schedule meeting.

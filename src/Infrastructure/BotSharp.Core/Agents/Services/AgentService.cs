@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService : IAgentService
@@ -9,5 +11,15 @@ public partial class AgentService : IAgentService
     {
         _services = services;
         _user = user;
+    }
+
+    public string GetAgentDataDir(string agentId)
+    {
+        var dir = Path.Combine("data", agentId);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        return dir;
     }
 }

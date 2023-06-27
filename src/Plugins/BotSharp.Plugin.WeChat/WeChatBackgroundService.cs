@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,41 +22,23 @@ namespace BotSharp.Plugin.WeChat
             ILogger<WeChatBackgroundService> logger)
         {
 
-            this._service = service;
-            this._logger = logger;
-            this._queue = Channel.CreateUnbounded<WeChatMessage>();
+            _service = service;
+            _logger = logger;
+            _queue = Channel.CreateUnbounded<WeChatMessage>();
         }
 
         private async Task HandleTextMessageAsync(string openid, string message)
         {
             var scoped = _service.CreateScope().ServiceProvider;
             var conversationService = scoped.GetRequiredService<IConversationService>();
-            var contentTransfer = scoped.GetRequiredService<IContentTransfer>();
 
-            var conversations = conversationService.GetDialogHistory(openid);
-            conversations.Add(new RoleDialogModel
+            var result = await conversationService.SendMessage(openid, Guid.Empty.ToString(), new RoleDialogModel
             {
-                Role = "User",
+                Role = "user",
                 Text = message,
             });
 
-            var container = new ContentContainer
-            {
-                Conversations = conversations
-            };
-
-            var result = await contentTransfer.Transport(container);
-
-            if (result.IsSuccess)
-            {
-                var output = container.Output.Text.Trim();
-                await ReplyTextMessageAsync(openid, output);
-                conversationService.AddDialog(new RoleDialogModel()
-                {
-                    Role = "Assistant",
-                    Text = output,
-                });
-            }
+            await ReplyTextMessageAsync(openid, result);
         }
 
         private async Task ReplyTextMessageAsync(string openid, string content)

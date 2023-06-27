@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.IdGenerators;
 
 namespace BotSharp.Core.Repository.Collections;
 
-public class Conversation : IMongoDbCollection
+public class ConversationCollection : IMongoDbCollection
 {
     [BsonId(IdGenerator = typeof(ObjectIdGenerator))]
     public ObjectId Id { get; set; }
@@ -15,7 +15,7 @@ public class Conversation : IMongoDbCollection
     public string Model { get; set; }
 
     public string Title { get; set; }
-    public List<MessageModel> Messages { get; set; }
+    public List<RoleDialogModel> Messages { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

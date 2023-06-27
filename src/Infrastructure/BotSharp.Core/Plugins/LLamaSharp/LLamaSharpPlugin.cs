@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Plugins.LLamaSharp;
@@ -10,6 +11,6 @@ public class LLamaSharpPlugin : IBotSharpPlugin
         config.Bind("LlamaSharp", llamaSharpSettings);
         services.AddSingleton(x => llamaSharpSettings);
 
-        services.AddScoped<IServiceZone, ChatCompletionProvider>();
+        services.AddScoped<IChatCompletion, ChatCompletionProvider>();
     }
 }

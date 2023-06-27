@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BotSharp.Core.Repository.DbTables;
 
-[Table("Session")]
-public class SessionRecord : DbRecord, IAgentTable
+[Table("Conversation")]
+public class ConversationRecord : DbRecord, IAgentTable
 {
     [Required]
     [MaxLength(36)]
@@ -24,22 +24,22 @@ public class SessionRecord : DbRecord, IAgentTable
     [Required]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
-    public static SessionRecord FromSession(Session sess)
+    public static ConversationRecord FromConversation(Conversation conv)
     {
-        return new SessionRecord
+        return new ConversationRecord
         {
-            AgentId = sess.AgentId,
-            UserId = sess.UserId,
-            Id = sess.Id,
-            Title = sess.Title,
-            CreatedTime = sess.CreatedTime,
-            UpdatedTime = sess.UpdatedTime
+            AgentId = conv.AgentId,
+            UserId = conv.UserId,
+            Id = conv.Id,
+            Title = conv.Title,
+            CreatedTime = conv.CreatedTime,
+            UpdatedTime = conv.UpdatedTime
         };
     }
 
-    public Session ToSession()
+    public Conversation ToConversation()
     {
-        return new Session
+        return new Conversation
         {
             Id = Id,
             Title = Title,

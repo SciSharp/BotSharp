@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
@@ -11,13 +12,13 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<IAgentService, AgentService>();
-        services.AddScoped<IChatServiceZone, AgentService>();
 
-        services.AddScoped<ISessionService, SessionService>();
+        var convsationSettings = new ConversationSetting();
+        config.Bind("Conversation", convsationSettings);
+        services.AddSingleton((IServiceProvider x) => convsationSettings);
 
+        services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
-
-        services.AddScoped<IContentTransfer, ContentTransfer>();
 
         RegisterRepository(services, config);
 
@@ -46,17 +47,11 @@ public static class BotSharpServiceCollectionExtensions
     {
         var databaseSettings = new DatabaseSettings();
         config.Bind("Database", databaseSettings);
-        services.AddSingleton((IServiceProvider x) =>
-        {
-            return databaseSettings;
-        });
+        services.AddSingleton((IServiceProvider x) => databaseSettings);
 
         var myDatabaseSettings = new MyDatabaseSettings();
         config.Bind("Database", myDatabaseSettings);
-        services.AddSingleton((IServiceProvider x) =>
-        {
-            return databaseSettings;
-        });
+        services.AddSingleton((IServiceProvider x) => databaseSettings);
 
         services.AddScoped((IServiceProvider x) =>
         {

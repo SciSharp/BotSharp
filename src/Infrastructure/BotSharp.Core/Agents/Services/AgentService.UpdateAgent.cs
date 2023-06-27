@@ -14,8 +14,6 @@ public partial class AgentService
 
             record.Name = agent.Name;
             record.Description = agent.Description;
-            record.Instruction = agent.Instruction;
-            record.Samples = agent.Samples;
             record.UpdatedDateTime = DateTime.UtcNow;
         });
     }

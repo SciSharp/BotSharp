@@ -1,9 +1,12 @@
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.MLTasks;
 using LLama;
 using System.IO;
 
 namespace BotSharp.Core.Plugins.LLamaSharp;
 
-public class ChatCompletionProvider : IChatServiceZone
+public class ChatCompletionProvider : IChatCompletion
 {
     private readonly IChatModel _model;
     private readonly LlamaSharpSettings _settings;
@@ -40,6 +43,21 @@ public class ChatCompletionProvider : IChatServiceZone
         }
 
         Console.WriteLine();
+    }
+
+    public Task<string> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations)
+    {
+        string totalResponse = "";
+        var prompt = GetInstruction();
+        var content = string.Join("\n ", conversations.Select(x => $"{x.Role}: {x.Text.Replace("user:", "")}")).Trim();
+        content += "\n assistant: ";
+        foreach (var response in _model.Chat(content, prompt, "UTF-8"))
+        {
+            Console.Write(response);
+            totalResponse += response;
+        }
+
+        return Task.FromResult(totalResponse);
     }
 
     public List<RoleDialogModel> GetChatSamples()
@@ -79,20 +97,5 @@ public class ChatCompletionProvider : IChatServiceZone
         }
 
         return instruction;
-    }
-
-    public async Task Serving(ContentContainer content)
-    {
-        string output = "";
-        var prompt = GetInstruction();
-        var conversations = string.Join("\n ", content.Conversations.Select(x => $"{x.Role}: {x.Text.Replace("user:", "")}")).Trim();
-        conversations += "\n assistant: ";
-        foreach (var response in _model.Chat(conversations, prompt, "UTF-8"))
-        {
-            Console.Write(response);
-            output += response;
-        }
-
-        Console.WriteLine();
     }
 }

@@ -9,14 +9,17 @@ public class KnowledgeService : IKnowledgeService
 {
     private readonly IServiceProvider _services;
     private readonly KnowledgeBaseSettings _settings;
+    private readonly IAgentService _agentService;
     private readonly ITextChopper _textChopper;
 
     public KnowledgeService(IServiceProvider services,
         KnowledgeBaseSettings settings,
+        IAgentService agentService,
         ITextChopper textChopper)
     {
         _services = services;
         _settings = settings;
+        _agentService = agentService;
         _textChopper = textChopper;
     }
 
@@ -30,13 +33,8 @@ public class KnowledgeService : IKnowledgeService
         });
 
         // Store chunks in local file system
-        var knowledgeStoreDir = Path.Combine("knowledge_base");
-        if (!Directory.Exists(knowledgeStoreDir))
-        {
-            Directory.CreateDirectory(knowledgeStoreDir);
-        }
-
-        var knowledgePath = Path.Combine(knowledgeStoreDir, knowledge.AgentId + ".txt");
+        var agentDataDir = _agentService.GetAgentDataDir(knowledge.AgentId);
+        var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
         File.WriteAllLines(knowledgePath, lines);
 
         var db = GetVectorDb();
@@ -57,7 +55,8 @@ public class KnowledgeService : IKnowledgeService
         var vector = textEmbedding.GetVector(retrievalModel.Question);
 
         // Scan local knowledge directory
-        var chunks = File.ReadAllLines(Path.Combine("knowledge_base", retrievalModel.AgentId + ".txt"));
+        var agentDataDir = _agentService.GetAgentDataDir(retrievalModel.AgentId);
+        var chunks = File.ReadAllLines(Path.Combine(agentDataDir, "knowledge.txt"));
 
         // Vector search
         var result = await GetVectorDb().Search(retrievalModel.AgentId, vector);

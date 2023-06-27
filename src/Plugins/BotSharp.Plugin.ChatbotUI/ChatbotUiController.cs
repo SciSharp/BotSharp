@@ -13,8 +13,9 @@ using System;
 using Azure.AI.OpenAI;
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Plugin.ChatbotUI.ViewModels;
-using BotSharp.Abstraction.Infrastructures.ContentTransmitters;
 using Microsoft.Extensions.DependencyInjection;
+using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
@@ -64,22 +65,11 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             Text = x.Content
         }).ToList();
 
-        /*await _chatCompletionProvider.GetChatCompletionsAsync(conversations,
-            async content =>
-            {
-                await OnChunkReceived(outputStream, content);
-            });*/
+        var conv = _services.GetRequiredService<IConversationService>();
 
-        var transmitter = _services.GetRequiredService<IContentTransfer>();
+        var result = await conv.SendMessage("", "", conversations.Last());
 
-        var container = new ContentContainer
-        {
-            Conversations = conversations
-        };
-
-        var result = await transmitter.Transport(container);
-
-        await OnChunkReceived(outputStream, container.Output.Text);
+        await OnChunkReceived(outputStream, result);
         await OnEventCompleted(outputStream);
     }
 

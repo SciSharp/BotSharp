@@ -283,12 +283,5 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-/BotSharp.WebHost/App_Data/BotSharp.db
-/BotSharp.UI
-/BotSharp.WebHost/App_Data/Projects
-/BotSharp.WebHost/PublishOutput
-/Data
+data
 /docs/_build
-*.RestApi.xml
-/BotSharp.WebHost/App_Data/AgentStorage
-/BotSharp.WebHost/App_Data/SessionStorage
