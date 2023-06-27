@@ -37,6 +37,8 @@ public static class BotSharpServiceCollectionExtensions
             throw new ArgumentNullException(nameof(app));
         }
 
+        app.ApplicationServices.GetRequiredService<PluginLoader>().Configure(app);
+
         return app;
     }
 
@@ -74,5 +76,7 @@ public static class BotSharpServiceCollectionExtensions
 
         var loader = new PluginLoader(services, config, pluginSettings);
         loader.Load();
+
+        services.AddSingleton(loader);
     }
 }

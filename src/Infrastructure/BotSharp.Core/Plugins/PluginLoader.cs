@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using System.Drawing;
 using System.IO;
@@ -13,7 +14,7 @@ public class PluginLoader
     private readonly PluginLoaderSettings _settings;
     private static List<IBotSharpPlugin> _modules = new List<IBotSharpPlugin>();
 
-    public PluginLoader(IServiceCollection services, 
+    public PluginLoader(IServiceCollection services,
         IConfiguration config,
         PluginLoaderSettings settings)
     {
@@ -56,6 +57,25 @@ public class PluginLoader
             else
             {
                 Console.WriteLine($"Can't find assemble {assemblyPath}.");
+            }
+        });
+    }
+
+    public void Configure(IApplicationBuilder app)
+    {
+        if(_modules.Count == 0)
+        {
+            Console.WriteLine($"No plugin loaded. Please check whether the Load() method is called.", Color.Yellow);
+        }
+
+        _modules.ForEach(module =>
+        {
+            if (module.GetType().GetInterface(nameof(IBotSharpAppPlugin)) != null)
+            {
+                if (_settings.Plugins.Contains(module.GetType().Name))
+                {
+                    (module as IBotSharpAppPlugin).Configure(app);
+                }
             }
         });
     }
