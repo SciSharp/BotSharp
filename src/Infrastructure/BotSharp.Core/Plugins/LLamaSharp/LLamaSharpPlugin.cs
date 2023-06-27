@@ -11,6 +11,8 @@ public class LLamaSharpPlugin : IBotSharpPlugin
         config.Bind("LlamaSharp", llamaSharpSettings);
         services.AddSingleton(x => llamaSharpSettings);
 
+        services.AddSingleton<LlamaAiModel>();
+        services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
     }
 }

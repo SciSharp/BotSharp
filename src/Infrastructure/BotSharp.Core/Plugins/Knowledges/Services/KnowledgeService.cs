@@ -93,7 +93,7 @@ public class KnowledgeService : IKnowledgeService
     public ITextCompletion GetTextCompletion()
     {
         var textCompletion = _services.GetServices<ITextCompletion>()
-            .FirstOrDefault(x => x.GetType().Name == _settings.TextCompletion);
+            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.TextCompletion));
         return textCompletion;
     }
 }

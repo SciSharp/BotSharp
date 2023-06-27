@@ -88,7 +88,7 @@ public class ChatCompletionProvider : IChatCompletion
             }
         }
 
-        return output;
+        return output.Trim();
     }
 
     private ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)

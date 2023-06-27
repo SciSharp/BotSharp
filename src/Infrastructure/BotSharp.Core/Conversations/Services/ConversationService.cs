@@ -85,7 +85,7 @@ public class ConversationService : IConversationService
     public IChatCompletion GetChatCompletion()
     {
         var completions = _services.GetServices<IChatCompletion>();
-        return completions.FirstOrDefault(x => x.GetType().FullName.Contains(_settings.ChatCompletion));
+        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.ChatCompletion));
     }
 
     public Task CleanHistory(string agentId)

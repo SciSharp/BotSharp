@@ -41,7 +41,7 @@ public class TextCompletionProvider : ITextCompletion
             completion += t.Text;
         };
 
-        return completion;
+        return completion.Trim();
     }
 
     private OpenAIClient GetOpenAIClient()
