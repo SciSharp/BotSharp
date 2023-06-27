@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.WeChat
 {
-    public class WeChatBackgroundService : IHostedService, IMessageQueue
+    public class WeChatBackgroundService : BackgroundService, IMessageQueue
     {
         private readonly Channel<WeChatMessage> _queue;
         private readonly IServiceProvider _service;
@@ -21,7 +21,7 @@ namespace BotSharp.Plugin.WeChat
             IServiceProvider service,
             ILogger<WeChatBackgroundService> logger)
         {
-            
+
             this._service = service;
             this._logger = logger;
             this._queue = Channel.CreateUnbounded<WeChatMessage>();
@@ -65,7 +65,12 @@ namespace BotSharp.Plugin.WeChat
             await Senparc.Weixin.MP.AdvancedAPIs.CustomApi.SendTextAsync(appId, openid, content);
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public async Task EnqueueAsync(WeChatMessage message)
+        {
+            await _queue.Writer.WriteAsync(message);
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -79,16 +84,6 @@ namespace BotSharp.Plugin.WeChat
                     _logger.LogError(ex, "Error occurred Handle Message");
                 }
             }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public async Task EnqueueAsync(WeChatMessage message)
-        {
-            await _queue.Writer.WriteAsync(message);
         }
     }
 }

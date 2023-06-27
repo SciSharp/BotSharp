@@ -72,7 +72,10 @@ public class PluginLoader
         {
             if (module.GetType().GetInterface(nameof(IBotSharpAppPlugin)) != null)
             {
-                (module as IBotSharpAppPlugin).Configure(app);
+                if (_settings.Plugins.Contains(module.GetType().Name))
+                {
+                    (module as IBotSharpAppPlugin).Configure(app);
+                }
             }
         });
     }

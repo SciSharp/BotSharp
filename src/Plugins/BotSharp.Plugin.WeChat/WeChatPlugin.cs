@@ -34,7 +34,9 @@ namespace BotSharp.Plugin.WeChat
                 services = services.AddSenparcGlobalServices(config);
             }
 
-            services.AddHostedService<WeChatBackgroundService>();
+            services.AddSingleton<WeChatBackgroundService>();
+
+            services.AddHostedService(s => s.GetRequiredService<WeChatBackgroundService>());
 
             services.TryAddSingleton<IMessageQueue>(s => s.GetRequiredService<WeChatBackgroundService>());
         }
@@ -53,6 +55,8 @@ namespace BotSharp.Plugin.WeChat
             app.UseMessageHandlerForMp("/WeChatAsync", BotSharpMessageHandler.GenerateMessageHandler, options =>
             {
                 options.AccountSettingFunc = context => Senparc.Weixin.Config.SenparcWeixinSetting;
+                options.EnbleResponseLog = false;
+                options.EnableRequestLog = false;
             });
 
             logger.LogInformation("WeChat Message Handler is running on /WeChatAsync.");
