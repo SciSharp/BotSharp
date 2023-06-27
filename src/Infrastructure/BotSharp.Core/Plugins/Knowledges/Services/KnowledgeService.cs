@@ -9,17 +9,14 @@ public class KnowledgeService : IKnowledgeService
 {
     private readonly IServiceProvider _services;
     private readonly KnowledgeBaseSettings _settings;
-    private readonly ITextCompletion _textCompletion;
     private readonly ITextChopper _textChopper;
 
     public KnowledgeService(IServiceProvider services,
         KnowledgeBaseSettings settings,
-        ITextCompletion textCompletion,
         ITextChopper textChopper)
     {
         _services = services;
         _settings = settings;
-        _textCompletion = textCompletion;
         _textChopper = textChopper;
     }
 
@@ -33,14 +30,14 @@ public class KnowledgeService : IKnowledgeService
         });
 
         // Store chunks in local file system
-        var knowledgeStoreDir = Path.Combine("knowledge_chunks", knowledge.AgentId);
+        var knowledgeStoreDir = Path.Combine("knowledge_base");
         if (!Directory.Exists(knowledgeStoreDir))
         {
             Directory.CreateDirectory(knowledgeStoreDir);
         }
 
-        var knowledgePath = Path.Combine(knowledgeStoreDir, "chuncks");
-        File.WriteAllLines(knowledgePath + ".txt", lines);
+        var knowledgePath = Path.Combine(knowledgeStoreDir, knowledge.AgentId + ".txt");
+        File.WriteAllLines(knowledgePath, lines);
 
         var db = GetVectorDb();
         var textEmbedding = GetTextEmbedding();
@@ -60,17 +57,10 @@ public class KnowledgeService : IKnowledgeService
         var vector = textEmbedding.GetVector(retrievalModel.Question);
 
         // Scan local knowledge directory
-        var knowledgeName = "";
-        var chunks = new string[0];
-
-        foreach (var file in Directory.GetFiles(Path.Combine("knowledge_chunks", retrievalModel.AgentId)))
-        {
-            knowledgeName = new FileInfo(file).Name.Split('.').First();
-            chunks = File.ReadAllLines(file);
-        }
+        var chunks = File.ReadAllLines(Path.Combine("knowledge_base", retrievalModel.AgentId + ".txt"));
 
         // Vector search
-        var result = await GetVectorDb().Search(knowledgeName, vector);
+        var result = await GetVectorDb().Search(retrievalModel.AgentId, vector);
 
         // Restore 
         var prompt = "";
@@ -83,7 +73,7 @@ public class KnowledgeService : IKnowledgeService
         prompt += "Answer the user's question based on the content provided above, and your reply should be as concise and organized as possible.\r\n";
         prompt += $"Question: {retrievalModel.Question}\r\nAnswer: ";
 
-        var completion = await _textCompletion.GetCompletion(prompt);
+        var completion = await GetTextCompletion().GetCompletion(prompt);
         return completion;
     }
 
@@ -99,5 +89,12 @@ public class KnowledgeService : IKnowledgeService
         var embedding = _services.GetServices<ITextEmbedding>()
             .FirstOrDefault(x => x.GetType().Name == _settings.TextEmbedding);
         return embedding;
+    }
+
+    public ITextCompletion GetTextCompletion()
+    {
+        var textCompletion = _services.GetServices<ITextCompletion>()
+            .FirstOrDefault(x => x.GetType().Name == _settings.TextCompletion);
+        return textCompletion;
     }
 }
