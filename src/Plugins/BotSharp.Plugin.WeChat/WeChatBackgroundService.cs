@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
@@ -16,6 +17,7 @@ namespace BotSharp.Plugin.WeChat
         private readonly Channel<WeChatMessage> _queue;
         private readonly IServiceProvider _service;
         private readonly ILogger<WeChatBackgroundService> _logger;
+        private string WeChatAppId => Senparc.Weixin.Config.SenparcWeixinSetting.WeixinAppId;
 
         public WeChatBackgroundService(
             IServiceProvider service,
@@ -30,9 +32,10 @@ namespace BotSharp.Plugin.WeChat
         private async Task HandleTextMessageAsync(string openid, string message)
         {
             var scoped = _service.CreateScope().ServiceProvider;
+
             var conversationService = scoped.GetRequiredService<IConversationService>();
 
-            var result = await conversationService.SendMessage(openid, Guid.Empty.ToString(), new RoleDialogModel
+            var result = await conversationService.SendMessage(WeChatAppId, openid, new RoleDialogModel
             {
                 Role = "user",
                 Text = message,
@@ -43,8 +46,7 @@ namespace BotSharp.Plugin.WeChat
 
         private async Task ReplyTextMessageAsync(string openid, string content)
         {
-            var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WeixinAppId;
-            await Senparc.Weixin.MP.AdvancedAPIs.CustomApi.SendTextAsync(appId, openid, content);
+            await Senparc.Weixin.MP.AdvancedAPIs.CustomApi.SendTextAsync(WeChatAppId, openid, content);
         }
 
         public async Task EnqueueAsync(WeChatMessage message)
