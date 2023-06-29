@@ -93,14 +93,18 @@ public class ChatCompletionProvider : IChatCompletion
 
     private ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var chatCompletionsOptions = new ChatCompletionsOptions()
-        {
-            Messages =
-            {
-                new ChatMessage(ChatRole.System, agent.Instruction)
-            }
-        };
+        var chatCompletionsOptions = new ChatCompletionsOptions();
 
+        if (!string.IsNullOrEmpty(agent.Instruction))
+        {
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, agent.Instruction));
+        }
+
+        if (!string.IsNullOrEmpty(agent.Knowledges))
+        {
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, agent.Knowledges));
+        }
+        
         foreach (var message in GetChatSamples(agent.Samples))
         {
             chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Text));

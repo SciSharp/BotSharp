@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -76,8 +77,20 @@ public class ConversationService : IConversationService
     public async Task<string> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs)
     {
         var agent = await _services.GetRequiredService<IAgentService>().GetAgent(agentId);
-        var chat = GetChatCompletion();
-        var response = await chat.GetChatCompletionsAsync(agent, wholeDialogs);
+
+        // Get relevant domain knowledge
+        if (_settings.EnableKnowledgeBase)
+        {
+            var knowledge = _services.GetRequiredService<IKnowledgeService>();
+            agent.Knowledges = await knowledge.GetKnowledges(new KnowledgeRetrievalModel
+            {
+                AgentId = agentId,
+                Question = string.Join("\n", wholeDialogs.Select(x => x.Text))
+            });
+        }
+
+        var chatCompletion = GetChatCompletion();
+        var response = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs);
         
         return response;
     }
