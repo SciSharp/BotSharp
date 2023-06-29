@@ -62,19 +62,19 @@ public class QdrantDb : IVectorDb
     public async Task Upsert(string collectionName, int id, float[] vector, string text)
     {
         // Insert vectors
-        await _client.Upsert(collectionName, points: new List<PointStruct>
+        /*await _client.Upsert(collectionName, points: new List<PointStruct>
         {
             new PointStruct(id: id, vector: vector)
-        });
+        });*/
 
         // Store chunks in local file system
         var agentService = _services.GetRequiredService<IAgentService>();
         var agentDataDir = agentService.GetAgentDataDir(collectionName);
         var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
-        File.WriteAllLines(knowledgePath, new string[] { text });
+        File.AppendAllLines(knowledgePath, new[] { text });
     }
 
-    public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 10)
+    public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
     {
         var result = await _client.Search(collectionName, vector, limit);
 

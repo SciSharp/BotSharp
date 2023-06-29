@@ -3,12 +3,14 @@ namespace BotSharp.Abstraction.Knowledges.Models;
 public class ChunkOption
 {
     /// <summary>
-    /// Chunk size
+    /// Max chunk character size
     /// </summary>
     public int Size { get; set; }
 
     /// <summary>
-    /// Overlap length in between two chunks
+    /// Overlap word count in between two chunks
     /// </summary>
     public int Conjunction { get; set; }
+
+    public bool SplitByWord { get; set; }
 }

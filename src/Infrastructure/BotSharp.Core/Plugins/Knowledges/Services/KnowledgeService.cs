@@ -25,7 +25,8 @@ public class KnowledgeService : IKnowledgeService
         var lines = _textChopper.Chop(knowledge.Content, new ChunkOption
         {
             Size = 256,
-            Conjunction = 32
+            Conjunction = 5,
+            SplitByWord = true,
         });
 
         var db = GetVectorDb();
@@ -40,23 +41,24 @@ public class KnowledgeService : IKnowledgeService
         }
     }
 
-    public async Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel)
+    public async Task<string> GetKnowledges(KnowledgeRetrievalModel retrievalModel)
     {
         var textEmbedding = GetTextEmbedding();
         var vector = textEmbedding.GetVector(retrievalModel.Question);
 
         // Vector search
-        var result = await GetVectorDb().Search(retrievalModel.AgentId, vector);
+        var result = await GetVectorDb().Search(retrievalModel.AgentId, vector, limit: 10);
 
         // Restore 
-        var prompt = "";
-        foreach (var knowledge in result)
-        {
-            prompt += knowledge + "\n";
-        }
+        return "### Helpful domain knowledges:\r\n" + string.Join("\n", result.Select((x, i) => $"{i + 1}: {x}"));
+    }
 
-        prompt += "\r\n###\r\n";
-        prompt += "Answer the user's question based on the content provided above, and your reply should be as concise and organized as possible.\r\n";
+    public async Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel)
+    {
+        // Restore 
+        var prompt = await GetKnowledges(retrievalModel);
+
+        prompt += "\r\n### Answer user's question by utilizing the helpful domain knowledges above.\r\n";
         prompt += $"\r\nQuestion: {retrievalModel.Question}\r\nAnswer: ";
 
         var completion = await GetTextCompletion().GetCompletion(prompt);

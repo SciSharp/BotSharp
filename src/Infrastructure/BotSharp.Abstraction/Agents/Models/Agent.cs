@@ -19,6 +19,11 @@ public class Agent
     public string Samples { get; set; }
 
     /// <summary>
+    /// Domain knowledges
+    /// </summary>
+    public string Knowledges { get; set;}
+
+    /// <summary>
     /// Owner user id
     /// </summary>
     public string OwerId { get; set; } = string.Empty;
