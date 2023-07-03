@@ -2,6 +2,9 @@ using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Users;
+using BotSharp.Abstraction.Users.Models;
+using BotSharp.Plugin.WeChat.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,20 +42,18 @@ namespace BotSharp.Plugin.WeChat
         private async Task HandleTextMessageAsync(string openid, string message)
         {
             var scoped = _service.CreateScope().ServiceProvider;
-            var context = scoped.GetService<IHttpContextAccessor>();
-            context.HttpContext = new DefaultHttpContext();
-            context.HttpContext.User = new ClaimsPrincipal(
-            new ClaimsIdentity(new List<Claim>() { new Claim(ClaimTypes.NameIdentifier, openid) }));
 
+            var user = await GetWeChatAccountUserAsync(openid, scoped);
+            BindWeChatAccountUser(user, scoped);
 
             var conversationService = scoped.GetRequiredService<IConversationService>();
 
             var latestConversationId = (await conversationService.GetConversations()).OrderByDescending(_ => _.CreatedTime).FirstOrDefault()?.Id;
 
             latestConversationId ??= (await conversationService.NewConversation(new Conversation()
-                {
-                    UserId = openid,
-                    AgentId = AgentId
+            {
+                UserId = openid,
+                AgentId = AgentId
             }))?.Id;
 
             var result = await conversationService.SendMessage(AgentId, latestConversationId, new RoleDialogModel
@@ -62,6 +63,31 @@ namespace BotSharp.Plugin.WeChat
             });
 
             await ReplyTextMessageAsync(openid, result);
+        }
+
+        private async Task<User> GetWeChatAccountUserAsync(string openId, IServiceProvider service)
+        {
+            var userService = service.GetRequiredService<IWeChatAccountUserService>();
+
+            return await userService.GetOrCreateWeChatAccountUserAsync(WeChatAppId, openId);
+        }
+        private void BindWeChatAccountUser(User user,IServiceProvider service)
+        {
+            var context = service.GetService<IHttpContextAccessor>();
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
+
+            if (!string.IsNullOrWhiteSpace(user.Email))
+            {
+                claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            }
+
+            context.HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+            };
         }
 
         private async Task ReplyTextMessageAsync(string openid, string content)

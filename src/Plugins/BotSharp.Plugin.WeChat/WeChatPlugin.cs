@@ -18,6 +18,7 @@ using Senparc.CO2NET.RegisterServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using BotSharp.Abstraction.Users;
+using BotSharp.Plugin.WeChat.Users;
 
 namespace BotSharp.Plugin.WeChat
 {
@@ -26,6 +27,8 @@ namespace BotSharp.Plugin.WeChat
     {
         public void RegisterDI(IServiceCollection services, IConfiguration config)
         {
+            services.AddScoped<IWeChatAccountUserService,WeChatAccountUserService> ();
+
             services.AddMemoryCache();
 
             services.Configure<SenparcWeixinSetting>(config.GetSection("WeChat"));

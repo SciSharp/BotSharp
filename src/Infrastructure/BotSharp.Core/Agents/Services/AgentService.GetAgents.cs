@@ -18,7 +18,7 @@ public partial class AgentService
     {
         var db = _services.GetRequiredService<AgentDbContext>();
         var query = from agent in db.Agent
-                    where agent.OwnerId == _user.Id && agent.Id == id
+                    where agent.Id == id
                     select agent.ToAgent();
 
         var profile = query.FirstOrDefault();
