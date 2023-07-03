@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Users;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Core.Repository;
-using BotSharp.Plugin.WeChat.Repository.DbTables;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
