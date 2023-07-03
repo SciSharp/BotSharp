@@ -2,10 +2,16 @@ using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Senparc.Weixin.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -18,6 +24,7 @@ namespace BotSharp.Plugin.WeChat
         private readonly IServiceProvider _service;
         private readonly ILogger<WeChatBackgroundService> _logger;
         private string WeChatAppId => Senparc.Weixin.Config.SenparcWeixinSetting.WeixinAppId;
+        public static string AgentId { get; set; }
 
         public WeChatBackgroundService(
             IServiceProvider service,
@@ -32,10 +39,23 @@ namespace BotSharp.Plugin.WeChat
         private async Task HandleTextMessageAsync(string openid, string message)
         {
             var scoped = _service.CreateScope().ServiceProvider;
+            var context = scoped.GetService<IHttpContextAccessor>();
+            context.HttpContext = new DefaultHttpContext();
+            context.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(new List<Claim>() { new Claim(ClaimTypes.NameIdentifier, openid) }));
+
 
             var conversationService = scoped.GetRequiredService<IConversationService>();
 
-            var result = await conversationService.SendMessage(WeChatAppId, openid, new RoleDialogModel
+            var latestConversationId = (await conversationService.GetConversations()).OrderByDescending(_ => _.CreatedTime).FirstOrDefault()?.Id;
+
+            latestConversationId ??= (await conversationService.NewConversation(new Conversation()
+                {
+                    UserId = openid,
+                    AgentId = AgentId
+            }))?.Id;
+
+            var result = await conversationService.SendMessage(AgentId, latestConversationId, new RoleDialogModel
             {
                 Role = "user",
                 Text = message,

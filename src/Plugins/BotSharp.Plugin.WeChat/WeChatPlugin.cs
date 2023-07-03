@@ -17,6 +17,7 @@ using Senparc.Weixin.Entities;
 using Senparc.CO2NET.RegisterServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
+using BotSharp.Abstraction.Users;
 
 namespace BotSharp.Plugin.WeChat
 {
@@ -33,9 +34,10 @@ namespace BotSharp.Plugin.WeChat
             {
                 services = services.AddSenparcGlobalServices(config);
             }
+            WeChatBackgroundService.AgentId = config["WeChat:AgentId"];
 
             services.AddSingleton<WeChatBackgroundService>();
-
+            
             services.AddHostedService(s => s.GetRequiredService<WeChatBackgroundService>());
 
             services.TryAddSingleton<IMessageQueue>(s => s.GetRequiredService<WeChatBackgroundService>());

@@ -14,9 +14,11 @@ namespace BotSharp.Plugin.WeChat.Repository.DbTables
         [Required]
         [MaxLength(18)]
         public string WeChatAppId { get; set; }
+
         [Required]
         [MaxLength(36)]
         public string WeChatOpenId { get; set; }
+
         [Required]
         [MaxLength(36)]
         public string UserId { get; set; }
