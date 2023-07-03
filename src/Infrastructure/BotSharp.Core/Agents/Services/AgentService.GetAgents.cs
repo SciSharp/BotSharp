@@ -24,8 +24,17 @@ public partial class AgentService
         var profile = query.FirstOrDefault();
         var dir = GetAgentDataDir(id);
 
-        profile.Instruction = File.ReadAllText(Path.Combine(dir, "instruction.txt"));
-        profile.Samples = File.ReadAllText(Path.Combine(dir, "samples.txt"));
+        var instructionFile = Path.Combine(dir, "instruction.txt");
+        if (File.Exists(instructionFile))
+        {
+            profile.Instruction = File.ReadAllText(instructionFile);
+        }
+
+        var samplesFile = Path.Combine(dir, "samples.txt");
+        if (File.Exists(samplesFile))
+        {
+            profile.Samples = File.ReadAllText(Path.Combine(dir, "samples.txt"));
+        }
 
         return profile;
     }

@@ -1,10 +1,41 @@
 using BotSharp.Abstraction.Knowledges.Models;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Plugins.Knowledges.Services;
 
 public class TextChopperService : ITextChopper
 {
     public List<string> Chop(string content, ChunkOption option)
+    {
+        content = Regex.Replace(content, @"\.{2,}", " ");
+        content = Regex.Replace(content, @"_{2,}", " ");
+        return option.SplitByWord ? ChopByWord(content, option) : ChopByChar(content, option);
+    }
+
+    private List<string> ChopByWord(string content, ChunkOption option)
+    {
+        var chunks = new List<string>();
+
+        var words = content.Split(' ')
+            .Where(x => !string.IsNullOrEmpty(x))
+            .ToList();
+
+        var chunk = "";
+        for (int i = 0; i < words.Count; i++)
+        {
+            chunk += words[i] + " ";
+            if (chunk.Length > option.Size)
+            {
+                chunks.Add(chunk.Trim());
+                chunk = "";
+                i -= option.Conjunction;
+            }
+        }
+
+        return chunks;
+    }
+
+    private List<string> ChopByChar(string content, ChunkOption option)
     {
         var chunks = new List<string>();
         var currentPos = 0;

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -16,5 +17,13 @@ public partial class AgentService
             record.Description = agent.Description;
             record.UpdatedDateTime = DateTime.UtcNow;
         });
+
+        // Save instruction to file
+        var dir = GetAgentDataDir(agent.Id);
+        var instructionFile = Path.Combine(dir, "instruction.txt");
+        File.WriteAllText(instructionFile, agent.Instruction);
+
+        var samplesFile = Path.Combine(dir, "samples.txt");
+        File.WriteAllText(samplesFile, agent.Samples);
     }
 }
