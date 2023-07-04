@@ -1,47 +1,45 @@
-# botsharp-channel-weixin
-A channel module of BotSharp for Tencent Weixin
+# botsharp-plugin-wechat
 
-### How to install through NuGet
-
-```
-PM> Install-Package BotSharp.Channel.Weixin
-```
+A channel plugin of BotSharp for Tencent WeChat
 
 ### How to run locally
 ```
-git clone https://github.com/dotnetcore/BotSharp
+git clone https://github.com/SciSharp/BotSharp
 ```
 
-Check app.json to use DialogflowAi
+Check appsettings.json to import module
 ```
 {
-  "version": "0.1.0",
-  "assemblies": "BotSharp.Core",
-
-  "platformModuleName": "DialogflowAi"
-}
-```
-
-Update channels.weixin.json to set the corresponding KEY
-```
-{
-  "weixinChannel": {
-    "token": "botsharp",
-    "encodingAESKey": "",
-    "appId": "",
-    "agentId": "60bee6f9-ba58-4fe8-8b95-94af69d6fd41"
+  "PluginLoader": {
+    "Assemblies": [
+      ...
+      "BotSharp.Plugin.WeChat"
+    ],
+    "Plugins": [
+      ...
+      "WeChatPlugin"
+    ]
   }
 }
 ```
 
-F5 run BotSharp.WebHost
+Update appsettings.json to set the corresponding KEY
+```
+{
+   "WeChat": {
+    "AgentId": "437bed34-1169-4833-95ce-c24b8b56154a",
+    "Token": "#{Token}#",
+    "EncodingAESKey": "#{EncodingAESKey}#",
+    "WeixinAppId": "#{WeixinAppId}#",
+    "WeixinAppSecret": "#{WeixinAppSecret}#"
+  }
+}
+```
 
-Access http://localhost:3112
+Update WeChat WebHook form https://mp.weixin.qq.com/ ,set as `https://{HOST}/WeChatAsync`
 
-Import demo (Spotify.zip) agent located at App_Data
+F5 run WebStarter
 
-Train agent (id: 60bee6f9-ba58-4fe8-8b95-94af69d6fd41)
+Access http://localhost:5500
 
-Or refer [BotSharp docs](https://botsharp.readthedocs.io) to design your new chatbot.
-
-Setup Wechat webhood from https://mp.weixin.qq.com/.
+If you are debugging and developing locally, you can use an intranet penetration tool to receive WeChat message push. It is recommended to use the Dev Tunnels of VS.

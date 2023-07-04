@@ -1,10 +1,20 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Users;
+using BotSharp.Abstraction.Users.Models;
+using BotSharp.Plugin.WeChat.Users;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Senparc.Weixin.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -16,6 +26,8 @@ namespace BotSharp.Plugin.WeChat
         private readonly Channel<WeChatMessage> _queue;
         private readonly IServiceProvider _service;
         private readonly ILogger<WeChatBackgroundService> _logger;
+        private string WeChatAppId => Senparc.Weixin.Config.SenparcWeixinSetting.WeixinAppId;
+        public static string AgentId { get; set; }
 
         public WeChatBackgroundService(
             IServiceProvider service,
@@ -30,9 +42,21 @@ namespace BotSharp.Plugin.WeChat
         private async Task HandleTextMessageAsync(string openid, string message)
         {
             var scoped = _service.CreateScope().ServiceProvider;
+
+            var user = await GetWeChatAccountUserAsync(openid, scoped);
+            BindWeChatAccountUser(user, scoped);
+
             var conversationService = scoped.GetRequiredService<IConversationService>();
 
-            var result = await conversationService.SendMessage(openid, Guid.Empty.ToString(), new RoleDialogModel
+            var latestConversationId = (await conversationService.GetConversations()).OrderByDescending(_ => _.CreatedTime).FirstOrDefault()?.Id;
+
+            latestConversationId ??= (await conversationService.NewConversation(new Conversation()
+            {
+                UserId = openid,
+                AgentId = AgentId
+            }))?.Id;
+
+            var result = await conversationService.SendMessage(AgentId, latestConversationId, new RoleDialogModel
             {
                 Role = "user",
                 Text = message,
@@ -41,10 +65,34 @@ namespace BotSharp.Plugin.WeChat
             await ReplyTextMessageAsync(openid, result);
         }
 
+        private async Task<User> GetWeChatAccountUserAsync(string openId, IServiceProvider service)
+        {
+            var userService = service.GetRequiredService<IWeChatAccountUserService>();
+
+            return await userService.GetOrCreateWeChatAccountUserAsync(WeChatAppId, openId);
+        }
+        private void BindWeChatAccountUser(User user,IServiceProvider service)
+        {
+            var context = service.GetService<IHttpContextAccessor>();
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
+
+            if (!string.IsNullOrWhiteSpace(user.Email))
+            {
+                claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            }
+
+            context.HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+            };
+        }
+
         private async Task ReplyTextMessageAsync(string openid, string content)
         {
-            var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WeixinAppId;
-            await Senparc.Weixin.MP.AdvancedAPIs.CustomApi.SendTextAsync(appId, openid, content);
+            await Senparc.Weixin.MP.AdvancedAPIs.CustomApi.SendTextAsync(WeChatAppId, openid, content);
         }
 
         public async Task EnqueueAsync(WeChatMessage message)

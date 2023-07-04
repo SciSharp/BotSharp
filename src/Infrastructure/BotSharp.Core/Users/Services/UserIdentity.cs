@@ -14,12 +14,12 @@ public class UserIdentity : IUserIdentity
         _contextAccessor = contextAccessor;
     }
 
-    public string Id => _claims.First(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
 
+    public string Id => _claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
 
-    public string Email => _claims.First(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;
+    public string Email => _claims.First(x => x.Type == ClaimTypes.Email).Value;
 
-    public string FirstName => _claims.First(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname").Value;
+    public string FirstName => _claims.First(x => x.Type == ClaimTypes.GivenName).Value;
 
-    public string LastName => _claims.First(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname").Value;
+    public string LastName => _claims.First(x => x.Type == ClaimTypes.Surname).Value;
 }
