@@ -59,7 +59,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
-        var conversations = input.Messages.Skip(1).Select(x => new RoleDialogModel
+        var conversations = input.Messages.Select(x => new RoleDialogModel
         {
             Role = x.Role,
             Text = x.Content
@@ -67,7 +67,15 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
 
         var conv = _services.GetRequiredService<IConversationService>();
 
-        var result = await conv.SendMessage("", "", conversations.Last());
+        // Check if this conversation exists
+        var converation = await conv.GetConversation(input.ConversationId);
+        var sess = new Conversation
+        {
+            AgentId = input.AgentId
+        };
+        sess = await conv.NewConversation(sess);
+
+        var result = await conv.SendMessage(input.AgentId, input.ConversationId, conversations);
 
         await OnChunkReceived(outputStream, result);
         await OnEventCompleted(outputStream);

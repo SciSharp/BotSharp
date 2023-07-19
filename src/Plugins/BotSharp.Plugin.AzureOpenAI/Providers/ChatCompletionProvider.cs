@@ -51,11 +51,11 @@ public class ChatCompletionProvider : IChatCompletion
         if (!string.IsNullOrEmpty(sampleText))
         {
             var lines = sampleText.Split('\n');
-            for (int i = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i += 3)
             {
                 var line = lines[i];
-                var role = line.Substring(0, line.IndexOf(' ') - 1);
-                var content = line.Substring(line.IndexOf(' ') + 1);
+                var role = line.Substring(0, line.IndexOf(' ') - 1).Trim();
+                var content = line.Substring(line.IndexOf(' ') + 1).Trim();
 
                 samples.Add(new RoleDialogModel
                 {

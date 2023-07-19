@@ -4,6 +4,10 @@ namespace BotSharp.Abstraction.Conversations;
 
 public interface IConversationCompletionHook
 {
-    Task BeforeCompletion(Agent agent, List<RoleDialogModel> conversations);
-    Task<string> AfterCompletion(Agent agent, string response);
+    Agent Agent { get; }
+    Conversation Conversation { get; }
+    List<RoleDialogModel> Dialogs { get; }
+    IConversationCompletionHook SetContexts(Agent agent, Conversation conversation, List<RoleDialogModel> dialogs);
+    Task BeforeCompletion();
+    Task<string> AfterCompletion(string response);
 }
