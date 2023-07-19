@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-
 namespace BotSharp.Abstraction.Agents;
 
 /// <summary>

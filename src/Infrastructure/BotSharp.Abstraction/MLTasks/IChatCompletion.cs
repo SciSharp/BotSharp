@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Abstraction.MLTasks;

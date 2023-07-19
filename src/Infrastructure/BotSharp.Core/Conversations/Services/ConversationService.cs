@@ -90,8 +90,20 @@ public class ConversationService : IConversationService
         }
 
         var chatCompletion = GetChatCompletion();
-        var response = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs);
+
+        // Before chat completion hook
+        var hooks = _services.GetServices<IConversationCompletionHook>().ToList();
+
+        hooks.ForEach(hook => hook.BeforeCompletion(agent, wholeDialogs));
         
+        var response = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs);
+
+        // After chat completion hook
+        hooks.ForEach(async hook =>
+        {
+            response = await hook.AfterCompletion(agent, response);
+        });
+
         return response;
     }
 
