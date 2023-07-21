@@ -1,4 +1,4 @@
-using Azure.AI.OpenAI;
+using BotSharp.Abstraction.Conversations.Models;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 
@@ -9,5 +9,5 @@ public class OpenAiChoice
     [JsonPropertyName("finish_reason")]
     [JsonProperty("finish_reason")]
     public string FinishReason { get; set; }
-    public ChatMessage Delta { get; set; }
+    public RoleDialogModel Delta { get; set; }
 }

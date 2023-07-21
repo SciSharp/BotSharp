@@ -14,7 +14,7 @@ public class ConversationStorage : IConversationStorage
     public void Append(string agentId, string conversationId, RoleDialogModel dialog)
     {
         var conversationFile = GetStorageFile(agentId, conversationId);
-        File.AppendAllText(conversationFile, $"{dialog.Role}: {dialog.Text}\n");
+        File.AppendAllText(conversationFile, $"{dialog.Role}: {dialog.Content}\n");
     }
 
     public List<RoleDialogModel> GetDialogs(string agentId, string conversationId)

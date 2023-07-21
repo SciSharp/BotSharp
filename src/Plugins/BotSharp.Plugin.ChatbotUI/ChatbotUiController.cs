@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using Azure.AI.OpenAI;
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Plugin.ChatbotUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,7 +93,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             {
                 new OpenAiChoice
                 {
-                    Delta = new ChatMessage(ChatRole.Assistant, content)
+                    Delta = new RoleDialogModel("assistant", content)
                 }
             }
         };

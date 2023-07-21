@@ -23,7 +23,7 @@ public class UserService : IUserService
 
     public async Task<User> CreateUser(User user)
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var record = db.User.FirstOrDefault(x => x.Email == user.Email.ToLower());
         if (record != null)
         {
@@ -36,9 +36,9 @@ public class UserService : IUserService
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
 
-        db.Transaction<IAgentTable>(delegate
+        db.Transaction<IBotSharpTable>(delegate
         {
-            db.Add<IAgentTable>(record);
+            db.Add<IBotSharpTable>(record);
         });
 
         return record.ToUser();
@@ -49,7 +49,7 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (userEmail, password) = base64.SplitAsTuple(":");
 
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var record = db.User.FirstOrDefault(x => x.Email == userEmail);
         if (record == null)
         {
@@ -104,7 +104,7 @@ public class UserService : IUserService
     {
         var userId = _user.Id;
 
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var user = (from u in db.User
                     where u.Id == userId
                     select new User

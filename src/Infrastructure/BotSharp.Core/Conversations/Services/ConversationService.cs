@@ -30,7 +30,7 @@ public class ConversationService : IConversationService
 
     public async Task<Conversation> GetConversation(string id)
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var query = from sess in db.Conversation
                     where sess.Id == id
                     orderby sess.CreatedTime descending
@@ -40,7 +40,7 @@ public class ConversationService : IConversationService
 
     public async Task<List<Conversation>> GetConversations()
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var query = from sess in db.Conversation
                     where sess.UserId == _user.Id
                     orderby sess.CreatedTime descending
@@ -50,16 +50,16 @@ public class ConversationService : IConversationService
 
     public async Task<Conversation> NewConversation(Conversation sess)
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
 
         var record = ConversationRecord.FromConversation(sess);
         record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         record.UserId = sess.UserId.IfNullOrEmptyAs(_user.Id);
         record.Title = "New Conversation";
 
-        db.Transaction<IAgentTable>(delegate
+        db.Transaction<IBotSharpTable>(delegate
         {
-            db.Add<IAgentTable>(record);
+            db.Add<IBotSharpTable>(record);
         });
 
         _storage.InitStorage(sess.AgentId, record.Id);
@@ -92,7 +92,7 @@ public class ConversationService : IConversationService
             agent.Knowledges = await knowledge.GetKnowledges(new KnowledgeRetrievalModel
             {
                 AgentId = agentId,
-                Question = string.Join("\n", wholeDialogs.Select(x => x.Text))
+                Question = string.Join("\n", wholeDialogs.Select(x => x.Content))
             });
         }
 
@@ -110,7 +110,7 @@ public class ConversationService : IConversationService
                 .BeforeCompletion();
         });
         
-        var response = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs);
+        var response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, wholeDialogs);
 
         // After chat completion hook
         hooks.ForEach(async hook =>

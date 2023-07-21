@@ -19,3 +19,5 @@ global using BotSharp.Core.Conversations.Services;
 global using BotSharp.Core.Infrastructures;
 global using BotSharp.Core.Plugins;
 global using BotSharp.Core.Users.Services;
+global using BotSharp.Abstraction.Agents.Settings;
+global using BotSharp.Abstraction.Conversations.Settings;

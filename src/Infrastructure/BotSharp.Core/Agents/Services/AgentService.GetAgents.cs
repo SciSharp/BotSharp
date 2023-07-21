@@ -7,7 +7,7 @@ public partial class AgentService
 {
     public async Task<List<Agent>> GetAgents()
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var query = from agent in db.Agent
                     where agent.OwnerId == _user.Id
                     select agent.ToAgent();
@@ -16,7 +16,7 @@ public partial class AgentService
 
     public async Task<Agent> GetAgent(string id)
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var query = from agent in db.Agent
                     where agent.Id == id
                     select agent.ToAgent();

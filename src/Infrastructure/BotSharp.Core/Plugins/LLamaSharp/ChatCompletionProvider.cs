@@ -14,10 +14,15 @@ public class ChatCompletionProvider : IChatCompletion
         _services = services;
     }
 
-    public Task<string> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations)
+    public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         string totalResponse = "";
-        var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Text.Replace("user:", "")}")).Trim();
+        var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
         content += "\nassistant: ";
 
         var llama = _services.GetRequiredService<LlamaAiModel>();
