@@ -26,6 +26,7 @@ public class ConversationController : ControllerBase, IApiAdapter
         var service = _services.GetRequiredService<IConversationService>();
         var sess = new Conversation
         {
+            UserId = _user.Id,
             AgentId = agentId
         };
         sess = await service.NewConversation(sess);
@@ -49,7 +50,7 @@ public class ConversationController : ControllerBase, IApiAdapter
 
         return new MessageResponseModel
         {
-            Content = result
+            Text = result
         };
     }
 }

@@ -53,8 +53,8 @@ public class ConversationService : IConversationService
         var db = _services.GetRequiredService<AgentDbContext>();
 
         var record = ConversationRecord.FromConversation(sess);
-        record.Id = sess.Id ?? Guid.NewGuid().ToString();
-        record.UserId = sess.UserId ?? _user.Id;
+        record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        record.UserId = sess.UserId.IfNullOrEmptyAs(_user.Id);
         record.Title = "New Conversation";
 
         db.Transaction<IAgentTable>(delegate

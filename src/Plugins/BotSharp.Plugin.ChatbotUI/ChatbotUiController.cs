@@ -16,9 +16,11 @@ using BotSharp.Plugin.ChatbotUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
+[Authorize]
 [ApiController]
 public class ChatbotUiController : ControllerBase, IApiAdapter
 {
@@ -72,7 +74,6 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             var sess = new Conversation
             {
                 Id = input.ConversationId,
-                UserId = Guid.Empty.ToString(),
                 AgentId = input.AgentId
             };
             converation = await conversationService.NewConversation(sess);
