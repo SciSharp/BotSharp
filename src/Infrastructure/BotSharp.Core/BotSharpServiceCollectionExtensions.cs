@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Conversations.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+
 namespace BotSharp.Core;
 
 public static class BotSharpServiceCollectionExtensions
@@ -11,6 +11,10 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<IAgentService, AgentService>();
+
+        var agentSettings = new AgentSettings();
+        config.Bind("Agent", agentSettings);
+        services.AddSingleton((IServiceProvider x) => agentSettings);
 
         var convsationSettings = new ConversationSetting();
         config.Bind("Conversation", convsationSettings);
