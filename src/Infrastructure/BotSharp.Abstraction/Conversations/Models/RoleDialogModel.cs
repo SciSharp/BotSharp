@@ -6,16 +6,16 @@ public class RoleDialogModel
     /// user, system, assistant
     /// </summary>
     public string Role { get; set; }
-    public string Text { get; set; }
+    public string Content { get; set; }
 
     public RoleDialogModel(string role, string text)
     {
         Role = role;
-        Text = text;
+        Content = text;
     }
 
     public override string ToString()
     {
-        return $"{Role}: {Text}";
+        return $"{Role}: {Content}";
     }
 }

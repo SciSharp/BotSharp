@@ -4,5 +4,6 @@ namespace BotSharp.Abstraction.MLTasks;
 
 public interface IChatCompletion
 {
-    Task<string> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations);
+    string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations);
+    Task<string> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations);
 }

@@ -6,7 +6,6 @@ using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
@@ -20,30 +19,25 @@ public class ChatCompletionProvider : IChatCompletion
         _settings = settings;
     }
 
-    /*public async Task GetChatCompletionsAsync(List<RoleDialogModel> conversations,
-        Func<string, Task> onChunkReceived)
+    public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
-        var chatCompletionsOptions = PrepareOptions(conversations);
+        var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
-        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
-        using StreamingChatCompletions streaming = response.Value;
+        var response = client.GetChatCompletions(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
 
-        string content = "";
-        await foreach (var choice in streaming.GetChoicesStreaming())
+        string output = "";
+        foreach (var choice in response.Value.Choices)
         {
-            await foreach (var message in choice.GetMessageStreaming())
-            {
-                if (message.Content == null)
-                    continue;
-                Console.Write(message.Content);
-                content += message.Content;
-                await onChunkReceived(message.Content);
-            }
+            var message = choice.Message;
+            if (message.Content == null)
+                continue;
+            Console.Write(message.Content);
+            output += message.Content;
         }
 
-        Console.WriteLine();
-    }*/
+        return output.Trim();
+    }
 
     public List<RoleDialogModel> GetChatSamples(string sampleText)
     {
@@ -77,7 +71,7 @@ public class ChatCompletionProvider : IChatCompletion
     }
 
 
-    public async Task<string> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<string> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
@@ -117,12 +111,12 @@ public class ChatCompletionProvider : IChatCompletion
         var samples = GetChatSamples(agent.Samples);
         foreach (var message in samples)
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Text));
+            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
         }
 
         foreach (var message in conversations)
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Text));
+            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
         }
 
         return chatCompletionsOptions;

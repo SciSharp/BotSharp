@@ -92,7 +92,7 @@ public class ConversationService : IConversationService
             agent.Knowledges = await knowledge.GetKnowledges(new KnowledgeRetrievalModel
             {
                 AgentId = agentId,
-                Question = string.Join("\n", wholeDialogs.Select(x => x.Text))
+                Question = string.Join("\n", wholeDialogs.Select(x => x.Content))
             });
         }
 
@@ -110,7 +110,7 @@ public class ConversationService : IConversationService
                 .BeforeCompletion();
         });
         
-        var response = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs);
+        var response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, wholeDialogs);
 
         // After chat completion hook
         hooks.ForEach(async hook =>
