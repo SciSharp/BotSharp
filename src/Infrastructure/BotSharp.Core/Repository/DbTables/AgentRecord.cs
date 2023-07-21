@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace BotSharp.Core.Repository.DbTables;
 
 [Table("Agent")]
-public class AgentRecord : DbRecord, IAgentTable
+public class AgentRecord : DbRecord, IBotSharpTable
 {
     [Required]
     [MaxLength(64)]

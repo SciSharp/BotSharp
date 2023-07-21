@@ -7,9 +7,9 @@ public partial class AgentService
 {
     public async Task UpdateAgent(Agent agent)
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
 
-        db.Transaction<IAgentTable>(delegate
+        db.Transaction<IBotSharpTable>(delegate
         {
             var record = db.Agent.FirstOrDefault(x => x.OwnerId == agent.OwerId && x.Id == agent.Id);
 

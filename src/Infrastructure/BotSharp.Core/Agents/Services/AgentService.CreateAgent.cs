@@ -6,7 +6,7 @@ public partial class AgentService
 {
     public async Task<Agent> CreateAgent(Agent agent)
     {
-        var db = _services.GetRequiredService<AgentDbContext>();
+        var db = _services.GetRequiredService<BotSharpDbContext>();
         var record = db.Agent.FirstOrDefault(x => x.OwnerId == _user.Id && x.Name == agent.Name);
         if (record != null)
         {
@@ -19,9 +19,9 @@ public partial class AgentService
         record.CreatedDateTime = DateTime.UtcNow;
         record.UpdatedDateTime = DateTime.UtcNow;
 
-        db.Transaction<IAgentTable>(delegate
+        db.Transaction<IBotSharpTable>(delegate
         {
-            db.Add<IAgentTable>(record);
+            db.Add<IBotSharpTable>(record);
         });
 
         return record.ToAgent();
