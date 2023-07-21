@@ -16,9 +16,11 @@ using BotSharp.Plugin.ChatbotUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
+[Authorize]
 [ApiController]
 public class ChatbotUiController : ControllerBase, IApiAdapter
 {
@@ -59,15 +61,25 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
-        var conversations = input.Messages.Skip(1).Select(x => new RoleDialogModel
+        var conversations = input.Messages
+            .Select(x => new RoleDialogModel(x.Role, x.Content))
+            .ToList();
+
+        var conversationService = _services.GetRequiredService<IConversationService>();
+
+        // Check if this conversation exists
+        var converation = await conversationService.GetConversation(input.ConversationId);
+        if(converation == null)
         {
-            Role = x.Role,
-            Text = x.Content
-        }).ToList();
+            var sess = new Conversation
+            {
+                Id = input.ConversationId,
+                AgentId = input.AgentId
+            };
+            converation = await conversationService.NewConversation(sess);
+        }
 
-        var conv = _services.GetRequiredService<IConversationService>();
-
-        var result = await conv.SendMessage("", "", conversations.Last());
+        var result = await conversationService.SendMessage(input.AgentId, input.ConversationId, conversations);
 
         await OnChunkReceived(outputStream, result);
         await OnEventCompleted(outputStream);

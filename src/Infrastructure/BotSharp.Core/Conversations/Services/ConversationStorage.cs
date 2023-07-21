@@ -26,11 +26,7 @@ public class ConversationStorage : IConversationStorage
             var pos = x.IndexOf(':');
             var role = x.Substring(0, pos);
             var text = x.Substring(pos + 1);
-            return new RoleDialogModel
-            {
-                Role = role,
-                Text = text
-            };
+            return new RoleDialogModel(role, text);
         }).ToList();
     }
 

@@ -6,6 +6,8 @@ namespace BotSharp.Plugin.ChatbotUI.ViewModels;
 
 public class OpenAiMessageInput
 {
+    public string AgentId { get; set; }
+    public string ConversationId { get; set; }
     public string Model { get; set; } = string.Empty;
     public List<OpenAiMessageBody> Messages { get; set; } = new List<OpenAiMessageBody>();
     [JsonPropertyName("max_tokens")]

@@ -10,6 +10,7 @@ global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Knowledges;
 global using BotSharp.Abstraction.Users;
+global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Core.Repository;
 global using BotSharp.Core.Repository.Abstraction;
 global using BotSharp.Core.Repository.DbTables;

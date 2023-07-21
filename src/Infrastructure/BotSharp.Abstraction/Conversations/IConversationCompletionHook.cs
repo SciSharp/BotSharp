@@ -1,9 +1,22 @@
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Abstraction.Conversations;
 
 public interface IConversationCompletionHook
 {
-    Task BeforeCompletion(Agent agent, List<RoleDialogModel> conversations);
-    Task<string> AfterCompletion(Agent agent, string response);
+    Agent Agent { get; }
+    IConversationCompletionHook SetAgent(Agent agent);
+
+    Conversation Conversation { get; }
+    IConversationCompletionHook SetConversation(Conversation conversation);
+
+    List<RoleDialogModel> Dialogs { get; }
+    IConversationCompletionHook SetDialogs(List<RoleDialogModel> dialogs);
+
+    IChatCompletion ChatCompletion { get; }
+    IConversationCompletionHook SetChatCompletion(IChatCompletion chatCompletion);
+    
+    Task BeforeCompletion();
+    Task<string> AfterCompletion(string response);
 }

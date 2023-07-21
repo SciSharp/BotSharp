@@ -26,6 +26,7 @@ public class ConversationController : ControllerBase, IApiAdapter
         var service = _services.GetRequiredService<IConversationService>();
         var sess = new Conversation
         {
+            UserId = _user.Id,
             AgentId = agentId
         };
         sess = await service.NewConversation(sess);
@@ -45,15 +46,11 @@ public class ConversationController : ControllerBase, IApiAdapter
     {
         var conv = _services.GetRequiredService<IConversationService>();
 
-        var result = await conv.SendMessage(agentId, conversationId, new RoleDialogModel
-        {
-            Role = "user",
-            Text = input.Text
-        });
+        var result = await conv.SendMessage(agentId, conversationId, new RoleDialogModel("user", input.Text));
 
         return new MessageResponseModel
         {
-            Content = result
+            Text = result
         };
     }
 }
