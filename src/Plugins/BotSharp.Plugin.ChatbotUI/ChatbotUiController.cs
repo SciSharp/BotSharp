@@ -59,23 +59,26 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
-        var conversations = input.Messages.Select(x => new RoleDialogModel
-        {
-            Role = x.Role,
-            Text = x.Content
-        }).ToList();
+        var conversations = input.Messages
+            .Select(x => new RoleDialogModel(x.Role, x.Content))
+            .ToList();
 
-        var conv = _services.GetRequiredService<IConversationService>();
+        var conversationService = _services.GetRequiredService<IConversationService>();
 
         // Check if this conversation exists
-        var converation = await conv.GetConversation(input.ConversationId);
-        var sess = new Conversation
+        var converation = await conversationService.GetConversation(input.ConversationId);
+        if(converation == null)
         {
-            AgentId = input.AgentId
-        };
-        sess = await conv.NewConversation(sess);
+            var sess = new Conversation
+            {
+                Id = input.ConversationId,
+                UserId = Guid.Empty.ToString(),
+                AgentId = input.AgentId
+            };
+            converation = await conversationService.NewConversation(sess);
+        }
 
-        var result = await conv.SendMessage(input.AgentId, input.ConversationId, conversations);
+        var result = await conversationService.SendMessage(input.AgentId, input.ConversationId, conversations);
 
         await OnChunkReceived(outputStream, result);
         await OnEventCompleted(outputStream);

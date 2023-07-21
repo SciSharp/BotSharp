@@ -53,8 +53,8 @@ public class ConversationService : IConversationService
         var db = _services.GetRequiredService<AgentDbContext>();
 
         var record = ConversationRecord.FromConversation(sess);
-        record.Id = Guid.NewGuid().ToString();
-        record.UserId = _user.Id;
+        record.Id = sess.Id ?? Guid.NewGuid().ToString();
+        record.UserId = sess.UserId ?? _user.Id;
         record.Title = "New Conversation";
 
         db.Transaction<IAgentTable>(delegate
@@ -75,11 +75,7 @@ public class ConversationService : IConversationService
 
         var response = await SendMessage(agentId, conversationId, wholeDialogs);
 
-        _storage.Append(agentId, conversationId, new RoleDialogModel
-        {
-            Role = "assistant",
-            Text = response
-        });
+        _storage.Append(agentId, conversationId, new RoleDialogModel("assistant", response));
 
         return response;
     }
@@ -107,7 +103,10 @@ public class ConversationService : IConversationService
 
         hooks.ForEach(hook =>
         {
-            hook.SetContexts(agent, converation, wholeDialogs)
+            hook.SetAgent(agent)
+                .SetConversation(converation)
+                .SetDialogs(wholeDialogs)
+                .SetChatCompletion(chatCompletion)
                 .BeforeCompletion();
         });
         

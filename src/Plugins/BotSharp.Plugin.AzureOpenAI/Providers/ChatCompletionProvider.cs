@@ -48,22 +48,31 @@ public class ChatCompletionProvider : IChatCompletion
     public List<RoleDialogModel> GetChatSamples(string sampleText)
     {
         var samples = new List<RoleDialogModel>();
-        if (!string.IsNullOrEmpty(sampleText))
+        if (string.IsNullOrEmpty(sampleText))
         {
-            var lines = sampleText.Split('\n');
-            for (int i = 0; i < lines.Length; i += 3)
-            {
-                var line = lines[i];
-                var role = line.Substring(0, line.IndexOf(' ') - 1).Trim();
-                var content = line.Substring(line.IndexOf(' ') + 1).Trim();
-
-                samples.Add(new RoleDialogModel
-                {
-                    Role = role,
-                    Text = content
-                });
-            }
+            return samples;
         }
+
+        var lines = sampleText.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i];
+            if (string.IsNullOrEmpty(line.Trim()))
+            {
+                continue;
+            }
+            var role = line.Substring(0, line.IndexOf(' ') - 1).Trim();
+            var content = line.Substring(line.IndexOf(' ') + 1).Trim();
+
+            // comments
+            if (role == "##")
+            {
+                continue;
+            }
+
+            samples.Add(new RoleDialogModel(role, content));
+        }
+
         return samples;
     }
 
@@ -104,8 +113,9 @@ public class ChatCompletionProvider : IChatCompletion
         {
             chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, agent.Knowledges));
         }
-        
-        foreach (var message in GetChatSamples(agent.Samples))
+
+        var samples = GetChatSamples(agent.Samples);
+        foreach (var message in samples)
         {
             chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Text));
         }

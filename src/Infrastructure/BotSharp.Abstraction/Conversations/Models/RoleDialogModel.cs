@@ -8,6 +8,12 @@ public class RoleDialogModel
     public string Role { get; set; }
     public string Text { get; set; }
 
+    public RoleDialogModel(string role, string text)
+    {
+        Role = role;
+        Text = text;
+    }
+
     public override string ToString()
     {
         return $"{Role}: {Text}";

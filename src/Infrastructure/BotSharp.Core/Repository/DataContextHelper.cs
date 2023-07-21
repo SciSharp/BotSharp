@@ -30,10 +30,10 @@ public static class DataContextHelper
             dc.BindDbContext<IAgentTable, DbContext4SqlServer2>(new DatabaseBind
             {
                 ServiceProvider = serviceProvider,
-                MasterConnection = new SqlConnection(settings.Agent.Master),
-                SlaveConnections = settings.Agent.Slavers.Length == 0 ?
-                    new List<DbConnection> { new SqlConnection(settings.Agent.Master) } :
-                    settings.Agent.Slavers.Select(x => new SqlConnection(x) as DbConnection).ToList(),
+                MasterConnection = new SqlConnection(settings.BotSharp.Master),
+                SlaveConnections = settings.BotSharp.Slavers.Length == 0 ?
+                    new List<DbConnection> { new SqlConnection(settings.BotSharp.Master) } :
+                    settings.BotSharp.Slavers.Select(x => new SqlConnection(x) as DbConnection).ToList(),
                 CreateDbIfNotExist = true
             });
         }

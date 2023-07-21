@@ -13,7 +13,6 @@ public class OpenAiMessageInput
     [JsonPropertyName("max_tokens")]
     public int MaxTokens { get; set; } = 4000;
     public bool Stream { get; set; } = true;
-    public string? SystemPrompt { get; set; }
     public float Temperature { get; set; } = 0.9f;
 
     public override string ToString()
