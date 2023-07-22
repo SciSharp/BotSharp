@@ -56,11 +56,7 @@ namespace BotSharp.Plugin.WeChat
                 AgentId = AgentId
             }))?.Id;
 
-            var result = await conversationService.SendMessage(AgentId, latestConversationId, new RoleDialogModel
-            {
-                Role = "user",
-                Text = message,
-            });
+            var result = await conversationService.SendMessage(AgentId, latestConversationId, new RoleDialogModel("user", message));
 
             await ReplyTextMessageAsync(openid, result);
         }
