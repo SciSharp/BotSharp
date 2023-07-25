@@ -11,12 +11,8 @@ public class AgentRecord : DbRecord, IBotSharpTable
     [MaxLength(64)]
     public string Name { get; set; } = string.Empty;
 
-    [Required]
-    [MaxLength(36)]
-    public string OwnerId { get; set; } = string.Empty;
-
     [MaxLength(512)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     [Required]
     public DateTime CreatedDateTime { get; set; }
@@ -30,8 +26,7 @@ public class AgentRecord : DbRecord, IBotSharpTable
         {
             Id = agent.Id,
             Name = agent.Name,
-            Description = agent.Description,
-            OwnerId = agent.OwerId
+            Description = agent.Description
         };
     }
 
@@ -42,7 +37,6 @@ public class AgentRecord : DbRecord, IBotSharpTable
             Id = Id,
             Name = Name,
             Description = Description,
-            OwerId = OwnerId,
             CreatedDateTime = CreatedDateTime,
             UpdatedDateTime = UpdatedDateTime
         };

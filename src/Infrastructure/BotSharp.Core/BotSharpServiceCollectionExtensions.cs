@@ -7,7 +7,6 @@ public static class BotSharpServiceCollectionExtensions
 {
     public static IServiceCollection AddBotSharp(this IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<IUserIdentity, UserIdentity>();
         services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<IAgentService, AgentService>();

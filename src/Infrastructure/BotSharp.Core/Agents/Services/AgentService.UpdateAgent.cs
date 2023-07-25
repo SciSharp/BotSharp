@@ -11,7 +11,10 @@ public partial class AgentService
 
         db.Transaction<IBotSharpTable>(delegate
         {
-            var record = db.Agent.FirstOrDefault(x => x.OwnerId == agent.OwerId && x.Id == agent.Id);
+            var record = (from a in db.Agent
+                          join ua in db.UserAgent on a.Id equals ua.AgentId
+                          where ua.UserId == agent.OwerId && a.Id == agent.Id
+                          select a).First();
 
             record.Name = agent.Name;
             record.Description = agent.Description;

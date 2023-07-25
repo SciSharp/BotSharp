@@ -4,31 +4,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BotSharp.Core.Repository.DbTables;
 
-[Table("User")]
-public class UserRecord : DbRecord, IBotSharpTable
+[Table("UserAgent")]
+public class UserAgentRecord : DbRecord, IBotSharpTable
 {
     [Required]
-    [MaxLength(64)]
-    public string FirstName { get; set; } = string.Empty;
+    [StringLength(36)]
+    public string UserId { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(64)]
-    public string LastName { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(64)]
-    public string Email { get; set; } = string.Empty;
-
-    [Required]
-    [StringLength(32)]
-    public string Salt { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(256)]
-    public string Password { get; set; } = string.Empty;
-
     [MaxLength(36)]
-    public string? ExternalId { get; set; }
+    public string AgentId { get; set; } = string.Empty;
 
     [Required]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
@@ -53,11 +38,6 @@ public class UserRecord : DbRecord, IBotSharpTable
         return new User
         {
             Id = Id,
-            FirstName = FirstName,
-            LastName = LastName,
-            Email = Email,
-            Salt = Salt,
-            Password = Password,
             CreatedTime = CreatedTime,
             UpdatedTime = UpdatedTime
         };
