@@ -1,4 +1,7 @@
+using BotSharp.Abstraction.Users;
 using BotSharp.Core;
+using BotSharp.Core.Users.Services;
+using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -34,8 +37,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddScoped<IUserIdentity, UserIdentity>();
+
 // Add BotSharp
-builder.Services.AddBotSharp(builder.Configuration);
+builder.Services.AddBotSharp(builder.Configuration)
+    .ConfigureBotSharpRepository<DbContext4SqlServer>(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
