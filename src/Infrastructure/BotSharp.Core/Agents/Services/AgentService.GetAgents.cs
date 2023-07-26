@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -30,11 +31,29 @@ public partial class AgentService
         {
             profile.Instruction = File.ReadAllText(instructionFile);
         }
+        else
+        {
+            _logger.LogError($"Can't find instruction file from {instructionFile}");
+        }
 
         var samplesFile = Path.Combine(dir, "samples.txt");
         if (File.Exists(samplesFile))
         {
-            profile.Samples = File.ReadAllText(Path.Combine(dir, "samples.txt"));
+            profile.Samples = File.ReadAllText(samplesFile);
+        }
+        else
+        {
+            _logger.LogWarning($"Can't find samples file from {samplesFile}");
+        }
+
+        var functionsFile = Path.Combine(dir, "functions.json");
+        if (File.Exists(functionsFile))
+        {
+            profile.Functions = File.ReadAllText(functionsFile);
+        }
+        else
+        {
+            _logger.LogInformation($"Can't find functions file from {functionsFile}");
         }
 
         return profile;

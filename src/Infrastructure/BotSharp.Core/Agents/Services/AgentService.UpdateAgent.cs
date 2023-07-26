@@ -13,7 +13,7 @@ public partial class AgentService
         {
             var record = (from a in db.Agent
                           join ua in db.UserAgent on a.Id equals ua.AgentId
-                          where ua.UserId == agent.OwerId && a.Id == agent.Id
+                          where ua.UserId == _user.Id && a.Id == agent.Id
                           select a).First();
 
             record.Name = agent.Name;

@@ -10,11 +10,9 @@ namespace BotSharp.Core.Agents;
 public class AgentController : ControllerBase, IApiAdapter
 {
     private readonly IAgentService _agentService;
-    private readonly IUserIdentity _user;
-    public AgentController(IAgentService agentService, IUserIdentity user)
+    public AgentController(IAgentService agentService)
     {
         _agentService = agentService;
-        _user = user;
     }
 
     [HttpPost("/agent")]
@@ -30,7 +28,6 @@ public class AgentController : ControllerBase, IApiAdapter
     {
         var model = agent.ToAgent();
         model.Id = agentId;
-        model.OwerId = _user.Id;
         await _agentService.UpdateAgent(model);
     }
 
