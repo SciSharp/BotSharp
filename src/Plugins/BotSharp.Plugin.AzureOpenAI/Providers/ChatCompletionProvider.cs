@@ -6,6 +6,7 @@ using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
@@ -70,6 +71,20 @@ public class ChatCompletionProvider : IChatCompletion
         return samples;
     }
 
+    public List<FunctionDef> GetFunctions(string functionsJson)
+    {
+        var functions = new List<FunctionDef>();
+        if (!string.IsNullOrEmpty(functionsJson))
+        {
+            functions = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
+            });
+        }
+
+        return functions;
+    }
 
     public async Task<string> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
     {
@@ -114,6 +129,17 @@ public class ChatCompletionProvider : IChatCompletion
             chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
         }
 
+        var functions = GetFunctions(agent.Functions);
+        foreach (var function in functions)
+        {
+            chatCompletionsOptions.Functions.Add(new FunctionDefinition
+            {
+                Name = function.Name,
+                Description = function.Description,
+                Parameters = BinaryData.FromObjectAsJson(function.Parameters)
+            });
+        }
+        
         foreach (var message in conversations)
         {
             chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
