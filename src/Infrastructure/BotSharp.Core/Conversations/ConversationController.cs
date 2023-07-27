@@ -46,11 +46,13 @@ public class ConversationController : ControllerBase, IApiAdapter
     {
         var conv = _services.GetRequiredService<IConversationService>();
 
-        var result = await conv.SendMessage(agentId, conversationId, new RoleDialogModel("user", input.Text));
+        var response = new MessageResponseModel();
 
-        return new MessageResponseModel
+        await conv.SendMessage(agentId, conversationId, new RoleDialogModel("user", input.Text), async msg =>
         {
-            Text = result
-        };
+            response.Text += msg.Content;
+        });
+
+        return response;
     }
 }

@@ -86,7 +86,7 @@ public class ChatCompletionProvider : IChatCompletion
         return functions;
     }
 
-    public async Task<string> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
@@ -97,16 +97,23 @@ public class ChatCompletionProvider : IChatCompletion
         string output = "";
         await foreach (var choice in streaming.GetChoicesStreaming())
         {
+            if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
+            {
+            }
+
             await foreach (var message in choice.GetMessageStreaming())
             {
                 if (message.Content == null)
                     continue;
                 Console.Write(message.Content);
                 output += message.Content;
+                await onMessageReceived(new RoleDialogModel(message.Role.ToString(), message.Content));
             }
+            
+            output = "";
         }
 
-        return output.Trim();
+        return true;
     }
 
     private ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)

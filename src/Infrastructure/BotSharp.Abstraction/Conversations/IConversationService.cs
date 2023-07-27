@@ -8,8 +8,8 @@ public interface IConversationService
     Task<Conversation> GetConversation(string id);
     Task<List<Conversation>> GetConversations();
     Task DeleteConversation(string id);
-    Task<string> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog);
-    Task<string> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs);
+    Task<bool> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog, Func<RoleDialogModel, Task> onMessageReceived);
+    Task<bool> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs, Func<RoleDialogModel, Task> onMessageReceived);
     List<RoleDialogModel> GetDialogHistory(string agentId, string conversationId);
     Task CleanHistory(string agentId);
 }

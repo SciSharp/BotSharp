@@ -67,20 +67,22 @@ public class ConversationService : IConversationService
         return record.ToConversation();
     }
 
-    public async Task<string> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog)
+    public async Task<bool> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog, Func<RoleDialogModel, Task> onMessageReceived)
     {
         _storage.Append(agentId, conversationId, lastDalog);
 
         var wholeDialogs = GetDialogHistory(agentId, conversationId);
 
-        var response = await SendMessage(agentId, conversationId, wholeDialogs);
-
-        _storage.Append(agentId, conversationId, new RoleDialogModel("assistant", response));
+        var response = await SendMessage(agentId, conversationId, wholeDialogs, async msg =>
+        {
+            await onMessageReceived(msg);
+            _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, msg.Content));
+        });
 
         return response;
     }
 
-    public async Task<string> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs)
+    public async Task<bool> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var agent = await _services.GetRequiredService<IAgentService>().GetAgent(agentId);
         var converation = await GetConversation(conversationId);
@@ -110,15 +112,14 @@ public class ConversationService : IConversationService
                 .BeforeCompletion();
         });
         
-        var response = await chatCompletion.GetChatCompletionsStreamingAsync(agent, wholeDialogs);
-
-        // After chat completion hook
-        hooks.ForEach(async hook =>
+        var result = await chatCompletion.GetChatCompletionsStreamingAsync(agent, wholeDialogs, async msg =>
         {
-            response = await hook.AfterCompletion(response);
+            // After chat completion hook
+            hooks.ForEach(async hook => await hook.AfterCompletion(msg));
+            await onMessageReceived(msg);
         });
 
-        return response;
+        return result;
     }
 
     public IChatCompletion GetChatCompletion()

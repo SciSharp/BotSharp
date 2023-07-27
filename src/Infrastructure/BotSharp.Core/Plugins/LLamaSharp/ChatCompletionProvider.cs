@@ -19,7 +19,7 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    public Task<string> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         string totalResponse = "";
         var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "")}")).Trim();
@@ -36,6 +36,6 @@ public class ChatCompletionProvider : IChatCompletion
             totalResponse += response;
         }
 
-        return Task.FromResult(totalResponse.Trim());
+        return true;
     }
 }
