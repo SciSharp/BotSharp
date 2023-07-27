@@ -19,6 +19,11 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
+    public Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         string totalResponse = "";

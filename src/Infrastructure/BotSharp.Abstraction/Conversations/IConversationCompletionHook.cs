@@ -18,5 +18,6 @@ public interface IConversationCompletionHook
     IConversationCompletionHook SetChatCompletion(IChatCompletion chatCompletion);
     
     Task BeforeCompletion();
+    Task<IFunctionExecutionResult> OnFunctionExecution(string name, string args);
     Task AfterCompletion(RoleDialogModel message);
 }
