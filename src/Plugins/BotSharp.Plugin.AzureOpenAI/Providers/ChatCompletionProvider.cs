@@ -86,6 +86,41 @@ public class ChatCompletionProvider : IChatCompletion
         return functions;
     }
 
+    public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    {
+        var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
+        var chatCompletionsOptions = PrepareOptions(agent, conversations);
+
+        var response = await client.GetChatCompletionsAsync(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
+        var choice = response.Value.Choices[0];
+        var message = choice.Message;
+
+        if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
+        {
+            if (message.FunctionCall == null || message.FunctionCall.Arguments == null)
+            {
+                return false;
+            }
+            Console.Write(message.FunctionCall.Name);
+            Console.Write(message.FunctionCall.Arguments);
+            var funcContextIn = new RoleDialogModel(ChatRole.Function.ToString(), message.FunctionCall.Arguments)
+            {
+                Function = message.FunctionCall.Name
+            };
+            await onMessageReceived(funcContextIn);
+
+            // After function is executed, pass the result to LLM
+            throw new NotImplementedException();
+        }
+        else
+        {
+            Console.Write(message.Content);
+            await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
+        }
+
+        return true;
+    }
+
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
@@ -99,6 +134,17 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
             {
+                var args = "";
+                await foreach (var message in choice.GetMessageStreaming())
+                {
+                    if (message.FunctionCall == null || message.FunctionCall.Arguments == null)
+                        continue;
+                    Console.Write(message.FunctionCall.Arguments);
+                    args += message.FunctionCall.Arguments;
+                    
+                }
+                await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), args));
+                continue;
             }
 
             await foreach (var message in choice.GetMessageStreaming())

@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.MLTasks;
+using System.Text.Json;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -75,8 +76,17 @@ public class ConversationService : IConversationService
 
         var response = await SendMessage(agentId, conversationId, wholeDialogs, async msg =>
         {
-            await onMessageReceived(msg);
-            _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, msg.Content));
+            var content = msg.Content.Replace("\r", " ").Replace("\n", " ");
+            if (msg.Role == "function")
+            {
+                content += $"[{msg.Function}] {content}";
+                _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content));
+            }
+            else
+            {
+                await onMessageReceived(msg);
+                _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content));
+            }
         });
 
         return response;
@@ -100,23 +110,39 @@ public class ConversationService : IConversationService
 
         var chatCompletion = GetChatCompletion();
 
-        // Before chat completion hook
         var hooks = _services.GetServices<IConversationCompletionHook>().ToList();
 
-        hooks.ForEach(hook =>
+        // Before chat completion hook
+        foreach (var hook in hooks)
         {
-            hook.SetAgent(agent)
+            await hook.SetAgent(agent)
                 .SetConversation(converation)
                 .SetDialogs(wholeDialogs)
                 .SetChatCompletion(chatCompletion)
                 .BeforeCompletion();
-        });
-        
-        var result = await chatCompletion.GetChatCompletionsStreamingAsync(agent, wholeDialogs, async msg =>
+        }
+
+        var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {
-            // After chat completion hook
-            hooks.ForEach(async hook => await hook.AfterCompletion(msg));
-            await onMessageReceived(msg);
+            if (msg.Role == "function")
+            {
+                // Execute functions
+                foreach (var hook in hooks)
+                {
+                    var executionResult = await hook.OnFunctionExecution(msg.Function, msg.Content);
+                    msg.ExecutionResult = JsonSerializer.Serialize(executionResult);
+                }
+            }
+            else
+            {
+                // After chat completion hook
+                foreach (var hook in hooks)
+                {
+                    await hook.AfterCompletion(msg);
+                }
+
+                await onMessageReceived(msg);
+            }
         });
 
         return result;

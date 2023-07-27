@@ -11,7 +11,12 @@ public class RoleDialogModel
     /// <summary>
     /// Function name if LLM response function call
     /// </summary>
-    public string? Name { get; set; }
+    public string? Function { get; set; }
+
+    /// <summary>
+    /// Function execution result
+    /// </summary>
+    public string? ExecutionResult { get; set; }
 
     public RoleDialogModel(string role, string text)
     {
