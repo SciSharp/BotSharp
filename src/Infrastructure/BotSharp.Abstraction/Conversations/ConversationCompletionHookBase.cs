@@ -46,8 +46,8 @@ public abstract class ConversationCompletionHookBase : IConversationCompletionHo
         return Task.CompletedTask;
     }
 
-    public virtual Task<string> AfterCompletion(string response)
+    public virtual Task AfterCompletion(RoleDialogModel message)
     {
-        return Task.FromResult(response);
+        return Task.CompletedTask;
     }
 }

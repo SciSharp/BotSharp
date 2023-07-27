@@ -78,22 +78,24 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             converation = await conversationService.NewConversation(sess);
         }
 
-        var result = await conversationService.SendMessage(input.AgentId, input.ConversationId, conversations);
+        var result = await conversationService.SendMessage(input.AgentId, 
+            input.ConversationId, 
+            conversations, 
+            async msg => 
+                await OnChunkReceived(outputStream, msg));
 
-        await OnChunkReceived(outputStream, result);
         await OnEventCompleted(outputStream);
     }
 
-    private async Task OnChunkReceived(Stream outputStream, string content)
+    private async Task OnChunkReceived(Stream outputStream, RoleDialogModel message)
     {
-
         var response = new OpenAiChatOutput
         {
             Choices = new List<OpenAiChoice>
             {
                 new OpenAiChoice
                 {
-                    Delta = new RoleDialogModel("assistant", content)
+                    Delta = new RoleDialogModel(message.Role, message.Content)
                 }
             }
         };
@@ -105,7 +107,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
         await outputStream.WriteAsync(buffer, 0, buffer.Length);
-        await Task.Delay(100);
+        await Task.Delay(10);
 
         buffer = Encoding.UTF8.GetBytes("\n");
         await outputStream.WriteAsync(buffer, 0, buffer.Length);
