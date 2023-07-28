@@ -81,17 +81,19 @@ public class ConversationService : IConversationService
             if (msg.Role == "function")
             {
                 var result = msg.ExecutionResult.Replace("\r", " ").Replace("\n", " ");
-                var content = $"{msg.FunctionName} {result}";
-                Console.WriteLine(content);
-                /*_storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content)
+                var content = $"{result}";
+                Console.WriteLine($"{msg.Role}: {content}");
+                _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content)
                 {
                     FunctionName = msg.FunctionName,
-                });*/
+                });
             }
             else
             {
                 var content = msg.Content.Replace("\r", " ").Replace("\n", " ");
+                Console.WriteLine($"{msg.Role}: {content}");
                 _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content));
+                
                 await onMessageReceived(msg);
             }
         });

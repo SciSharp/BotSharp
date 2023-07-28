@@ -4,6 +4,11 @@ namespace BotSharp.Abstraction.Conversations.Models;
 
 public class FunctionExecutionValidationResult
 {
+    public FunctionExecutionValidationResult()
+    {
+
+    }
+
     public FunctionExecutionValidationResult(string validationStatus, string validationMessage = "")
     {
         ValidationStatus = validationStatus;
