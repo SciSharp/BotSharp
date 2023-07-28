@@ -46,9 +46,9 @@ public abstract class ConversationCompletionHookBase : IConversationCompletionHo
         return Task.CompletedTask;
     }
 
-    public virtual async Task<IFunctionExecutionResult> OnFunctionExecution(string name, string args)
+    public virtual async Task<string> OnFunctionExecution(string name, string args)
     {
-        return new FunctionExecutionValidationResult("true", "");
+        return "{}";
     }
 
     public virtual Task AfterCompletion(RoleDialogModel message)

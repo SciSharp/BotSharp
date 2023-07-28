@@ -2,6 +2,8 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.MLTasks;
+using MongoDB.Bson.IO;
+using Newtonsoft.Json;
 using System.Text.Json;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -76,16 +78,21 @@ public class ConversationService : IConversationService
 
         var response = await SendMessage(agentId, conversationId, wholeDialogs, async msg =>
         {
-            var content = msg.Content.Replace("\r", " ").Replace("\n", " ");
             if (msg.Role == "function")
             {
-                content += $"[{msg.Function}] {content}";
-                _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content));
+                var result = msg.ExecutionResult.Replace("\r", " ").Replace("\n", " ");
+                var content = $"{msg.FunctionName} {result}";
+                Console.WriteLine(content);
+                /*_storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content)
+                {
+                    FunctionName = msg.FunctionName,
+                });*/
             }
             else
             {
-                await onMessageReceived(msg);
+                var content = msg.Content.Replace("\r", " ").Replace("\n", " ");
                 _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content));
+                await onMessageReceived(msg);
             }
         });
 
@@ -129,8 +136,7 @@ public class ConversationService : IConversationService
                 // Execute functions
                 foreach (var hook in hooks)
                 {
-                    var executionResult = await hook.OnFunctionExecution(msg.Function, msg.Content);
-                    msg.ExecutionResult = JsonSerializer.Serialize(executionResult);
+                    msg.ExecutionResult = await hook.OnFunctionExecution(msg.FunctionName, msg.Content);
                 }
             }
             else
@@ -140,9 +146,8 @@ public class ConversationService : IConversationService
                 {
                     await hook.AfterCompletion(msg);
                 }
-
-                await onMessageReceived(msg);
             }
+            await onMessageReceived(msg);
         });
 
         return result;

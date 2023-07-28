@@ -2,20 +2,17 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.Abstraction.Conversations.Models;
 
-public class FunctionExecutionValidationResult : IFunctionExecutionResult
+public class FunctionExecutionValidationResult
 {
-    private string _validationStatus;
-    public string _validationMessage;
-
     public FunctionExecutionValidationResult(string validationStatus, string validationMessage = "")
     {
-        _validationStatus = validationStatus;
-        _validationMessage = validationMessage;
+        ValidationStatus = validationStatus;
+        ValidationMessage = validationMessage;
     }
 
     [JsonPropertyName("validation_status")]
-    public string ValidationStatus => _validationStatus;
+    public string ValidationStatus { get; set; }
 
     [JsonPropertyName("validation_message")]
-    public string ValidationMessage => _validationMessage;
+    public string ValidationMessage { get; set; }
 }

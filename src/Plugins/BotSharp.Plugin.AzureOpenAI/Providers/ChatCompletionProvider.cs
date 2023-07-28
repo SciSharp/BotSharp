@@ -105,18 +105,23 @@ public class ChatCompletionProvider : IChatCompletion
             Console.Write(message.FunctionCall.Arguments);
             var funcContextIn = new RoleDialogModel(ChatRole.Function.ToString(), message.FunctionCall.Arguments)
             {
-                Function = message.FunctionCall.Name
+                FunctionName = message.FunctionCall.Name
             };
+
             await onMessageReceived(funcContextIn);
 
             // After function is executed, pass the result to LLM
-            throw new NotImplementedException();
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
+            {
+                Name = funcContextIn.FunctionName
+            });
+            response = client.GetChatCompletions(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
         }
-        else
-        {
-            Console.Write(message.Content);
-            await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
-        }
+
+        choice = response.Value.Choices[0];
+        message = choice.Message;
+        Console.Write(message.Content);
+        await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
 
         return true;
     }
