@@ -120,7 +120,6 @@ public class ChatCompletionProvider : IChatCompletion
 
         choice = response.Value.Choices[0];
         message = choice.Message;
-        Console.Write(message.Content);
         await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
 
         return true;
@@ -197,10 +196,21 @@ public class ChatCompletionProvider : IChatCompletion
                 Parameters = BinaryData.FromObjectAsJson(function.Parameters)
             });
         }
-        
+
         foreach (var message in conversations)
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
+            if (message.Role == ChatRole.Function)
+            {
+                var funcContext = JsonSerializer.Deserialize<FunctionExecutionResult<object>>(message.Content);
+                chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content)
+                {
+                    Name = funcContext.Name
+                });
+            }
+            else
+            {
+                chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
+            }
         }
 
         return chatCompletionsOptions;
