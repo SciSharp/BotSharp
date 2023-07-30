@@ -2,6 +2,7 @@ using Azure;
 using Azure.AI.OpenAI;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using System;
@@ -108,10 +109,13 @@ public class ChatCompletionProvider : IChatCompletion
                 FunctionName = message.FunctionCall.Name
             };
 
+            // Execute functions
             await onMessageReceived(funcContextIn);
 
             // After function is executed, pass the result to LLM
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
+            var fnResult = JsonSerializer.Deserialize<FunctionExecutionResult<object>>(funcContextIn.ExecutionResult);
+            var fnJsonResult = JsonSerializer.Serialize(fnResult.Result);
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, fnJsonResult)
             {
                 Name = funcContextIn.FunctionName
             });

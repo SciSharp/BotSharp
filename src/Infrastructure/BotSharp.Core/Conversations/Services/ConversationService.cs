@@ -1,10 +1,7 @@
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Conversations.Settings;
+using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.MLTasks;
-using MongoDB.Bson.IO;
-using Newtonsoft.Json;
-using System.Text.Json;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -80,18 +77,25 @@ public class ConversationService : IConversationService
         {
             if (msg.Role == "function")
             {
-                var result = msg.ExecutionResult.Replace("\r", " ").Replace("\n", " ");
-                var content = $"{result}";
-                Console.WriteLine($"{msg.Role}: {content}");
-                _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content)
+                // Invoke functions
+                var functions = _services.GetServices<IFunctionCallback>().Where(x => x.Name == msg.FunctionName);
+                foreach (var fn in functions)
                 {
-                    FunctionName = msg.FunctionName,
-                });
+                    msg.ExecutionResult = await fn.Execute(msg.Content);
+
+                    var result = msg.ExecutionResult.Replace("\r", " ").Replace("\n", " ");
+                    var content = $"{result}";
+                    // Console.WriteLine($"{msg.Role}: {content}");
+                    _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content)
+                    {
+                        FunctionName = msg.FunctionName,
+                    });
+                }
             }
             else
             {
                 var content = msg.Content.Replace("\r", " ").Replace("\n", " ");
-                Console.WriteLine($"{msg.Role}: {content}");
+                // Console.WriteLine($"{msg.Role}: {content}");
                 _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content));
                 
                 await onMessageReceived(msg);
@@ -135,10 +139,10 @@ public class ConversationService : IConversationService
         {
             if (msg.Role == "function")
             {
-                // Execute functions
+                // Before executing functions
                 foreach (var hook in hooks)
                 {
-                    msg.ExecutionResult = await hook.OnFunctionExecution(msg.FunctionName, msg.Content);
+                    await hook.OnFunctionExecuting(msg.FunctionName, msg.Content);
                 }
             }
             else

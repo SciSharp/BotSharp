@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace BotSharp.Abstraction.Conversations.Models;
+namespace BotSharp.Abstraction.Functions.Models;
 
 public class FunctionDef
 {

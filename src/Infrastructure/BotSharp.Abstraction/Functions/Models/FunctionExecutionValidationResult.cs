@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Abstraction.Conversations.Models;
+namespace BotSharp.Abstraction.Functions.Models;
 
 public class FunctionExecutionValidationResult
 {
@@ -9,7 +9,7 @@ public class FunctionExecutionValidationResult
 
     }
 
-    public FunctionExecutionValidationResult(string validationStatus, string validationMessage = "")
+    public FunctionExecutionValidationResult(string validationStatus, string? validationMessage = null)
     {
         ValidationStatus = validationStatus;
         ValidationMessage = validationMessage;
