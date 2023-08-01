@@ -1,2 +1,0 @@
-Naive Bayes Classifier (NB)
-===========================

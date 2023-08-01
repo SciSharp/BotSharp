@@ -9,6 +9,9 @@ The Open Source AI Bot Platform Builder
 .. image:: https://img.shields.io/discord/1106946823282761851?label=Discord
     :target: `discord`_
 
+**Build the AI chatbot platform from scratch with .NET**
+
+> The LLM powered Conversational Service framework
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to .NET developers using BotSharp the Bot Platform Builder to build a CaaP. It opens up as much learning power as possible for your robots and precisely control every step of the AI processing pipeline."*
 
@@ -36,25 +39,28 @@ Indices and tables
 ==================
 The main documentation for the site is organized into the following sections:
 
-* :ref:`User Documentation <user-docs>`
+* :ref:`Get Started <get-started>`
 * :ref:`Integration Documentation <integration-docs>`
-* :ref:`NLP Documentation <nlp-docs>`
 * :ref:`Architecture Documentation <architecture-docs>`
 * :ref:`search`
 
-.. _user-docs:
+.. _get-started:
 
 .. toctree::
    :maxdepth: 3
-   :caption: Hands-On Chatbot Platform:
+   :caption: Get Started with BotSharp
    
-   FrontCover
-   overview
-   installation
-   agent/import-agent
-   agent/train-agent
-   agent/test-agent
-   agent/optimize-agent
+   quick-start/overview
+   quick-start/installation
+
+.. _agent-docs:
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Agent & Conversation
+
+   agent/account
+   agent/conversation
 
 .. _integration-docs:
 
@@ -63,9 +69,6 @@ The main documentation for the site is organized into the following sections:
    :caption: Channels Integration Documentation:
 
    integrations/facebook-messenger
-   integrations/slack
-   integrations/telegram
-   integrations/skype
 
 .. _architecture-docs:
 
@@ -75,19 +78,6 @@ The main documentation for the site is organized into the following sections:
    
    configuration/db
    configuration/platform
-
-.. _nlp-docs:
-
-.. toctree::
-   :maxdepth: 3
-   :caption: NLP Documentation:
-
-   models/crf
-   models/nb
-   models/ngram
-   models/svm
-   models/tfidf
-   models/penntreebank
 
 If you feel that this project is helpful to you, please Star us on the project, we will be very grateful.
 

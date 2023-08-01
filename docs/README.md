@@ -6,7 +6,7 @@ We use [Sphinx](https://www.sphinx-doc.org/en/master/) to build document, please
 pip install -U sphinx
 pip install recommonmark
 pip install sphinx_rtd_theme
-
+pip install myst-parser
 cd docs
 ./make html
 ```

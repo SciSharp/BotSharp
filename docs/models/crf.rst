@@ -1,2 +1,0 @@
-Conditional Random Field (CRF)
-==============================
