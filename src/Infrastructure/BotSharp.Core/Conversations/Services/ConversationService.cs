@@ -170,8 +170,9 @@ public class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(string agentId, string conversationId)
+    public List<RoleDialogModel> GetDialogHistory(string agentId, string conversationId, int lastCount = 20)
     {
-        return _storage.GetDialogs(agentId, conversationId);
+        var dialogs = _storage.GetDialogs(agentId, conversationId);
+        return dialogs.TakeLast(lastCount).ToList();
     }
 }
