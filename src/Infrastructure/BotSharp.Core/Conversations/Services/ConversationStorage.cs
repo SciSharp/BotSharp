@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Conversations.Models;
 using System.IO;
-using Tensorflow;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -16,7 +15,7 @@ public class ConversationStorage : IConversationStorage
     {
         var conversationFile = GetStorageFile(agentId, conversationId);
         var sb = new StringBuilder();
-        sb.AppendLine($"{dialog.Role}|{dialog.CreatedAt}");
+        sb.AppendLine($"{dialog.Role}|{dialog.CreatedAt}|{dialog.FunctionName}");
         sb.AppendLine($"  - {dialog.Content}");
         var conversation = sb.ToString();
         File.AppendAllText(conversationFile, conversation);
@@ -35,8 +34,10 @@ public class ConversationStorage : IConversationStorage
             var role = meta.Split('|')[0];
             var createdAt = DateTime.Parse(meta.Split('|')[1]);
             var text = dialog.Substring(4);
+            var funcName = meta.Split('|')[2];
             results.Add(new RoleDialogModel(role, text)
             {
+                FunctionName = funcName,
                 CreatedAt = createdAt
             });
         }

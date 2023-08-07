@@ -8,6 +8,7 @@ using BotSharp.Plugin.AzureOpenAI.Settings;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -118,9 +119,7 @@ public class ChatCompletionProvider : IChatCompletion
             await onMessageReceived(funcContextIn);
 
             // After function is executed, pass the result to LLM
-            var fnResult = JsonSerializer.Deserialize<FunctionExecutionResult<object>>(funcContextIn.ExecutionResult);
-            var fnJsonResult = JsonSerializer.Serialize(fnResult.Result);
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, fnJsonResult)
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
             {
                 Name = funcContextIn.FunctionName
             });
@@ -216,10 +215,9 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == ChatRole.Function)
             {
-                var funcContext = JsonSerializer.Deserialize<FunctionExecutionResult<object>>(message.Content);
                 chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content)
                 {
-                    Name = funcContext.Name
+                    Name = message.FunctionName
                 });
             }
             else
@@ -228,6 +226,7 @@ public class ChatCompletionProvider : IChatCompletion
             }
         }
 
+        _logger.LogInformation(string.Join("\n", chatCompletionsOptions.Messages.Select(x => $"{x.Role}: {x.Content}")));
         return chatCompletionsOptions;
     }
 }
