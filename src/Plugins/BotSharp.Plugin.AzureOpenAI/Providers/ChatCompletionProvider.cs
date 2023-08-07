@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -15,10 +16,12 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers;
 public class ChatCompletionProvider : IChatCompletion
 {
     private readonly AzureOpenAiSettings _settings;
+    private readonly ILogger _logger;
 
-    public ChatCompletionProvider(AzureOpenAiSettings settings)
+    public ChatCompletionProvider(AzureOpenAiSettings settings, ILogger<ChatCompletionProvider> logger)
     {
         _settings = settings;
+        _logger = logger;
     }
 
     public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
@@ -37,6 +40,8 @@ public class ChatCompletionProvider : IChatCompletion
             Console.Write(message.Content);
             output += message.Content;
         }
+
+        _logger.LogInformation(output);
 
         return output.Trim();
     }
@@ -124,6 +129,9 @@ public class ChatCompletionProvider : IChatCompletion
 
         choice = response.Value.Choices[0];
         message = choice.Message;
+
+        _logger.LogInformation(message.Content);
+
         await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
 
         return true;
@@ -161,6 +169,9 @@ public class ChatCompletionProvider : IChatCompletion
                     continue;
                 Console.Write(message.Content);
                 output += message.Content;
+
+                _logger.LogInformation(message.Content);
+
                 await onMessageReceived(new RoleDialogModel(message.Role.ToString(), message.Content));
             }
             

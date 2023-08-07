@@ -51,6 +51,9 @@ public class ConversationController : ControllerBase, IApiAdapter
         await conv.SendMessage(agentId, conversationId, new RoleDialogModel("user", input.Text), async msg =>
         {
             response.Text += msg.Content;
+        }, async fn =>
+        {
+
         });
 
         return response;

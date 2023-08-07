@@ -24,4 +24,7 @@ public class SendingMessageRequest
 
     [AliasAs("messaging_type")]
     public string MessagingType { get; set; } = "RESPONSE";
+
+    [AliasAs("sender_action")]
+    public SenderActionEnum? SenderAction { get; set; }
 }
