@@ -6,6 +6,7 @@ public class RoleDialogModel
     /// user, system, assistant, function
     /// </summary>
     public string Role { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Content { get; set; }
 
     /// <summary>

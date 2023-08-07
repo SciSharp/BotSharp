@@ -105,6 +105,13 @@ public class WebhookController : ControllerBase
                         Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
                         Message = JsonSerializer.Serialize(new { Text = "I'm pulling the relevent information, please wait a second ..." }, jsonOpt)
                     });
+
+                    await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                    {
+                        AccessToken = setting.PageAccessToken,
+                        Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                        SenderAction = SenderActionEnum.TypingOn
+                    });
                 });
 
                 // Response to user

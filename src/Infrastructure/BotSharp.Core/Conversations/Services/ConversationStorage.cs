@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 using System.IO;
+using Tensorflow;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -14,20 +15,32 @@ public class ConversationStorage : IConversationStorage
     public void Append(string agentId, string conversationId, RoleDialogModel dialog)
     {
         var conversationFile = GetStorageFile(agentId, conversationId);
-        File.AppendAllText(conversationFile, $"{dialog.Role}: {dialog.Content}\n");
+        var sb = new StringBuilder();
+        sb.AppendLine($"{dialog.Role}|{dialog.CreatedAt}");
+        sb.AppendLine($"  - {dialog.Content}");
+        var conversation = sb.ToString();
+        File.AppendAllText(conversationFile, conversation);
     }
 
     public List<RoleDialogModel> GetDialogs(string agentId, string conversationId)
     {
         var conversationFile = GetStorageFile(agentId, conversationId);
         var dialogs = File.ReadAllLines(conversationFile);
-        return dialogs.Select(x =>
+
+        var results = new List<RoleDialogModel>();
+        for (int i = 0; i < dialogs.Length; i += 2)
         {
-            var pos = x.IndexOf(':');
-            var role = x.Substring(0, pos);
-            var text = x.Substring(pos + 1);
-            return new RoleDialogModel(role, text);
-        }).ToList();
+            var meta = dialogs[i];
+            var dialog = dialogs[i + 1];
+            var role = meta.Split('|')[0];
+            var createdAt = DateTime.Parse(meta.Split('|')[1]);
+            var text = dialog.Substring(4);
+            results.Add(new RoleDialogModel(role, text)
+            {
+                CreatedAt = createdAt
+            });
+        }
+        return results;
     }
 
     public void InitStorage(string agentId, string conversationId)
