@@ -1,8 +1,4 @@
 using BotSharp.Abstraction.VectorStorage;
-using System.Collections;
-using System.IO;
-using System.Numerics;
-using Tensorflow;
 using Tensorflow.NumPy;
 
 namespace BotSharp.Core.Plugins.MemVecDb;
@@ -67,12 +63,15 @@ public class MemVectorDatabase : IVectorDb
     private float[] CalCosineSimilarity(float[] vec, List<VecRecord> records)
     {
         var similarities = new float[records.Count];
+        var a = vec;
+        var normA = np.linalg.norm(a);
+
         for (int i = 0; i < records.Count; i++)
         {
-            var a = vec;
             var b = records[i].Vector;
-            similarities[i] = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b));
+            similarities[i] = np.dot(a, b) / (normA * np.linalg.norm(b));
         }
+
         return similarities;
     }
 }

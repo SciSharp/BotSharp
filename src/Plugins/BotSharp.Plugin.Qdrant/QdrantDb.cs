@@ -62,10 +62,10 @@ public class QdrantDb : IVectorDb
     public async Task Upsert(string collectionName, int id, float[] vector, string text)
     {
         // Insert vectors
-        /*await _client.Upsert(collectionName, points: new List<PointStruct>
+        await _client.Upsert(collectionName, points: new List<PointStruct>
         {
             new PointStruct(id: id, vector: vector)
-        });*/
+        });
 
         // Store chunks in local file system
         var agentService = _services.GetRequiredService<IAgentService>();

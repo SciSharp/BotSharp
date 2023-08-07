@@ -6,20 +6,24 @@ namespace BotSharp.Core.Plugins.LLamaSharp;
 
 public class TextEmbeddingProvider : ITextEmbedding
 {
+    private LLamaEmbedder _embedder;
+    private readonly LlamaSharpSettings _settings;
     private readonly IServiceProvider _services;
-    public int Dimension => throw new NotImplementedException();
+    public int Dimension => 4096;
 
-    public TextEmbeddingProvider(IServiceProvider services)
+    public TextEmbeddingProvider(IServiceProvider services, LlamaSharpSettings settings)
     {
         _services = services;
+        _settings = settings;
     }
 
     public float[] GetVector(string text)
     {
-        var llama = _services.GetRequiredService<LlamaAiModel>();
+        if (_embedder == null)
+        {
+            _embedder = new LLamaEmbedder(new ModelParams(_settings.ModelPath));
+        }
 
-        var executor = new LLamaEmbedder(new ModelParams(llama.Settings.ModelPath));
-
-        return executor.GetEmbeddings(text);
+        return _embedder.GetEmbeddings(text);
     }
 }

@@ -30,7 +30,7 @@ public class KnowledgeController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/knowledge/{agentId}")]
-    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files)
+    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files, [FromQuery] int? startPageNum, [FromQuery] int? endPageNum)
     {
         long size = files.Sum(f => f.Length);
 
@@ -52,6 +52,16 @@ public class KnowledgeController : ControllerBase, IApiAdapter
             var content = "";
             foreach (Page page in document.GetPages())
             {
+                if (startPageNum.HasValue && page.Number < startPageNum.Value)
+                {
+                    continue;
+                }
+
+                if (endPageNum.HasValue && page.Number > endPageNum.Value)
+                {
+                    continue;
+                }
+
                 content += page.Text;
             }
 

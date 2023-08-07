@@ -31,11 +31,13 @@ public class WebhookController : ControllerBase
         _services = services;
     }
 
-    [HttpGet("/webhook")]
+    [HttpGet("/messenger/webhook/{agentId}")]
     public string Verificate([FromQuery(Name = "hub.mode")] string mode,
         [FromQuery(Name = "hub.verify_token")] string token,
-        [FromQuery(Name = "hub.challenge")] string challenge)
+        [FromQuery(Name = "hub.challenge")] string challenge,
+        [FromRoute] string agentId)
     {
+        Console.WriteLine(agentId);
         return challenge;
     }
 
@@ -43,11 +45,12 @@ public class WebhookController : ControllerBase
     /// https://developers.facebook.com/docs/messenger-platform/webhooks
     /// </summary>
     /// <returns></returns>
-    [HttpPost("/webhook")]
-    public async Task<ActionResult<WebhookResponse>> Messages()
+    [HttpPost("/messenger/webhook/{agentId}")]
+    public async Task<ActionResult<WebhookResponse>> Messages([FromRoute] string agentId)
     {
         using var stream = new StreamReader(Request.Body);
         var body = await stream.ReadToEndAsync();
+        Console.WriteLine(body);
         var req = JsonSerializer.Deserialize<WebhookRequest>(body, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -66,7 +69,7 @@ public class WebhookController : ControllerBase
                 string content = "";
                 var sessionId = req.Entry[0].Messaging[0].Sender.Id;
                 var input = req.Entry[0].Messaging[0].Message.Text;
-                var result = await conv.SendMessage("", sessionId, new RoleDialogModel("user", input), async msg =>
+                var result = await conv.SendMessage(agentId, sessionId, new RoleDialogModel("user", input), async msg =>
                 {
                     content = msg.Content;
                 });

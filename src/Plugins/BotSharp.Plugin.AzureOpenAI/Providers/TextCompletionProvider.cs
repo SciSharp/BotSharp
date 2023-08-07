@@ -4,17 +4,20 @@ using BotSharp.Abstraction.MLTasks;
 using System;
 using System.Threading.Tasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
+using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class TextCompletionProvider : ITextCompletion
 {
     private readonly AzureOpenAiSettings _settings;
+    private readonly ILogger _logger;
     bool _useAzureOpenAI = true;
 
-    public TextCompletionProvider(AzureOpenAiSettings settings)
+    public TextCompletionProvider(AzureOpenAiSettings settings, ILogger<TextCompletionProvider> logger)
     {
         _settings = settings;
+        _logger = logger;
     }
 
     public async Task<string> GetCompletion(string text)
@@ -26,8 +29,8 @@ public class TextCompletionProvider : ITextCompletion
             {
                 text
             },
-            Temperature = 0.5f,
-            MaxTokens = 128
+            Temperature = 1f,
+            MaxTokens = 256
         };
 
         var response = await client.GetCompletionsAsync(
@@ -40,6 +43,8 @@ public class TextCompletionProvider : ITextCompletion
         {
             completion += t.Text;
         };
+
+        _logger.LogInformation(text + completion);
 
         return completion.Trim();
     }

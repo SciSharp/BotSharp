@@ -24,8 +24,8 @@ public class KnowledgeService : IKnowledgeService
         var idStart = 0;
         var lines = _textChopper.Chop(knowledge.Content, new ChunkOption
         {
-            Size = 256,
-            Conjunction = 5,
+            Size = 1024,
+            Conjunction = 32,
             SplitByWord = true,
         });
 
@@ -38,6 +38,7 @@ public class KnowledgeService : IKnowledgeService
             var vec = textEmbedding.GetVector(line);
             await db.Upsert(knowledge.AgentId, idStart, vec, line);
             idStart++;
+            Console.WriteLine($"Saved vector {idStart}/{lines.Count}: {line}\n");
         }
     }
 
@@ -50,7 +51,7 @@ public class KnowledgeService : IKnowledgeService
         var result = await GetVectorDb().Search(retrievalModel.AgentId, vector, limit: 10);
 
         // Restore 
-        return "### Helpful domain knowledges:\r\n" + string.Join("\n", result.Select((x, i) => $"{i + 1}: {x}"));
+        return string.Join("\n\n", result.Select((x, i) => $"{i + 1}: {x.Trim()}"));
     }
 
     public async Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel)
@@ -58,8 +59,13 @@ public class KnowledgeService : IKnowledgeService
         // Restore 
         var prompt = await GetKnowledges(retrievalModel);
 
-        prompt += "\r\n### Answer user's question by utilizing the helpful domain knowledges above.\r\n";
-        prompt += $"\r\nQuestion: {retrievalModel.Question}\r\nAnswer: ";
+        var sb = new StringBuilder(prompt);
+        sb.AppendLine();
+        sb.AppendLine();
+        sb.AppendLine("### Answer question based on the given information above. Try to response in bullet points if necessary. Please keep your answers concise and free of irrelevant information.");
+        sb.AppendLine($"Question: {retrievalModel.Question}");
+        sb.AppendLine("Answer: ");
+        prompt = sb.ToString().Trim();
 
         var completion = await GetTextCompletion().GetCompletion(prompt);
         return completion;
@@ -68,14 +74,14 @@ public class KnowledgeService : IKnowledgeService
     public IVectorDb GetVectorDb()
     {
         var db = _services.GetServices<IVectorDb>()
-            .FirstOrDefault(x => x.GetType().Name == _settings.VectorDb);
+            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.VectorDb));
         return db;
     }
 
     public ITextEmbedding GetTextEmbedding()
     {
         var embedding = _services.GetServices<ITextEmbedding>()
-            .FirstOrDefault(x => x.GetType().Name == _settings.TextEmbedding);
+            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.TextEmbedding));
         return embedding;
     }
 

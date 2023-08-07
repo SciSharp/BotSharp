@@ -12,7 +12,7 @@ public class LLamaSharpPlugin : IBotSharpPlugin
         services.AddSingleton(x => llamaSharpSettings);
 
         services.AddSingleton<LlamaAiModel>();
-        services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
+        services.AddSingleton<ITextEmbedding, TextEmbeddingProvider>();
         services.AddScoped<ITextCompletion, TextCompletionProvider>();
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
     }

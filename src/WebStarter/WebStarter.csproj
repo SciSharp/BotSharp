@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.4.2-preview" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.16" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.11.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
