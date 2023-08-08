@@ -67,7 +67,9 @@ public class ConversationService : IConversationService
         return record.ToConversation();
     }
 
-    public async Task<bool> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<bool> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog, 
+        Func<RoleDialogModel, Task> onMessageReceived, 
+        Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         _storage.Append(agentId, conversationId, lastDalog);
 
@@ -81,6 +83,8 @@ public class ConversationService : IConversationService
                 var functions = _services.GetServices<IFunctionCallback>().Where(x => x.Name == msg.FunctionName);
                 foreach (var fn in functions)
                 {
+                    await onFunctionExecuting(msg);
+
                     msg.ExecutionResult = await fn.Execute(msg.Content);
 
                     var result = msg.ExecutionResult.Replace("\r", " ").Replace("\n", " ");

@@ -19,5 +19,6 @@ public class FunctionExecutionValidationResult
     public string ValidationStatus { get; set; }
 
     [JsonPropertyName("validation_message")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string ValidationMessage { get; set; }
 }

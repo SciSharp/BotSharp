@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Refit;
 
 namespace BotSharp.Plugin.MetaMessenger.Controllers;
 
@@ -58,7 +59,6 @@ public class WebhookController : ControllerBase
 
         // TODO validate request
         // https://developers.facebook.com/docs/messenger-platform/webhooks#verification-requests
-
         try
         {
             // received message
@@ -69,10 +69,6 @@ public class WebhookController : ControllerBase
                 string content = "";
                 var sessionId = req.Entry[0].Messaging[0].Sender.Id;
                 var input = req.Entry[0].Messaging[0].Message.Text;
-                var result = await conv.SendMessage(agentId, sessionId, new RoleDialogModel("user", input), async msg =>
-                {
-                    content = msg.Content;
-                });
 
                 var setting = _services.GetRequiredService<MetaMessengerSetting>();
                 var messenger = _services.GetRequiredService<IMessengerGraphAPI>();
@@ -80,13 +76,64 @@ public class WebhookController : ControllerBase
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 };
+
+                // Marking seen
+                /*await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                {
+                    AccessToken = setting.PageAccessToken,
+                    Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                    SenderAction = SenderActionEnum.MarkSeen
+                });*/
+
+                // Typing on
+                await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                {
+                    AccessToken = setting.PageAccessToken,
+                    Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                    SenderAction = SenderActionEnum.TypingOn
+                });
+
+                // Go to LLM
+                var result = await conv.SendMessage(agentId, sessionId, new RoleDialogModel("user", input), async msg =>
+                {
+                    content = msg.Content;
+                }, async fn =>
+                {
+                    await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                    {
+                        AccessToken = setting.PageAccessToken,
+                        Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                        Message = JsonSerializer.Serialize(new { Text = "I'm pulling the relevent information, please wait a second ..." }, jsonOpt)
+                    });
+
+                    await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                    {
+                        AccessToken = setting.PageAccessToken,
+                        Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                        SenderAction = SenderActionEnum.TypingOn
+                    });
+                });
+
+                // Response to user
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
                     Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
                     Message = JsonSerializer.Serialize(new { Text = content }, jsonOpt)
                 });
+
+                // Typing off
+                await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                {
+                    AccessToken = setting.PageAccessToken,
+                    Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                    SenderAction = SenderActionEnum.TypingOff
+                });
             }
+        }
+        catch (ApiException ex)
+        {
+            Console.WriteLine(ex.Content);
         }
         catch (Exception ex)
         {
