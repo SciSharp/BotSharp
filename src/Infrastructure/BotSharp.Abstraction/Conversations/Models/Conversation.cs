@@ -9,4 +9,6 @@ public class Conversation
 
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+
+    public ConversationState State { get; set; }
 }

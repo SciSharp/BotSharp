@@ -41,6 +41,11 @@ public abstract class ConversationCompletionHookBase : IConversationCompletionHo
         return this;
     }
 
+    public virtual Task OnStateLoaded(ConversationState state)
+    {
+        return Task.CompletedTask;
+    }
+
     public virtual Task BeforeCompletion()
     {
         return Task.CompletedTask;

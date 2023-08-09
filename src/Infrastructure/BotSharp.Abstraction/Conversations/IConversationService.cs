@@ -10,6 +10,6 @@ public interface IConversationService
     Task DeleteConversation(string id);
     Task<bool> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting);
     Task<bool> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs, Func<RoleDialogModel, Task> onMessageReceived);
-    List<RoleDialogModel> GetDialogHistory(string agentId, string conversationId, int lastCount = 20);
+    List<RoleDialogModel> GetDialogHistory(string conversationId, int lastCount = 20);
     Task CleanHistory(string agentId);
 }

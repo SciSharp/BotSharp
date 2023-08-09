@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Conversations.Models;
+
 namespace BotSharp.Abstraction.Agents.Models;
 
 public class Agent
@@ -26,5 +28,5 @@ public class Agent
     /// <summary>
     /// Domain knowledges
     /// </summary>
-    public string Knowledges { get; set;}
+    public string Knowledges { get; set; }
 }
