@@ -20,7 +20,7 @@ public class KnowledgeController : ControllerBase, IApiAdapter
     }
 
     [HttpGet("/knowledge/{agentId}")]
-    public async Task<string> RetrieveKnowledge([FromRoute] string agentId, [FromQuery(Name = "q")] string question)
+    public async Task<List<RetrievedResult>> RetrieveKnowledge([FromRoute] string agentId, [FromQuery(Name = "q")] string question)
     {
         return await _knowledgeService.GetAnswer(new KnowledgeRetrievalModel
         {

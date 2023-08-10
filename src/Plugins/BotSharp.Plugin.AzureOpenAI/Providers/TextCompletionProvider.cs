@@ -29,7 +29,7 @@ public class TextCompletionProvider : ITextCompletion
             {
                 text
             },
-            Temperature = 1f,
+            Temperature = 0.7f,
             MaxTokens = 256
         };
 

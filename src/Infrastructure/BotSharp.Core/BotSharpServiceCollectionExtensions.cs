@@ -21,6 +21,7 @@ public static class BotSharpServiceCollectionExtensions
 
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
+        services.AddScoped<IConversationStateService, ConversationStateService>();
 
         RegisterPlugins(services, config);
 

@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.VectorStorage;
+using System.Text.Json;
 
 namespace BotSharp.Core.Plugins.Knowledges.Services;
 
@@ -51,10 +52,10 @@ public class KnowledgeService : IKnowledgeService
         var result = await GetVectorDb().Search(retrievalModel.AgentId, vector, limit: 10);
 
         // Restore 
-        return string.Join("\n\n", result.Select((x, i) => $"{i + 1}: {x.Trim()}"));
+        return string.Join("\n\n", result.Select((x, i) => $"### Paragraph {i + 1} ###\n{x.Trim()}"));
     }
 
-    public async Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel)
+    public async Task<List<RetrievedResult>> GetAnswer(KnowledgeRetrievalModel retrievalModel)
     {
         // Restore 
         var prompt = await GetKnowledges(retrievalModel);
@@ -62,13 +63,17 @@ public class KnowledgeService : IKnowledgeService
         var sb = new StringBuilder(prompt);
         sb.AppendLine();
         sb.AppendLine();
-        sb.AppendLine("### Answer question based on the given information above. Try to response in bullet points if necessary. Please keep your answers concise and free of irrelevant information.");
-        sb.AppendLine($"Question: {retrievalModel.Question}");
-        sb.AppendLine("Answer: ");
+        sb.AppendLine("------");
+        sb.AppendLine("Answer question based on the given information above. Keep your answers concise. Please response with paragraph number, cite sources and reasoning in JSON format, if multiple paragraphs are found, put them in a JSON array. make sure the paragraph number is real. If you don't know the answer just output empty.");
+        sb.AppendLine("[" + JsonSerializer.Serialize(new RetrievedResult()) + "]");
+        sb.AppendLine("------");
+        sb.AppendLine($"QUESTION: \"{retrievalModel.Question}\"");
+        sb.AppendLine("Which paragraphs are relevant in order to answer the above question?");
+        sb.AppendLine("ANSWER: ");
         prompt = sb.ToString().Trim();
 
         var completion = await GetTextCompletion().GetCompletion(prompt);
-        return completion;
+        return JsonSerializer.Deserialize<List<RetrievedResult>>(completion);
     }
 
     public IVectorDb GetVectorDb()

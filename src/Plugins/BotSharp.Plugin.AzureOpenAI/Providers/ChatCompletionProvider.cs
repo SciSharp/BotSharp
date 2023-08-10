@@ -108,8 +108,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 return false;
             }
-            Console.Write(message.FunctionCall.Name);
-            Console.Write(message.FunctionCall.Arguments);
+            _logger.LogInformation($"{message.FunctionCall.Name}: {message.FunctionCall.Arguments}");
             var funcContextIn = new RoleDialogModel(ChatRole.Function.ToString(), message.FunctionCall.Arguments)
             {
                 FunctionName = message.FunctionCall.Name

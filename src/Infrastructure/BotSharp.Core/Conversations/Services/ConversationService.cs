@@ -2,11 +2,14 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.MLTasks;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace BotSharp.Core.Conversations.Services;
 
 public class ConversationService : IConversationService
 {
+    private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
     private readonly ConversationSetting _settings;
@@ -15,12 +18,14 @@ public class ConversationService : IConversationService
     public ConversationService(IServiceProvider services, 
         IUserIdentity user,
         ConversationSetting settings,
-        IConversationStorage storage)
+        IConversationStorage storage,
+        ILogger<ConversationService> logger)
     {
         _services = services;
         _user = user;
         _settings = settings;
         _storage = storage;
+        _logger = logger;
     }
 
     public Task DeleteConversation(string id)
@@ -62,7 +67,7 @@ public class ConversationService : IConversationService
             db.Add<IBotSharpTable>(record);
         });
 
-        _storage.InitStorage(sess.AgentId, record.Id);
+        _storage.InitStorage(record.Id);
 
         return record.ToConversation();
     }
@@ -71,9 +76,9 @@ public class ConversationService : IConversationService
         Func<RoleDialogModel, Task> onMessageReceived, 
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        _storage.Append(agentId, conversationId, lastDalog);
+        _storage.Append(conversationId, lastDalog);
 
-        var wholeDialogs = GetDialogHistory(agentId, conversationId);
+        var wholeDialogs = GetDialogHistory(conversationId);
 
         var response = await SendMessage(agentId, conversationId, wholeDialogs, async msg =>
         {
@@ -90,7 +95,7 @@ public class ConversationService : IConversationService
                     var result = msg.ExecutionResult.Replace("\r", " ").Replace("\n", " ");
                     var content = $"{result}";
                     // Console.WriteLine($"{msg.Role}: {content}");
-                    _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content)
+                    _storage.Append(conversationId, new RoleDialogModel(msg.Role, content)
                     {
                         FunctionName = msg.FunctionName,
                     });
@@ -100,7 +105,7 @@ public class ConversationService : IConversationService
             {
                 var content = msg.Content.Replace("\r", " ").Replace("\n", " ");
                 // Console.WriteLine($"{msg.Role}: {content}");
-                _storage.Append(agentId, conversationId, new RoleDialogModel(msg.Role, content));
+                _storage.Append(conversationId, new RoleDialogModel(msg.Role, content));
                 
                 await onMessageReceived(msg);
             }
@@ -111,8 +116,15 @@ public class ConversationService : IConversationService
 
     public async Task<bool> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var agent = await _services.GetRequiredService<IAgentService>().GetAgent(agentId);
+        var agent = await _services.GetRequiredService<IAgentService>()
+            .GetAgent(agentId);
+
         var converation = await GetConversation(conversationId);
+
+        // load state
+        var stateService = _services.GetRequiredService<IConversationStateService>();
+        var state = stateService.Load(conversationId);
+        state["agentId"] = agentId;
 
         // Get relevant domain knowledge
         if (_settings.EnableKnowledgeBase)
@@ -132,11 +144,13 @@ public class ConversationService : IConversationService
         // Before chat completion hook
         foreach (var hook in hooks)
         {
-            await hook.SetAgent(agent)
+            hook.SetAgent(agent)
                 .SetConversation(converation)
                 .SetDialogs(wholeDialogs)
-                .SetChatCompletion(chatCompletion)
-                .BeforeCompletion();
+                .SetChatCompletion(chatCompletion);
+
+            await hook.OnStateLoaded(state);
+            await hook.BeforeCompletion();
         }
 
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
@@ -147,6 +161,19 @@ public class ConversationService : IConversationService
                 foreach (var hook in hooks)
                 {
                     await hook.OnFunctionExecuting(msg.FunctionName, msg.Content);
+                }
+                // Save states
+                var jo = JsonSerializer.Deserialize<object>(msg.Content);
+                if (jo is JsonElement root)
+                {
+                    foreach (JsonProperty property in root.EnumerateObject())
+                    {
+                        string propertyName = property.Name;
+                        string propertyValue = property.Value.ToString();
+
+                        _logger.LogInformation($"Set conversation state: {propertyName} - {propertyValue}");
+                        state[propertyName] = propertyValue;
+                    }
                 }
             }
             else
@@ -174,9 +201,9 @@ public class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(string agentId, string conversationId, int lastCount = 20)
+    public List<RoleDialogModel> GetDialogHistory(string conversationId, int lastCount = 20)
     {
-        var dialogs = _storage.GetDialogs(agentId, conversationId);
+        var dialogs = _storage.GetDialogs(conversationId);
         return dialogs.TakeLast(lastCount).ToList();
     }
 }

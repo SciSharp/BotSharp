@@ -18,9 +18,14 @@ public partial class AgentService : IAgentService
         _settings = settings;
     }
 
+    public string GetDataDir()
+    {
+        return Path.Combine(_settings.DataDir);
+    }
+
     public string GetAgentDataDir(string agentId)
     {
-        var dir = Path.Combine(_settings.DataDir, agentId);
+        var dir = Path.Combine(_settings.DataDir, "agents", agentId);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);

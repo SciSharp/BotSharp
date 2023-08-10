@@ -11,9 +11,9 @@ public class ConversationStorage : IConversationStorage
         _agent = agent;
     }
 
-    public void Append(string agentId, string conversationId, RoleDialogModel dialog)
+    public void Append(string conversationId, RoleDialogModel dialog)
     {
-        var conversationFile = GetStorageFile(agentId, conversationId);
+        var conversationFile = GetStorageFile(conversationId);
         var sb = new StringBuilder();
         sb.AppendLine($"{dialog.Role}|{dialog.CreatedAt}|{dialog.FunctionName}");
         sb.AppendLine($"  - {dialog.Content}");
@@ -21,9 +21,9 @@ public class ConversationStorage : IConversationStorage
         File.AppendAllText(conversationFile, conversation);
     }
 
-    public List<RoleDialogModel> GetDialogs(string agentId, string conversationId)
+    public List<RoleDialogModel> GetDialogs(string conversationId)
     {
-        var conversationFile = GetStorageFile(agentId, conversationId);
+        var conversationFile = GetStorageFile(conversationId);
         var dialogs = File.ReadAllLines(conversationFile);
 
         var results = new List<RoleDialogModel>();
@@ -44,26 +44,28 @@ public class ConversationStorage : IConversationStorage
         return results;
     }
 
-    public void InitStorage(string agentId, string conversationId)
+    public void InitStorage(string conversationId)
     {
-        var dir = _agent.GetAgentDataDir(agentId);
-        var dialogDir = Path.Combine(dir, "conversations");
-        if (!Directory.Exists(dialogDir))
+        var file = GetStorageFile(conversationId);
+        if (!File.Exists(file))
         {
-            Directory.CreateDirectory(dialogDir);
-        }
-
-        var conversationFile = Path.Combine(dialogDir, conversationId + ".txt");
-        if (!File.Exists(conversationFile))
-        {
-            File.WriteAllLines(conversationFile, new string[0]);
+            File.WriteAllLines(file, new string[0]);
         }
     }
 
-    private string GetStorageFile(string agentId, string conversationId)
+    private string GetStorageFile(string conversationId)
     {
-        var dir = _agent.GetAgentDataDir(agentId);
-        var dialogDir = Path.Combine(dir, "conversations");
-        return Path.Combine(dialogDir, conversationId + ".txt");
+        var dir = GetConversationDataDir();
+        return Path.Combine(dir, conversationId + ".txt");
+    }
+
+    public string GetConversationDataDir()
+    {
+        var dir = Path.Combine(_agent.GetDataDir(), "conversations");
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        return dir;
     }
 }

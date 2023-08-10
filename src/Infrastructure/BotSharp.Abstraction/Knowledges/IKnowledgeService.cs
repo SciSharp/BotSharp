@@ -6,5 +6,5 @@ public interface IKnowledgeService
 {
     Task Feed(KnowledgeFeedModel knowledge);
     Task<string> GetKnowledges(KnowledgeRetrievalModel retrievalModel);
-    Task<string> GetAnswer(KnowledgeRetrievalModel retrievalModel);
+    Task<List<RetrievedResult>> GetAnswer(KnowledgeRetrievalModel retrievalModel);
 }
