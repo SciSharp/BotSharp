@@ -7,7 +7,7 @@ public partial class AgentService
 {
     public async Task UpdateAgent(Agent agent)
     {
-        var db = _services.GetRequiredService<BotSharpDbContext>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
 
         db.Transaction<IBotSharpTable>(delegate
         {

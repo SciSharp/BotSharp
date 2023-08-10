@@ -6,9 +6,11 @@ namespace BotSharp.Core.Conversations.Services;
 public class ConversationStorage : IConversationStorage
 {
     private readonly IAgentService _agent;
-    public ConversationStorage(IAgentService agent)
+    private readonly MyDatabaseSettings _dbSettings;
+    public ConversationStorage(IAgentService agent, MyDatabaseSettings dbSettings)
     {
         _agent = agent;
+        _dbSettings = dbSettings;
     }
 
     public void Append(string conversationId, RoleDialogModel dialog)
@@ -55,17 +57,11 @@ public class ConversationStorage : IConversationStorage
 
     private string GetStorageFile(string conversationId)
     {
-        var dir = GetConversationDataDir();
-        return Path.Combine(dir, conversationId + ".txt");
-    }
-
-    public string GetConversationDataDir()
-    {
-        var dir = Path.Combine(_agent.GetDataDir(), "conversations");
+        var dir = Path.Combine(_dbSettings.FileRepository, "conversations", conversationId);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
         }
-        return dir;
+        return Path.Combine(dir, "dialogs.txt");
     }
 }

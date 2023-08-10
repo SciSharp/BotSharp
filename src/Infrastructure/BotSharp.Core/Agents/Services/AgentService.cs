@@ -10,7 +10,10 @@ public partial class AgentService : IAgentService
     private readonly IUserIdentity _user;
     private readonly AgentSettings _settings;
 
-    public AgentService(IServiceProvider services, ILogger<AgentService> logger, IUserIdentity user, AgentSettings settings)
+    public AgentService(IServiceProvider services, 
+        ILogger<AgentService> logger, 
+        IUserIdentity user, 
+        AgentSettings settings)
     {
         _services = services;
         _logger = logger;
@@ -20,12 +23,14 @@ public partial class AgentService : IAgentService
 
     public string GetDataDir()
     {
-        return Path.Combine(_settings.DataDir);
+        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
+        return Path.Combine(dbSettings.FileRepository);
     }
 
     public string GetAgentDataDir(string agentId)
     {
-        var dir = Path.Combine(_settings.DataDir, "agents", agentId);
+        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
+        var dir = Path.Combine(dbSettings.FileRepository, _settings.DataDir, agentId);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
