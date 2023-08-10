@@ -101,8 +101,12 @@ public class FileRepository : IBotSharpRepository
             _conversations = new List<ConversationRecord>();
             foreach (var d in Directory.GetDirectories(dir))
             {
-                var json = File.ReadAllText(Path.Combine(d, "conversation.json"));
-                _conversations.Add(JsonSerializer.Deserialize<ConversationRecord>(json, _options));
+                var path = Path.Combine(d, "conversation.json");
+                if (File.Exists(path))
+                {
+                    var json = File.ReadAllText(path);
+                    _conversations.Add(JsonSerializer.Deserialize<ConversationRecord>(json, _options));
+                }
             }
             return _conversations.AsQueryable();
         }

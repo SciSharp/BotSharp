@@ -41,7 +41,7 @@ public abstract class ConversationCompletionHookBase : IConversationCompletionHo
         return this;
     }
 
-    public virtual Task OnStateLoaded(ConversationState state, Action<Agent, string>? onAgentSwitched = null)
+    public virtual Task OnStateLoaded(ConversationState state, Action<Agent>? onAgentSwitched = null)
     {
         return Task.CompletedTask;
     }

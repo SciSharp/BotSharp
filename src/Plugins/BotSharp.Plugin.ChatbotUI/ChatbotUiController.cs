@@ -66,18 +66,6 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
 
         var conversationService = _services.GetRequiredService<IConversationService>();
 
-        // Check if this conversation exists
-        var converation = await conversationService.GetConversation(input.ConversationId);
-        if(converation == null)
-        {
-            var sess = new Conversation
-            {
-                Id = input.ConversationId,
-                AgentId = input.AgentId
-            };
-            converation = await conversationService.NewConversation(sess);
-        }
-
         var result = await conversationService.SendMessage(input.AgentId, 
             input.ConversationId, 
             conversations, 

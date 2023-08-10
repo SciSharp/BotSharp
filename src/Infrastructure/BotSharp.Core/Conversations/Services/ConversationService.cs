@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Knowledges.Models;
@@ -118,8 +119,19 @@ public class ConversationService : IConversationService
     {
         var agent = await _services.GetRequiredService<IAgentService>()
             .GetAgent(agentId);
-
+        
         var converation = await GetConversation(conversationId);
+
+        // Create conversation if this conversation not exists
+        if (converation == null)
+        {
+            var sess = new Conversation
+            {
+                Id = conversationId,
+                AgentId = agentId
+            };
+            converation = await NewConversation(sess);
+        }
 
         // load state
         var stateService = _services.GetRequiredService<IConversationStateService>();
@@ -149,11 +161,7 @@ public class ConversationService : IConversationService
                 .SetDialogs(wholeDialogs)
                 .SetChatCompletion(chatCompletion);
 
-            await hook.OnStateLoaded(state, onAgentSwitched: (x, prompt) =>
-                {
-                    agent = x;
-                    wholeDialogs.Add(new RoleDialogModel("user", prompt));
-                });
+            await hook.OnStateLoaded(state, onAgentSwitched: x => agent = x);
             await hook.BeforeCompletion();
         }
 
