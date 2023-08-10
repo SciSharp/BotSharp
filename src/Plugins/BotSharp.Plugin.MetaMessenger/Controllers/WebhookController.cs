@@ -67,7 +67,7 @@ public class WebhookController : ControllerBase
                 var conv = _services.GetRequiredService<IConversationService>();
 
                 string content = "";
-                var sessionId = req.Entry[0].Messaging[0].Sender.Id;
+                var senderId = req.Entry[0].Messaging[0].Sender.Id;
                 var input = req.Entry[0].Messaging[0].Message.Text;
 
                 var setting = _services.GetRequiredService<MetaMessengerSetting>();
@@ -78,38 +78,38 @@ public class WebhookController : ControllerBase
                 };
 
                 // Marking seen
-                /*await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
                     SenderAction = SenderActionEnum.MarkSeen
-                });*/
+                });
 
                 // Typing on
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
                     SenderAction = SenderActionEnum.TypingOn
                 });
 
                 // Go to LLM
-                var result = await conv.SendMessage(agentId, sessionId, new RoleDialogModel("user", input), async msg =>
+                var result = await conv.SendMessage(agentId, senderId, new RoleDialogModel("user", input), async msg =>
                 {
                     content = msg.Content;
                 }, async fn =>
                 {
-                    await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                    /*await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                     {
                         AccessToken = setting.PageAccessToken,
                         Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
                         Message = JsonSerializer.Serialize(new { Text = "I'm pulling the relevent information, please wait a second ..." }, jsonOpt)
-                    });
+                    });*/
 
                     await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                     {
                         AccessToken = setting.PageAccessToken,
-                        Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                        Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
                         SenderAction = SenderActionEnum.TypingOn
                     });
                 });
@@ -118,7 +118,7 @@ public class WebhookController : ControllerBase
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
                     Message = JsonSerializer.Serialize(new { Text = content }, jsonOpt)
                 });
 
@@ -126,7 +126,7 @@ public class WebhookController : ControllerBase
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
+                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
                     SenderAction = SenderActionEnum.TypingOff
                 });
             }

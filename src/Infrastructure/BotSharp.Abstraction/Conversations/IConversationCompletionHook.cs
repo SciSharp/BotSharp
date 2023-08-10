@@ -17,7 +17,7 @@ public interface IConversationCompletionHook
     IChatCompletion ChatCompletion { get; }
     IConversationCompletionHook SetChatCompletion(IChatCompletion chatCompletion);
 
-    Task OnStateLoaded(ConversationState state, Action<Agent, string>? onAgentSwitched = null);
+    Task OnStateLoaded(ConversationState state, Action<Agent>? onAgentSwitched = null);
     Task BeforeCompletion();
     Task OnFunctionExecuting(string name, string args);
     Task AfterCompletion(RoleDialogModel message);

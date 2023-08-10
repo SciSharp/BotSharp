@@ -130,7 +130,10 @@ public class ChatCompletionProvider : IChatCompletion
 
         _logger.LogInformation(message.Content);
 
-        await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
+        if (!string.IsNullOrEmpty(message.Content))
+        {
+            await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
+        }
 
         return true;
     }
