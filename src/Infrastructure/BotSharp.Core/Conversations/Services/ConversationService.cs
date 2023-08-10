@@ -149,7 +149,11 @@ public class ConversationService : IConversationService
                 .SetDialogs(wholeDialogs)
                 .SetChatCompletion(chatCompletion);
 
-            await hook.OnStateLoaded(state);
+            await hook.OnStateLoaded(state, onAgentSwitched: (x, prompt) =>
+                {
+                    agent = x;
+                    wholeDialogs.Add(new RoleDialogModel("user", prompt));
+                });
             await hook.BeforeCompletion();
         }
 
