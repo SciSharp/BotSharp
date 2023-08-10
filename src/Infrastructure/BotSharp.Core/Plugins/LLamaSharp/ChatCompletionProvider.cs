@@ -19,9 +19,33 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    public Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        throw new NotImplementedException();
+        var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "User:")}")).Trim();
+        content += "\nBob: ";
+
+        var llama = _services.GetRequiredService<LlamaAiModel>();
+        llama.LoadModel();
+        var executor = new StatelessExecutor(llama.Model);
+        var inferenceParams = new InferenceParams()
+        {
+            Temperature = 1.0f,
+            AntiPrompts = new List<string> { "User:" },
+            MaxTokens = 256
+        };
+
+        string totalResponse = "";
+
+        var prompt = agent.Instruction + content;
+        await foreach (var response in executor.InferAsync(prompt, inferenceParams))
+        {
+            Console.Write(response);
+            totalResponse += response;
+        }
+
+        await onMessageReceived(new RoleDialogModel("assistant", totalResponse));
+
+        return true;
     }
 
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
