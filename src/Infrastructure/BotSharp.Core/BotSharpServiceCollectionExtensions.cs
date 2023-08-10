@@ -37,13 +37,17 @@ public static class BotSharpServiceCollectionExtensions
 
         var myDatabaseSettings = new MyDatabaseSettings();
         config.Bind("Database", myDatabaseSettings);
-        services.AddSingleton((IServiceProvider x) => databaseSettings);
+        services.AddSingleton((IServiceProvider x) => myDatabaseSettings);
 
         services.AddScoped((IServiceProvider x) 
             => DataContextHelper.GetDbContext<MongoDbContext, Tdb>(myDatabaseSettings, x));
 
-        services.AddScoped((IServiceProvider x) 
-            => DataContextHelper.GetDbContext<BotSharpDbContext, Tdb>(myDatabaseSettings, x));
+        services.AddScoped<IBotSharpRepository>(sp =>
+        {
+            return myDatabaseSettings.Default == "FileRepository" ?
+                new FileRepository(myDatabaseSettings, sp) :
+                DataContextHelper.GetDbContext<BotSharpDbContext, Tdb>(myDatabaseSettings, sp);
+        });
 
         return services;
     }

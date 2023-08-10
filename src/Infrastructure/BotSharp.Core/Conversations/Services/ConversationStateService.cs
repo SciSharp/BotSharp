@@ -9,13 +9,13 @@ namespace BotSharp.Core.Conversations.Services;
 public class ConversationStateService : IConversationStateService, IDisposable
 {
     private ConversationState _state;
-    private IAgentService _agentService;
+    private MyDatabaseSettings _dbSettings;
     private string _conversationId;
     private string _file;
 
-    public ConversationStateService(IAgentService agentService)
+    public ConversationStateService(MyDatabaseSettings dbSettings)
     {
-        _agentService = agentService;
+        _dbSettings = dbSettings;
     }
 
     public void SetState(string name, string value)
@@ -65,8 +65,12 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     private string GetStorageFile(string conversationId)
     {
-        var dir = _agentService.GetDataDir();
-        return Path.Combine(dir, "conversations", conversationId + ".state");
+        var dir = Path.Combine(_dbSettings.FileRepository, "conversations", conversationId);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        return Path.Combine(dir, "state.dict");
     }
 
     public string GetState(string name)

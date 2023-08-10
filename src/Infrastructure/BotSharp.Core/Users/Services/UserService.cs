@@ -1,9 +1,5 @@
-using BotSharp.Abstraction.Users;
 using BotSharp.Abstraction.Users.Models;
-using BotSharp.Core.Infrastructures;
-using BotSharp.Core.Repository.DbTables;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -23,7 +19,7 @@ public class UserService : IUserService
 
     public async Task<User> CreateUser(User user)
     {
-        var db = _services.GetRequiredService<BotSharpDbContext>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.User.FirstOrDefault(x => x.Email == user.Email.ToLower());
         if (record != null)
         {
@@ -49,7 +45,7 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (userEmail, password) = base64.SplitAsTuple(":");
 
-        var db = _services.GetRequiredService<BotSharpDbContext>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.User.FirstOrDefault(x => x.Email == userEmail);
         if (record == null)
         {
@@ -104,7 +100,7 @@ public class UserService : IUserService
     {
         var userId = _user.Id;
 
-        var db = _services.GetRequiredService<BotSharpDbContext>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = (from u in db.User
                     where u.Id == userId
                     select new User

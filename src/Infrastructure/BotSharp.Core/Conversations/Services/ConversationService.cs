@@ -35,7 +35,7 @@ public class ConversationService : IConversationService
 
     public async Task<Conversation> GetConversation(string id)
     {
-        var db = _services.GetRequiredService<BotSharpDbContext>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
         var query = from sess in db.Conversation
                     where sess.Id == id
                     orderby sess.CreatedTime descending
@@ -45,7 +45,7 @@ public class ConversationService : IConversationService
 
     public async Task<List<Conversation>> GetConversations()
     {
-        var db = _services.GetRequiredService<BotSharpDbContext>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
         var query = from sess in db.Conversation
                     where sess.UserId == _user.Id
                     orderby sess.CreatedTime descending
@@ -55,7 +55,7 @@ public class ConversationService : IConversationService
 
     public async Task<Conversation> NewConversation(Conversation sess)
     {
-        var db = _services.GetRequiredService<BotSharpDbContext>();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
 
         var record = ConversationRecord.FromConversation(sess);
         record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
