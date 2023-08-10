@@ -66,18 +66,27 @@ The main documentation for the site is organized into the following sections:
 
 .. toctree::
    :maxdepth: 3
-   :caption: Channels Integration Documentation:
+   :caption: Channels Integration
 
    integrations/facebook-messenger
+
+.. _knowledge-base:
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Knowledge Base
+
+   knowledge-base/text-embedding
+   knowledge-base/vector-database
+   knowledge-base/similarity-search
 
 .. _architecture-docs:
 
 .. toctree::
    :maxdepth: 3
-   :caption: Architecture Documentation:
+   :caption: Architecture:
    
-   configuration/db
-   configuration/platform
+   architecture/data_storage
 
 If you feel that this project is helpful to you, please Star us on the project, we will be very grateful.
 
