@@ -60,7 +60,7 @@ public class MemVectorDatabase : IVectorDb
         return c.ToArray<float>();
     }
 
-    private float[] CalCosineSimilarity(float[] vec, List<VecRecord> records)
+    public float[] CalCosineSimilarity(float[] vec, List<VecRecord> records)
     {
         var similarities = new float[records.Count];
         var a = vec;
