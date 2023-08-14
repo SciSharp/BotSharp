@@ -23,14 +23,6 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
 
-        RegisterPlugins(services, config);
-
-        return services;
-    }
-
-    public static IServiceCollection ConfigureBotSharpRepository<Tdb>(this IServiceCollection services, IConfiguration config)
-        where Tdb : DataContext
-    {
         var databaseSettings = new DatabaseSettings();
         config.Bind("Database", databaseSettings);
         services.AddSingleton((IServiceProvider x) => databaseSettings);
@@ -39,14 +31,28 @@ public static class BotSharpServiceCollectionExtensions
         config.Bind("Database", myDatabaseSettings);
         services.AddSingleton((IServiceProvider x) => myDatabaseSettings);
 
-        services.AddScoped((IServiceProvider x) 
-            => DataContextHelper.GetDbContext<MongoDbContext, Tdb>(myDatabaseSettings, x));
+        RegisterPlugins(services, config);
 
+        return services;
+    }
+
+    public static IServiceCollection UsingSqlServer(this IServiceCollection services, IConfiguration config)
+    {
         services.AddScoped<IBotSharpRepository>(sp =>
         {
-            return myDatabaseSettings.Default == "FileRepository" ?
-                new FileRepository(myDatabaseSettings, sp) :
-                DataContextHelper.GetDbContext<BotSharpDbContext, Tdb>(myDatabaseSettings, sp);
+            var myDatabaseSettings = sp.GetRequiredService<MyDatabaseSettings>();
+            return DataContextHelper.GetDbContext<BotSharpDbContext, DbContext4SqlServer>(myDatabaseSettings, sp);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection UsingFileRepository(this IServiceCollection services, IConfiguration config)
+    {
+        services.AddScoped<IBotSharpRepository>(sp =>
+        {
+            var myDatabaseSettings = sp.GetRequiredService<MyDatabaseSettings>();
+            return new FileRepository(myDatabaseSettings, sp);
         });
 
         return services;

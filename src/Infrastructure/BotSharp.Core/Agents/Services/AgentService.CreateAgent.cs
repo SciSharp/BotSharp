@@ -26,6 +26,7 @@ public partial class AgentService
 
         var userAgentRecord = new UserAgentRecord
         {
+            Id = Guid.NewGuid().ToString(),
             UserId = _user.Id,
             AgentId = record.Id,
             CreatedTime = DateTime.UtcNow,

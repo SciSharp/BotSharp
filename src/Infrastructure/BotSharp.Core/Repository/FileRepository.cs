@@ -70,7 +70,7 @@ public class FileRepository : IBotSharpRepository
     {
         get
         {
-            if (_userAgents != null)
+            if (_userAgents != null && _userAgents.Count > 0)
             {
                 return _userAgents.AsQueryable();
             }
@@ -79,8 +79,12 @@ public class FileRepository : IBotSharpRepository
             _userAgents = new List<UserAgentRecord>();
             foreach (var d in Directory.GetDirectories(dir))
             {
-                var json = File.ReadAllText(Path.Combine(d, "agents.json"));
-                _userAgents.AddRange(JsonSerializer.Deserialize<List<UserAgentRecord>>(json, _options));
+                var file = Path.Combine(d, "agents.json");
+                if (Directory.Exists(d) && File.Exists(file))
+                {
+                    var json = File.ReadAllText(Path.Combine(d, "agents.json"));
+                    _userAgents.AddRange(JsonSerializer.Deserialize<List<UserAgentRecord>>(json, _options));
+                }
             }
             return _userAgents.AsQueryable();
         }
@@ -125,6 +129,16 @@ public class FileRepository : IBotSharpRepository
             _agents.Add(agent);
             _changedTableNames.Add(nameof(AgentRecord));
         }
+        else if (entity is UserRecord user)
+        {
+            _users.Add(user);
+            _changedTableNames.Add(nameof(UserRecord));
+        }
+        else if (entity is UserAgentRecord userAgent)
+        {
+            _userAgents.Add(userAgent);
+            _changedTableNames.Add(nameof(UserAgentRecord));
+        }
     }
 
     List<string> _changedTableNames = new List<string>();
@@ -139,7 +153,7 @@ public class FileRepository : IBotSharpRepository
             if (table == nameof(ConversationRecord))
             {
                 var convSettings = _services.GetService<ConversationSetting>();
-                
+
                 foreach (var conversation in _conversations)
                 {
                     var dir = Path.Combine(_dbSettings.FileRepository,
@@ -169,6 +183,34 @@ public class FileRepository : IBotSharpRepository
                     var path = Path.Combine(dir, "agent.json");
                     File.WriteAllText(path, JsonSerializer.Serialize(agent, _options));
                 }
+            }
+            else if (table == nameof(UserRecord))
+            {
+                foreach (var user in _users)
+                {
+                    var dir = Path.Combine(_dbSettings.FileRepository,
+                        "users",
+                        user.Id);
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+                    var path = Path.Combine(dir, "user.json");
+                    File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
+                }
+            }
+            else if (table == nameof(UserAgentRecord))
+            {
+                _userAgents.GroupBy(x => x.UserId)
+                    .Select(x => x.Key).ToList()
+                    .ForEach(uid =>
+                    {
+                        var dir = Path.Combine(_dbSettings.FileRepository,
+                            "users",
+                            uid);
+                        var path = Path.Combine(dir, "agents.json");
+                        File.WriteAllText(path, JsonSerializer.Serialize(_userAgents.Where(x => x.UserId == uid), _options));
+                    });
             }
         }
 
