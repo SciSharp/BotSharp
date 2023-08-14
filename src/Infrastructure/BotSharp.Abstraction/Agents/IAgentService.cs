@@ -7,6 +7,14 @@ public interface IAgentService
 {
     Task<Agent> CreateAgent(Agent agent);
     Task<List<Agent>> GetAgents();
+
+    /// <summary>
+    /// Load agent configurations and triggher hooks
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<Agent> LoadAgent(string id);
+
     Task<Agent> GetAgent(string id);
     Task<bool> DeleteAgent(string id);
     Task UpdateAgent(Agent agent);

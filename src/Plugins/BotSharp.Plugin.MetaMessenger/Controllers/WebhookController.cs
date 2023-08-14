@@ -15,6 +15,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Refit;
+using BotSharp.Abstraction.Agents.Enums;
 
 namespace BotSharp.Plugin.MetaMessenger.Controllers;
 
@@ -94,8 +95,15 @@ public class WebhookController : ControllerBase
                 });
 
                 // Go to LLM
-                var result = await conv.SendMessage(agentId, senderId, new RoleDialogModel("user", input), async msg =>
+                var result = await conv.SendMessage(agentId, senderId, new RoleDialogModel("user", input)
                 {
+                    Channel = "messenger"
+                }, async msg =>
+                {
+                    if (msg.Role == AgentRole.Function)
+                    {
+
+                    }
                     content = msg.Content;
                 }, async fn =>
                 {

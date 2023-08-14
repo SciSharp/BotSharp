@@ -7,7 +7,9 @@ namespace BotSharp.Abstraction.Conversations;
 /// </summary>
 public interface IConversationStateService
 {
-    ConversationState Load(string conversationId);
+    void SetConversation(string conversationId);
+    ConversationState Load();
     string GetState(string name);
+    void SetState(string name, string value);
     void Save();
 }
