@@ -1,4 +1,4 @@
-Facebook Messenger
+Messenger
 ==================
 
 The BotSharp Facebook integration allows you to easily create a Facebook Messenger bot with natural language understanding, based on the BotSharp technology.

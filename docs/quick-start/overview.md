@@ -1,5 +1,4 @@
 # Overview
-*Haiping Chen --06/18/2023*
 
 BotSharp is an open source machine learning framework for AI Bot platform builder. This project involves natural language understanding and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in information systems. Out of the box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier.
 
@@ -24,11 +23,13 @@ Your code would have to handle all these different types of requests ro carry ou
 
 However, BotSharp lets you easily achieve a conversational user experience by handling the natural language understanding (NLU) for you.When you use BotSharp, you can create agents that can understand the meaning of natural language and the nuances and trainslate that to structured meaning your software can understand.
 
-## Agent
-An agent helps you process user sentences (unstructure data) into structure data that you can use to return an appropriate response.
+Features
+-------------
 
-When users say something, your agent matches the user utterance to an exactly matched intent or closely matched intent.  Besides, the agent will return extra information about named entities which you need from the utterance. This can be name, location date or a host of other data categories (entities). You can define both the intent and the entities in your training data sets. You can also define what else to extact in your training phares as well.Then you can send a response to user to continue the conversation or to just end the conversation. It is very simple to create your own agent in BotSharp. The only thing you need is to assign you agent a name and a brief discription.
-
-
-## Channels
- When you already trained a chatbot on Botsharp, you may want it to play a really role in life. So we intergrate some popular channels in Botsharp including Twilio, facebook messenger, Telegram, WeChat and some other RPAs. These channels can make your robot "real" in life. For example, on facebook when a user visit your page and sends you a message, they can talk to your agent. You can also set a virtral assistant based on Twilio to chat with your clients for ordering, consulting, problem solving and many other business processes.
+* Built-in multi-Agents management, easy to build Bot as a Service platform.
+* Integrate with multiple LLMs like ChatGPT and LLaMA.
+* Using plug-in design, it is easy to expand functions. 
+* Working with multiple Vector Stores for senmatic search.
+* Supporting different UI providers like [Chatbot UI](https://github.com/mckaywrigley/chatbot-ui) and [HuggingChat UI](https://github.com/huggingface/chat-ui).
+* Integrated with popular social platforms like Facebook Messenger, Slack and Telegram.
+* Providing REST APIs to work with your own UI.

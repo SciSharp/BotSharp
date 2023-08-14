@@ -24,17 +24,6 @@ BotSharp is strictly in accordance with the components principle and decouples e
 .. image:: static/logos/BotSharp.png
    :height: 64px
 
-Some Features
--------------
-
-* Built-in multi-Agents management, easy to build Bot as a Service platform.
-* Integrate with multiple LLMs like ChatGPT and LLaMA.
-* Using plug-in design, it is easy to expand functions. 
-* Working with multiple Vector Stores for senmatic search.
-* Supporting different UI providers like `Chatbot UI`_ and `HuggingChat UI`_.
-* Integrated with popular social platforms like Facebook Messenger, Slack and Telegram.
-* Providing REST APIs to work with your own UI.
-
 Indices and tables
 ==================
 The main documentation for the site is organized into the following sections:
@@ -59,16 +48,19 @@ The main documentation for the site is organized into the following sections:
    :maxdepth: 3
    :caption: Agent & Conversation
 
-   agent/account
+   agent/intro
    agent/conversation
+   agent/state
 
 .. _integration-docs:
 
 .. toctree::
    :maxdepth: 3
-   :caption: Channels Integration
+   :caption: Interactive Channels
 
-   integrations/facebook-messenger
+   channels/intro
+   channels/messenger
+   channels/wechat
 
 .. _knowledge-base:
 
@@ -79,6 +71,15 @@ The main documentation for the site is organized into the following sections:
    knowledge-base/text-embedding
    knowledge-base/vector-database
    knowledge-base/similarity-search
+   knowledge-base/build-qa-bot
+
+.. _prompting:
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Prompt Engineering
+
+   prompt/intro
 
 .. _architecture-docs:
 
@@ -86,10 +87,11 @@ The main documentation for the site is organized into the following sections:
    :maxdepth: 3
    :caption: Architecture:
    
-   architecture/data_storage
+   architecture/authentication
+   architecture/plugin
+   architecture/hooks
+   architecture/data-persistence
 
 If you feel that this project is helpful to you, please Star us on the project, we will be very grateful.
 
-.. _Chatbot UI: https://github.com/mckaywrigley/chatbot-ui
-.. _HuggingChat UI: https://github.com/huggingface/chat-ui
 .. _discord: https://discord.gg/qRVm82fKTS

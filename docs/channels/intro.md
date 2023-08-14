@@ -1,0 +1,3 @@
+# Channel Introduction
+
+ When you already trained a chatbot on Botsharp, you may want it to play a really role in life. So we intergrate some popular channels in Botsharp including Twilio, facebook messenger, Telegram, WeChat and some other RPAs. These channels can make your robot "real" in life. For example, on facebook when a user visit your page and sends you a message, they can talk to your agent. You can also set a virtral assistant based on Twilio to chat with your clients for ordering, consulting, problem solving and many other business processes.
