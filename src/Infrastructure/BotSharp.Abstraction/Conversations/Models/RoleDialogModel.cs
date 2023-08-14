@@ -19,6 +19,17 @@ public class RoleDialogModel
     /// </summary>
     public string? ExecutionResult { get; set; }
 
+    /// <summary>
+    /// When function callback has been executed, system will pass result to LLM again,
+    /// Set this property to True to stop calling LLM.
+    /// </summary>
+    public bool StopSubsequentInteraction { get;set; }
+
+    /// <summary>
+    /// Channel name
+    /// </summary>
+    public string Channel { get; set; }
+
     public RoleDialogModel(string role, string text)
     {
         Role = role;

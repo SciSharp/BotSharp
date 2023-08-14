@@ -117,6 +117,13 @@ public class ChatCompletionProvider : IChatCompletion
             // Execute functions
             await onMessageReceived(funcContextIn);
 
+            if (funcContextIn.StopSubsequentInteraction)
+            {
+                // Emit a fake message that should be populated by whom set StopSubsequentInteraction as True.
+                await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), ""));
+                return true;
+            }
+
             // After function is executed, pass the result to LLM
             chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
             {

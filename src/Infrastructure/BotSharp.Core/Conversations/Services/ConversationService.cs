@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
@@ -116,10 +117,7 @@ public class ConversationService : IConversationService
     }
 
     public async Task<bool> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs, Func<RoleDialogModel, Task> onMessageReceived)
-    {
-        var agent = await _services.GetRequiredService<IAgentService>()
-            .GetAgent(agentId);
-        
+    {        
         var converation = await GetConversation(conversationId);
 
         // Create conversation if this conversation not exists
@@ -133,13 +131,18 @@ public class ConversationService : IConversationService
             converation = await NewConversation(sess);
         }
 
-        // load state
+        // conversation state
         var stateService = _services.GetRequiredService<IConversationStateService>();
-        var state = stateService.Load(conversationId);
-        state["agentId"] = agentId;
-
+        stateService.SetConversation(conversationId);
+        stateService.Load();
+        stateService.SetState("agentId", agentId);
+        
+        // load agent
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(agentId);
+        
         // Get relevant domain knowledge
-        if (_settings.EnableKnowledgeBase)
+        /*if (_settings.EnableKnowledgeBase)
         {
             var knowledge = _services.GetRequiredService<IKnowledgeService>();
             agent.Knowledges = await knowledge.GetKnowledges(new KnowledgeRetrievalModel
@@ -147,21 +150,19 @@ public class ConversationService : IConversationService
                 AgentId = agentId,
                 Question = string.Join("\n", wholeDialogs.Select(x => x.Content))
             });
-        }
+        }*/
 
         var chatCompletion = GetChatCompletion();
 
-        var hooks = _services.GetServices<IConversationCompletionHook>().ToList();
+        var hooks = _services.GetServices<IConversationHook>().ToList();
 
         // Before chat completion hook
         foreach (var hook in hooks)
         {
             hook.SetAgent(agent)
-                .SetConversation(converation)
-                .SetDialogs(wholeDialogs)
-                .SetChatCompletion(chatCompletion);
+                .SetConversation(converation);
 
-            await hook.OnStateLoaded(state, onAgentSwitched: x => agent = x);
+            await hook.OnDialogsLoaded(wholeDialogs);
             await hook.BeforeCompletion();
         }
 
@@ -172,7 +173,7 @@ public class ConversationService : IConversationService
                 // Before executing functions
                 foreach (var hook in hooks)
                 {
-                    await hook.OnFunctionExecuting(msg.FunctionName, msg.Content);
+                    await hook.OnFunctionExecuting(msg);
                 }
                 // Save states
                 var jo = JsonSerializer.Deserialize<object>(msg.Content);
@@ -180,11 +181,7 @@ public class ConversationService : IConversationService
                 {
                     foreach (JsonProperty property in root.EnumerateObject())
                     {
-                        string propertyName = property.Name;
-                        string propertyValue = property.Value.ToString();
-
-                        _logger.LogInformation($"Set conversation state: {propertyName} - {propertyValue}");
-                        state[propertyName] = propertyValue;
+                        stateService.SetState(property.Name, property.Value.ToString());
                     }
                 }
             }
@@ -197,6 +194,15 @@ public class ConversationService : IConversationService
                 }
             }
             await onMessageReceived(msg);
+
+            if (msg.Role == AgentRole.Function)
+            {
+                // After functions have been executed
+                foreach (var hook in hooks)
+                {
+                    await hook.OnFunctionExecuted(msg);
+                }
+            }
         });
 
         return result;
