@@ -5,11 +5,9 @@ namespace BotSharp.Core.Conversations.Services;
 
 public class ConversationStorage : IConversationStorage
 {
-    private readonly IAgentService _agent;
     private readonly MyDatabaseSettings _dbSettings;
-    public ConversationStorage(IAgentService agent, MyDatabaseSettings dbSettings)
+    public ConversationStorage(MyDatabaseSettings dbSettings)
     {
-        _agent = agent;
         _dbSettings = dbSettings;
     }
 
@@ -18,7 +16,15 @@ public class ConversationStorage : IConversationStorage
         var conversationFile = GetStorageFile(conversationId);
         var sb = new StringBuilder();
         sb.AppendLine($"{dialog.Role}|{dialog.CreatedAt}|{dialog.FunctionName}");
-        sb.AppendLine($"  - {dialog.Content}");
+
+        var content = dialog.Content.Trim().Replace("\r", " ").Replace("\n", " ");
+        if (string.IsNullOrEmpty(content))
+        {
+            return;
+        }
+
+        sb.AppendLine($"  - {content}");
+
         var conversation = sb.ToString();
         File.AppendAllText(conversationFile, conversation);
     }

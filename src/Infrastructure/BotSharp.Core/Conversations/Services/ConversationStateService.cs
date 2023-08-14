@@ -34,7 +34,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         {
             var currentValue = value;
             _state[name] = currentValue;
-            _logger.LogInformation($"Set state: {name} - {value}");
+            _logger.LogInformation($"Set state: {name} = {value}");
             foreach (var hook in hooks)
             {
                 hook.OnStateChanged(name, preValue, currentValue).Wait();

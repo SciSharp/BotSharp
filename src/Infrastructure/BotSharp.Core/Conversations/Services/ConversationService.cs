@@ -1,11 +1,7 @@
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.MLTasks;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -74,7 +70,8 @@ public class ConversationService : IConversationService
         return record.ToConversation();
     }
 
-    public async Task<bool> SendMessage(string agentId, string conversationId, RoleDialogModel lastDalog, 
+    public async Task<bool> SendMessage(string agentId, string conversationId, 
+        RoleDialogModel lastDalog, 
         Func<RoleDialogModel, Task> onMessageReceived, 
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
@@ -82,41 +79,17 @@ public class ConversationService : IConversationService
 
         var wholeDialogs = GetDialogHistory(conversationId);
 
-        var response = await SendMessage(agentId, conversationId, wholeDialogs, async msg =>
-        {
-            if (msg.Role == "function")
-            {
-                // Invoke functions
-                var functions = _services.GetServices<IFunctionCallback>().Where(x => x.Name == msg.FunctionName);
-                foreach (var fn in functions)
-                {
-                    await onFunctionExecuting(msg);
-
-                    msg.ExecutionResult = await fn.Execute(msg.Content);
-
-                    var result = msg.ExecutionResult.Replace("\r", " ").Replace("\n", " ");
-                    var content = $"{result}";
-                    // Console.WriteLine($"{msg.Role}: {content}");
-                    _storage.Append(conversationId, new RoleDialogModel(msg.Role, content)
-                    {
-                        FunctionName = msg.FunctionName,
-                    });
-                }
-            }
-            else
-            {
-                var content = msg.Content.Replace("\r", " ").Replace("\n", " ");
-                // Console.WriteLine($"{msg.Role}: {content}");
-                _storage.Append(conversationId, new RoleDialogModel(msg.Role, content));
-                
-                await onMessageReceived(msg);
-            }
-        });
+        var response = await SendMessage(agentId, conversationId, wholeDialogs, 
+            onMessageReceived: onMessageReceived, 
+            onFunctionExecuting: onFunctionExecuting);
 
         return response;
     }
 
-    public async Task<bool> SendMessage(string agentId, string conversationId, List<RoleDialogModel> wholeDialogs, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<bool> SendMessage(string agentId, string conversationId, 
+        List<RoleDialogModel> wholeDialogs, 
+        Func<RoleDialogModel, Task> onMessageReceived,
+        Func<RoleDialogModel, Task> onFunctionExecuting)
     {        
         var converation = await GetConversation(conversationId);
 
@@ -152,8 +125,6 @@ public class ConversationService : IConversationService
             });
         }*/
 
-        var chatCompletion = GetChatCompletion();
-
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
         // Before chat completion hook
@@ -166,46 +137,81 @@ public class ConversationService : IConversationService
             await hook.BeforeCompletion();
         }
 
+        var chatCompletion = GetChatCompletion();
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {
             if (msg.Role == "function")
             {
-                // Before executing functions
-                foreach (var hook in hooks)
-                {
-                    await hook.OnFunctionExecuting(msg);
-                }
                 // Save states
-                var jo = JsonSerializer.Deserialize<object>(msg.Content);
-                if (jo is JsonElement root)
-                {
-                    foreach (JsonProperty property in root.EnumerateObject())
-                    {
-                        stateService.SetState(property.Name, property.Value.ToString());
-                    }
-                }
+                SaveStateByArgs(msg.Content);
+
+                // Call functions
+                await onFunctionExecuting(msg);
+                await CallFunctions(conversationId, msg);
             }
             else
             {
+                // Add to dialog history
+                _storage.Append(conversationId, new RoleDialogModel(msg.Role, msg.Content));
+
                 // After chat completion hook
                 foreach (var hook in hooks)
                 {
                     await hook.AfterCompletion(msg);
                 }
-            }
-            await onMessageReceived(msg);
 
-            if (msg.Role == AgentRole.Function)
-            {
-                // After functions have been executed
-                foreach (var hook in hooks)
-                {
-                    await hook.OnFunctionExecuted(msg);
-                }
+                await onMessageReceived(msg);
             }
         });
 
         return result;
+    }
+
+    private void SaveStateByArgs(string args)
+    {
+        var stateService = _services.GetRequiredService<IConversationStateService>();
+        var jo = JsonSerializer.Deserialize<object>(args);
+        if (jo is JsonElement root)
+        {
+            foreach (JsonProperty property in root.EnumerateObject())
+            {
+                stateService.SetState(property.Name, property.Value.ToString());
+            }
+        }
+    }
+
+    private async Task CallFunctions(string conversationId, RoleDialogModel msg)
+    {
+        var hooks = _services.GetServices<IConversationHook>().ToList();
+
+        // Invoke functions
+        var functions = _services.GetServices<IFunctionCallback>()
+            .Where(x => x.Name == msg.FunctionName)
+            .ToList();
+
+        foreach (var fn in functions)
+        {
+            // Before executing functions
+            foreach (var hook in hooks)
+            {
+                await hook.OnFunctionExecuting(msg);
+            }
+
+            // Execute function
+            await fn.Execute(msg);
+
+            // Add to dialog history
+            _storage.Append(conversationId, new RoleDialogModel(msg.Role, msg.ExecutionResult)
+            {
+                FunctionName = msg.FunctionName,
+            });
+
+            // After functions have been executed
+            foreach (var hook in hooks)
+            {
+                await hook.OnFunctionExecuted(msg);
+            }
+        }
     }
 
     public IChatCompletion GetChatCompletion()
@@ -222,6 +228,8 @@ public class ConversationService : IConversationService
     public List<RoleDialogModel> GetDialogHistory(string conversationId, int lastCount = 20)
     {
         var dialogs = _storage.GetDialogs(conversationId);
-        return dialogs.TakeLast(lastCount).ToList();
+        return dialogs
+            .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-8))
+            .TakeLast(lastCount).ToList();
     }
 }

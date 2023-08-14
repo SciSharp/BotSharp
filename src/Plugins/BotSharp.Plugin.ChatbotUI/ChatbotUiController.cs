@@ -70,7 +70,9 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             input.ConversationId, 
             conversations, 
             async msg => 
-                await OnChunkReceived(outputStream, msg));
+                await OnChunkReceived(outputStream, msg),
+            async fn 
+                => await Task.CompletedTask);
 
         await OnEventCompleted(outputStream);
     }
