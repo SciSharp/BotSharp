@@ -124,6 +124,15 @@ public class ChatCompletionProvider : IChatCompletion
                 return true;
             }
 
+            if (funcContextIn.IsConversationEnd)
+            {
+                await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), funcContextIn.Content)
+                {
+                    IsConversationEnd = true
+                });
+                return true;
+            }
+
             // After function is executed, pass the result to LLM
             chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
             {

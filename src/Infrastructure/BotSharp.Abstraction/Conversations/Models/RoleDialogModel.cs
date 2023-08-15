@@ -23,7 +23,9 @@ public class RoleDialogModel
     /// When function callback has been executed, system will pass result to LLM again,
     /// Set this property to True to stop calling LLM.
     /// </summary>
-    public bool StopSubsequentInteraction { get;set; }
+    public bool StopSubsequentInteraction { get; set; }
+
+    public bool IsConversationEnd { get; set; }
 
     /// <summary>
     /// Channel name
