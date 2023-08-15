@@ -1,6 +1,4 @@
 using BotSharp.Abstraction.Conversations.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -87,6 +85,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
         File.WriteAllLines(_file, states);
         _logger.LogInformation($"Saved state {_conversationId}");
+    }
+
+    public void CleanState()
+    {
+        File.Delete(_file);
     }
 
     private string GetStorageFile(string conversationId)

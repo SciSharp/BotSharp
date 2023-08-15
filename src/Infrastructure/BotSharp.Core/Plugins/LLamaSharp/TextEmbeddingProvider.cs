@@ -26,4 +26,9 @@ public class TextEmbeddingProvider : ITextEmbedding
 
         return _embedder.GetEmbeddings(text);
     }
+
+    public List<float[]> GetVectors(List<string> texts)
+    {
+        throw new NotImplementedException();
+    }
 }

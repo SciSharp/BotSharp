@@ -16,6 +16,8 @@ using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using Microsoft.AspNetCore.Authorization;
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Agents.Enums;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
@@ -60,15 +62,16 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
-        var conversations = input.Messages
+        var conversation = input.Messages
+            .Where(x => x.Role == AgentRole.User)
             .Select(x => new RoleDialogModel(x.Role, x.Content))
-            .ToList();
+            .Last();
 
         var conversationService = _services.GetRequiredService<IConversationService>();
 
         var result = await conversationService.SendMessage(input.AgentId, 
-            input.ConversationId, 
-            conversations, 
+            input.ConversationId,
+            conversation, 
             async msg => 
                 await OnChunkReceived(outputStream, msg),
             async fn 

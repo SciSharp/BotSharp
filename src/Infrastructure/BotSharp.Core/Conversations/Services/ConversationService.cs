@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.MLTasks;
@@ -79,18 +78,6 @@ public class ConversationService : IConversationService
 
         var wholeDialogs = GetDialogHistory(conversationId);
 
-        var response = await SendMessage(agentId, conversationId, wholeDialogs, 
-            onMessageReceived: onMessageReceived, 
-            onFunctionExecuting: onFunctionExecuting);
-
-        return response;
-    }
-
-    public async Task<bool> SendMessage(string agentId, string conversationId, 
-        List<RoleDialogModel> wholeDialogs, 
-        Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting)
-    {        
         var converation = await GetConversation(conversationId);
 
         // Create conversation if this conversation not exists
@@ -109,11 +96,11 @@ public class ConversationService : IConversationService
         stateService.SetConversation(conversationId);
         stateService.Load();
         stateService.SetState("agentId", agentId);
-        
+
         // load agent
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
-        
+
         // Get relevant domain knowledge
         /*if (_settings.EnableKnowledgeBase)
         {
@@ -161,6 +148,12 @@ public class ConversationService : IConversationService
                 }
 
                 await onMessageReceived(msg);
+            }
+
+            // Clean conversation
+            if (msg.IsConversationEnd)
+            {
+                stateService.CleanState();
             }
         });
 

@@ -11,5 +11,6 @@ public interface IConversationStateService
     ConversationState Load();
     string GetState(string name);
     void SetState(string name, string value);
+    void CleanState();
     void Save();
 }
