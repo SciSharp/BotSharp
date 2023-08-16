@@ -82,7 +82,7 @@ public class FileRepository : IBotSharpRepository
                 var file = Path.Combine(d, "agents.json");
                 if (Directory.Exists(d) && File.Exists(file))
                 {
-                    var json = File.ReadAllText(Path.Combine(d, "agents.json"));
+                    var json = File.ReadAllText(file);
                     _userAgents.AddRange(JsonSerializer.Deserialize<List<UserAgentRecord>>(json, _options));
                 }
             }
@@ -205,11 +205,13 @@ public class FileRepository : IBotSharpRepository
                     .Select(x => x.Key).ToList()
                     .ForEach(uid =>
                     {
-                        var dir = Path.Combine(_dbSettings.FileRepository,
-                            "users",
-                            uid);
-                        var path = Path.Combine(dir, "agents.json");
-                        File.WriteAllText(path, JsonSerializer.Serialize(_userAgents.Where(x => x.UserId == uid), _options));
+                        var agents = _userAgents.Where(x => x.UserId == uid).ToList();
+                        if (agents.Any())
+                        {
+                            var dir = Path.Combine(_dbSettings.FileRepository, "users", uid);
+                            var path = Path.Combine(dir, "agents.json");
+                            File.WriteAllText(path, JsonSerializer.Serialize(agents, _options));
+                        }
                     });
             }
         }
