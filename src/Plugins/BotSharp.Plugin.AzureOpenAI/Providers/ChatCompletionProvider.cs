@@ -25,27 +25,41 @@ public class ChatCompletionProvider : IChatCompletion
         _logger = logger;
     }
 
-    public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    private OpenAIClient GetClient()
     {
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
+        return client;
+    }
+
+    /*public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    {
+        var client = GetClient();
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
         var response = client.GetChatCompletions(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
+        var choice = response.Value.Choices[0];
+        var message = choice.Message;
 
-        string output = "";
-        foreach (var choice in response.Value.Choices)
+        if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
-            var message = choice.Message;
-            if (message.Content == null)
-                continue;
-            Console.Write(message.Content);
-            output += message.Content;
+            response = HandleFunctionCall(message,
+                onMessageReceived, 
+                chatCompletionsOptions).Result;
         }
 
-        _logger.LogInformation(output);
+        choice = response.Value.Choices[0];
+        message = choice.Message;
 
-        return output.Trim();
-    }
+        _logger.LogInformation(message.Content);
+
+        if (!string.IsNullOrEmpty(message.Content))
+        {
+            onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content))
+                .Wait();
+        }
+
+        return message.Content.Trim();
+    }*/
 
     public List<RoleDialogModel> GetChatSamples(string sampleText)
     {
@@ -95,7 +109,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
+        var client = GetClient();
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
         var response = await client.GetChatCompletionsAsync(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
@@ -104,51 +118,24 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
-            if (message.FunctionCall == null || message.FunctionCall.Arguments == null)
-            {
-                return false;
-            }
-            _logger.LogInformation($"{message.FunctionCall.Name}: {message.FunctionCall.Arguments}");
-            var funcContextIn = new RoleDialogModel(ChatRole.Function.ToString(), message.FunctionCall.Arguments)
-            {
-                FunctionName = message.FunctionCall.Name
-            };
-
-            // Execute functions
-            await onMessageReceived(funcContextIn);
-
-            if (funcContextIn.StopSubsequentInteraction)
-            {
-                // Emit a fake message that should be populated by whom set StopSubsequentInteraction as True.
-                await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), ""));
-                return true;
-            }
-
-            if (funcContextIn.IsConversationEnd)
-            {
-                await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), funcContextIn.Content)
-                {
-                    IsConversationEnd = true
-                });
-                return true;
-            }
-
-            // After function is executed, pass the result to LLM
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
-            {
-                Name = funcContextIn.FunctionName
-            });
-            response = client.GetChatCompletions(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
+            response = await HandleFunctionCall(agent,
+                message, 
+                onMessageReceived, 
+                chatCompletionsOptions);
         }
 
-        choice = response.Value.Choices[0];
-        message = choice.Message;
-
-        _logger.LogInformation(message.Content);
-
-        if (!string.IsNullOrEmpty(message.Content))
+        if (response != null)
         {
-            await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content));
+            choice = response.Value.Choices[0];
+            message = choice.Message;
+
+            _logger.LogInformation(message.Content);
+
+            if (!string.IsNullOrEmpty(message.Content))
+            {
+                var msgByLlm = new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content);
+                await onMessageReceived(msgByLlm);
+            }
         }
 
         return true;
@@ -198,10 +185,61 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
+    private async Task<Response<ChatCompletions>> HandleFunctionCall(Agent agent, 
+        ChatMessage message,
+        Func<RoleDialogModel, Task> onMessageReceived,
+        ChatCompletionsOptions chatCompletionsOptions)
+    {
+        Response<ChatCompletions> response = default;
+
+        if (message.FunctionCall == null || message.FunctionCall.Arguments == null)
+        {
+            return response;
+        }
+
+        _logger.LogInformation($"{message.FunctionCall.Name}: {message.FunctionCall.Arguments}");
+        var funcContextIn = new RoleDialogModel(ChatRole.Function.ToString(), message.Content)
+        {
+            CurrentAgentId = agent.Id,
+            FunctionName = message.FunctionCall.Name,
+            FunctionArgs = message.FunctionCall.Arguments
+        };
+
+        // Execute functions
+        await onMessageReceived(funcContextIn);
+
+        if (funcContextIn.StopPropagate)
+        {
+            return response;
+        }
+
+        if (funcContextIn.IsConversationEnd)
+        {
+            await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), funcContextIn.Content)
+            {
+                IsConversationEnd = true
+            });
+            return response;
+        }
+
+        // After function is executed, pass the result to LLM
+        if (funcContextIn.ExecutionResult != null)
+        {
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
+            {
+                Name = funcContextIn.FunctionName
+            });
+            var client = GetClient();
+            response = client.GetChatCompletions(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
+        }
+
+        return response;
+    }
+
     private ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var chatCompletionsOptions = new ChatCompletionsOptions();
-
+        
         if (!string.IsNullOrEmpty(agent.Instruction))
         {
             chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, agent.Instruction));
@@ -243,6 +281,10 @@ public class ChatCompletionProvider : IChatCompletion
                 chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
             }
         }
+
+        // https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api-a-few-tips-and-tricks-on-controlling-the-creativity-deterministic-output-of-prompt-responses/172683
+        chatCompletionsOptions.Temperature = 0.5f;
+        chatCompletionsOptions.NucleusSamplingFactor = 0.5f;
 
         _logger.LogInformation(string.Join("\n", chatCompletionsOptions.Messages.Select(x => $"{x.Role}: {x.Content}")));
         return chatCompletionsOptions;

@@ -1,3 +1,6 @@
+using System.Linq;
+using System.Text.RegularExpressions;
+
 namespace BotSharp.Abstraction.Utilities;
 
 public static class StringExtensions
@@ -14,5 +17,20 @@ public static class StringExtensions
             return str.Substring(0, maxLength);
         else
             return str;
+    }
+
+    public static string CleanPhoneNumber(this string phoneNumber)
+    {
+        if (phoneNumber != null && !phoneNumber.All(char.IsDigit))
+        {
+            phoneNumber = Regex.Replace(phoneNumber, @"[^\d]", "");
+        }
+
+        if (phoneNumber != null && phoneNumber.Length > 10)
+        {
+            phoneNumber = phoneNumber.Substring(1);
+        }
+
+        return phoneNumber;
     }
 }

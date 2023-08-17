@@ -39,8 +39,10 @@ public partial class AgentService
                 hook.OnSamplesLoaded(ref samples);
             }
 
-            hook.OnAgentLoaded();
+            hook.OnAgentLoaded(agent);
         }
+
+        _logger.LogInformation($"Loaded agent {agent}.");
 
         return agent;
     }

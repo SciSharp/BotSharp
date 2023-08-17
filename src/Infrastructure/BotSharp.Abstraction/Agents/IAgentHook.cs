@@ -24,5 +24,5 @@ public interface IAgentHook
     /// </summary>
     /// <param name="agent"></param>
     /// <returns></returns>
-    Agent OnAgentLoaded();
+    void OnAgentLoaded(Agent agent);
 }
