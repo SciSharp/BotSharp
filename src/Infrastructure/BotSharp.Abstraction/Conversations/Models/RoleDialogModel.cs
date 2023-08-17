@@ -8,24 +8,24 @@ public class RoleDialogModel
     public string Role { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Content { get; set; }
+    public string CurrentAgentId { get; set; }
 
     /// <summary>
     /// Function name if LLM response function call
     /// </summary>
     public string? FunctionName { get; set; }
 
+    public string? FunctionArgs { get; set; }
+
     /// <summary>
     /// Function execution result
     /// </summary>
     public string? ExecutionResult { get; set; }
 
-    /// <summary>
-    /// When function callback has been executed, system will pass result to LLM again,
-    /// Set this property to True to stop calling LLM.
-    /// </summary>
-    public bool StopSubsequentInteraction { get; set; }
-
     public bool IsConversationEnd { get; set; }
+
+    public bool NeedReloadAgent { get; set; }
+    public bool StopPropagate { get; set; }
 
     /// <summary>
     /// Channel name

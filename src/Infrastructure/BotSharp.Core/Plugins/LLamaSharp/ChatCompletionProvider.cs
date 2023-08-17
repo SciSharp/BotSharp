@@ -14,7 +14,7 @@ public class ChatCompletionProvider : IChatCompletion
         _services = services;
     }
 
-    public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         throw new NotImplementedException();
     }

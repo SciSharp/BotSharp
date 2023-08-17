@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Models;
 using System.IO;
 
@@ -15,15 +16,40 @@ public class ConversationStorage : IConversationStorage
     {
         var conversationFile = GetStorageFile(conversationId);
         var sb = new StringBuilder();
-        sb.AppendLine($"{dialog.Role}|{dialog.CreatedAt}|{dialog.FunctionName}");
 
-        var content = dialog.Content.Trim().Replace("\r", " ").Replace("\n", " ");
-        if (string.IsNullOrEmpty(content))
+        if (dialog.Role == AgentRole.Function)
         {
-            return;
-        }
+            var args = dialog.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim();
 
-        sb.AppendLine($"  - {content}");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{dialog.CurrentAgentId}|{dialog.FunctionName}|{args}");
+
+            var content = dialog.ExecutionResult.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (string.IsNullOrEmpty(content))
+            {
+                return;
+            }
+            sb.AppendLine($"  - {content}");
+        }
+        else if (dialog.Role == AgentRole.Assistant)
+        {
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|||");
+            var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (string.IsNullOrEmpty(content))
+            {
+                return;
+            }
+            sb.AppendLine($"  - {content}");
+        }
+        else
+        {
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{dialog.CurrentAgentId}||");
+            var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (string.IsNullOrEmpty(content))
+            {
+                return;
+            }
+            sb.AppendLine($"  - {content}");
+        }
 
         var conversation = sb.ToString();
         File.AppendAllText(conversationFile, conversation);
@@ -39,13 +65,18 @@ public class ConversationStorage : IConversationStorage
         {
             var meta = dialogs[i];
             var dialog = dialogs[i + 1];
-            var role = meta.Split('|')[0];
-            var createdAt = DateTime.Parse(meta.Split('|')[1]);
+            var createdAt = DateTime.Parse(meta.Split('|')[0]);
+            var role = meta.Split('|')[1];
+            var currentAgentId = meta.Split('|')[2];
+            var funcName = meta.Split('|')[3];
+            var funcArgs= meta.Split('|')[4];
             var text = dialog.Substring(4);
-            var funcName = meta.Split('|')[2];
+
             results.Add(new RoleDialogModel(role, text)
             {
+                CurrentAgentId = currentAgentId,
                 FunctionName = funcName,
+                FunctionArgs = funcArgs,
                 CreatedAt = createdAt
             });
         }

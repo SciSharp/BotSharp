@@ -33,6 +33,8 @@ public static class BotSharpServiceCollectionExtensions
 
         RegisterPlugins(services, config);
 
+        services.AddScoped<IAgentRouting, AgentRouter>();
+
         return services;
     }
 
