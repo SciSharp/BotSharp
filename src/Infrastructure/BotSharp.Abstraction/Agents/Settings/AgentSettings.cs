@@ -7,4 +7,5 @@ public class AgentSettings
     /// </summary>
     public string RouterId { get; set; }
     public string DataDir { get; set; }
+    public string TemplateFormat { get; set; }
 }
