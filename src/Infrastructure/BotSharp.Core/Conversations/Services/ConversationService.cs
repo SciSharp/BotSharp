@@ -73,15 +73,10 @@ public class ConversationService : IConversationService
     }
 
     public async Task<bool> SendMessage(string agentId, string conversationId,
-        RoleDialogModel lastDalog,
+        RoleDialogModel lastDialog,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        lastDalog.CurrentAgentId = agentId;
-        _storage.Append(conversationId, lastDalog);
-
-        var wholeDialogs = GetDialogHistory(conversationId);
-
         var converation = await GetConversation(conversationId);
 
         // Create conversation if this conversation not exists
@@ -102,6 +97,11 @@ public class ConversationService : IConversationService
 
         var router = _services.GetRequiredService<IAgentRouting>();
         var agent = await router.LoadCurrentAgent();
+
+        lastDialog.CurrentAgentId = agent.Id;
+        _storage.Append(conversationId, agent, lastDialog);
+
+        var wholeDialogs = GetDialogHistory(conversationId);
 
         // Get relevant domain knowledge
         /*if (_settings.EnableKnowledgeBase)
@@ -127,100 +127,81 @@ public class ConversationService : IConversationService
         }
 
         var chatCompletion = GetChatCompletion();
+        var result = await GetChatCompletionsAsyncRecursively(chatCompletion,
+            conversationId,
+            agent,
+            wholeDialogs,
+            onMessageReceived,
+            onFunctionExecuting);
+
+        return result;
+    }
+
+    private async Task<bool> GetChatCompletionsAsyncRecursively(IChatCompletion chatCompletion,
+        string conversationId,
+        Agent agent, 
+        List<RoleDialogModel> wholeDialogs,
+        Func<RoleDialogModel, Task> onMessageReceived,
+        Func<RoleDialogModel, Task> onFunctionExecuting)
+    {
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {
-            await HandleMessage(conversationId, agent, msg, onMessageReceived, onFunctionExecuting);
+            await HandleAssistantMessage(msg, onMessageReceived);
 
-            if (msg.NeedReloadAgent)
+            // Add to dialog history
+            _storage.Append(conversationId, agent, msg);
+        }, async fn =>
+        {
+            var preAgentId = agent.Id;
+
+            await HandleFunctionMessage(fn, onFunctionExecuting);
+
+            // Agent has been transferred
+            if (fn.CurrentAgentId != preAgentId)
             {
-                await HandleMessageIfAgentReloaded(conversationId, agent, msg, wholeDialogs, onMessageReceived, onFunctionExecuting);
+                var agentService = _services.GetRequiredService<IAgentService>();
+                agent = await agentService.LoadAgent(fn.CurrentAgentId);
+
+                // Set state to make next conversation will go to this agent directly
+                var state = _services.GetRequiredService<IConversationStateService>();
+                state.SetState("agentId", fn.CurrentAgentId);
             }
+
+            fn.Content = fn.ExecutionResult;
+
+            // Add to dialog history
+            _storage.Append(conversationId, agent, fn);
+
+            // After function is executed, pass the result to LLM to get a natural response
+            wholeDialogs.Add(fn);
+
+            await GetChatCompletionsAsyncRecursively(chatCompletion, conversationId, agent, wholeDialogs, onMessageReceived, onFunctionExecuting);
         });
 
         return result;
     }
 
-    private async Task HandleMessage(string conversationId, Agent agent, RoleDialogModel msg,
-        Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting)
+    private async Task HandleAssistantMessage(RoleDialogModel msg, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        if (msg.Role == "function")
+        var hooks = _services.GetServices<IConversationHook>().ToList();
+
+        // After chat completion hook
+        foreach (var hook in hooks)
         {
-            // Save states
-            SaveStateByArgs(msg.FunctionArgs);
-
-            // Call functions
-            await onFunctionExecuting(msg);
-            await CallFunctions(msg);
-
-            // Add to dialog history
-            if (msg.ExecutionResult != null)
-            {
-                if (msg.NeedReloadAgent)
-                {
-                    _logger.LogInformation($"Skipped append dialog log: {msg.FunctionName}\n{msg.FunctionArgs}\n{msg.ExecutionResult}");
-                    return;
-                }
-
-                _storage.Append(conversationId, new RoleDialogModel(msg.Role, msg.Content)
-                {
-                    CurrentAgentId = agent.Id,
-                    FunctionName = msg.FunctionName,
-                    FunctionArgs = msg.FunctionArgs,
-                    ExecutionResult = msg.ExecutionResult
-                });
-            }
+            await hook.AfterCompletion(msg);
         }
-        else
-        {
-            // Add to dialog history
-            _storage.Append(conversationId, new RoleDialogModel(msg.Role, msg.Content)
-            {
-                CurrentAgentId = agent.Id
-            });
 
-            var hooks = _services.GetServices<IConversationHook>().ToList();
-            // After chat completion hook
-            foreach (var hook in hooks)
-            {
-                await hook.AfterCompletion(msg);
-            }
-
-            await onMessageReceived(msg);
-        }
+        await onMessageReceived(msg);
     }
 
-    private async Task HandleMessageIfAgentReloaded(string conversationId, Agent agent, 
-        RoleDialogModel msg, 
-        List<RoleDialogModel> wholeDialogs,
-        Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting)
+    private async Task HandleFunctionMessage(RoleDialogModel msg, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var currentAgentId = state.GetState("agentId");
+        // Save states
+        SaveStateByArgs(msg.FunctionArgs);
 
-        // Send to LLM to get final response when agent is switched.
-        var conv = _services.GetRequiredService<IConversationService>();
-        var chatCompletion = conv.GetChatCompletion();
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var newAgent = await agentService.LoadAgent(currentAgentId);
-        await chatCompletion.GetChatCompletionsAsync(newAgent, wholeDialogs, async newMsg =>
-        {
-            if (newMsg.Role == AgentRole.Function)
-            {
-                await HandleMessage(conversationId, agent, newMsg, onMessageReceived, onFunctionExecuting);
-            }
-            else
-            {
-                msg.StopPropagate = true;
-                await onMessageReceived(newMsg);
-
-                _storage.Append(conversationId, new RoleDialogModel(newMsg.Role, newMsg.Content)
-                {
-                    CurrentAgentId = agent.Id
-                });
-            }
-        });
+        // Call functions
+        await onFunctionExecuting(msg);
+        await CallFunctions(msg);
     }
 
     private void SaveStateByArgs(string args)

@@ -23,8 +23,7 @@ public partial class AgentService
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {
-                var instruction = agent.Instruction;
-                hook.OnInstructionLoaded(ref instruction);
+                hook.OnInstructionLoaded(agent.Instruction, new Dictionary<string, object>());
             }
 
             if (!string.IsNullOrEmpty(agent.Functions))

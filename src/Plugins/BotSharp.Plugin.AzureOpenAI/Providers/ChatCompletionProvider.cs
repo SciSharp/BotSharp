@@ -1,5 +1,6 @@
 using Azure;
 using Azure.AI.OpenAI;
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions.Models;
@@ -30,36 +31,6 @@ public class ChatCompletionProvider : IChatCompletion
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
         return client;
     }
-
-    /*public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
-    {
-        var client = GetClient();
-        var chatCompletionsOptions = PrepareOptions(agent, conversations);
-
-        var response = client.GetChatCompletions(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
-        var choice = response.Value.Choices[0];
-        var message = choice.Message;
-
-        if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
-        {
-            response = HandleFunctionCall(message,
-                onMessageReceived, 
-                chatCompletionsOptions).Result;
-        }
-
-        choice = response.Value.Choices[0];
-        message = choice.Message;
-
-        _logger.LogInformation(message.Content);
-
-        if (!string.IsNullOrEmpty(message.Content))
-        {
-            onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content))
-                .Wait();
-        }
-
-        return message.Content.Trim();
-    }*/
 
     public List<RoleDialogModel> GetChatSamples(string sampleText)
     {
@@ -107,7 +78,10 @@ public class ChatCompletionProvider : IChatCompletion
         return functions;
     }
 
-    public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<bool> GetChatCompletionsAsync(Agent agent, 
+        List<RoleDialogModel> conversations, 
+        Func<RoleDialogModel, Task> onMessageReceived,
+        Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var client = GetClient();
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
@@ -118,24 +92,29 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
-            response = await HandleFunctionCall(agent,
-                message, 
-                onMessageReceived, 
-                chatCompletionsOptions);
-        }
+            _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name} => {message.FunctionCall.Arguments}");
 
-        if (response != null)
-        {
-            choice = response.Value.Choices[0];
-            message = choice.Message;
-
-            _logger.LogInformation(message.Content);
-
-            if (!string.IsNullOrEmpty(message.Content))
+            var funcContextIn = new RoleDialogModel(AgentRole.Function, message.Content)
             {
-                var msgByLlm = new RoleDialogModel(ChatRole.Assistant.ToString(), message.Content);
-                await onMessageReceived(msgByLlm);
-            }
+                CurrentAgentId = agent.Id,
+                FunctionName = message.FunctionCall.Name,
+                FunctionArgs = message.FunctionCall.Arguments
+            };
+
+            // Execute functions
+            await onFunctionExecuting(funcContextIn);
+        }
+        else
+        {
+            _logger.LogInformation($"[{agent.Name}] {message.Role}: {message.Content}");
+
+            var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
+            {
+                CurrentAgentId= agent.Id
+            };
+
+            // Text response received
+            await onMessageReceived(msg);
         }
 
         return true;
@@ -185,56 +164,6 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
-    private async Task<Response<ChatCompletions>> HandleFunctionCall(Agent agent, 
-        ChatMessage message,
-        Func<RoleDialogModel, Task> onMessageReceived,
-        ChatCompletionsOptions chatCompletionsOptions)
-    {
-        Response<ChatCompletions> response = default;
-
-        if (message.FunctionCall == null || message.FunctionCall.Arguments == null)
-        {
-            return response;
-        }
-
-        _logger.LogInformation($"{message.FunctionCall.Name}: {message.FunctionCall.Arguments}");
-        var funcContextIn = new RoleDialogModel(ChatRole.Function.ToString(), message.Content)
-        {
-            CurrentAgentId = agent.Id,
-            FunctionName = message.FunctionCall.Name,
-            FunctionArgs = message.FunctionCall.Arguments
-        };
-
-        // Execute functions
-        await onMessageReceived(funcContextIn);
-
-        if (funcContextIn.StopPropagate)
-        {
-            return response;
-        }
-
-        if (funcContextIn.IsConversationEnd)
-        {
-            await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), funcContextIn.Content)
-            {
-                IsConversationEnd = true
-            });
-            return response;
-        }
-
-        // After function is executed, pass the result to LLM
-        if (funcContextIn.ExecutionResult != null)
-        {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Function, funcContextIn.ExecutionResult)
-            {
-                Name = funcContextIn.FunctionName
-            });
-            var client = GetClient();
-            response = client.GetChatCompletions(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
-        }
-
-        return response;
-    }
 
     private ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {

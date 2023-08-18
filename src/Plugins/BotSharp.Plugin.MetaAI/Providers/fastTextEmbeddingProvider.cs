@@ -26,31 +26,41 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     public fastTextEmbeddingProvider(fastTextSetting settings)
     {
         _settings = settings;
-        _fastText = new FastTextWrapper();
 
-        if (!File.Exists(settings.ModelPath))
-        {
-            throw new FileNotFoundException($"Can't load pre-trained word vectors from {settings.ModelPath}.\n Try to download from https://fasttext.cc/docs/en/english-vectors.html.");
-        }
     }
 
     public float[] GetVector(string text)
     {
-        if (!_fastText.IsModelReady())
-        {
-            _fastText.LoadModel(_settings.ModelPath);
-        }
-
+        LoadModel();
         return _fastText.GetSentenceVector(text);
     }
 
     public List<float[]> GetVectors(List<string> texts)
     {
+        LoadModel();
         var vectors = new List<float[]>();
         for (int i = 0; i < texts.Count; i++)
         {
             vectors.Add(GetVector(texts[i]));
         }
         return vectors;
+    }
+
+    private void LoadModel()
+    {
+        if (_fastText == null)
+        {
+            if (!File.Exists(_settings.ModelPath))
+            {
+                throw new FileNotFoundException($"Can't load pre-trained word vectors from {_settings.ModelPath}.\n Try to download from https://fasttext.cc/docs/en/english-vectors.html.");
+            }
+
+            _fastText = new FastTextWrapper();
+
+            if (!_fastText.IsModelReady())
+            {
+                _fastText.LoadModel(_settings.ModelPath);
+            }
+        }
     }
 }

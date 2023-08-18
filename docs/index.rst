@@ -80,6 +80,7 @@ The main documentation for the site is organized into the following sections:
    :caption: Prompt Engineering
 
    prompt/intro
+   prompt/template
 
 .. _architecture-docs:
 

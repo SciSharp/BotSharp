@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Enums;
+
 namespace BotSharp.Abstraction.Conversations.Models;
 
 public class RoleDialogModel
@@ -40,6 +42,13 @@ public class RoleDialogModel
 
     public override string ToString()
     {
-        return $"{Role}: {Content}";
+        if (Role == AgentRole.Function)
+        {
+            return $"{Role}: {FunctionName}";
+        }
+        else
+        {
+            return $"{Role}: {Content}";
+        }
     }
 }

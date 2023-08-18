@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using System.IO;
 
@@ -12,7 +13,7 @@ public class ConversationStorage : IConversationStorage
         _dbSettings = dbSettings;
     }
 
-    public void Append(string conversationId, RoleDialogModel dialog)
+    public void Append(string conversationId, Agent agent, RoleDialogModel dialog)
     {
         var conversationFile = GetStorageFile(conversationId);
         var sb = new StringBuilder();
@@ -21,7 +22,7 @@ public class ConversationStorage : IConversationStorage
         {
             var args = dialog.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim();
 
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{dialog.CurrentAgentId}|{dialog.FunctionName}|{args}");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agent.Name}|{dialog.FunctionName}|{args}");
 
             var content = dialog.ExecutionResult.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
@@ -32,7 +33,7 @@ public class ConversationStorage : IConversationStorage
         }
         else if (dialog.Role == AgentRole.Assistant)
         {
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|||");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agent.Name}||");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
             {
@@ -42,7 +43,7 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{dialog.CurrentAgentId}||");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agent.Name}||");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
             {

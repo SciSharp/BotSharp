@@ -13,7 +13,7 @@ public interface IAgentHook
     bool OnAgentLoading(ref string id);
 
 
-    bool OnInstructionLoaded(ref string instruction);
+    bool OnInstructionLoaded(string template, Dictionary<string, object> dict);
 
     bool OnFunctionsLoaded(ref string functions);
 
