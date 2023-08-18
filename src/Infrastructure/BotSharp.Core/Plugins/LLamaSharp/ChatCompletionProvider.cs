@@ -19,7 +19,10 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
+    public async Task<bool> GetChatCompletionsAsync(Agent agent, 
+        List<RoleDialogModel> conversations, 
+        Func<RoleDialogModel, Task> onMessageReceived,
+        Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Content.Replace("user:", "User:")}")).Trim();
         content += "\nBob: ";

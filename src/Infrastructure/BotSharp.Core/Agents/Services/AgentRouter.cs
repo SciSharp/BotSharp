@@ -20,8 +20,8 @@ public class AgentRouter : IAgentRouting
     public async Task<Agent> LoadCurrentAgent()
     {
         // Load current agent from state
-        var stateService = _services.GetRequiredService<IConversationStateService>();
-        var currentAgentId = stateService.GetState("agentId");
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var currentAgentId = state.GetState("agentId");
         if (string.IsNullOrEmpty(currentAgentId))
         {
             currentAgentId = _settings.RouterId;
@@ -30,7 +30,7 @@ public class AgentRouter : IAgentRouting
         var agent = await agentService.LoadAgent(currentAgentId);
 
         // Set agent and trigger state changed
-        stateService.SetState("agentId", currentAgentId);
+        state.SetState("agentId", currentAgentId);
 
         return agent;
     }
