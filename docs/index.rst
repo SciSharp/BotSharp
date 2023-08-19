@@ -73,14 +73,16 @@ The main documentation for the site is organized into the following sections:
    knowledge-base/similarity-search
    knowledge-base/build-qa-bot
 
-.. _prompting:
+.. _llm:
 
 .. toctree::
    :maxdepth: 3
    :caption: Prompt Engineering
 
-   prompt/intro
+   prompt/prompt
    prompt/template
+   llm/function
+   llm/few-shot-learning
 
 .. _architecture-docs:
 

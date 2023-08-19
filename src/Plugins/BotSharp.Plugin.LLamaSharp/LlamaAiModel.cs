@@ -1,3 +1,4 @@
+using BotSharp.Plugin.LLamaSharp.Settings;
 using LLama;
 using LLama.Common;
 

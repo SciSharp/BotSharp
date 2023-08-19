@@ -1,10 +1,16 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Core.Plugins.LLamaSharp;
 using LLama;
 using LLama.Common;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace BotSharp.Core.Plugins.LLamaSharp;
+namespace BotSharp.Plugin.LLamaSharp.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
 {
@@ -19,8 +25,8 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    public async Task<bool> GetChatCompletionsAsync(Agent agent, 
-        List<RoleDialogModel> conversations, 
+    public async Task<bool> GetChatCompletionsAsync(Agent agent,
+        List<RoleDialogModel> conversations,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {

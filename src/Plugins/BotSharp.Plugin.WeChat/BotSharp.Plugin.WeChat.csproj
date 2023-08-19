@@ -12,7 +12,7 @@
     <PackageProjectUrl>https://github.com/Oceania2018/botsharp-channel-weixin</PackageProjectUrl>
     <Copyright>Apache 2.0</Copyright>
     <PackageTags>botsharp, wechat, wexin, chatbot</PackageTags>
-    <Version>0.6.0</Version>
+    <VersionPrefix>0.9.0</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

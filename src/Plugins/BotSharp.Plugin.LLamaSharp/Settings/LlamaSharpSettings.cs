@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Plugins.LLamaSharp;
+namespace BotSharp.Plugin.LLamaSharp.Settings;
 
 public class LlamaSharpSettings
 {

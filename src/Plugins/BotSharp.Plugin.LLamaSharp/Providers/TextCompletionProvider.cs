@@ -1,8 +1,12 @@
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Core.Plugins.LLamaSharp;
 using LLama;
 using LLama.Common;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Threading.Tasks;
 
-namespace BotSharp.Core.Plugins.LLamaSharp;
+namespace BotSharp.Plugin.LLamaSharp.Providers;
 
 public class TextCompletionProvider : ITextCompletion
 {

@@ -1,8 +1,11 @@
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Plugin.LLamaSharp.Settings;
 using LLama;
 using LLama.Common;
+using System;
+using System.Collections.Generic;
 
-namespace BotSharp.Core.Plugins.LLamaSharp;
+namespace BotSharp.Plugin.LLamaSharp.Providers;
 
 public class TextEmbeddingProvider : ITextEmbedding
 {
