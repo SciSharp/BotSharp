@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
 using Fluid;
 
 namespace BotSharp.Core.Agents.Services;
@@ -66,10 +65,5 @@ public abstract class AgentHookBase : IAgentHook
 
     public virtual void  OnAgentLoaded(Agent agent)
     {
-    }
-
-    public virtual bool OnAgentRouting(RoleDialogModel message, ref string id)
-    {
-        return true;
     }
 }
