@@ -40,19 +40,10 @@ public partial class AgentService
         {
             profile.Samples = File.ReadAllText(samplesFile);
         }
-        else
-        {
-            _logger.LogWarning($"Can't find samples file from {samplesFile}");
-        }
-
         var functionsFile = Path.Combine(dir, "functions.json");
         if (File.Exists(functionsFile))
         {
             profile.Functions = File.ReadAllText(functionsFile);
-        }
-        else
-        {
-            _logger.LogInformation($"Can't find functions file from {functionsFile}");
         }
 
         return profile;
