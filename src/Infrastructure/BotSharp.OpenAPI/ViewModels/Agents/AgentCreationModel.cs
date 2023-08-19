@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 
-namespace BotSharp.Core.Agents.ViewModels;
+namespace BotSharp.OpenAPI.ViewModels.Agents;
 
 public class AgentCreationModel
 {
@@ -9,10 +9,10 @@ public class AgentCreationModel
 
     public Agent ToAgent()
     {
-        return new Agent 
-        { 
-            Name = Name, 
-            Description = Description 
+        return new Agent
+        {
+            Name = Name,
+            Description = Description
         };
     }
 }

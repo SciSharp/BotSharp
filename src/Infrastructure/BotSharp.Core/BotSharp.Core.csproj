@@ -77,9 +77,7 @@
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.2.1" />
     <PackageReference Include="Fluid.Core" Version="2.4.0" />
     <PackageReference Include="LLamaSharp" Version="0.4.2-preview" />
-    <PackageReference Include="PdfPig" Version="0.1.8" />
     <PackageReference Include="TensorFlow.Keras" Version="0.11.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
   </ItemGroup>
 
   <ItemGroup>

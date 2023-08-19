@@ -1,13 +1,10 @@
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Knowledges.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.IO;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig;
 
-namespace BotSharp.Core.Plugins.Knowledges;
+namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]

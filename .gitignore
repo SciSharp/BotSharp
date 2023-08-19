@@ -283,6 +283,7 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-conversations
+
 /docs/_build
 *.bin
+/src/WebStarter/data/conversations

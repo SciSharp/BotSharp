@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using System.IO;
 
@@ -8,12 +7,14 @@ namespace BotSharp.Core.Conversations.Services;
 public class ConversationStorage : IConversationStorage
 {
     private readonly MyDatabaseSettings _dbSettings;
-    public ConversationStorage(MyDatabaseSettings dbSettings)
+    private readonly IServiceProvider _services;
+    public ConversationStorage(MyDatabaseSettings dbSettings, IServiceProvider services)
     {
         _dbSettings = dbSettings;
+        _services = services;
     }
 
-    public void Append(string conversationId, Agent agent, RoleDialogModel dialog)
+    public void Append(string conversationId, string agentId, RoleDialogModel dialog)
     {
         var conversationFile = GetStorageFile(conversationId);
         var sb = new StringBuilder();
@@ -22,7 +23,7 @@ public class ConversationStorage : IConversationStorage
         {
             var args = dialog.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim();
 
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agent.Name}|{dialog.FunctionName}|{args}");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.FunctionName}|{args}");
 
             var content = dialog.ExecutionResult.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
@@ -31,19 +32,12 @@ public class ConversationStorage : IConversationStorage
             }
             sb.AppendLine($"  - {content}");
         }
-        else if (dialog.Role == AgentRole.Assistant)
-        {
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agent.Name}||");
-            var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
-            if (string.IsNullOrEmpty(content))
-            {
-                return;
-            }
-            sb.AppendLine($"  - {content}");
-        }
         else
         {
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agent.Name}||");
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var agent = db.Agent.First(x => x.Id == agentId);
+
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agent.Name}|");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
             {

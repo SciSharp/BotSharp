@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 
-namespace BotSharp.Core.Agents.ViewModels;
+namespace BotSharp.OpenAPI.ViewModels.Agents;
 
 public class AgentViewModel
 {

@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Users.Models;
 
-namespace BotSharp.Core.Users.ViewModels;
+namespace BotSharp.OpenAPI.ViewModels.Users;
 
 public class UserCreationModel
 {

@@ -1,9 +1,7 @@
 using BotSharp.Abstraction.ApiAdapters;
-using BotSharp.Core.Agents.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using BotSharp.OpenAPI.ViewModels.Agents;
 
-namespace BotSharp.Core.Agents;
+namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]

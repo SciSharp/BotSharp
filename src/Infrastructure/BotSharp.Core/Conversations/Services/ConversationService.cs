@@ -1,5 +1,3 @@
-using Amazon.SecurityToken.Model.Internal.MarshallTransformations;
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
@@ -98,8 +96,10 @@ public class ConversationService : IConversationService
         var router = _services.GetRequiredService<IAgentRouting>();
         var agent = await router.LoadCurrentAgent();
 
+        _logger.LogInformation($"[{agent.Name}] {lastDialog.Role}: {lastDialog.Content}");
+
         lastDialog.CurrentAgentId = agent.Id;
-        _storage.Append(conversationId, agent, lastDialog);
+        _storage.Append(conversationId, agent.Id, lastDialog);
 
         var wholeDialogs = GetDialogHistory(conversationId);
 
@@ -149,28 +149,29 @@ public class ConversationService : IConversationService
             await HandleAssistantMessage(msg, onMessageReceived);
 
             // Add to dialog history
-            _storage.Append(conversationId, agent, msg);
+            _storage.Append(conversationId, agent.Id, msg);
         }, async fn =>
         {
             var preAgentId = agent.Id;
 
             await HandleFunctionMessage(fn, onFunctionExecuting);
 
+            fn.Content = fn.ExecutionResult;
+
             // Agent has been transferred
             if (fn.CurrentAgentId != preAgentId)
             {
+                var agentSettings = _services.GetRequiredService<AgentSettings>();
                 var agentService = _services.GetRequiredService<IAgentService>();
                 agent = await agentService.LoadAgent(fn.CurrentAgentId);
 
                 // Set state to make next conversation will go to this agent directly
-                var state = _services.GetRequiredService<IConversationStateService>();
-                state.SetState("agentId", fn.CurrentAgentId);
+                // var state = _services.GetRequiredService<IConversationStateService>();
+                // state.SetState("agentId", fn.CurrentAgentId);
             }
 
-            fn.Content = fn.ExecutionResult;
-
             // Add to dialog history
-            _storage.Append(conversationId, agent, fn);
+            _storage.Append(conversationId, preAgentId, fn);
 
             // After function is executed, pass the result to LLM to get a natural response
             wholeDialogs.Add(fn);

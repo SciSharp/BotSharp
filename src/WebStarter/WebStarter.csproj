@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AzureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatbotUI\BotSharp.Plugin.ChatbotUI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.HuggingFace\BotSharp.Plugin.HuggingFace.csproj" />

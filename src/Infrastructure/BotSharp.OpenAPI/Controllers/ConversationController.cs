@@ -1,10 +1,10 @@
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Core.Conversations.ViewModels;
+using BotSharp.OpenAPI.ViewModels.Conversations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BotSharp.Core.Conversations;
+namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]

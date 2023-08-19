@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 
-namespace BotSharp.Core.Conversations.ViewModels;
+namespace BotSharp.OpenAPI.ViewModels.Conversations;
 
 public class ConversationViewModel
 {

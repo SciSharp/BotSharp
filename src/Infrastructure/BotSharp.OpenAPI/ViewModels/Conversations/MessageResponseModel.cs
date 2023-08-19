@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Conversations.ViewModels;
+namespace BotSharp.OpenAPI.ViewModels.Conversations;
 
 public class MessageResponseModel
 {

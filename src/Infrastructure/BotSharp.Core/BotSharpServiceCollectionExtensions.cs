@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Functions;
+using BotSharp.Core.Functions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
@@ -34,6 +36,8 @@ public static class BotSharpServiceCollectionExtensions
         RegisterPlugins(services, config);
 
         services.AddScoped<IAgentRouting, AgentRouter>();
+
+        services.AddScoped<IFunctionCallback, GoToRouterFn>();
 
         return services;
     }

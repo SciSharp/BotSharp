@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using Fluid;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BotSharp.Core.Agents.Services;
 
