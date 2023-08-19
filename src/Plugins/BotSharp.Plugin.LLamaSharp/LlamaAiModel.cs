@@ -2,7 +2,7 @@ using BotSharp.Plugin.LLamaSharp.Settings;
 using LLama;
 using LLama.Common;
 
-namespace BotSharp.Core.Plugins.LLamaSharp;
+namespace BotSharp.Plugins.LLamaSharp;
 
 public class LlamaAiModel
 {

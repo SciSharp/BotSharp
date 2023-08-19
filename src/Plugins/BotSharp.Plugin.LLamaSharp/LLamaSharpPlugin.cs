@@ -5,7 +5,7 @@ using BotSharp.Plugin.LLamaSharp.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BotSharp.Core.Plugins.LLamaSharp;
+namespace BotSharp.Plugins.LLamaSharp;
 
 public class LLamaSharpPlugin : IBotSharpPlugin
 {

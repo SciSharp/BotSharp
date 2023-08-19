@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
-using BotSharp.Core.Plugins.LLamaSharp;
+using BotSharp.Plugins.LLamaSharp;
 using LLama;
 using LLama.Common;
 using Microsoft.Extensions.DependencyInjection;
