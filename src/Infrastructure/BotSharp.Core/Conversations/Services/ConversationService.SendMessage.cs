@@ -28,6 +28,7 @@ public partial class ConversationService
         var stateService = _services.GetRequiredService<IConversationStateService>();
         stateService.SetConversation(conversationId);
         stateService.Load();
+        stateService.SetState("channel", lastDialog.Channel);
 
         var router = _services.GetRequiredService<IAgentRouting>();
         var agent = await router.LoadRouter();
@@ -35,9 +36,11 @@ public partial class ConversationService
         _logger.LogInformation($"[{agent.Name}] {lastDialog.Role}: {lastDialog.Content}");
 
         lastDialog.CurrentAgentId = agent.Id;
-        _storage.Append(conversationId, agent.Id, lastDialog);
-
+        
         var wholeDialogs = GetDialogHistory(conversationId);
+        wholeDialogs.Add(lastDialog);
+
+        _storage.Append(conversationId, agent.Id, lastDialog);
 
         // Get relevant domain knowledge
         /*if (_settings.EnableKnowledgeBase)

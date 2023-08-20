@@ -104,7 +104,8 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 FunctionName = message.FunctionCall.Name,
-                FunctionArgs = message.FunctionCall.Arguments
+                FunctionArgs = message.FunctionCall.Arguments,
+                Channel = conversations.Last().Channel
             };
 
             // Execute functions
@@ -116,7 +117,8 @@ public class ChatCompletionProvider : IChatCompletion
 
             var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
             {
-                CurrentAgentId= agent.Id
+                CurrentAgentId= agent.Id,
+                Channel = conversations.Last().Channel
             };
 
             // Text response received

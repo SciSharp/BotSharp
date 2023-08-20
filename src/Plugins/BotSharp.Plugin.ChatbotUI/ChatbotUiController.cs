@@ -64,7 +64,10 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
 
         var conversation = input.Messages
             .Where(x => x.Role == AgentRole.User)
-            .Select(x => new RoleDialogModel(x.Role, x.Content))
+            .Select(x => new RoleDialogModel(x.Role, x.Content)
+            {
+                Channel = "webchat"
+            })
             .Last();
 
         var conversationService = _services.GetRequiredService<IConversationService>();

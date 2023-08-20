@@ -48,7 +48,10 @@ public class ConversationController : ControllerBase, IApiAdapter
         var stackMsg = new List<RoleDialogModel>();
 
         await conv.SendMessage(agentId, conversationId,
-            new RoleDialogModel("user", input.Text),
+            new RoleDialogModel("user", input.Text)
+            {
+                Channel = "webapi"
+            },
             async msg =>
             {
                 stackMsg.Add(msg);
