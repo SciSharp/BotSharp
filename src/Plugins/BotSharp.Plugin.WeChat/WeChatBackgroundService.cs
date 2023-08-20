@@ -59,7 +59,10 @@ namespace BotSharp.Plugin.WeChat
             var result = await conversationService.SendMessage(AgentId, latestConversationId, new RoleDialogModel("user", message), async msg =>
             {
                 await ReplyTextMessageAsync(openid, msg.Content);
-            }, async fn =>
+            }, async functionExecuting =>
+            {
+
+            }, async functionExecuted =>
             {
 
             });

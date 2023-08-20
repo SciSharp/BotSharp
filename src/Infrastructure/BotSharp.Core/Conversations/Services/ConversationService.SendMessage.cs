@@ -8,7 +8,8 @@ public partial class ConversationService
     public async Task<bool> SendMessage(string agentId, string conversationId,
         RoleDialogModel lastDialog,
         Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting)
+        Func<RoleDialogModel, Task> onFunctionExecuting,
+        Func<RoleDialogModel, Task> onFunctionExecuted)
     {
         var converation = await GetConversation(conversationId);
 
@@ -29,7 +30,7 @@ public partial class ConversationService
         stateService.Load();
 
         var router = _services.GetRequiredService<IAgentRouting>();
-        var agent = await router.LoadCurrentAgent();
+        var agent = await router.LoadRouter();
 
         _logger.LogInformation($"[{agent.Name}] {lastDialog.Role}: {lastDialog.Content}");
 
@@ -67,7 +68,8 @@ public partial class ConversationService
             agent,
             wholeDialogs,
             onMessageReceived,
-            onFunctionExecuting);
+            onFunctionExecuting,
+            onFunctionExecuted);
 
         return result;
     }

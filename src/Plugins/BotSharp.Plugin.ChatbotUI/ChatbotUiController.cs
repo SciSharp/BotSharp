@@ -75,6 +75,8 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             async msg => 
                 await OnChunkReceived(outputStream, msg),
             async fn 
+                => await Task.CompletedTask,
+            async fn
                 => await Task.CompletedTask);
 
         await OnEventCompleted(outputStream);

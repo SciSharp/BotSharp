@@ -105,7 +105,7 @@ public class WebhookController : ControllerBase
 
                     }
                     content = msg.Content;
-                }, async fn =>
+                }, async functionExecuting =>
                 {
                     /*await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                     {
@@ -113,13 +113,15 @@ public class WebhookController : ControllerBase
                         Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
                         Message = JsonSerializer.Serialize(new { Text = "I'm pulling the relevent information, please wait a second ..." }, jsonOpt)
                     });*/
-
-                    await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                }, async functionExecuted =>
+                {
+                    // Render structured data
+                    /*await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                     {
                         AccessToken = setting.PageAccessToken,
                         Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
                         SenderAction = SenderActionEnum.TypingOn
-                    });
+                    });*/
                 });
 
                 // Response to user

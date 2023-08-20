@@ -38,6 +38,7 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IAgentRouting, AgentRouter>();
 
         services.AddScoped<IFunctionCallback, GoToRouterFn>();
+        services.AddScoped<IFunctionCallback, RouteToAgentFn>();
 
         return services;
     }

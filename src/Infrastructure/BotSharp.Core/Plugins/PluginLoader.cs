@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-using Console = Colorful.Console;
 
 namespace BotSharp.Core.Plugins;
 
