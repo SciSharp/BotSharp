@@ -59,7 +59,8 @@ public class ConversationController : ControllerBase, IApiAdapter
             },
             async fnExecuted =>
             {
-                response.Json = JsonSerializer.Deserialize<object>(fnExecuted.ExecutionResult);
+                response.Function = fnExecuted.FunctionName;
+                response.Data = fnExecuted.ExecutionData;
             });
 
         response.Text = string.Join("\r\n", stackMsg.Select(x => x.Content));

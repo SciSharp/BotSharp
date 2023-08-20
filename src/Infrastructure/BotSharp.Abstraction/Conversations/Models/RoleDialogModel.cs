@@ -20,9 +20,15 @@ public class RoleDialogModel
     public string? FunctionArgs { get; set; }
 
     /// <summary>
-    /// Function execution result
+    /// Function execution result, this result will be seen by LLM.
     /// </summary>
     public string? ExecutionResult { get; set; }
+
+    /// <summary>
+    /// Function execution structured data, this data won't pass to LLM.
+    /// It's ideal to render in rich content in UI.
+    /// </summary>
+    public object ExecutionData { get; set; }
 
     public bool IsConversationEnd { get; set; }
 

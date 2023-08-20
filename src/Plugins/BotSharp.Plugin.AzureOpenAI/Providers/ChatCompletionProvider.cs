@@ -215,7 +215,18 @@ public class ChatCompletionProvider : IChatCompletion
         chatCompletionsOptions.Temperature = 0.5f;
         chatCompletionsOptions.NucleusSamplingFactor = 0.5f;
 
-        _logger.LogInformation(string.Join("\n", chatCompletionsOptions.Messages.Select(x => $"{x.Role}: {x.Content}")));
+        var verbose = string.Join("\n", chatCompletionsOptions.Messages.Select(x =>
+        {
+            if (x.Role == ChatRole.Function)
+            {
+                return $"{x.Role}: {x.Name} {x.Content}";
+            }
+            else
+            {
+                return $"{x.Role}: {x.Content}";
+            }
+        }));
+        _logger.LogInformation(verbose);
         return chatCompletionsOptions;
     }
 }
