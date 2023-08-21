@@ -1,3 +1,4 @@
+using BotSharp.Plugin.MetaMessenger.Interfaces;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.Plugin.MetaMessenger.MessagingModels;
@@ -6,7 +7,7 @@ namespace BotSharp.Plugin.MetaMessenger.MessagingModels;
 /// Quick Replies
 /// https://developers.facebook.com/docs/messenger-platform/send-messages/quick-replies
 /// </summary>
-public class QuickReplyMessage
+public class QuickReplyMessage : IResponseMessage
 {
     [JsonPropertyName("text")]
     public string Text { get; set; }
