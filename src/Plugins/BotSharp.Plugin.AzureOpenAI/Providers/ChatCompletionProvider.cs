@@ -3,9 +3,11 @@ using Azure.AI.OpenAI;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,12 +20,16 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers;
 public class ChatCompletionProvider : IChatCompletion
 {
     private readonly AzureOpenAiSettings _settings;
+    private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public ChatCompletionProvider(AzureOpenAiSettings settings, ILogger<ChatCompletionProvider> logger)
+    public ChatCompletionProvider(AzureOpenAiSettings settings, 
+        ILogger<ChatCompletionProvider> logger,
+        IServiceProvider services)
     {
         _settings = settings;
         _logger = logger;
+        _services = services;
     }
 
     private OpenAIClient GetClient()
@@ -98,7 +104,8 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 FunctionName = message.FunctionCall.Name,
-                FunctionArgs = message.FunctionCall.Arguments
+                FunctionArgs = message.FunctionCall.Arguments,
+                Channel = conversations.Last().Channel
             };
 
             // Execute functions
@@ -110,7 +117,8 @@ public class ChatCompletionProvider : IChatCompletion
 
             var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
             {
-                CurrentAgentId= agent.Id
+                CurrentAgentId= agent.Id,
+                Channel = conversations.Last().Channel
             };
 
             // Text response received
@@ -215,7 +223,18 @@ public class ChatCompletionProvider : IChatCompletion
         chatCompletionsOptions.Temperature = 0.5f;
         chatCompletionsOptions.NucleusSamplingFactor = 0.5f;
 
-        _logger.LogInformation(string.Join("\n", chatCompletionsOptions.Messages.Select(x => $"{x.Role}: {x.Content}")));
+        var convSetting = _services.GetRequiredService<ConversationSetting>();
+        if (convSetting.ShowVerboseLog)
+        {
+            var verbose = string.Join("\n", chatCompletionsOptions.Messages.Select(x =>
+            {
+                return x.Role == ChatRole.Function ?
+                    $"{x.Role}: {x.Name} {x.Content}" :
+                    $"{x.Role}: {x.Content}";
+            }));
+            _logger.LogInformation(verbose);
+        }
+
         return chatCompletionsOptions;
     }
 }

@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.OpenAPI.ViewModels.Conversations;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -50,11 +48,23 @@ public class ConversationController : ControllerBase, IApiAdapter
         var stackMsg = new List<RoleDialogModel>();
 
         await conv.SendMessage(agentId, conversationId,
-            new RoleDialogModel("user", input.Text),
+            new RoleDialogModel("user", input.Text)
+            {
+                Channel = "webapi"
+            },
             async msg =>
-                stackMsg.Add(msg), 
-            async fn
-                => await Task.CompletedTask);
+            {
+                stackMsg.Add(msg);
+            },
+            async fnExecuting =>
+            {
+
+            },
+            async fnExecuted =>
+            {
+                response.Function = fnExecuted.FunctionName;
+                response.Data = fnExecuted.ExecutionData;
+            });
 
         response.Text = string.Join("\r\n", stackMsg.Select(x => x.Content));
         return response;

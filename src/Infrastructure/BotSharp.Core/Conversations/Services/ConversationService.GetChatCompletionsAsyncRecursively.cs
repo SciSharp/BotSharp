@@ -15,7 +15,8 @@ public partial class ConversationService
         Agent agent, 
         List<RoleDialogModel> wholeDialogs,
         Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting)
+        Func<RoleDialogModel, Task> onFunctionExecuting,
+        Func<RoleDialogModel, Task> onFunctionExecuted)
     {
         currentRecursiveDepth++;
         if (currentRecursiveDepth > maxRecursiveDepth)
@@ -23,7 +24,8 @@ public partial class ConversationService
             _logger.LogError($"Exceed max current recursive depth.");
             await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, "System has exception, please try later.")
             {
-                CurrentAgentId = agent.Id
+                CurrentAgentId = agent.Id,
+                Channel = wholeDialogs.Last().Channel
             }, onMessageReceived);
             return false;
         }
@@ -38,14 +40,15 @@ public partial class ConversationService
         {
             var preAgentId = agent.Id;
 
-            await HandleFunctionMessage(fn, onFunctionExecuting);
+            await HandleFunctionMessage(fn, onFunctionExecuting, onFunctionExecuted);
 
             // Function executed has exception
             if (fn.ExecutionResult == null)
             {
                 await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
-                    CurrentAgentId = fn.CurrentAgentId
+                    CurrentAgentId = fn.CurrentAgentId,
+                    Channel = fn.Channel
                 }, onMessageReceived);
                 return;
             }
@@ -58,10 +61,6 @@ public partial class ConversationService
                 var agentSettings = _services.GetRequiredService<AgentSettings>();
                 var agentService = _services.GetRequiredService<IAgentService>();
                 agent = await agentService.LoadAgent(fn.CurrentAgentId);
-
-                // Set state to make next conversation will go to this agent directly
-                // var state = _services.GetRequiredService<IConversationStateService>();
-                // state.SetState("agentId", fn.CurrentAgentId);
             }
 
             // Add to dialog history
@@ -70,7 +69,13 @@ public partial class ConversationService
             // After function is executed, pass the result to LLM to get a natural response
             wholeDialogs.Add(fn);
 
-            await GetChatCompletionsAsyncRecursively(chatCompletion, conversationId, agent, wholeDialogs, onMessageReceived, onFunctionExecuting);
+            await GetChatCompletionsAsyncRecursively(chatCompletion, 
+                conversationId, 
+                agent, 
+                wholeDialogs, 
+                onMessageReceived, 
+                onFunctionExecuting,
+                onFunctionExecuted);
         });
 
         return result;
@@ -89,7 +94,9 @@ public partial class ConversationService
         await onMessageReceived(msg);
     }
 
-    private async Task HandleFunctionMessage(RoleDialogModel msg, Func<RoleDialogModel, Task> onFunctionExecuting)
+    private async Task HandleFunctionMessage(RoleDialogModel msg, 
+        Func<RoleDialogModel, Task> onFunctionExecuting,
+        Func<RoleDialogModel, Task> onFunctionExecuted)
     {
         // Save states
         SaveStateByArgs(msg.FunctionArgs);
@@ -97,5 +104,6 @@ public partial class ConversationService
         // Call functions
         await onFunctionExecuting(msg);
         await CallFunctions(msg);
+        await onFunctionExecuted(msg);
     }
 }

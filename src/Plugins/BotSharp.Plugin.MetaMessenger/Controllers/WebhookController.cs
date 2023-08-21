@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Refit;
-using BotSharp.Abstraction.Agents.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.MetaMessenger.Controllers;
 
@@ -27,10 +27,12 @@ namespace BotSharp.Plugin.MetaMessenger.Controllers;
 public class WebhookController : ControllerBase
 {
     private readonly IServiceProvider _services;
+    private readonly ILogger _logger;
 
-    public WebhookController(IServiceProvider services)
+    public WebhookController(IServiceProvider services, ILogger<WebhookController> logger)
     {
         _services = services;
+        _logger = logger;
     }
 
     [HttpGet("/messenger/webhook/{agentId}")]
@@ -67,7 +69,7 @@ public class WebhookController : ControllerBase
             {
                 var conv = _services.GetRequiredService<IConversationService>();
 
-                string content = "";
+                var reply = new QuickReplyMessage();
                 var senderId = req.Entry[0].Messaging[0].Sender.Id;
                 var input = req.Entry[0].Messaging[0].Message.Text;
 
@@ -78,11 +80,13 @@ public class WebhookController : ControllerBase
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 };
 
+                var recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt);
+
                 // Marking seen
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
+                    Recipient = recipient,
                     SenderAction = SenderActionEnum.MarkSeen
                 });
 
@@ -90,7 +94,7 @@ public class WebhookController : ControllerBase
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
+                    Recipient = recipient,
                     SenderAction = SenderActionEnum.TypingOn
                 });
 
@@ -100,12 +104,8 @@ public class WebhookController : ControllerBase
                     Channel = "messenger"
                 }, async msg =>
                 {
-                    if (msg.Role == AgentRole.Function)
-                    {
-
-                    }
-                    content = msg.Content;
-                }, async fn =>
+                    reply.Text = msg.Content;
+                }, async functionExecuting =>
                 {
                     /*await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                     {
@@ -113,28 +113,39 @@ public class WebhookController : ControllerBase
                         Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
                         Message = JsonSerializer.Serialize(new { Text = "I'm pulling the relevent information, please wait a second ..." }, jsonOpt)
                     });*/
-
-                    await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
+                }, async functionExecuted =>
+                {
+                    // Render structured data
+                    if (functionExecuted.ExecutionData != null)
                     {
-                        AccessToken = setting.PageAccessToken,
-                        Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
-                        SenderAction = SenderActionEnum.TypingOn
-                    });
+                        // validate data format
+                        var json = JsonSerializer.Serialize(functionExecuted.ExecutionData, jsonOpt);
+
+                        try
+                        {
+                            var parsed = JsonSerializer.Deserialize<QuickReplyMessageItem[]>(json, jsonOpt);
+                            reply.QuickReplies = parsed;
+                        }
+                        catch(Exception ex)
+                        {
+                            _logger.LogError(ex, ex.Message);
+                        }
+                    }
                 });
 
                 // Response to user
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
-                    Message = JsonSerializer.Serialize(new { Text = content }, jsonOpt)
+                    Recipient = recipient,
+                    Message = JsonSerializer.Serialize(reply, jsonOpt)
                 });
 
                 // Typing off
                 await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
                 {
                     AccessToken = setting.PageAccessToken,
-                    Recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt),
+                    Recipient = recipient,
                     SenderAction = SenderActionEnum.TypingOff
                 });
             }

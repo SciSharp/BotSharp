@@ -20,12 +20,14 @@ public interface IConversationService
     /// <param name="lastDalog"></param>
     /// <param name="onMessageReceived"></param>
     /// <param name="onFunctionExecuting">This delegate is useful when you want to report progress on UI</param>
+    /// <param name="onFunctionExecuted">This delegate is useful when you want to report progress on UI</param>
     /// <returns></returns>
     Task<bool> SendMessage(string agentId, 
         string conversationId, 
         RoleDialogModel lastDalog, 
         Func<RoleDialogModel, Task> onMessageReceived, 
-        Func<RoleDialogModel, Task> onFunctionExecuting);
+        Func<RoleDialogModel, Task> onFunctionExecuting,
+        Func<RoleDialogModel, Task> onFunctionExecuted);
 
     List<RoleDialogModel> GetDialogHistory(string conversationId, int lastCount = 20);
     Task CleanHistory(string agentId);
