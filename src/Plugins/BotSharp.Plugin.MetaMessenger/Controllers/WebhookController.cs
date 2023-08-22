@@ -124,7 +124,10 @@ public class WebhookController : ControllerBase
                         try
                         {
                             var parsed = JsonSerializer.Deserialize<QuickReplyMessageItem[]>(json, jsonOpt);
-                            reply.QuickReplies = parsed;
+                            if (parsed.Length > 0)
+                            {
+                                reply.QuickReplies = parsed;
+                            }
                         }
                         catch(Exception ex)
                         {

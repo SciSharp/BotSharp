@@ -53,18 +53,19 @@ public partial class ConversationService
                 return;
             }
 
-            fn.Content = fn.ExecutionResult;
+            fn.Content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.ExecutionResult;
 
             // Agent has been transferred
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
             if (fn.CurrentAgentId != preAgentId)
             {
-                var agentSettings = _services.GetRequiredService<AgentSettings>();
                 var agentService = _services.GetRequiredService<IAgentService>();
                 agent = await agentService.LoadAgent(fn.CurrentAgentId);
             }
 
             // Add to dialog history
-            _storage.Append(conversationId, preAgentId, fn);
+            // The server had an error processing your request. Sorry about that!
+            // _storage.Append(conversationId, preAgentId, fn);
 
             // After function is executed, pass the result to LLM to get a natural response
             wholeDialogs.Add(fn);
