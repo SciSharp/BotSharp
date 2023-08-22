@@ -21,8 +21,8 @@ public partial class ConversationService
         currentRecursiveDepth++;
         if (currentRecursiveDepth > maxRecursiveDepth)
         {
-            _logger.LogError($"Exceed max current recursive depth.");
-            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, "System has exception, please try later.")
+            _logger.LogError($"Exceeded max recursive depth.");
+            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, "I'm sorry, can you see it again?")
             {
                 CurrentAgentId = agent.Id,
                 Channel = wholeDialogs.Last().Channel
