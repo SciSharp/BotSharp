@@ -1,12 +1,13 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Functions.Models;
-using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Functions;
 
+/// <summary>
+/// Router calls this function to set the Active Agent according to the context
+/// </summary>
 public class RouteToAgentFn : IFunctionCallback
 {
     public string Name => "route_to_agent";
@@ -20,50 +21,67 @@ public class RouteToAgentFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
-        var result = new RoutingResult($"Routed to {args.AgentName}");
 
         if (string.IsNullOrEmpty(args.AgentName))
         {
-            result = new RoutingResult($"Can't find {args.AgentName}");
+            message.ExecutionResult = $"missing agent name";
         }
         else
         {
-            var agentSettings = _services.GetRequiredService<AgentSettings>();
-            var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
-            var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
-            var routes = JsonSerializer.Deserialize<RoutingTable[]>(File.ReadAllText(filePath));
-
-            var agent = routes.FirstOrDefault(x => x.AgentName.ToLower() == args.AgentName.ToLower());
-            if (agent == null)
+            if (!HasMissingRequiredField(message, out var agentId))
             {
-                result = new RoutingResult($"Can't find agent {args.AgentName}.");
+                message.CurrentAgentId = agentId;
+                message.ExecutionResult = $"Routed to {args.AgentName}";
             }
-            else
-            {
-                // Check required fields
-                var jo = JsonSerializer.Deserialize<object>(message.FunctionArgs);
-                bool hasMissingField = false;
-                foreach (var field in agent.RequiredFields)
-                {
-                    if (jo is JsonElement root)
-                    {
-                        if (!root.EnumerateObject().Any(x => x.Name == field))
-                        {
-                            result = new RoutingResult($"Please provide {field}.");
-                            hasMissingField = true;
-                            break;
-                        }
-                    }
-                }
+        }
 
-                if (!hasMissingField)
+        return true;
+    }
+
+    /// <summary>
+    /// If the target agent needs some required fields but the
+    /// </summary>
+    /// <returns></returns>
+    private bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
+    {
+        var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
+
+        var routes = GetRoutingTable();
+        var agent = routes.FirstOrDefault(x => x.AgentName.ToLower() == args.AgentName.ToLower());
+
+        if (agent == null)
+        {
+            agentId = message.CurrentAgentId;
+            message.ExecutionResult = $"Can't find agent {args.AgentName}";
+            return true;
+        }
+
+        agentId = agent.AgentId;
+
+        // Check required fields
+        var jo = JsonSerializer.Deserialize<object>(message.FunctionArgs);
+        bool hasMissingField = false;
+        foreach (var field in agent.RequiredFields)
+        {
+            if (jo is JsonElement root)
+            {
+                if (!root.EnumerateObject().Any(x => x.Name == field))
                 {
-                    message.CurrentAgentId = agent.AgentId;
+                    message.ExecutionResult = $"missing {field}.";
+                    hasMissingField = true;
+                    break;
                 }
             }
         }
 
-        message.ExecutionResult = JsonSerializer.Serialize(result);
-        return true;
+        return hasMissingField;
+    }
+
+    private RoutingTable[] GetRoutingTable()
+    {
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
+        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
+        return JsonSerializer.Deserialize<RoutingTable[]>(File.ReadAllText(filePath));
     }
 }
