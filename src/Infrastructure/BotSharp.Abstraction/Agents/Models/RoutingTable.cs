@@ -13,6 +13,9 @@ public class RoutingTable
     [JsonPropertyName("required")]
     public List<string> RequiredFields { get; set; }
 
+    [JsonPropertyName("redirect_to")]
+    public string RedirectTo { get; set; }
+
     public override string ToString()
     {
         return AgentName;
