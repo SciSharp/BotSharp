@@ -28,7 +28,12 @@ public class RouteToAgentFn : IFunctionCallback
         }
         else
         {
-            if (!HasMissingRequiredField(message, out var agentId))
+            var missingfield = HasMissingRequiredField(message, out var agentId);
+            if (missingfield && message.CurrentAgentId != agentId)
+            {
+                message.CurrentAgentId = agentId;
+            }
+            else
             {
                 message.CurrentAgentId = agentId;
                 message.ExecutionResult = $"Routed to {args.AgentName}";
@@ -47,21 +52,21 @@ public class RouteToAgentFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
 
         var routes = GetRoutingTable();
-        var agent = routes.FirstOrDefault(x => x.AgentName.ToLower() == args.AgentName.ToLower());
+        var routingRule = routes.FirstOrDefault(x => x.AgentName.ToLower() == args.AgentName.ToLower());
 
-        if (agent == null)
+        if (routingRule == null)
         {
             agentId = message.CurrentAgentId;
             message.ExecutionResult = $"Can't find agent {args.AgentName}";
             return true;
         }
 
-        agentId = agent.AgentId;
+        agentId = routingRule.AgentId;
 
         // Check required fields
         var jo = JsonSerializer.Deserialize<object>(message.FunctionArgs);
         bool hasMissingField = false;
-        foreach (var field in agent.RequiredFields)
+        foreach (var field in routingRule.RequiredFields)
         {
             if (jo is JsonElement root)
             {
@@ -71,7 +76,19 @@ public class RouteToAgentFn : IFunctionCallback
                     hasMissingField = true;
                     break;
                 }
+                else if (root.EnumerateObject().Any(x => x.Name == field) && 
+                    string.IsNullOrEmpty(root.EnumerateObject().FirstOrDefault(x => x.Name == field).Value.ToString()))
+                {
+                    message.ExecutionResult = $"missing {field}.";
+                    hasMissingField = true;
+                    break;
+                }
             }
+        }
+
+        if (hasMissingField && !string.IsNullOrEmpty(routingRule.RedirectTo))
+        {
+            agentId = routingRule.RedirectTo;
         }
 
         return hasMissingField;
