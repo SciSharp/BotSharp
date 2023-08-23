@@ -85,7 +85,10 @@ public partial class ConversationService
         {
             foreach (JsonProperty property in root.EnumerateObject())
             {
-                stateService.SetState(property.Name, property.Value.ToString());
+                if (!string.IsNullOrEmpty(property.Value.ToString()))
+                {
+                    stateService.SetState(property.Name, property.Value.ToString());
+                }
             }
         }
     }

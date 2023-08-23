@@ -21,12 +21,21 @@ public partial class ConversationService
         currentRecursiveDepth++;
         if (currentRecursiveDepth > maxRecursiveDepth)
         {
-            _logger.LogError($"Exceed max current recursive depth.");
-            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, "System has exception, please try later.")
+            _logger.LogWarning($"Exceeded max recursive depth.");
+
+            var latestResponse = wholeDialogs.Last();
+            var text = latestResponse.Content;
+            if (latestResponse.Role == AgentRole.Function)
+            {
+                text = latestResponse.Content.Split("=>").Last();
+            }
+
+            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
                 Channel = wholeDialogs.Last().Channel
             }, onMessageReceived);
+
             return false;
         }
 
@@ -53,18 +62,19 @@ public partial class ConversationService
                 return;
             }
 
-            fn.Content = fn.ExecutionResult;
+            fn.Content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.ExecutionResult;
 
             // Agent has been transferred
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
             if (fn.CurrentAgentId != preAgentId)
             {
-                var agentSettings = _services.GetRequiredService<AgentSettings>();
                 var agentService = _services.GetRequiredService<IAgentService>();
                 agent = await agentService.LoadAgent(fn.CurrentAgentId);
             }
 
             // Add to dialog history
-            _storage.Append(conversationId, preAgentId, fn);
+            // The server had an error processing your request. Sorry about that!
+            // _storage.Append(conversationId, preAgentId, fn);
 
             // After function is executed, pass the result to LLM to get a natural response
             wholeDialogs.Add(fn);

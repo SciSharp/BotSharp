@@ -13,5 +13,6 @@ public class QuickReplyMessage : IResponseMessage
     public string Text { get; set; }
 
     [JsonPropertyName("quick_replies")]
-    public QuickReplyMessageItem[] QuickReplies { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public QuickReplyMessageItem[]? QuickReplies { get; set; }
 }

@@ -30,11 +30,6 @@ public class RoleDialogModel
     /// </summary>
     public object ExecutionData { get; set; }
 
-    public bool IsConversationEnd { get; set; }
-
-    public bool NeedReloadAgent { get; set; }
-    public bool StopPropagate { get; set; }
-
     /// <summary>
     /// Channel name
     /// </summary>
