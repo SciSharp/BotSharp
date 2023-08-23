@@ -21,12 +21,21 @@ public partial class ConversationService
         currentRecursiveDepth++;
         if (currentRecursiveDepth > maxRecursiveDepth)
         {
-            _logger.LogError($"Exceeded max recursive depth.");
-            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, "I'm sorry, can you see it again?")
+            _logger.LogWarning($"Exceeded max recursive depth.");
+
+            var latestResponse = wholeDialogs.Last();
+            var text = latestResponse.Content;
+            if (latestResponse.Role == AgentRole.Function)
+            {
+                text = latestResponse.Content.Split("=>").Last();
+            }
+
+            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
                 Channel = wholeDialogs.Last().Channel
             }, onMessageReceived);
+
             return false;
         }
 
