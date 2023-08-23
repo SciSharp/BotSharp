@@ -17,7 +17,6 @@ using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig;
 using System.Linq;
 using static System.Net.Mime.MediaTypeNames;
-
 using Docnet;
 using Docnet.Core.Models;
 using Docnet.Core;
@@ -25,37 +24,39 @@ using Docnet.Core.Converters;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.DependencyInjection;
+using BotSharp.Plugin.PaddleSharp.Settings;
 
 namespace BotSharp.Plugin.PaddleSharp.Providers;
 
 public class Pdf2TextConverter : IPdf2TextConverter
 {
+    // private readonly IServiceProvider _service;
+    
     private Dictionary<int, string> _mappings = new Dictionary<int, string>();
+    /*
+    // private FullOcrModel _model;
+    private string? _tempFolderPath = Path.GetTempPath();
     private FullOcrModel _model = LocalFullModels.EnglishV3;
-    private string? _tempFolderPath;
-    private PaddleOcrAll _paddleSettings;
     private MagickReadSettings _magicReadSettings;
     private int _consumerCount;
     private int _boundedCapacity;
     private double _acceptScore;
-
-    public Pdf2TextConverter(PaddleOcrAll paddleSettings, MagickReadSettings magicReadSettings,
-        double acceptScore = 0.8, int consumerCount = 1, int boundedCapacity = 64)
+    */
+    private FullOcrModel _model = LocalFullModels.EnglishV3;
+    private PaddleSharpSettings _paddleSharpSettings;
+    public Pdf2TextConverter(PaddleSharpSettings paddleSharpSettings)
     {
-        _paddleSettings = paddleSettings;
-        _magicReadSettings = magicReadSettings;
-        _consumerCount = consumerCount;
-        _boundedCapacity = boundedCapacity;
-        _acceptScore = acceptScore;
+        _paddleSharpSettings = paddleSharpSettings;
     }
 
-    public async Task<string> ConvertPdfToText(IFormFile formFile, int? startPageNum, int? endPageNum, bool paddleModel = true)
+    public async Task<string> ConvertPdfToText(IFormFile formFile, int? startPageNum, int? endPageNum)
     {
         string pdfContent;
-        if (paddleModel)
+        if (_paddleSharpSettings.paddleModel)
         {
             await ConvertPdfToLocalImagesAsync(formFile, startPageNum, endPageNum);
-            pdfContent = LocalImageToTextsAsync().Result;
+            pdfContent = await LocalImageToTextsAsync();
         }
         else
         {
@@ -102,49 +103,45 @@ public class Pdf2TextConverter : IPdf2TextConverter
     {
         string loadPath;
         string contents = "";
-        if (!System.IO.File.Exists(_tempFolderPath))
+        if (!Directory.Exists(_paddleSharpSettings.tempFolderPath))
         {
             throw new Exception("No local temporary files found! Please convert PDF to local images first by \"ConvertPdfToLocalImages\".");
         }
 
-        using QueuedPaddleOcrAll all = new(() => new PaddleOcrAll(_model)
-        {
-            AllowRotateDetection = _paddleSettings.AllowRotateDetection,
-            Enable180Classification = _paddleSettings.Enable180Classification,
-        }, consumerCount: _consumerCount, boundedCapacity: _boundedCapacity);
+        // var converter = _service.GetRequiredService<IPaddleOcrConverter>();
 
+        QueuedPaddleOcrAll all = new(() => new PaddleOcrAll(_model, PaddleDevice.Mkldnn())
+        {
+            AllowRotateDetection = true,
+            Enable180Classification = false,
+        }, consumerCount: _paddleSharpSettings.consumerCount, boundedCapacity: _paddleSharpSettings.boundedCapacity);
+        
+        
         foreach (var item in _mappings.OrderBy(x => x.Key))
         {
-            loadPath = Path.Combine(_tempFolderPath, item.Value);
+            loadPath = Path.Combine(_paddleSharpSettings.tempFolderPath, item.Value);
+            // var pdfContent = converter.ConvertImageToText(loadPath);
+            // contents += pdfContent;
+            
             using (Mat src = Cv2.ImRead(loadPath))
             {
                 PaddleOcrResult result = await all.Run(src);
 
                 foreach (PaddleOcrResultRegion region in result.Regions)
                 {
-                    if (region.Score > _acceptScore)
+                    if (region.Score > _paddleSharpSettings.acceptScore)
                     {
-                        contents += region.Text;
+                        contents += region.Text + " ";
                     }
                 }
             }
+            
+            // Delete related Temp files after converting image to texts
+            // DeleteTempFile(loadPath);
         }
-
-        DeleteTempFolder();
-
+        // await Console.Out.WriteLineAsync("Finished!");
+        // all.Dispose();
         return contents;
-    }
-
-    public void ConvertPdfToLocalImages(IFormFile formFile, int? startPageNum, int? endPageNum)
-    {
-        // This function is pending. I am considering if we could include Both "ImageMagick" and "Docnet.Core"
-
-        var filePath = Path.GetTempFileName();
-
-        using (var stream = System.IO.File.Create(filePath))
-        {
-            formFile.CopyTo(stream);
-        }
     }
 
     private static void AddBytes(Bitmap bmp, byte[] rawBytes)
@@ -224,26 +221,18 @@ public class Pdf2TextConverter : IPdf2TextConverter
 
         for (int page = (int)startPageNum; page <= (int)endPageNum; page++)
         {
-            string tempFileName = Path.GetTempFileName();
-            rootFileName = Path.Combine(_tempFolderPath, $"{tempFileName}_Page{page}.png");
+            string tempFileName = Path.GetRandomFileName();
+            tempFileName = Path.ChangeExtension(tempFileName, "png");
+            rootFileName = Path.Combine(_paddleSharpSettings.tempFolderPath, tempFileName);
 
             // image.Format = MagickFormat.Jpg; Set to "Jpg" format
             images[page].Write(rootFileName);
-
             _mappings[page] = rootFileName;
         }
     }
 
-    public void DeleteTempFolder(string filePath = "")
+    public void DeleteTempFile(string filePath)
     {
-        if (!string.IsNullOrEmpty(filePath))
-        {
-            Directory.Delete(_tempFolderPath);
-        }
-        else
-        {
-            Directory.Delete(_tempFolderPath);
-            _tempFolderPath = string.Empty;
-        }
+        System.IO.File.Delete(filePath);
     }
 }

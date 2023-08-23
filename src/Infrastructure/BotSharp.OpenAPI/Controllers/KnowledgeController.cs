@@ -11,11 +11,12 @@ namespace BotSharp.OpenAPI.Controllers;
 public class KnowledgeController : ControllerBase, IApiAdapter
 {
     private readonly IKnowledgeService _knowledgeService;
-    public KnowledgeController(IKnowledgeService knowledgeService)
+    private readonly IPdf2TextConverter _pdf2TextConverter;
+    public KnowledgeController(IKnowledgeService knowledgeService, IPdf2TextConverter pdf2TextConverter)
     {
         _knowledgeService = knowledgeService;
+        _pdf2TextConverter = pdf2TextConverter;
     }
-
     [HttpGet("/knowledge/{agentId}")]
     public async Task<List<RetrievedResult>> RetrieveKnowledge([FromRoute] string agentId, [FromQuery(Name = "q")] string question)
     {
@@ -27,44 +28,18 @@ public class KnowledgeController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/knowledge/{agentId}")]
-    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files, [FromQuery] int? startPageNum, [FromQuery] int? endPageNum)
+    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files, [FromQuery] int? startPageNum, [FromQuery] int? endPageNum, [FromQuery] bool? paddleModel)
     {
         long size = files.Sum(f => f.Length);
 
         foreach (var formFile in files)
         {
-            if (formFile.Length <= 0)
-            {
-                continue;
-            }
-
-            var filePath = Path.GetTempFileName();
-
-            using (var stream = System.IO.File.Create(filePath))
-            {
-                await formFile.CopyToAsync(stream);
-            }
-
-            var document = PdfDocument.Open(filePath);
             var content = "";
-            foreach (Page page in document.GetPages())
-            {
-                if (startPageNum.HasValue && page.Number < startPageNum.Value)
-                {
-                    continue;
-                }
-
-                if (endPageNum.HasValue && page.Number > endPageNum.Value)
-                {
-                    continue;
-                }
-
-                content += page.Text;
-            }
+            
+            content = await _pdf2TextConverter.ConvertPdfToText(formFile, startPageNum, endPageNum);
 
             // Process uploaded files
             // Don't rely on or trust the FileName property without validation.
-
             await _knowledgeService.Feed(new KnowledgeFeedModel
             {
                 AgentId = agentId,
