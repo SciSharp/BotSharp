@@ -65,11 +65,14 @@ public partial class ConversationService
             await hook.BeforeCompletion();
         }
 
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+
         var chatCompletion = GetChatCompletion();
         var result = await GetChatCompletionsAsyncRecursively(chatCompletion,
             conversationId,
             agent,
             wholeDialogs,
+            agentSettings.MaxRecursiveDepth,
             onMessageReceived,
             onFunctionExecuting,
             onFunctionExecuted);
