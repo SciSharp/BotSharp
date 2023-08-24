@@ -7,13 +7,13 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    const int maxRecursiveDepth = 3;
     int currentRecursiveDepth = 0;
 
     private async Task<bool> GetChatCompletionsAsyncRecursively(IChatCompletion chatCompletion,
         string conversationId,
         Agent agent, 
         List<RoleDialogModel> wholeDialogs,
+        int maxRecursiveDepth,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
@@ -83,6 +83,7 @@ public partial class ConversationService
                 conversationId, 
                 agent, 
                 wholeDialogs, 
+                maxRecursiveDepth,
                 onMessageReceived, 
                 onFunctionExecuting,
                 onFunctionExecuted);
