@@ -29,9 +29,17 @@ public partial class ConversationService
                 await hook.OnFunctionExecuting(msg);
             }
 
-            // Execute function
-            await fn.Execute(msg);
-
+            try
+            {
+                // Execute function
+                await fn.Execute(msg);
+            }
+            catch (Exception ex)
+            {
+                msg.ExecutionResult = ex.Message;
+                _logger.LogError(msg.ExecutionResult);
+            }
+            
             // After functions have been executed
             foreach (var hook in hooks)
             {
