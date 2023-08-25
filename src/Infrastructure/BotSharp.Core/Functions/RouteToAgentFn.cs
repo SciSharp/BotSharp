@@ -50,9 +50,9 @@ public class RouteToAgentFn : IFunctionCallback
     private bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
-
-        var routes = GetRoutingTable();
-        var routingRule = routes.FirstOrDefault(x => x.AgentName.ToLower() == args.AgentName.ToLower());
+        var router = _services.GetRequiredService<IAgentRouting>();
+        var records = router.GetRoutingRecords();
+        var routingRule = records.FirstOrDefault(x => x.Name.ToLower() == args.AgentName.ToLower());
 
         if (routingRule == null)
         {
@@ -92,13 +92,5 @@ public class RouteToAgentFn : IFunctionCallback
         }
 
         return hasMissingField;
-    }
-
-    private RoutingTable[] GetRoutingTable()
-    {
-        var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
-        return JsonSerializer.Deserialize<RoutingTable[]>(File.ReadAllText(filePath));
     }
 }
