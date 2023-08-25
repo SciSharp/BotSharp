@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Models;
+using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -41,5 +41,13 @@ public class AgentRouter : IAgentRouting
         state.SetState("agent_id", currentAgentId);
 
         return agent;
+    }
+
+    public RoutingRecord[] GetRoutingRecords()
+    {
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
+        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
+        return JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
     }
 }
