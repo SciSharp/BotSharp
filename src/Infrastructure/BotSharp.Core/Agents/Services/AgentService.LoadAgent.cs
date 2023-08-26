@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Core.Templating;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -15,6 +16,8 @@ public partial class AgentService
         }
 
         var agent = await GetAgent(id);
+        var templateDict = new Dictionary<string, object>();
+        PopulateState(templateDict);
 
         // After agent is loaded
         foreach (var hook in hooks)
@@ -23,7 +26,7 @@ public partial class AgentService
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {
-                hook.OnInstructionLoaded(agent.Instruction, new Dictionary<string, object>());
+                hook.OnInstructionLoaded(agent.Instruction, templateDict);
             }
 
             if (!string.IsNullOrEmpty(agent.Functions))
@@ -41,8 +44,22 @@ public partial class AgentService
             hook.OnAgentLoaded(agent);
         }
 
+        // render liquid template
+        var render = _services.GetRequiredService<TemplateRender>();
+        render.Render(agent, templateDict);
+
         _logger.LogInformation($"Loaded agent {agent}.");
 
         return agent;
+    }
+
+    private void PopulateState(Dictionary<string, object> dict)
+    {
+        var stateService = _services.GetRequiredService<IConversationStateService>();
+        var state = stateService.Load();
+        foreach (var t in state)
+        {
+            dict[t.Key] = t.Value;
+        }
     }
 }
