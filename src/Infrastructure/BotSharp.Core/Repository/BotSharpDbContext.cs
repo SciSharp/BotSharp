@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Records;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BotSharp.Core.Repository;

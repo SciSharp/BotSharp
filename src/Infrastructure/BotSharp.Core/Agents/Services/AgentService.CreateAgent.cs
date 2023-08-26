@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Records;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -21,8 +23,8 @@ public partial class AgentService
 
         record = AgentRecord.FromAgent(agent);
         record.Id = Guid.NewGuid().ToString();
-        record.CreatedDateTime = DateTime.UtcNow;
-        record.UpdatedDateTime = DateTime.UtcNow;
+        record.CreatedTime = DateTime.UtcNow;
+        record.UpdatedTime = DateTime.UtcNow;
 
         var userAgentRecord = new UserAgentRecord
         {

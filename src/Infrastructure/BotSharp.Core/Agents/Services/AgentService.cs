@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories;
 using Microsoft.Extensions.Logging;
 using System.IO;
 

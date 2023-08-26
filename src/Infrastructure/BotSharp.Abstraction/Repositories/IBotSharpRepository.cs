@@ -1,4 +1,7 @@
-namespace BotSharp.Core.Repository;
+using BotSharp.Abstraction.Repositories.Records;
+using System.Linq;
+
+namespace BotSharp.Abstraction.Repositories;
 
 public interface IBotSharpRepository
 {

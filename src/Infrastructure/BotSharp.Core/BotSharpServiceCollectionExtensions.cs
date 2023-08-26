@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Functions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+using DatabaseSettings = BotSharp.Abstraction.Repositories.DatabaseSettings;
 
 namespace BotSharp.Core;
 

@@ -1,11 +1,6 @@
-using BotSharp.Abstraction.Agents.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+namespace BotSharp.Abstraction.Repositories.Records;
 
-namespace BotSharp.Core.Repository.DbTables;
-
-[Table("Agent")]
-public class AgentRecord : DbRecord, IBotSharpTable
+public class AgentRecord : RecordBase
 {
     [Required]
     [MaxLength(64)]
@@ -15,10 +10,10 @@ public class AgentRecord : DbRecord, IBotSharpTable
     public string? Description { get; set; }
 
     [Required]
-    public DateTime CreatedDateTime { get; set; }
+    public DateTime CreatedTime { get; set; }
 
     [Required]
-    public DateTime UpdatedDateTime { get; set; }
+    public DateTime UpdatedTime { get; set; }
 
     public static AgentRecord FromAgent(Agent agent)
     {
@@ -37,8 +32,8 @@ public class AgentRecord : DbRecord, IBotSharpTable
             Id = Id,
             Name = Name,
             Description = Description,
-            CreatedDateTime = CreatedDateTime,
-            UpdatedDateTime = UpdatedDateTime
+            CreatedDateTime = CreatedTime,
+            UpdatedDateTime = UpdatedTime
         };
     }
 }

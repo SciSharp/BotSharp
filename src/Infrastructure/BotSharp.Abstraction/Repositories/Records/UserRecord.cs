@@ -1,11 +1,8 @@
 using BotSharp.Abstraction.Users.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BotSharp.Core.Repository.DbTables;
+namespace BotSharp.Abstraction.Repositories.Records;
 
-[Table("User")]
-public class UserRecord : DbRecord, IBotSharpTable
+public class UserRecord : RecordBase
 {
     [Required]
     [MaxLength(64)]

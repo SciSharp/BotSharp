@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Repositories;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;

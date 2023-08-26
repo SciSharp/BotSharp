@@ -1,11 +1,8 @@
 using BotSharp.Abstraction.Conversations.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BotSharp.Core.Repository.DbTables;
+namespace BotSharp.Abstraction.Repositories.Records;
 
-[Table("Conversation")]
-public class ConversationRecord : DbRecord, IBotSharpTable
+public class ConversationRecord : RecordBase
 {
     [Required]
     [MaxLength(36)]

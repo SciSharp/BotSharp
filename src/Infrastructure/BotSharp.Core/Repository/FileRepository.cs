@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Records;
 using System.IO;
 using System.Text.Json;
 

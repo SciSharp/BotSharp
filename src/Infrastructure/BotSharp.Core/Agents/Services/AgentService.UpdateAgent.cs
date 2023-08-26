@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Repositories;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -20,7 +21,7 @@ public partial class AgentService
 
             record.Name = agent.Name;
             record.Description = agent.Description;
-            record.UpdatedDateTime = DateTime.UtcNow;
+            record.UpdatedTime = DateTime.UtcNow;
         });
 
         // Save instruction to file
