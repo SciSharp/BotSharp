@@ -19,6 +19,9 @@ public class RoutingRecord
     [JsonPropertyName("redirect_to")]
     public string RedirectTo { get; set; }
 
+    [JsonPropertyName("disabled")]
+    public bool Disabled { get; set; }
+
     public override string ToString()
     {
         return Name;

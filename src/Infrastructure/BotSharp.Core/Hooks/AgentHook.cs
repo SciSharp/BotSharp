@@ -10,7 +10,9 @@ public class AgentHook : AgentHookBase
     public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
     {
         var router = _services.GetRequiredService<IAgentRouting>();
-        dict["routing_records"] = router.GetRoutingRecords();
+        dict["routing_records"] = router.GetRoutingRecords()
+            .Where(x => !x.Disabled)
+            .ToList();
         return true;
     }
 }
