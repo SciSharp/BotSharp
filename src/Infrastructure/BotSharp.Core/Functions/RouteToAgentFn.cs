@@ -1,7 +1,6 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing.Models;
 using System.IO;
 
 namespace BotSharp.Core.Functions;
@@ -52,8 +51,7 @@ public class RouteToAgentFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var router = _services.GetRequiredService<IAgentRouting>();
-        var records = router.GetRoutingRecords();
-        var routingRule = records.FirstOrDefault(x => x.Name.ToLower() == args.AgentName.ToLower());
+        var routingRule = router.GetRecordByName(args.AgentName);
 
         if (routingRule == null)
         {

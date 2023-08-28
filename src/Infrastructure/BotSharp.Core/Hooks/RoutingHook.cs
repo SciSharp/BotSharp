@@ -1,8 +1,8 @@
 namespace BotSharp.Core.Hooks;
 
-public class AgentHook : AgentHookBase
+public class RoutingHook : AgentHookBase
 {
-    public AgentHook(IServiceProvider services, AgentSettings settings)
+    public RoutingHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
@@ -10,7 +10,9 @@ public class AgentHook : AgentHookBase
     public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
     {
         var router = _services.GetRequiredService<IAgentRouting>();
-        dict["routing_records"] = router.GetRoutingRecords();
+        dict["routing_records"] = router.GetRoutingRecords()
+            .Where(x => !x.Disabled)
+            .ToList();
         return true;
     }
 }
