@@ -1,24 +1,37 @@
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Records;
+using MongoDB.Bson;
 using System.IO;
+using Tensorflow;
 
 namespace BotSharp.Core.Conversations.Services;
 
 public class ConversationStorage : IConversationStorage
 {
     private readonly MyDatabaseSettings _dbSettings;
+    private readonly AgentSettings _agentSettings;
     private readonly IServiceProvider _services;
-    public ConversationStorage(MyDatabaseSettings dbSettings, IServiceProvider services)
+    private readonly IUserIdentity _user;
+    public ConversationStorage(
+        MyDatabaseSettings dbSettings,
+        AgentSettings agentSettings,
+        IServiceProvider services,
+        IUserIdentity user)
     {
         _dbSettings = dbSettings;
+        _agentSettings = agentSettings;
         _services = services;
+        _user = user;
     }
 
     public void Append(string conversationId, string agentId, RoleDialogModel dialog)
     {
-        var conversationFile = GetStorageFile(conversationId);
-        var sb = new StringBuilder();
+        var dialogs = GetConversationDialogs(conversationId);
+        var sb = new StringBuilder(dialogs);
+        var db = _services.GetRequiredService<IBotSharpRepository>();
 
         if (dialog.Role == AgentRole.Function)
         {
@@ -35,7 +48,6 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
             var agent = db.Agent.First(x => x.Id == agentId);
 
             sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agent.Name}|");
@@ -47,14 +59,22 @@ public class ConversationStorage : IConversationStorage
             sb.AppendLine($"  - {content}");
         }
 
-        var conversation = sb.ToString();
-        File.AppendAllText(conversationFile, conversation);
+        var updatedDialogs = sb.ToString();
+        //File.AppendAllText(conversationFile, conversation);
+
+        var conversation = db.Conversation.FirstOrDefault(x => x.Id == conversationId);
+        conversation.AgentId = agentId;
+        conversation.Dialog = updatedDialogs;
+        db.Transaction<IBotSharpTable>(delegate
+        {
+            db.Add<IBotSharpTable>(conversation);
+        });
     }
 
     public List<RoleDialogModel> GetDialogs(string conversationId)
     {
-        var conversationFile = GetStorageFile(conversationId);
-        var dialogs = File.ReadAllLines(conversationFile);
+        var conversationFile = GetConversationDialogs(conversationId);
+        var dialogs = conversationFile.SplitByNewLine();
 
         var results = new List<RoleDialogModel>();
         for (int i = 0; i < dialogs.Length; i += 2)
@@ -81,11 +101,13 @@ public class ConversationStorage : IConversationStorage
 
     public void InitStorage(string conversationId)
     {
-        var file = GetStorageFile(conversationId);
-        if (!File.Exists(file))
-        {
-            File.WriteAllLines(file, new string[0]);
-        }
+        //var file = GetStorageFile(conversationId);
+        //if (!File.Exists(file))
+        //{
+        //    File.WriteAllLines(file, new string[0]);
+        //}
+
+        GetConversationDialogs(conversationId);
     }
 
     private string GetStorageFile(string conversationId)
@@ -96,5 +118,31 @@ public class ConversationStorage : IConversationStorage
             Directory.CreateDirectory(dir);
         }
         return Path.Combine(dir, "dialogs.txt");
+    }
+
+    private string GetConversationDialogs(string conversationId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var conversation = db.Conversation.FirstOrDefault(x => x.Id == conversationId);
+        if (conversation == null)
+        {
+            var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+            var record = new ConversationRecord() 
+            {
+                Id = ObjectId.GenerateNewId().ToString(),
+                AgentId = _agentSettings.RouterId,
+                UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
+                Title = "New Conversation"
+            };
+
+            db.Transaction<IBotSharpTable>(delegate
+            {
+                db.Add<IBotSharpTable>(record);
+            });
+
+            conversation = db.Conversation.FirstOrDefault(x => x.Id == record.Id);
+        }
+
+        return conversation.Dialog ?? string.Empty;
     }
 }

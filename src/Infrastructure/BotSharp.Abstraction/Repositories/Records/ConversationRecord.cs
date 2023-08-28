@@ -15,6 +15,9 @@ public class ConversationRecord : RecordBase
     [MaxLength(64)]
     public string Title { get; set; } = string.Empty;
 
+    public string Dialog { get; set; } = string.Empty;
+    public string State { get; set; } = string.Empty;
+
     [Required]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
 

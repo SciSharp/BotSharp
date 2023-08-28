@@ -25,27 +25,28 @@ public partial class AgentService
                     select agent.ToAgent();
 
         var profile = query.FirstOrDefault();
-        var dir = GetAgentDataDir(id);
+        //var dir = GetAgentDataDir(id);
 
-        var instructionFile = Path.Combine(dir, $"instruction.{_settings.TemplateFormat}");
-        if (File.Exists(instructionFile))
+        var instructionFile = profile?.Instruction;
+        if (instructionFile != null)
         {
-            profile.Instruction = File.ReadAllText(instructionFile);
+            profile.Instruction = instructionFile;
         }
         else
         {
             _logger.LogError($"Can't find instruction file from {instructionFile}");
         }
 
-        var samplesFile = Path.Combine(dir, $"samples.{_settings.TemplateFormat}");
-        if (File.Exists(samplesFile))
+        var samplesFile = profile?.Samples;
+        if (samplesFile != null)
         {
-            profile.Samples = File.ReadAllText(samplesFile);
+            profile.Samples = samplesFile;
         }
-        var functionsFile = Path.Combine(dir, "functions.json");
-        if (File.Exists(functionsFile))
+
+        var functionsFile = profile?.Functions;
+        if (functionsFile != null)
         {
-            //profile.Functions = File.ReadAllText(functionsFile);
+            profile.Functions = functionsFile;
         }
 
         return profile;

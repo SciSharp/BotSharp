@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Records;
+using MongoDB.Bson;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -11,6 +13,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
+    private readonly AgentSettings _agentSettings;
+    private readonly IUserIdentity _user;
+    private readonly IBotSharpRepository _db;
     private ConversationState _state;
     private MyDatabaseSettings _dbSettings;
     private string _conversationId;
@@ -18,11 +23,17 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
         IServiceProvider services, 
-        MyDatabaseSettings dbSettings)
+        MyDatabaseSettings dbSettings,
+        AgentSettings agentSettings,
+        IUserIdentity user,
+        IBotSharpRepository db)
     {
         _logger = logger;
         _services = services;
         _dbSettings = dbSettings;
+        _agentSettings = agentSettings;
+        _user = user;
+        _db = db;
     }
 
     public void SetState(string name, string value)
@@ -55,11 +66,12 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         _state = new ConversationState();
 
-        _file = GetStorageFile(_conversationId);
+        _file = GetConversationState(_conversationId);
 
-        if (File.Exists(_file))
+        if (_file != null)
         {
-            var dict = File.ReadAllLines(_file);
+            //var dict = File.ReadAllLines(_file);
+            var dict = _file.SplitByNewLine();
             foreach (var line in dict)
             {
                 _state[line.Split('=')[0]] = line.Split('=')[1];
@@ -78,19 +90,39 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Save()
     {
-        var states = new List<string>();
-        
+        var states = new StringBuilder();
+        var conversation = _db.Conversation.FirstOrDefault(x => x.Id == _conversationId);
+
         foreach (var dic in _state)
         {
-            states.Add($"{dic.Key}={dic.Value}");
+            //states.Add($"{dic.Key}={dic.Value}");
+            states.AppendLine($"{dic.Key}={dic.Value}");
         }
-        File.WriteAllLines(_file, states);
+        //File.WriteAllLines(_file, states);
         _logger.LogInformation($"Saved state {_conversationId}");
+
+        if (conversation != null)
+        {
+            conversation.State = states.ToString();
+            _db.Transaction<IBotSharpTable>(delegate
+            {
+                _db.Add<IBotSharpTable>(conversation);
+            });
+        }
     }
 
     public void CleanState()
     {
-        File.Delete(_file);
+        //File.Delete(_file);
+        var conversation = _db.Conversation.FirstOrDefault(x => x.Id == _conversationId);
+        if (conversation != null)
+        {
+            conversation.State = string.Empty;
+            _db.Transaction<IBotSharpTable>(delegate
+            {
+                _db.Add<IBotSharpTable>(conversation);
+            });
+        }
     }
 
     private string GetStorageFile(string conversationId)
@@ -101,6 +133,33 @@ public class ConversationStateService : IConversationStateService, IDisposable
             Directory.CreateDirectory(dir);
         }
         return Path.Combine(dir, "state.dict");
+    }
+
+    private string GetConversationState(string conversationId)
+    {
+        var conversation = _db.Conversation.FirstOrDefault(x => x.Id == conversationId);
+        if (conversation == null)
+        {
+            var user = _db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+            var record = new ConversationRecord()
+            {
+                Id = ObjectId.GenerateNewId().ToString(),
+                AgentId = _agentSettings.RouterId,
+                UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
+                Title = "New Conversation",
+                Dialog = string.Empty,
+                State = string.Empty
+            };
+
+            _db.Transaction<IBotSharpTable>(delegate
+            {
+                _db.Add<IBotSharpTable>(record);
+            });
+
+            conversation = _db.Conversation.FirstOrDefault(x => x.Id == record.Id);
+        }
+
+        return conversation.State ?? string.Empty;
     }
 
     public string GetState(string name)

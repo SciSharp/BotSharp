@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Records;
+using MongoDB.Bson;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -55,7 +56,7 @@ public partial class ConversationService : IConversationService
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
         var record = ConversationRecord.FromConversation(sess);
-        record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        record.Id = sess.Id.IfNullOrEmptyAs(ObjectId.GenerateNewId().ToString());
         record.UserId = sess.UserId.IfNullOrEmptyAs(_user.Id);
         record.Title = "New Conversation";
 

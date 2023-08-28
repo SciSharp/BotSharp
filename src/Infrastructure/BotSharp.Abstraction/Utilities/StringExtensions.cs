@@ -33,4 +33,9 @@ public static class StringExtensions
 
         return phoneNumber;
     }
+
+    public static string[] SplitByNewLine(this string input)
+    {
+        return input.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+    }
 }

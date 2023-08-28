@@ -48,7 +48,19 @@ public class AgentRouter : IAgentRouting
     {
         var agentSettings = _services.GetRequiredService<AgentSettings>();
         var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
-        return JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
+        //var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var agent = db.Agent.FirstOrDefault(x => x.Id == agentSettings.RouterId);
+        var routes = agent?.Routes ?? new List<string>();
+        var routingRecords = new RoutingRecord[routes.Count];
+
+        for (int i = 0; i < routes.Count; i++)
+        {
+            if (routes[i] == null) continue;
+            routingRecords[i] = JsonSerializer.Deserialize<RoutingRecord>(routes[i]);
+        }
+
+        return routingRecords;
     }
 }
