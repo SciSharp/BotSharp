@@ -27,9 +27,10 @@ public partial class AgentService
         record.CreatedTime = DateTime.UtcNow;
         record.UpdatedTime = DateTime.UtcNow;
 
+        var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
         var userAgentRecord = new UserAgentRecord
         {
-            UserId = _user.Id,
+            UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
             AgentId = record.Id,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
