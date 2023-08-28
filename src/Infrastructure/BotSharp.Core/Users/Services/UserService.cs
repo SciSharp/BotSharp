@@ -32,6 +32,7 @@ public class UserService : IUserService
         record.Email = user.Email.ToLower();
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
+        record.ExternalId = _user.Id;
 
         db.Transaction<IBotSharpTable>(delegate
         {
