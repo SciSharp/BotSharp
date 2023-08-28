@@ -83,6 +83,15 @@ public partial class ConversationService
                 }, onMessageReceived);
                 return true;
             }
+            else if (reasonedContext.FunctionName == "response_to_user")
+            {
+                await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
+                {
+                    CurrentAgentId = agent.Id,
+                    Channel = lastDialog.Channel
+                }, onMessageReceived);
+                return true;
+            }
             else if (reasonedContext.FunctionName == "continue_execute_task")
             {
                 if (reasonedContext.CurrentAgentId != agent.Id)

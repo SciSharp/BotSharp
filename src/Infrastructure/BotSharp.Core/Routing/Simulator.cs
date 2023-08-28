@@ -34,7 +34,7 @@ public class Simulator
         var response = await SendMessageToReasoner(agent);
         var args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
         response.FunctionName = args.Function;
-        response.Content = args.Parameters.Reason;
+        
         if (args.Function == "continue_execute_task")
         {
             response.FunctionArgs = JsonSerializer.Serialize(args.Parameters.Arguments);
@@ -42,6 +42,16 @@ public class Simulator
             var router = _services.GetRequiredService<IAgentRouting>();
             var record = router.GetRecordByName(args.Parameters.AgentName);
             response.CurrentAgentId = record.AgentId;
+        }
+        else if (args.Function == "interrupt_task_execution")
+        {
+            response.Content = args.Parameters.Reason;
+            response.ExecutionResult = args.Parameters.Reason;
+        }
+        else if (args.Function == "response_to_user")
+        {
+            response.Content = args.Parameters.Answer;
+            response.ExecutionResult = args.Parameters.Answer;
         }
 
         return response;
@@ -63,7 +73,14 @@ public class Simulator
 
         var args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
 
-        SaveStateByArgs(args.Parameters.Arguments);
+        if (args.Function == "retrieve_data_from_agent")
+        {
+            SaveStateByArgs(args.Parameters.Arguments);
+        }
+        else if (args.Function == "response_to_user")
+        {
+            return response;
+        }
 
         // Retrieve information from specific agent
         var router = _services.GetRequiredService<IAgentRouting>();

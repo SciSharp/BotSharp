@@ -8,6 +8,9 @@ public class RetrievalArgs : RoutingArgs
     [JsonPropertyName("question")]
     public string Question { get; set; }
 
+    [JsonPropertyName("answer")]
+    public string Answer { get; set; }
+
     [JsonPropertyName("reason")]
     public string Reason { get; set; }
 
