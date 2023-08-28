@@ -9,6 +9,12 @@ public class AgentRecord : RecordBase
     [MaxLength(512)]
     public string? Description { get; set; }
 
+    public string Instruction { get; set; }
+
+    public string Functions { get; set; }
+
+    public List<string> Routes { get; set; }
+
     [Required]
     public DateTime CreatedTime { get; set; }
 
@@ -21,7 +27,10 @@ public class AgentRecord : RecordBase
         {
             Id = agent.Id,
             Name = agent.Name,
-            Description = agent.Description
+            Description = agent.Description,
+            Instruction = agent.Instruction,
+            Functions = agent.Functions,
+            Routes = agent.Routes,
         };
     }
 
@@ -32,6 +41,9 @@ public class AgentRecord : RecordBase
             Id = Id,
             Name = Name,
             Description = Description,
+            Instruction = Instruction,
+            Functions = Functions,
+            Routes = Routes,
             CreatedDateTime = CreatedTime,
             UpdatedDateTime = UpdatedTime
         };

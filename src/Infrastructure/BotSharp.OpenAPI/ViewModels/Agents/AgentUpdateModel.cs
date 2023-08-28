@@ -22,6 +22,11 @@ public class AgentUpdateModel
     /// </summary>
     public string? Functions { get; set; }
 
+    /// <summary>
+    /// Routes
+    /// </summary>
+    public List<string>? Routes { get; set; }
+
     public Agent ToAgent()
     {
         var agent = new Agent
@@ -40,6 +45,9 @@ public class AgentUpdateModel
 
         if (Functions != null)
             agent.Functions = Functions;
+
+        if (!Routes.IsEmpty())
+            agent.Routes = Routes;
 
         return agent;
     }

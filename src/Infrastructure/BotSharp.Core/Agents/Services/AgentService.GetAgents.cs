@@ -44,7 +44,7 @@ public partial class AgentService
         var functionsFile = Path.Combine(dir, "functions.json");
         if (File.Exists(functionsFile))
         {
-            profile.Functions = File.ReadAllText(functionsFile);
+            //profile.Functions = File.ReadAllText(functionsFile);
         }
 
         return profile;

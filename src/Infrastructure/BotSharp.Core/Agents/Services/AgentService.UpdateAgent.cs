@@ -17,19 +17,34 @@ public partial class AgentService
                           join u in db.User on ua.UserId equals u.Id
                           where (ua.UserId == _user.Id || u.ExternalId == _user.Id) && 
                             a.Id == agent.Id
-                          select a).First();
+                          select a).FirstOrDefault();
+
+            if (record == null) return;
 
             record.Name = agent.Name;
-            record.Description = agent.Description;
+
+            if (!string.IsNullOrEmpty(agent.Description))
+                record.Description = agent.Description;
+
+            if (!string.IsNullOrEmpty(agent.Instruction))
+                record.Instruction = agent.Instruction;
+
+            if (!string.IsNullOrEmpty(agent.Functions))
+                record.Functions = agent.Functions;
+
+            if (!agent.Routes.IsEmpty())
+                record.Routes = agent.Routes;
+
             record.UpdatedTime = DateTime.UtcNow;
+            db.Add<IBotSharpTable>(record);
         });
 
         // Save instruction to file
-        var dir = GetAgentDataDir(agent.Id);
-        var instructionFile = Path.Combine(dir, "instruction.txt");
-        File.WriteAllText(instructionFile, agent.Instruction);
+        //var dir = GetAgentDataDir(agent.Id);
+        //var instructionFile = Path.Combine(dir, "instruction.txt");
+        //File.WriteAllText(instructionFile, agent.Instruction);
 
-        var samplesFile = Path.Combine(dir, "samples.txt");
-        File.WriteAllText(samplesFile, agent.Samples);
+        //var samplesFile = Path.Combine(dir, "samples.txt");
+        //File.WriteAllText(samplesFile, agent.Samples);
     }
 }

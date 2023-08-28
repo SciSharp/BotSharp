@@ -29,7 +29,6 @@ public class UserService : IUserService
         }
 
         record = UserRecord.FromUser(user);
-        //record.Id = Guid.NewGuid().ToString();
         record.Email = user.Email.ToLower();
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);

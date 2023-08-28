@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.MongoRepository.Collections;
+namespace BotSharp.Plugin.Mongo.Collections;
 
 public class ConversationCollection : MongoBase
 {

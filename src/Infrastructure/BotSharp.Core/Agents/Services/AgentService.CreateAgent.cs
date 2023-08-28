@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Records;
+using MongoDB.Bson;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -22,13 +23,12 @@ public partial class AgentService
         }
 
         record = AgentRecord.FromAgent(agent);
-        record.Id = Guid.NewGuid().ToString();
+        record.Id = ObjectId.GenerateNewId().ToString();
         record.CreatedTime = DateTime.UtcNow;
         record.UpdatedTime = DateTime.UtcNow;
 
         var userAgentRecord = new UserAgentRecord
         {
-            Id = Guid.NewGuid().ToString(),
             UserId = _user.Id,
             AgentId = record.Id,
             CreatedTime = DateTime.UtcNow,

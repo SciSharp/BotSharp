@@ -28,6 +28,11 @@ public class Agent
     /// </summary>
     public string Knowledges { get; set; }
 
+    /// <summary>
+    /// Routes
+    /// </summary>
+    public List<string> Routes { get; set; }
+
     public override string ToString()
         => $"{Name} {Id}";
 }
