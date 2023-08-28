@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using Fluid;
 using Microsoft.Extensions.Options;
@@ -17,7 +18,7 @@ public class TemplateRender : ITemplateRender
         _services = services;
         _logger = logger;
         _options = new TemplateOptions();
-        _options.MemberAccessStrategy.MemberNameStrategy = MemberNameStrategies.CamelCase;
+        _options.MemberAccessStrategy.MemberNameStrategy = MemberNameStrategies.SnakeCase;
         _options.MemberAccessStrategy.Register<RoutingRecord>();
     }
 

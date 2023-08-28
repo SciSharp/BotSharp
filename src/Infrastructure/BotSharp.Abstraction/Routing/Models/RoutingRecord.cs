@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Abstraction.Agents.Models;
+namespace BotSharp.Abstraction.Routing.Models;
 
 public class RoutingRecord
 {
@@ -18,6 +18,9 @@ public class RoutingRecord
 
     [JsonPropertyName("redirect_to")]
     public string RedirectTo { get; set; }
+
+    [JsonPropertyName("disabled")]
+    public bool Disabled { get; set; }
 
     public override string ToString()
     {

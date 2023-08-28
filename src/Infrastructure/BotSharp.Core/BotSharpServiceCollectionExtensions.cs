@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Core.Functions;
 using BotSharp.Core.Hooks;
+using BotSharp.Core.Routing;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.AspNetCore.Builder;
@@ -42,13 +44,21 @@ public static class BotSharpServiceCollectionExtensions
         services.AddSingleton<TemplateRender>();
 
         // Register router
-        services.AddScoped<IAgentRouting, AgentRouter>();
+        services.AddScoped<Router>();
+        services.AddScoped<Reasoner>();
+        services.AddScoped<IAgentRouting>(p =>
+        {
+            var setting = p.GetRequiredService<ConversationSetting>();
+            return setting.EnableReasoning ? p.GetRequiredService<Reasoner>() : p.GetRequiredService<Router>();
+        });
 
         // Register function callback
         services.AddScoped<IFunctionCallback, RouteToAgentFn>();
 
         // Register Hooks
-        services.AddScoped<IAgentHook, AgentHook>();
+        services.AddScoped<IAgentHook, RoutingHook>();
+
+        services.AddScoped<Simulator>();
 
         return services;
     }

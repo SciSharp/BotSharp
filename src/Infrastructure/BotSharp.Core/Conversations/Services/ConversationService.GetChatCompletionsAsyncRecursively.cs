@@ -13,13 +13,12 @@ public partial class ConversationService
         string conversationId,
         Agent agent, 
         List<RoleDialogModel> wholeDialogs,
-        int maxRecursiveDepth,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
         currentRecursiveDepth++;
-        if (currentRecursiveDepth > maxRecursiveDepth)
+        if (currentRecursiveDepth > _settings.MaxRecursiveDepth)
         {
             _logger.LogWarning($"Exceeded max recursive depth.");
 
@@ -65,7 +64,6 @@ public partial class ConversationService
             fn.Content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.ExecutionResult;
 
             // Agent has been transferred
-            var agentSettings = _services.GetRequiredService<AgentSettings>();
             if (fn.CurrentAgentId != preAgentId)
             {
                 var agentService = _services.GetRequiredService<IAgentService>();
@@ -83,7 +81,6 @@ public partial class ConversationService
                 conversationId, 
                 agent, 
                 wholeDialogs, 
-                maxRecursiveDepth,
                 onMessageReceived, 
                 onFunctionExecuting,
                 onFunctionExecuted);
