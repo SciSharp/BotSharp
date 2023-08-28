@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Core.Functions;
+using BotSharp.Core.Hooks;
+using BotSharp.Core.Templating;
 using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -36,9 +38,17 @@ public static class BotSharpServiceCollectionExtensions
 
         RegisterPlugins(services, config);
 
+        // Register template render
+        services.AddSingleton<TemplateRender>();
+
+        // Register router
         services.AddScoped<IAgentRouting, AgentRouter>();
 
+        // Register function callback
         services.AddScoped<IFunctionCallback, RouteToAgentFn>();
+
+        // Register Hooks
+        services.AddScoped<IAgentHook, AgentHook>();
 
         return services;
     }

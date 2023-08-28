@@ -28,7 +28,12 @@ public class RouteToAgentFn : IFunctionCallback
         }
         else
         {
-            if (!HasMissingRequiredField(message, out var agentId))
+            var missingfield = HasMissingRequiredField(message, out var agentId);
+            if (missingfield && message.CurrentAgentId != agentId)
+            {
+                message.CurrentAgentId = agentId;
+            }
+            else
             {
                 message.CurrentAgentId = agentId;
                 message.ExecutionResult = $"Routed to {args.AgentName}";
@@ -45,23 +50,23 @@ public class RouteToAgentFn : IFunctionCallback
     private bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
+        var router = _services.GetRequiredService<IAgentRouting>();
+        var records = router.GetRoutingRecords();
+        var routingRule = records.FirstOrDefault(x => x.Name.ToLower() == args.AgentName.ToLower());
 
-        var routes = GetRoutingTable();
-        var agent = routes.FirstOrDefault(x => x.AgentName.ToLower() == args.AgentName.ToLower());
-
-        if (agent == null)
+        if (routingRule == null)
         {
             agentId = message.CurrentAgentId;
             message.ExecutionResult = $"Can't find agent {args.AgentName}";
             return true;
         }
 
-        agentId = agent.AgentId;
+        agentId = routingRule.AgentId;
 
         // Check required fields
         var jo = JsonSerializer.Deserialize<object>(message.FunctionArgs);
         bool hasMissingField = false;
-        foreach (var field in agent.RequiredFields)
+        foreach (var field in routingRule.RequiredFields)
         {
             if (jo is JsonElement root)
             {
@@ -71,17 +76,21 @@ public class RouteToAgentFn : IFunctionCallback
                     hasMissingField = true;
                     break;
                 }
+                else if (root.EnumerateObject().Any(x => x.Name == field) && 
+                    string.IsNullOrEmpty(root.EnumerateObject().FirstOrDefault(x => x.Name == field).Value.ToString()))
+                {
+                    message.ExecutionResult = $"missing {field}.";
+                    hasMissingField = true;
+                    break;
+                }
             }
         }
 
-        return hasMissingField;
-    }
+        if (hasMissingField && !string.IsNullOrEmpty(routingRule.RedirectTo))
+        {
+            agentId = routingRule.RedirectTo;
+        }
 
-    private RoutingTable[] GetRoutingTable()
-    {
-        var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
-        return JsonSerializer.Deserialize<RoutingTable[]>(File.ReadAllText(filePath));
+        return hasMissingField;
     }
 }
