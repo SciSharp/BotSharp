@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Abstraction.Agents.Models;
+namespace BotSharp.Abstraction.Routing.Models;
 
 public class RoutingRecord
 {

@@ -82,8 +82,4 @@
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Reasoning\" />
-  </ItemGroup>
-
 </Project>

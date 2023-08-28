@@ -1,8 +1,8 @@
 namespace BotSharp.Core.Hooks;
 
-public class AgentHook : AgentHookBase
+public class RoutingHook : AgentHookBase
 {
-    public AgentHook(IServiceProvider services, AgentSettings settings)
+    public RoutingHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }

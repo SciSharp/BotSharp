@@ -6,7 +6,12 @@ public class AgentSettings
     /// Router Agent Id
     /// </summary>
     public string RouterId { get; set; }
+
+    /// <summary>
+    /// Reasoner Agent Id
+    /// </summary>
+    public string ReasonerId { get; set; }
+
     public string DataDir { get; set; }
     public string TemplateFormat { get; set; }
-    public int MaxRecursiveDepth { get; set; } = 3;
 }

@@ -72,6 +72,7 @@ public class ConversationStorage : IConversationStorage
                 CurrentAgentId = currentAgentId,
                 FunctionName = funcName,
                 FunctionArgs = funcArgs,
+                ExecutionResult = text,
                 CreatedAt = createdAt
             });
         }

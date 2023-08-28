@@ -1,5 +1,8 @@
+using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Core.Routing;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -31,7 +34,7 @@ public partial class ConversationService
         stateService.SetState("channel", lastDialog.Channel);
 
         var router = _services.GetRequiredService<IAgentRouting>();
-        var agent = await router.LoadRouter();
+        Agent agent = await router.LoadRouter();
 
         _logger.LogInformation($"[{agent.Name}] {lastDialog.Role}: {lastDialog.Content}");
 
@@ -65,14 +68,42 @@ public partial class ConversationService
             await hook.BeforeCompletion();
         }
 
-        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        // reasoning
+        if (_settings.EnableReasoning)
+        {
+            var simulator = _services.GetRequiredService<Simulator>();
+            var reasonedContext = await simulator.Enter(agent, wholeDialogs);
+
+            if (reasonedContext.FunctionName == "interrupt_task_execution")
+            {
+                await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
+                {
+                    CurrentAgentId = agent.Id,
+                    Channel = lastDialog.Channel
+                }, onMessageReceived);
+                return true;
+            }
+            else if (reasonedContext.FunctionName == "continue_execute_task")
+            {
+                if (reasonedContext.CurrentAgentId != agent.Id)
+                {
+                    var agentService = _services.GetRequiredService<IAgentService>();
+                    agent = await agentService.LoadAgent(reasonedContext.CurrentAgentId);
+                }
+            }
+
+            simulator.Dialogs.ForEach(x => 
+            {
+                wholeDialogs.Add(x);
+                _storage.Append(conversationId, agent.Id, x);
+            });
+        }
 
         var chatCompletion = GetChatCompletion();
         var result = await GetChatCompletionsAsyncRecursively(chatCompletion,
             conversationId,
             agent,
             wholeDialogs,
-            agentSettings.MaxRecursiveDepth,
             onMessageReceived,
             onFunctionExecuting,
             onFunctionExecuted);
@@ -100,5 +131,11 @@ public partial class ConversationService
     {
         var completions = _services.GetServices<IChatCompletion>();
         return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.ChatCompletion));
+    }
+
+    public IChatCompletion GetGpt4ChatCompletion()
+    {
+        var completions = _services.GetServices<IChatCompletion>();
+        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith("GPT4CompletionProvider"));
     }
 }

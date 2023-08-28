@@ -45,7 +45,7 @@ public class RoleDialogModel
     {
         if (Role == AgentRole.Function)
         {
-            return $"{Role}: {FunctionName}";
+            return $"{Role}: {FunctionName} => {ExecutionResult}";
         }
         else
         {
