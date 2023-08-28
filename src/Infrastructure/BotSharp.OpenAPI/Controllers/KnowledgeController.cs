@@ -3,6 +3,8 @@ using BotSharp.Abstraction.Knowledges.Models;
 using Microsoft.AspNetCore.Http;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig;
+using BotSharp.Core.Plugins.Knowledges;
+
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -11,11 +13,12 @@ namespace BotSharp.OpenAPI.Controllers;
 public class KnowledgeController : ControllerBase, IApiAdapter
 {
     private readonly IKnowledgeService _knowledgeService;
-    private readonly IPdf2TextConverter _pdf2TextConverter;
-    public KnowledgeController(IKnowledgeService knowledgeService, IPdf2TextConverter pdf2TextConverter)
+    private readonly IServiceProvider _services;
+
+    public KnowledgeController(IKnowledgeService knowledgeService, IServiceProvider services)
     {
         _knowledgeService = knowledgeService;
-        _pdf2TextConverter = pdf2TextConverter;
+        _services = services;
     }
     [HttpGet("/knowledge/{agentId}")]
     public async Task<List<RetrievedResult>> RetrieveKnowledge([FromRoute] string agentId, [FromQuery(Name = "q")] string question)
@@ -30,16 +33,20 @@ public class KnowledgeController : ControllerBase, IApiAdapter
     [HttpPost("/knowledge/{agentId}")]
     public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files, [FromQuery] int? startPageNum, [FromQuery] int? endPageNum, [FromQuery] bool? paddleModel)
     {
+        var setttings = _services.GetRequiredService<KnowledgeBaseSettings>();
+        var textConverter = _services.GetServices<IPdf2TextConverter>().First(x => x.GetType().FullName.EndsWith(setttings.Pdf2TextConverter));
         long size = files.Sum(f => f.Length);
 
         foreach (var formFile in files)
         {
             var content = "";
-            
-            content = await _pdf2TextConverter.ConvertPdfToText(formFile, startPageNum, endPageNum);
+
+            content = await textConverter.ConvertPdfToText(formFile, startPageNum, endPageNum);
 
             // Process uploaded files
             // Don't rely on or trust the FileName property without validation.
+
+            // Add FeedWithMetaData
             await _knowledgeService.Feed(new KnowledgeFeedModel
             {
                 AgentId = agentId,

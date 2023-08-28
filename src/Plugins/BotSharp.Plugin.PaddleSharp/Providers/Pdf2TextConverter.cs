@@ -5,18 +5,13 @@ using System.IO;
 using ImageMagick;
 using OpenCvSharp;
 using Microsoft.AspNetCore.Http;
-using System.Runtime.InteropServices.ComTypes;
 using Sdcb.PaddleInference;
 using Sdcb.PaddleOCR.Models;
 using Sdcb.PaddleOCR.Models.LocalV3;
 using Sdcb.PaddleOCR;
 using System.Threading.Tasks;
 using BotSharp.Abstraction.Knowledges;
-using static System.Net.WebRequestMethods;
-using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig;
 using System.Linq;
-using static System.Net.Mime.MediaTypeNames;
 using Docnet;
 using Docnet.Core.Models;
 using Docnet.Core;
@@ -24,25 +19,13 @@ using Docnet.Core.Converters;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Plugin.PaddleSharp.Settings;
 
 namespace BotSharp.Plugin.PaddleSharp.Providers;
 
 public class Pdf2TextConverter : IPdf2TextConverter
-{
-    // private readonly IServiceProvider _service;
-    
+{    
     private Dictionary<int, string> _mappings = new Dictionary<int, string>();
-    /*
-    // private FullOcrModel _model;
-    private string? _tempFolderPath = Path.GetTempPath();
-    private FullOcrModel _model = LocalFullModels.EnglishV3;
-    private MagickReadSettings _magicReadSettings;
-    private int _consumerCount;
-    private int _boundedCapacity;
-    private double _acceptScore;
-    */
     private FullOcrModel _model = LocalFullModels.EnglishV3;
     private PaddleSharpSettings _paddleSharpSettings;
     public Pdf2TextConverter(PaddleSharpSettings paddleSharpSettings)
@@ -52,54 +35,11 @@ public class Pdf2TextConverter : IPdf2TextConverter
 
     public async Task<string> ConvertPdfToText(IFormFile formFile, int? startPageNum, int? endPageNum)
     {
-        string pdfContent;
-        if (_paddleSharpSettings.paddleModel)
-        {
-            await ConvertPdfToLocalImagesAsync(formFile, startPageNum, endPageNum);
-            pdfContent = await LocalImageToTextsAsync();
-        }
-        else
-        {
-            pdfContent = await OpenPdfDocumentAsync(formFile, startPageNum, endPageNum);
-        }
-        return pdfContent;
+        await ConvertPdfToLocalImagesAsync(formFile, startPageNum, endPageNum);
+        return await LocalImageToTextsAsync();
     }
 
-    public async Task<string> OpenPdfDocumentAsync(IFormFile formFile, int? startPageNum, int? endPageNum)
-    {
-        if (formFile.Length <= 0)
-        {
-            return await Task.FromResult(string.Empty);
-        }
-
-        var filePath = Path.GetTempFileName();
-
-        using (var stream = System.IO.File.Create(filePath))
-        {
-            await formFile.CopyToAsync(stream);
-        }
-
-        var document = PdfDocument.Open(filePath);
-        var content = "";
-        foreach (Page page in document.GetPages())
-        {
-            if (startPageNum.HasValue && page.Number < startPageNum.Value)
-            {
-                continue;
-            }
-
-            if (endPageNum.HasValue && page.Number > endPageNum.Value)
-            {
-                continue;
-            }
-
-            content += page.Text;
-        }
-
-        return content;
-    }
-
-    public async Task<string> LocalImageToTextsAsync()
+    private async Task<string> LocalImageToTextsAsync()
     {
         string loadPath;
         string contents = "";
@@ -107,8 +47,6 @@ public class Pdf2TextConverter : IPdf2TextConverter
         {
             throw new Exception("No local temporary files found! Please convert PDF to local images first by \"ConvertPdfToLocalImages\".");
         }
-
-        // var converter = _service.GetRequiredService<IPaddleOcrConverter>();
 
         QueuedPaddleOcrAll all = new(() => new PaddleOcrAll(_model, PaddleDevice.Mkldnn())
         {
@@ -120,8 +58,6 @@ public class Pdf2TextConverter : IPdf2TextConverter
         foreach (var item in _mappings.OrderBy(x => x.Key))
         {
             loadPath = Path.Combine(_paddleSharpSettings.tempFolderPath, item.Value);
-            // var pdfContent = converter.ConvertImageToText(loadPath);
-            // contents += pdfContent;
             
             using (Mat src = Cv2.ImRead(loadPath))
             {
@@ -135,12 +71,7 @@ public class Pdf2TextConverter : IPdf2TextConverter
                     }
                 }
             }
-            
-            // Delete related Temp files after converting image to texts
-            // DeleteTempFile(loadPath);
         }
-        // await Console.Out.WriteLineAsync("Finished!");
-        // all.Dispose();
         return contents;
     }
 
@@ -184,7 +115,7 @@ public class Pdf2TextConverter : IPdf2TextConverter
         };
     }
 
-    public async Task ConvertPdfToLocalImagesAsync(IFormFile formFile, int? startPageNum, int? endPageNum)
+    private async Task ConvertPdfToLocalImagesAsync(IFormFile formFile, int? startPageNum, int? endPageNum)
     {
         string rootFileName;
 
@@ -229,10 +160,5 @@ public class Pdf2TextConverter : IPdf2TextConverter
             images[page].Write(rootFileName);
             _mappings[page] = rootFileName;
         }
-    }
-
-    public void DeleteTempFile(string filePath)
-    {
-        System.IO.File.Delete(filePath);
     }
 }

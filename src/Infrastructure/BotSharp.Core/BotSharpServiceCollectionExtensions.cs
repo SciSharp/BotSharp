@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Core.Functions;
+using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
@@ -85,5 +86,7 @@ public static class BotSharpServiceCollectionExtensions
         loader.Load();
 
         services.AddSingleton(loader);
+
+        services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
     }
 }
