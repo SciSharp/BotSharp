@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
-using static Tensorflow.ApiDef.Types;
 
 namespace BotSharp.Core.Routing;
 
@@ -33,7 +32,23 @@ public class Router : IAgentRouting
         var agentSettings = _services.GetRequiredService<AgentSettings>();
         var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
         var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
-        return JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
+        var records = JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
+
+        // check if routing profile is specified
+        filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
+        if (File.Exists(filePath))
+        {
+            var state = _services.GetRequiredService<IConversationStateService>();
+            var name = state.GetState("channel");
+            var profiles = JsonSerializer.Deserialize<RoutingProfileRecord[]>(File.ReadAllText(filePath));
+            var spcificedProfile = profiles.FirstOrDefault(x => x.Name == name);
+            if (spcificedProfile != null)
+            {
+                records = records.Where(x => spcificedProfile.AgentIds.Contains(x.AgentId)).ToArray();
+            }
+        }
+
+        return records;
     }
 
     public RoutingRecord GetRecordByName(string name)
