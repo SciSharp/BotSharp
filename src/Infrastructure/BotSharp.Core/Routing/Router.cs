@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing.Settings;
 using System.IO;
 
 namespace BotSharp.Core.Routing;
@@ -8,13 +9,13 @@ public class Router : IAgentRouting
 {
     protected readonly IServiceProvider _services;
     protected readonly ILogger _logger;
-    protected readonly AgentSettings _settings;
+    protected readonly RoutingSettings _settings;
 
     public virtual string AgentId => _settings.RouterId;
 
     public Router(IServiceProvider services,
         ILogger<Router> logger,
-        AgentSettings settings)
+        RoutingSettings settings)
     {
         _services = services;
         _logger = logger;
@@ -31,7 +32,7 @@ public class Router : IAgentRouting
     {
         var agentSettings = _services.GetRequiredService<AgentSettings>();
         var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
+        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, _settings.RouterId, "route.json");
         var records = JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
 
         // check if routing profile is specified
