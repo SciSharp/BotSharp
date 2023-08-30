@@ -7,6 +7,7 @@ using BotSharp.Core.Templating;
 using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core;
 
@@ -44,13 +45,14 @@ public static class BotSharpServiceCollectionExtensions
         services.AddSingleton<TemplateRender>();
 
         // Register router
+        var routingSettings = new RoutingSettings();
+        config.Bind("Router", routingSettings);
+        services.AddSingleton((IServiceProvider x) => routingSettings);
+
         services.AddScoped<Router>();
         services.AddScoped<Reasoner>();
-        services.AddScoped<IAgentRouting>(p =>
-        {
-            var setting = p.GetRequiredService<ConversationSetting>();
-            return setting.EnableReasoning ? p.GetRequiredService<Reasoner>() : p.GetRequiredService<Router>();
-        });
+        services.AddScoped<IAgentRouting, Router>();
+        services.AddScoped<Reasoner>();
 
         // Register function callback
         services.AddScoped<IFunctionCallback, RouteToAgentFn>();

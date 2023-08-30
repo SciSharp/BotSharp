@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing.Settings;
+
 namespace BotSharp.Core.Routing;
 
 public class Reasoner : Router
@@ -6,7 +8,7 @@ public class Reasoner : Router
 
     public Reasoner(IServiceProvider services,
         ILogger<Reasoner> logger,
-        AgentSettings settings) : base(services, logger, settings)
+        RoutingSettings settings) : base(services, logger, settings)
     {
     }
 }
