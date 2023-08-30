@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Templating;
 
 namespace BotSharp.Core.Agents.Services;
@@ -45,8 +46,8 @@ public partial class AgentService
         }
 
         // render liquid template
-        var render = _services.GetRequiredService<TemplateRender>();
-        render.Render(agent, templateDict);
+        var render = _services.GetRequiredService<ITemplateRender>();
+        agent.Instruction = render.Render(agent.Instruction, templateDict);
 
         _logger.LogInformation($"Loaded agent {agent}.");
 

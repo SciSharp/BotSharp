@@ -2,6 +2,11 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Templating;
+using BotSharp.Core.Templating;
+using System.IO;
+using Tensorflow.Keras.Layers.Rnn;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -68,22 +73,48 @@ public partial class ConversationService
             {
                 var agentService = _services.GetRequiredService<IAgentService>();
                 agent = await agentService.LoadAgent(fn.CurrentAgentId);
+
+                wholeDialogs.Add(fn);
+
+                await GetChatCompletionsAsyncRecursively(chatCompletion,
+                    conversationId,
+                    agent,
+                    wholeDialogs,
+                    onMessageReceived,
+                    onFunctionExecuting,
+                    onFunctionExecuted);
             }
+            else
+            {
+                // Find response template
+                var templateService = _services.GetRequiredService<IResponseTemplateService>();
+                var response = await templateService.RenderFunctionResponse(agent.Id, fn);
+                if (!string.IsNullOrEmpty(response))
+                {
+                    await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, response)
+                    {
+                        CurrentAgentId = agent.Id,
+                        Channel = wholeDialogs.Last().Channel
+                    }, onMessageReceived);
 
-            // Add to dialog history
-            // The server had an error processing your request. Sorry about that!
-            // _storage.Append(conversationId, preAgentId, fn);
+                    return;
+                }
+                
+                // Add to dialog history
+                // The server had an error processing your request. Sorry about that!
+                // _storage.Append(conversationId, preAgentId, fn);
 
-            // After function is executed, pass the result to LLM to get a natural response
-            wholeDialogs.Add(fn);
+                // After function is executed, pass the result to LLM to get a natural response
+                wholeDialogs.Add(fn);
 
-            await GetChatCompletionsAsyncRecursively(chatCompletion, 
-                conversationId, 
-                agent, 
-                wholeDialogs, 
-                onMessageReceived, 
-                onFunctionExecuting,
-                onFunctionExecuted);
+                await GetChatCompletionsAsyncRecursively(chatCompletion,
+                    conversationId,
+                    agent,
+                    wholeDialogs,
+                    onMessageReceived,
+                    onFunctionExecuting,
+                    onFunctionExecuted);
+            }
         });
 
         return result;

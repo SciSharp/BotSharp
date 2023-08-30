@@ -8,6 +8,7 @@ using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core;
 
@@ -42,7 +43,8 @@ public static class BotSharpServiceCollectionExtensions
         RegisterPlugins(services, config);
 
         // Register template render
-        services.AddSingleton<TemplateRender>();
+        services.AddSingleton<ITemplateRender, TemplateRender>();
+        services.AddScoped<IResponseTemplateService, ResponseTemplateService>();
 
         // Register router
         var routingSettings = new RoutingSettings();
