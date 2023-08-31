@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using BotSharp.Plugin.RoutingSpeeder.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Plugin.RoutingSpeeder.Providers;
+using System.Runtime.InteropServices;
 
 namespace BotSharp.Plugin.RoutingSpeeder;
 
@@ -27,8 +28,11 @@ public class RoutingConversationHook: ConversationHookBase
         var intentClassifier = _services.GetRequiredService<IntentClassifier>();
         var vector = intentClassifier.GetTextEmbedding(message.Content);
 
+        // intentClassifier.Train();
         // Utilize local discriminative model to predict intent
-        message.IntentName = "greeting";
+        var predText = intentClassifier.Predict(vector);
+
+        message.IntentName = predText;
 
         // Render by template
         var templateService = _services.GetRequiredService<IResponseTemplateService>();

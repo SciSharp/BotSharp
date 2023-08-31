@@ -16,6 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Tensorflow.Keras;
 using BotSharp.Abstraction.Knowledges.Settings;
+using System.Numerics;
+using Newtonsoft.Json;
+using Tensorflow.Keras.Layers;
+using BotSharp.Abstraction.Agents;
 
 namespace BotSharp.Plugin.RoutingSpeeder.Providers;
 
@@ -47,12 +51,14 @@ public class IntentClassifier
             return;
         }
 
+        var vector = _services.GetRequiredService<ITextEmbedding>();
+
         var layers = new List<ILayer>
         {
-            keras.layers.InputLayer((300), name: "Input"),
+            keras.layers.InputLayer((vector.Dimension), name: "Input"),
             keras.layers.Dense(256, activation:"relu"),
             keras.layers.Dense(256, activation:"relu"),
-            keras.layers.Dense(_settings.LabelMappingDict.Count, activation: keras.activations.Softmax)
+            keras.layers.Dense(GetLabels().Length, activation: keras.activations.Softmax)
         };
         _model = keras.Sequential(layers);
 
@@ -98,10 +104,13 @@ public class IntentClassifier
 
     public string LoadWeights()
     {
-        var weightsFile = Path.Combine(_settings.MODEL_DIR, $"intent-classifier.h5");
+        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+
+        var weightsFile = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, $"intent-classifier.h5");
         if (File.Exists(weightsFile))
         {
             _model.load_weights(weightsFile);
+            _isModelReady = true;
             Console.WriteLine($"Successfully load the weights!");
         }
         else
@@ -113,10 +122,10 @@ public class IntentClassifier
 
     public (NDArray x, NDArray y) Vectorize(List<DialoguePredictionModel> items)
     {
+        var vector = _services.GetRequiredService<ITextEmbedding>();
+
         var x = np.zeros((items.Count, vector.Dimension), dtype: np.float32);
         var y = np.zeros((items.Count, 1), dtype: np.float32);
-
-        var vector = _services.GetRequiredService<ITextEmbedding>();
 
         for (int i = 0; i < items.Count; i++)
         {
@@ -129,13 +138,65 @@ public class IntentClassifier
         return (x, y);
     }
 
-    public float[] GetTextEmbedding(string text)
+    public NDArray GetTextEmbedding(string text)
     {
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
         var embedding = _services.GetServices<ITextEmbedding>()
             .FirstOrDefault(x => x.GetType().FullName.EndsWith(knowledgeSettings.TextEmbedding));
 
-        return embedding.GetVector(text);
+        var x = np.zeros((1, embedding.Dimension), dtype: np.float32);
+        x[0] = embedding.GetVector(text);
+        return x;
+    }
+
+    public (NDArray, NDArray) PrepareLoadData()
+    {
+        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR);
+
+
+        if (!Directory.Exists(rootDirectory))
+        {
+            throw new Exception($"No training data found! Please put training data in this path: {rootDirectory}");
+        }
+
+        var vector = _services.GetRequiredService<ITextEmbedding>();
+
+
+        var vectorList = new List<float[]>();
+
+        var labelList = new List<string>();
+        foreach (var filePath in GetFiles())
+        {
+            var texts = File.ReadAllLines(filePath, Encoding.UTF8).Select(x => TextClean(x)).ToList();
+            vectorList.AddRange(vector.GetVectors(texts));
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            labelList.AddRange(Enumerable.Repeat(fileName, texts.Count).ToList());
+        }
+
+        var uniqueLabelList = labelList.Distinct().ToList();
+
+        var x = np.zeros((vectorList.Count, vector.Dimension), dtype: np.float32);
+        var y = np.zeros((vectorList.Count, 1), dtype: np.float32);
+
+        for (int i = 0; i < vectorList.Count; i++)
+        {
+            x[i] = vectorList[i];
+            y[i] = (float)uniqueLabelList.IndexOf(labelList[i]);
+        }
+        return (x, y);
+    }
+
+    public string[] GetFiles()
+    {
+        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR);
+        return Directory.GetFiles(rootDirectory).OrderBy(x => x).ToArray();
+    }
+
+    public string[] GetLabels()
+    {
+        return GetFiles().Select(x => Path.GetFileNameWithoutExtension(x)).ToArray();
     }
 
     public string TextClean(string text)
@@ -147,5 +208,38 @@ public class IntentClassifier
         processedText = string.Join("", processedText.Select(c => char.IsPunctuation(c) ? ' ' : c).ToList());
         processedText = processedText.Replace("  ", " ").ToLower();
         return processedText;
+    }
+
+    public string Predict(NDArray vector)
+    {
+        if (!_isModelReady)
+        {
+            InitClassifer();
+        }
+
+        var prob = _model.predict(vector);
+        var probLabel = tf.arg_max(prob, -1).numpy();
+        // var prediction = _settings.LabelMappingDict.First(x => x.Value == probLabel[0]).Key;
+
+        var prediction = GetLabels()[probLabel[0]];
+        // var prediction = GetLabels().Where((x, i) => i == probLabel[0]).First();
+
+        return prediction;
+    }
+    public void InitClassifer()
+    {
+        Reset();
+        Build();
+        LoadWeights();
+    }
+
+    public void Train()
+    {
+        var trainingParams = new TrainingParams();
+        Reset();
+        Build();
+        (var x, var y) = PrepareLoadData();
+        Fit(x, y, trainingParams);
+
     }
 }

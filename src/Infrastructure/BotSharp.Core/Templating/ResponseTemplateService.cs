@@ -46,6 +46,10 @@ public class ResponseTemplateService : IResponseTemplateService
         // Find response template
         var agentService = _services.GetRequiredService<IAgentService>();
         var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
+        if (!Directory.Exists(dir))
+        {
+            return string.Empty;
+        }
         var responses = Directory.GetFiles(dir)
             .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.IntentName)
             .ToList();
@@ -62,8 +66,15 @@ public class ResponseTemplateService : IResponseTemplateService
 
         // Convert args and execute data to dictionary
         var dict = new Dictionary<string, object>();
-        ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
-        ExtractExecuteData(message.ExecutionData, dict);
+        if (!string.IsNullOrEmpty(message.FunctionArgs))
+        {
+            ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
+        }
+
+        if (message.ExecutionData != null)
+        {
+            ExtractExecuteData(message.ExecutionData, dict);
+        }
 
         var text = render.Render(template, dict);
 

@@ -13,6 +13,6 @@ public class ClassifierSetting
 		{"other", 2f}
 	};
 
-    public string RAW_DATA_DIR { get; set; } = "";
-    public string MODEL_DIR { get; set; } = "";
+    public string RAW_DATA_DIR { get; set; } = "raw_data";
+    public string MODEL_DIR { get; set; } = "models";
 }
