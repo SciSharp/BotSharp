@@ -66,7 +66,16 @@ public partial class ConversationService
                 .SetConversation(converation);
 
             await hook.OnDialogsLoaded(wholeDialogs);
-            await hook.BeforeCompletion();
+            await hook.BeforeCompletion(lastDialog);
+
+            // Interrupted by hook
+            if (lastDialog.StopCompletion)
+            {
+                var response = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content);
+                await onMessageReceived(response);
+                _storage.Append(conversationId, agent.Id, response);
+                return true;
+            }
         }
 
         // reasoning

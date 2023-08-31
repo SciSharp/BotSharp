@@ -40,15 +40,8 @@ public class PluginLoader
 
                 foreach (var module in modules)
                 {
-                    if (_settings.Plugins.Contains(module.GetType().Name))
-                    {
-                        module.RegisterDI(_services, _config);
-                        Console.WriteLine($"Loaded plugin {module.GetType().Name} from {assemblyName}.", Color.Green);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Skipped plugin {module.GetType().Name} from {assemblyName}.", Color.Yellow);
-                    }
+                    module.RegisterDI(_services, _config);
+                    Console.WriteLine($"Loaded plugin {module.GetType().Name} from {assemblyName}.", Color.Green);
                 }
 
                 _modules.AddRange(modules);
@@ -62,7 +55,7 @@ public class PluginLoader
 
     public void Configure(IApplicationBuilder app)
     {
-        if(_modules.Count == 0)
+        if (_modules.Count == 0)
         {
             Console.WriteLine($"No plugin loaded. Please check whether the Load() method is called.", Color.Yellow);
         }
@@ -71,10 +64,7 @@ public class PluginLoader
         {
             if (module.GetType().GetInterface(nameof(IBotSharpAppPlugin)) != null)
             {
-                if (_settings.Plugins.Contains(module.GetType().Name))
-                {
-                    (module as IBotSharpAppPlugin).Configure(app);
-                }
+                (module as IBotSharpAppPlugin).Configure(app);
             }
         });
     }

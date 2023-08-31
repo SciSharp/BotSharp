@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
-
 namespace BotSharp.Abstraction.Conversations;
 
 public abstract class ConversationHookBase : IConversationHook
@@ -35,7 +33,7 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
-    public virtual Task BeforeCompletion()
+    public virtual Task BeforeCompletion(RoleDialogModel message)
     {
         return Task.CompletedTask;
     }
