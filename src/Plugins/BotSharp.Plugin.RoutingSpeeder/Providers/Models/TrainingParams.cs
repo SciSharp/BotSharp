@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BotSharp.Plugin.RoutingSpeeder.Settings;
+namespace BotSharp.Plugin.RoutingSpeeder.Providers.Models;
 
 public class TrainingParams
 {

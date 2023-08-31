@@ -7,24 +7,25 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using FastText.NetWrapper;
 using BotSharp.Plugin.RoutingSpeeder.Settings;
+using BotSharp.Abstraction.Templating;
+using BotSharp.Plugin.RoutingSpeeder.Providers;
 
 namespace BotSharp.Plugin.RoutingSpeeder;
 
 public class RoutingConversationHook: ConversationHookBase
 {
     private readonly IServiceProvider _services;
-    private routerSpeedSettings _settings;
-    public RoutingConversationHook(IServiceProvider service, routerSpeedSettings settings)
+    private RouterSpeederSettings _settings;
+    public RoutingConversationHook(IServiceProvider service, RouterSpeederSettings settings)
     {
         _services = service;
         _settings = settings;
     }
     public override async Task BeforeCompletion(RoleDialogModel message)
     {
-        var embedding = _services.GetServices<ITextEmbedding>()
-            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.TextEmbedding));
+        var intentClassifier = _services.GetRequiredService<IntentClassifier>();
+        var vector = intentClassifier.GetTextEmbedding(message.Content);
 
         // Utilize local discriminative model to predict intent
         message.IntentName = "greeting";

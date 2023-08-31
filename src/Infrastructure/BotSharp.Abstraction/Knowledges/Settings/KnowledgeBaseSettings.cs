@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Plugins.Knowledges;
+namespace BotSharp.Abstraction.Knowledges.Settings;
 
 public class KnowledgeBaseSettings
 {

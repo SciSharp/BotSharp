@@ -4,18 +4,15 @@ using System.Text;
 
 namespace BotSharp.Plugin.RoutingSpeeder.Settings;
 
-public class classifierSetting
+public class ClassifierSetting
 {
-    
-    public Dictionary<string, float> labelMappingDict { get; set; } = new Dictionary<string, float>()
+    public Dictionary<string, float> LabelMappingDict { get; set; } = new Dictionary<string, float>()
 	{
 		{"goodbye", 0f},
 		{"greeting", 1f},
-		{"other", 2f},
-		{"wo-followup", 3f},
-		{"wo-identifer", 4f},
-		{"wo-scheduler", 5}
+		{"other", 2f}
 	};
-    public string RAW_DATA_DIR { get; set; } = "C:\\new_wenbocao\\one_brain\\WebStarter\\data\\raw_data";
-    public string MODEL_DIR { get; set; } = "C:\\new_wenbocao\\one_brain\\WebStarter\\data\\models";
+
+    public string RAW_DATA_DIR { get; set; } = "";
+    public string MODEL_DIR { get; set; } = "";
 }

@@ -4,8 +4,6 @@ using System.Text;
 
 namespace BotSharp.Plugin.RoutingSpeeder.Settings;
 
-public class routerSpeedSettings
+public class RouterSpeederSettings
 {
-    public fastTextSetting fastText { get; set; }
-    public string TextEmbedding { get; set; }
 }

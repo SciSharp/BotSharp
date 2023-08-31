@@ -12,11 +12,13 @@ public class RoutingSpeederPlugin : IBotSharpPlugin
 {
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var settings = new routerSpeedSettings();
-        config.Bind("routerSpeed", settings);
+        var settings = new RouterSpeederSettings();
+        config.Bind("RouterSpeeder", settings);
         services.AddSingleton(x => settings);
-        services.AddSingleton(x => settings.fastText);
+
+        services.AddSingleton<ClassifierSetting>();
+
         services.AddScoped<IConversationHook, RoutingConversationHook>();
-        services.AddSingleton<ITextEmbedding, fastTextEmbeddingProvider>();
+        services.AddSingleton<IntentClassifier>();
     }
 }

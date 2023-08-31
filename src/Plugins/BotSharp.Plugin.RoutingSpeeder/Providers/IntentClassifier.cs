@@ -15,19 +15,20 @@ using BotSharp.Plugin.RoutingSpeeder.Providers.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Tensorflow.Keras;
+using BotSharp.Abstraction.Knowledges.Settings;
 
 namespace BotSharp.Plugin.RoutingSpeeder.Providers;
 
-public class DialogueClassifier
+public class IntentClassifier
 {
     private readonly IServiceProvider _services;
     Model _model;
     public Model model => _model;
     private bool _isModelReady;
     public bool isModelReady => _isModelReady;
-    private classifierSetting _settings;
+    private ClassifierSetting _settings;
 
-    public DialogueClassifier(IServiceProvider services, classifierSetting settings)
+    public IntentClassifier(IServiceProvider services, ClassifierSetting settings)
     {
         _services = services;
         _settings = settings;
@@ -51,7 +52,7 @@ public class DialogueClassifier
             keras.layers.InputLayer((300), name: "Input"),
             keras.layers.Dense(256, activation:"relu"),
             keras.layers.Dense(256, activation:"relu"),
-            keras.layers.Dense(_settings.labelMappingDict.Count, activation: keras.activations.Softmax)
+            keras.layers.Dense(_settings.LabelMappingDict.Count, activation: keras.activations.Softmax)
         };
         _model = keras.Sequential(layers);
 
@@ -64,10 +65,6 @@ public class DialogueClassifier
 
     private void Fit(NDArray x, NDArray y, TrainingParams trainingParams)
     {
-        // release more memory
-        var vector = _services.GetRequiredService<ITextEmbedding>();
-        // vector.UnloadModel();
-
         _model.compile(optimizer: keras.optimizers.Adam(trainingParams.LearningRate),
             loss: keras.losses.SparseCategoricalCrossentropy(),
             metrics: new[] { "accuracy" }
@@ -101,7 +98,7 @@ public class DialogueClassifier
 
     public string LoadWeights()
     {
-        var weightsFile = Path.Combine(_settings.MODEL_DIR, $"wo-dialogue-classifier.h5");
+        var weightsFile = Path.Combine(_settings.MODEL_DIR, $"intent-classifier.h5");
         if (File.Exists(weightsFile))
         {
             _model.load_weights(weightsFile);
@@ -116,7 +113,7 @@ public class DialogueClassifier
 
     public (NDArray x, NDArray y) Vectorize(List<DialoguePredictionModel> items)
     {
-        var x = np.zeros((items.Count, 300), dtype: np.float32);
+        var x = np.zeros((items.Count, vector.Dimension), dtype: np.float32);
         var y = np.zeros((items.Count, 1), dtype: np.float32);
 
         var vector = _services.GetRequiredService<ITextEmbedding>();
@@ -124,13 +121,23 @@ public class DialogueClassifier
         for (int i = 0; i < items.Count; i++)
         {
             x[i] = vector.GetVector(TextClean(items[i].text));
-            if (_settings.labelMappingDict.ContainsKey(items[i].label))
+            if (_settings.LabelMappingDict.ContainsKey(items[i].label))
             {
-                y[i] = _settings.labelMappingDict[items[i].label];
+                y[i] = _settings.LabelMappingDict[items[i].label];
             }
         }
         return (x, y);
     }
+
+    public float[] GetTextEmbedding(string text)
+    {
+        var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
+        var embedding = _services.GetServices<ITextEmbedding>()
+            .FirstOrDefault(x => x.GetType().FullName.EndsWith(knowledgeSettings.TextEmbedding));
+
+        return embedding.GetVector(text);
+    }
+
     public string TextClean(string text)
     {
         // Remove punctuation
