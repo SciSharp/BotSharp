@@ -12,13 +12,13 @@ public class ResponseTemplateService : IResponseTemplateService
         _services = services;
     }
 
-    public async Task<string> RenderFunctionResponse(string agentId, RoleDialogModel fn)
+    public async Task<string> RenderFunctionResponse(string agentId, RoleDialogModel message)
     {
         // Find response template
         var agentService = _services.GetRequiredService<IAgentService>();
         var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
         var responses = Directory.GetFiles(dir)
-            .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == fn.FunctionName)
+            .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.FunctionName)
             .ToList();
 
         if (responses.Count == 0)
@@ -33,8 +33,37 @@ public class ResponseTemplateService : IResponseTemplateService
 
         // Convert args and execute data to dictionary
         var dict = new Dictionary<string, object>();
-        ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(fn.FunctionArgs), dict);
-        ExtractExecuteData(fn.ExecutionData, dict);
+        ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
+        ExtractExecuteData(message.ExecutionData, dict);
+
+        var text = render.Render(template, dict);
+
+        return text;
+    }
+
+    public async Task<string> RenderIntentResponse(string agentId, RoleDialogModel message)
+    {
+        // Find response template
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
+        var responses = Directory.GetFiles(dir)
+            .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.IntentName)
+            .ToList();
+
+        if (responses.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var randomIndex = new Random().Next(0, responses.Count);
+        var template = File.ReadAllText(responses[randomIndex]);
+
+        var render = _services.GetRequiredService<ITemplateRender>();
+
+        // Convert args and execute data to dictionary
+        var dict = new Dictionary<string, object>();
+        ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
+        ExtractExecuteData(message.ExecutionData, dict);
 
         var text = render.Render(template, dict);
 

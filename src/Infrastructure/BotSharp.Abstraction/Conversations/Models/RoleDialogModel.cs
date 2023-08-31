@@ -31,6 +31,11 @@ public class RoleDialogModel
     public object ExecutionData { get; set; }
 
     /// <summary>
+    /// Intent name
+    /// </summary>
+    public string IntentName {  get; set; }
+
+    /// <summary>
     /// Stop conversation completion
     /// </summary>
     public bool StopCompletion { get; set; }

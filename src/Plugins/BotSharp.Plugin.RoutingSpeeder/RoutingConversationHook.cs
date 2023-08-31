@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -25,7 +27,16 @@ public class RoutingConversationHook: ConversationHookBase
             .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.TextEmbedding));
 
         // Utilize local discriminative model to predict intent
-        message.Content = "response content";
-        message.StopCompletion = true;
+        message.IntentName = "greeting";
+
+        // Render by template
+        var templateService = _services.GetRequiredService<IResponseTemplateService>();
+        var response = await templateService.RenderIntentResponse(_agent.Id, message);
+
+        if (!string.IsNullOrEmpty(response))
+        {
+            message.Content = response;
+            message.StopCompletion = true;
+        }
     }
 }

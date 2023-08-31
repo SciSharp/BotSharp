@@ -2,6 +2,7 @@ namespace BotSharp.Abstraction.Conversations;
 
 public interface IConversationHook
 {
+    int Priority { get; }
     Agent Agent { get; }
     IConversationHook SetAgent(Agent agent);
 

@@ -11,6 +11,9 @@ public abstract class ConversationHookBase : IConversationHook
     protected List<RoleDialogModel> _dialogs;
     public List<RoleDialogModel> Dialogs => _dialogs;
 
+    protected int _priority = 0;
+    public int Priority => _priority;
+
     public IConversationHook SetAgent(Agent agent)
     {
         _agent = agent;
