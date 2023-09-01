@@ -196,7 +196,10 @@ public class IntentClassifier
 
     public string[] GetLabels()
     {
-        return GetFiles().Select(x => Path.GetFileNameWithoutExtension(x)).ToArray();
+        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR, _settings.LABEL_FILE_NAME);
+        var labelText = File.ReadAllLines(rootDirectory);
+        return labelText.OrderBy(x => x).ToArray();
     }
 
     public string TextClean(string text)
