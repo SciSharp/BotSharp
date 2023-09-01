@@ -11,6 +11,8 @@ using BotSharp.Plugin.RoutingSpeeder.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Plugin.RoutingSpeeder.Providers;
 using System.Runtime.InteropServices;
+using BotSharp.Abstraction.Agents;
+using System.IO;
 
 namespace BotSharp.Plugin.RoutingSpeeder;
 
@@ -42,6 +44,25 @@ public class RoutingConversationHook: ConversationHookBase
         {
             message.Content = response;
             message.StopCompletion = true;
+        }
+    }
+
+    public override async Task AfterCompletion(RoleDialogModel message)
+    {
+        // save train data
+        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+        var rootDataPath = agentService.GetDataDir();
+
+        string rawDataDir = Path.Combine(rootDataPath, "raw_data", $"{message.CurrentAgentId}.txt");
+        var lastThreeDialogs = _dialogs.Where(x => x.Role == AgentRole.User).Select(x => x.Content).Reverse().Take(3).ToArray();
+
+        if (!File.Exists(rawDataDir))
+        {
+            await File.WriteAllLinesAsync(rawDataDir, lastThreeDialogs);
+        }
+        else
+        {
+            await File.AppendAllLinesAsync(rawDataDir, lastThreeDialogs);
         }
     }
 }
