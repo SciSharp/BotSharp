@@ -12,19 +12,19 @@ using Microsoft.Extensions.DependencyInjection;
 namespace BotSharp.Plugin.RoutingSpeeder.Controllers;
 
 [AllowAnonymous]
-public class TrainIntentClassifierController : ControllerBase
+public class RoutingSpeederController : ControllerBase
 {
     private readonly IServiceProvider _service;
-    public TrainIntentClassifierController(IServiceProvider service)
+    public RoutingSpeederController(IServiceProvider service)
     {
         _service = service;
     }
 
-    [HttpPost("/intent/classifier/training")]
+    [HttpPost("/routingspeeder/classifier/train")]
     public IActionResult TrainIntentClassifier(TrainingParams trainingParams)
     {
         var intentClassifier = _service.GetRequiredService<IntentClassifier>();
-        intentClassifier.InitClassifer(trainingParams.Reference);
+        intentClassifier.InitClassifer(trainingParams.Inference);
         intentClassifier.Train(trainingParams);
         return Ok(intentClassifier.Labels);
     }

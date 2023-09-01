@@ -11,35 +11,46 @@ using Tensorflow.Keras.Callbacks;
 using System.Text.RegularExpressions;
 using BotSharp.Plugin.RoutingSpeeder.Settings;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.Plugin.RoutingSpeeder.Providers.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Tensorflow.Keras;
-using BotSharp.Abstraction.Knowledges.Settings;
 using System.Numerics;
 using Newtonsoft.Json;
 using Tensorflow.Keras.Layers;
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Knowledges;
 
 namespace BotSharp.Plugin.RoutingSpeeder.Providers;
 
 public class IntentClassifier
 {
     private readonly IServiceProvider _services;
+    private KnowledgeBaseSettings _knowledgeBaseSettings;
     Model _model;
     public Model model => _model;
     private bool _isModelReady;
     public bool isModelReady => _isModelReady;
     private ClassifierSetting _settings;
 
-    private string[] _labels => GetLabels();
+    private string[] _labels;
 
-    public string[] Labels => _labels;
+    public string[] Labels => GetLabels();
 
-    public IntentClassifier(IServiceProvider services, ClassifierSetting settings)
+    private int _numLabels
+    {
+        get
+        {
+            return Labels.Length;
+        }
+    }
+
+    public IntentClassifier(IServiceProvider services, ClassifierSetting settings, KnowledgeBaseSettings knowledgeBaseSettings)
     {
         _services = services;
         _settings = settings;
+        _knowledgeBaseSettings = knowledgeBaseSettings;
     }
 
     private void Reset()
@@ -55,14 +66,15 @@ public class IntentClassifier
             return;
         }
 
-        var vector = _services.GetRequiredService<ITextEmbedding>();
+        var vector = _services.GetServices<ITextEmbedding>()
+                                 .FirstOrDefault(x => x.GetType().FullName.EndsWith(_knowledgeBaseSettings.TextEmbedding));
 
         var layers = new List<ILayer>
         {
             keras.layers.InputLayer((vector.Dimension), name: "Input"),
             keras.layers.Dense(256, activation:"relu"),
             keras.layers.Dense(256, activation:"relu"),
-            keras.layers.Dense(_labels.Length, activation: keras.activations.Softmax)
+            keras.layers.Dense(_numLabels, activation: keras.activations.Softmax)
         };
         _model = keras.Sequential(layers);
 
@@ -92,7 +104,7 @@ public class IntentClassifier
 
         var callbacks = new List<ICallback>() { earlyStop };
 
-        var weights = LoadWeights(trainingParams.Reference);
+        var weights = LoadWeights(trainingParams.Inference);
 
         _model.fit(x, y,
             batch_size: trainingParams.BatchSize,
@@ -159,12 +171,12 @@ public class IntentClassifier
         {
             var texts = File.ReadAllLines(filePath, Encoding.UTF8).Select(x => TextClean(x)).ToList();
             vectorList.AddRange(vector.GetVectors(texts));
-            string fileName = Path.GetFileNameWithoutExtension(filePath).Replace("intent.", "");
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
             labelList.AddRange(Enumerable.Repeat(fileName, texts.Count).ToList());
         }
 
         // Write label into local file
-        var uniqueLabelList = labelList.Distinct().Select(x => x.Replace("intent.", "")).OrderBy(x => x).ToArray();
+        var uniqueLabelList = labelList.Distinct().OrderBy(x => x).ToArray();
         File.WriteAllLines(saveLabelDirectory, uniqueLabelList);
 
         var x = np.zeros((vectorList.Count, vector.Dimension), dtype: np.float32);
@@ -188,10 +200,15 @@ public class IntentClassifier
 
     public string[] GetLabels()
     {
-        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
-        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, _settings.LABEL_FILE_NAME);
-        var labelText = File.ReadAllLines(rootDirectory);
-        return labelText.Select(x => x.Replace("intent.", "")).OrderBy(x => x).ToArray();
+        if (_labels == null)
+        {
+            var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+            string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, _settings.LABEL_FILE_NAME);
+            var labelText = File.ReadAllLines(rootDirectory);
+            _labels = labelText.OrderBy(x => x).ToArray();
+        }
+
+        return _labels;
     }
 
     public string TextClean(string text)
