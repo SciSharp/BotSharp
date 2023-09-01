@@ -196,7 +196,10 @@ public class IntentClassifier
 
     public string[] GetLabels()
     {
-        return GetFiles().Select(x => Path.GetFileNameWithoutExtension(x)).ToArray();
+        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR, _settings.LABEL_FILE_NAME);
+        var labelText = File.ReadAllLines(rootDirectory);
+        return labelText.OrderBy(x => x).ToArray();
     }
 
     public string TextClean(string text)
@@ -210,19 +213,23 @@ public class IntentClassifier
         return processedText;
     }
 
-    public string Predict(NDArray vector)
+    public string Predict(NDArray vector, float confidenceScore = 0.9f)
     {
         if (!_isModelReady)
         {
             InitClassifer();
         }
 
-        var prob = _model.predict(vector);
+        var prob = _model.predict(vector).numpy();
+
+        if (prob[0] < confidenceScore)
+        {
+            return string.Empty;
+        }
+
         var probLabel = tf.arg_max(prob, -1).numpy();
-        // var prediction = _settings.LabelMappingDict.First(x => x.Value == probLabel[0]).Key;
 
         var prediction = GetLabels()[probLabel[0]];
-        // var prediction = GetLabels().Where((x, i) => i == probLabel[0]).First();
 
         return prediction;
     }
