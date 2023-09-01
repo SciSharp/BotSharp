@@ -33,11 +33,11 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
 
-        var databaseSettings = new DatabaseSettings();
+        var databaseSettings = new DatabaseBasicSettings();
         config.Bind("Database", databaseSettings);
         services.AddSingleton((IServiceProvider x) => databaseSettings);
 
-        var myDatabaseSettings = new MyDatabaseSettings();
+        var myDatabaseSettings = new BotSharpDatabaseSettings();
         config.Bind("Database", myDatabaseSettings);
         services.AddSingleton((IServiceProvider x) => myDatabaseSettings);
 
@@ -72,7 +72,7 @@ public static class BotSharpServiceCollectionExtensions
     {
         services.AddScoped<IBotSharpRepository>(sp =>
         {
-            var myDatabaseSettings = sp.GetRequiredService<MyDatabaseSettings>();
+            var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
             return DataContextHelper.GetDbContext<BotSharpDbContext, DbContext4SqlServer>(myDatabaseSettings, sp);
         });
 
@@ -83,7 +83,7 @@ public static class BotSharpServiceCollectionExtensions
     {
         services.AddScoped<IBotSharpRepository>(sp =>
         {
-            var myDatabaseSettings = sp.GetRequiredService<MyDatabaseSettings>();
+            var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
             return new FileRepository(myDatabaseSettings, sp);
         });
 

@@ -17,13 +17,13 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private readonly IUserIdentity _user;
     private readonly IBotSharpRepository _db;
     private ConversationState _state;
-    private MyDatabaseSettings _dbSettings;
+    private BotSharpDatabaseSettings _dbSettings;
     private string _conversationId;
     private string _file;
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
         IServiceProvider services, 
-        MyDatabaseSettings dbSettings,
+        BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
         IUserIdentity user,
         IBotSharpRepository db)
@@ -66,12 +66,14 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         _state = new ConversationState();
 
-        _file = GetConversationState(_conversationId);
+        _file = GetStorageFile(_conversationId);
+        //_file = GetConversationState(_conversationId);
 
         if (_file != null)
         {
-            //var dict = File.ReadAllLines(_file);
-            var dict = _file.SplitByNewLine();
+            var dict = File.ReadAllLines(_file);
+            //var dict = _file.SplitByNewLine();
+
             foreach (var line in dict)
             {
                 _state[line.Split('=')[0]] = line.Split('=')[1];
@@ -144,7 +146,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             var record = new ConversationRecord()
             {
                 Id = ObjectId.GenerateNewId().ToString(),
-                AgentId = _agentSettings.RouterId,
+                //AgentId = _agentSettings.RouterId,
                 UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
                 Title = "New Conversation",
                 Dialog = string.Empty,

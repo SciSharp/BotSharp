@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.Mongo.Collections;
+namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class AgentCollection : MongoBase
 {

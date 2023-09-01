@@ -7,7 +7,7 @@ namespace BotSharp.Core.Repository;
 
 public static class DataContextHelper
 {
-    public static T GetDbContext<T, Tdb>(MyDatabaseSettings settings, IServiceProvider serviceProvider)
+    public static T GetDbContext<T, Tdb>(BotSharpDatabaseSettings settings, IServiceProvider serviceProvider)
         where T : Database, new()
         where Tdb : DataContext
     {

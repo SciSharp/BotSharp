@@ -11,12 +11,12 @@ namespace BotSharp.Core.Conversations.Services;
 
 public class ConversationStorage : IConversationStorage
 {
-    private readonly MyDatabaseSettings _dbSettings;
+    private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly AgentSettings _agentSettings;
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
     public ConversationStorage(
-        MyDatabaseSettings dbSettings,
+        BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
         IServiceProvider services,
         IUserIdentity user)
@@ -73,8 +73,11 @@ public class ConversationStorage : IConversationStorage
 
     public List<RoleDialogModel> GetDialogs(string conversationId)
     {
-        var conversationFile = GetConversationDialogs(conversationId);
-        var dialogs = conversationFile.SplitByNewLine();
+        var conversationFile = GetStorageFile(conversationId);
+        var dialogs = File.ReadAllLines(conversationFile);
+
+        //var conversationFile = GetConversationDialogs(conversationId);
+        //var dialogs = conversationFile.SplitByNewLine();
 
         var results = new List<RoleDialogModel>();
         for (int i = 0; i < dialogs.Length; i += 2)
@@ -102,13 +105,13 @@ public class ConversationStorage : IConversationStorage
 
     public void InitStorage(string conversationId)
     {
-        //var file = GetStorageFile(conversationId);
-        //if (!File.Exists(file))
-        //{
-        //    File.WriteAllLines(file, new string[0]);
-        //}
+        var file = GetStorageFile(conversationId);
+        if (!File.Exists(file))
+        {
+            File.WriteAllLines(file, new string[0]);
+        }
 
-        GetConversationDialogs(conversationId);
+        //GetConversationDialogs(conversationId);
     }
 
     private string GetStorageFile(string conversationId)
@@ -131,7 +134,7 @@ public class ConversationStorage : IConversationStorage
             var record = new ConversationRecord() 
             {
                 Id = ObjectId.GenerateNewId().ToString(),
-                AgentId = _agentSettings.RouterId,
+                //AgentId = _agentSettings.RouterId,
                 UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
                 Title = "New Conversation"
             };

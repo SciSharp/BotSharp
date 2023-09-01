@@ -32,7 +32,7 @@ public class Router : IAgentRouting
     public RoutingRecord[] GetRoutingRecords()
     {
         var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, _settings.RouterId, "route.json");
         var records = JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
 

@@ -24,13 +24,13 @@ public partial class AgentService : IAgentService
 
     public string GetDataDir()
     {
-        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         return Path.Combine(dbSettings.FileRepository);
     }
 
     public string GetAgentDataDir(string agentId)
     {
-        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var dir = Path.Combine(dbSettings.FileRepository, _settings.DataDir, agentId);
         if (!Directory.Exists(dir))
         {

@@ -1,6 +1,6 @@
-using BotSharp.Plugin.Mongo.Collections;
+using BotSharp.Plugin.MongoStorage.Collections;
 
-namespace BotSharp.Plugin.Mongo;
+namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext
 {

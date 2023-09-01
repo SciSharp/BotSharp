@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Repositories;
 
-public class MyDatabaseSettings : DatabaseSettings
+public class BotSharpDatabaseSettings : DatabaseBasicSettings
 {
     public string[] Assemblies { get; set; }
     public string FileRepository { get; set; }
@@ -8,7 +8,7 @@ public class MyDatabaseSettings : DatabaseSettings
     public DbConnectionSetting BotSharp { get; set; }
 }
 
-public class DatabaseSettings
+public class DatabaseBasicSettings
 {
     public string Default { get; set; }
     public DbConnectionSetting DefaultConnection { get; set; }
@@ -21,7 +21,6 @@ public class DatabaseSettings
 public class DbConnectionSetting
 {
     public string Master { get; set; }
-
     public string[] Slavers { get; set; }
 
     public DbConnectionSetting()

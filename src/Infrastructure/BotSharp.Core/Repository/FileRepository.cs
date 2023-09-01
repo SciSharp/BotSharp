@@ -7,11 +7,11 @@ namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
 {
-    private readonly MyDatabaseSettings _dbSettings;
+    private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly IServiceProvider _services;
     private JsonSerializerOptions _options;
 
-    public FileRepository(MyDatabaseSettings dbSettings, IServiceProvider services)
+    public FileRepository(BotSharpDatabaseSettings dbSettings, IServiceProvider services)
     {
         _dbSettings = dbSettings;
         _services = services;
