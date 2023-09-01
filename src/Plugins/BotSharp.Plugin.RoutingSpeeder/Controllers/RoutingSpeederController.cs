@@ -20,7 +20,7 @@ public class RoutingSpeederController : ControllerBase
         _service = service;
     }
 
-    [HttpPost("/routingspeeder/classifier/train")]
+    [HttpPost("/routing-speeder/classifier/train")]
     public IActionResult TrainIntentClassifier(TrainingParams trainingParams)
     {
         var intentClassifier = _service.GetRequiredService<IntentClassifier>();
