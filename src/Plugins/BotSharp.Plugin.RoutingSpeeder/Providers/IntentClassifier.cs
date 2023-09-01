@@ -50,7 +50,7 @@ public class IntentClassifier
         {
             return;
         }
-
+        
         var vector = _services.GetRequiredService<ITextEmbedding>();
 
         var layers = new List<ILayer>
@@ -58,7 +58,7 @@ public class IntentClassifier
             keras.layers.InputLayer((vector.Dimension), name: "Input"),
             keras.layers.Dense(256, activation:"relu"),
             keras.layers.Dense(256, activation:"relu"),
-            keras.layers.Dense(GetLabels().Length, activation: keras.activations.Softmax)
+            keras.layers.Dense(GetFiles().Length, activation: keras.activations.Softmax)
         };
         _model = keras.Sequential(layers);
 
@@ -153,7 +153,7 @@ public class IntentClassifier
     {
         var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
         string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR);
-
+        string saveLabelDirectory = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, _settings.LABEL_FILE_NAME);
 
         if (!Directory.Exists(rootDirectory))
         {
@@ -174,7 +174,9 @@ public class IntentClassifier
             labelList.AddRange(Enumerable.Repeat(fileName, texts.Count).ToList());
         }
 
-        var uniqueLabelList = labelList.Distinct().ToList();
+        // Write label into local file
+        var uniqueLabelList = labelList.Distinct().OrderBy(x => x).ToArray();
+        File.WriteAllLines(saveLabelDirectory, uniqueLabelList);
 
         var x = np.zeros((vectorList.Count, vector.Dimension), dtype: np.float32);
         var y = np.zeros((vectorList.Count, 1), dtype: np.float32);
@@ -182,7 +184,8 @@ public class IntentClassifier
         for (int i = 0; i < vectorList.Count; i++)
         {
             x[i] = vectorList[i];
-            y[i] = (float)uniqueLabelList.IndexOf(labelList[i]);
+            // y[i] = (float)uniqueLabelList.IndexOf(labelList[i]);
+            y[i] = (float)Array.IndexOf(uniqueLabelList, labelList[i]);
         }
         return (x, y);
     }
@@ -197,7 +200,7 @@ public class IntentClassifier
     public string[] GetLabels()
     {
         var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
-        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR, _settings.LABEL_FILE_NAME);
+        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, _settings.LABEL_FILE_NAME);
         var labelText = File.ReadAllLines(rootDirectory);
         return labelText.OrderBy(x => x).ToArray();
     }
@@ -222,14 +225,16 @@ public class IntentClassifier
 
         var prob = _model.predict(vector).numpy();
 
-        if (prob[0] < confidenceScore)
+        var probLabel = tf.arg_max(prob, -1).numpy().ToArray<long>();
+        prob = np.squeeze(prob, axis: 0);
+
+        if (prob[probLabel[0]] < confidenceScore)
         {
             return string.Empty;
         }
 
-        var probLabel = tf.arg_max(prob, -1).numpy();
-
         var prediction = GetLabels()[probLabel[0]];
+
 
         return prediction;
     }
