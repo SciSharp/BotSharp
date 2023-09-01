@@ -34,6 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AzureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
@@ -43,6 +44,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaAI\BotSharp.Plugin.MetaAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.PaddleSharp\BotSharp.Plugin.PaddleSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Qdrant\BotSharp.Plugin.Qdrant.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.RoutingSpeeder\BotSharp.Plugin.RoutingSpeeder.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WeChat\BotSharp.Plugin.WeChat.csproj" />
   </ItemGroup>
 

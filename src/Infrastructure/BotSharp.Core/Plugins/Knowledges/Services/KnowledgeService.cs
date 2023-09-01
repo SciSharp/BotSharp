@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.VectorStorage;
-using System.Text.Json;
 
 namespace BotSharp.Core.Plugins.Knowledges.Services;
 

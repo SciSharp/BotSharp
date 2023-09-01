@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
-
 namespace BotSharp.Abstraction.Conversations;
 
 public abstract class ConversationHookBase : IConversationHook
@@ -12,6 +10,9 @@ public abstract class ConversationHookBase : IConversationHook
 
     protected List<RoleDialogModel> _dialogs;
     public List<RoleDialogModel> Dialogs => _dialogs;
+
+    protected int _priority = 0;
+    public int Priority => _priority;
 
     public IConversationHook SetAgent(Agent agent)
     {
@@ -35,7 +36,7 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
-    public virtual Task BeforeCompletion()
+    public virtual Task BeforeCompletion(RoleDialogModel message)
     {
         return Task.CompletedTask;
     }

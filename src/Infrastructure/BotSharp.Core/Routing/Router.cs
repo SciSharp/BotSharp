@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing.Settings;
 using System.IO;
 
 namespace BotSharp.Core.Routing;
@@ -9,13 +10,13 @@ public class Router : IAgentRouting
 {
     protected readonly IServiceProvider _services;
     protected readonly ILogger _logger;
-    protected readonly AgentSettings _settings;
+    protected readonly RoutingSettings _settings;
 
     public virtual string AgentId => _settings.RouterId;
 
     public Router(IServiceProvider services,
         ILogger<Router> logger,
-        AgentSettings settings)
+        RoutingSettings settings)
     {
         _services = services;
         _logger = logger;
@@ -32,20 +33,24 @@ public class Router : IAgentRouting
     {
         var agentSettings = _services.GetRequiredService<AgentSettings>();
         var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentSettings.RouterId, "route.json");
+        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, _settings.RouterId, "route.json");
+        var records = JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
 
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.Agent.FirstOrDefault(x => x.Id == agentSettings.RouterId);
-        var routes = agent?.Routes ?? new List<string>();
-        var routingRecords = new RoutingRecord[routes.Count];
-
-        for (int i = 0; i < routes.Count; i++)
+        // check if routing profile is specified
+        filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
+        if (File.Exists(filePath))
         {
-            if (string.IsNullOrEmpty(routes[i])) continue;
-            routingRecords[i] = JsonSerializer.Deserialize<RoutingRecord>(routes[i]);
+            var state = _services.GetRequiredService<IConversationStateService>();
+            var name = state.GetState("channel");
+            var profiles = JsonSerializer.Deserialize<RoutingProfileRecord[]>(File.ReadAllText(filePath));
+            var spcificedProfile = profiles.FirstOrDefault(x => x.Name == name);
+            if (spcificedProfile != null)
+            {
+                records = records.Where(x => spcificedProfile.AgentIds.Contains(x.AgentId)).ToArray();
+            }
         }
 
-        return routingRecords;
+        return records;
     }
 
     public RoutingRecord GetRecordByName(string name)

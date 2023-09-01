@@ -1,8 +1,6 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using Fluid;
-using Microsoft.Extensions.Options;
 
 namespace BotSharp.Core.Templating;
 
@@ -22,19 +20,18 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<RoutingRecord>();
     }
 
-    public bool Render(Agent agent, Dictionary<string, object> dict)
+    public string Render(string template, Dictionary<string, object> dict)
     {
-        var template = agent.Instruction;
         if (_parser.TryParse(template, out var t, out var error))
         {
             var context = new TemplateContext(dict, _options);
-            agent.Instruction = t.Render(context);
-            return true;
+            template = t.Render(context);
+            return template;
         }
         else
         {
 
-            return false;
+            return template;
         }
     }
 }

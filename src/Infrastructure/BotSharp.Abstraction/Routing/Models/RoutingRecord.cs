@@ -14,7 +14,7 @@ public class RoutingRecord
     public string Description { get; set; }
 
     [JsonPropertyName("required")]
-    public List<string> RequiredFields { get; set; }
+    public List<string> RequiredFields { get; set; } = new List<string>();
 
     [JsonPropertyName("redirect_to")]
     public string RedirectTo { get; set; }

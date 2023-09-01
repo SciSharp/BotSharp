@@ -40,7 +40,8 @@ public class ConversationController : ControllerBase, IApiAdapter
     [HttpPost("/conversation/{agentId}/{conversationId}")]
     public async Task<MessageResponseModel> SendMessage([FromRoute] string agentId, 
         [FromRoute] string conversationId, 
-        [FromBody] NewMessageModel input)
+        [FromBody] NewMessageModel input,
+        [FromQuery] string? channel = "openapi")
     {
         var conv = _services.GetRequiredService<IConversationService>();
 
@@ -50,7 +51,7 @@ public class ConversationController : ControllerBase, IApiAdapter
         await conv.SendMessage(agentId, conversationId,
             new RoleDialogModel("user", input.Text)
             {
-                Channel = "webapi"
+                Channel = channel
             },
             async msg =>
             {

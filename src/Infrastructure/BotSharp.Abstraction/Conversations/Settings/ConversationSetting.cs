@@ -7,5 +7,4 @@ public class ConversationSetting
     public bool EnableKnowledgeBase { get; set; }
     public bool ShowVerboseLog { get; set; }
     public int MaxRecursiveDepth { get; set; } = 3;
-    public bool EnableReasoning { get; set; }
 }

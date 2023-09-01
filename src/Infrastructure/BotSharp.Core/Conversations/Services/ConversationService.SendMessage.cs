@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Core.Routing;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -33,8 +34,8 @@ public partial class ConversationService
         stateService.Load();
         stateService.SetState("channel", lastDialog.Channel);
 
-        var router = _services.GetRequiredService<IAgentRouting>();
-        Agent agent = await router.LoadRouter();
+        var agentService = _services.GetRequiredService<IAgentService>();
+        Agent agent = await agentService.LoadAgent(agentId);
 
         _logger.LogInformation($"[{agent.Name}] {lastDialog.Role}: {lastDialog.Content}");
 
@@ -65,11 +66,21 @@ public partial class ConversationService
                 .SetConversation(converation);
 
             await hook.OnDialogsLoaded(wholeDialogs);
-            await hook.BeforeCompletion();
+            await hook.BeforeCompletion(lastDialog);
+
+            // Interrupted by hook
+            if (lastDialog.StopCompletion)
+            {
+                var response = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content);
+                await onMessageReceived(response);
+                _storage.Append(conversationId, agent.Id, response);
+                return true;
+            }
         }
 
         // reasoning
-        if (_settings.EnableReasoning)
+        var settings = _services.GetRequiredService<RoutingSettings>();
+        if (settings.ReasonerId == agent.Id)
         {
             var simulator = _services.GetRequiredService<Simulator>();
             var reasonedContext = await simulator.Enter(agent, wholeDialogs);
@@ -96,7 +107,6 @@ public partial class ConversationService
             {
                 if (reasonedContext.CurrentAgentId != agent.Id)
                 {
-                    var agentService = _services.GetRequiredService<IAgentService>();
                     agent = await agentService.LoadAgent(reasonedContext.CurrentAgentId);
                 }
             }
