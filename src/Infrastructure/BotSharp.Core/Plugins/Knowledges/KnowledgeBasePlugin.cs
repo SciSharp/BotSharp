@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.Extensions.Configuration;
 
