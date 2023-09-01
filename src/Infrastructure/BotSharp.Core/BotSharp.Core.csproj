@@ -57,8 +57,11 @@
 
   <ItemGroup>
     <Compile Remove="Accounts\**" />
+    <Compile Remove="Repository\Abstraction\**" />
     <EmbeddedResource Remove="Accounts\**" />
+    <EmbeddedResource Remove="Repository\Abstraction\**" />
     <None Remove="Accounts\**" />
+    <None Remove="Repository\Abstraction\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -81,10 +84,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Repository\Abstraction\" />
   </ItemGroup>
 
 </Project>

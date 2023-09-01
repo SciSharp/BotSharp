@@ -42,6 +42,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.HuggingFace\BotSharp.Plugin.HuggingFace.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.LLamaSharp\BotSharp.Plugin.LLamaSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaAI\BotSharp.Plugin.MetaAI.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.MongoRepository\BotSharp.Plugin.MongoStorage.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.PaddleSharp\BotSharp.Plugin.PaddleSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Qdrant\BotSharp.Plugin.Qdrant.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.RoutingSpeeder\BotSharp.Plugin.RoutingSpeeder.csproj" />
