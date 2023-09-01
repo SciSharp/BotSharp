@@ -10,4 +10,5 @@ public class TrainingParams
     public int Epochs { get; set; } = 10;
     public int BatchSize { get; set; } = 16;
     public float LearningRate { get; set; } = 1.0e-4f;
+    public bool Reference { get; set; } = false;
 }
