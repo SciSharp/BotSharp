@@ -15,10 +15,7 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     {
         get
         {
-            if (!_fastText.IsModelReady())
-            {
-                _fastText.LoadModel(_settings.ModelPath);
-            }
+            LoadModel();
             return _fastText.GetModelDimension();
         }
     }

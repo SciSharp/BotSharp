@@ -7,9 +7,12 @@ namespace BotSharp.Core.Templating;
 public class ResponseTemplateService : IResponseTemplateService
 {
     private readonly IServiceProvider _services;
-    public ResponseTemplateService(IServiceProvider services)
+    private readonly ILogger _logger;
+
+    public ResponseTemplateService(IServiceProvider services, ILogger<ResponseTemplateService> logger)
     {
         _services = services;
+        _logger = logger;
     }
 
     public async Task<string> RenderFunctionResponse(string agentId, RoleDialogModel message)
@@ -33,9 +36,17 @@ public class ResponseTemplateService : IResponseTemplateService
 
         // Convert args and execute data to dictionary
         var dict = new Dictionary<string, object>();
-        ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
-        ExtractExecuteData(message.ExecutionData, dict);
 
+        if (message.FunctionArgs != null)
+        {
+            ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
+        }
+
+        if (message.ExecutionData != null)
+        {
+            ExtractExecuteData(message.ExecutionData, dict);
+        }
+            
         var text = render.Render(template, dict);
 
         return text;

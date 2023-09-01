@@ -53,12 +53,14 @@ public class IntentClassifier
         
         var vector = _services.GetRequiredService<ITextEmbedding>();
 
+        var labels = GetLabels();
+
         var layers = new List<ILayer>
         {
             keras.layers.InputLayer((vector.Dimension), name: "Input"),
             keras.layers.Dense(256, activation:"relu"),
             keras.layers.Dense(256, activation:"relu"),
-            keras.layers.Dense(GetFiles().Length, activation: keras.activations.Softmax)
+            keras.layers.Dense(labels.Length, activation: keras.activations.Softmax)
         };
         _model = keras.Sequential(layers);
 
@@ -235,7 +237,6 @@ public class IntentClassifier
 
         var prediction = GetLabels()[probLabel[0]];
 
-
         return prediction;
     }
     public void InitClassifer()
@@ -249,8 +250,8 @@ public class IntentClassifier
     {
         var trainingParams = new TrainingParams();
         Reset();
-        Build();
         (var x, var y) = PrepareLoadData();
+        Build();
         Fit(x, y, trainingParams);
 
     }
