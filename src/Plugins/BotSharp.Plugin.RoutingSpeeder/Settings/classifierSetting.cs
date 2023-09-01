@@ -15,4 +15,5 @@ public class ClassifierSetting
 
     public string RAW_DATA_DIR { get; set; } = "raw_data";
     public string MODEL_DIR { get; set; } = "models";
+    public string LABEL_FILE_NAME { get; set; } = "label.txt";
 }
