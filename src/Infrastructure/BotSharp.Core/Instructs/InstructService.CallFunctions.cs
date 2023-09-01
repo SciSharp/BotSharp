@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Functions;
 
-namespace BotSharp.Core.Conversations.Services;
+namespace BotSharp.Core.Instructs;
 
-public partial class ConversationService
+public partial class InstructService
 {
     private async Task CallFunctions(RoleDialogModel msg)
     {
@@ -39,7 +39,7 @@ public partial class ConversationService
                 msg.ExecutionResult = ex.Message;
                 _logger.LogError(msg.ExecutionResult);
             }
-            
+
             // After functions have been executed
             foreach (var hook in hooks)
             {

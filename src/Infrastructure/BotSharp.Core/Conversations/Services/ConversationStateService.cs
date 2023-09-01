@@ -54,6 +54,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         _state = new ConversationState();
 
+        if (_conversationId == null)
+        {
+            return _state;
+        }
+
         _file = GetStorageFile(_conversationId);
 
         if (File.Exists(_file))
@@ -77,6 +82,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Save()
     {
+        if (_conversationId == null)
+        {
+            return;
+        }
+
         var states = new List<string>();
         
         foreach (var dic in _state)
