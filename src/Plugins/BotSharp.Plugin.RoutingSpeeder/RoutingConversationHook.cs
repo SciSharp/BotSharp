@@ -62,13 +62,14 @@ public class RoutingConversationHook: ConversationHookBase
                 .TakeLast(3)
                 .ToArray();
 
+            var content = string.Join(' ', lastThreeDialogs) + Environment.NewLine;
             if (!File.Exists(rawDataDir))
             {
-                await File.WriteAllTextAsync(rawDataDir, string.Join(' ', lastThreeDialogs));
+                await File.WriteAllTextAsync(rawDataDir, content);
             }
             else
             {
-                await File.AppendAllTextAsync(rawDataDir, string.Join(' ', lastThreeDialogs));
+                await File.AppendAllTextAsync(rawDataDir, content);
             }
         }
     }
