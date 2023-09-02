@@ -3,6 +3,7 @@
 
 ```shell
 git clone https://github.com/mckaywrigley/chatbot-ui
+cd chatbot-ui (change dir to chatbot-ui to find the package.json)
 npm i
 npm run dev
 ```
