@@ -12,7 +12,6 @@ public class MongoRepository : IBotSharpRepository
     {
         _dc = dc;
         _services = services;
-
         _options = new UpdateOptions
         {
             IsUpsert = true,
@@ -124,6 +123,54 @@ public class MongoRepository : IBotSharpRepository
             return _conversations.AsQueryable();
         }
     }
+
+    private List<RoutingItemRecord> _routingItems;
+    public IQueryable<RoutingItemRecord> RoutingItem
+    {
+        get
+        {
+            if (_routingItems != null)
+            {
+                return _routingItems.AsQueryable();
+            }
+
+            var routingItemDocs = _dc.RoutingItems?.AsQueryable()?.ToList() ?? new List<RoutingItemCollection>();
+            _routingItems = routingItemDocs.Select(x => new RoutingItemRecord
+            {
+                Id = x.Id.ToString(),
+                AgentId = x.AgentId.ToString(),
+                Description = x.Description,
+                RequiredFields = x.RequiredFields,
+                RedirectTo = x.RedirectTo.ToString(),
+                Disabled = x.Disabled
+            }).ToList();
+
+            return _routingItems.AsQueryable();
+        }
+    }
+
+    private List<RoutingProfileRecord> _routingProfiles;
+    public IQueryable<RoutingProfileRecord> RoutingProfile
+    {
+        get
+        {
+            if (_routingProfiles != null)
+            {
+                return _routingProfiles.AsQueryable();
+            }
+
+            var routingProfilDocs = _dc.RoutingProfiles?.AsQueryable()?.ToList() ?? new List<RoutingProfileCollection>();
+            _routingProfiles = routingProfilDocs.Select(x => new RoutingProfileRecord
+            {
+                Id = x.Id.ToString(),
+                Name = x.Name,
+                AgentIds = x.AgentIds?.Select(x => x.ToString())?.ToList() ?? new List<string>()
+            }).ToList();
+
+            return _routingProfiles.AsQueryable();
+        }
+    }
+
 
     List<string> _changedTableNames = new List<string>();
     public void Add<TTableInterface>(object entity)

@@ -36,4 +36,10 @@ public class MongoDbContext
 
     public IMongoCollection<UserAgentCollection> UserAgents
         => Database.GetCollection<UserAgentCollection>("OneBrainUserAgents");
+
+    public IMongoCollection<RoutingItemCollection> RoutingItems
+        => Database.GetCollection<RoutingItemCollection>("OneBrainRoutingItems");
+
+    public IMongoCollection<RoutingProfileCollection> RoutingProfiles
+        => Database.GetCollection<RoutingProfileCollection>("OneBrainRoutingProfiles");
 }

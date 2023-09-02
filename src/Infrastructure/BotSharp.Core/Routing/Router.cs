@@ -33,20 +33,26 @@ public class Router : IAgentRouting
     {
         var agentSettings = _services.GetRequiredService<AgentSettings>();
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "route.json");
-        var records = JsonSerializer.Deserialize<RoutingItem[]>(File.ReadAllText(filePath));
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        //var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "route.json");
+        //var records = JsonSerializer.Deserialize<RoutingItem[]>(File.ReadAllText(filePath));
+
+        var records = db.RoutingItem.Select(x => x.ToRoutingItem()).ToArray();
 
         // check if routing profile is specified
-        filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
-        if (File.Exists(filePath))
+        //filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
+
+        var profiles = db.RoutingProfile.ToList();
+
+        if (profiles != null && profiles.Any())
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var name = state.GetState("channel");
-            var profiles = JsonSerializer.Deserialize<RoutingProfile[]>(File.ReadAllText(filePath));
-            var spcificedProfile = profiles.FirstOrDefault(x => x.Name == name);
-            if (spcificedProfile != null)
+            //var profiles = JsonSerializer.Deserialize<RoutingProfile[]>(File.ReadAllText(filePath));
+            var specifiedProfile = profiles.FirstOrDefault(x => x.Name == name);
+            if (specifiedProfile != null)
             {
-                records = records.Where(x => spcificedProfile.AgentIds.Contains(x.AgentId)).ToArray();
+                records = records.Where(x => specifiedProfile.AgentIds.Contains(x.AgentId)).ToArray();
             }
         }
 

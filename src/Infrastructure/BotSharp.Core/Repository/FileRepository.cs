@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Records;
+using BotSharp.Abstraction.Routing.Models;
+using SharpCompress.Common;
 using System.IO;
 using System.Text.Json;
 namespace BotSharp.Core.Repository;
@@ -115,6 +117,52 @@ public class FileRepository : IBotSharpRepository
                 }
             }
             return _conversations.AsQueryable();
+        }
+    }
+
+    private List<RoutingItemRecord> _routingItems;
+    public IQueryable<RoutingItemRecord> RoutingItem
+    {
+        get
+        {
+            if (_routingItems != null)
+            {
+                return _routingItems.AsQueryable();
+            }
+
+            _routingItems = new List<RoutingItemRecord>();
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+            var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "route.json");
+            if (File.Exists(filePath))
+            {
+                _routingItems = JsonSerializer.Deserialize<List<RoutingItemRecord>>(File.ReadAllText(filePath));
+            }
+            
+            return _routingItems.AsQueryable();
+        }
+    }
+
+    private List<RoutingProfileRecord> _routingProfiles;
+    public IQueryable<RoutingProfileRecord> RoutingProfile
+    {
+        get
+        {
+            if (_routingProfiles != null)
+            {
+                return _routingProfiles.AsQueryable();
+            }
+
+            _routingProfiles = new List<RoutingProfileRecord>();
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+            var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
+            if (File.Exists(filePath))
+            {
+                _routingProfiles = JsonSerializer.Deserialize<List<RoutingProfileRecord>>(File.ReadAllText(filePath));
+            }
+            
+            return _routingProfiles.AsQueryable();
         }
     }
 

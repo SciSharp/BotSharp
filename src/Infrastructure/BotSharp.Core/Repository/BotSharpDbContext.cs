@@ -10,6 +10,8 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public IQueryable<AgentRecord> Agent => Table<AgentRecord>();
     public IQueryable<UserAgentRecord> UserAgent => Table<UserAgentRecord>();
     public IQueryable<ConversationRecord> Conversation => Table<ConversationRecord>();
+    public IQueryable<RoutingItemRecord> RoutingItem => throw new NotImplementedException();
+    public IQueryable<RoutingProfileRecord> RoutingProfile => throw new NotImplementedException();
 
     public void UpdateAgent(AgentRecord agent)
     {

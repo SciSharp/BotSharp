@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing.Models;
+
 namespace BotSharp.Abstraction.Repositories.Records;
 
 public class RoutingItemRecord : RecordBase
@@ -8,4 +10,16 @@ public class RoutingItemRecord : RecordBase
     public List<string> RequiredFields { get; set; } = new List<string>();
     public string RedirectTo { get; set; }
     public bool Disabled { get; set; }
+
+    public RoutingItem ToRoutingItem()
+    {
+        return new RoutingItem
+        {
+            Name = Name,
+            Description = Description,
+            RequiredFields = RequiredFields,
+            RedirectTo = RedirectTo,
+            Disabled = Disabled
+        };
+    }
 }

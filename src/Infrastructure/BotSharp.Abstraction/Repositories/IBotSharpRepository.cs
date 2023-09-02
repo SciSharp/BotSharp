@@ -9,6 +9,9 @@ public interface IBotSharpRepository
     IQueryable<AgentRecord> Agent { get; }
     IQueryable<UserAgentRecord> UserAgent { get; }
     IQueryable<ConversationRecord> Conversation { get; }
+    IQueryable<RoutingItemRecord> RoutingItem { get; }
+    IQueryable<RoutingProfileRecord> RoutingProfile { get; }
+
     int Transaction<TTableInterface>(Action action);
     void Add<TTableInterface>(object entity);
 
