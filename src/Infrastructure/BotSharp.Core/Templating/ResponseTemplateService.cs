@@ -20,6 +20,11 @@ public class ResponseTemplateService : IResponseTemplateService
         // Find response template
         var agentService = _services.GetRequiredService<IAgentService>();
         var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
+        if (!Directory.Exists(dir))
+        {
+            return string.Empty;
+        }
+
         var responses = Directory.GetFiles(dir)
             .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.FunctionName)
             .ToList();
