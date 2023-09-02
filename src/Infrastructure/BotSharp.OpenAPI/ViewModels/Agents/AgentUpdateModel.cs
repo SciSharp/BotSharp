@@ -20,12 +20,12 @@ public class AgentUpdateModel
     /// <summary>
     /// Functions
     /// </summary>
-    public string? Functions { get; set; }
+    public List<string> Functions { get; set; }
 
     /// <summary>
     /// Routes
     /// </summary>
-    public List<string>? Routes { get; set; }
+    public List<string> Responses { get; set; }
 
     public Agent ToAgent()
     {
@@ -43,11 +43,11 @@ public class AgentUpdateModel
         if (Samples != null)
             agent.Samples = Samples;
 
-        if (Functions != null)
+        if (Functions != null && Functions.Any())
             agent.Functions = Functions;
 
-        if (!Routes.IsEmpty())
-            agent.Routes = Routes;
+        if (Responses != null && Responses.Any())
+            agent.Responses = Responses;
 
         return agent;
     }

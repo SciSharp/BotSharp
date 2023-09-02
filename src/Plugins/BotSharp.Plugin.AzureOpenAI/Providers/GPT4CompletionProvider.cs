@@ -69,17 +69,13 @@ public class GPT4CompletionProvider : IChatCompletion
         return samples;
     }
 
-    public List<FunctionDef> GetFunctions(string functionsJson)
+    public List<FunctionDef> GetFunctions(List<string> functionsJson)
     {
-        var functions = new List<FunctionDef>();
-        if (!string.IsNullOrEmpty(functionsJson))
+        var functions = functionsJson?.Select(x => JsonSerializer.Deserialize<FunctionDef>(x, new JsonSerializerOptions
         {
-            functions = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true
-            });
-        }
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true
+        }))?.ToList() ?? new List<FunctionDef>();
 
         return functions;
     }

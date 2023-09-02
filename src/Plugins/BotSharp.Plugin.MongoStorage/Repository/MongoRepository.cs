@@ -32,12 +32,12 @@ public class MongoRepository : IBotSharpRepository
             var agentDocs = _dc.Agents?.AsQueryable()?.ToList() ?? new List<AgentCollection>();
             _agents = agentDocs.Select(x => new AgentRecord
             {
-                Id = x.Id?.ToString(),
+                Id = x.Id.ToString(),
                 Name = x.Name,
                 Description = x.Description,
                 Instruction = x.Instruction,
                 Functions = x.Functions,
-                Routes = x.Routes,
+                Responses = x.Responses,
                 CreatedTime = x.CreatedTime,
                 UpdatedTime = x.UpdatedTime
             }).ToList();
@@ -59,7 +59,7 @@ public class MongoRepository : IBotSharpRepository
             var userDocs = _dc.Users?.AsQueryable()?.ToList() ?? new List<UserCollection>();
             _users = userDocs.Select(x => new UserRecord
             {
-                Id = x.Id?.ToString(),
+                Id = x.Id.ToString(),
                 FirstName = x.FirstName,
                 LastName = x.LastName,
                 Email = x.Email,
@@ -87,9 +87,9 @@ public class MongoRepository : IBotSharpRepository
             var userDocs = _dc.UserAgents?.AsQueryable()?.ToList() ?? new List<UserAgentCollection>();
             _userAgents = userDocs.Select(x => new UserAgentRecord
             {
-                Id = x.Id?.ToString(),
-                AgentId = x.AgentId,
-                UserId = x.UserId,
+                Id = x.Id.ToString(),
+                AgentId = x.AgentId.ToString(),
+                UserId = x.UserId.ToString(),
                 CreatedTime = x.CreatedTime,
                 UpdatedTime = x.UpdatedTime
             }).ToList();
@@ -111,9 +111,9 @@ public class MongoRepository : IBotSharpRepository
             var conversationDocs = _dc.Conversations?.AsQueryable()?.ToList() ?? new List<ConversationCollection>();
             _conversations = conversationDocs.Select(x => new ConversationRecord
             {
-                Id = x.Id?.ToString(),
-                AgentId = x.AgentId,
-                UserId = x.UserId,
+                Id = x.Id.ToString(),
+                AgentId = x.AgentId.ToString(),
+                UserId = x.UserId.ToString(),
                 Title = x.Title,
                 Dialog = x.Dialog,
                 State = x.State,
@@ -161,9 +161,9 @@ public class MongoRepository : IBotSharpRepository
             {
                 var conversations = _conversations.Select(x => new ConversationCollection
                 {
-                    Id = x.Id.IfNullOrEmptyAs(ObjectId.GenerateNewId().ToString()),
-                    AgentId = x.AgentId,
-                    UserId = x.UserId,
+                    Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
+                    AgentId = Guid.Parse(x.AgentId),
+                    UserId = Guid.Parse(x.UserId),
                     Title = x.Title,
                     Dialog = x.Dialog,
                     State = x.State,
@@ -189,12 +189,12 @@ public class MongoRepository : IBotSharpRepository
             {
                 var agents = _agents.Select(x => new AgentCollection
                 {
-                    Id = x.Id.IfNullOrEmptyAs(ObjectId.GenerateNewId().ToString()),
+                    Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
                     Name = x.Name,
                     Description = x.Description,
                     Instruction = x.Instruction,
                     Functions = x.Functions,
-                    Routes = x.Routes,
+                    Responses = x.Responses,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -207,7 +207,7 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.Description, agent.Description)
                         .Set(x => x.Instruction, agent.Instruction)
                         .Set(x => x.Functions, agent.Functions)
-                        .Set(x => x.Routes, agent.Routes)
+                        .Set(x => x.Responses, agent.Responses)
                         .Set(x => x.CreatedTime, agent.CreatedTime)
                         .Set(x => x.UpdatedTime, agent.UpdatedTime);
                     _dc.Agents.UpdateOne(filter, update, _options);
@@ -217,7 +217,7 @@ public class MongoRepository : IBotSharpRepository
             {
                 var users = _users.Select(x => new UserCollection
                 {
-                    Id = x.Id.IfNullOrEmptyAs(ObjectId.GenerateNewId().ToString()),
+                    Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
                     FirstName = x.FirstName,
                     LastName = x.LastName,
                     Salt = x.Salt,
@@ -247,9 +247,9 @@ public class MongoRepository : IBotSharpRepository
             {
                 var userAgents = _userAgents.Select(x => new UserAgentCollection
                 {
-                    Id = x.Id.IfNullOrEmptyAs(ObjectId.GenerateNewId().ToString()),
-                    AgentId = x.AgentId,
-                    UserId = x.UserId,
+                    Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
+                    AgentId = Guid.Parse(x.AgentId),
+                    UserId = Guid.Parse(x.UserId),
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -268,5 +268,70 @@ public class MongoRepository : IBotSharpRepository
         }
 
         return _changedTableNames.Count;
+    }
+
+    public UserRecord GetUserByEmail(string email)
+    {
+        var user = User.FirstOrDefault(x => x.Email == email);
+        return user != null ? new UserRecord 
+        {
+            Id = user.Id.ToString(),
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Password = user.Password,
+            Salt = user.Salt,
+            ExternalId = user.ExternalId,
+            CreatedTime = user.CreatedTime,
+            UpdatedTime = user.UpdatedTime
+        } : null;
+    }
+
+    public void CreateUser(UserRecord user)
+    {
+        if (user == null) return;
+
+        var userCollection = new UserCollection
+        {
+            Id = Guid.NewGuid(),
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Salt = user.Salt,
+            Password = user.Password,
+            Email = user.Email,
+            ExternalId = user.ExternalId,
+            CreatedTime = DateTime.UtcNow,
+            UpdatedTime = DateTime.UtcNow
+        };
+
+        _dc.Users.InsertOne(userCollection);
+    }
+
+    public void UpdateAgent(AgentRecord agent)
+    {
+        if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
+
+        var agentCollection = new AgentCollection
+        {
+            Id = Guid.Parse(agent.Id),
+            Name = agent.Name,
+            Description = agent.Description,
+            Instruction = agent.Instruction,
+            Functions = agent.Functions,
+            Responses = agent.Responses,
+            UpdatedTime = DateTime.UtcNow
+        };
+
+
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agent.Id));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Name, agent.Name)
+            .Set(x => x.Description, agent.Description)
+            .Set(x => x.Instruction, agent.Instruction)
+            .Set(x => x.Functions, agent.Functions)
+            .Set(x => x.Responses, agent.Responses)
+            .Set(x => x.UpdatedTime, agent.UpdatedTime);
+
+        _dc.Agents.UpdateOne(filter, update, _options);
     }
 }

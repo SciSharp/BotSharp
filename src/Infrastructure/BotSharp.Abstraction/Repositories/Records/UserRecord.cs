@@ -25,7 +25,7 @@ public class UserRecord : RecordBase
     public string Password { get; set; } = string.Empty;
 
     [MaxLength(36)]
-    public string? ExternalId { get; set; }
+    public string ExternalId { get; set; }
 
     [Required]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;

@@ -29,9 +29,12 @@ public class ConversationStorage : IConversationStorage
 
     public void Append(string conversationId, string agentId, RoleDialogModel dialog)
     {
-        var dialogs = GetConversationDialogs(conversationId);
-        var sb = new StringBuilder(dialogs);
+        //var dialogs = GetConversationDialogs(conversationId);
+        //var sb = new StringBuilder(dialogs);
         var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var conversationFile = GetStorageFile(conversationId);
+        var sb = new StringBuilder();
 
         if (dialog.Role == AgentRole.Function)
         {
@@ -60,15 +63,15 @@ public class ConversationStorage : IConversationStorage
         }
 
         var updatedDialogs = sb.ToString();
-        //File.AppendAllText(conversationFile, conversation);
+        File.AppendAllText(conversationFile, updatedDialogs);
 
-        var conversation = db.Conversation.FirstOrDefault(x => x.Id == conversationId);
-        conversation.AgentId = agentId;
-        conversation.Dialog = updatedDialogs;
-        db.Transaction<IBotSharpTable>(delegate
-        {
-            db.Add<IBotSharpTable>(conversation);
-        });
+        //var conversation = db.Conversation.FirstOrDefault(x => x.Id == conversationId);
+        //conversation.AgentId = agentId;
+        //conversation.Dialog = updatedDialogs;
+        //db.Transaction<IBotSharpTable>(delegate
+        //{
+        //    db.Add<IBotSharpTable>(conversation);
+        //});
     }
 
     public List<RoleDialogModel> GetDialogs(string conversationId)

@@ -29,12 +29,12 @@ public class Router : IAgentRouting
         return await agentService.LoadAgent(AgentId);
     }
 
-    public RoutingRecord[] GetRoutingRecords()
+    public RoutingItem[] GetRoutingRecords()
     {
         var agentSettings = _services.GetRequiredService<AgentSettings>();
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, _settings.RouterId, "route.json");
-        var records = JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
+        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "route.json");
+        var records = JsonSerializer.Deserialize<RoutingItem[]>(File.ReadAllText(filePath));
 
         // check if routing profile is specified
         filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
@@ -42,7 +42,7 @@ public class Router : IAgentRouting
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var name = state.GetState("channel");
-            var profiles = JsonSerializer.Deserialize<RoutingProfileRecord[]>(File.ReadAllText(filePath));
+            var profiles = JsonSerializer.Deserialize<RoutingProfile[]>(File.ReadAllText(filePath));
             var spcificedProfile = profiles.FirstOrDefault(x => x.Name == name);
             if (spcificedProfile != null)
             {
@@ -53,7 +53,7 @@ public class Router : IAgentRouting
         return records;
     }
 
-    public RoutingRecord GetRecordByName(string name)
+    public RoutingItem GetRecordByName(string name)
     {
         return GetRoutingRecords().First(x => x.Name.ToLower() == name.ToLower());
     }

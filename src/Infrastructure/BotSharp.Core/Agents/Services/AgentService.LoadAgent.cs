@@ -30,7 +30,7 @@ public partial class AgentService
                 hook.OnInstructionLoaded(agent.Instruction, templateDict);
             }
 
-            if (!string.IsNullOrEmpty(agent.Functions))
+            if (agent.Functions != null && agent.Functions.Any())
             {
                 var functions = agent.Functions;
                 hook.OnFunctionsLoaded(ref functions);

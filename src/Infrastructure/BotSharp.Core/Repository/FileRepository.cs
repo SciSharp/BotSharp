@@ -1,8 +1,8 @@
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Records;
 using System.IO;
 using System.Text.Json;
-
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
@@ -219,5 +219,61 @@ public class FileRepository : IBotSharpRepository
         }
 
         return _changedTableNames.Count;
+    }
+
+    public UserRecord GetUserByEmail(string email)
+    {
+        return User.FirstOrDefault(x => x.Email == email);
+    }
+
+    public void CreateUser(UserRecord user)
+    {
+        var userId = Guid.NewGuid().ToString();
+        var dir = Path.Combine(_dbSettings.FileRepository, "users", userId);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        var path = Path.Combine(dir, "user.json");
+        File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
+    }
+
+    public void UpdateAgent(AgentRecord agent)
+    {
+        if (agent == null) return;
+
+        var dir = GetAgentDataDir(agent.Id);
+
+        if (!string.IsNullOrEmpty(agent.Instruction))
+        {
+            var instructionFile = Path.Combine(dir, "instruction.liquid");
+            File.WriteAllText(instructionFile, agent.Instruction);
+        }
+
+        if (agent.Functions != null || agent.Functions.Any())
+        {
+            var functionFile = Path.Combine(dir, "functions.json");
+            var functions = new List<string>();
+            foreach (var function in agent.Functions)
+            {
+                var functionDef = JsonSerializer.Deserialize<FunctionDef>(function, _options);
+                functions.Add(JsonSerializer.Serialize(functionDef, _options));
+            }
+
+            var functionText = JsonSerializer.Serialize(functions, _options);
+            File.WriteAllText(functionFile, functionText);
+        }
+    }
+
+    private string GetAgentDataDir(string agentId)
+    {
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var dir = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentId);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        return dir;
     }
 }

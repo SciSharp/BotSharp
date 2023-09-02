@@ -22,7 +22,7 @@ public class UserService : IUserService
     public async Task<User> CreateUser(User user)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.User.FirstOrDefault(x => x.Email == user.Email.ToLower());
+        var record = db.GetUserByEmail(user.Email);
         if (record != null)
         {
             return record.ToUser();
@@ -34,11 +34,7 @@ public class UserService : IUserService
         record.Password = Utilities.HashText(user.Password, record.Salt);
         record.ExternalId = _user.Id;
 
-        db.Transaction<IBotSharpTable>(delegate
-        {
-            db.Add<IBotSharpTable>(record);
-        });
-
+        db.CreateUser(record);
         return record.ToUser();
     }
 

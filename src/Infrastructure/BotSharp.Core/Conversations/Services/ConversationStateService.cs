@@ -92,25 +92,27 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Save()
     {
-        var states = new StringBuilder();
-        var conversation = _db.Conversation.FirstOrDefault(x => x.Id == _conversationId);
+        //var states = new StringBuilder();
+        //var conversation = _db.Conversation.FirstOrDefault(x => x.Id == _conversationId);
+
+        var states = new List<string>();
 
         foreach (var dic in _state)
         {
-            //states.Add($"{dic.Key}={dic.Value}");
-            states.AppendLine($"{dic.Key}={dic.Value}");
+            states.Add($"{dic.Key}={dic.Value}");
+            //states.AppendLine($"{dic.Key}={dic.Value}");
         }
-        //File.WriteAllLines(_file, states);
+        File.WriteAllLines(_file, states);
         _logger.LogInformation($"Saved state {_conversationId}");
 
-        if (conversation != null)
-        {
-            conversation.State = states.ToString();
-            _db.Transaction<IBotSharpTable>(delegate
-            {
-                _db.Add<IBotSharpTable>(conversation);
-            });
-        }
+        //if (conversation != null)
+        //{
+        //    conversation.State = states.ToString();
+        //    _db.Transaction<IBotSharpTable>(delegate
+        //    {
+        //        _db.Add<IBotSharpTable>(conversation);
+        //    });
+        //}
     }
 
     public void CleanState()
@@ -134,7 +136,13 @@ public class ConversationStateService : IConversationStateService, IDisposable
         {
             Directory.CreateDirectory(dir);
         }
-        return Path.Combine(dir, "state.dict");
+
+        var stateFile = Path.Combine(dir, "state.dict");
+        if (!File.Exists(stateFile))
+        {
+            File.WriteAllText(stateFile, "");
+        }
+        return stateFile;
     }
 
     private string GetConversationState(string conversationId)

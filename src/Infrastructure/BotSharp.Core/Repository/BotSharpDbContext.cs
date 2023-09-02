@@ -11,6 +11,21 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public IQueryable<UserAgentRecord> UserAgent => Table<UserAgentRecord>();
     public IQueryable<ConversationRecord> Conversation => Table<ConversationRecord>();
 
+    public void UpdateAgent(AgentRecord agent)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CreateUser(UserRecord user)
+    {
+        throw new NotImplementedException();
+    }
+
+    public UserRecord GetUserByEmail(string email)
+    {
+        throw new NotImplementedException();
+    }
+
     public int Transaction<TTableInterface>(Action action)
     {
         DatabaseFacade database = base.GetMaster(typeof(TTableInterface)).Database;

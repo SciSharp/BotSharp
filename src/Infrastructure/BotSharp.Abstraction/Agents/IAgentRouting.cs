@@ -6,6 +6,6 @@ public interface IAgentRouting
 {
     string AgentId { get; }
     Task<Agent> LoadRouter();
-    RoutingRecord[] GetRoutingRecords();
-    RoutingRecord GetRecordByName(string name);
+    RoutingItem[] GetRoutingRecords();
+    RoutingItem GetRecordByName(string name);
 }

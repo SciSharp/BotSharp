@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.Abstraction.Routing.Models;
 
-public class RoutingProfileRecord
+public class RoutingProfile
 {
     [JsonPropertyName("name")]
     public string Name { get; set; }

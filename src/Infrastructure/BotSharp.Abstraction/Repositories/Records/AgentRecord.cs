@@ -11,9 +11,9 @@ public class AgentRecord : RecordBase
 
     public string Instruction { get; set; }
 
-    public string Functions { get; set; }
+    public List<string> Functions { get; set; }
 
-    public List<string> Routes { get; set; }
+    public List<string> Responses { get; set; }
 
     [Required]
     public DateTime CreatedTime { get; set; }
@@ -30,7 +30,6 @@ public class AgentRecord : RecordBase
             Description = agent.Description,
             Instruction = agent.Instruction,
             Functions = agent.Functions,
-            Routes = agent.Routes,
         };
     }
 
@@ -43,9 +42,33 @@ public class AgentRecord : RecordBase
             Description = Description,
             Instruction = Instruction,
             Functions = Functions,
-            Routes = Routes,
             CreatedDateTime = CreatedTime,
             UpdatedDateTime = UpdatedTime
         };
+    }
+
+    public AgentRecord SetId(string id)
+    {
+        Id = id;
+        return this;
+    }
+
+
+    public AgentRecord SetInstruction(string instruction)
+    {
+        Instruction = instruction;
+        return this;
+    }
+
+    public AgentRecord SetFunctions(List<string> functions)
+    {
+        Functions = functions;
+        return this;
+    }
+
+    public AgentRecord SetResponses(List<string> responses)
+    {
+        Responses = responses;
+        return this;
     }
 }

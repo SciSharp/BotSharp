@@ -21,18 +21,36 @@ public class Agent
     /// <summary>
     /// Functions
     /// </summary>
-    public string Functions { get; set; }
+    public List<string> Functions { get; set; }
+
+    /// <summary>
+    /// Responses
+    /// </summary>
+    public List<string> Responses { get; set; }
 
     /// <summary>
     /// Domain knowledges
     /// </summary>
     public string Knowledges { get; set; }
 
-    /// <summary>
-    /// Routes
-    /// </summary>
-    public List<string> Routes { get; set; }
-
     public override string ToString()
         => $"{Name} {Id}";
+
+    public Agent SetInstruction(string instruction)
+    {
+        Instruction = instruction;
+        return this;
+    }
+
+    public Agent SetFunctions(List<string> functions)
+    {
+        Functions = functions;
+        return this;
+    }
+
+    public Agent SetResponses(List<string> responses)
+    {
+        Responses = responses;
+        return this;
+    }
 }

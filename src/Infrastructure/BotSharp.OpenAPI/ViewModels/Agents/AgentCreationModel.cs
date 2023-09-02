@@ -7,8 +7,7 @@ public class AgentCreationModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string Instruction { get; set; }
-    public string Functions { get; set; }
-    public List<string> Routes { get; set; }
+    public List<string> Functions { get; set; }
 
     public Agent ToAgent()
     {
@@ -18,7 +17,6 @@ public class AgentCreationModel
             Description = Description,
             Instruction = Instruction,
             Functions = Functions,
-            Routes = Routes
         };
     }
 }
