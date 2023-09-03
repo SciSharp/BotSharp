@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Routing.Services;
 
 namespace BotSharp.Core;
 
@@ -20,6 +22,7 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<IRoutingService, RoutingService>();
 
         var agentSettings = new AgentSettings();
         config.Bind("Agent", agentSettings);

@@ -1,10 +1,8 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Records;
-using BotSharp.Abstraction.Routing.Models;
-using SharpCompress.Common;
 using System.IO;
-using System.Text.Json;
+
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
@@ -323,5 +321,25 @@ public class FileRepository : IBotSharpRepository
             Directory.CreateDirectory(dir);
         }
         return dir;
+    }
+
+    public void DeleteRoutingItems()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteRoutingProfiles()
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<RoutingItemRecord> CreateRoutingItems(List<RoutingItemRecord> routingItems)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<RoutingProfileRecord> CreateRoutingProfiles(List<RoutingProfileRecord> profiles)
+    {
+        throw new NotImplementedException();
     }
 }

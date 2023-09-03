@@ -17,7 +17,7 @@ public class RoutingItem
     public List<string> RequiredFields { get; set; } = new List<string>();
 
     [JsonPropertyName("redirect_to")]
-    public string RedirectTo { get; set; }
+    public string? RedirectTo { get; set; }
 
     [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }

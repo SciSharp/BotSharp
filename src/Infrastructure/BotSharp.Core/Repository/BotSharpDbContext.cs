@@ -76,4 +76,24 @@ public class BotSharpDbContext : Database, IBotSharpRepository
             throw ex2;
         }
     }
+
+    public void DeleteRoutingItems()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteRoutingProfiles()
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<RoutingItemRecord> CreateRoutingItems(List<RoutingItemRecord> routingItems)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<RoutingProfileRecord> CreateRoutingProfiles(List<RoutingProfileRecord> profiles)
+    {
+        throw new NotImplementedException();
+    }
 }

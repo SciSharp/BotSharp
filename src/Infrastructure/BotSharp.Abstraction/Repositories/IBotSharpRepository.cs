@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Records;
+using BotSharp.Abstraction.Routing.Models;
 using System.Linq;
 
 namespace BotSharp.Abstraction.Repositories;
@@ -18,4 +19,9 @@ public interface IBotSharpRepository
     UserRecord GetUserByEmail(string email);
     void CreateUser(UserRecord user);
     void UpdateAgent(AgentRecord agent);
+
+    List<RoutingItemRecord> CreateRoutingItems(List<RoutingItemRecord> routingItems);
+    List<RoutingProfileRecord> CreateRoutingProfiles(List<RoutingProfileRecord> profiles);
+    void DeleteRoutingItems();
+    void DeleteRoutingProfiles();
 }

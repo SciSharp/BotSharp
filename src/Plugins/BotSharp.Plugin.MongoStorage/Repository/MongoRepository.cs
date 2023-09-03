@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -380,5 +382,59 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.UpdatedTime, agent.UpdatedTime);
 
         _dc.Agents.UpdateOne(filter, update, _options);
+    }
+
+    public void DeleteRoutingItems()
+    {
+        _dc.RoutingItems.DeleteMany(Builders<RoutingItemCollection>.Filter.Empty);
+    }
+
+    public void DeleteRoutingProfiles()
+    {
+        _dc.RoutingProfiles.DeleteMany(Builders<RoutingProfileCollection>.Filter.Empty);
+    }
+
+    public List<RoutingItemRecord> CreateRoutingItems(List<RoutingItemRecord> routingItems)
+    {
+        var collections = routingItems?.Select(x => new RoutingItemCollection
+        {
+            Id = Guid.NewGuid(),
+            AgentId = Guid.Parse(x.AgentId),
+            Name = x.Name,
+            Description = x.Description,
+            RequiredFields = x.RequiredFields,
+            RedirectTo = !string.IsNullOrEmpty(x.RedirectTo) ? Guid.Parse(x.RedirectTo) : null,
+            Disabled = x.Disabled
+        })?.ToList() ?? new List<RoutingItemCollection>();
+        
+        _dc.RoutingItems.InsertMany(collections);
+        return collections.Select(x => new RoutingItemRecord
+        {
+            Id = x.Id.ToString(),
+            AgentId = x.AgentId.ToString(),
+            Name = x.Name,
+            Description = x.Description,
+            RequiredFields = x.RequiredFields,
+            RedirectTo = x.RedirectTo?.ToString(),
+            Disabled = x.Disabled
+        }).ToList();
+    }
+
+    public List<RoutingProfileRecord> CreateRoutingProfiles(List<RoutingProfileRecord> profiles)
+    {
+        var collections = profiles?.Select(x => new RoutingProfileCollection
+        {
+            Id = Guid.NewGuid(),
+            Name = x.Name,
+            AgentIds = x.AgentIds.Select(x => Guid.Parse(x)).ToList()
+        })?.ToList() ?? new List<RoutingProfileCollection>();
+
+        _dc.RoutingProfiles.InsertMany(collections);
+        return collections.Select(x => new RoutingProfileRecord
+        {
+            Id = x.Id.ToString(),
+            Name = x.Name,
+            AgentIds = x.AgentIds.Select(x => x.ToString()).ToList()
+        }).ToList();
     }
 }

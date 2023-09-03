@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Routing.Models;
 
-namespace BotSharp.Abstraction.Repositories.Records;
+namespace BotSharp.OpenAPI.ViewModels.Routing;
 
-public class RoutingItemRecord : RecordBase
+public class RoutingItemCreationModel
 {
     public string AgentId { get; set; }
     public string Name { get; set; }
@@ -21,19 +21,6 @@ public class RoutingItemRecord : RecordBase
             RequiredFields = RequiredFields,
             RedirectTo = RedirectTo,
             Disabled = Disabled
-        };
-    }
-
-    public static RoutingItemRecord FromRoutingItem(RoutingItem item)
-    {
-        return new RoutingItemRecord
-        {
-            AgentId = item.AgentId,
-            Name = item.Name,
-            Description = item.Description,
-            RequiredFields = item.RequiredFields,
-            RedirectTo = item.RedirectTo,
-            Disabled = item.Disabled
         };
     }
 }

@@ -44,13 +44,13 @@ public class Agent
 
     public Agent SetFunctions(List<string> functions)
     {
-        Functions = functions;
+        Functions = functions ?? new List<string>();
         return this;
     }
 
     public Agent SetResponses(List<string> responses)
     {
-        Responses = responses;
+        Responses = responses ?? new List<string>(); ;
         return this;
     }
 }
