@@ -36,7 +36,7 @@ public class Router : IAgentRouting
         var records = db.RoutingItem.Select(x => x.ToRoutingItem()).ToArray();
         var profiles = db.RoutingProfile.ToList();
 
-        if (profiles != null && profiles.Any())
+        if (!profiles.IsEmpty())
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var name = state.GetState("channel");

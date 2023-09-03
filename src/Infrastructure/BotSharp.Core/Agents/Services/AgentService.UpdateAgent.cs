@@ -27,10 +27,10 @@ public partial class AgentService
         if (!string.IsNullOrEmpty(agent.Instruction))
             record.Instruction = agent.Instruction;
 
-        if (agent.Functions != null && agent.Functions.Any())
+        if (!agent.Functions.IsEmpty())
             record.Functions = agent.Functions;
 
-        if (agent.Responses != null && agent.Responses.Any())
+        if (!agent.Responses.IsEmpty())
             record.Responses = agent.Responses;
 
         db.UpdateAgent(record);
