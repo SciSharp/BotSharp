@@ -364,4 +364,41 @@ public class FileRepository : IBotSharpRepository
 
         return responses;
     }
+
+    public AgentRecord GetAgent(string agentId)
+    {
+        var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
+        foreach (var dir in Directory.GetDirectories(agentDir))
+        {
+            var json = File.ReadAllText(Path.Combine(dir, "agent.json"));
+            var record = JsonSerializer.Deserialize<AgentRecord>(json, _options);
+            if (record != null && record.Id == agentId)
+            {
+                var instruction = FetchInstruction(dir);
+                var functions = FetchFunctions(dir);
+                return record.SetInstruction(instruction).SetFunctions(functions);
+            }
+        }
+        return null;
+    }
+
+    private string FetchInstruction(string fileDir)
+    {
+        var file = Path.Combine(fileDir, "instruction.liquid");
+        if (!File.Exists(file)) return null;
+
+        var instruction = File.ReadAllText(file);
+        return instruction;
+    }
+
+    private List<string> FetchFunctions(string fileDir)
+    {
+        var file = Path.Combine(fileDir, "functions.json");
+        if (!File.Exists(file)) return new List<string>();
+
+        var functionsJson = File.ReadAllText(file);
+        var functionDefs = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
+        var functions = functionDefs.Select(x => JsonSerializer.Serialize(x, _options)).ToList();
+        return functions;
+    }
 }

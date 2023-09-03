@@ -15,6 +15,8 @@ public class AgentRecord : RecordBase
 
     public List<string> Responses { get; set; }
 
+    public string Samples { get; set; }
+
     [Required]
     public DateTime CreatedTime { get; set; }
 

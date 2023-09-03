@@ -438,4 +438,10 @@ public class MongoRepository : IBotSharpRepository
 
         return agent.Responses;
     }
+
+    public AgentRecord GetAgent(string agentId)
+    {
+        var foundAgent = Agent.FirstOrDefault(x => x.Id == agentId);
+        return foundAgent;
+    }
 }

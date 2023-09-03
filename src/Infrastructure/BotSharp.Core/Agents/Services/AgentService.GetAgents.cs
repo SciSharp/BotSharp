@@ -20,11 +20,12 @@ public partial class AgentService
     public async Task<Agent> GetAgent(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var query = from agent in db.Agent
-                    where agent.Id == id
-                    select agent.ToAgent();
+        //var query = from agent in db.Agent
+        //            where agent.Id == id
+        //            select agent.ToAgent();
 
-        var profile = query.FirstOrDefault();
+        //var profile = query.FirstOrDefault();
+        var profile = db.GetAgent(id)?.ToAgent();
         //var dir = GetAgentDataDir(id);
 
         var instructionFile = profile?.Instruction;

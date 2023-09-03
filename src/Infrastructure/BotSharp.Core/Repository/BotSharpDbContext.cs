@@ -101,4 +101,9 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
+
+    public AgentRecord GetAgent(string agentId)
+    {
+        throw new NotImplementedException();
+    }
 }

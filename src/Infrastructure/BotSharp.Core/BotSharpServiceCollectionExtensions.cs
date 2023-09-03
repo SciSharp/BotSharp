@@ -68,7 +68,10 @@ public static class BotSharpServiceCollectionExtensions
 
         services.AddScoped<Simulator>();
 
-        //services.AddScoped<IBotSharpRepository, FileRepository>();
+        if (myDatabaseSettings.Default == "FileRepository")
+        {
+            services.AddScoped<IBotSharpRepository, FileRepository>();
+        }
 
         return services;
     }
