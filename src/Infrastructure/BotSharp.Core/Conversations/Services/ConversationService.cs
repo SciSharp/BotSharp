@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Records;
 using MongoDB.Bson;
+using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -54,16 +56,33 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> NewConversation(Conversation sess)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+        var conversationSettings = _services.GetRequiredService<ConversationSetting>();
+        var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var foundUserId = user?.Id ?? _user.Id;
 
         var record = ConversationRecord.FromConversation(sess);
-        record.Id = sess.Id.IfNullOrEmptyAs(ObjectId.GenerateNewId().ToString());
-        record.UserId = sess.UserId.IfNullOrEmptyAs(_user.Id);
+        record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        record.UserId = sess.UserId.IfNullOrEmptyAs(foundUserId);
         record.Title = "New Conversation";
 
-        db.Transaction<IBotSharpTable>(delegate
+        //db.Transaction<IBotSharpTable>(delegate
+        //{
+        //    db.Add<IBotSharpTable>(record);
+        //});
+
+        var dir = Path.Combine(dbSettings.FileRepository, conversationSettings.DataDir, record.Id);
+        if (!Directory.Exists(dir))
         {
-            db.Add<IBotSharpTable>(record);
-        });
+            Directory.CreateDirectory(dir);
+        }
+        var path = Path.Combine(dir, "conversation.json");
+        File.WriteAllText(path, JsonSerializer.Serialize(record, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        }));
 
         _storage.InitStorage(record.Id);
 

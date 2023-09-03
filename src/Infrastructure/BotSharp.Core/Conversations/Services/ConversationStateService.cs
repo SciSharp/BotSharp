@@ -117,16 +117,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void CleanState()
     {
-        //File.Delete(_file);
-        var conversation = _db.Conversation.FirstOrDefault(x => x.Id == _conversationId);
-        if (conversation != null)
-        {
-            conversation.State = string.Empty;
-            _db.Transaction<IBotSharpTable>(delegate
-            {
-                _db.Add<IBotSharpTable>(conversation);
-            });
-        }
+        File.Delete(_file);
     }
 
     private string GetStorageFile(string conversationId)
@@ -145,32 +136,32 @@ public class ConversationStateService : IConversationStateService, IDisposable
         return stateFile;
     }
 
-    private string GetConversationState(string conversationId)
-    {
-        var conversation = _db.Conversation.FirstOrDefault(x => x.Id == conversationId);
-        if (conversation == null)
-        {
-            var user = _db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
-            var record = new ConversationRecord()
-            {
-                Id = ObjectId.GenerateNewId().ToString(),
-                //AgentId = _agentSettings.RouterId,
-                UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
-                Title = "New Conversation",
-                Dialog = string.Empty,
-                State = string.Empty
-            };
+    //private string GetConversationState(string conversationId)
+    //{
+    //    var conversation = _db.Conversation.FirstOrDefault(x => x.Id == conversationId);
+    //    if (conversation == null)
+    //    {
+    //        var user = _db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+    //        var record = new ConversationRecord()
+    //        {
+    //            Id = ObjectId.GenerateNewId().ToString(),
+    //            //AgentId = _agentSettings.RouterId,
+    //            UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
+    //            Title = "New Conversation",
+    //            Dialog = string.Empty,
+    //            State = string.Empty
+    //        };
 
-            _db.Transaction<IBotSharpTable>(delegate
-            {
-                _db.Add<IBotSharpTable>(record);
-            });
+    //        _db.Transaction<IBotSharpTable>(delegate
+    //        {
+    //            _db.Add<IBotSharpTable>(record);
+    //        });
 
-            conversation = _db.Conversation.FirstOrDefault(x => x.Id == record.Id);
-        }
+    //        conversation = _db.Conversation.FirstOrDefault(x => x.Id == record.Id);
+    //    }
 
-        return conversation.State ?? string.Empty;
-    }
+    //    return conversation.State ?? string.Empty;
+    //}
 
     public string GetState(string name)
     {

@@ -114,8 +114,6 @@ public class MongoRepository : IBotSharpRepository
                 AgentId = x.AgentId.ToString(),
                 UserId = x.UserId.ToString(),
                 Title = x.Title,
-                Dialog = x.Dialog,
-                State = x.State,
                 CreatedTime = x.CreatedTime,
                 UpdatedTime = x.UpdatedTime
             }).ToList();
@@ -212,8 +210,6 @@ public class MongoRepository : IBotSharpRepository
                     AgentId = Guid.Parse(x.AgentId),
                     UserId = Guid.Parse(x.UserId),
                     Title = x.Title,
-                    Dialog = x.Dialog,
-                    State = x.State,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -225,8 +221,6 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.AgentId, conversation.AgentId)
                         .Set(x => x.UserId, conversation.UserId)
                         .Set(x => x.Title, conversation.Title)
-                        .Set(x => x.Dialog, conversation.Dialog)
-                        .Set(x => x.State, conversation.State)
                         .Set(x => x.CreatedTime, conversation.CreatedTime)
                         .Set(x => x.UpdatedTime, conversation.UpdatedTime);
                     _dc.Conversations.UpdateOne(filter, update, _options);

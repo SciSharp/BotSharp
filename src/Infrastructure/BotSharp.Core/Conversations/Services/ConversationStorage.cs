@@ -127,29 +127,29 @@ public class ConversationStorage : IConversationStorage
         return Path.Combine(dir, "dialogs.txt");
     }
 
-    private string GetConversationDialogs(string conversationId)
-    {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var conversation = db.Conversation.FirstOrDefault(x => x.Id == conversationId);
-        if (conversation == null)
-        {
-            var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
-            var record = new ConversationRecord() 
-            {
-                Id = ObjectId.GenerateNewId().ToString(),
-                //AgentId = _agentSettings.RouterId,
-                UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
-                Title = "New Conversation"
-            };
+    //private string GetConversationDialogs(string conversationId)
+    //{
+    //    var db = _services.GetRequiredService<IBotSharpRepository>();
+    //    var conversation = db.Conversation.FirstOrDefault(x => x.Id == conversationId);
+    //    if (conversation == null)
+    //    {
+    //        var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+    //        var record = new ConversationRecord() 
+    //        {
+    //            Id = ObjectId.GenerateNewId().ToString(),
+    //            //AgentId = _agentSettings.RouterId,
+    //            UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
+    //            Title = "New Conversation"
+    //        };
 
-            db.Transaction<IBotSharpTable>(delegate
-            {
-                db.Add<IBotSharpTable>(record);
-            });
+    //        db.Transaction<IBotSharpTable>(delegate
+    //        {
+    //            db.Add<IBotSharpTable>(record);
+    //        });
 
-            conversation = db.Conversation.FirstOrDefault(x => x.Id == record.Id);
-        }
+    //        conversation = db.Conversation.FirstOrDefault(x => x.Id == record.Id);
+    //    }
 
-        return conversation.Dialog ?? string.Empty;
-    }
+    //    return conversation.Dialog ?? string.Empty;
+    //}
 }
