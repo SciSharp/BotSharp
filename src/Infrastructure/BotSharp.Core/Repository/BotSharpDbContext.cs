@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Repositories.Records;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -103,6 +104,41 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
     public AgentRecord GetAgent(string agentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CreateNewConversation(ConversationRecord conversation)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string GetConversationDialog(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateConversationDialog(string conversationId, string dialogs)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<KeyValueModel> GetConversationState(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateConversationState(string conversationId, List<KeyValueModel> state)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ConversationRecord GetConversation(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<ConversationRecord> GetConversations(string userId)
     {
         throw new NotImplementedException();
     }

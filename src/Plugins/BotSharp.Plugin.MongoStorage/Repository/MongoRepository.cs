@@ -1,3 +1,6 @@
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -210,6 +213,8 @@ public class MongoRepository : IBotSharpRepository
                     AgentId = Guid.Parse(x.AgentId),
                     UserId = Guid.Parse(x.UserId),
                     Title = x.Title,
+                    Dialog = x.Dialog,
+                    State = x.State,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -221,6 +226,8 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.AgentId, conversation.AgentId)
                         .Set(x => x.UserId, conversation.UserId)
                         .Set(x => x.Title, conversation.Title)
+                        .Set(x => x.Dialog, conversation.Dialog)
+                        .Set(x => x.State, conversation.State)
                         .Set(x => x.CreatedTime, conversation.CreatedTime)
                         .Set(x => x.UpdatedTime, conversation.UpdatedTime);
                     _dc.Conversations.UpdateOne(filter, update, _options);
@@ -443,5 +450,117 @@ public class MongoRepository : IBotSharpRepository
     {
         var foundAgent = Agent.FirstOrDefault(x => x.Id == agentId);
         return foundAgent;
+    }
+
+    public void CreateNewConversation(ConversationRecord conversation)
+    {
+        if (conversation == null) return;
+
+        var collection = new ConversationCollection
+        {
+            Id = Guid.Parse(conversation.Id),
+            AgentId = Guid.Parse(conversation.AgentId),
+            UserId = Guid.Parse(conversation.UserId),
+            Title = conversation.Title,
+            Dialog = string.Empty,
+            State = new List<KeyValueModel>(),
+            CreatedTime = DateTime.UtcNow,
+            UpdatedTime = DateTime.UtcNow,
+        };
+
+        _dc.Conversations.InsertOne(collection);
+    }
+
+    public string GetConversationDialog(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return string.Empty;
+
+        var filterById = Builders<ConversationCollection>.Filter.Eq(x => x.Id, Guid.Parse(conversationId));
+        var foundConversation = _dc.Conversations.Find(filterById).FirstOrDefault();
+        if (foundConversation == null) return string.Empty;
+
+        return foundConversation.Dialog;
+    }
+
+    public void UpdateConversationDialog(string conversationId, string dialogs)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var filterById = Builders<ConversationCollection>.Filter.Eq(x => x.Id, Guid.Parse(conversationId));
+        var foundConversation = _dc.Conversations.Find(filterById).FirstOrDefault();
+        if (foundConversation == null) return;
+
+        var update = Builders<ConversationCollection>.Update
+            .Set(x => x.Dialog, dialogs)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Conversations.UpdateOne(filterById, update);
+    }
+
+    public List<KeyValueModel> GetConversationState(string conversationId)
+    {
+        var states = new List<KeyValueModel>();
+        if (string.IsNullOrEmpty(conversationId)) return states;
+
+        var filterById = Builders<ConversationCollection>.Filter.Eq(x => x.Id, Guid.Parse(conversationId));
+        var foundConversation = _dc.Conversations.Find(filterById).FirstOrDefault();
+        if (foundConversation == null) return states;
+
+        var savedStates = foundConversation.State ?? new List<KeyValueModel>();
+        return savedStates;
+    }
+
+    public void UpdateConversationState(string conversationId, List<KeyValueModel> state)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var filterById = Builders<ConversationCollection>.Filter.Eq(x => x.Id, Guid.Parse(conversationId));
+        var foundConversation = _dc.Conversations.Find(filterById).FirstOrDefault();
+        if (foundConversation == null) return;
+
+        var update = Builders<ConversationCollection>.Update
+            .Set(x => x.State, state)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Conversations.UpdateOne(filterById, update);
+    }
+
+    public ConversationRecord GetConversation(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return null;
+
+        var filterById = Builders<ConversationCollection>.Filter.Eq(x => x.Id, Guid.Parse(conversationId));
+        var found = _dc.Conversations.Find(filterById).FirstOrDefault();
+
+        return found != null ? new ConversationRecord 
+        { 
+            Id = found.Id.ToString(),
+            AgentId = found.AgentId.ToString(),
+            UserId = found.UserId.ToString(),
+            Title = found.Title,
+            Dialog = found.Dialog,
+            State = found.State,
+            CreatedTime = found.CreatedTime,
+            UpdatedTime = found.UpdatedTime
+        }: null;
+    }
+
+    public List<ConversationRecord> GetConversations(string userId)
+    {
+        if (string.IsNullOrEmpty(userId)) return new List<ConversationRecord>();
+
+        var filterByUserId = Builders<ConversationCollection>.Filter.Eq(x => x.UserId, Guid.Parse(userId));
+        var conversations = _dc.Conversations.Find(filterByUserId).ToList();
+        return conversations.Select(x => new ConversationRecord
+        {
+            Id = x.Id.ToString(),
+            AgentId = x.AgentId.ToString(),
+            UserId = x.UserId.ToString(),
+            Title = x.Title,
+            Dialog = x.Dialog,
+            State = x.State,
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
     }
 }

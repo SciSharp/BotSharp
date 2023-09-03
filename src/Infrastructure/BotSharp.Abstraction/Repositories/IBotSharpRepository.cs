@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Repositories.Records;
 using BotSharp.Abstraction.Routing.Models;
 using System.Linq;
@@ -27,4 +28,14 @@ public interface IBotSharpRepository
 
     AgentRecord GetAgent(string agentId);
     List<string> GetAgentResponses(string agentId);
+
+    void CreateNewConversation(ConversationRecord conversation);
+    string GetConversationDialog(string conversationId);
+    void UpdateConversationDialog(string conversationId, string dialogs);
+
+    List<KeyValueModel> GetConversationState(string conversationId);
+    void UpdateConversationState(string conversationId, List<KeyValueModel> state);
+
+    ConversationRecord GetConversation(string conversationId);
+    List<ConversationRecord> GetConversations(string userId);
 }

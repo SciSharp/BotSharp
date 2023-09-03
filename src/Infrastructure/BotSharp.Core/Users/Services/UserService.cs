@@ -96,11 +96,9 @@ public class UserService : IUserService
 
     public async Task<User> GetMyProfile()
     {
-        var userId = _user.Id;
-
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = (from u in db.User
-                    where u.Id == userId
+                    where u.ExternalId == _user.Id
                     select new User
                     {
                         Id = u.Id,

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Repositories.Records;
 using MongoDB.Bson;
 using System.IO;
@@ -20,6 +21,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private BotSharpDatabaseSettings _dbSettings;
     private string _conversationId;
     private string _file;
+    private List<KeyValueModel> _savedStates;
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
         IServiceProvider services, 
@@ -65,18 +67,13 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
 
         _state = new ConversationState();
+        _savedStates = _db.GetConversationState(_conversationId);
 
-        _file = GetStorageFile(_conversationId);
-        //_file = GetConversationState(_conversationId);
-
-        if (_file != null)
+        if (_savedStates != null)
         {
-            var dict = File.ReadAllLines(_file);
-            //var dict = _file.SplitByNewLine();
-
-            foreach (var line in dict)
+            foreach (var data in _savedStates)
             {
-                _state[line.Split('=')[0]] = line.Split('=')[1];
+                _state[data.Key] = data.Value;
             }
         }
 
@@ -92,32 +89,20 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Save()
     {
-        //var states = new StringBuilder();
-        //var conversation = _db.Conversation.FirstOrDefault(x => x.Id == _conversationId);
-
-        var states = new List<string>();
+        var states = new List<KeyValueModel>();
 
         foreach (var dic in _state)
         {
-            states.Add($"{dic.Key}={dic.Value}");
-            //states.AppendLine($"{dic.Key}={dic.Value}");
+            states.Add(new KeyValueModel(dic.Key, dic.Value));
         }
-        File.WriteAllLines(_file, states);
-        _logger.LogInformation($"Saved state {_conversationId}");
 
-        //if (conversation != null)
-        //{
-        //    conversation.State = states.ToString();
-        //    _db.Transaction<IBotSharpTable>(delegate
-        //    {
-        //        _db.Add<IBotSharpTable>(conversation);
-        //    });
-        //}
+        _db.UpdateConversationState(_conversationId, states);
+        _logger.LogInformation($"Saved state {_conversationId}");
     }
 
     public void CleanState()
     {
-        File.Delete(_file);
+        //File.Delete(_file);
     }
 
     private string GetStorageFile(string conversationId)
@@ -135,33 +120,6 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
         return stateFile;
     }
-
-    //private string GetConversationState(string conversationId)
-    //{
-    //    var conversation = _db.Conversation.FirstOrDefault(x => x.Id == conversationId);
-    //    if (conversation == null)
-    //    {
-    //        var user = _db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
-    //        var record = new ConversationRecord()
-    //        {
-    //            Id = ObjectId.GenerateNewId().ToString(),
-    //            //AgentId = _agentSettings.RouterId,
-    //            UserId = user?.Id ?? ObjectId.GenerateNewId().ToString(),
-    //            Title = "New Conversation",
-    //            Dialog = string.Empty,
-    //            State = string.Empty
-    //        };
-
-    //        _db.Transaction<IBotSharpTable>(delegate
-    //        {
-    //            _db.Add<IBotSharpTable>(record);
-    //        });
-
-    //        conversation = _db.Conversation.FirstOrDefault(x => x.Id == record.Id);
-    //    }
-
-    //    return conversation.State ?? string.Empty;
-    //}
 
     public string GetState(string name)
     {

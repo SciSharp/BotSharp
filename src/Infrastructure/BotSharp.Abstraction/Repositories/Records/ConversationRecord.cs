@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Repositories.Models;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.Abstraction.Repositories.Records;
 
@@ -15,6 +17,12 @@ public class ConversationRecord : RecordBase
     [MaxLength(64)]
     public string Title { get; set; } = string.Empty;
 
+    [JsonIgnore]
+    public string Dialog { get; set; }
+
+    [JsonIgnore]
+    public List<KeyValueModel> State { get; set; }
+
     [Required]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
 
@@ -29,6 +37,8 @@ public class ConversationRecord : RecordBase
             UserId = conv.UserId,
             Id = conv.Id,
             Title = conv.Title,
+            Dialog = conv.Dialog,
+            State = conv.State?.Select(x => new KeyValueModel(x.Key, x.Value))?.ToList() ?? new List<KeyValueModel>(),
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
         };
@@ -42,6 +52,8 @@ public class ConversationRecord : RecordBase
             Title = Title,
             UserId = UserId,
             AgentId = AgentId,
+            Dialog = Dialog,
+            State = new ConversationState(State),
             CreatedTime = CreatedTime,
             UpdatedTime = UpdatedTime
         };

@@ -1,7 +1,14 @@
+using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Repositories.Records;
+using MongoDB.Driver.Core.Operations;
 using System.IO;
+using static Tensorflow.TensorShapeProto.Types;
+using Tensorflow;
+using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 
 namespace BotSharp.Core.Repository;
 
@@ -400,5 +407,182 @@ public class FileRepository : IBotSharpRepository
         var functionDefs = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
         var functions = functionDefs.Select(x => JsonSerializer.Serialize(x, _options)).ToList();
         return functions;
+    }
+
+    public void CreateNewConversation(ConversationRecord conversation)
+    {
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir, conversation.Id);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        var convDir = Path.Combine(dir, "conversation.json");
+        if (!File.Exists(convDir))
+        {
+            File.WriteAllText(convDir, JsonSerializer.Serialize(conversation, _options));
+        }
+
+        var dialogDir = Path.Combine(dir, "dialogs.txt");
+        if (!File.Exists(dialogDir))
+        {
+            File.WriteAllText(dialogDir, string.Empty);
+        }
+
+        var stateDir = Path.Combine(dir, "state.dict");
+        if (!File.Exists(stateDir))
+        {
+            File.WriteAllText(stateDir, string.Empty);
+        }
+    }
+
+    public string GetConversationDialog(string conversationId)
+    {
+        var convDir = FindConversationDirectory(conversationId);
+        if (!string.IsNullOrEmpty(convDir))
+        {
+            var dialogDir = Path.Combine(convDir, "dialogs.txt");
+            if (File.Exists(dialogDir))
+            {
+                return File.ReadAllText(dialogDir);
+            }
+        }
+
+        return string.Empty;
+    }
+
+    public void UpdateConversationDialog(string conversationId, string dialogs)
+    {
+        var convDir = FindConversationDirectory(conversationId);
+        if (!string.IsNullOrEmpty(convDir))
+        {
+            var dialogDir = Path.Combine(convDir, "dialogs.txt");
+            if (File.Exists(dialogDir))
+            {
+                File.WriteAllText(dialogDir, dialogs);
+            }
+        }
+
+        return;
+    }
+
+    public List<KeyValueModel> GetConversationState(string conversationId)
+    {
+        var curStates = new List<KeyValueModel>();
+        var convDir = FindConversationDirectory(conversationId);
+        if (!string.IsNullOrEmpty(convDir))
+        {
+            var stateDir = Path.Combine(convDir, "state.dict");
+            if (File.Exists(stateDir))
+            {
+                var dict = File.ReadAllLines(stateDir);
+                foreach (var line in dict)
+                {
+                    var data = line.Split('=');
+                    curStates.Add(new KeyValueModel(data[0], data[1]));
+                }
+            }
+        }
+
+        return curStates;
+    }
+
+    private string? FindConversationDirectory(string conversationId)
+    {
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir);
+
+        foreach (var d in Directory.GetDirectories(dir))
+        {
+            var path = Path.Combine(d, "conversation.json");
+            if (!File.Exists(path)) continue;
+
+            var json = File.ReadAllText(path);
+            var conv = JsonSerializer.Deserialize<ConversationRecord>(json, _options);
+            if (conv != null && conv.Id == conversationId)
+            {
+                return d;
+            }
+        }
+
+        return null;
+    }
+
+    public void UpdateConversationState(string conversationId, List<KeyValueModel> state)
+    {
+        var localStates = new List<string>();
+        var convDir = FindConversationDirectory(conversationId);
+        if (!string.IsNullOrEmpty(convDir))
+        {
+            var stateDir = Path.Combine(convDir, "state.dict");
+            if (File.Exists(stateDir))
+            {
+                foreach (var data in state)
+                {
+                    localStates.Add($"{data.Key}={data.Value}");
+                }
+                File.WriteAllLines(stateDir, localStates);
+            }
+        }
+    }
+
+    public ConversationRecord GetConversation(string conversationId)
+    {
+        var convDir = FindConversationDirectory(conversationId);
+        if (!string.IsNullOrEmpty(convDir))
+        {
+            var convFile = Path.Combine(convDir, "conversation.json");
+            var record = JsonSerializer.Deserialize<ConversationRecord>(convFile);
+
+            var dialogFile = Path.Combine(convDir, "dialogs.txt");
+            if (record != null && File.Exists(dialogFile))
+            {
+                record.Dialog = File.ReadAllText(dialogFile);
+            }
+
+            var stateFile = Path.Combine(convDir, "state.dict");
+            if (record != null && File.Exists(stateFile))
+            {
+                var states = File.ReadLines(stateFile);
+                record.State = states.Select(x => new KeyValueModel(x.Split('=')[0], x.Split('=')[1])).ToList();
+            }
+
+            return record;
+        }
+
+        return null;
+    }
+
+    public List<ConversationRecord> GetConversations(string userId)
+    {
+        var records = new List<ConversationRecord>();
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir);
+
+        foreach (var d in Directory.GetDirectories(dir))
+        {
+            var path = Path.Combine(d, "conversation.json");
+            if (!File.Exists(path)) continue;
+
+            var json = File.ReadAllText(path);
+            var record = JsonSerializer.Deserialize<ConversationRecord>(json, _options);
+            if (record != null && record.UserId == userId)
+            {
+                var dialogFile = Path.Combine(d, "dialogs.txt");
+                if (File.Exists(dialogFile))
+                {
+                    record.Dialog = File.ReadAllText(dialogFile);
+                }
+
+                var stateFile = Path.Combine(d, "state.dict");
+                if (File.Exists(stateFile))
+                {
+                    var states = File.ReadLines(stateFile);
+                    record.State = states.Select(x => new KeyValueModel(x.Split('=')[0], x.Split('=')[1])).ToList();
+                }
+
+                records.Add(record);
+            }
+        }
+
+        return records;
     }
 }

@@ -36,21 +36,26 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> GetConversation(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var query = from sess in db.Conversation
-                    where sess.Id == id
-                    orderby sess.CreatedTime descending
-                    select sess.ToConversation();
-        return query.FirstOrDefault();
+        //var query = from sess in db.Conversation
+        //            where sess.Id == id
+        //            orderby sess.CreatedTime descending
+        //            select sess.ToConversation();
+
+        var conversation = db.GetConversation(id);
+        return conversation?.ToConversation();
     }
 
     public async Task<List<Conversation>> GetConversations()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var query = from sess in db.Conversation
-                    where sess.UserId == _user.Id
-                    orderby sess.CreatedTime descending
-                    select sess.ToConversation();
-        return query.ToList();
+        //var query = from sess in db.Conversation
+        //            where sess.UserId == _user.Id
+        //            orderby sess.CreatedTime descending
+        //            select sess.ToConversation();
+
+        var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var conversations = db.GetConversations(user?.Id);
+        return conversations.Select(x => x.ToConversation()).OrderByDescending(x => x.CreatedTime).ToList();
     }
 
     public async Task<Conversation> NewConversation(Conversation sess)
@@ -66,26 +71,7 @@ public partial class ConversationService : IConversationService
         record.UserId = sess.UserId.IfNullOrEmptyAs(foundUserId);
         record.Title = "New Conversation";
 
-        //db.Transaction<IBotSharpTable>(delegate
-        //{
-        //    db.Add<IBotSharpTable>(record);
-        //});
-
-        var dir = Path.Combine(dbSettings.FileRepository, conversationSettings.DataDir, record.Id);
-        if (!Directory.Exists(dir))
-        {
-            Directory.CreateDirectory(dir);
-        }
-        var path = Path.Combine(dir, "conversation.json");
-        File.WriteAllText(path, JsonSerializer.Serialize(record, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        }));
-
-        _storage.InitStorage(record.Id);
-
+        db.CreateNewConversation(record);
         return record.ToConversation();
     }
 
