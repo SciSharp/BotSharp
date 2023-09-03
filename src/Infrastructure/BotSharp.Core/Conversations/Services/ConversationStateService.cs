@@ -89,6 +89,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Save()
     {
+        if (_conversationId == null)
+        {
+            return;
+        }
+
         var states = new List<KeyValueModel>();
 
         foreach (var dic in _state)
