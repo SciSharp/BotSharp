@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -436,5 +434,14 @@ public class MongoRepository : IBotSharpRepository
             Name = x.Name,
             AgentIds = x.AgentIds.Select(x => x.ToString()).ToList()
         }).ToList();
+    }
+
+    public List<string> GetAgentResponses(string agentId)
+    {
+        var responses = new List<string>();
+        var agent = Agent.FirstOrDefault(x => x.Id == agentId);
+        if (agent == null) return responses;
+
+        return agent.Responses;
     }
 }

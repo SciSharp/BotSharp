@@ -8,13 +8,21 @@ namespace BotSharp.Core.Repository;
 public class FileRepository : IBotSharpRepository
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
+    private readonly AgentSettings _agentSettings;
+    private readonly ConversationSetting _conversationSetting;
     private readonly IServiceProvider _services;
     private JsonSerializerOptions _options;
 
-    public FileRepository(BotSharpDatabaseSettings dbSettings, IServiceProvider services)
+    public FileRepository(
+        IServiceProvider services,
+        BotSharpDatabaseSettings dbSettings,
+        AgentSettings agentSettings,
+        ConversationSetting conversationSetting)
     {
-        _dbSettings = dbSettings;
         _services = services;
+        _dbSettings = dbSettings;
+        _agentSettings = agentSettings;
+        _conversationSetting = conversationSetting;
 
         _options = new JsonSerializerOptions
         {
@@ -55,8 +63,8 @@ public class FileRepository : IBotSharpRepository
                 return _agents.AsQueryable();
             }
 
-            var agentSettings = _services.GetService<AgentSettings>();
-            var dir = Path.Combine(_dbSettings.FileRepository, agentSettings.DataDir);
+            //var agentSettings = _services.GetService<AgentSettings>();
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
             _agents = new List<AgentRecord>();
             foreach (var d in Directory.GetDirectories(dir))
             {
@@ -102,8 +110,8 @@ public class FileRepository : IBotSharpRepository
                 return _conversations.AsQueryable();
             }
 
-            var convSettings = _services.GetService<ConversationSetting>();
-            var dir = Path.Combine(_dbSettings.FileRepository, convSettings.DataDir);
+            //var convSettings = _services.GetService<ConversationSetting>();
+            var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir);
             _conversations = new List<ConversationRecord>();
             foreach (var d in Directory.GetDirectories(dir))
             {
@@ -129,9 +137,9 @@ public class FileRepository : IBotSharpRepository
             }
 
             _routingItems = new List<RoutingItemRecord>();
-            var agentSettings = _services.GetRequiredService<AgentSettings>();
-            var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-            var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "route.json");
+            //var agentSettings = _services.GetRequiredService<AgentSettings>();
+            //var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+            var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "route.json");
             if (File.Exists(filePath))
             {
                 _routingItems = JsonSerializer.Deserialize<List<RoutingItemRecord>>(File.ReadAllText(filePath));
@@ -152,9 +160,9 @@ public class FileRepository : IBotSharpRepository
             }
 
             _routingProfiles = new List<RoutingProfileRecord>();
-            var agentSettings = _services.GetRequiredService<AgentSettings>();
-            var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-            var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
+            //var agentSettings = _services.GetRequiredService<AgentSettings>();
+            //var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+            var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "routing-profile.json");
             if (File.Exists(filePath))
             {
                 _routingProfiles = JsonSerializer.Deserialize<List<RoutingProfileRecord>>(File.ReadAllText(filePath));
@@ -200,12 +208,12 @@ public class FileRepository : IBotSharpRepository
         {
             if (table == nameof(ConversationRecord))
             {
-                var convSettings = _services.GetService<ConversationSetting>();
+                //var convSettings = _services.GetService<ConversationSetting>();
 
                 foreach (var conversation in _conversations)
                 {
                     var dir = Path.Combine(_dbSettings.FileRepository,
-                        convSettings.DataDir,
+                        _conversationSetting.DataDir,
                         conversation.Id);
                     if (!Directory.Exists(dir))
                     {
@@ -217,12 +225,12 @@ public class FileRepository : IBotSharpRepository
             }
             else if (table == nameof(AgentRecord))
             {
-                var agentSettings = _services.GetService<AgentSettings>();
+                //var agentSettings = _services.GetService<AgentSettings>();
 
                 foreach (var agent in _agents)
                 {
                     var dir = Path.Combine(_dbSettings.FileRepository,
-                        agentSettings.DataDir,
+                        _agentSettings.DataDir,
                         agent.Id);
                     if (!Directory.Exists(dir))
                     {
@@ -313,9 +321,9 @@ public class FileRepository : IBotSharpRepository
 
     private string GetAgentDataDir(string agentId)
     {
-        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var dir = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, agentId);
+        //var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+        //var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
@@ -341,5 +349,19 @@ public class FileRepository : IBotSharpRepository
     public List<RoutingProfileRecord> CreateRoutingProfiles(List<RoutingProfileRecord> profiles)
     {
         throw new NotImplementedException();
+    }
+
+    public List<string> GetAgentResponses(string agentId)
+    {
+        var responses = new List<string>();
+        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "responses");
+        if (!Directory.Exists(dir)) return responses;
+
+        foreach (var file in Directory.GetFiles(dir))
+        {
+            responses.Add(File.ReadAllText(file));
+        }
+
+        return responses;
     }
 }

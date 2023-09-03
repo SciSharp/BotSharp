@@ -68,6 +68,8 @@ public static class BotSharpServiceCollectionExtensions
 
         services.AddScoped<Simulator>();
 
+        //services.AddScoped<IBotSharpRepository, FileRepository>();
+
         return services;
     }
 
@@ -82,16 +84,16 @@ public static class BotSharpServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection UsingFileRepository(this IServiceCollection services, IConfiguration config)
-    {
-        services.AddScoped<IBotSharpRepository>(sp =>
-        {
-            var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
-            return new FileRepository(myDatabaseSettings, sp);
-        });
+    //public static IServiceCollection UsingFileRepository(this IServiceCollection services, IConfiguration config)
+    //{
+    //    services.AddScoped<IBotSharpRepository>(sp =>
+    //    {
+    //        var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
+    //        return new FileRepository(myDatabaseSettings, sp);
+    //    });
 
-        return services;
-    }
+    //    return services;
+    //}
 
     public static IApplicationBuilder UseBotSharp(this IApplicationBuilder app)
     {

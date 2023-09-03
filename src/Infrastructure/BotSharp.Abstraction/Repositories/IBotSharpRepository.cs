@@ -24,4 +24,6 @@ public interface IBotSharpRepository
     List<RoutingProfileRecord> CreateRoutingProfiles(List<RoutingProfileRecord> profiles);
     void DeleteRoutingItems();
     void DeleteRoutingProfiles();
+
+    List<string> GetAgentResponses(string agentId);
 }
