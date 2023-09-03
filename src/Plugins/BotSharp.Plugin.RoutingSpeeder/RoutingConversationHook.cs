@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -10,7 +8,6 @@ using System.Threading.Tasks;
 using BotSharp.Plugin.RoutingSpeeder.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Plugin.RoutingSpeeder.Providers;
-using System.Runtime.InteropServices;
 using BotSharp.Abstraction.Agents;
 using System.IO;
 using BotSharp.Abstraction.Routing.Settings;
@@ -59,16 +56,20 @@ public class RoutingConversationHook: ConversationHookBase
             var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
             var rootDataPath = agentService.GetDataDir();
 
-            string rawDataDir = Path.Combine(rootDataPath, "raw_data", $"{message.CurrentAgentId}.txt");
-            var lastThreeDialogs = _dialogs.Where(x => x.Role == AgentRole.User).Select(x => x.Content).Reverse().Take(3).ToArray();
+            string rawDataDir = Path.Combine(rootDataPath, "raw_data", $"agent.{message.CurrentAgentId}.txt");
+            var lastThreeDialogs = _dialogs.Where(x => x.Role == AgentRole.User || x.Role == AgentRole.Assistant)
+                .Select(x => x.Content.Replace('\r', ' ').Replace('\n', ' '))
+                .TakeLast(3)
+                .ToArray();
 
+            var content = string.Join(' ', lastThreeDialogs) + Environment.NewLine;
             if (!File.Exists(rawDataDir))
             {
-                await File.WriteAllLinesAsync(rawDataDir, lastThreeDialogs);
+                await File.WriteAllTextAsync(rawDataDir, content);
             }
             else
             {
-                await File.AppendAllLinesAsync(rawDataDir, lastThreeDialogs);
+                await File.AppendAllTextAsync(rawDataDir, content);
             }
         }
     }

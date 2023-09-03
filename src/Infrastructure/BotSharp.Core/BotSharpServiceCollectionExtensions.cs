@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
+using BotSharp.Core.Instructs;
+using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Routing.Services;
 
@@ -58,7 +60,6 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<Router>();
         services.AddScoped<Reasoner>();
         services.AddScoped<IAgentRouting, Router>();
-        services.AddScoped<Reasoner>();
 
         // Register function callback
         services.AddScoped<IFunctionCallback, RouteToAgentFn>();
@@ -72,6 +73,8 @@ public static class BotSharpServiceCollectionExtensions
         {
             services.AddScoped<IBotSharpRepository, FileRepository>();
         }
+
+        services.AddScoped<IInstructService, InstructService>();
 
         return services;
     }

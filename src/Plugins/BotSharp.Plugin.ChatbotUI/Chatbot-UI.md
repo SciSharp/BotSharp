@@ -1,8 +1,9 @@
 # Chatbot UI
-[Chatbot UI](https://github.com/mckaywrigley/chatbot-ui) is an open source chat UI for AI models.
+[Chatbot UI](https://github.com/SciSharp/chatbot-ui) is an open source chat UI for AI models.
 
 ```shell
-git clone https://github.com/mckaywrigley/chatbot-ui
+git clone https://github.com/SciSharp/chatbot-ui
+cd chatbot-ui (change dir to chatbot-ui to find the package.json)
 npm i
 npm run dev
 ```
