@@ -35,7 +35,6 @@ public class IntentClassifier
     private ClassifierSetting _settings;
 
     private string[] _labels;
-
     public string[] Labels => GetLabels();
 
     private int _numLabels
@@ -67,7 +66,7 @@ public class IntentClassifier
         }
 
         var vector = _services.GetServices<ITextEmbedding>()
-                                 .FirstOrDefault(x => x.GetType().FullName.EndsWith(_knowledgeBaseSettings.TextEmbedding));
+            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_knowledgeBaseSettings.TextEmbedding));
 
         var layers = new List<ILayer>
         {
@@ -89,10 +88,9 @@ public class IntentClassifier
     {
         _model.compile(optimizer: keras.optimizers.Adam(trainingParams.LearningRate),
             loss: keras.losses.SparseCategoricalCrossentropy(),
-            metrics: new[] { "accuracy" }
-            );
+            metrics: new[] { "accuracy" });
 
-        CallbackParams callback_parameters = new CallbackParams
+        var callback_parameters = new CallbackParams
         {
             Model = _model,
             Epochs = trainingParams.Epochs,
@@ -100,9 +98,12 @@ public class IntentClassifier
             Steps = 10
         };
 
-        ICallback earlyStop = new EarlyStopping(callback_parameters, "accuracy");
+        var earlyStop = new EarlyStopping(callback_parameters, "accuracy");
 
-        var callbacks = new List<ICallback>() { earlyStop };
+        var callbacks = new List<ICallback>()
+        {
+            earlyStop
+        };
 
         var weights = LoadWeights(trainingParams.Inference);
 
@@ -120,7 +121,9 @@ public class IntentClassifier
 
     public string LoadWeights(bool inference = true)
     {
-        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+        var agentService = _services.CreateScope()
+            .ServiceProvider
+            .GetRequiredService<IAgentService>();
 
         var weightsFile = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, $"intent-classifier.h5");
 
@@ -129,13 +132,13 @@ public class IntentClassifier
             _model.load_weights(weightsFile);
             _isModelReady = true;
             Console.WriteLine($"Successfully load the weights!");
-
         }
         else
         {
             var logInfo = inference ? "No available weights." : "Will implement model training process and write trained weights into local";
             Console.WriteLine(logInfo);
         }
+
         return weightsFile;
     }
 
@@ -161,10 +164,9 @@ public class IntentClassifier
             throw new Exception($"No training data found! Please put training data in this path: {rootDirectory}");
         }
 
+        // Do embedding and store results
         var vector = _services.GetRequiredService<ITextEmbedding>();
-
         var vectorList = new List<float[]>();
-
         var labelList = new List<string>();
 
         foreach (var filePath in GetFiles())
@@ -195,7 +197,11 @@ public class IntentClassifier
     {
         var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
         string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR);
-        return Directory.GetFiles(rootDirectory).Where(x => Path.GetFileNameWithoutExtension(x).StartsWith(prefix)).OrderBy(x => x).ToArray();
+        return Directory.GetFiles(rootDirectory)
+            .Where(x => Path.GetFileNameWithoutExtension(x)
+            .StartsWith(prefix))
+            .OrderBy(x => x)
+            .ToArray();
     }
 
     public string[] GetLabels()
