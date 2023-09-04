@@ -33,10 +33,8 @@ public class IntentClassifier
     private bool _isModelReady;
     public bool isModelReady => _isModelReady;
     private ClassifierSetting _settings;
-
     private string[] _labels;
     public string[] Labels => GetLabels();
-
     private int _numLabels
     {
         get
@@ -111,7 +109,6 @@ public class IntentClassifier
             batch_size: trainingParams.BatchSize,
             epochs: trainingParams.Epochs,
             callbacks: callbacks,
-            // validation_split: 0.1f,
             shuffle: true);
 
         _model.save_weights(weights);
@@ -155,9 +152,18 @@ public class IntentClassifier
 
     public (NDArray, NDArray) PrepareLoadData()
     {
-        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
-        string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR);
-        string saveLabelDirectory = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, _settings.LABEL_FILE_NAME);
+        var agentService = _services.CreateScope()
+            .ServiceProvider
+            .GetRequiredService<IAgentService>();
+        string rootDirectory = Path.Combine(
+            agentService.GetDataDir(), 
+            _settings.RAW_DATA_DIR
+            );
+        string saveLabelDirectory = Path.Combine(
+            agentService.GetDataDir(), 
+            _settings.MODEL_DIR, 
+            _settings.LABEL_FILE_NAME
+            );
 
         if (!Directory.Exists(rootDirectory))
         {
@@ -171,7 +177,10 @@ public class IntentClassifier
 
         foreach (var filePath in GetFiles())
         {
-            var texts = File.ReadAllLines(filePath, Encoding.UTF8).Select(x => TextClean(x)).ToList();
+            var texts = File.ReadAllLines(filePath, Encoding.UTF8)
+                .Select(x => TextClean(x))
+                .ToList();
+
             vectorList.AddRange(vector.GetVectors(texts));
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             labelList.AddRange(Enumerable.Repeat(fileName, texts.Count).ToList());
@@ -187,16 +196,19 @@ public class IntentClassifier
         for (int i = 0; i < vectorList.Count; i++)
         {
             x[i] = vectorList[i];
-            // y[i] = (float)uniqueLabelList.IndexOf(labelList[i]);
             y[i] = (float)Array.IndexOf(uniqueLabelList, labelList[i]);
         }
+
         return (x, y);
     }
 
     public string[] GetFiles(string prefix = "intent")
     {
-        var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
+        var agentService = _services.CreateScope()
+            .ServiceProvider
+            .GetRequiredService<IAgentService>();
         string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR);
+
         return Directory.GetFiles(rootDirectory)
             .Where(x => Path.GetFileNameWithoutExtension(x)
             .StartsWith(prefix))
@@ -208,8 +220,15 @@ public class IntentClassifier
     {
         if (_labels == null)
         {
-            var agentService = _services.CreateScope().ServiceProvider.GetRequiredService<IAgentService>();
-            string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.MODEL_DIR, _settings.LABEL_FILE_NAME);
+            var agentService = _services.CreateScope()
+                .ServiceProvider
+                .GetRequiredService<IAgentService>();
+            string rootDirectory = Path.Combine(
+                agentService.GetDataDir(), 
+                _settings.MODEL_DIR,
+                _settings.LABEL_FILE_NAME
+                );
+
             var labelText = File.ReadAllLines(rootDirectory);
             _labels = labelText.OrderBy(x => x).ToArray();
         }
@@ -223,9 +242,11 @@ public class IntentClassifier
         // Remove digits
         // To lowercase
         var processedText = Regex.Replace(text, "[AB0-9]", " ");
-        processedText = string.Join("", processedText.Select(c => char.IsPunctuation(c) ? ' ' : c).ToList());
-        processedText = processedText.Replace("  ", " ").ToLower();
-        return processedText;
+        var replacedTextList = processedText.Select(c => char.IsPunctuation(c) ? ' ' : c).ToList();
+
+        return string.Join("", replacedTextList)
+            .Replace("  ", " ")
+            .ToLower();
     }
 
     public string Predict(NDArray vector, float confidenceScore = 0.9f)
@@ -235,8 +256,8 @@ public class IntentClassifier
             InitClassifer();
         }
 
+        // Generate and post-process prediction
         var prob = _model.predict(vector).numpy();
-
         var probLabel = tf.arg_max(prob, -1).numpy().ToArray<long>();
         prob = np.squeeze(prob, axis: 0);
 
@@ -245,9 +266,9 @@ public class IntentClassifier
             return string.Empty;
         }
 
-        var prediction = _labels[probLabel[0]];
+        var labelIndex = probLabel[0];
 
-        return prediction;
+        return _labels[labelIndex];
     }
     public void InitClassifer(bool inference = true)
     {
