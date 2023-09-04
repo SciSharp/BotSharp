@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
-using Tensorflow;
 using static Tensorflow.KerasApi;
 using Tensorflow.Keras.Engine;
 using Tensorflow.NumPy;
@@ -16,11 +15,7 @@ using BotSharp.Plugin.RoutingSpeeder.Providers.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Tensorflow.Keras;
-using System.Numerics;
-using Newtonsoft.Json;
-using Tensorflow.Keras.Layers;
 using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Knowledges;
 
 namespace BotSharp.Plugin.RoutingSpeeder.Providers;
 
@@ -157,13 +152,11 @@ public class IntentClassifier
             .GetRequiredService<IAgentService>();
         string rootDirectory = Path.Combine(
             agentService.GetDataDir(), 
-            _settings.RAW_DATA_DIR
-            );
+            _settings.RAW_DATA_DIR);
         string saveLabelDirectory = Path.Combine(
             agentService.GetDataDir(), 
             _settings.MODEL_DIR, 
-            _settings.LABEL_FILE_NAME
-            );
+            _settings.LABEL_FILE_NAME);
 
         if (!Directory.Exists(rootDirectory))
         {
