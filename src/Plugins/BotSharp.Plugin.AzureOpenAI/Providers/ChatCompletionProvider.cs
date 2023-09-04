@@ -96,6 +96,8 @@ public class ChatCompletionProvider : IChatCompletion
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
+        _logger.LogInformation($"Token Usage: {response.Value.Usage.PromptTokens} prompt + {response.Value.Usage.CompletionTokens} completion = {response.Value.Usage.TotalTokens} total");
+
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
             _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name} => {message.FunctionCall.Arguments}");
