@@ -1,0 +1,3 @@
+# Routing
+
+Routing is an important function that allows multiple Agents to work together to complete enterprise-level tasks. When you apply LLM to your business system, it is inevitable to develop agents with different functions. How to effectively manage so many agents with different responsibilities is a challenging task. From an engineering perspective, each Different teams are responsible for the development of different Agents, and the teams will face the problem of mutual isolation between Agents. The ideal situation is that they can be developed independently but cooperate with each other.

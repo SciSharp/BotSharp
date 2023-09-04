@@ -115,8 +115,20 @@ public class Simulator
 
         RoleDialogModel response = null;
         await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg
-            => response = msg, fn
-            => Task.CompletedTask);
+            => response = msg, async fn
+            => 
+            {
+                // execute function
+                // Save states
+                SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(fn.FunctionArgs));
+
+                var conversationService = _services.GetRequiredService<IConversationService>();
+                // Call functions
+                await conversationService.CallFunctions(fn);
+
+                response = fn;
+                response.Content = fn.ExecutionResult;
+            });
         return response;
     }
 

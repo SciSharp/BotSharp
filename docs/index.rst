@@ -36,7 +36,7 @@ The main documentation for the site is organized into the following sections:
 .. _get-started:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Get Started with BotSharp
    
    quick-start/overview
@@ -45,7 +45,7 @@ The main documentation for the site is organized into the following sections:
 .. _agent-docs:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Agent & Conversation
 
    agent/intro
@@ -55,7 +55,7 @@ The main documentation for the site is organized into the following sections:
 .. _integration-docs:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Interactive Channels
 
    channels/intro
@@ -65,7 +65,7 @@ The main documentation for the site is organized into the following sections:
 .. _knowledge-base:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Knowledge Base
 
    knowledge-base/text-embedding
@@ -76,7 +76,7 @@ The main documentation for the site is organized into the following sections:
 .. _llm:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Prompt Engineering
 
    prompt/prompt
@@ -87,12 +87,13 @@ The main documentation for the site is organized into the following sections:
 .. _architecture-docs:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Architecture:
    
    architecture/authentication
    architecture/plugin
    architecture/hooks
+   architecture/routing
    architecture/data-persistence
 
 If you feel that this project is helpful to you, please Star us on the project, we will be very grateful.
