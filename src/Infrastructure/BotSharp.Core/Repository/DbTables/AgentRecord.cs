@@ -14,6 +14,8 @@ public class AgentRecord : DbRecord, IBotSharpTable
     [MaxLength(512)]
     public string? Description { get; set; }
 
+    public bool IsPublic { get; set; }
+
     [Required]
     public DateTime CreatedDateTime { get; set; }
 

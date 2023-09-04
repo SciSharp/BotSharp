@@ -11,7 +11,7 @@ public partial class AgentService
         var query = from a in db.Agent
                     join ua in db.UserAgent on a.Id equals ua.AgentId
                     join u in db.User on ua.UserId equals u.Id
-                    where ua.UserId == _user.Id || u.ExternalId == _user.Id
+                    where ua.UserId == _user.Id || u.ExternalId == _user.Id || a.IsPublic
                     select a.ToAgent();
         return query.ToList();
     }
