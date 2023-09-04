@@ -4,7 +4,7 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    private async Task CallFunctions(RoleDialogModel msg)
+    public async Task CallFunctions(RoleDialogModel msg)
     {
         var hooks = _services.GetServices<IConversationHook>()
             .OrderBy(x => x.Priority).ToList();
