@@ -40,6 +40,7 @@ public class MongoRepository : IBotSharpRepository
                 Instruction = x.Instruction,
                 Functions = x.Functions,
                 Responses = x.Responses,
+                IsPublic = x.IsPublic,
                 CreatedTime = x.CreatedTime,
                 UpdatedTime = x.UpdatedTime
             }).ToList();
@@ -243,6 +244,7 @@ public class MongoRepository : IBotSharpRepository
                     Instruction = x.Instruction,
                     Functions = x.Functions,
                     Responses = x.Responses,
+                    IsPublic = x.IsPublic,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -256,6 +258,7 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.Instruction, agent.Instruction)
                         .Set(x => x.Functions, agent.Functions)
                         .Set(x => x.Responses, agent.Responses)
+                        .Set(x => x.IsPublic, agent.IsPublic)
                         .Set(x => x.CreatedTime, agent.CreatedTime)
                         .Set(x => x.UpdatedTime, agent.UpdatedTime);
                     _dc.Agents.UpdateOne(filter, update, _options);
@@ -367,6 +370,7 @@ public class MongoRepository : IBotSharpRepository
             Instruction = agent.Instruction,
             Functions = agent.Functions,
             Responses = agent.Responses,
+            IsPublic = agent.IsPublic,
             UpdatedTime = DateTime.UtcNow
         };
 
@@ -378,6 +382,7 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.Instruction, agent.Instruction)
             .Set(x => x.Functions, agent.Functions)
             .Set(x => x.Responses, agent.Responses)
+            .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, agent.UpdatedTime);
 
         _dc.Agents.UpdateOne(filter, update, _options);

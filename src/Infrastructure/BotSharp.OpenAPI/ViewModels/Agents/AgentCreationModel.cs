@@ -9,6 +9,7 @@ public class AgentCreationModel
     public string Instruction { get; set; }
     public List<string> Functions { get; set; }
     public List<string> Responses { get; set; }
+    public bool IsPublic { get; set; }
 
     public Agent ToAgent()
     {
@@ -18,7 +19,8 @@ public class AgentCreationModel
             Description = Description,
             Instruction = Instruction,
             Functions = Functions,
-            Responses = Responses
+            Responses = Responses,
+            IsPublic = IsPublic
         };
     }
 }

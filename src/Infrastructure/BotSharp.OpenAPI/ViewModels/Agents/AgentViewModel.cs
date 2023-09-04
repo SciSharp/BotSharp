@@ -10,6 +10,7 @@ public class AgentViewModel
     public string Instruction { get; set; }
     public List<string> Functions { get; set; }
     public List<string> Responses { get; set; }
+    public bool IsPublic { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 
     public static AgentViewModel FromAgent(Agent agent)
@@ -22,6 +23,7 @@ public class AgentViewModel
             Instruction = agent.Instruction,
             Functions = agent.Functions,
             Responses = agent.Responses,
+            IsPublic= agent.IsPublic,
             UpdatedDateTime = agent.UpdatedDateTime
         };
     }

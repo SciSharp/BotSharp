@@ -33,6 +33,8 @@ public class Agent
     /// </summary>
     public string Knowledges { get; set; }
 
+    public bool IsPublic { get; set; }
+
     public override string ToString()
         => $"{Name} {Id}";
 

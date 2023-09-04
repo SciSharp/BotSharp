@@ -16,6 +16,7 @@ public class AgentRecord : RecordBase
     public List<string> Responses { get; set; }
 
     public string Samples { get; set; }
+    public bool IsPublic { get; set; }
 
     [Required]
     public DateTime CreatedTime { get; set; }
@@ -32,6 +33,8 @@ public class AgentRecord : RecordBase
             Description = agent.Description,
             Instruction = agent.Instruction,
             Functions = agent.Functions,
+            Responses = agent.Responses,
+            IsPublic = agent.IsPublic
         };
     }
 
@@ -44,6 +47,8 @@ public class AgentRecord : RecordBase
             Description = Description,
             Instruction = Instruction,
             Functions = Functions,
+            Responses = Responses,
+            IsPublic = IsPublic,
             CreatedDateTime = CreatedTime,
             UpdatedDateTime = UpdatedTime
         };
