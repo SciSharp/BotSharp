@@ -31,6 +31,12 @@ public class MongoDbContext
     public IMongoCollection<ConversationCollection> Conversations
         => Database.GetCollection<ConversationCollection>("OneBrainConversations");
 
+    public IMongoCollection<ConversationDialogCollection> ConversationDialogs
+        => Database.GetCollection<ConversationDialogCollection>("OneBrainConversationDialogs");
+
+    public IMongoCollection<ConversationStatesCollection> ConversationStates
+        => Database.GetCollection<ConversationStatesCollection>("OneBrainConversationStates");
+
     public IMongoCollection<UserCollection> Users
         => Database.GetCollection<UserCollection>("OneBrainUsers");
 

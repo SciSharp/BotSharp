@@ -16,7 +16,7 @@ public class RoutingController : ControllerBase, IApiAdapter
         _routingService = routingService;
     }
 
-    [HttpPost("/routing-items")]
+    [HttpPost("/routing/items")]
     public async Task<List<RoutingItemViewModel>> CreateRoutingItems(List<RoutingItemCreationModel> routingItems)
     {
         var items = routingItems?.Select(x => x.ToRoutingItem())?.ToList() ?? new List<RoutingItem>();
@@ -24,7 +24,7 @@ public class RoutingController : ControllerBase, IApiAdapter
         return savedItems.Select(x => RoutingItemViewModel.FromRoutingItem(x)).ToList();
     }
 
-    [HttpPost("/routing-profiles")]
+    [HttpPost("/routing/profiles")]
     public async Task<List<RoutingProfileViewModel>> CreateRoutingProfiles(List<RoutingProfileCreationModel> routingProfiles)
     {
         var profiles = routingProfiles?.Select(x => x.ToRoutingProfile())?.ToList() ?? new List<RoutingProfile>();
@@ -32,13 +32,13 @@ public class RoutingController : ControllerBase, IApiAdapter
         return savedProfiles.Select(x => RoutingProfileViewModel.FromRoutingProfile(x)).ToList();
     }
 
-    [HttpDelete("/routing-items")]
+    [HttpDelete("/routing/items")]
     public async Task RemoveRoutingItems()
     {
         await _routingService.DeleteRoutingItems();
     }
 
-    [HttpDelete("/routing-profiles")]
+    [HttpDelete("/routing/profiles")]
     public async Task RemoveRoutingProfiles()
     {
         await _routingService.DeleteRoutingProfiles();

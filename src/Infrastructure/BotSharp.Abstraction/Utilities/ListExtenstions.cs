@@ -1,8 +1,8 @@
 namespace BotSharp.Abstraction.Utilities;
 
-public static class ListExtenstion
+public static class ListExtenstions
 {
-    public static bool IsEmpty<T>(this IEnumerable<T> strList)
+    public static bool IsNullOrEmpty<T>(this IEnumerable<T> strList)
     {
         return strList == null || !strList.Any();
     }

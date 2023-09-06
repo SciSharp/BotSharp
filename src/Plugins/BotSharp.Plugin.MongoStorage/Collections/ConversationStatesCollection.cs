@@ -2,12 +2,10 @@ using BotSharp.Abstraction.Repositories.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class ConversationCollection : MongoBase
+public class ConversationStatesCollection : MongoBase
 {
-    public Guid AgentId { get; set; }
-    public Guid UserId { get; set; }
-    public string Title { get; set; }
-
+    public Guid ConversationId { get; set; }
+    public List<KeyValueModel> State { get; set; }
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
 }

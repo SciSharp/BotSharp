@@ -43,10 +43,10 @@ public class AgentUpdateModel
         if (Samples != null)
             agent.Samples = Samples;
 
-        if (!Functions.IsEmpty())
+        if (!Functions.IsNullOrEmpty())
             agent.Functions = Functions;
 
-        if (!Responses.IsEmpty())
+        if (!Responses.IsNullOrEmpty())
             agent.Responses = Responses;
 
         return agent;

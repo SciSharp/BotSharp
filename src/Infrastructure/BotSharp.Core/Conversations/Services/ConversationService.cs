@@ -39,11 +39,6 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> GetConversation(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        //var query = from sess in db.Conversation
-        //            where sess.Id == id
-        //            orderby sess.CreatedTime descending
-        //            select sess.ToConversation();
-
         var conversation = db.GetConversation(id);
         return conversation?.ToConversation();
     }
@@ -51,11 +46,6 @@ public partial class ConversationService : IConversationService
     public async Task<List<Conversation>> GetConversations()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        //var query = from sess in db.Conversation
-        //            where sess.UserId == _user.Id
-        //            orderby sess.CreatedTime descending
-        //            select sess.ToConversation();
-
         var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
         var conversations = db.GetConversations(user?.Id);
         return conversations.Select(x => x.ToConversation()).OrderByDescending(x => x.CreatedTime).ToList();

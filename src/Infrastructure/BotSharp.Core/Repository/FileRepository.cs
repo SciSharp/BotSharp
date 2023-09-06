@@ -311,7 +311,7 @@ public class FileRepository : IBotSharpRepository
             File.WriteAllText(instructionFile, agent.Instruction);
         }
 
-        if (!agent.Functions.IsEmpty())
+        if (!agent.Functions.IsNullOrEmpty())
         {
             var functionFile = Path.Combine(dir, "functions.json");
             var functions = new List<string>();
