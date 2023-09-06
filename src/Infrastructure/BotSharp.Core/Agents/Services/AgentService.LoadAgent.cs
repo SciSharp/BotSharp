@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Templating;
-using BotSharp.Core.Templating;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -56,9 +55,8 @@ public partial class AgentService
 
     private void PopulateState(Dictionary<string, object> dict)
     {
-        var stateService = _services.GetRequiredService<IConversationStateService>();
-        var state = stateService.Load();
-        foreach (var t in state)
+        var conv = _services.GetRequiredService<IConversationService>();
+        foreach (var t in conv.States.GetStates())
         {
             dict[t.Key] = t.Value;
         }

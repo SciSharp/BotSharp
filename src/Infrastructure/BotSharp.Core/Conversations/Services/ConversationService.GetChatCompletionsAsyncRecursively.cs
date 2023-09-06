@@ -10,7 +10,6 @@ public partial class ConversationService
     int currentRecursiveDepth = 0;
 
     private async Task<bool> GetChatCompletionsAsyncRecursively(IChatCompletion chatCompletion,
-        string conversationId,
         Agent agent, 
         List<RoleDialogModel> wholeDialogs,
         Func<RoleDialogModel, Task> onMessageReceived,
@@ -43,7 +42,7 @@ public partial class ConversationService
             await HandleAssistantMessage(msg, onMessageReceived);
 
             // Add to dialog history
-            _storage.Append(conversationId, agent.Id, msg);
+            _storage.Append(_conversationId, agent.Id, msg);
         }, async fn =>
         {
             var preAgentId = agent.Id;
@@ -72,7 +71,6 @@ public partial class ConversationService
                 wholeDialogs.Add(fn);
 
                 await GetChatCompletionsAsyncRecursively(chatCompletion,
-                    conversationId,
                     agent,
                     wholeDialogs,
                     onMessageReceived,
@@ -103,7 +101,6 @@ public partial class ConversationService
                 wholeDialogs.Add(fn);
 
                 await GetChatCompletionsAsyncRecursively(chatCompletion,
-                    conversationId,
                     agent,
                     wholeDialogs,
                     onMessageReceived,

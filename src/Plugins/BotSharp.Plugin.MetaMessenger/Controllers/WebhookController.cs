@@ -67,8 +67,6 @@ public class WebhookController : ControllerBase
             // received message
             if (req.Entry[0].Messaging[0].Message != null)
             {
-                var conv = _services.GetRequiredService<IConversationService>();
-
                 var reply = new QuickReplyMessage();
                 var senderId = req.Entry[0].Messaging[0].Sender.Id;
                 var input = req.Entry[0].Messaging[0].Message.Text;
@@ -99,7 +97,10 @@ public class WebhookController : ControllerBase
                 });
 
                 // Go to LLM
-                var result = await conv.SendMessage(agentId, senderId, new RoleDialogModel("user", input)
+                var conv = _services.GetRequiredService<IConversationService>();
+                conv.SetConversationId(senderId, "messenger");
+
+                var result = await conv.SendMessage(agentId, new RoleDialogModel("user", input)
                 {
                     Channel = "messenger"
                 }, async msg =>

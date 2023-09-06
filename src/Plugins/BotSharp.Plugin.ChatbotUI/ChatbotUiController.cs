@@ -16,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using Microsoft.AspNetCore.Authorization;
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Agents.Enums;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
@@ -62,18 +61,19 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
+        var channel = "webchat";
         var conversation = input.Messages
             .Where(x => x.Role == AgentRole.User)
             .Select(x => new RoleDialogModel(x.Role, x.Content)
             {
-                Channel = "webchat"
-            })
-            .Last();
+                Channel = channel
+            }).Last();
 
-        var conversationService = _services.GetRequiredService<IConversationService>();
+        var conv = _services.GetRequiredService<IConversationService>();
+        conv.SetConversationId(input.ConversationId, channel);
+        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
 
-        var result = await conversationService.SendMessage(input.AgentId, 
-            input.ConversationId,
+        var result = await conv.SendMessage(input.AgentId, 
             conversation, 
             async msg => 
                 await OnChunkReceived(outputStream, msg),

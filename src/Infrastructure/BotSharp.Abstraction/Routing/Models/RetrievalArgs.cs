@@ -11,8 +11,8 @@ public class RetrievalArgs : RoutingArgs
     [JsonPropertyName("answer")]
     public string Answer { get; set; }
 
-    [JsonPropertyName("reason")]
-    public string Reason { get; set; }
+    [JsonPropertyName("response")]
+    public string Response { get; set; }
 
     [JsonPropertyName("args")]
     public JsonDocument Arguments { get; set; }

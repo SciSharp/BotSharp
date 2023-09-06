@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -10,7 +9,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
-    private ConversationState _state;
+    private ConversationState _states;
     private MyDatabaseSettings _dbSettings;
     private string _conversationId;
     private string _file;
@@ -22,16 +21,17 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _logger = logger;
         _services = services;
         _dbSettings = dbSettings;
+        _states = new ConversationState();
     }
 
     public void SetState(string name, string value)
     {
         var hooks = _services.GetServices<IConversationHook>();
-        string preValue = _state.ContainsKey(name) ? _state[name] : "";
-        if (!_state.ContainsKey(name) || _state[name] != value)
+        string preValue = _states.ContainsKey(name) ? _states[name] : "";
+        if (!_states.ContainsKey(name) || _states[name] != value)
         {
             var currentValue = value;
-            _state[name] = currentValue;
+            _states[name] = currentValue;
             _logger.LogInformation($"Set state: {name} = {value}");
             foreach (var hook in hooks)
             {
@@ -40,24 +40,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
     }
 
-    public void SetConversation(string conversationId)
+    public ConversationState Load(string conversationId)
     {
         _conversationId = conversationId;
-    }
-
-    public ConversationState Load()
-    {
-        if (_state != null)
-        {
-            return _state;
-        }
-
-        _state = new ConversationState();
-
-        if (_conversationId == null)
-        {
-            return _state;
-        }
 
         _file = GetStorageFile(_conversationId);
 
@@ -66,18 +51,19 @@ public class ConversationStateService : IConversationStateService, IDisposable
             var dict = File.ReadAllLines(_file);
             foreach (var line in dict)
             {
-                _state[line.Split('=')[0]] = line.Split('=')[1];
+                _states[line.Split('=')[0]] = line.Split('=')[1];
+                _logger.LogInformation($"Loaded state: {line}");
             }
         }
 
-        _logger.LogInformation($"Loaded state {_conversationId}");
+        _logger.LogInformation($"Loaded conversation states: {_conversationId}");
         var hooks = _services.GetServices<IConversationHook>();
         foreach (var hook in hooks)
         {
-            hook.OnStateLoaded(_state).Wait();
+            hook.OnStateLoaded(_states).Wait();
         }
 
-        return _state;
+        return _states;
     }
 
     public void Save()
@@ -89,7 +75,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         var states = new List<string>();
         
-        foreach (var dic in _state)
+        foreach (var dic in _states)
         {
             states.Add($"{dic.Key}={dic.Value}");
         }
@@ -112,13 +98,16 @@ public class ConversationStateService : IConversationStateService, IDisposable
         return Path.Combine(dir, "state.dict");
     }
 
+    public ConversationState GetStates()
+        => _states;
+
     public string GetState(string name)
     {
-        if (!_state.ContainsKey(name))
+        if (!_states.ContainsKey(name))
         {
-            _state[name] = "";
+            _states[name] = "";
         }
-        return _state[name];
+        return _states[name];
     }
 
     public void Dispose()

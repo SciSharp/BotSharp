@@ -7,7 +7,8 @@ public partial class ConversationService
     public async Task CallFunctions(RoleDialogModel msg)
     {
         var hooks = _services.GetServices<IConversationHook>()
-            .OrderBy(x => x.Priority).ToList();
+            .OrderBy(x => x.Priority)
+            .ToList();
 
         // Invoke functions
         var functions = _services.GetServices<IFunctionCallback>()
