@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>10</LangVersion>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <OutputPath>..\..\packages</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

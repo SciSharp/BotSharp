@@ -1,7 +1,6 @@
-using BotSharp.Abstraction.VectorStorage;
 using Microsoft.Extensions.Configuration;
 
-namespace BotSharp.Core.Plugins.MemVecDb;
+namespace BotSharp.Plugin.KnowledgeBase.MemVecDb;
 
 public class MemVecDbPlugin : IBotSharpPlugin
 {

@@ -1,0 +1,8 @@
+<Project>
+ <PropertyGroup>
+   <LangVersion>10.0</LangVersion>
+   <OutputPath>..\..\..\packages</OutputPath>
+   <PackageVersion>0.11.0</PackageVersion>
+   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+ </PropertyGroup>
+</Project>

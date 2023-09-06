@@ -22,7 +22,7 @@ public class TextCompletionProvider : ITextCompletion
         var llama = _services.GetRequiredService<LlamaAiModel>();
         llama.LoadModel();
 
-        var executor = new InstructExecutor(llama.Model);
+        var executor = new InstructExecutor(llama.Model.CreateContext(llama.Params));
         var inferenceParams = new InferenceParams() { Temperature = 0.5f, MaxTokens = 128 };
 
         string totalResponse = "";

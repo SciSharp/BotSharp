@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <LangVersion>10.0</LangVersion>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <VersionPrefix>0.10.4</VersionPrefix>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(PackageVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
   </PropertyGroup>
   
   <PropertyGroup Label="Globals">
@@ -79,7 +79,6 @@
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.2.1" />
     <PackageReference Include="Fluid.Core" Version="2.4.0" />
     <PackageReference Include="TensorFlow.Keras" Version="0.11.2" />
-    <PackageReference Include="PdfPig" Version="0.1.9-alpha-20230806-4a480" />
   </ItemGroup>
 
   <ItemGroup>

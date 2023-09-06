@@ -3,12 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>10</LangVersion>
-    <VersionPrefix>0.9.0</VersionPrefix>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(PackageVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LLamaSharp" Version="0.4.2-preview" />
+    <PackageReference Include="LLamaSharp" Version="0.5.1" />
   </ItemGroup>
 
   <ItemGroup>

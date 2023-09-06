@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 
-namespace BotSharp.Core.Plugins;
+namespace BotSharp.Core.Infrastructures;
 
 public class PluginLoader
 {

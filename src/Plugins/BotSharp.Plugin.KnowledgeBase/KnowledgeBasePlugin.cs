@@ -1,8 +1,6 @@
-using BotSharp.Abstraction.Knowledges.Settings;
-using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.Extensions.Configuration;
 
-namespace BotSharp.Core.Plugins.Knowledges;
+namespace BotSharp.Plugin.KnowledgeBase;
 
 public class KnowledgeBasePlugin : IBotSharpPlugin
 {
@@ -14,5 +12,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
 
         services.AddScoped<ITextChopper, TextChopperService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
+        services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
     }
 }

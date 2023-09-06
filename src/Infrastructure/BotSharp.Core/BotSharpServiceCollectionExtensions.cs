@@ -1,11 +1,9 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Functions;
 using BotSharp.Core.Hooks;
 using BotSharp.Core.Routing;
 using BotSharp.Core.Templating;
-using BotSharp.Core.Plugins.Knowledges.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using BotSharp.Abstraction.Routing.Settings;
@@ -122,7 +120,5 @@ public static class BotSharpServiceCollectionExtensions
         loader.Load();
 
         services.AddSingleton(loader);
-
-        services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
     }
 }
