@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
-namespace BotSharp.Core.Plugins.Knowledges.Services;
+namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public class PigPdf2TextConverter : IPdf2TextConverter
 {

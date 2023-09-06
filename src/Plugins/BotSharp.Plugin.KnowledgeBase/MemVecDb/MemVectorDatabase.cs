@@ -1,9 +1,7 @@
-using BotSharp.Abstraction.VectorStorage;
-using Tensorflow;
 using Tensorflow.NumPy;
 using static Tensorflow.Binding;
 
-namespace BotSharp.Core.Plugins.MemVecDb;
+namespace BotSharp.Plugin.KnowledgeBase.MemVecDb;
 
 public class MemVectorDatabase : IVectorDb
 {

@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Plugins.MemVecDb;
+namespace BotSharp.Plugin.KnowledgeBase.MemVecDb;
 
 public class VecRecord
 {

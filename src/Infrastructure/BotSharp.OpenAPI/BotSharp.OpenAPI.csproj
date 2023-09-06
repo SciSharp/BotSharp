@@ -4,7 +4,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <VersionPrefix>0.10.1</VersionPrefix>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(PackageVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

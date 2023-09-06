@@ -28,17 +28,6 @@ public partial class ConversationService
 
         _storage.Append(_conversationId, agent.Id, lastDialog);
 
-        // Get relevant domain knowledge
-        /*if (_settings.EnableKnowledgeBase)
-        {
-            var knowledge = _services.GetRequiredService<IKnowledgeService>();
-            agent.Knowledges = await knowledge.GetKnowledges(new KnowledgeRetrievalModel
-            {
-                AgentId = agentId,
-                Question = string.Join("\n", wholeDialogs.Select(x => x.Content))
-            });
-        }*/
-
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
         // Before chat completion hook

@@ -3,8 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>10</LangVersion>
-    <VersionPrefix>0.10.2</VersionPrefix>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(PackageVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

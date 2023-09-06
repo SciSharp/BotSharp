@@ -1,9 +1,6 @@
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Knowledges.Models;
 using Microsoft.AspNetCore.Http;
-using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig;
-using BotSharp.Core.Plugins.Knowledges;
 using BotSharp.Abstraction.Knowledges.Settings;
 
 namespace BotSharp.OpenAPI.Controllers;
