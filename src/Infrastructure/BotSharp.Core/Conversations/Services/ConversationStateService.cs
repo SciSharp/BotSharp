@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Models;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -10,21 +12,21 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private ConversationState _states;
-    private MyDatabaseSettings _dbSettings;
+    private BotSharpDatabaseSettings _dbSettings;
     private string _conversationId;
     private string _file;
+    private readonly IBotSharpRepository _db;
     private List<KeyValueModel> _savedStates;
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
         IServiceProvider services, 
         BotSharpDatabaseSettings dbSettings,
-        AgentSettings agentSettings,
-        IUserIdentity user,
         IBotSharpRepository db)
     {
         _logger = logger;
         _services = services;
         _dbSettings = dbSettings;
+        _db = db;
         _states = new ConversationState();
     }
 
@@ -46,24 +48,19 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public ConversationState Load(string conversationId)
     {
-        _conversationId = conversationId;
-    }
-
-    public ConversationState Load()
-    {
-        if (_state != null)
+        if (_states != null)
         {
-            return _state;
+            return _states;
         }
 
-        _state = new ConversationState();
         _savedStates = _db.GetConversationState(_conversationId);
 
         if (_savedStates != null)
         {
             foreach (var data in _savedStates)
             {
-                _state[data.Key] = data.Value;
+                _states[data.Key] = data.Value;
+                _logger.LogInformation($"Loaded state: {data.Key}={data.Value}");
             }
         }
 
@@ -86,7 +83,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         var states = new List<KeyValueModel>();
 
-        foreach (var dic in _state)
+        foreach (var dic in _states)
         {
             states.Add(new KeyValueModel(dic.Key, dic.Value));
         }

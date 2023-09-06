@@ -1,3 +1,6 @@
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Records;
+
 namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
@@ -12,7 +15,8 @@ public partial class ConversationService : IConversationService
 
     public IConversationStateService States => _state;
 
-    public ConversationService(IServiceProvider services,
+    public ConversationService(
+        IServiceProvider services,
         IUserIdentity user,
         ConversationSetting settings,
         IConversationStorage storage,
