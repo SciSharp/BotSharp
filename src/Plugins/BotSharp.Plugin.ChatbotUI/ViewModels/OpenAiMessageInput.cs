@@ -14,6 +14,10 @@ public class OpenAiMessageInput
     public int MaxTokens { get; set; } = 4000;
     public bool Stream { get; set; } = true;
     public float Temperature { get; set; } = 0.9f;
+    /// <summary>
+    /// Conversation states from input
+    /// </summary>
+    public List<string> States { get; set; } = new List<string>();
 
     public override string ToString()
     {

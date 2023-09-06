@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
-
 namespace BotSharp.Abstraction.Conversations;
 
 /// <summary>
@@ -7,9 +5,9 @@ namespace BotSharp.Abstraction.Conversations;
 /// </summary>
 public interface IConversationStateService
 {
-    void SetConversation(string conversationId);
-    ConversationState Load();
+    ConversationState Load(string conversationId);
     string GetState(string name);
+    ConversationState GetStates();
     void SetState(string name, string value);
     void CleanState();
     void Save();

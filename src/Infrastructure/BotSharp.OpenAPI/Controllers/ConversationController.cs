@@ -44,11 +44,13 @@ public class ConversationController : ControllerBase, IApiAdapter
         [FromQuery] string? channel = "openapi")
     {
         var conv = _services.GetRequiredService<IConversationService>();
-
+        conv.SetConversationId(conversationId, channel);
+        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
+        
         var response = new MessageResponseModel();
         var stackMsg = new List<RoleDialogModel>();
 
-        await conv.SendMessage(agentId, conversationId,
+        await conv.SendMessage(agentId,
             new RoleDialogModel("user", input.Text)
             {
                 Channel = channel

@@ -1,10 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Conversations.Settings;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Records;
-using MongoDB.Bson;
-using System.IO;
-
 namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
@@ -14,17 +7,23 @@ public partial class ConversationService : IConversationService
     private readonly IUserIdentity _user;
     private readonly ConversationSetting _settings;
     private readonly IConversationStorage _storage;
+    private readonly IConversationStateService _state;
+    private string _conversationId;
+
+    public IConversationStateService States => _state;
 
     public ConversationService(IServiceProvider services,
         IUserIdentity user,
         ConversationSetting settings,
         IConversationStorage storage,
+        IConversationStateService state,
         ILogger<ConversationService> logger)
     {
         _services = services;
         _user = user;
         _settings = settings;
         _storage = storage;
+        _state = state;
         _logger = logger;
     }
 
@@ -80,11 +79,19 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(string conversationId, int lastCount = 20)
+    public List<RoleDialogModel> GetDialogHistory(int lastCount = 20)
     {
-        var dialogs = _storage.GetDialogs(conversationId);
+        var dialogs = _storage.GetDialogs(_conversationId);
         return dialogs
             .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-8))
-            .TakeLast(lastCount).ToList();
+            .TakeLast(lastCount)
+            .ToList();
+    }
+
+    public void SetConversationId(string conversationId, string channel)
+    {
+        _conversationId = conversationId;
+        _state.Load(_conversationId);
+        _state.SetState("channel", channel);
     }
 }

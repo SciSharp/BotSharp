@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Core.Routing;
@@ -9,30 +8,13 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    public async Task<bool> SendMessage(string agentId, string conversationId,
+    public async Task<bool> SendMessage(string agentId, 
         RoleDialogModel lastDialog,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
-        var converation = await GetConversation(conversationId);
-
-        // Create conversation if this conversation not exists
-        if (converation == null)
-        {
-            var sess = new Conversation
-            {
-                Id = conversationId,
-                AgentId = agentId
-            };
-            converation = await NewConversation(sess);
-        }
-
-        // conversation state
-        var stateService = _services.GetRequiredService<IConversationStateService>();
-        stateService.SetConversation(conversationId);
-        stateService.Load();
-        stateService.SetState("channel", lastDialog.Channel);
+        var conversation = await GetConversationRecord(agentId);
 
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
@@ -41,10 +23,10 @@ public partial class ConversationService
 
         lastDialog.CurrentAgentId = agent.Id;
         
-        var wholeDialogs = GetDialogHistory(conversationId);
+        var wholeDialogs = GetDialogHistory();
         wholeDialogs.Add(lastDialog);
 
-        _storage.Append(conversationId, agent.Id, lastDialog);
+        _storage.Append(_conversationId, agent.Id, lastDialog);
 
         // Get relevant domain knowledge
         /*if (_settings.EnableKnowledgeBase)
@@ -63,7 +45,7 @@ public partial class ConversationService
         foreach (var hook in hooks)
         {
             hook.SetAgent(agent)
-                .SetConversation(converation);
+                .SetConversation(conversation);
 
             await hook.OnDialogsLoaded(wholeDialogs);
             await hook.BeforeCompletion(lastDialog);
@@ -73,7 +55,7 @@ public partial class ConversationService
             {
                 var response = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content);
                 await onMessageReceived(response);
-                _storage.Append(conversationId, agent.Id, response);
+                _storage.Append(_conversationId, agent.Id, response);
                 return true;
             }
         }
@@ -114,13 +96,15 @@ public partial class ConversationService
             simulator.Dialogs.ForEach(x => 
             {
                 wholeDialogs.Add(x);
-                _storage.Append(conversationId, agent.Id, x);
+                if (x.Content != null)
+                {
+                    _storage.Append(_conversationId, agent.Id, x);
+                }
             });
         }
 
         var chatCompletion = GetChatCompletion();
         var result = await GetChatCompletionsAsyncRecursively(chatCompletion,
-            conversationId,
             agent,
             wholeDialogs,
             onMessageReceived,
@@ -128,6 +112,24 @@ public partial class ConversationService
             onFunctionExecuted);
 
         return result;
+    }
+
+    private async Task<Conversation> GetConversationRecord(string agentId)
+    {
+        var converation = await GetConversation(_conversationId);
+
+        // Create conversation if this conversation not exists
+        if (converation == null)
+        {
+            var sess = new Conversation
+            {
+                Id = _conversationId,
+                AgentId = agentId
+            };
+            converation = await NewConversation(sess);
+        }
+
+        return converation;
     }
 
     private void SaveStateByArgs(string args)

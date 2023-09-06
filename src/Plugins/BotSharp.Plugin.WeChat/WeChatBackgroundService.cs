@@ -48,7 +48,10 @@ namespace BotSharp.Plugin.WeChat
 
             var conversationService = scoped.GetRequiredService<IConversationService>();
 
-            var latestConversationId = (await conversationService.GetConversations()).OrderByDescending(_ => _.CreatedTime).FirstOrDefault()?.Id;
+            var latestConversationId = (await conversationService.GetConversations())
+                .OrderByDescending(_ => _.CreatedTime)
+                .FirstOrDefault()?.Id;
+            conversationService.SetConversationId(latestConversationId, "wechat");
 
             latestConversationId ??= (await conversationService.NewConversation(new Conversation()
             {
@@ -56,7 +59,7 @@ namespace BotSharp.Plugin.WeChat
                 AgentId = AgentId
             }))?.Id;
 
-            var result = await conversationService.SendMessage(AgentId, latestConversationId, new RoleDialogModel("user", message), async msg =>
+            var result = await conversationService.SendMessage(AgentId, new RoleDialogModel("user", message), async msg =>
             {
                 await ReplyTextMessageAsync(openid, msg.Content);
             }, async functionExecuting =>

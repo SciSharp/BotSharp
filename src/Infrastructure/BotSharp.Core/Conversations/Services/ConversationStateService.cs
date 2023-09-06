@@ -1,8 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Models;
-using BotSharp.Abstraction.Repositories.Records;
-using MongoDB.Bson;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -14,11 +9,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
-    private readonly AgentSettings _agentSettings;
-    private readonly IUserIdentity _user;
-    private readonly IBotSharpRepository _db;
-    private ConversationState _state;
-    private BotSharpDatabaseSettings _dbSettings;
+    private ConversationState _states;
+    private MyDatabaseSettings _dbSettings;
     private string _conversationId;
     private string _file;
     private List<KeyValueModel> _savedStates;
@@ -33,19 +25,17 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _logger = logger;
         _services = services;
         _dbSettings = dbSettings;
-        _agentSettings = agentSettings;
-        _user = user;
-        _db = db;
+        _states = new ConversationState();
     }
 
     public void SetState(string name, string value)
     {
         var hooks = _services.GetServices<IConversationHook>();
-        string preValue = _state.ContainsKey(name) ? _state[name] : "";
-        if (!_state.ContainsKey(name) || _state[name] != value)
+        string preValue = _states.ContainsKey(name) ? _states[name] : "";
+        if (!_states.ContainsKey(name) || _states[name] != value)
         {
             var currentValue = value;
-            _state[name] = currentValue;
+            _states[name] = currentValue;
             _logger.LogInformation($"Set state: {name} = {value}");
             foreach (var hook in hooks)
             {
@@ -54,7 +44,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
     }
 
-    public void SetConversation(string conversationId)
+    public ConversationState Load(string conversationId)
     {
         _conversationId = conversationId;
     }
@@ -77,14 +67,14 @@ public class ConversationStateService : IConversationStateService, IDisposable
             }
         }
 
-        _logger.LogInformation($"Loaded state {_conversationId}");
+        _logger.LogInformation($"Loaded conversation states: {_conversationId}");
         var hooks = _services.GetServices<IConversationHook>();
         foreach (var hook in hooks)
         {
-            hook.OnStateLoaded(_state).Wait();
+            hook.OnStateLoaded(_states).Wait();
         }
 
-        return _state;
+        return _states;
     }
 
     public void Save()
@@ -126,13 +116,16 @@ public class ConversationStateService : IConversationStateService, IDisposable
         return stateFile;
     }
 
+    public ConversationState GetStates()
+        => _states;
+
     public string GetState(string name)
     {
-        if (!_state.ContainsKey(name))
+        if (!_states.ContainsKey(name))
         {
-            _state[name] = "";
+            _states[name] = "";
         }
-        return _state[name];
+        return _states[name];
     }
 
     public void Dispose()
