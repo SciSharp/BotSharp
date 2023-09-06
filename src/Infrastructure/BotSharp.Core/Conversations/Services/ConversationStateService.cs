@@ -55,7 +55,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         _savedStates = _db.GetConversationState(_conversationId);
 
-        if (_savedStates != null)
+        if (!_savedStates.IsNullOrEmpty())
         {
             foreach (var data in _savedStates)
             {
