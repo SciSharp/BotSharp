@@ -7,7 +7,6 @@ using Tensorflow.Keras.Engine;
 using Tensorflow.NumPy;
 using static Tensorflow.Binding;
 using Tensorflow.Keras.Callbacks;
-using System.Text.RegularExpressions;
 using BotSharp.Plugin.RoutingSpeeder.Settings;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Knowledges.Settings;
@@ -151,11 +150,11 @@ public class IntentClassifier
             .ServiceProvider
             .GetRequiredService<IAgentService>();
         string rootDirectory = Path.Combine(
-            agentService.GetDataDir(), 
+            agentService.GetDataDir(),
             _settings.RAW_DATA_DIR);
         string saveLabelDirectory = Path.Combine(
-            agentService.GetDataDir(), 
-            _settings.MODEL_DIR, 
+            agentService.GetDataDir(),
+            _settings.MODEL_DIR,
             _settings.LABEL_FILE_NAME);
 
         if (!Directory.Exists(rootDirectory))
@@ -170,18 +169,15 @@ public class IntentClassifier
 
         foreach (var filePath in GetFiles())
         {
-            var texts = File.ReadAllLines(filePath, Encoding.UTF8)
-                .Select(x => TextClean(x))
-                .ToList();
+            var texts = File.ReadAllLines(filePath, Encoding.UTF8).ToList();
 
             vectorList.AddRange(vector.GetVectors(texts));
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             labelList.AddRange(Enumerable.Repeat(fileName, texts.Count).ToList());
         }
 
-        // Write label into local file
+        // Sort label to keep the same order
         var uniqueLabelList = labelList.Distinct().OrderBy(x => x).ToArray();
-        File.WriteAllLines(saveLabelDirectory, uniqueLabelList);
 
         var x = np.zeros((vectorList.Count, vector.Dimension), dtype: np.float32);
         var y = np.zeros((vectorList.Count, 1), dtype: np.float32);
@@ -195,12 +191,19 @@ public class IntentClassifier
         return (x, y);
     }
 
-    public string[] GetFiles(string prefix = "intent")
+    public string[] GetFiles(string prefix = "")
     {
         var agentService = _services.CreateScope()
             .ServiceProvider
             .GetRequiredService<IAgentService>();
         string rootDirectory = Path.Combine(agentService.GetDataDir(), _settings.RAW_DATA_DIR);
+
+        if (string.IsNullOrEmpty(prefix))
+        {
+            return Directory.GetFiles(rootDirectory)
+            .OrderBy(x => Path.GetFileName(x).Split(".")[^2])
+            .ToArray();
+        }
 
         return Directory.GetFiles(rootDirectory)
             .Where(x => Path.GetFileNameWithoutExtension(x)
@@ -216,30 +219,22 @@ public class IntentClassifier
             var agentService = _services.CreateScope()
                 .ServiceProvider
                 .GetRequiredService<IAgentService>();
-            string rootDirectory = Path.Combine(
-                agentService.GetDataDir(), 
+
+            string[] labels = GetFiles()
+                .Select(x => Path.GetFileName(x).Split(".")[^2])
+                .ToArray();
+
+            string writePath = Path.Combine(
+                agentService.GetDataDir(),
                 _settings.MODEL_DIR,
-                _settings.LABEL_FILE_NAME
-                );
+                _settings.LABEL_FILE_NAME);
 
-            var labelText = File.ReadAllLines(rootDirectory);
-            _labels = labelText.OrderBy(x => x).ToArray();
+            _labels = labels.OrderBy(x => x).ToArray();
+
+            // Write labels into the local txt file
+            File.WriteAllLines(writePath, _labels);
         }
-
         return _labels;
-    }
-
-    public string TextClean(string text)
-    {
-        // Remove punctuation
-        // Remove digits
-        // To lowercase
-        var processedText = Regex.Replace(text, "[AB0-9]", " ");
-        var replacedTextList = processedText.Select(c => char.IsPunctuation(c) ? ' ' : c).ToList();
-
-        return string.Join("", replacedTextList)
-            .Replace("  ", " ")
-            .ToLower();
     }
 
     public string Predict(NDArray vector, float confidenceScore = 0.9f)
@@ -260,7 +255,6 @@ public class IntentClassifier
         }
 
         var labelIndex = probLabel[0];
-
         return _labels[labelIndex];
     }
     public void InitClassifer(bool inference = true)
