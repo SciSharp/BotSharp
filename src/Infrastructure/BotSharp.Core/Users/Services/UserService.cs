@@ -25,17 +25,17 @@ public class UserService : IUserService
         var record = db.GetUserByEmail(user.Email);
         if (record != null)
         {
-            return record.ToUser();
+            return record;
         }
 
-        record = UserRecord.FromUser(user);
+        record = user;
         record.Email = user.Email.ToLower();
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
         record.ExternalId = _user.Id;
 
         db.CreateUser(record);
-        return record.ToUser();
+        return record;
     }
 
     public async Task<Token> GetToken(string authorization)
@@ -44,7 +44,7 @@ public class UserService : IUserService
         var (userEmail, password) = base64.SplitAsTuple(":");
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.User.FirstOrDefault(x => x.Email == userEmail);
+        var record = db.Users.FirstOrDefault(x => x.Email == userEmail);
         if (record == null)
         {
             return default;
@@ -66,7 +66,7 @@ public class UserService : IUserService
         };
     }
 
-    private string GenerateJwtToken(UserRecord user)
+    private string GenerateJwtToken(User user)
     {
         var config = _services.GetRequiredService<IConfiguration>();
         var issuer = config["Jwt:Issuer"];
@@ -97,7 +97,7 @@ public class UserService : IUserService
     public async Task<User> GetMyProfile()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = (from u in db.User
+        var user = (from u in db.Users
                     where u.ExternalId == _user.Id
                     select new User
                     {

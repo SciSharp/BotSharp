@@ -43,7 +43,7 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            var agent = db.Agent.First(x => x.Id == agentId);
+            var agent = db.Agents.First(x => x.Id == agentId);
 
             sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agent.Name}|");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();

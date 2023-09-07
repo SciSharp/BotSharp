@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Users.Models;
-
 namespace BotSharp.Abstraction.Repositories.Records;
 
 public class UserRecord : RecordBase
@@ -32,31 +30,4 @@ public class UserRecord : RecordBase
 
     [Required]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
-
-    public static UserRecord FromUser(User user)
-    {
-        return new UserRecord
-        {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Password = user.Password
-        };
-    }
-
-    public User ToUser()
-    {
-        return new User
-        {
-            Id = Id,
-            FirstName = FirstName,
-            LastName = LastName,
-            Email = Email,
-            Salt = Salt,
-            Password = Password,
-            CreatedTime = CreatedTime,
-            UpdatedTime = UpdatedTime
-        };
-    }
 }

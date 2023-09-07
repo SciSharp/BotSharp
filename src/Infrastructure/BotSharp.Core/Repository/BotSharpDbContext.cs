@@ -1,33 +1,26 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Models;
-using BotSharp.Abstraction.Repositories.Records;
+using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BotSharp.Core.Repository;
 
 public class BotSharpDbContext : Database, IBotSharpRepository
 {
-    public IQueryable<UserRecord> User => Table<UserRecord>();
-    public IQueryable<AgentRecord> Agent => Table<AgentRecord>();
-    public IQueryable<UserAgentRecord> UserAgent => Table<UserAgentRecord>();
-    public IQueryable<ConversationRecord> Conversation => Table<ConversationRecord>();
-    public IQueryable<RoutingItemRecord> RoutingItem => throw new NotImplementedException();
-    public IQueryable<RoutingProfileRecord> RoutingProfile => throw new NotImplementedException();
+    public IQueryable<User> Users => throw new NotImplementedException();
 
-    public void UpdateAgent(AgentRecord agent)
-    {
-        throw new NotImplementedException();
-    }
+    public IQueryable<Agent> Agents => throw new NotImplementedException();
 
-    public void CreateUser(UserRecord user)
-    {
-        throw new NotImplementedException();
-    }
+    public IQueryable<UserAgent> UserAgents => throw new NotImplementedException();
 
-    public UserRecord GetUserByEmail(string email)
-    {
-        throw new NotImplementedException();
-    }
+    public IQueryable<Conversation> Conversations => throw new NotImplementedException();
+
+    public IQueryable<RoutingItem> RoutingItems => throw new NotImplementedException();
+
+    public IQueryable<RoutingProfile> RoutingProfiles => throw new NotImplementedException();
+
 
     public int Transaction<TTableInterface>(Action action)
     {
@@ -78,6 +71,28 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         }
     }
 
+
+
+    public void CreateNewConversation(Conversation conversation)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CreateUser(User user)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DeleteRoutingItems()
     {
         throw new NotImplementedException();
@@ -88,12 +103,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<RoutingItemRecord> CreateRoutingItems(List<RoutingItemRecord> routingItems)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<RoutingProfileRecord> CreateRoutingProfiles(List<RoutingProfileRecord> profiles)
+    public Agent GetAgent(string agentId)
     {
         throw new NotImplementedException();
     }
@@ -103,12 +113,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public AgentRecord GetAgent(string agentId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void CreateNewConversation(ConversationRecord conversation)
+    public Conversation GetConversation(string conversationId)
     {
         throw new NotImplementedException();
     }
@@ -118,27 +123,32 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
+    public List<Conversation> GetConversations(string userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<KeyValueModel> GetConversationStates(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public User GetUserByEmail(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateAgent(Agent agent)
+    {
+        throw new NotImplementedException();
+    }
+
     public void UpdateConversationDialog(string conversationId, string dialogs)
     {
         throw new NotImplementedException();
     }
 
-    public List<KeyValueModel> GetConversationState(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void UpdateConversationState(string conversationId, List<KeyValueModel> state)
-    {
-        throw new NotImplementedException();
-    }
-
-    public ConversationRecord GetConversation(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<ConversationRecord> GetConversations(string userId)
+    public void UpdateConversationStates(string conversationId, List<KeyValueModel> states)
     {
         throw new NotImplementedException();
     }

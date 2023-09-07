@@ -4,6 +4,8 @@ namespace BotSharp.Abstraction.Routing.Models;
 
 public class RoutingItem
 {
+    public string Id { get; set; }
+
     [JsonPropertyName("agent_id")]
     public string AgentId { get; set; }
 

@@ -2,7 +2,6 @@ using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.OpenAPI.ViewModels.Routing;
-using NetTopologySuite.Index.HPRtree;
 
 namespace BotSharp.OpenAPI.Controllers;
 

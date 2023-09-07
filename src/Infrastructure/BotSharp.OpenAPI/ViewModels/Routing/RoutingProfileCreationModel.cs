@@ -5,7 +5,7 @@ namespace BotSharp.OpenAPI.ViewModels.Routing;
 public class RoutingProfileCreationModel
 {
     public string Name { get; set; }
-    public string[] AgentIds { get; set; }
+    public List<string> AgentIds { get; set; }
 
     public RoutingProfile ToRoutingProfile()
     {

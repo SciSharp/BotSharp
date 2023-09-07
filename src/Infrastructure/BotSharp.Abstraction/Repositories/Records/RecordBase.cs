@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+namespace BotSharp.Abstraction.Repositories.Records;
 
-namespace BotSharp.Abstraction.Repositories.Records
+public class RecordBase
 {
-    public class RecordBase
-    {
-        public string? Id { get; set; }
-    }
+    public Guid Id { get; set; } = Guid.Empty;
 }

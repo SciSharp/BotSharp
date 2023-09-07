@@ -33,8 +33,8 @@ public class Router : IAgentRouting
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var records = db.RoutingItem.Select(x => x.ToRoutingItem()).ToArray();
-        var profiles = db.RoutingProfile.ToList();
+        var records = db.RoutingItems.ToArray();
+        var profiles = db.RoutingProfiles.ToList();
 
         if (!profiles.IsNullOrEmpty())
         {

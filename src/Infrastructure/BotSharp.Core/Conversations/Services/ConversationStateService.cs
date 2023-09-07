@@ -53,7 +53,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             return _states;
         }
 
-        _savedStates = _db.GetConversationState(_conversationId);
+        _savedStates = _db.GetConversationStates(_conversationId);
 
         if (!_savedStates.IsNullOrEmpty())
         {
@@ -88,7 +88,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             states.Add(new KeyValueModel(dic.Key, dic.Value));
         }
 
-        _db.UpdateConversationState(_conversationId, states);
+        _db.UpdateConversationStates(_conversationId, states);
         _logger.LogInformation($"Saved state {_conversationId}");
     }
 

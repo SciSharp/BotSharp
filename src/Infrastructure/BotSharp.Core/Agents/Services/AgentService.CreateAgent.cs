@@ -1,13 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Agents.Settings;
-using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Records;
-using BotSharp.Abstraction.Users.Models;
-using MongoDB.Bson;
 using System.IO;
-using Tensorflow;
-using static Tensorflow.TensorShapeProto.Types;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -17,21 +10,21 @@ public partial class AgentService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var record = (from a in db.Agent
-                     join ua in db.UserAgent on a.Id equals ua.AgentId
-                     join u in db.User on ua.UserId equals u.Id
+        var agentRecord = (from a in db.Agents
+                     join ua in db.UserAgents on a.Id equals ua.AgentId
+                     join u in db.Users on ua.UserId equals u.Id
                      where u.ExternalId == _user.Id && a.Name == agent.Name
                      select a).FirstOrDefault();
 
-        if (record != null)
+        if (agentRecord != null)
         {
-            return record.ToAgent();
+            return agentRecord;
         }
 
-        record = AgentRecord.FromAgent(agent);
-        record.Id = Guid.NewGuid().ToString();
-        record.CreatedTime = DateTime.UtcNow;
-        record.UpdatedTime = DateTime.UtcNow;
+        agentRecord = Agent.Clone(agent);
+        agentRecord.Id = Guid.NewGuid().ToString();
+        agentRecord.CreatedTime = DateTime.UtcNow;
+        agentRecord.UpdatedTime = DateTime.UtcNow;
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
@@ -40,29 +33,32 @@ public partial class AgentService
 
         if (foundAgent != null)
         {
-            record.SetId(foundAgent.Id)
-                  .SetInstruction(foundAgent.Instruction)
-                  .SetFunctions(foundAgent.Functions)
-                  .SetResponses(foundAgent.Responses);
+            agentRecord.SetId(foundAgent.Id)
+                       .SetName(foundAgent.Name)
+                       .SetDescription(foundAgent.Description)
+                       .SetIsPublic(foundAgent.IsPublic)
+                       .SetInstruction(foundAgent.Instruction)
+                       .SetFunctions(foundAgent.Functions)
+                       .SetResponses(foundAgent.Responses);
         }
 
-        var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
-        var userAgentRecord = new UserAgentRecord
+        var user = db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var userAgentRecord = new UserAgent
         {
             Id = Guid.NewGuid().ToString(),
             UserId = user.Id,
-            AgentId = foundAgent?.Id ?? record.Id,
+            AgentId = foundAgent?.Id ?? agentRecord.Id,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
         };
 
         db.Transaction<IBotSharpTable>(delegate
         {
-            db.Add<IBotSharpTable>(record);
+            db.Add<IBotSharpTable>(agentRecord);
             db.Add<IBotSharpTable>(userAgentRecord);
         });
 
-        return record.ToAgent();
+        return agentRecord;
     }
 
     private JsonSerializerOptions _options = new JsonSerializerOptions
@@ -83,7 +79,9 @@ public partial class AgentService
                 var functions = FetchFunctionsFromFile(dir);
                 var instruction = FetchInstructionFromFile(dir);
                 var responses = FetchResponsesFromFile(dir);
-                return agent.SetInstruction(instruction).SetFunctions(functions).SetResponses(responses);
+                return agent.SetInstruction(instruction)
+                            .SetFunctions(functions)
+                            .SetResponses(responses);
             }
         }
 

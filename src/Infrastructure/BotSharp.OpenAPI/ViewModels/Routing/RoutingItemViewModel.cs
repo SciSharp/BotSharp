@@ -4,6 +4,7 @@ namespace BotSharp.OpenAPI.ViewModels.Routing;
 
 public class RoutingItemViewModel
 {
+    public string Id { get; set; }
     public string AgentId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
@@ -15,6 +16,7 @@ public class RoutingItemViewModel
     {
         return new RoutingItemViewModel
         {
+            Id = routingItem.Id,
             AgentId = routingItem.AgentId,
             Name = routingItem.Name,
             Description = routingItem.Description,

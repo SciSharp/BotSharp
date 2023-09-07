@@ -40,15 +40,15 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var conversation = db.GetConversation(id);
-        return conversation?.ToConversation();
+        return conversation;
     }
 
     public async Task<List<Conversation>> GetConversations()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var user = db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
         var conversations = db.GetConversations(user?.Id);
-        return conversations.Select(x => x.ToConversation()).OrderByDescending(x => x.CreatedTime).ToList();
+        return conversations.OrderByDescending(x => x.CreatedTime).ToList();
     }
 
     public async Task<Conversation> NewConversation(Conversation sess)
@@ -56,16 +56,16 @@ public partial class ConversationService : IConversationService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var conversationSettings = _services.GetRequiredService<ConversationSetting>();
-        var user = db.User.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var user = db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
         var foundUserId = user?.Id ?? _user.Id;
 
-        var record = ConversationRecord.FromConversation(sess);
+        var record = sess;
         record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         record.UserId = sess.UserId.IfNullOrEmptyAs(foundUserId);
         record.Title = "New Conversation";
 
         db.CreateNewConversation(record);
-        return record.ToConversation();
+        return record;
     }
 
     public Task CleanHistory(string agentId)

@@ -16,17 +16,17 @@ public class RoutingService : IRoutingService
     public async Task<List<RoutingItem>> CreateRoutingItems(List<RoutingItem> routingItems)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var items = routingItems?.Select(x => RoutingItemRecord.FromRoutingItem(x))?.ToList() ?? new List<RoutingItemRecord>();
+        var items = routingItems?.ToList() ?? new List<RoutingItem>();
         var savedItems = db.CreateRoutingItems(items);
-        return await Task.FromResult(savedItems.Select(x => x.ToRoutingItem()).ToList());
+        return await Task.FromResult(savedItems.ToList());
     }
 
     public async Task<List<RoutingProfile>> CreateRoutingProfiles(List<RoutingProfile> routingProfiles)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var profiles = routingProfiles?.Select(x => RoutingProfileRecord.FromRoutingProfile(x))?.ToList() ?? new List<RoutingProfileRecord>();
+        var profiles = routingProfiles?.ToList() ?? new List<RoutingProfile>();
         var savedProfiles = db.CreateRoutingProfiles(profiles);
-        return await Task.FromResult(savedProfiles.Select(x => x.ToRoutingProfile()).ToList());
+        return await Task.FromResult(savedProfiles.ToList());
     }
 
     public async Task DeleteRoutingItems()

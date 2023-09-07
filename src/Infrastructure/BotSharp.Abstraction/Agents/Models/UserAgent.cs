@@ -1,20 +1,10 @@
-using BotSharp.Abstraction.Users.Models;
+namespace BotSharp.Abstraction.Agents.Models;
 
-namespace BotSharp.Abstraction.Repositories.Records;
-
-public class UserAgentRecord : RecordBase
+public class UserAgent
 {
-    [Required]
-    [StringLength(36)]
+    public string Id { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(36)]
     public string AgentId { get; set; } = string.Empty;
-
-    [Required]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
-
-    [Required]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }
