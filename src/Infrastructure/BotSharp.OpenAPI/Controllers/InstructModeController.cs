@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.OpenAPI.ViewModels.Conversations;
+using BotSharp.OpenAPI.ViewModels.Instructs;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -23,7 +24,7 @@ public class InstructModeController : ControllerBase, IApiAdapter
 
     [HttpPost("/instruct/{agentId}")]
     public async Task<InstructResult> NewConversation([FromRoute] string agentId,
-        [FromBody] NewMessageModel input)
+        [FromBody] InstructMessageModel input)
     {
         var response = new InstructResult();
         var instructor = _services.GetRequiredService<IInstructService>();

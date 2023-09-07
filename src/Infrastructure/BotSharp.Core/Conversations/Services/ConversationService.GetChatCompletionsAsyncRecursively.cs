@@ -59,6 +59,21 @@ public partial class ConversationService
                 }, onMessageReceived);
                 return;
             }
+            else if (fn.StopCompletion)
+            {
+                var message = new RoleDialogModel(AgentRole.Assistant, fn.Content)
+                {
+                    CurrentAgentId = fn.CurrentAgentId,
+                    Channel = fn.Channel,
+                    ExecutionData = fn.ExecutionData,
+                    ExecutionResult = fn.ExecutionResult
+                };
+
+                await HandleAssistantMessage(message, onMessageReceived);
+
+                _storage.Append(_conversationId, agent.Id, message);
+                return;
+            }
 
             fn.Content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.ExecutionResult;
 
