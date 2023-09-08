@@ -28,7 +28,7 @@ public class MongoRepository : IBotSharpRepository
     {
         get
         {
-            if (_agents != null)
+            if (!_agents.IsNullOrEmpty())
             {
                 return _agents.AsQueryable();
             }
@@ -43,8 +43,8 @@ public class MongoRepository : IBotSharpRepository
                 Functions = x.Functions,
                 Responses = x.Responses,
                 IsPublic = x.IsPublic,
-                CreatedTime = x.CreatedTime,
-                UpdatedTime = x.UpdatedTime
+                CreatedDateTime = x.CreatedTime,
+                UpdatedDateTime = x.UpdatedTime
             }).ToList();
 
             return _agents.AsQueryable();
@@ -56,7 +56,7 @@ public class MongoRepository : IBotSharpRepository
     {
         get
         {
-            if (_users != null)
+            if (!_users.IsNullOrEmpty())
             {
                 return _users.AsQueryable();
             }
@@ -84,7 +84,7 @@ public class MongoRepository : IBotSharpRepository
     {
         get
         {
-            if (_userAgents != null && _userAgents.Count > 0)
+            if (!_userAgents.IsNullOrEmpty())
             {
                 return _userAgents.AsQueryable();
             }
@@ -108,7 +108,7 @@ public class MongoRepository : IBotSharpRepository
     {
         get
         {
-            if (_conversations != null)
+            if (!_conversations.IsNullOrEmpty())
             {
                 return _conversations.AsQueryable();
             }
@@ -120,7 +120,6 @@ public class MongoRepository : IBotSharpRepository
             {
                 var convId = conv.Id.ToString();
                 var dialog = GetConversationDialog(convId);
-                var states = GetConversationStates(convId);
                 _conversations.Add(new Conversation
                 {
                     Id = convId,
@@ -128,7 +127,7 @@ public class MongoRepository : IBotSharpRepository
                     UserId = conv.UserId.ToString(),
                     Title = conv.Title,
                     Dialog = dialog,
-                    //State = states, to do
+                    States = new ConversationState(conv.States),
                     CreatedTime = conv.CreatedTime,
                     UpdatedTime = conv.UpdatedTime
                 });
@@ -143,7 +142,7 @@ public class MongoRepository : IBotSharpRepository
     {
         get
         {
-            if (_routingItems != null)
+            if (!_routingItems.IsNullOrEmpty())
             {
                 return _routingItems.AsQueryable();
             }
@@ -168,7 +167,7 @@ public class MongoRepository : IBotSharpRepository
     {
         get
         {
-            if (_routingProfiles != null)
+            if (!_routingProfiles.IsNullOrEmpty())
             {
                 return _routingProfiles.AsQueryable();
             }
@@ -226,6 +225,7 @@ public class MongoRepository : IBotSharpRepository
                     AgentId = Guid.Parse(x.AgentId),
                     UserId = Guid.Parse(x.UserId),
                     Title = x.Title,
+                    States = x.States?.ToKeyValueList() ?? new List<KeyValueModel>(),
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -237,6 +237,7 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.AgentId, conversation.AgentId)
                         .Set(x => x.UserId, conversation.UserId)
                         .Set(x => x.Title, conversation.Title)
+                        .Set(x => x.States, conversation.States)
                         .Set(x => x.CreatedTime, conversation.CreatedTime)
                         .Set(x => x.UpdatedTime, conversation.UpdatedTime);
                     _dc.Conversations.UpdateOne(filter, update, _options);
@@ -253,8 +254,8 @@ public class MongoRepository : IBotSharpRepository
                     Functions = x.Functions,
                     Responses = x.Responses,
                     IsPublic = x.IsPublic,
-                    CreatedTime = x.CreatedTime,
-                    UpdatedTime = x.UpdatedTime
+                    CreatedTime = x.CreatedDateTime,
+                    UpdatedTime = x.UpdatedDateTime
                 }).ToList();
 
                 foreach (var agent in agents)
@@ -391,7 +392,7 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.Functions, agent.Functions)
             .Set(x => x.Responses, agent.Responses)
             .Set(x => x.IsPublic, agent.IsPublic)
-            .Set(x => x.UpdatedTime, agent.UpdatedTime);
+            .Set(x => x.UpdatedTime, agent.UpdatedDateTime);
 
         _dc.Agents.UpdateOne(filter, update, _options);
     }

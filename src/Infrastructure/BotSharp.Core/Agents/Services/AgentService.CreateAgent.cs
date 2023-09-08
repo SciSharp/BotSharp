@@ -23,8 +23,8 @@ public partial class AgentService
 
         agentRecord = Agent.Clone(agent);
         agentRecord.Id = Guid.NewGuid().ToString();
-        agentRecord.CreatedTime = DateTime.UtcNow;
-        agentRecord.UpdatedTime = DateTime.UtcNow;
+        agentRecord.CreatedDateTime = DateTime.UtcNow;
+        agentRecord.UpdatedDateTime = DateTime.UtcNow;
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();

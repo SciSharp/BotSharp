@@ -35,9 +35,6 @@ public class Agent
 
     public bool IsPublic { get; set; }
 
-    public DateTime CreatedTime { get; set; }
-    public DateTime UpdatedTime { get; set; }
-
     public override string ToString()
         => $"{Name} {Id}";
 

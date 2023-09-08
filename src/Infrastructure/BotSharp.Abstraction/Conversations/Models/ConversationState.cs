@@ -16,4 +16,9 @@ public class ConversationState : Dictionary<string, string>
             this[pair.Key] = pair.Value;
         }
     }
+
+    public List<KeyValueModel> ToKeyValueList()
+    {
+        return this.Select(x => new KeyValueModel(x.Key, x.Value)).ToList();
+    }
 }

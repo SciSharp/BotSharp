@@ -1,13 +1,6 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Conversations.Settings;
-using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Models;
-using BotSharp.Abstraction.Repositories.Records;
-using MongoDB.Driver.Core.Operations;
 using System.IO;
-using static Tensorflow.TensorShapeProto.Types;
-using Tensorflow;
 using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
@@ -19,20 +12,17 @@ public class FileRepository : IBotSharpRepository
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly AgentSettings _agentSettings;
-    private readonly ConversationSetting _conversationSetting;
-    private readonly IServiceProvider _services;
+    private readonly ConversationSetting _conversationSettings;
     private JsonSerializerOptions _options;
 
     public FileRepository(
-        IServiceProvider services,
         BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
-        ConversationSetting conversationSetting)
+        ConversationSetting conversationSettings)
     {
-        _services = services;
         _dbSettings = dbSettings;
         _agentSettings = agentSettings;
-        _conversationSetting = conversationSetting;
+        _conversationSettings = conversationSettings;
 
         _options = new JsonSerializerOptions
         {
@@ -47,7 +37,7 @@ public class FileRepository : IBotSharpRepository
     {
         get
         {
-            if (_users != null)
+            if (!_users.IsNullOrEmpty())
             {
                 return _users.AsQueryable();
             }
@@ -68,12 +58,11 @@ public class FileRepository : IBotSharpRepository
     {
         get
         {
-            if (_agents != null)
+            if (!_agents.IsNullOrEmpty())
             {
                 return _agents.AsQueryable();
             }
 
-            //var agentSettings = _services.GetService<AgentSettings>();
             var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
             _agents = new List<Agent>();
             foreach (var d in Directory.GetDirectories(dir))
@@ -90,7 +79,7 @@ public class FileRepository : IBotSharpRepository
     {
         get
         {
-            if (_userAgents != null && _userAgents.Count > 0)
+            if (!_userAgents.IsNullOrEmpty())
             {
                 return _userAgents.AsQueryable();
             }
@@ -115,13 +104,12 @@ public class FileRepository : IBotSharpRepository
     {
         get
         {
-            if (_conversations != null)
+            if (!_conversations.IsNullOrEmpty())
             {
                 return _conversations.AsQueryable();
             }
 
-            //var convSettings = _services.GetService<ConversationSetting>();
-            var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir);
+            var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
             _conversations = new List<Conversation>();
             foreach (var d in Directory.GetDirectories(dir))
             {
@@ -141,14 +129,12 @@ public class FileRepository : IBotSharpRepository
     {
         get
         {
-            if (_routingItems != null)
+            if (!_routingItems.IsNullOrEmpty())
             {
                 return _routingItems.AsQueryable();
             }
 
             _routingItems = new List<RoutingItem>();
-            //var agentSettings = _services.GetRequiredService<AgentSettings>();
-            //var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
             var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "route.json");
             if (File.Exists(filePath))
             {
@@ -164,14 +150,12 @@ public class FileRepository : IBotSharpRepository
     {
         get
         {
-            if (_routingProfiles != null)
+            if (!_routingProfiles.IsNullOrEmpty())
             {
                 return _routingProfiles.AsQueryable();
             }
 
             _routingProfiles = new List<RoutingProfile>();
-            //var agentSettings = _services.GetRequiredService<AgentSettings>();
-            //var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
             var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "routing-profile.json");
             if (File.Exists(filePath))
             {
@@ -217,12 +201,10 @@ public class FileRepository : IBotSharpRepository
         {
             if (table == nameof(Conversation))
             {
-                //var convSettings = _services.GetService<ConversationSetting>();
-
                 foreach (var conversation in _conversations)
                 {
                     var dir = Path.Combine(_dbSettings.FileRepository,
-                        _conversationSetting.DataDir,
+                        _conversationSettings.DataDir,
                         conversation.Id);
                     if (!Directory.Exists(dir))
                     {
@@ -234,8 +216,6 @@ public class FileRepository : IBotSharpRepository
             }
             else if (table == nameof(Agent))
             {
-                //var agentSettings = _services.GetService<AgentSettings>();
-
                 foreach (var agent in _agents)
                 {
                     var dir = Path.Combine(_dbSettings.FileRepository,
@@ -330,8 +310,6 @@ public class FileRepository : IBotSharpRepository
 
     private string GetAgentDataDir(string agentId)
     {
-        //var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        //var agentSettings = _services.GetRequiredService<AgentSettings>();
         var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(dir))
         {
@@ -413,7 +391,7 @@ public class FileRepository : IBotSharpRepository
 
     public void CreateNewConversation(Conversation conversation)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir, conversation.Id);
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversation.Id);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
@@ -491,7 +469,7 @@ public class FileRepository : IBotSharpRepository
 
     private string? FindConversationDirectory(string conversationId)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir);
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
 
         foreach (var d in Directory.GetDirectories(dir))
         {
@@ -545,7 +523,7 @@ public class FileRepository : IBotSharpRepository
             if (record != null && File.Exists(stateFile))
             {
                 var states = File.ReadLines(stateFile);
-                //record.State = states.Select(x => new KeyValueModel(x.Split('=')[0], x.Split('=')[1])).ToList(); // to do
+                record.States = new ConversationState(states.Select(x => new KeyValueModel(x.Split('=')[0], x.Split('=')[1])).ToList());
             }
 
             return record;
@@ -557,7 +535,7 @@ public class FileRepository : IBotSharpRepository
     public List<Conversation> GetConversations(string userId)
     {
         var records = new List<Conversation>();
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSetting.DataDir);
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
 
         foreach (var d in Directory.GetDirectories(dir))
         {
@@ -568,19 +546,6 @@ public class FileRepository : IBotSharpRepository
             var record = JsonSerializer.Deserialize<Conversation>(json, _options);
             if (record != null && record.UserId == userId)
             {
-                var dialogFile = Path.Combine(d, "dialogs.txt");
-                if (File.Exists(dialogFile))
-                {
-                    record.Dialog = File.ReadAllText(dialogFile);
-                }
-
-                var stateFile = Path.Combine(d, "state.dict");
-                if (File.Exists(stateFile))
-                {
-                    var states = File.ReadLines(stateFile);
-                    //record.State = states.Select(x => new KeyValueModel(x.Split('=')[0], x.Split('=')[1])).ToList(); // to do
-                }
-
                 records.Add(record);
             }
         }
