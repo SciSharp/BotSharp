@@ -1,3 +1,4 @@
+using Aspects.Cache;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
@@ -29,7 +30,8 @@ public class Router : IAgentRouting
         return await agentService.LoadAgent(AgentId);
     }
 
-    public RoutingItem[] GetRoutingRecords()
+    [MemoryCache(10 * 60)]
+    public RoutingRecord[] GetRoutingRecords()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 

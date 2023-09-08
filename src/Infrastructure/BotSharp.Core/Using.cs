@@ -21,3 +21,4 @@ global using BotSharp.Core.Agents.Services;
 global using BotSharp.Core.Conversations.Services;
 global using BotSharp.Core.Infrastructures;
 global using BotSharp.Core.Users.Services;
+global using Aspects.Cache;
