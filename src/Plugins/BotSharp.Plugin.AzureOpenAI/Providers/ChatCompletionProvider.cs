@@ -110,6 +110,12 @@ public class ChatCompletionProvider : IChatCompletion
                 Channel = conversations.Last().Channel
             };
 
+            // Somethings LLM will generate a function name with agent name.
+            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
+            {
+                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
+            }
+
             // Execute functions
             await onFunctionExecuting(funcContextIn);
         }

@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Routing.Models;
-using System.IO;
 
 namespace BotSharp.Core.Functions;
 
@@ -63,26 +61,36 @@ public class RouteToAgentFn : IFunctionCallback
         agentId = routingRule.AgentId;
 
         // Check required fields
-        var jo = JsonSerializer.Deserialize<object>(message.FunctionArgs);
+        var root = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
         bool hasMissingField = false;
+        string missingFieldName = "";
         foreach (var field in routingRule.RequiredFields)
         {
-            if (jo is JsonElement root)
+            if (!root.EnumerateObject().Any(x => x.Name == field))
             {
-                if (!root.EnumerateObject().Any(x => x.Name == field))
-                {
-                    message.ExecutionResult = $"missing {field}.";
-                    hasMissingField = true;
-                    break;
-                }
-                else if (root.EnumerateObject().Any(x => x.Name == field) && 
-                    string.IsNullOrEmpty(root.EnumerateObject().FirstOrDefault(x => x.Name == field).Value.ToString()))
-                {
-                    message.ExecutionResult = $"missing {field}.";
-                    hasMissingField = true;
-                    break;
-                }
+                message.ExecutionResult = $"missing {field}.";
+                hasMissingField = true;
+                missingFieldName = field;
+                break;
             }
+            else if (root.EnumerateObject().Any(x => x.Name == field) &&
+                string.IsNullOrEmpty(root.EnumerateObject().FirstOrDefault(x => x.Name == field).Value.ToString()))
+            {
+                message.ExecutionResult = $"missing {field}.";
+                hasMissingField = true;
+                missingFieldName = field;
+                break;
+            }
+        }
+
+        // Check if states contains the field according conversation context.
+        var states = _services.GetRequiredService<IConversationStateService>();
+        if (!string.IsNullOrEmpty(states.GetState(missingFieldName)))
+        {
+            var value = states.GetState(missingFieldName);
+            message.FunctionArgs = message.FunctionArgs.Substring(0, message.FunctionArgs.Length - 1) + $", \"{missingFieldName}\": \"{value}\"" + "}";
+            hasMissingField = false;
+            missingFieldName = "";
         }
 
         if (hasMissingField && !string.IsNullOrEmpty(routingRule.RedirectTo))
