@@ -138,7 +138,7 @@ public class FileRepository : IBotSharpRepository
             var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "route.json");
             if (File.Exists(filePath))
             {
-                _routingItems = JsonSerializer.Deserialize<List<RoutingItem>>(File.ReadAllText(filePath));
+                _routingItems = JsonSerializer.Deserialize<List<RoutingItem>>(File.ReadAllText(filePath), _options);
             }
             
             return _routingItems.AsQueryable();
@@ -159,7 +159,7 @@ public class FileRepository : IBotSharpRepository
             var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "routing-profile.json");
             if (File.Exists(filePath))
             {
-                _routingProfiles = JsonSerializer.Deserialize<List<RoutingProfile>>(File.ReadAllText(filePath));
+                _routingProfiles = JsonSerializer.Deserialize<List<RoutingProfile>>(File.ReadAllText(filePath).ToLower(), _options);
             }
             
             return _routingProfiles.AsQueryable();
@@ -511,7 +511,8 @@ public class FileRepository : IBotSharpRepository
         if (!string.IsNullOrEmpty(convDir))
         {
             var convFile = Path.Combine(convDir, "conversation.json");
-            var record = JsonSerializer.Deserialize<Conversation>(convFile);
+            var content = File.ReadAllText(convFile);
+            var record = JsonSerializer.Deserialize<Conversation>(content, _options);
 
             var dialogFile = Path.Combine(convDir, "dialogs.txt");
             if (record != null && File.Exists(dialogFile))

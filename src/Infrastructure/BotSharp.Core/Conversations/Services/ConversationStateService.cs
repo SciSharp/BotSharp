@@ -48,10 +48,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public ConversationState Load(string conversationId)
     {
-        if (_states != null)
-        {
-            return _states;
-        }
+        _conversationId = conversationId;
 
         _savedStates = _db.GetConversationStates(_conversationId);
 

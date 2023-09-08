@@ -476,6 +476,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = Guid.Parse(conversation.AgentId),
             UserId = Guid.Parse(conversation.UserId),
             Title = conversation.Title,
+            States = conversation.States?.ToKeyValueList() ?? new List<KeyValueModel>(),
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow,
         };
