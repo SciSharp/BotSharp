@@ -1,6 +1,4 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Core.Functions;
-using BotSharp.Core.Hooks;
 using BotSharp.Core.Routing;
 using BotSharp.Core.Templating;
 using Microsoft.AspNetCore.Builder;

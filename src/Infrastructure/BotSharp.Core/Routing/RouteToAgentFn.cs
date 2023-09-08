@@ -1,7 +1,8 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing.Models;
 
-namespace BotSharp.Core.Functions;
+namespace BotSharp.Core.Routing;
 
 /// <summary>
 /// Router calls this function to set the Active Agent according to the context
@@ -26,7 +27,7 @@ public class RouteToAgentFn : IFunctionCallback
         }
         else
         {
-            var missingfield = HasMissingRequiredField(message, out var agentId);
+            var missingfield = HasMissingRequiredField(message, out var agentId, out var chatCompletion);
             if (missingfield && message.CurrentAgentId != agentId)
             {
                 message.CurrentAgentId = agentId;
@@ -36,6 +37,7 @@ public class RouteToAgentFn : IFunctionCallback
                 message.CurrentAgentId = agentId;
                 message.ExecutionResult = $"Routed to {args.AgentName}";
             }
+            message.ChatCompletion = chatCompletion;
         }
 
         return true;
@@ -45,17 +47,23 @@ public class RouteToAgentFn : IFunctionCallback
     /// If the target agent needs some required fields but the
     /// </summary>
     /// <returns></returns>
-    private bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
+    private bool HasMissingRequiredField(RoleDialogModel message, out string agentId, out IChatCompletion? chatCompletion)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var router = _services.GetRequiredService<IAgentRouting>();
         var routingRule = router.GetRecordByName(args.AgentName);
+        chatCompletion = null;
 
         if (routingRule == null)
         {
             agentId = message.CurrentAgentId;
             message.ExecutionResult = $"Can't find agent {args.AgentName}";
             return true;
+        }
+
+        if (!string.IsNullOrEmpty(routingRule.CompletionProvider))
+        {
+            chatCompletion = GetChatCompletion(routingRule.CompletionProvider);
         }
 
         agentId = routingRule.AgentId;
@@ -99,5 +107,11 @@ public class RouteToAgentFn : IFunctionCallback
         }
 
         return hasMissingField;
+    }
+
+    private IChatCompletion? GetChatCompletion(string chatCompletionProvider)
+    {
+        var completions = _services.GetServices<IChatCompletion>();
+        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith(chatCompletionProvider));
     }
 }

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Abstraction.Conversations.Models;
 
@@ -11,6 +12,7 @@ public class RoleDialogModel
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Content { get; set; }
     public string CurrentAgentId { get; set; }
+    public IChatCompletion ChatCompletion { get; set; }
 
     /// <summary>
     /// Function name if LLM response function call

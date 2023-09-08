@@ -22,6 +22,9 @@ public class RoutingRecord
     [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
 
+    [JsonPropertyName("completion_provider")]
+    public string CompletionProvider {  get; set; }
+
     public override string ToString()
     {
         return Name;

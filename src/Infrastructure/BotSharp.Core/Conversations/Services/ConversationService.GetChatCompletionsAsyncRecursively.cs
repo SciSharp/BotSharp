@@ -85,7 +85,7 @@ public partial class ConversationService
 
                 wholeDialogs.Add(fn);
 
-                await GetChatCompletionsAsyncRecursively(chatCompletion,
+                await GetChatCompletionsAsyncRecursively(fn.ChatCompletion ?? chatCompletion,
                     agent,
                     wholeDialogs,
                     onMessageReceived,
