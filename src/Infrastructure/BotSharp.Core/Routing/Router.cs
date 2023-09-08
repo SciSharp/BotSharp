@@ -1,3 +1,4 @@
+using Aspects.Cache;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
@@ -28,6 +29,7 @@ public class Router : IAgentRouting
         return await agentService.LoadAgent(AgentId);
     }
 
+    [MemoryCache(10 * 60)]
     public RoutingRecord[] GetRoutingRecords()
     {
         var agentSettings = _services.GetRequiredService<AgentSettings>();
