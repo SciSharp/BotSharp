@@ -1,8 +1,10 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Templating;
+using System.IO;
 
 namespace BotSharp.Core.Instructs;
 
@@ -17,7 +19,53 @@ public partial class InstructService : IInstructService
         _logger = logger;
     }
 
-    public async Task<bool> ExecuteInstructionRecursively(Agent agent,
+    public async Task<InstructResult> ExecuteInstruction(Agent agent, 
+        RoleDialogModel message, 
+        Func<RoleDialogModel, Task> onMessageReceived,
+        Func<RoleDialogModel, Task> onFunctionExecuting,
+        Func<RoleDialogModel, Task> onFunctionExecuted)
+    {
+        var response = new InstructResult();
+
+        var wholeDialogs = new List<RoleDialogModel>
+        {
+            new RoleDialogModel("user", message.Content)
+        };
+
+        // Trigger before completion hooks
+        var hooks = _services.GetServices<IInstructHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.BeforeCompletion(message);
+        }
+
+        await ExecuteInstructionRecursively(agent,
+            wholeDialogs,
+            async msg =>
+            {
+                response.Text = msg.Content;
+                await onMessageReceived(msg);
+            },
+            async fn =>
+            {
+                response.Function = fn.FunctionName;
+                await onFunctionExecuting(fn);
+            },
+            async fn =>
+            {
+                response.Data = fn.ExecutionData;
+                await onFunctionExecuted(fn);
+            });
+
+        foreach (var hook in hooks)
+        {
+            await hook.AfterCompletion(response);
+        }
+
+        return response;
+    }
+
+    private async Task<bool> ExecuteInstructionRecursively(Agent agent,
         List<RoleDialogModel> wholeDialogs,
         Func<RoleDialogModel, Task> onMessageReceived, 
         Func<RoleDialogModel, Task> onFunctionExecuting, 
@@ -28,6 +76,8 @@ public partial class InstructService : IInstructService
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {
             await onMessageReceived(msg);
+
+            wholeDialogs.Add(msg);
         }, async fn =>
         {
             var preAgentId = agent.Id;
