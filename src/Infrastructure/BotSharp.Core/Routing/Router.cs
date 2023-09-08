@@ -31,7 +31,7 @@ public class Router : IAgentRouting
     }
 
     [MemoryCache(10 * 60)]
-    public RoutingRecord[] GetRoutingRecords()
+    public RoutingItem[] GetRoutingRecords()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
