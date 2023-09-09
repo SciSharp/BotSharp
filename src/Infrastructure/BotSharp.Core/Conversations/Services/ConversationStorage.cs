@@ -22,8 +22,9 @@ public class ConversationStorage : IConversationStorage
         _user = user;
     }
 
-    public void Append(string conversationId, string agentId, RoleDialogModel dialog)
+    public void Append(string conversationId, RoleDialogModel dialog)
     {
+        var agentId = dialog.CurrentAgentId;
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var dialogText = db.GetConversationDialog(conversationId);
         var sb = new StringBuilder(dialogText);

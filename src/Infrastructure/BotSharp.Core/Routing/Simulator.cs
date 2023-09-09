@@ -45,8 +45,8 @@ public class Simulator
         }
         else if (args.Function == "interrupt_task_execution")
         {
-            response.Content = args.Parameters.Response;
-            response.ExecutionResult = args.Parameters.Response;
+            response.Content = args.Parameters.Reason;
+            response.ExecutionResult = args.Parameters.Reason;
         }
         else if (args.Function == "response_to_user")
         {

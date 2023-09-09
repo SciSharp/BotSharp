@@ -32,6 +32,11 @@ public class RoutingConversationHook: ConversationHookBase
         // Utilize local discriminative model to predict intent
         var predText = intentClassifier.Predict(vector);
 
+        if (string.IsNullOrEmpty(predText))
+        {
+            return;
+        }
+
         message.IntentName = predText;
 
         // Render by template

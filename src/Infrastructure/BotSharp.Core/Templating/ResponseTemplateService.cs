@@ -26,7 +26,7 @@ public class ResponseTemplateService : IResponseTemplateService
         //    .ToList();
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var responses = db.GetAgentResponses(agentId);
+        var responses = db.GetAgentResponses(agentId, "func", message.FunctionName);
 
         if (responses.Count == 0)
         {
@@ -71,7 +71,7 @@ public class ResponseTemplateService : IResponseTemplateService
         //    .ToList();
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var responses = db.GetAgentResponses(agentId);
+        var responses = db.GetAgentResponses(agentId, "intent", message.IntentName);
 
         if (responses.Count == 0)
         {

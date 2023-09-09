@@ -451,13 +451,14 @@ public class MongoRepository : IBotSharpRepository
         }).ToList();
     }
 
-    public List<string> GetAgentResponses(string agentId)
+    public List<string> GetAgentResponses(string agentId, string prefix, string intent)
     {
         var responses = new List<string>();
         var agent = Agents.FirstOrDefault(x => x.Id == agentId);
         if (agent == null) return responses;
 
-        return agent.Responses;
+        // Should use name to filter by prefix
+        return agent.Responses.Where(x => x.StartsWith(prefix + "." + intent)).ToList();
     }
 
     public Agent GetAgent(string agentId)

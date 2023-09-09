@@ -108,7 +108,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<string> GetAgentResponses(string agentId)
+    public List<string> GetAgentResponses(string agentId, string prefix, string intent)
     {
         throw new NotImplementedException();
     }

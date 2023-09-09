@@ -338,7 +338,10 @@ public class FileRepository : IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<string> GetAgentResponses(string agentId)
+#if !DEBUG
+    [MemoryCache(10 * 60)]
+#endif
+    public List<string> GetAgentResponses(string agentId, string prefix, string intent)
     {
         var responses = new List<string>();
         var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "responses");
@@ -346,7 +349,12 @@ public class FileRepository : IBotSharpRepository
 
         foreach (var file in Directory.GetFiles(dir))
         {
-            responses.Add(File.ReadAllText(file));
+            if (file.Split(Path.DirectorySeparatorChar)
+                .Last()
+                .StartsWith(prefix + "." + intent))
+            {
+                responses.Add(File.ReadAllText(file));
+            }
         }
 
         return responses;

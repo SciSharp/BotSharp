@@ -29,26 +29,18 @@ public partial class ConversationService
                 text = latestResponse.Content.Split("=>").Last();
             }
 
-            var msg = new RoleDialogModel(AgentRole.Assistant, text)
+            await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
                 Channel = wholeDialogs.Last().Channel
-            };
-
-            await HandleAssistantMessage(msg, onMessageReceived);
-
-            // Add to dialog history
-            _storage.Append(_conversationId, agent.Id, msg);
+            }, onMessageReceived);
 
             return false;
         }
 
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {
-            await HandleAssistantMessage(msg, onMessageReceived);
-
-            // Add to dialog history
-            _storage.Append(_conversationId, agent.Id, msg);
+            await HandleAssistantMessage(agent, msg, onMessageReceived);
         }, async fn =>
         {
             var preAgentId = agent.Id;
@@ -58,26 +50,24 @@ public partial class ConversationService
             // Function executed has exception
             if (fn.ExecutionResult == null)
             {
-                await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, fn.Content)
+                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
                     CurrentAgentId = fn.CurrentAgentId,
                     Channel = fn.Channel
                 }, onMessageReceived);
+
                 return;
             }
             else if (fn.StopCompletion)
             {
-                var message = new RoleDialogModel(AgentRole.Assistant, fn.Content)
+                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
                     CurrentAgentId = fn.CurrentAgentId,
                     Channel = fn.Channel,
                     ExecutionData = fn.ExecutionData,
                     ExecutionResult = fn.ExecutionResult
-                };
+                }, onMessageReceived);
 
-                await HandleAssistantMessage(message, onMessageReceived);
-
-                _storage.Append(_conversationId, agent.Id, message);
                 return;
             }
 
@@ -104,7 +94,7 @@ public partial class ConversationService
                 var response = await templateService.RenderFunctionResponse(agent.Id, fn);
                 if (!string.IsNullOrEmpty(response))
                 {
-                    await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, response)
+                    await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, response)
                     {
                         CurrentAgentId = agent.Id,
                         Channel = wholeDialogs.Last().Channel
@@ -131,17 +121,22 @@ public partial class ConversationService
         return result;
     }
 
-    private async Task HandleAssistantMessage(RoleDialogModel msg, Func<RoleDialogModel, Task> onMessageReceived)
+    private async Task HandleAssistantMessage(Agent agent, RoleDialogModel message, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
         // After chat completion hook
         foreach (var hook in hooks)
         {
-            await hook.AfterCompletion(msg);
+            await hook.AfterCompletion(message);
         }
 
-        await onMessageReceived(msg);
+        _logger.LogInformation($"[{agent.Name}] {message.Role}: {message.Content}");
+
+        await onMessageReceived(message);
+
+        // Add to dialog history
+        _storage.Append(_conversationId, message);
     }
 
     private async Task HandleFunctionMessage(RoleDialogModel msg, 

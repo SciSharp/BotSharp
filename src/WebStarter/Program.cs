@@ -42,11 +42,6 @@ builder.Services.AddScoped<IUserIdentity, UserIdentity>();
 // Add BotSharp
 builder.Services.AddBotSharp(builder.Configuration);
 
-// Change below if you want to use other data storage. 
-// builder.Services.UsingSqlServer(builder.Configuration);
-// Default is using File Storage
-//builder.Services.UsingFileRepository(builder.Configuration);
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCorsPolicy",

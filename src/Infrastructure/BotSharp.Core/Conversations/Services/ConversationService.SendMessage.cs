@@ -25,7 +25,7 @@ public partial class ConversationService
         var wholeDialogs = GetDialogHistory();
         wholeDialogs.Add(lastDialog);
 
-        _storage.Append(_conversationId, agent.Id, lastDialog);
+        _storage.Append(_conversationId, lastDialog);
 
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
@@ -43,7 +43,7 @@ public partial class ConversationService
             {
                 var response = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content);
                 await onMessageReceived(response);
-                _storage.Append(_conversationId, agent.Id, response);
+                _storage.Append(_conversationId, response);
                 return true;
             }
         }
@@ -57,20 +57,22 @@ public partial class ConversationService
 
             if (reasonedContext.FunctionName == "interrupt_task_execution")
             {
-                await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
+                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
                 {
                     CurrentAgentId = agent.Id,
                     Channel = lastDialog.Channel
                 }, onMessageReceived);
+
                 return true;
             }
             else if (reasonedContext.FunctionName == "response_to_user")
             {
-                await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
+                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
                 {
                     CurrentAgentId = agent.Id,
                     Channel = lastDialog.Channel
                 }, onMessageReceived);
+
                 return true;
             }
             else if (reasonedContext.FunctionName == "continue_execute_task")
@@ -86,7 +88,7 @@ public partial class ConversationService
                 wholeDialogs.Add(x);
                 if (x.Content != null)
                 {
-                    _storage.Append(_conversationId, agent.Id, x);
+                    _storage.Append(_conversationId, x);
                 }
             });
         }

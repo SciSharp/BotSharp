@@ -26,7 +26,7 @@ public interface IBotSharpRepository
     void DeleteRoutingProfiles();
 
     Agent GetAgent(string agentId);
-    List<string> GetAgentResponses(string agentId);
+    List<string> GetAgentResponses(string agentId, string prefix, string intent);
 
     void CreateNewConversation(Conversation conversation);
     string GetConversationDialog(string conversationId);
