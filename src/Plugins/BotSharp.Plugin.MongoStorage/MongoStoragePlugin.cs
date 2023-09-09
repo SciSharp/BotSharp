@@ -6,9 +6,9 @@ public class MongoStoragePlugin : IBotSharpPlugin
 {
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var sp = services.BuildServiceProvider();
-        var dbSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
-        
+        var dbSettings = new BotSharpDatabaseSettings();
+        config.Bind("Database", dbSettings);
+
         if (dbSettings.Default == "MongoRepository")
         {
             services.AddScoped((IServiceProvider x) =>
