@@ -64,7 +64,7 @@ public class Simulator
             new RoleDialogModel(AgentRole.User, @"What's the next step,  your response must be in JSON format with ""function"" and ""parameters"". ")
         };
 
-        var chatCompletion = GetGpt4ChatCompletion();
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, "gpt-4");
 
         RoleDialogModel response = null;
         await chatCompletion.GetChatCompletionsAsync(reasoner, wholeDialogs, async msg
@@ -111,7 +111,7 @@ public class Simulator
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
-        var chatCompletion = GetChatCompletion();
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, wholeDialogs.Last().ModelName);
 
         RoleDialogModel response = null;
         await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg
@@ -130,19 +130,6 @@ public class Simulator
                 response.Content = fn.ExecutionResult;
             });
         return response;
-    }
-
-    public IChatCompletion GetChatCompletion()
-    {
-        var completions = _services.GetServices<IChatCompletion>();
-        var settings = _services.GetRequiredService<ConversationSetting>();
-        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith(settings.ChatCompletion));
-    }
-
-    public IChatCompletion GetGpt4ChatCompletion()
-    {
-        var completions = _services.GetServices<IChatCompletion>();
-        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith("GPT4CompletionProvider"));
     }
 
     private void SaveStateByArgs(JsonDocument args)

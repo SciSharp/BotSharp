@@ -23,6 +23,8 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
+    public virtual string ModelName => "gpt-3.5-turbo";
+
     public ChatCompletionProvider(AzureOpenAiSettings settings, 
         ILogger<ChatCompletionProvider> logger,
         IServiceProvider services)
@@ -32,10 +34,10 @@ public class ChatCompletionProvider : IChatCompletion
         _services = services;
     }
 
-    private OpenAIClient GetClient()
+    protected virtual (OpenAIClient, string) GetClient()
     {
         var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
-        return client;
+        return (client, _settings.DeploymentModel.ChatCompletionModel);
     }
 
     public List<RoleDialogModel> GetChatSamples(string sampleText)
@@ -89,10 +91,10 @@ public class ChatCompletionProvider : IChatCompletion
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var client = GetClient();
+        var (client, deploymentModel) = GetClient();
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
-        var response = await client.GetChatCompletionsAsync(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
+        var response = await client.GetChatCompletionsAsync(deploymentModel, chatCompletionsOptions);
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
@@ -109,6 +111,12 @@ public class ChatCompletionProvider : IChatCompletion
                 FunctionArgs = message.FunctionCall.Arguments,
                 Channel = conversations.Last().Channel
             };
+
+            // Somethings LLM will generate a function name with agent name.
+            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
+            {
+                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
+            }
 
             // Execute functions
             await onFunctionExecuting(funcContextIn);
@@ -175,7 +183,7 @@ public class ChatCompletionProvider : IChatCompletion
     }
 
 
-    private ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
+    protected ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var chatCompletionsOptions = new ChatCompletionsOptions();
         

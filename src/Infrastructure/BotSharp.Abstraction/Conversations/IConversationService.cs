@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.MLTasks;
-
 namespace BotSharp.Abstraction.Conversations;
 
 public interface IConversationService
@@ -10,8 +8,6 @@ public interface IConversationService
     Task<Conversation> GetConversation(string id);
     Task<List<Conversation>> GetConversations();
     Task DeleteConversation(string id);
-
-    IChatCompletion GetChatCompletion();
 
     /// <summary>
     /// Send message to LLM

@@ -44,9 +44,17 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
                 {
                     Id = "gpt-3.5-turbo",
                     Model = "gpt-3.5-turbo",
-                    Name = "Default (GPT-3.5)",
-                    MaxLength = 4000,
-                    TokenLimit = 4000
+                    Name = "GPT-3.5 Turbo",
+                    MaxLength = 4 * 1024,
+                    TokenLimit = 4 * 1024
+                },
+                new AiModel
+                {
+                    Id = "gpt-4",
+                    Model = "gpt-4",
+                    Name = "GPT-4",
+                    MaxLength = 8 * 1024,
+                    TokenLimit = 8 * 1024
                 }
             }
         };
@@ -62,7 +70,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         var outputStream = Response.Body;
 
         var channel = "webchat";
-        var conversation = input.Messages
+        var message = input.Messages
             .Where(x => x.Role == AgentRole.User)
             .Select(x => new RoleDialogModel(x.Role, x.Content)
             {
@@ -74,7 +82,7 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
 
         var result = await conv.SendMessage(input.AgentId, 
-            conversation, 
+            message, 
             async msg => 
                 await OnChunkReceived(outputStream, msg),
             async fn 

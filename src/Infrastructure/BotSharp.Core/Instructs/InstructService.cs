@@ -29,7 +29,7 @@ public partial class InstructService : IInstructService
 
         var wholeDialogs = new List<RoleDialogModel>
         {
-            new RoleDialogModel("user", message.Content)
+            message
         };
 
         // Trigger before completion hooks
@@ -71,7 +71,7 @@ public partial class InstructService : IInstructService
         Func<RoleDialogModel, Task> onFunctionExecuting, 
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
-        var chatCompletion = GetChatCompletion();
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, wholeDialogs.Last().ModelName);
 
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {
@@ -123,12 +123,5 @@ public partial class InstructService : IInstructService
         await onFunctionExecuting(msg);
         await CallFunctions(msg);
         await onFunctionExecuted(msg);
-    }
-
-    public IChatCompletion GetChatCompletion()
-    {
-        var completions = _services.GetServices<IChatCompletion>();
-        var settings = _services.GetRequiredService<ConversationSetting>();
-        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith(settings.ChatCompletion));
     }
 }

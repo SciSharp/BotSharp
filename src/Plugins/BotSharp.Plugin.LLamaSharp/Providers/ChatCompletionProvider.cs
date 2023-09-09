@@ -27,10 +27,8 @@ public class ChatCompletionProvider : IChatCompletion
         _logger = logger;
     }
 
-    public string GetChatCompletions(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
-    {
-        throw new NotImplementedException();
-    }
+    public string ModelName => "llama-2";
+
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent,
         List<RoleDialogModel> conversations,

@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Hooks;
+namespace BotSharp.Core.Routing;
 
 public class RoutingHook : AgentHookBase
 {
