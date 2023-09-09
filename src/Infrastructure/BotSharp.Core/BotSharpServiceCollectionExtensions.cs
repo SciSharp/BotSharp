@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Routing;
 using BotSharp.Core.Templating;
 using Microsoft.AspNetCore.Builder;
@@ -7,6 +8,8 @@ using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Abstraction.Instructs;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Routing.Services;
 
 namespace BotSharp.Core;
 
@@ -17,6 +20,7 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<IRoutingService, RoutingService>();
 
         var agentSettings = new AgentSettings();
         config.Bind("Agent", agentSettings);
@@ -30,11 +34,11 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
 
-        var databaseSettings = new DatabaseSettings();
+        var databaseSettings = new DatabaseBasicSettings();
         config.Bind("Database", databaseSettings);
         services.AddSingleton((IServiceProvider x) => databaseSettings);
 
-        var myDatabaseSettings = new MyDatabaseSettings();
+        var myDatabaseSettings = new BotSharpDatabaseSettings();
         config.Bind("Database", myDatabaseSettings);
         services.AddSingleton((IServiceProvider x) => myDatabaseSettings);
 
@@ -61,6 +65,11 @@ public static class BotSharpServiceCollectionExtensions
 
         services.AddScoped<Simulator>();
 
+        if (myDatabaseSettings.Default == "FileRepository")
+        {
+            services.AddScoped<IBotSharpRepository, FileRepository>();
+        }
+
         services.AddScoped<IInstructService, InstructService>();
 
         return services;
@@ -70,23 +79,23 @@ public static class BotSharpServiceCollectionExtensions
     {
         services.AddScoped<IBotSharpRepository>(sp =>
         {
-            var myDatabaseSettings = sp.GetRequiredService<MyDatabaseSettings>();
+            var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
             return DataContextHelper.GetDbContext<BotSharpDbContext, DbContext4SqlServer>(myDatabaseSettings, sp);
         });
 
         return services;
     }
 
-    public static IServiceCollection UsingFileRepository(this IServiceCollection services, IConfiguration config)
-    {
-        services.AddScoped<IBotSharpRepository>(sp =>
-        {
-            var myDatabaseSettings = sp.GetRequiredService<MyDatabaseSettings>();
-            return new FileRepository(myDatabaseSettings, sp);
-        });
+    //public static IServiceCollection UsingFileRepository(this IServiceCollection services, IConfiguration config)
+    //{
+    //    services.AddScoped<IBotSharpRepository>(sp =>
+    //    {
+    //        var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
+    //        return new FileRepository(myDatabaseSettings, sp);
+    //    });
 
-        return services;
-    }
+    //    return services;
+    //}
 
     public static IApplicationBuilder UseBotSharp(this IApplicationBuilder app)
     {

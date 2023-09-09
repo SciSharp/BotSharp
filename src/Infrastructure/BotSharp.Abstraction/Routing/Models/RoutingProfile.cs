@@ -2,11 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.Abstraction.Routing.Models;
 
-public class RoutingProfileRecord
+public class RoutingProfile
 {
+    public string Id { get; set; }
+
     [JsonPropertyName("name")]
     public string Name { get; set; }
 
     [JsonPropertyName("agent_ids")]
-    public string[] AgentIds { get; set; }
+    public List<string> AgentIds { get; set; }
 }

@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Models;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -10,17 +12,21 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private ConversationState _states;
-    private MyDatabaseSettings _dbSettings;
+    private BotSharpDatabaseSettings _dbSettings;
     private string _conversationId;
     private string _file;
+    private readonly IBotSharpRepository _db;
+    private List<KeyValueModel> _savedStates;
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
         IServiceProvider services, 
-        MyDatabaseSettings dbSettings)
+        BotSharpDatabaseSettings dbSettings,
+        IBotSharpRepository db)
     {
         _logger = logger;
         _services = services;
         _dbSettings = dbSettings;
+        _db = db;
         _states = new ConversationState();
     }
 
@@ -44,15 +50,14 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         _conversationId = conversationId;
 
-        _file = GetStorageFile(_conversationId);
+        _savedStates = _db.GetConversationStates(_conversationId);
 
-        if (File.Exists(_file))
+        if (!_savedStates.IsNullOrEmpty())
         {
-            var dict = File.ReadAllLines(_file);
-            foreach (var line in dict)
+            foreach (var data in _savedStates)
             {
-                _states[line.Split('=')[0]] = line.Split('=')[1];
-                _logger.LogInformation($"Loaded state: {line}");
+                _states[data.Key] = data.Value;
+                _logger.LogInformation($"Loaded state: {data.Key}={data.Value}");
             }
         }
 
@@ -73,19 +78,20 @@ public class ConversationStateService : IConversationStateService, IDisposable
             return;
         }
 
-        var states = new List<string>();
-        
+        var states = new List<KeyValueModel>();
+
         foreach (var dic in _states)
         {
-            states.Add($"{dic.Key}={dic.Value}");
+            states.Add(new KeyValueModel(dic.Key, dic.Value));
         }
-        File.WriteAllLines(_file, states);
+
+        _db.UpdateConversationStates(_conversationId, states);
         _logger.LogInformation($"Saved state {_conversationId}");
     }
 
     public void CleanState()
     {
-        File.Delete(_file);
+        //File.Delete(_file);
     }
 
     private string GetStorageFile(string conversationId)
@@ -95,7 +101,13 @@ public class ConversationStateService : IConversationStateService, IDisposable
         {
             Directory.CreateDirectory(dir);
         }
-        return Path.Combine(dir, "state.dict");
+
+        var stateFile = Path.Combine(dir, "state.dict");
+        if (!File.Exists(stateFile))
+        {
+            File.WriteAllText(stateFile, "");
+        }
+        return stateFile;
     }
 
     public ConversationState GetStates()

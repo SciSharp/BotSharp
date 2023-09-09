@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Records;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -20,24 +22,20 @@ public class UserService : IUserService
     public async Task<User> CreateUser(User user)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.User.FirstOrDefault(x => x.Email == user.Email.ToLower());
+        var record = db.GetUserByEmail(user.Email);
         if (record != null)
         {
-            return record.ToUser();
+            return record;
         }
 
-        record = UserRecord.FromUser(user);
-        record.Id = Guid.NewGuid().ToString();
+        record = user;
         record.Email = user.Email.ToLower();
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
+        record.ExternalId = _user.Id;
 
-        db.Transaction<IBotSharpTable>(delegate
-        {
-            db.Add<IBotSharpTable>(record);
-        });
-
-        return record.ToUser();
+        db.CreateUser(record);
+        return record;
     }
 
     public async Task<Token> GetToken(string authorization)
@@ -46,7 +44,7 @@ public class UserService : IUserService
         var (userEmail, password) = base64.SplitAsTuple(":");
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.User.FirstOrDefault(x => x.Email == userEmail);
+        var record = db.Users.FirstOrDefault(x => x.Email == userEmail);
         if (record == null)
         {
             return default;
@@ -68,7 +66,7 @@ public class UserService : IUserService
         };
     }
 
-    private string GenerateJwtToken(UserRecord user)
+    private string GenerateJwtToken(User user)
     {
         var config = _services.GetRequiredService<IConfiguration>();
         var issuer = config["Jwt:Issuer"];
@@ -98,11 +96,9 @@ public class UserService : IUserService
 
     public async Task<User> GetMyProfile()
     {
-        var userId = _user.Id;
-
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = (from u in db.User
-                    where u.Id == userId
+        var user = (from u in db.Users
+                    where u.ExternalId == _user.Id
                     select new User
                     {
                         Id = u.Id,

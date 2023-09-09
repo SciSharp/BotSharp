@@ -34,7 +34,7 @@ public abstract class AgentHookBase : IAgentHook
         return true;
     }
 
-    public virtual bool OnFunctionsLoaded(ref string functions)
+    public virtual bool OnFunctionsLoaded(ref List<string> functions)
     {
         _agent.Functions = functions;
         return true;

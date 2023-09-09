@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using System.Data.Common;
@@ -6,7 +7,7 @@ namespace BotSharp.Core.Repository;
 
 public static class DataContextHelper
 {
-    public static T GetDbContext<T, Tdb>(MyDatabaseSettings settings, IServiceProvider serviceProvider)
+    public static T GetDbContext<T, Tdb>(BotSharpDatabaseSettings settings, IServiceProvider serviceProvider)
         where T : Database, new()
         where Tdb : DataContext
     {
@@ -16,16 +17,7 @@ public static class DataContextHelper
         AppDomain.CurrentDomain.SetData("Assemblies", settings.Assemblies);
 
         var dc = new T();
-        if (typeof(T) == typeof(MongoDbContext))
-        {
-            dc.BindDbContext<IMongoDbCollection, DbContext4MongoDb>(new DatabaseBind
-            {
-                ServiceProvider = serviceProvider,
-                MasterConnection = new MongoDbConnection(settings.MongoDb.Master),
-                IsRelational = false
-            });
-        }
-        else if (typeof(T) == typeof(BotSharpDbContext))
+        if (typeof(T) == typeof(BotSharpDbContext))
         {
             if (typeof(Tdb).Name.StartsWith("DbContext4SqlServer"))
             {

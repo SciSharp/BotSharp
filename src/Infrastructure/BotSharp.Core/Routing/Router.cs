@@ -1,5 +1,6 @@
 using Aspects.Cache;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using System.IO;
@@ -30,31 +31,28 @@ public class Router : IAgentRouting
     }
 
     [MemoryCache(10 * 60)]
-    public RoutingRecord[] GetRoutingRecords()
+    public RoutingItem[] GetRoutingRecords()
     {
-        var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var dbSettings = _services.GetRequiredService<MyDatabaseSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, _settings.RouterId, "route.json");
-        var records = JsonSerializer.Deserialize<RoutingRecord[]>(File.ReadAllText(filePath));
+        var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        // check if routing profile is specified
-        filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir, "routing-profile.json");
-        if (File.Exists(filePath))
+        var records = db.RoutingItems.ToArray();
+        var profiles = db.RoutingProfiles.ToList();
+
+        if (!profiles.IsNullOrEmpty())
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var name = state.GetState("channel");
-            var profiles = JsonSerializer.Deserialize<RoutingProfileRecord[]>(File.ReadAllText(filePath));
-            var spcificedProfile = profiles.FirstOrDefault(x => x.Name == name);
-            if (spcificedProfile != null)
+            var specifiedProfile = profiles.FirstOrDefault(x => x.Name == name);
+            if (specifiedProfile != null)
             {
-                records = records.Where(x => spcificedProfile.AgentIds.Contains(x.AgentId)).ToArray();
+                records = records.Where(x => specifiedProfile.AgentIds.Contains(x.AgentId)).ToArray();
             }
         }
 
         return records;
     }
 
-    public RoutingRecord GetRecordByName(string name)
+    public RoutingItem GetRecordByName(string name)
     {
         return GetRoutingRecords().First(x => x.Name.ToLower() == name.ToLower());
     }

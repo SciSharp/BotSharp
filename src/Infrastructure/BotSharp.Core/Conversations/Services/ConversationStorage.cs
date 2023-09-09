@@ -1,23 +1,32 @@
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Repositories;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
 
 public class ConversationStorage : IConversationStorage
 {
-    private readonly MyDatabaseSettings _dbSettings;
+    private readonly BotSharpDatabaseSettings _dbSettings;
+    private readonly AgentSettings _agentSettings;
     private readonly IServiceProvider _services;
-    public ConversationStorage(MyDatabaseSettings dbSettings, IServiceProvider services)
+    private readonly IUserIdentity _user;
+    public ConversationStorage(
+        BotSharpDatabaseSettings dbSettings,
+        AgentSettings agentSettings,
+        IServiceProvider services,
+        IUserIdentity user)
     {
         _dbSettings = dbSettings;
+        _agentSettings = agentSettings;
         _services = services;
+        _user = user;
     }
 
     public void Append(string conversationId, string agentId, RoleDialogModel dialog)
     {
-        var conversationFile = GetStorageFile(conversationId);
-        var sb = new StringBuilder();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dialogText = db.GetConversationDialog(conversationId);
+        var sb = new StringBuilder(dialogText);
 
         if (dialog.Role == AgentRole.Function)
         {
@@ -34,8 +43,7 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            var agent = db.Agent.First(x => x.Id == agentId);
+            var agent = db.Agents.First(x => x.Id == agentId);
 
             sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agent.Name}|");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
@@ -46,14 +54,15 @@ public class ConversationStorage : IConversationStorage
             sb.AppendLine($"  - {content}");
         }
 
-        var conversation = sb.ToString();
-        File.AppendAllText(conversationFile, conversation);
+        var updatedDialogs = sb.ToString();
+        db.UpdateConversationDialog(conversationId, updatedDialogs);
     }
 
     public List<RoleDialogModel> GetDialogs(string conversationId)
     {
-        var conversationFile = GetStorageFile(conversationId);
-        var dialogs = File.ReadAllLines(conversationFile);
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dialogText = db.GetConversationDialog(conversationId);
+        var dialogs = dialogText.SplitByNewLine();
 
         var results = new List<RoleDialogModel>();
         for (int i = 0; i < dialogs.Length; i += 2)

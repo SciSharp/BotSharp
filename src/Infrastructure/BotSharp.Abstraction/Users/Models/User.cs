@@ -8,6 +8,7 @@ public class User
     public string Email { get; set; } = string.Empty;
     public string Salt { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string? ExternalId { get; set; }
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }

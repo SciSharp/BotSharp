@@ -17,7 +17,7 @@ public class TemplateRender : ITemplateRender
         _logger = logger;
         _options = new TemplateOptions();
         _options.MemberAccessStrategy.MemberNameStrategy = MemberNameStrategies.SnakeCase;
-        _options.MemberAccessStrategy.Register<RoutingRecord>();
+        _options.MemberAccessStrategy.Register<RoutingItem>();
     }
 
     public string Render(string template, Dictionary<string, object> dict)

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Templating;
 using System.IO;
 using System.Reflection;
@@ -18,16 +19,14 @@ public class ResponseTemplateService : IResponseTemplateService
     public async Task<string> RenderFunctionResponse(string agentId, RoleDialogModel message)
     {
         // Find response template
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
-        if (!Directory.Exists(dir))
-        {
-            return string.Empty;
-        }
+        //var agentService = _services.GetRequiredService<IAgentService>();
+        //var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
+        //var responses = Directory.GetFiles(dir)
+        //    .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.FunctionName)
+        //    .ToList();
 
-        var responses = Directory.GetFiles(dir)
-            .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.FunctionName)
-            .ToList();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var responses = db.GetAgentResponses(agentId);
 
         if (responses.Count == 0)
         {
@@ -35,7 +34,8 @@ public class ResponseTemplateService : IResponseTemplateService
         }
 
         var randomIndex = new Random().Next(0, responses.Count);
-        var template = File.ReadAllText(responses[randomIndex]);
+        //var template = File.ReadAllText(responses[randomIndex]);
+        var template = responses[randomIndex];
 
         var render = _services.GetRequiredService<ITemplateRender>();
 
@@ -60,15 +60,18 @@ public class ResponseTemplateService : IResponseTemplateService
     public async Task<string> RenderIntentResponse(string agentId, RoleDialogModel message)
     {
         // Find response template
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
-        if (!Directory.Exists(dir))
-        {
-            return string.Empty;
-        }
-        var responses = Directory.GetFiles(dir)
-            .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.IntentName)
-            .ToList();
+        //var agentService = _services.GetRequiredService<IAgentService>();
+        //var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
+        //if (!Directory.Exists(dir))
+        //{
+        //    return string.Empty;
+        //}
+        //var responses = Directory.GetFiles(dir)
+        //    .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.IntentName)
+        //    .ToList();
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var responses = db.GetAgentResponses(agentId);
 
         if (responses.Count == 0)
         {
@@ -76,7 +79,8 @@ public class ResponseTemplateService : IResponseTemplateService
         }
 
         var randomIndex = new Random().Next(0, responses.Count);
-        var template = File.ReadAllText(responses[randomIndex]);
+        //var template = File.ReadAllText(responses[randomIndex]);
+        var template = responses[randomIndex];
 
         var render = _services.GetRequiredService<ITemplateRender>();
 

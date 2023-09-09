@@ -57,8 +57,17 @@
 
   <ItemGroup>
     <Compile Remove="Accounts\**" />
+    <Compile Remove="Functions\**" />
+    <Compile Remove="Hooks\**" />
+    <Compile Remove="Repository\Abstraction\**" />
     <EmbeddedResource Remove="Accounts\**" />
+    <EmbeddedResource Remove="Functions\**" />
+    <EmbeddedResource Remove="Hooks\**" />
+    <EmbeddedResource Remove="Repository\Abstraction\**" />
     <None Remove="Accounts\**" />
+    <None Remove="Functions\**" />
+    <None Remove="Hooks\**" />
+    <None Remove="Repository\Abstraction\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -81,11 +90,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Functions\" />
-    <Folder Include="Hooks\" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,14 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Text;
+global using System.Threading.Tasks;
+global using System.Linq;
+global using System.Text.Json;
+global using BotSharp.Abstraction.Repositories;
+global using BotSharp.Abstraction.Repositories.Records;
+global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Abstraction.Plugins;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using MongoDB.Bson;
+global using MongoDB.Driver;
