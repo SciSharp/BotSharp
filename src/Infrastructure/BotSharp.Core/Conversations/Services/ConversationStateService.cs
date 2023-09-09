@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Models;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -16,7 +15,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private string _conversationId;
     private string _file;
     private readonly IBotSharpRepository _db;
-    private List<KeyValueModel> _savedStates;
+    private List<StateKeyValue> _savedStates;
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
         IServiceProvider services, 
@@ -78,11 +77,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
             return;
         }
 
-        var states = new List<KeyValueModel>();
+        var states = new List<StateKeyValue>();
 
         foreach (var dic in _states)
         {
-            states.Add(new KeyValueModel(dic.Key, dic.Value));
+            states.Add(new StateKeyValue(dic.Key, dic.Value));
         }
 
         _db.UpdateConversationStates(_conversationId, states);

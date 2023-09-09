@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Repositories.Models;
-
 namespace BotSharp.Abstraction.Conversations.Models;
 
 public class ConversationState : Dictionary<string, string>
@@ -9,7 +7,7 @@ public class ConversationState : Dictionary<string, string>
         
     }
 
-    public ConversationState(List<KeyValueModel> pairs)
+    public ConversationState(List<StateKeyValue> pairs)
     {
         foreach (var pair in pairs)
         {
@@ -17,8 +15,8 @@ public class ConversationState : Dictionary<string, string>
         }
     }
 
-    public List<KeyValueModel> ToKeyValueList()
+    public List<StateKeyValue> ToKeyValueList()
     {
-        return this.Select(x => new KeyValueModel(x.Key, x.Value)).ToList();
+        return this.Select(x => new StateKeyValue(x.Key, x.Value)).ToList();
     }
 }

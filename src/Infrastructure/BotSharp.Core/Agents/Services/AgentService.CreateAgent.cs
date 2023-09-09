@@ -108,15 +108,20 @@ public partial class AgentService
         return functions;
     }
 
-    private List<string> FetchResponsesFromFile(string fileDir)
+    private List<AgentResponse> FetchResponsesFromFile(string fileDir)
     {
-        var responses = new List<string>();
+        var responses = new List<AgentResponse>();
         var responseDir = Path.Combine(fileDir, "responses");
         if (!Directory.Exists(responseDir)) return responses;
 
         foreach (var file in Directory.GetFiles(responseDir))
         {
-            responses.Add(File.ReadAllText(file));
+            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var splits = fileName.Split('.');
+            var prefix = splits[0];
+            var intent = splits[1];
+            var content = File.ReadAllText(file);
+            responses.Add(new AgentResponse(prefix, intent, content));
         }
         return responses;
     }

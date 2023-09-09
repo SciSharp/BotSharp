@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -128,7 +127,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<KeyValueModel> GetConversationStates(string conversationId)
+    public List<StateKeyValue> GetConversationStates(string conversationId)
     {
         throw new NotImplementedException();
     }
@@ -148,7 +147,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public void UpdateConversationStates(string conversationId, List<KeyValueModel> states)
+    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         throw new NotImplementedException();
     }

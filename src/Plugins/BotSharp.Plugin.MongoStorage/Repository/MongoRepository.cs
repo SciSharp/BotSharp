@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
@@ -225,7 +224,7 @@ public class MongoRepository : IBotSharpRepository
                     AgentId = Guid.Parse(x.AgentId),
                     UserId = Guid.Parse(x.UserId),
                     Title = x.Title,
-                    States = x.States?.ToKeyValueList() ?? new List<KeyValueModel>(),
+                    States = x.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -457,8 +456,7 @@ public class MongoRepository : IBotSharpRepository
         var agent = Agents.FirstOrDefault(x => x.Id == agentId);
         if (agent == null) return responses;
 
-        // Should use name to filter by prefix
-        return agent.Responses.Where(x => x.StartsWith(prefix + "." + intent)).ToList();
+        return agent.Responses.Where(x => x.Prefix == prefix && x.Intent == intent).Select(x => x.Content).ToList();
     }
 
     public Agent GetAgent(string agentId)
@@ -477,7 +475,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = Guid.Parse(conversation.AgentId),
             UserId = Guid.Parse(conversation.UserId),
             Title = conversation.Title,
-            States = conversation.States?.ToKeyValueList() ?? new List<KeyValueModel>(),
+            States = conversation.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow,
         };
@@ -523,18 +521,18 @@ public class MongoRepository : IBotSharpRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
-    public List<KeyValueModel> GetConversationStates(string conversationId)
+    public List<StateKeyValue> GetConversationStates(string conversationId)
     {
-        var states = new List<KeyValueModel>();
+        var states = new List<StateKeyValue>();
         if (string.IsNullOrEmpty(conversationId)) return states;
 
         var filter = Builders<ConversationCollection>.Filter.Eq(x => x.Id, Guid.Parse(conversationId));
         var foundConversation = _dc.Conversations.Find(filter).FirstOrDefault();
-        var savedStates = foundConversation?.States ?? new List<KeyValueModel>();
+        var savedStates = foundConversation?.States ?? new List<StateKeyValue>();
         return savedStates;
     }
 
-    public void UpdateConversationStates(string conversationId, List<KeyValueModel> states)
+    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
 
@@ -568,7 +566,7 @@ public class MongoRepository : IBotSharpRepository
             UserId = conv.UserId.ToString(),
             Title = conv.Title,
             Dialog = dialog?.Dialog ?? string.Empty,
-            States = new ConversationState(conv.States ?? new List<KeyValueModel>()),
+            States = new ConversationState(conv.States ?? new List<StateKeyValue>()),
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
         };
