@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Core.Routing;
 
@@ -92,9 +91,7 @@ public partial class ConversationService
             });
         }
 
-        var chatCompletion = GetChatCompletion();
-        var result = await GetChatCompletionsAsyncRecursively(chatCompletion,
-            agent,
+        var result = await GetChatCompletionsAsyncRecursively(agent,
             wholeDialogs,
             onMessageReceived,
             onFunctionExecuting,
@@ -135,17 +132,5 @@ public partial class ConversationService
                 }
             }
         }
-    }
-
-    public IChatCompletion GetChatCompletion()
-    {
-        var completions = _services.GetServices<IChatCompletion>();
-        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.ChatCompletion));
-    }
-
-    public IChatCompletion GetGpt4ChatCompletion()
-    {
-        var completions = _services.GetServices<IChatCompletion>();
-        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith("GPT4CompletionProvider"));
     }
 }

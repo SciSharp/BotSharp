@@ -86,4 +86,9 @@
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Functions\" />
+    <Folder Include="Hooks\" />
+  </ItemGroup>
+
 </Project>

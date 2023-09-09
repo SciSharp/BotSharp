@@ -7,13 +7,13 @@ public class RoutingItem
     public string Id { get; set; }
 
     [JsonPropertyName("agent_id")]
-    public string AgentId { get; set; }
+    public string AgentId { get; set; } = string.Empty;
 
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     [JsonPropertyName("required")]
     public List<string> RequiredFields { get; set; } = new List<string>();
