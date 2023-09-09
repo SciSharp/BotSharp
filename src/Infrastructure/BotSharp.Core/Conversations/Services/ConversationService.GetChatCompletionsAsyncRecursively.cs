@@ -9,13 +9,14 @@ public partial class ConversationService
 {
     int currentRecursiveDepth = 0;
 
-    private async Task<bool> GetChatCompletionsAsyncRecursively(IChatCompletion chatCompletion,
-        Agent agent, 
+    private async Task<bool> GetChatCompletionsAsyncRecursively(Agent agent, 
         List<RoleDialogModel> wholeDialogs,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, wholeDialogs.Last().ModelName);
+
         currentRecursiveDepth++;
         if (currentRecursiveDepth > _settings.MaxRecursiveDepth)
         {
@@ -28,11 +29,16 @@ public partial class ConversationService
                 text = latestResponse.Content.Split("=>").Last();
             }
 
-            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, text)
+            var msg = new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
                 Channel = wholeDialogs.Last().Channel
-            }, onMessageReceived);
+            };
+
+            await HandleAssistantMessage(msg, onMessageReceived);
+
+            // Add to dialog history
+            _storage.Append(_conversationId, agent.Id, msg);
 
             return false;
         }
@@ -85,8 +91,7 @@ public partial class ConversationService
 
                 wholeDialogs.Add(fn);
 
-                await GetChatCompletionsAsyncRecursively(fn.ChatCompletion ?? chatCompletion,
-                    agent,
+                await GetChatCompletionsAsyncRecursively(agent,
                     wholeDialogs,
                     onMessageReceived,
                     onFunctionExecuting,
@@ -115,8 +120,7 @@ public partial class ConversationService
                 // After function is executed, pass the result to LLM to get a natural response
                 wholeDialogs.Add(fn);
 
-                await GetChatCompletionsAsyncRecursively(chatCompletion,
-                    agent,
+                await GetChatCompletionsAsyncRecursively(agent,
                     wholeDialogs,
                     onMessageReceived,
                     onFunctionExecuting,

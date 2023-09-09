@@ -40,11 +40,10 @@ public class ConversationController : ControllerBase, IApiAdapter
     [HttpPost("/conversation/{agentId}/{conversationId}")]
     public async Task<MessageResponseModel> SendMessage([FromRoute] string agentId, 
         [FromRoute] string conversationId, 
-        [FromBody] NewMessageModel input,
-        [FromQuery] string? channel = "openapi")
+        [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, channel);
+        conv.SetConversationId(conversationId, input.Channel);
         input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
         
         var response = new MessageResponseModel();
@@ -53,7 +52,8 @@ public class ConversationController : ControllerBase, IApiAdapter
         await conv.SendMessage(agentId,
             new RoleDialogModel("user", input.Text)
             {
-                Channel = channel
+                Channel = input.Channel,
+                ModelName = input.ModelName
             },
             async msg =>
             {

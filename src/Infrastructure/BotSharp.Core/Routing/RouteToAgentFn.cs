@@ -27,7 +27,7 @@ public class RouteToAgentFn : IFunctionCallback
         }
         else
         {
-            var missingfield = HasMissingRequiredField(message, out var agentId, out var chatCompletion);
+            var missingfield = HasMissingRequiredField(message, out var agentId);
             if (missingfield && message.CurrentAgentId != agentId)
             {
                 message.CurrentAgentId = agentId;
@@ -37,7 +37,6 @@ public class RouteToAgentFn : IFunctionCallback
                 message.CurrentAgentId = agentId;
                 message.ExecutionResult = $"Routed to {args.AgentName}";
             }
-            message.ChatCompletion = chatCompletion;
         }
 
         return true;
@@ -47,23 +46,17 @@ public class RouteToAgentFn : IFunctionCallback
     /// If the target agent needs some required fields but the
     /// </summary>
     /// <returns></returns>
-    private bool HasMissingRequiredField(RoleDialogModel message, out string agentId, out IChatCompletion? chatCompletion)
+    private bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var router = _services.GetRequiredService<IAgentRouting>();
         var routingRule = router.GetRecordByName(args.AgentName);
-        chatCompletion = null;
 
         if (routingRule == null)
         {
             agentId = message.CurrentAgentId;
             message.ExecutionResult = $"Can't find agent {args.AgentName}";
             return true;
-        }
-
-        if (!string.IsNullOrEmpty(routingRule.CompletionProvider))
-        {
-            chatCompletion = GetChatCompletion(routingRule.CompletionProvider);
         }
 
         agentId = routingRule.AgentId;
@@ -107,11 +100,5 @@ public class RouteToAgentFn : IFunctionCallback
         }
 
         return hasMissingField;
-    }
-
-    private IChatCompletion? GetChatCompletion(string chatCompletionProvider)
-    {
-        var completions = _services.GetServices<IChatCompletion>();
-        return completions.FirstOrDefault(x => x.GetType().FullName.EndsWith(chatCompletionProvider));
     }
 }
