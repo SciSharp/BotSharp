@@ -55,7 +55,6 @@ public class ConversationStorage : IConversationStorage
         }
 
         var updatedDialogs = sb.ToString();
-        //File.AppendAllText(conversationFile, updatedDialogs);
         db.UpdateConversationDialog(conversationId, updatedDialogs);
     }
 
