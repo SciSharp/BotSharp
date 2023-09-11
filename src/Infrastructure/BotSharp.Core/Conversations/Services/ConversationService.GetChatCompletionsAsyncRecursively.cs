@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Templating;
 
@@ -32,7 +33,9 @@ public partial class ConversationService
             await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
-                Channel = wholeDialogs.Last().Channel
+                Channel = wholeDialogs.Last().Channel,
+                Temperature = wholeDialogs.Last().Temperature,
+                SamplingFactor = wholeDialogs.Last().SamplingFactor
             }, onMessageReceived);
 
             return false;
@@ -53,7 +56,9 @@ public partial class ConversationService
                 await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
                     CurrentAgentId = fn.CurrentAgentId,
-                    Channel = fn.Channel
+                    Channel = fn.Channel,
+                    Temperature = fn.Temperature,
+                    SamplingFactor = fn.SamplingFactor
                 }, onMessageReceived);
 
                 return;
@@ -65,7 +70,9 @@ public partial class ConversationService
                     CurrentAgentId = fn.CurrentAgentId,
                     Channel = fn.Channel,
                     ExecutionData = fn.ExecutionData,
-                    ExecutionResult = fn.ExecutionResult
+                    ExecutionResult = fn.ExecutionResult,
+                    Temperature = fn.Temperature,
+                    SamplingFactor = fn.SamplingFactor
                 }, onMessageReceived);
 
                 return;
@@ -97,7 +104,9 @@ public partial class ConversationService
                     await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, response)
                     {
                         CurrentAgentId = agent.Id,
-                        Channel = wholeDialogs.Last().Channel
+                        Channel = wholeDialogs.Last().Channel,
+                        Temperature = wholeDialogs.Last().Temperature,
+                        SamplingFactor = wholeDialogs.Last().SamplingFactor
                     }, onMessageReceived);
 
                     return;

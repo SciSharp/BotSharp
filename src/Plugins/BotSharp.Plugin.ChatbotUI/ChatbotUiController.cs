@@ -74,7 +74,10 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
             .Where(x => x.Role == AgentRole.User)
             .Select(x => new RoleDialogModel(x.Role, x.Content)
             {
-                Channel = channel
+                Channel = channel,
+                ModelName = input.ModelName,
+                Temperature = input.Temperature,
+                SamplingFactor = input.SamplingFactor
             }).Last();
 
         var conv = _services.GetRequiredService<IConversationService>();

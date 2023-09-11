@@ -53,7 +53,9 @@ public class ConversationController : ControllerBase, IApiAdapter
             new RoleDialogModel("user", input.Text)
             {
                 Channel = input.Channel,
-                ModelName = input.ModelName
+                ModelName = input.ModelName,
+                Temperature = input.Temperature,
+                SamplingFactor = input.SamplingFactor
             },
             async msg =>
             {

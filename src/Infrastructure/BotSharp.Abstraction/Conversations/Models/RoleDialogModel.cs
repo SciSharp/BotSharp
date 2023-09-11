@@ -13,6 +13,7 @@ public class RoleDialogModel
     public string CurrentAgentId { get; set; }
     public string ModelName { get; set; } = "gpt-3.5-turbo";
     public float Temperature { get; set; } = 0.5f;
+    public float SamplingFactor { get; set; } = 0.5f;
 
     /// <summary>
     /// Function name if LLM response function call

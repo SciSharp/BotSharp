@@ -41,9 +41,15 @@ public partial class ConversationService
             // Interrupted by hook
             if (lastDialog.StopCompletion)
             {
-                var response = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content);
-                await onMessageReceived(response);
-                _storage.Append(_conversationId, response);
+                var message = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content)
+                {
+                    CurrentAgentId = agent.Id,
+                    Channel = lastDialog.Channel,
+                    Temperature = lastDialog.Temperature,
+                    SamplingFactor = lastDialog.SamplingFactor
+                };
+                await onMessageReceived(message);
+                _storage.Append(_conversationId, message);
                 return true;
             }
         }
@@ -60,7 +66,9 @@ public partial class ConversationService
                 await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
                 {
                     CurrentAgentId = agent.Id,
-                    Channel = lastDialog.Channel
+                    Channel = lastDialog.Channel,
+                    Temperature = lastDialog.Temperature,
+                    SamplingFactor = lastDialog.SamplingFactor
                 }, onMessageReceived);
 
                 return true;
@@ -70,7 +78,9 @@ public partial class ConversationService
                 await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
                 {
                     CurrentAgentId = agent.Id,
-                    Channel = lastDialog.Channel
+                    Channel = lastDialog.Channel,
+                    Temperature = lastDialog.Temperature,
+                    SamplingFactor = lastDialog.SamplingFactor
                 }, onMessageReceived);
 
                 return true;

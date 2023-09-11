@@ -105,7 +105,9 @@ public class ChatCompletionProvider : IChatCompletion
                 CurrentAgentId = agent.Id,
                 FunctionName = message.FunctionCall.Name,
                 FunctionArgs = message.FunctionCall.Arguments,
-                Channel = conversations.Last().Channel
+                Channel = conversations.Last().Channel,
+                Temperature = conversations.Last().Temperature,
+                SamplingFactor = conversations.Last().SamplingFactor
             };
 
             // Somethings LLM will generate a function name with agent name.
@@ -124,7 +126,9 @@ public class ChatCompletionProvider : IChatCompletion
             var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
             {
                 CurrentAgentId= agent.Id,
-                Channel = conversations.Last().Channel
+                Channel = conversations.Last().Channel,
+                Temperature = conversations.Last().Temperature,
+                SamplingFactor = conversations.Last().SamplingFactor
             };
 
             // Text response received
@@ -226,8 +230,8 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api-a-few-tips-and-tricks-on-controlling-the-creativity-deterministic-output-of-prompt-responses/172683
-        chatCompletionsOptions.Temperature = 0.5f;
-        chatCompletionsOptions.NucleusSamplingFactor = 0.5f;
+        chatCompletionsOptions.Temperature = conversations.Last().Temperature;
+        chatCompletionsOptions.NucleusSamplingFactor = conversations.Last().SamplingFactor;
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)
