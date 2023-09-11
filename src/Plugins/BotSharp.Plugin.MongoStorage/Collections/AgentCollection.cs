@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class AgentCollection : MongoBase
@@ -6,7 +8,7 @@ public class AgentCollection : MongoBase
     public string Description { get; set; }
     public string Instruction { get; set; }
     public List<string> Functions { get; set; }
-    public List<string> Responses { get; set; }
+    public List<AgentResponse> Responses { get; set; }
     public bool IsPublic { get; set; }
 
     public DateTime CreatedTime { get; set; }

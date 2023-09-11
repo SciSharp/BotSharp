@@ -25,7 +25,7 @@ public class AgentUpdateModel
     /// <summary>
     /// Routes
     /// </summary>
-    public List<string> Responses { get; set; }
+    public List<AgentResponse> Responses { get; set; }
 
     public Agent ToAgent()
     {

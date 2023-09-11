@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 
@@ -32,8 +31,8 @@ public interface IBotSharpRepository
     string GetConversationDialog(string conversationId);
     void UpdateConversationDialog(string conversationId, string dialogs);
 
-    List<KeyValueModel> GetConversationStates(string conversationId);
-    void UpdateConversationStates(string conversationId, List<KeyValueModel> states);
+    List<StateKeyValue> GetConversationStates(string conversationId);
+    void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
 
     Conversation GetConversation(string conversationId);
     List<Conversation> GetConversations(string userId);

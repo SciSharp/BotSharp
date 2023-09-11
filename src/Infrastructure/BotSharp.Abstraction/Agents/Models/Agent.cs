@@ -26,7 +26,7 @@ public class Agent
     /// <summary>
     /// Responses
     /// </summary>
-    public List<string> Responses { get; set; }
+    public List<AgentResponse> Responses { get; set; }
 
     /// <summary>
     /// Domain knowledges
@@ -69,9 +69,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetResponses(List<string> responses)
+    public Agent SetResponses(List<AgentResponse> responses)
     {
-        Responses = responses ?? new List<string>(); ;
+        Responses = responses ?? new List<AgentResponse>(); ;
         return this;
     }
 

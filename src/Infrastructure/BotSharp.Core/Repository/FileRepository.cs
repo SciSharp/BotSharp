@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Models;
 using System.IO;
 using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
@@ -454,9 +453,9 @@ public class FileRepository : IBotSharpRepository
         return;
     }
 
-    public List<KeyValueModel> GetConversationStates(string conversationId)
+    public List<StateKeyValue> GetConversationStates(string conversationId)
     {
-        var curStates = new List<KeyValueModel>();
+        var curStates = new List<StateKeyValue>();
         var convDir = FindConversationDirectory(conversationId);
         if (!string.IsNullOrEmpty(convDir))
         {
@@ -467,7 +466,7 @@ public class FileRepository : IBotSharpRepository
                 foreach (var line in dict)
                 {
                     var data = line.Split('=');
-                    curStates.Add(new KeyValueModel(data[0], data[1]));
+                    curStates.Add(new StateKeyValue(data[0], data[1]));
                 }
             }
         }
@@ -495,7 +494,7 @@ public class FileRepository : IBotSharpRepository
         return null;
     }
 
-    public void UpdateConversationStates(string conversationId, List<KeyValueModel> states)
+    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         var localStates = new List<string>();
         var convDir = FindConversationDirectory(conversationId);
@@ -532,7 +531,7 @@ public class FileRepository : IBotSharpRepository
             if (record != null && File.Exists(stateFile))
             {
                 var states = File.ReadLines(stateFile);
-                record.States = new ConversationState(states.Select(x => new KeyValueModel(x.Split('=')[0], x.Split('=')[1])).ToList());
+                record.States = new ConversationState(states.Select(x => new StateKeyValue(x.Split('=')[0], x.Split('=')[1])).ToList());
             }
 
             return record;

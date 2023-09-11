@@ -9,7 +9,7 @@ public class AgentViewModel
     public string Description { get; set; }
     public string Instruction { get; set; }
     public List<string> Functions { get; set; }
-    public List<string> Responses { get; set; }
+    public List<AgentResponse> Responses { get; set; }
     public bool IsPublic { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 

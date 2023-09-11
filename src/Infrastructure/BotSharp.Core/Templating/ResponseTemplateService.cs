@@ -19,12 +19,6 @@ public class ResponseTemplateService : IResponseTemplateService
     public async Task<string> RenderFunctionResponse(string agentId, RoleDialogModel message)
     {
         // Find response template
-        //var agentService = _services.GetRequiredService<IAgentService>();
-        //var dir = Path.Combine(agentService.GetAgentDataDir(agentId), "responses");
-        //var responses = Directory.GetFiles(dir)
-        //    .Where(f => f.Split(Path.DirectorySeparatorChar).Last().Split('.')[1] == message.FunctionName)
-        //    .ToList();
-
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var responses = db.GetAgentResponses(agentId, "func", message.FunctionName);
 
@@ -34,7 +28,6 @@ public class ResponseTemplateService : IResponseTemplateService
         }
 
         var randomIndex = new Random().Next(0, responses.Count);
-        //var template = File.ReadAllText(responses[randomIndex]);
         var template = responses[randomIndex];
 
         var render = _services.GetRequiredService<ITemplateRender>();
