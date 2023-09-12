@@ -6,11 +6,14 @@ public class MongoDbContext
 {
     private readonly MongoClient _mongoClient;
     private readonly string _mongoDbDatabaseName;
+    private readonly string _collectionPrefix;
 
-    public MongoDbContext(string mongoDbConnectionString)
+    public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
+        var mongoDbConnectionString = dbSettings.MongoDb;
         _mongoClient = new MongoClient(mongoDbConnectionString);
         _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
+        _collectionPrefix = dbSettings.TablePrefix;
     }
 
     private string GetDatabaseName(string mongoDbConnectionString)
@@ -26,23 +29,23 @@ public class MongoDbContext
     private IMongoDatabase Database { get { return _mongoClient.GetDatabase(_mongoDbDatabaseName); } }
 
     public IMongoCollection<AgentCollection> Agents
-        => Database.GetCollection<AgentCollection>("OneBrainAgents");
+        => Database.GetCollection<AgentCollection>($"{_collectionPrefix}_Agents");
 
     public IMongoCollection<ConversationCollection> Conversations
-        => Database.GetCollection<ConversationCollection>("OneBrainConversations");
+        => Database.GetCollection<ConversationCollection>($"{_collectionPrefix}_Conversations");
 
     public IMongoCollection<ConversationDialogCollection> ConversationDialogs
-        => Database.GetCollection<ConversationDialogCollection>("OneBrainConversationDialogs");
+        => Database.GetCollection<ConversationDialogCollection>($"{_collectionPrefix}_ConversationDialogs");
 
     public IMongoCollection<UserCollection> Users
-        => Database.GetCollection<UserCollection>("OneBrainUsers");
+        => Database.GetCollection<UserCollection>($"{_collectionPrefix}_Users");
 
     public IMongoCollection<UserAgentCollection> UserAgents
-        => Database.GetCollection<UserAgentCollection>("OneBrainUserAgents");
+        => Database.GetCollection<UserAgentCollection>($"{_collectionPrefix}_UserAgents");
 
     public IMongoCollection<RoutingItemCollection> RoutingItems
-        => Database.GetCollection<RoutingItemCollection>("OneBrainRoutingItems");
+        => Database.GetCollection<RoutingItemCollection>($"{_collectionPrefix}_RoutingItems");
 
     public IMongoCollection<RoutingProfileCollection> RoutingProfiles
-        => Database.GetCollection<RoutingProfileCollection>("OneBrainRoutingProfiles");
+        => Database.GetCollection<RoutingProfileCollection>($"{_collectionPrefix}_RoutingProfiles");
 }

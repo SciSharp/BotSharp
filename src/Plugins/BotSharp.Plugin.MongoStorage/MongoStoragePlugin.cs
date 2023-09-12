@@ -14,7 +14,7 @@ public class MongoStoragePlugin : IBotSharpPlugin
             services.AddScoped((IServiceProvider x) =>
             {
                 var dbSettings = x.GetRequiredService<BotSharpDatabaseSettings>();
-                return new MongoDbContext(dbSettings.MongoDb);
+                return new MongoDbContext(dbSettings);
             });
 
             services.AddScoped<IBotSharpRepository, MongoRepository>();
