@@ -8,6 +8,7 @@ public class AgentViewModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string Instruction { get; set; }
+    public List<AgentTemplate> Templates { get; set; }
     public List<string> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public bool IsPublic { get; set; }
@@ -21,6 +22,7 @@ public class AgentViewModel
             Name = agent.Name,
             Description = agent.Description,
             Instruction = agent.Instruction,
+            Templates = agent.Templates,
             Functions = agent.Functions,
             Responses = agent.Responses,
             IsPublic= agent.IsPublic,

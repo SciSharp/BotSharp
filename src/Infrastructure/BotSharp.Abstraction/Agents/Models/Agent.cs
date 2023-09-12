@@ -17,6 +17,12 @@ public class Agent
     public string Instruction { get; set; }
 
     /// <summary>
+    /// Templates
+    /// </summary>
+    [JsonIgnore]
+    public List<AgentTemplate> Templates { get; set; }
+
+    /// <summary>
     /// Samples
     /// </summary>
     [JsonIgnore]
@@ -67,6 +73,12 @@ public class Agent
     public Agent SetInstruction(string instruction)
     {
         Instruction = instruction;
+        return this;
+    }
+
+    public Agent SetTemplates(List<AgentTemplate> templates)
+    {
+        Templates = templates;
         return this;
     }
 
