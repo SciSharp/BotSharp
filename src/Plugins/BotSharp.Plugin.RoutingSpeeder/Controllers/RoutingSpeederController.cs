@@ -25,13 +25,12 @@ public class RoutingSpeederController : ControllerBase
     public IActionResult TrainIntentClassifier(TrainingParams trainingParams)
     {
         var intentClassifier = _service.GetRequiredService<IntentClassifier>();
-        // intentClassifier.InitClassifer(trainingParams.Inference);
         intentClassifier.Train(trainingParams);
         return Ok(intentClassifier.Labels);
     }
 
     [HttpPost("/routing-speeder/classifier/inference")]
-    public IActionResult TrainIntentClassifier([FromBody] DialoguePredictionModel message)
+    public IActionResult InferenceIntentClassifier([FromBody] DialoguePredictionModel message)
     {
         var intentClassifier = _service.GetRequiredService<IntentClassifier>();
         var vector = intentClassifier.GetTextEmbedding(message.Text);

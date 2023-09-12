@@ -15,12 +15,14 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Tensorflow.Keras;
 using BotSharp.Abstraction.Agents;
+using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.RoutingSpeeder.Providers;
 
 public class IntentClassifier
 {
     private readonly IServiceProvider _services;
+    private readonly ILogger _logger;
     private KnowledgeBaseSettings _knowledgeBaseSettings;
     Model _model;
     public Model model => _model;
@@ -31,11 +33,15 @@ public class IntentClassifier
     private string[] _labels;
     public string[] Labels => _labels == null ? GetLabels() : _labels;
 
-    public IntentClassifier(IServiceProvider services, ClassifierSetting settings, KnowledgeBaseSettings knowledgeBaseSettings)
+    public IntentClassifier(IServiceProvider services, 
+        ClassifierSetting settings, 
+        KnowledgeBaseSettings knowledgeBaseSettings,
+        ILogger logger)
     {
         _services = services;
         _settings = settings;
         _knowledgeBaseSettings = knowledgeBaseSettings;
+        _logger = logger;
     }
 
     private void Reset()
@@ -121,7 +127,7 @@ public class IntentClassifier
         {
             var logInfo = _inferenceMode ? "No available weights." : "Will implement model training process and write trained weights into local";
             _isModelReady = false;
-            Console.WriteLine(logInfo);
+            _logger.LogInformation(logInfo);
         }
 
         return weightsFile;
