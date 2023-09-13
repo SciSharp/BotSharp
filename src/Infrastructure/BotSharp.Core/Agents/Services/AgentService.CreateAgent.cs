@@ -62,13 +62,6 @@ public partial class AgentService
         return agentRecord;
     }
 
-    private JsonSerializerOptions _options = new JsonSerializerOptions
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true
-    };
-
     private Agent FetchAgentInfoFromFile(string agentName, string filePath)
     {
         foreach (var dir in Directory.GetDirectories(filePath))
