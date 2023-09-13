@@ -38,6 +38,7 @@ public partial class AgentService
                        .SetDescription(foundAgent.Description)
                        .SetIsPublic(foundAgent.IsPublic)
                        .SetInstruction(foundAgent.Instruction)
+                       .SetTemplates(foundAgent.Templates)
                        .SetFunctions(foundAgent.Functions)
                        .SetResponses(foundAgent.Responses);
         }
@@ -79,7 +80,9 @@ public partial class AgentService
                 var functions = FetchFunctionsFromFile(dir);
                 var instruction = FetchInstructionFromFile(dir);
                 var responses = FetchResponsesFromFile(dir);
+                var templates = FetchTemplatesFromFile(dir);
                 return agent.SetInstruction(instruction)
+                            .SetTemplates(templates)
                             .SetFunctions(functions)
                             .SetResponses(responses);
             }
@@ -95,6 +98,25 @@ public partial class AgentService
 
         var instruction = File.ReadAllText(file);
         return instruction;
+    }
+
+    private List<AgentTemplate> FetchTemplatesFromFile(string fileDir)
+    {
+        var templates = new List<AgentTemplate>();
+        foreach (var file in Directory.GetFiles(fileDir))
+        {
+            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var splits = fileName.ToLower().Split('.');
+            var name = splits[0];
+            var extension = splits[1];
+            if (name != "instruction" && extension == "liquid")
+            {
+                var content = File.ReadAllText(file);
+                templates.Add(new AgentTemplate(name, content));
+            }
+        }
+        
+        return templates;
     }
 
     private List<string> FetchFunctionsFromFile(string fileDir)

@@ -7,6 +7,7 @@ public class AgentCreationModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string Instruction { get; set; }
+    public List<AgentTemplate> Templates { get; set; }
     public List<string> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public bool IsPublic { get; set; }
@@ -18,6 +19,7 @@ public class AgentCreationModel
             Name = Name,
             Description = Description,
             Instruction = Instruction,
+            Templates = Templates,
             Functions = Functions,
             Responses = Responses,
             IsPublic = IsPublic

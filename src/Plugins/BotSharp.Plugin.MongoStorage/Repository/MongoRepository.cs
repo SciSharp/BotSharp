@@ -39,6 +39,7 @@ public class MongoRepository : IBotSharpRepository
                 Name = x.Name,
                 Description = x.Description,
                 Instruction = x.Instruction,
+                Templates = x.Templates,
                 Functions = x.Functions,
                 Responses = x.Responses,
                 IsPublic = x.IsPublic,
@@ -250,6 +251,7 @@ public class MongoRepository : IBotSharpRepository
                     Name = x.Name,
                     Description = x.Description,
                     Instruction = x.Instruction,
+                    Templates = x.Templates,
                     Functions = x.Functions,
                     Responses = x.Responses,
                     IsPublic = x.IsPublic,
@@ -264,6 +266,7 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.Name, agent.Name)
                         .Set(x => x.Description, agent.Description)
                         .Set(x => x.Instruction, agent.Instruction)
+                        .Set(x => x.Templates, agent.Templates)
                         .Set(x => x.Functions, agent.Functions)
                         .Set(x => x.Responses, agent.Responses)
                         .Set(x => x.IsPublic, agent.IsPublic)
@@ -595,5 +598,13 @@ public class MongoRepository : IBotSharpRepository
         }
 
         return records;
+    }
+
+    public string GetAgentTemplate(string agentId, string templateName)
+    {
+        var agent = Agents.FirstOrDefault(x => x.Id == agentId);
+        if (agent == null) return string.Empty;
+
+        return agent.Templates?.FirstOrDefault(x => x.Name == templateName.ToLower())?.Content ?? string.Empty;
     }
 }

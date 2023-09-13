@@ -36,4 +36,6 @@ public interface IBotSharpRepository
 
     Conversation GetConversation(string conversationId);
     List<Conversation> GetConversations(string userId);
+
+    string GetAgentTemplate(string agentId, string templateName);
 }

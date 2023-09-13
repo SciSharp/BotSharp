@@ -13,6 +13,11 @@ public class AgentUpdateModel
     public string? Instruction { get; set; }
 
     /// <summary>
+    /// Templates
+    /// </summary>
+    public List<AgentTemplate>? Templates { get; set; }
+
+    /// <summary>
     /// Samples
     /// </summary>
     public string? Samples { get; set; }
@@ -20,12 +25,12 @@ public class AgentUpdateModel
     /// <summary>
     /// Functions
     /// </summary>
-    public List<string> Functions { get; set; }
+    public List<string>? Functions { get; set; }
 
     /// <summary>
     /// Routes
     /// </summary>
-    public List<AgentResponse> Responses { get; set; }
+    public List<AgentResponse>? Responses { get; set; }
 
     public Agent ToAgent()
     {
@@ -39,6 +44,9 @@ public class AgentUpdateModel
 
         if (Instruction != null)
             agent.Instruction = Instruction;
+
+        if (!Templates.IsNullOrEmpty())
+            agent.Templates = Templates;
 
         if (Samples != null)
             agent.Samples = Samples;

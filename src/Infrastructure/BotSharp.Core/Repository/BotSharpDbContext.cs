@@ -151,4 +151,9 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
+
+    public string GetAgentTemplate(string agentId, string templateName)
+    {
+        throw new NotImplementedException();
+    }
 }

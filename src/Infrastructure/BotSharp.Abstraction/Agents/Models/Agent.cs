@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BotSharp.Abstraction.Agents.Models;
 
 public class Agent
@@ -11,26 +13,37 @@ public class Agent
     /// <summary>
     /// Instruction
     /// </summary>
+    [JsonIgnore]
     public string Instruction { get; set; }
+
+    /// <summary>
+    /// Templates
+    /// </summary>
+    [JsonIgnore]
+    public List<AgentTemplate> Templates { get; set; }
 
     /// <summary>
     /// Samples
     /// </summary>
+    [JsonIgnore]
     public string Samples { get; set; }
 
     /// <summary>
     /// Functions
     /// </summary>
+    [JsonIgnore]
     public List<string> Functions { get; set; }
 
     /// <summary>
     /// Responses
     /// </summary>
+    [JsonIgnore]
     public List<AgentResponse> Responses { get; set; }
 
     /// <summary>
     /// Domain knowledges
     /// </summary>
+    [JsonIgnore]
     public string Knowledges { get; set; }
 
     public bool IsPublic { get; set; }
@@ -60,6 +73,12 @@ public class Agent
     public Agent SetInstruction(string instruction)
     {
         Instruction = instruction;
+        return this;
+    }
+
+    public Agent SetTemplates(List<AgentTemplate> templates)
+    {
+        Templates = templates;
         return this;
     }
 

@@ -4,7 +4,6 @@ using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
-
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
@@ -158,7 +157,7 @@ public class FileRepository : IBotSharpRepository
             var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "routing-profile.json");
             if (File.Exists(filePath))
             {
-                _routingProfiles = JsonSerializer.Deserialize<List<RoutingProfile>>(File.ReadAllText(filePath).ToLower(), _options);
+                _routingProfiles = JsonSerializer.Deserialize<List<RoutingProfile>>(File.ReadAllText(filePath), _options);
             }
             
             return _routingProfiles.AsQueryable();
@@ -559,5 +558,26 @@ public class FileRepository : IBotSharpRepository
         }
 
         return records;
+    }
+
+    public string GetAgentTemplate(string agentId, string templateName)
+    {
+        var fileDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+        if (!Directory.Exists(fileDir)) return string.Empty;
+
+        var lowerTemplateName = templateName?.ToLower();
+        foreach (var file in Directory.GetFiles(fileDir))
+        {
+            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var splits = fileName.ToLower().Split('.');
+            var name = splits[0];
+            var extension = splits[1];
+            if (name == lowerTemplateName && extension == "liquid")
+            {
+                return File.ReadAllText(file);
+            }
+        }
+
+        return string.Empty;
     }
 }
