@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BotSharp.Abstraction.Conversations.Models;
 
 public class IncomingMessageModel
@@ -9,6 +11,7 @@ public class IncomingMessageModel
     /// <summary>
     /// Model name
     /// </summary>
+    [JsonPropertyName("model")]
     public virtual string ModelName { get; set; } = "gpt-3.5-turbo";
 
     /// <summary>

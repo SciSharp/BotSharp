@@ -10,9 +10,6 @@ public class OpenAiMessageInput : IncomingMessageModel
     public string AgentId { get; set; } = string.Empty;
     public string ConversationId { get; set; } = string.Empty;
 
-    [JsonPropertyName("model")]
-    public override string ModelName { get; set; } = string.Empty;
-
     public List<OpenAiMessageBody> Messages { get; set; } = new List<OpenAiMessageBody>();
 
     [JsonPropertyName("max_tokens")]

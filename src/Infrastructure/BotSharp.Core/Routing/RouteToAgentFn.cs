@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Routing;
@@ -39,6 +38,8 @@ public class RouteToAgentFn : IFunctionCallback
             }
         }
 
+        // Set default execution data
+        message.ExecutionData = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
         return true;
     }
 
@@ -60,45 +61,65 @@ public class RouteToAgentFn : IFunctionCallback
         }
 
         agentId = routingRule.AgentId;
+        // Add routed agent
+        message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "route_to", agentId);
 
         // Check required fields
         var root = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
-        bool hasMissingField = false;
-        string missingFieldName = "";
+        var missingFields = new List<string>();
         foreach (var field in routingRule.RequiredFields)
         {
             if (!root.EnumerateObject().Any(x => x.Name == field))
             {
-                message.ExecutionResult = $"missing {field}.";
-                hasMissingField = true;
-                missingFieldName = field;
-                break;
+                missingFields.Add(field);
             }
             else if (root.EnumerateObject().Any(x => x.Name == field) &&
                 string.IsNullOrEmpty(root.EnumerateObject().FirstOrDefault(x => x.Name == field).Value.ToString()))
             {
-                message.ExecutionResult = $"missing {field}.";
-                hasMissingField = true;
-                missingFieldName = field;
-                break;
+                missingFields.Add(field);
             }
         }
 
         // Check if states contains the field according conversation context.
         var states = _services.GetRequiredService<IConversationStateService>();
-        if (!string.IsNullOrEmpty(states.GetState(missingFieldName)))
+        foreach (var field in missingFields.ToList())
         {
-            var value = states.GetState(missingFieldName);
-            message.FunctionArgs = message.FunctionArgs.Substring(0, message.FunctionArgs.Length - 1) + $", \"{missingFieldName}\": \"{value}\"" + "}";
-            hasMissingField = false;
-            missingFieldName = "";
+            if (!string.IsNullOrEmpty(states.GetState(field)))
+            {
+                var value = states.GetState(field);
+                message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, field, value);
+                missingFields.Remove(field);
+            }
         }
 
-        if (hasMissingField && !string.IsNullOrEmpty(routingRule.RedirectTo))
+        if (missingFields.Any())
         {
-            agentId = routingRule.RedirectTo;
+            // Add field to args
+            message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "missing_fields", missingFields);
+            message.ExecutionResult = $"missing some information";
+
+            // Handle redirect
+            if (!string.IsNullOrEmpty(routingRule.RedirectTo))
+            {
+                agentId = routingRule.RedirectTo;
+                var agent = router.GetRecordByAgentId(agentId);
+
+                // Add redirected agent
+                message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", agent.Name);
+            }
         }
 
-        return hasMissingField;
+        return missingFields.Any();
+    }
+
+    private string AppendPropertyToArgs(string args, string key, string value)
+    {
+        return args.Substring(0, args.Length - 1) + $", \"{key}\": \"{value}\"" + "}";
+    }
+
+    private string AppendPropertyToArgs(string args, string key, IEnumerable<string> values)
+    {
+        string fields = string.Join(",", values.Select(x => $"\"{x}\""));
+        return args.Substring(0, args.Length - 1) + $", \"{key}\": [{fields}]" + "}";
     }
 }
