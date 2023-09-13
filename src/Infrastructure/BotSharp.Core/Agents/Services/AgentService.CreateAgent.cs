@@ -29,7 +29,7 @@ public partial class AgentService
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
         var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir);
-        var foundAgent = FetchAgentInfoFromFile(agent.Name, filePath);
+        var foundAgent = FetchAgentFileByName(agent.Name, filePath);
 
         if (foundAgent != null)
         {
@@ -62,7 +62,7 @@ public partial class AgentService
         return agentRecord;
     }
 
-    private Agent FetchAgentInfoFromFile(string agentName, string filePath)
+    private Agent FetchAgentFileByName(string agentName, string filePath)
     {
         foreach (var dir in Directory.GetDirectories(filePath))
         {

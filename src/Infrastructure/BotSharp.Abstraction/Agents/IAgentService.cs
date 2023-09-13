@@ -18,6 +18,7 @@ public interface IAgentService
     Task<Agent> GetAgent(string id);
     Task<bool> DeleteAgent(string id);
     Task UpdateAgent(Agent agent);
+    Task UpdateAgentFromFile(string id);
     string GetDataDir();
     string GetAgentDataDir(string agentId);
 }

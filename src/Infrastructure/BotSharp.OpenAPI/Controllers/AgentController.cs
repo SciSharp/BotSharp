@@ -29,6 +29,12 @@ public class AgentController : ControllerBase, IApiAdapter
         await _agentService.UpdateAgent(model);
     }
 
+    [HttpPut("/agent/file/{agentId}")]
+    public async Task UpdateAgentFromFile([FromRoute] string agentId)
+    {
+        await _agentService.UpdateAgentFromFile(agentId);
+    }
+
     [HttpGet("/agents")]
     public async Task<List<AgentViewModel>> GetAgents()
     {
