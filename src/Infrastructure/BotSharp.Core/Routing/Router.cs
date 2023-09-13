@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
-using System.IO;
 
 namespace BotSharp.Core.Routing;
 
@@ -55,5 +54,10 @@ public class Router : IAgentRouting
     public RoutingItem GetRecordByName(string name)
     {
         return GetRoutingRecords().First(x => x.Name.ToLower() == name.ToLower());
+    }
+
+    public RoutingItem GetRecordByAgentId(string id)
+    {
+        return GetRoutingRecords().First(x => x.AgentId == id);
     }
 }

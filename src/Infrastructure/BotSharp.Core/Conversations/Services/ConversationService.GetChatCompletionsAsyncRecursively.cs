@@ -78,7 +78,10 @@ public partial class ConversationService
                 return;
             }
 
-            fn.Content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.ExecutionResult;
+            var content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.ExecutionResult;
+            _logger.LogInformation(content);
+
+            fn.Content = content;
 
             // Agent has been transferred
             if (fn.CurrentAgentId != preAgentId)
