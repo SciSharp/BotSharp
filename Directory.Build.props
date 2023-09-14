@@ -2,7 +2,7 @@
  <PropertyGroup>
    <LangVersion>10.0</LangVersion>
    <OutputPath>..\..\..\packages</OutputPath>
-   <PackageVersion>0.12.0</PackageVersion>
+   <PackageVersion>0.12.1</PackageVersion>
    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
  </PropertyGroup>
 </Project>

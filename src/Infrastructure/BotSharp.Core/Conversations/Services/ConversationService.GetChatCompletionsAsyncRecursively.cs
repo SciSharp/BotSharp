@@ -1,7 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -16,7 +14,7 @@ public partial class ConversationService
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services, wholeDialogs.Last().ModelName);
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services);
 
         currentRecursiveDepth++;
         if (currentRecursiveDepth > _settings.MaxRecursiveDepth)
@@ -32,10 +30,7 @@ public partial class ConversationService
 
             await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, text)
             {
-                CurrentAgentId = agent.Id,
-                Channel = wholeDialogs.Last().Channel,
-                Temperature = wholeDialogs.Last().Temperature,
-                SamplingFactor = wholeDialogs.Last().SamplingFactor
+                CurrentAgentId = agent.Id
             }, onMessageReceived);
 
             return false;
@@ -55,10 +50,7 @@ public partial class ConversationService
             {
                 await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
-                    CurrentAgentId = fn.CurrentAgentId,
-                    Channel = fn.Channel,
-                    Temperature = fn.Temperature,
-                    SamplingFactor = fn.SamplingFactor
+                    CurrentAgentId = fn.CurrentAgentId
                 }, onMessageReceived);
 
                 return;
@@ -68,11 +60,8 @@ public partial class ConversationService
                 await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
                     CurrentAgentId = fn.CurrentAgentId,
-                    Channel = fn.Channel,
                     ExecutionData = fn.ExecutionData,
-                    ExecutionResult = fn.ExecutionResult,
-                    Temperature = fn.Temperature,
-                    SamplingFactor = fn.SamplingFactor
+                    ExecutionResult = fn.ExecutionResult
                 }, onMessageReceived);
 
                 return;
@@ -106,10 +95,7 @@ public partial class ConversationService
                 {
                     await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, response)
                     {
-                        CurrentAgentId = agent.Id,
-                        Channel = wholeDialogs.Last().Channel,
-                        Temperature = wholeDialogs.Last().Temperature,
-                        SamplingFactor = wholeDialogs.Last().SamplingFactor
+                        CurrentAgentId = agent.Id
                     }, onMessageReceived);
 
                     return;

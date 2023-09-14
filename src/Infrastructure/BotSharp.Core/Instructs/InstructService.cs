@@ -71,7 +71,7 @@ public partial class InstructService : IInstructService
         Func<RoleDialogModel, Task> onFunctionExecuting, 
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services, wholeDialogs.Last().ModelName);
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services);
 
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {

@@ -4,7 +4,7 @@ public interface IConversationService
 {
     IConversationStateService States { get; }
     Task<Conversation> NewConversation(Conversation conversation);
-    void SetConversationId(string conversationId, string channel);
+    void SetConversationId(string conversationId, List<string> states);
     Task<Conversation> GetConversation(string id);
     Task<List<Conversation>> GetConversations();
     Task DeleteConversation(string id);

@@ -43,10 +43,7 @@ public partial class ConversationService
             {
                 var message = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content)
                 {
-                    CurrentAgentId = agent.Id,
-                    Channel = lastDialog.Channel,
-                    Temperature = lastDialog.Temperature,
-                    SamplingFactor = lastDialog.SamplingFactor
+                    CurrentAgentId = agent.Id
                 };
                 await onMessageReceived(message);
                 _storage.Append(_conversationId, message);
@@ -65,10 +62,7 @@ public partial class ConversationService
             {
                 await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
                 {
-                    CurrentAgentId = agent.Id,
-                    Channel = lastDialog.Channel,
-                    Temperature = lastDialog.Temperature,
-                    SamplingFactor = lastDialog.SamplingFactor
+                    CurrentAgentId = agent.Id
                 }, onMessageReceived);
 
                 return true;
@@ -77,10 +71,7 @@ public partial class ConversationService
             {
                 await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
                 {
-                    CurrentAgentId = agent.Id,
-                    Channel = lastDialog.Channel,
-                    Temperature = lastDialog.Temperature,
-                    SamplingFactor = lastDialog.SamplingFactor
+                    CurrentAgentId = agent.Id
                 }, onMessageReceived);
 
                 return true;

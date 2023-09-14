@@ -98,12 +98,12 @@ public class WebhookController : ControllerBase
 
                 // Go to LLM
                 var conv = _services.GetRequiredService<IConversationService>();
-                conv.SetConversationId(senderId, "messenger");
+                conv.SetConversationId(senderId, new List<string> 
+                { 
+                    "channel=messenger" 
+                });
 
-                var result = await conv.SendMessage(agentId, new RoleDialogModel("user", input)
-                {
-                    Channel = "messenger"
-                }, async msg =>
+                var result = await conv.SendMessage(agentId, new RoleDialogModel("user", input), async msg =>
                 {
                     reply.Text = msg.Content;
                 }, async functionExecuting =>

@@ -112,11 +112,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public ConversationState GetStates()
         => _states;
 
-    public string GetState(string name)
+    public string GetState(string name, string defaultValue = "")
     {
         if (!_states.ContainsKey(name))
         {
-            _states[name] = "";
+            _states[name] = defaultValue ?? "";
         }
         return _states[name];
     }

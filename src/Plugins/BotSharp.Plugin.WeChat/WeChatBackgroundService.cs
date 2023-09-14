@@ -1,16 +1,11 @@
-using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.Users;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.WeChat.Users;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Senparc.Weixin.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +46,10 @@ namespace BotSharp.Plugin.WeChat
             var latestConversationId = (await conversationService.GetConversations())
                 .OrderByDescending(_ => _.CreatedTime)
                 .FirstOrDefault()?.Id;
-            conversationService.SetConversationId(latestConversationId, "wechat");
+            conversationService.SetConversationId(latestConversationId, new List<string>
+            {
+                "channel=wechat" 
+            });
 
             latestConversationId ??= (await conversationService.NewConversation(new Conversation()
             {

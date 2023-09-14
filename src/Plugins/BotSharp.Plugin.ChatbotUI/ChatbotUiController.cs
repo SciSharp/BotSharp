@@ -69,20 +69,17 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         Response.Headers.Add(HeaderNames.Connection, "keep-alive");
         var outputStream = Response.Body;
 
-        var channel = "webchat";
         var message = input.Messages
             .Where(x => x.Role == AgentRole.User)
-            .Select(x => new RoleDialogModel(x.Role, x.Content)
-            {
-                Channel = channel,
-                ModelName = input.ModelName,
-                Temperature = input.Temperature,
-                SamplingFactor = input.SamplingFactor
-            }).Last();
+            .Select(x => new RoleDialogModel(x.Role, x.Content))
+            .Last();
 
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(input.ConversationId, channel);
-        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
+        conv.SetConversationId(input.ConversationId, input.States);
+        conv.States.SetState("model", input.ModelName);
+        conv.States.SetState("channel", "webchat");
+        conv.States.SetState("temperature", "0.5");
+        conv.States.SetState("sampling_factor", "0.5");
 
         var result = await conv.SendMessage(input.AgentId, 
             message, 

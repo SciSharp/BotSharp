@@ -36,10 +36,7 @@ public class InstructModeController : ControllerBase, IApiAdapter
         }
 
         return await instructor.ExecuteInstruction(agent,
-            new RoleDialogModel(AgentRole.User, input.Text)
-            {
-                ModelName = input.ModelName
-            },
+            new RoleDialogModel(AgentRole.User, input.Text),
             fn => Task.CompletedTask,
             fn => Task.CompletedTask,
             fn => Task.CompletedTask);

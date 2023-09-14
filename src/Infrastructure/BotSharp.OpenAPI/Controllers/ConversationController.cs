@@ -43,20 +43,17 @@ public class ConversationController : ControllerBase, IApiAdapter
         [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, input.Channel);
-        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
-        
+        conv.SetConversationId(conversationId, input.States);
+        conv.States.SetState("channel", input.Channel);
+        conv.States.SetState("model", input.ModelName);
+        conv.States.SetState("temperature", input.Temperature.ToString());
+        conv.States.SetState("sampling_factor", input.SamplingFactor.ToString());
+
         var response = new MessageResponseModel();
         var stackMsg = new List<RoleDialogModel>();
 
         await conv.SendMessage(agentId,
-            new RoleDialogModel("user", input.Text)
-            {
-                Channel = input.Channel,
-                ModelName = input.ModelName,
-                Temperature = input.Temperature,
-                SamplingFactor = input.SamplingFactor
-            },
+            new RoleDialogModel("user", input.Text),
             async msg =>
             {
                 stackMsg.Add(msg);

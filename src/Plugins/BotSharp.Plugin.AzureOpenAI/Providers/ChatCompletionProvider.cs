@@ -2,6 +2,7 @@ using Azure;
 using Azure.AI.OpenAI;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Functions.Models;
@@ -104,10 +105,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 FunctionName = message.FunctionCall.Name,
-                FunctionArgs = message.FunctionCall.Arguments,
-                Channel = conversations.Last().Channel,
-                Temperature = conversations.Last().Temperature,
-                SamplingFactor = conversations.Last().SamplingFactor
+                FunctionArgs = message.FunctionCall.Arguments
             };
 
             // Somethings LLM will generate a function name with agent name.
@@ -125,10 +123,7 @@ public class ChatCompletionProvider : IChatCompletion
 
             var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
             {
-                CurrentAgentId= agent.Id,
-                Channel = conversations.Last().Channel,
-                Temperature = conversations.Last().Temperature,
-                SamplingFactor = conversations.Last().SamplingFactor
+                CurrentAgentId= agent.Id
             };
 
             // Text response received
@@ -230,8 +225,11 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api-a-few-tips-and-tricks-on-controlling-the-creativity-deterministic-output-of-prompt-responses/172683
-        chatCompletionsOptions.Temperature = conversations.Last().Temperature;
-        chatCompletionsOptions.NucleusSamplingFactor = conversations.Last().SamplingFactor;
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var temperature = float.Parse(state.GetState("temperature", "0.5"));
+        var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
+        chatCompletionsOptions.Temperature = temperature;
+        chatCompletionsOptions.NucleusSamplingFactor = samplingFactor;
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)

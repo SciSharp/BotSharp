@@ -1,8 +1,8 @@
-using BotSharp.OpenAPI.ViewModels.Conversations;
-
+using BotSharp.Abstraction.Conversations.Models;
 namespace BotSharp.OpenAPI.ViewModels.Instructs;
 
-public class InstructMessageModel : NewMessageModel
+public class InstructMessageModel : IncomingMessageModel
 {
+    public override string Channel { get; set; } = "openapi";
     public string? TemplateName { get; set; }
 }

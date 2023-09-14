@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Records;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -82,10 +81,10 @@ public partial class ConversationService : IConversationService
             .ToList();
     }
 
-    public void SetConversationId(string conversationId, string channel)
+    public void SetConversationId(string conversationId, List<string> states)
     {
         _conversationId = conversationId;
         _state.Load(_conversationId);
-        _state.SetState("channel", channel);
+        states.ForEach(x => _state.SetState(x.Split('=')[0], x.Split('=')[1]));
     }
 }
