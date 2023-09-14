@@ -44,10 +44,10 @@ public class ConversationController : ControllerBase, IApiAdapter
     {
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(conversationId, input.States);
-        conv.States.SetState("channel", input.Channel);
-        conv.States.SetState("model", input.ModelName);
-        conv.States.SetState("temperature", input.Temperature.ToString());
-        conv.States.SetState("sampling_factor", input.SamplingFactor.ToString());
+        conv.States.SetState("channel", input.Channel)
+            .SetState("model", input.ModelName)
+            .SetState("temperature", input.Temperature.ToString())
+            .SetState("sampling_factor", input.SamplingFactor.ToString());
 
         var response = new MessageResponseModel();
         var stackMsg = new List<RoleDialogModel>();

@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
-using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -17,6 +16,7 @@ public partial class AgentService
         return query.ToList();
     }
 
+    [MemoryCache(10 * 60)]
     public async Task<Agent> GetAgent(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();

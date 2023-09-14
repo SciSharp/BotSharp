@@ -134,6 +134,11 @@ public class Simulator
 
     private void SaveStateByArgs(JsonDocument args)
     {
+        if (args == null)
+        {
+            return;
+        }
+
         var stateService = _services.GetRequiredService<IConversationStateService>();
         if (args.RootElement is JsonElement root)
         {
