@@ -10,6 +10,7 @@ public partial class AgentService : IAgentService
     private readonly ILogger _logger;
     private readonly IUserIdentity _user;
     private readonly AgentSettings _settings;
+    private readonly JsonSerializerOptions _options;
 
     public AgentService(IServiceProvider services, 
         ILogger<AgentService> logger, 
@@ -20,6 +21,12 @@ public partial class AgentService : IAgentService
         _logger = logger;
         _user = user;
         _settings = settings;
+        _options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
     }
 
     public string GetDataDir()

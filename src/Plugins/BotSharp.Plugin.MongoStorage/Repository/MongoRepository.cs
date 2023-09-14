@@ -379,6 +379,7 @@ public class MongoRepository : IBotSharpRepository
             Name = agent.Name,
             Description = agent.Description,
             Instruction = agent.Instruction,
+            Templates = agent.Templates,
             Functions = agent.Functions,
             Responses = agent.Responses,
             IsPublic = agent.IsPublic,
@@ -391,12 +392,13 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.Name, agent.Name)
             .Set(x => x.Description, agent.Description)
             .Set(x => x.Instruction, agent.Instruction)
+            .Set(x => x.Templates, agent.Templates)
             .Set(x => x.Functions, agent.Functions)
             .Set(x => x.Responses, agent.Responses)
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, agent.UpdatedDateTime);
 
-        _dc.Agents.UpdateOne(filter, update, _options);
+        _dc.Agents.UpdateOne(filter, update);
     }
 
     public void DeleteRoutingItems()
