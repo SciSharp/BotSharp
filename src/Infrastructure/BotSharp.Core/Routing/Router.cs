@@ -28,7 +28,9 @@ public class Router : IAgentRouting
         return await agentService.LoadAgent(AgentId);
     }
 
+#if !DEBUG
     [MemoryCache(10 * 60)]
+#endif
     public RoutingItem[] GetRoutingRecords()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();

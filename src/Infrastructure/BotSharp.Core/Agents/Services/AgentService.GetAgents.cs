@@ -16,7 +16,9 @@ public partial class AgentService
         return query.ToList();
     }
 
+#if !DEBUG
     [MemoryCache(10 * 60)]
+#endif
     public async Task<Agent> GetAgent(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
