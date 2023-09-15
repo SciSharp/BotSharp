@@ -332,61 +332,127 @@ public class MongoRepository : IBotSharpRepository
         return _changedTableNames.Count;
     }
 
-    public User GetUserByEmail(string email)
-    {
-        var user = Users.FirstOrDefault(x => x.Email == email);
-        return user != null ? new User
-        {
-            Id = user.Id.ToString(),
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Password = user.Password,
-            Salt = user.Salt,
-            ExternalId = user.ExternalId,
-            CreatedTime = user.CreatedTime,
-            UpdatedTime = user.UpdatedTime
-        } : null;
-    }
-
-    public void CreateUser(User user)
-    {
-        if (user == null) return;
-
-        var userCollection = new UserCollection
-        {
-            Id = Guid.NewGuid(),
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Salt = user.Salt,
-            Password = user.Password,
-            Email = user.Email,
-            ExternalId = user.ExternalId,
-            CreatedTime = DateTime.UtcNow,
-            UpdatedTime = DateTime.UtcNow
-        };
-
-        _dc.Users.InsertOne(userCollection);
-    }
-
-    public void UpdateAgent(Agent agent)
+    #region Agent
+    public void UpdateAgent(Agent agent, AgentField field)
     {
         if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
-        var agentCollection = new AgentCollection
+        switch (field)
         {
-            Id = Guid.Parse(agent.Id),
-            Name = agent.Name,
-            Description = agent.Description,
-            Instruction = agent.Instruction,
-            Templates = agent.Templates,
-            Functions = agent.Functions,
-            Responses = agent.Responses,
-            IsPublic = agent.IsPublic,
-            UpdatedTime = DateTime.UtcNow
-        };
+            case AgentField.Name:
+                UpdateAgentName(agent.Id, agent.Name);
+                break;
+            case AgentField.Description:
+                UpdateAgentDescription(agent.Id, agent.Description);
+                break;
+            case AgentField.IsPublic:
+                UpdateAgentIsPublic(agent.Id, agent.IsPublic);
+                break;
+            case AgentField.Instruction:
+                UpdateAgentInstruction(agent.Id, agent.Instruction);
+                break;
+            case AgentField.Function:
+                UpdateAgentFunctions(agent.Id, agent.Functions);
+                break;
+            case AgentField.Template:
+                UpdateAgentTemplates(agent.Id, agent.Templates);
+                break;
+            case AgentField.Response:
+                UpdateAgentResponses(agent.Id, agent.Responses);
+                break;
+            case AgentField.All:
+                UpdateAgentAllFields(agent);
+                break;
+            default:
+                break;
+        }
+    }
 
+    #region Update Agent Fields
+    private void UpdateAgentName(string agentId, string name)
+    {
+        if (string.IsNullOrEmpty(name)) return;
 
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Name, name)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentDescription(string agentId, string description)
+    {
+        if (string.IsNullOrEmpty(description)) return;
+
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Description, description)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentIsPublic(string agentId, bool isPublic)
+    {
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.IsPublic, isPublic)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentInstruction(string agentId, string instruction)
+    {
+        if (string.IsNullOrEmpty(instruction)) return;
+
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Instruction, instruction)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentFunctions(string agentId, List<string> functions)
+    {
+        if (functions.IsNullOrEmpty()) return;
+
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Functions, functions)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
+    {
+        if (templates.IsNullOrEmpty()) return;
+
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Templates, templates)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
+    {
+        if (responses.IsNullOrEmpty()) return;
+
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Responses, responses)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentAllFields(Agent agent)
+    {
         var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agent.Id));
         var update = Builders<AgentCollection>.Update
             .Set(x => x.Name, agent.Name)
@@ -396,63 +462,19 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.Functions, agent.Functions)
             .Set(x => x.Responses, agent.Responses)
             .Set(x => x.IsPublic, agent.IsPublic)
-            .Set(x => x.UpdatedTime, agent.UpdatedDateTime);
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
     }
+    #endregion
 
-    public void DeleteRoutingItems()
+
+
+
+    public Agent GetAgent(string agentId)
     {
-        _dc.RoutingItems.DeleteMany(Builders<RoutingItemCollection>.Filter.Empty);
-    }
-
-    public void DeleteRoutingProfiles()
-    {
-        _dc.RoutingProfiles.DeleteMany(Builders<RoutingProfileCollection>.Filter.Empty);
-    }
-
-    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
-    {
-        var collections = routingItems?.Select(x => new RoutingItemCollection
-        {
-            Id = Guid.NewGuid(),
-            AgentId = Guid.Parse(x.AgentId),
-            Name = x.Name,
-            Description = x.Description,
-            RequiredFields = x.RequiredFields,
-            RedirectTo = !string.IsNullOrEmpty(x.RedirectTo) ? Guid.Parse(x.RedirectTo) : null,
-            Disabled = x.Disabled
-        })?.ToList() ?? new List<RoutingItemCollection>();
-        
-        _dc.RoutingItems.InsertMany(collections);
-        return collections.Select(x => new RoutingItem
-        {
-            Id = x.Id.ToString(),
-            AgentId = x.AgentId.ToString(),
-            Name = x.Name,
-            Description = x.Description,
-            RequiredFields = x.RequiredFields,
-            RedirectTo = x.RedirectTo?.ToString(),
-            Disabled = x.Disabled
-        }).ToList();
-    }
-
-    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
-    {
-        var collections = profiles?.Select(x => new RoutingProfileCollection
-        {
-            Id = Guid.NewGuid(),
-            Name = x.Name,
-            AgentIds = x.AgentIds.Select(x => Guid.Parse(x)).ToList()
-        })?.ToList() ?? new List<RoutingProfileCollection>();
-
-        _dc.RoutingProfiles.InsertMany(collections);
-        return collections.Select(x => new RoutingProfile
-        {
-            Id = x.Id.ToString(),
-            Name = x.Name,
-            AgentIds = x.AgentIds.Select(x => x.ToString()).ToList()
-        }).ToList();
+        var foundAgent = Agents.FirstOrDefault(x => x.Id == agentId);
+        return foundAgent;
     }
 
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
@@ -464,12 +486,16 @@ public class MongoRepository : IBotSharpRepository
         return agent.Responses.Where(x => x.Prefix == prefix && x.Intent == intent).Select(x => x.Content).ToList();
     }
 
-    public Agent GetAgent(string agentId)
+    public string GetAgentTemplate(string agentId, string templateName)
     {
-        var foundAgent = Agents.FirstOrDefault(x => x.Id == agentId);
-        return foundAgent;
-    }
+        var agent = Agents.FirstOrDefault(x => x.Id == agentId);
+        if (agent == null) return string.Empty;
 
+        return agent.Templates?.FirstOrDefault(x => x.Name == templateName.ToLower())?.Content ?? string.Empty;
+    }
+    #endregion
+
+    #region Conversation
     public void CreateNewConversation(Conversation conversation)
     {
         if (conversation == null) return;
@@ -565,7 +591,7 @@ public class MongoRepository : IBotSharpRepository
         if (conv == null) return null;
 
         return new Conversation
-        { 
+        {
             Id = conv.Id.ToString(),
             AgentId = conv.AgentId.ToString(),
             UserId = conv.UserId.ToString(),
@@ -601,12 +627,100 @@ public class MongoRepository : IBotSharpRepository
 
         return records;
     }
+    #endregion
 
-    public string GetAgentTemplate(string agentId, string templateName)
+    #region User
+    public User GetUserByEmail(string email)
     {
-        var agent = Agents.FirstOrDefault(x => x.Id == agentId);
-        if (agent == null) return string.Empty;
-
-        return agent.Templates?.FirstOrDefault(x => x.Name == templateName.ToLower())?.Content ?? string.Empty;
+        var user = Users.FirstOrDefault(x => x.Email == email);
+        return user != null ? new User
+        {
+            Id = user.Id.ToString(),
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Password = user.Password,
+            Salt = user.Salt,
+            ExternalId = user.ExternalId,
+            CreatedTime = user.CreatedTime,
+            UpdatedTime = user.UpdatedTime
+        } : null;
     }
+
+    public void CreateUser(User user)
+    {
+        if (user == null) return;
+
+        var userCollection = new UserCollection
+        {
+            Id = Guid.NewGuid(),
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Salt = user.Salt,
+            Password = user.Password,
+            Email = user.Email,
+            ExternalId = user.ExternalId,
+            CreatedTime = DateTime.UtcNow,
+            UpdatedTime = DateTime.UtcNow
+        };
+
+        _dc.Users.InsertOne(userCollection);
+    }
+    #endregion
+
+    #region Routing
+    public void DeleteRoutingItems()
+    {
+        _dc.RoutingItems.DeleteMany(Builders<RoutingItemCollection>.Filter.Empty);
+    }
+
+    public void DeleteRoutingProfiles()
+    {
+        _dc.RoutingProfiles.DeleteMany(Builders<RoutingProfileCollection>.Filter.Empty);
+    }
+
+    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
+    {
+        var collections = routingItems?.Select(x => new RoutingItemCollection
+        {
+            Id = Guid.NewGuid(),
+            AgentId = Guid.Parse(x.AgentId),
+            Name = x.Name,
+            Description = x.Description,
+            RequiredFields = x.RequiredFields,
+            RedirectTo = !string.IsNullOrEmpty(x.RedirectTo) ? Guid.Parse(x.RedirectTo) : null,
+            Disabled = x.Disabled
+        })?.ToList() ?? new List<RoutingItemCollection>();
+
+        _dc.RoutingItems.InsertMany(collections);
+        return collections.Select(x => new RoutingItem
+        {
+            Id = x.Id.ToString(),
+            AgentId = x.AgentId.ToString(),
+            Name = x.Name,
+            Description = x.Description,
+            RequiredFields = x.RequiredFields,
+            RedirectTo = x.RedirectTo?.ToString(),
+            Disabled = x.Disabled
+        }).ToList();
+    }
+
+    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
+    {
+        var collections = profiles?.Select(x => new RoutingProfileCollection
+        {
+            Id = Guid.NewGuid(),
+            Name = x.Name,
+            AgentIds = x.AgentIds.Select(x => Guid.Parse(x)).ToList()
+        })?.ToList() ?? new List<RoutingProfileCollection>();
+
+        _dc.RoutingProfiles.InsertMany(collections);
+        return collections.Select(x => new RoutingProfile
+        {
+            Id = x.Id.ToString(),
+            Name = x.Name,
+            AgentIds = x.AgentIds.Select(x => x.ToString()).ToList()
+        }).ToList();
+    }
+    #endregion
 }

@@ -6,44 +6,38 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public async Task UpdateAgent(Agent agent)
+    public async Task UpdateAgent(Agent agent, AgentField updateField)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
+        if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
-        var record = (from a in db.Agents
-                      join ua in db.UserAgents on a.Id equals ua.AgentId
-                      join u in db.Users on ua.UserId equals u.Id
-                      where (ua.UserId == _user.Id || u.ExternalId == _user.Id) &&
-                        a.Id == agent.Id
-                      select a).FirstOrDefault();
-
+        var record = FindAgent(agent.Id);
         if (record == null) return;
 
-        record.Name = agent.Name;
+        record.Name = agent.Name ?? string.Empty;
+        record.Description = agent.Description ?? string.Empty;
+        record.Instruction = agent.Instruction ?? string.Empty;
+        record.Functions = agent.Functions ?? new List<string>();
+        record.Templates = agent.Templates ?? new List<AgentTemplate>();
+        record.Responses = agent.Responses ?? new List<AgentResponse>();
 
-        if (!string.IsNullOrEmpty(agent.Description))
-            record.Description = agent.Description;
-
-        if (!string.IsNullOrEmpty(agent.Instruction))
-            record.Instruction = agent.Instruction;
-
-        if (!agent.Templates.IsNullOrEmpty())
-            record.Templates = agent.Templates;
-
-        if (!agent.Functions.IsNullOrEmpty())
-            record.Functions = agent.Functions;
-
-        if (!agent.Responses.IsNullOrEmpty())
-            record.Responses = agent.Responses;
-
-        db.UpdateAgent(record);
+        _db.UpdateAgent(record, updateField);
         await Task.CompletedTask;
+    }
+
+    private Agent FindAgent(string agentId)
+    {
+        var record = (from a in _db.Agents
+                      join ua in _db.UserAgents on a.Id equals ua.AgentId
+                      join u in _db.Users on ua.UserId equals u.Id
+                      where (ua.UserId == _user.Id || u.ExternalId == _user.Id) &&
+                        a.Id == agentId
+                      select a).FirstOrDefault();
+        return record;
     }
 
     public async Task UpdateAgentFromFile(string id)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.Agents?.FirstOrDefault(x => x.Id == id);
+        var agent = _db.Agents?.FirstOrDefault(x => x.Id == id);
 
         if (agent == null) return;
 
@@ -64,9 +58,8 @@ public partial class AgentService
                        .SetFunctions(foundAgent.Functions)
                        .SetResponses(foundAgent.Responses);
 
-            db.UpdateAgent(clonedAgent);
+            _db.UpdateAgent(clonedAgent, AgentField.All);
         }
-
 
         await Task.CompletedTask;
     }
