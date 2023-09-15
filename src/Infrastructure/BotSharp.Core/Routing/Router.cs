@@ -1,4 +1,3 @@
-using Aspects.Cache;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
@@ -29,7 +28,9 @@ public class Router : IAgentRouting
         return await agentService.LoadAgent(AgentId);
     }
 
+#if !DEBUG
     [MemoryCache(10 * 60)]
+#endif
     public RoutingItem[] GetRoutingRecords()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -53,11 +54,11 @@ public class Router : IAgentRouting
 
     public RoutingItem GetRecordByName(string name)
     {
-        return GetRoutingRecords().First(x => x.Name.ToLower() == name.ToLower());
+        return GetRoutingRecords().FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
     }
 
     public RoutingItem GetRecordByAgentId(string id)
     {
-        return GetRoutingRecords().First(x => x.AgentId == id);
+        return GetRoutingRecords().FirstOrDefault(x => x.AgentId == id);
     }
 }

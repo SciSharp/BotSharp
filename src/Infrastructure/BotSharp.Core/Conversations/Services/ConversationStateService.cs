@@ -29,7 +29,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _states = new ConversationState();
     }
 
-    public void SetState(string name, string value)
+    public IConversationStateService SetState(string name, string value)
     {
         var hooks = _services.GetServices<IConversationHook>();
         string preValue = _states.ContainsKey(name) ? _states[name] : "";
@@ -43,6 +43,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 hook.OnStateChanged(name, preValue, currentValue).Wait();
             }
         }
+
+        return this;
     }
 
     public ConversationState Load(string conversationId)
@@ -118,6 +120,12 @@ public class ConversationStateService : IConversationStateService, IDisposable
         {
             _states[name] = defaultValue ?? "";
         }
+
+        if (_states[name] == null)
+        {
+            return defaultValue;
+        }
+
         return _states[name];
     }
 

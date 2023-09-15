@@ -96,7 +96,7 @@ public class RouteToAgentFn : IFunctionCallback
         {
             // Add field to args
             message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "missing_fields", missingFields);
-            message.ExecutionResult = $"missing some information";
+            message.ExecutionResult = $"missing some information: [{string.Join(',', missingFields)}]";
 
             // Handle redirect
             if (!string.IsNullOrEmpty(routingRule.RedirectTo))
@@ -106,6 +106,11 @@ public class RouteToAgentFn : IFunctionCallback
 
                 // Add redirected agent
                 message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", agent.Name);
+            }
+            else
+            {
+                // back to router
+                agentId = message.CurrentAgentId;
             }
         }
 

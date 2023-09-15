@@ -12,7 +12,7 @@ public class IncomingMessageModel
     /// Model name
     /// </summary>
     [JsonPropertyName("model")]
-    public virtual string ModelName { get; set; } = "gpt-3.5-turbo";
+    public virtual string? ModelName { get; set; } = null;
 
     /// <summary>
     /// The sampling temperature to use that controls the apparent creativity of generated completions.

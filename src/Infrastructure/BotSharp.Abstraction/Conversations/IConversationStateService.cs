@@ -8,7 +8,7 @@ public interface IConversationStateService
     ConversationState Load(string conversationId);
     string GetState(string name, string defaultValue = "");
     ConversationState GetStates();
-    void SetState(string name, string value);
+    IConversationStateService SetState(string name, string value);
     void CleanState();
     void Save();
 }

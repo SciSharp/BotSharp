@@ -78,8 +78,8 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         conv.SetConversationId(input.ConversationId, input.States);
         conv.States.SetState("model", input.ModelName);
         conv.States.SetState("channel", "webchat");
-        conv.States.SetState("temperature", "0.5");
-        conv.States.SetState("sampling_factor", "0.5");
+        conv.States.SetState("temperature", input.Temperature.ToString());
+        conv.States.SetState("sampling_factor", input.SamplingFactor.ToString());
 
         var result = await conv.SendMessage(input.AgentId, 
             message, 

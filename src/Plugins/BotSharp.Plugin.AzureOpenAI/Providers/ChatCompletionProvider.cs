@@ -20,9 +20,9 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
 {
-    private readonly AzureOpenAiSettings _settings;
-    private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
+    protected readonly AzureOpenAiSettings _settings;
+    protected readonly IServiceProvider _services;
+    protected readonly ILogger _logger;
 
     public virtual string ModelName => "gpt-3.5-turbo";
 
