@@ -71,43 +71,31 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
 
-
-    public void CreateNewConversation(Conversation conversation)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void CreateUser(User user)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void DeleteRoutingItems()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void DeleteRoutingProfiles()
-    {
-        throw new NotImplementedException();
-    }
-
+    #region Agent
     public Agent GetAgent(string agentId)
     {
         throw new NotImplementedException();
     }
 
+    public void UpdateAgent(Agent agent, AgentField field)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string GetAgentTemplate(string agentId, string templateName)
+    {
+        throw new NotImplementedException();
+    }
+
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+
+    #region Conversation
+    public void CreateNewConversation(Conversation conversation)
     {
         throw new NotImplementedException();
     }
@@ -117,27 +105,17 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public string GetConversationDialog(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
-
     public List<Conversation> GetConversations(string userId)
     {
         throw new NotImplementedException();
     }
 
+    public string GetConversationDialog(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+
     public List<StateKeyValue> GetConversationStates(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public User GetUserByEmail(string email)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void UpdateAgent(Agent agent)
     {
         throw new NotImplementedException();
     }
@@ -151,9 +129,41 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
+    #endregion
 
-    public string GetAgentTemplate(string agentId, string templateName)
+
+    #region User
+    public User GetUserByEmail(string email)
     {
         throw new NotImplementedException();
     }
+
+    public void CreateUser(User user)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+
+    #region Routing
+    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteRoutingItems()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteRoutingProfiles()
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
 }
