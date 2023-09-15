@@ -84,7 +84,7 @@ public partial class AgentService
 
     private string FetchInstructionFromFile(string fileDir)
     {
-        var file = Path.Combine(fileDir, "instruction.liquid");
+        var file = Path.Combine(fileDir, $"instruction.{_agentSettings.TemplateFormat}");
         if (!File.Exists(file)) return null;
 
         var instruction = File.ReadAllText(file);
@@ -100,7 +100,7 @@ public partial class AgentService
             var splits = fileName.ToLower().Split('.');
             var name = splits[0];
             var extension = splits[1];
-            if (name != "instruction" && extension == "liquid")
+            if (name != "instruction" && extension == _agentSettings.TemplateFormat)
             {
                 var content = File.ReadAllText(file);
                 templates.Add(new AgentTemplate(name, content));

@@ -4,7 +4,10 @@ using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Agents.Enums;
+using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using System.Xml.Linq;
+using static Tensorflow.TensorShapeProto.Types;
 
 namespace BotSharp.Core.Repository;
 
@@ -211,9 +214,7 @@ public class FileRepository : IBotSharpRepository
             {
                 foreach (var conversation in _conversations)
                 {
-                    var dir = Path.Combine(_dbSettings.FileRepository,
-                        _conversationSettings.DataDir,
-                        conversation.Id);
+                    var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversation.Id);
                     if (!Directory.Exists(dir))
                     {
                         Directory.CreateDirectory(dir);
@@ -226,9 +227,7 @@ public class FileRepository : IBotSharpRepository
             {
                 foreach (var agent in _agents)
                 {
-                    var dir = Path.Combine(_dbSettings.FileRepository,
-                        _agentSettings.DataDir,
-                        agent.Id);
+                    var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agent.Id);
                     if (!Directory.Exists(dir))
                     {
                         Directory.CreateDirectory(dir);
@@ -241,9 +240,7 @@ public class FileRepository : IBotSharpRepository
             {
                 foreach (var user in _users)
                 {
-                    var dir = Path.Combine(_dbSettings.FileRepository,
-                        "users",
-                        user.Id);
+                    var dir = Path.Combine(_dbSettings.FileRepository, "users", user.Id);
                     if (!Directory.Exists(dir))
                     {
                         Directory.CreateDirectory(dir);
@@ -276,30 +273,175 @@ public class FileRepository : IBotSharpRepository
     #region Agent
     public void UpdateAgent(Agent agent, AgentField field)
     {
-        if (agent == null) return;
+        if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
-        var dir = GetAgentDataDir(agent.Id);
-
-        if (!string.IsNullOrEmpty(agent.Instruction))
+        switch (field)
         {
-            var instructionFile = Path.Combine(dir, "instruction.liquid");
-            File.WriteAllText(instructionFile, agent.Instruction);
-        }
-
-        if (!agent.Functions.IsNullOrEmpty())
-        {
-            var functionFile = Path.Combine(dir, "functions.json");
-            var functions = new List<string>();
-            foreach (var function in agent.Functions)
-            {
-                var functionDef = JsonSerializer.Deserialize<FunctionDef>(function, _options);
-                functions.Add(JsonSerializer.Serialize(functionDef, _options));
-            }
-
-            var functionText = JsonSerializer.Serialize(functions, _options);
-            File.WriteAllText(functionFile, functionText);
+            case AgentField.Name:
+                UpdateAgentName(agent.Id, agent.Name);
+                break;
+            case AgentField.Description:
+                UpdateAgentDescription(agent.Id, agent.Description);
+                break;
+            case AgentField.IsPublic:
+                UpdateAgentIsPublic(agent.Id, agent.IsPublic);
+                break;
+            case AgentField.Instruction:
+                UpdateAgentInstruction(agent.Id, agent.Instruction);
+                break;
+            case AgentField.Function:
+                UpdateAgentFunctions(agent.Id, agent.Functions);
+                break;
+            case AgentField.Template:
+                UpdateAgentTemplates(agent.Id, agent.Templates);
+                break;
+            case AgentField.Response:
+                UpdateAgentResponses(agent.Id, agent.Responses);
+                break;
+            case AgentField.All:
+                UpdateAgentAllFields(agent);
+                break;
+            default:
+                break;
         }
     }
+
+    #region Update Agent Fields
+    private void UpdateAgentName(string agentId, string name)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.Name = name;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
+    private void UpdateAgentDescription(string agentId, string description)
+    {
+        if (string.IsNullOrEmpty(description)) return;
+
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.Description = description;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
+    private void UpdateAgentIsPublic(string agentId, bool isPublic)
+    {
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.IsPublic = isPublic;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
+    private void UpdateAgentInstruction(string agentId, string instruction)
+    {
+        if (string.IsNullOrEmpty(instruction)) return;
+
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        var instructionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, 
+                                        agentId, $"instruction.{_agentSettings.TemplateFormat}");
+
+        File.WriteAllText(instructionFile, instruction);
+    }
+
+    private void UpdateAgentFunctions(string agentId, List<string> inputFunctions)
+    {
+        if (inputFunctions.IsNullOrEmpty()) return;
+
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        var functionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
+                                        agentId, "functions.json");
+        
+        var functions = new List<string>();
+        foreach (var function in inputFunctions)
+        {
+            var functionDef = JsonSerializer.Deserialize<FunctionDef>(function, _options);
+            functions.Add(JsonSerializer.Serialize(functionDef, _options));
+        }
+
+        var functionText = JsonSerializer.Serialize(functions, _options);
+        File.WriteAllText(functionFile, functionText);
+    }
+
+    private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
+    {
+        if (templates.IsNullOrEmpty()) return;
+
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+
+        foreach (var file in Directory.GetFiles(baseDir))
+        {
+            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var splits = fileName.ToLower().Split('.');
+            var name = splits[0];
+            var extension = splits[1];
+            if (name != "instruction" && extension == _agentSettings.TemplateFormat)
+            {
+                File.Delete(file);
+            }
+        }
+
+        foreach (var template in templates)
+        {
+            var file = Path.Combine(baseDir, $"{template.Name}.{_agentSettings.TemplateFormat}");
+            File.WriteAllText(file, template.Content);
+        }
+    }
+
+    private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
+    {
+        if (responses.IsNullOrEmpty()) return;
+
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+        var responseDir = Path.Combine(baseDir, "responses");
+        if (!Directory.Exists(responseDir))
+        {
+            Directory.CreateDirectory(responseDir);
+        }
+
+        foreach (var file in Directory.GetFiles(responseDir))
+        {
+            File.Delete(file);
+        }
+
+        for (int i = 0; i < responses.Count; i++)
+        {
+            var response = responses[i];
+            var fileName = $"{response.Prefix}.{response.Intent}.{i}.{_agentSettings.TemplateFormat}";
+            var file = Path.Combine(responseDir, fileName);
+            File.WriteAllText(file, response.Content);
+        }
+    }
+
+    private void UpdateAgentAllFields(Agent inputAgent)
+    {
+        var (agent, agentFile) = GetAgentFromFile(inputAgent.Id);
+        if (agent == null) return;
+
+
+    }
+    #endregion
 
 #if !DEBUG
     [MemoryCache(10 * 60)]
@@ -352,7 +494,7 @@ public class FileRepository : IBotSharpRepository
             var splits = fileName.ToLower().Split('.');
             var name = splits[0];
             var extension = splits[1];
-            if (name == lowerTemplateName && extension == "liquid")
+            if (name == lowerTemplateName && extension == _agentSettings.TemplateFormat)
             {
                 return File.ReadAllText(file);
             }
@@ -556,14 +698,25 @@ public class FileRepository : IBotSharpRepository
         var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(dir))
         {
-            Directory.CreateDirectory(dir);
+            dir = string.Empty;
         }
         return dir;
     }
 
+    private (Agent?, string) GetAgentFromFile(string agentId)
+    {
+        var dir = GetAgentDataDir(agentId);
+        var agentFile = Path.Combine(dir, "agent.json");
+        if (!File.Exists(agentFile)) return (null, string.Empty);
+
+        var json = File.ReadAllText(agentFile);
+        var agent = JsonSerializer.Deserialize<Agent>(json, _options);
+        return (agent, agentFile);
+    }
+
     private string FetchInstruction(string fileDir)
     {
-        var file = Path.Combine(fileDir, "instruction.liquid");
+        var file = Path.Combine(fileDir, $"instruction.{_agentSettings.TemplateFormat}");
         if (!File.Exists(file)) return string.Empty;
 
         var instruction = File.ReadAllText(file);
@@ -591,7 +744,7 @@ public class FileRepository : IBotSharpRepository
             var splits = fileName.ToLower().Split('.');
             var name = splits[0];
             var extension = splits[1];
-            if (name != "instruction" && extension == "liquid")
+            if (name != "instruction" && extension == _agentSettings.TemplateFormat)
             {
                 var content = File.ReadAllText(file);
                 templates.Add(new AgentTemplate(name, content));
