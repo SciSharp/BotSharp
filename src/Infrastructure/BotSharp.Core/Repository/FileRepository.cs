@@ -439,7 +439,17 @@ public class FileRepository : IBotSharpRepository
         var (agent, agentFile) = GetAgentFromFile(inputAgent.Id);
         if (agent == null) return;
 
+        agent.Name = inputAgent.Name;
+        agent.Description = inputAgent.Description;
+        agent.IsPublic = inputAgent.IsPublic;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
 
+        UpdateAgentInstruction(inputAgent.Id, inputAgent.Instruction);
+        UpdateAgentResponses(inputAgent.Id, inputAgent.Responses);
+        UpdateAgentTemplates(inputAgent.Id, inputAgent.Templates);
+        UpdateAgentFunctions(inputAgent.Id, inputAgent.Functions);
     }
     #endregion
 
