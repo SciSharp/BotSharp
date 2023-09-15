@@ -13,6 +13,13 @@ public partial class AgentService
         var record = FindAgent(agent.Id);
         if (record == null) return;
 
+        record.Name = agent.Name ?? string.Empty;
+        record.Description = agent.Description ?? string.Empty;
+        record.Instruction = agent.Instruction ?? string.Empty;
+        record.Functions = agent.Functions ?? new List<string>();
+        record.Templates = agent.Templates ?? new List<AgentTemplate>();
+        record.Responses = agent.Responses ?? new List<AgentResponse>();
+
         _db.UpdateAgent(record, updateField);
         await Task.CompletedTask;
     }
