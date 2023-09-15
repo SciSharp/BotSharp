@@ -12,6 +12,7 @@ public class AgentViewModel
     public List<string> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public bool IsPublic { get; set; }
+    public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 
     public static AgentViewModel FromAgent(Agent agent)
@@ -26,6 +27,7 @@ public class AgentViewModel
             Functions = agent.Functions,
             Responses = agent.Responses,
             IsPublic= agent.IsPublic,
+            CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime
         };
     }

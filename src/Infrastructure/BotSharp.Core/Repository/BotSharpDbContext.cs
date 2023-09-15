@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
@@ -137,7 +138,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public void UpdateAgent(Agent agent)
+    public void UpdateAgent(Agent agent, AgentField field)
     {
         throw new NotImplementedException();
     }

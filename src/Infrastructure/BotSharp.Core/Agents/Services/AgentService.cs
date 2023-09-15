@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories;
-using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -7,17 +6,20 @@ namespace BotSharp.Core.Agents.Services;
 public partial class AgentService : IAgentService
 {
     private readonly IServiceProvider _services;
+    private readonly IBotSharpRepository _db;
     private readonly ILogger _logger;
     private readonly IUserIdentity _user;
     private readonly AgentSettings _settings;
     private readonly JsonSerializerOptions _options;
 
-    public AgentService(IServiceProvider services, 
+    public AgentService(IServiceProvider services,
+        IBotSharpRepository db,
         ILogger<AgentService> logger, 
         IUserIdentity user, 
         AgentSettings settings)
     {
         _services = services;
+        _db = db;
         _logger = logger;
         _user = user;
         _settings = settings;

@@ -8,11 +8,9 @@ public partial class AgentService
 {
     public async Task<Agent> CreateAgent(Agent agent)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-
-        var agentRecord = (from a in db.Agents
-                     join ua in db.UserAgents on a.Id equals ua.AgentId
-                     join u in db.Users on ua.UserId equals u.Id
+        var agentRecord = (from a in _db.Agents
+                     join ua in _db.UserAgents on a.Id equals ua.AgentId
+                     join u in _db.Users on ua.UserId equals u.Id
                      where u.ExternalId == _user.Id && a.Name == agent.Name
                      select a).FirstOrDefault();
 
@@ -43,7 +41,7 @@ public partial class AgentService
                        .SetResponses(foundAgent.Responses);
         }
 
-        var user = db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var user = _db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
         var userAgentRecord = new UserAgent
         {
             Id = Guid.NewGuid().ToString(),
@@ -53,10 +51,10 @@ public partial class AgentService
             UpdatedTime = DateTime.UtcNow
         };
 
-        db.Transaction<IBotSharpTable>(delegate
+        _db.Transaction<IBotSharpTable>(delegate
         {
-            db.Add<IBotSharpTable>(agentRecord);
-            db.Add<IBotSharpTable>(userAgentRecord);
+            _db.Add<IBotSharpTable>(agentRecord);
+            _db.Add<IBotSharpTable>(userAgentRecord);
         });
 
         return agentRecord;

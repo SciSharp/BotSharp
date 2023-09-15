@@ -4,7 +4,7 @@ namespace BotSharp.OpenAPI.ViewModels.Agents;
 
 public class AgentUpdateModel
 {
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
     /// <summary>
@@ -34,28 +34,15 @@ public class AgentUpdateModel
 
     public Agent ToAgent()
     {
-        var agent = new Agent
+        var agent = new Agent()
         {
-            Name = Name
+            Name = Name ?? string.Empty,
+            Description = Description ?? string.Empty,
+            Instruction = Instruction ?? string.Empty,
+            Templates = Templates ?? new List<AgentTemplate>(),
+            Functions = Functions ?? new List<string>(),
+            Responses = Responses ?? new List<AgentResponse>()
         };
-
-        if (Description != null)
-            agent.Description = Description;
-
-        if (Instruction != null)
-            agent.Instruction = Instruction;
-
-        if (!Templates.IsNullOrEmpty())
-            agent.Templates = Templates;
-
-        if (Samples != null)
-            agent.Samples = Samples;
-
-        if (!Functions.IsNullOrEmpty())
-            agent.Functions = Functions;
-
-        if (!Responses.IsNullOrEmpty())
-            agent.Responses = Responses;
 
         return agent;
     }
