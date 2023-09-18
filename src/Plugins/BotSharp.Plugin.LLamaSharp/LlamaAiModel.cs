@@ -2,6 +2,7 @@ using BotSharp.Plugin.LLamaSharp.Settings;
 using LLama;
 using LLama.Abstractions;
 using LLama.Common;
+using System.IO;
 
 namespace BotSharp.Plugins.LLamaSharp;
 
@@ -22,22 +23,22 @@ public class LlamaAiModel
     public LlamaAiModel(LlamaSharpSettings settings)
     {
         _settings = settings;
-
-        _params = new ModelParams(_settings.ModelPath)
-        {
-            ContextSize = _settings.MaxContextLength,
-            Seed = 1337,
-            GpuLayerCount = _settings.NumberOfGpuLayer
-        };
     }
 
 
-    public void LoadModel()
+    public void LoadModel(string model)
     {
         if (_model != null)
         {
             return;
         }
+
+        _params = new ModelParams(Path.Combine(_settings.ModelDir, model))
+        {
+            ContextSize = _settings.MaxContextLength,
+            Seed = 1337,
+            GpuLayerCount = _settings.NumberOfGpuLayer
+        };
 
         _model = LLamaWeights.LoadFromFile(_params);
     }

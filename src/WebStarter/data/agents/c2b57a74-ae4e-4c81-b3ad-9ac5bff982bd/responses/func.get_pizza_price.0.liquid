@@ -1,0 +1,6 @@
+{% if pizza_type == "cheese" -%}
+    The price for a slice of cheese pizza is {{ cheese_unit_price }}. Would you like to proceed the order?
+{%- endif %}
+{% if quantity == nil -%}
+    How many slices would you like to order?
+{%- endif %}

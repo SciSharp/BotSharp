@@ -76,10 +76,11 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
 
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(input.ConversationId, input.States);
-        conv.States.SetState("model", input.ModelName);
-        conv.States.SetState("channel", "webchat");
-        conv.States.SetState("temperature", input.Temperature.ToString());
-        conv.States.SetState("sampling_factor", input.SamplingFactor.ToString());
+        conv.States.SetState("provider", input.Provider)
+            .SetState("model", input.Model)
+            .SetState("channel", "webchat")
+            .SetState("temperature", input.Temperature)
+            .SetState("sampling_factor", input.SamplingFactor);
 
         var result = await conv.SendMessage(input.AgentId, 
             message, 

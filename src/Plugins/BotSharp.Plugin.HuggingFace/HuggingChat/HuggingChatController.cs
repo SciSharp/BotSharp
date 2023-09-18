@@ -3,12 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
-using System.Text;
-using System.Threading.Tasks;
 using BotSharp.Plugin.HuggingFace.HuggingChat.ViewModels;
 using BotSharp.Abstraction.TextGeneratives;
-using System.Collections.Generic;
 
 namespace BotSharp.Plugin.HuggingFace.HuggingChat;
 

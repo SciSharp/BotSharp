@@ -24,7 +24,7 @@ public class ChatCompletionProvider : IChatCompletion
     protected readonly IServiceProvider _services;
     protected readonly ILogger _logger;
 
-    public virtual string ModelName => "gpt-3.5-turbo";
+    public virtual string Provider => "azure-gpt-3.5";
 
     public ChatCompletionProvider(AzureOpenAiSettings settings, 
         ILogger<ChatCompletionProvider> logger,
@@ -119,8 +119,6 @@ public class ChatCompletionProvider : IChatCompletion
         }
         else
         {
-            _logger.LogInformation($"[{agent.Name}] {message.Role}: {message.Content}");
-
             var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
             {
                 CurrentAgentId= agent.Id

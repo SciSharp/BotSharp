@@ -1,8 +1,10 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Plugin.LLamaSharp.Settings;
 using BotSharp.Plugins.LLamaSharp;
 using LLama;
 using LLama.Common;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;
@@ -19,39 +22,44 @@ public class ChatCompletionProvider : IChatCompletion
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+    private readonly LlamaSharpSettings _settings;
 
     public ChatCompletionProvider(IServiceProvider services,
-        ILogger<ChatCompletionProvider> logger)
+        ILogger<ChatCompletionProvider> logger,
+        LlamaSharpSettings settings)
     {
         _services = services;
         _logger = logger;
+        _settings = settings;
     }
 
-    public string ModelName => "llama-2";
-
+    public string Provider => "llama-sharp";
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent,
         List<RoleDialogModel> conversations,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
-        content += $"\n{AgentRole.Assistant}: ";
+        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
+        content += $"\r\n{AgentRole.Assistant}: ";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var model = state.GetState("model", _settings.DefaultModel);
 
         var llama = _services.GetRequiredService<LlamaAiModel>();
-        llama.LoadModel();
+        llama.LoadModel(model);
         var executor = llama.GetStatelessExecutor();
 
         var inferenceParams = new InferenceParams()
         {
-            Temperature = 1.0f,
-            AntiPrompts = new List<string> { $"{AgentRole.User}:", "\n", "?" },
-            MaxTokens = 256
+            Temperature = 0.1f,
+            AntiPrompts = new List<string> { $"{AgentRole.User}:", "[/INST]" },
+            MaxTokens = 64
         };
 
         string totalResponse = "";
 
-        var prompt = agent.Instruction + content;
+        var prompt = agent.Instruction + "\r\n" + content;
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)
@@ -70,7 +78,13 @@ public class ChatCompletionProvider : IChatCompletion
             totalResponse = totalResponse.Replace(anti, "").Trim();
         }
 
-        await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, totalResponse));
+        var msg = new RoleDialogModel(AgentRole.Assistant, totalResponse)
+        {
+            CurrentAgentId = agent.Id
+        };
+
+        // Text response received
+        await onMessageReceived(msg);
 
         return true;
     }
@@ -78,11 +92,15 @@ public class ChatCompletionProvider : IChatCompletion
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         string totalResponse = "";
-        var content = string.Join("\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
-        content += $"\n{AgentRole.Assistant}: ";
+        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
+        content += $"\r\n{AgentRole.Assistant}: ";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var model = state.GetState("model", "llama-2-7b-chat.Q8_0");
 
         var llama = _services.GetRequiredService<LlamaAiModel>();
-        llama.LoadModel();
+        llama.LoadModel(model);
+
         var executor = new StatelessExecutor(llama.Model, llama.Params);
         var inferenceParams = new InferenceParams() { Temperature = 1.0f, AntiPrompts = new List<string> { $"{AgentRole.User}:" }, MaxTokens = 64 };
 

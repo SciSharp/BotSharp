@@ -61,7 +61,7 @@ public class Simulator
     {
         var wholeDialogs = new List<RoleDialogModel>
         {
-            new RoleDialogModel(AgentRole.User, @"What's the next step,  your response must be in JSON format with ""function"" and ""parameters"". ")
+            new RoleDialogModel(AgentRole.User, @"What's the next step? Response in JSON format with ""function"" and ""parameters"".")
         };
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services);
@@ -146,7 +146,7 @@ public class Simulator
             {
                 if (!string.IsNullOrEmpty(property.Value.ToString()))
                 {
-                    stateService.SetState(property.Name, property.Value.ToString());
+                    stateService.SetState(property.Name, property.Value);
                 }
             }
         }
