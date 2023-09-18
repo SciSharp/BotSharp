@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -32,12 +33,30 @@ public class AgentUpdateModel
     /// </summary>
     public List<AgentResponse>? Responses { get; set; }
 
+    public bool IsPublic { get; set; }
+
+    public bool AllowRouting { get; set; }
+
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Profile by channel
+    /// </summary>
+    public List<string> Profiles { get; set; }
+
+    public List<RoutingRule> RoutingRules { get; set; }
+
     public Agent ToAgent()
     {
         var agent = new Agent()
         {
             Name = Name ?? string.Empty,
             Description = Description ?? string.Empty,
+            IsPublic = IsPublic,
+            Disabled = Disabled,
+            AllowRouting = AllowRouting,
+            Profiles = Profiles ?? new List<string>(),
+            RoutingRules = RoutingRules ?? new List<RoutingRule>(),
             Instruction = Instruction ?? string.Empty,
             Templates = Templates ?? new List<AgentTemplate>(),
             Functions = Functions ?? new List<string>(),
