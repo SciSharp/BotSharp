@@ -2,7 +2,7 @@ namespace BotSharp.Abstraction.MLTasks;
 
 public interface IChatCompletion
 {
-    string ModelName { get; }
+    string Provider { get; }
     Task<bool> GetChatCompletionsAsync(Agent agent, 
         List<RoleDialogModel> conversations, 
         Func<RoleDialogModel, Task> onMessageReceived,

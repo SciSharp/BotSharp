@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class GPT4CompletionProvider : ChatCompletionProvider
 {
-    public override string ModelName => "gpt-4";
+    public override string Provider => "azure-gpt-4";
 
     public GPT4CompletionProvider(AzureOpenAiSettings settings, 
         ILogger<GPT4CompletionProvider> logger,

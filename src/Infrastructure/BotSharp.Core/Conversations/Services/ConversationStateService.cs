@@ -29,13 +29,18 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _states = new ConversationState();
     }
 
-    public IConversationStateService SetState(string name, string value)
+    public IConversationStateService SetState<T>(string name, T value)
     {
+        if (value == null)
+        {
+            return this;
+        }
+
+        var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
         string preValue = _states.ContainsKey(name) ? _states[name] : "";
-        if (!_states.ContainsKey(name) || _states[name] != value)
+        if (!_states.ContainsKey(name) || _states[name] != currentValue)
         {
-            var currentValue = value;
             _states[name] = currentValue;
             _logger.LogInformation($"Set state: {name} = {value}");
             foreach (var hook in hooks)

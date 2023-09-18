@@ -9,10 +9,16 @@ public class IncomingMessageModel
     public virtual string Channel { get; set; } = string.Empty;
 
     /// <summary>
+    /// Completion Provider
+    /// </summary>
+    [JsonPropertyName("provider")]
+    public virtual string? Provider { get; set; } = null;
+
+    /// <summary>
     /// Model name
     /// </summary>
     [JsonPropertyName("model")]
-    public virtual string? ModelName { get; set; } = null;
+    public virtual string? Model { get; set; } = null;
 
     /// <summary>
     /// The sampling temperature to use that controls the apparent creativity of generated completions.

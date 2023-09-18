@@ -4,16 +4,16 @@ namespace BotSharp.Core.Infrastructures;
 
 public class CompletionProvider
 {
-    public static IChatCompletion GetChatCompletion(IServiceProvider services, string? model = null)
+    public static IChatCompletion GetChatCompletion(IServiceProvider services, string? provider = null)
     {
         var completions = services.GetServices<IChatCompletion>();
 
         var state = services.GetRequiredService<IConversationStateService>();
-        if (model == null)
+        if (provider == null)
         {
-            model = state.GetState("model", "gpt-3.5-turbo");
+            provider = state.GetState("provider", "azure-gpt-3.5");
         }
         
-        return completions.FirstOrDefault(x => x.ModelName == model);
+        return completions.FirstOrDefault(x => x.Provider == provider);
     }
 }

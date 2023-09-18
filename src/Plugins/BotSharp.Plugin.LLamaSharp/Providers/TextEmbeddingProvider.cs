@@ -4,6 +4,7 @@ using LLama;
 using LLama.Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
@@ -24,7 +25,8 @@ public class TextEmbeddingProvider : ITextEmbedding
     {
         if (_embedder == null)
         {
-            _embedder = new LLamaEmbedder(new ModelParams(_settings.ModelPath));
+            var path = Path.Combine(_settings.ModelDir, _settings.DefaultModel);
+            _embedder = new LLamaEmbedder(new ModelParams(path));
         }
 
         return _embedder.GetEmbeddings(text);

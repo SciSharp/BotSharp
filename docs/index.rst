@@ -3,23 +3,23 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-The Open Source AI Bot Platform Builder
+The Open Source LLM Application Framework
 ======================================================
 
 .. image:: https://img.shields.io/discord/1106946823282761851?label=Discord
     :target: `discord`_
 
-**Build the AI chatbot platform from scratch with .NET**
+**Build the AI bot from scratch with .NET**
 
-> The LLM powered Conversational Service framework
+> The LLM powered Conversational Service building blocks and best practice 
 
 *"Conversation as a platform (CaaP) is the future, so it's perfect that we're already offering the whole toolkits to .NET developers using BotSharp the Bot Platform Builder to build a CaaP. It opens up as much learning power as possible for your robots and precisely control every step of the AI processing pipeline."*
 
-**BotSharp** is an open source bot framework for AI Bot platform builders. This project involves natural language understanding, computer vision and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in information systems. Out-of-the-box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier. 
+**BotSharp** is an open source AI framework for your enterprise-grade LLM applications. This project involves natural language understanding, computer vision and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in business oriented systems. Out-of-the-box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier. 
 
 It's witten in C# running on .NET which is a full cross-platform framework. C# is an enterprise-grade programming language which is widely used to code business logic in information management related system. More friendly to corporate developers. BotSharp adopts machine learning algrithm in C/C++ interfaces directly which skips the python interfaces. That will facilitate the feature of the typed language C#, and be easier when refactoring code in system scope. 
 
-BotSharp is strictly in accordance with the components principle and decouples every part that is needed in the platform builder. So you can choose different UI/UX, or pick up a different NLP Tagger, or select a more advanced algorithm to do NER tasks. They are all modularized based on unified interfaces.
+BotSharp is strictly in accordance with the components principle and decouples every part that is needed in the platform builder. So you can choose different UI/UX, or pick up a different Vector Storage, or select a more advanced algorithm to do NLU tasks. They are all modularized based on unified interfaces.
 
 .. image:: static/logos/BotSharp.png
    :height: 64px

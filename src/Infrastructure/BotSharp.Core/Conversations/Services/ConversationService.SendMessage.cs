@@ -131,7 +131,7 @@ public partial class ConversationService
             {
                 if (!string.IsNullOrEmpty(property.Value.ToString()))
                 {
-                    stateService.SetState(property.Name, property.Value.ToString());
+                    stateService.SetState(property.Name, property.Value);
                 }
             }
         }
