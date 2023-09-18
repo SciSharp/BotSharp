@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.Core.Routing;
 
@@ -40,8 +41,9 @@ public class Simulator
             response.FunctionArgs = JsonSerializer.Serialize(args.Parameters.Arguments);
 
             var router = _services.GetRequiredService<IAgentRouting>();
-            var record = router.GetRecordByName(args.Parameters.AgentName);
-            response.CurrentAgentId = record.AgentId;
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var record = db.Agents.First(x => x.Name.ToLower() == args.Parameters.AgentName);
+            response.CurrentAgentId = record.Id;
         }
         else if (args.Function == "interrupt_task_execution")
         {
@@ -84,8 +86,9 @@ public class Simulator
 
         // Retrieve information from specific agent
         var router = _services.GetRequiredService<IAgentRouting>();
-        var record = router.GetRecordByName(args.Parameters.AgentName);
-        response = await SendMessageToAgent(record.AgentId, new List<RoleDialogModel>
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.Agents.First(x => x.Name.ToLower() == args.Parameters.AgentName);
+        response = await SendMessageToAgent(record.Id, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, args.Parameters.Question)
         });

@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Abstraction.Agents.Models;
 
@@ -47,6 +47,22 @@ public class Agent
     public string Knowledges { get; set; }
 
     public bool IsPublic { get; set; }
+
+    /// <summary>
+    /// Allow to be routed
+    /// </summary>
+    public bool AllowRouting {  get; set; }
+
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Profile by channel
+    /// </summary>
+    public List<string> Profiles { get; set; }
+        = new List<string>();
+
+    public List<RoutingRule> RoutingRules { get; set; }
+        = new List<RoutingRule>();
 
     public override string ToString()
         => $"{Name} {Id}";

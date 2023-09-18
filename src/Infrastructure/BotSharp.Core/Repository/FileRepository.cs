@@ -3,11 +3,7 @@ using System.IO;
 using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Routing.Models;
 using MongoDB.Driver;
-using Microsoft.Extensions.Logging;
-using System.Xml.Linq;
-using static Tensorflow.TensorShapeProto.Types;
 
 namespace BotSharp.Core.Repository;
 
@@ -132,48 +128,6 @@ public class FileRepository : IBotSharpRepository
                 }
             }
             return _conversations.AsQueryable();
-        }
-    }
-
-    private List<RoutingItem> _routingItems;
-    public IQueryable<RoutingItem> RoutingItems
-    {
-        get
-        {
-            if (!_routingItems.IsNullOrEmpty())
-            {
-                return _routingItems.AsQueryable();
-            }
-
-            _routingItems = new List<RoutingItem>();
-            var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "route.json");
-            if (File.Exists(filePath))
-            {
-                _routingItems = JsonSerializer.Deserialize<List<RoutingItem>>(File.ReadAllText(filePath), _options);
-            }
-            
-            return _routingItems.AsQueryable();
-        }
-    }
-
-    private List<RoutingProfile> _routingProfiles;
-    public IQueryable<RoutingProfile> RoutingProfiles
-    {
-        get
-        {
-            if (!_routingProfiles.IsNullOrEmpty())
-            {
-                return _routingProfiles.AsQueryable();
-            }
-
-            _routingProfiles = new List<RoutingProfile>();
-            var filePath = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, "routing-profile.json");
-            if (File.Exists(filePath))
-            {
-                _routingProfiles = JsonSerializer.Deserialize<List<RoutingProfile>>(File.ReadAllText(filePath), _options);
-            }
-            
-            return _routingProfiles.AsQueryable();
         }
     }
 
@@ -677,28 +631,6 @@ public class FileRepository : IBotSharpRepository
         }
         var path = Path.Combine(dir, "user.json");
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
-    }
-    #endregion
-
-    #region Routing
-    public void DeleteRoutingItems()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void DeleteRoutingProfiles()
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
-    {
-        throw new NotImplementedException();
     }
     #endregion
 

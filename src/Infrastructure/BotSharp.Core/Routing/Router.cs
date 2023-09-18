@@ -31,34 +31,44 @@ public class Router : IAgentRouting
 #if !DEBUG
     [MemoryCache(10 * 60)]
 #endif
-    public RoutingItem[] GetRoutingRecords()
+    protected RoutingRule[] GetRoutingRecords()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var records = db.RoutingItems.ToArray();
-        var profiles = db.RoutingProfiles.ToList();
-
-        if (!profiles.IsNullOrEmpty())
+        var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
+        var records = agents.SelectMany(x =>
         {
-            var state = _services.GetRequiredService<IConversationStateService>();
-            var name = state.GetState("channel");
-            var specifiedProfile = profiles.FirstOrDefault(x => x.Name == name);
-            if (specifiedProfile != null)
+            x.RoutingRules.ForEach(r =>
             {
-                records = records.Where(x => specifiedProfile.AgentIds.Contains(x.AgentId)).ToArray();
-            }
+                r.AgentId = x.Id;
+                r.AgentName = x.Name;
+            });
+            return x.RoutingRules;
+        }).ToArray();
+
+        // Filter agents by profile
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var name = state.GetState("channel");
+        var specifiedProfile = agents.FirstOrDefault(x => x.Profiles.Contains(name));
+        if (specifiedProfile != null)
+        {
+            records = records.Where(x => specifiedProfile.Profiles.Contains(name)).ToArray();
         }
 
         return records;
     }
 
-    public RoutingItem GetRecordByName(string name)
+    public RoutingRule[] GetRulesByName(string name)
     {
-        return GetRoutingRecords().FirstOrDefault(x => x.Name.ToLower() == name.ToLower());
+        return GetRoutingRecords()
+            .Where(x => x.AgentName.ToLower() == name.ToLower())
+            .ToArray();
     }
 
-    public RoutingItem GetRecordByAgentId(string id)
+    public RoutingRule[] GetRulesByAgentId(string id)
     {
-        return GetRoutingRecords().FirstOrDefault(x => x.AgentId == id);
+        return GetRoutingRecords()
+            .Where(x => x.AgentId == id)
+            .ToArray();
     }
 }

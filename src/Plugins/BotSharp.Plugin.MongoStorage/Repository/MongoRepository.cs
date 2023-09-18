@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 
@@ -136,54 +135,6 @@ public class MongoRepository : IBotSharpRepository
             return _conversations.AsQueryable();
         }
     }
-
-    private List<RoutingItem> _routingItems;
-    public IQueryable<RoutingItem> RoutingItems
-    {
-        get
-        {
-            if (!_routingItems.IsNullOrEmpty())
-            {
-                return _routingItems.AsQueryable();
-            }
-
-            var routingItemDocs = _dc.RoutingItems?.AsQueryable()?.ToList() ?? new List<RoutingItemCollection>();
-            _routingItems = routingItemDocs.Select(x => new RoutingItem
-            {
-                Id = x.Id.ToString(),
-                AgentId = x.AgentId.ToString(),
-                Description = x.Description,
-                RequiredFields = x.RequiredFields,
-                RedirectTo = x.RedirectTo.ToString(),
-                Disabled = x.Disabled
-            }).ToList();
-
-            return _routingItems.AsQueryable();
-        }
-    }
-
-    private List<RoutingProfile> _routingProfiles;
-    public IQueryable<RoutingProfile> RoutingProfiles
-    {
-        get
-        {
-            if (!_routingProfiles.IsNullOrEmpty())
-            {
-                return _routingProfiles.AsQueryable();
-            }
-
-            var routingProfilDocs = _dc.RoutingProfiles?.AsQueryable()?.ToList() ?? new List<RoutingProfileCollection>();
-            _routingProfiles = routingProfilDocs.Select(x => new RoutingProfile
-            {
-                Id = x.Id.ToString(),
-                Name = x.Name,
-                AgentIds = x.AgentIds?.Select(x => x.ToString())?.ToList() ?? new List<string>()
-            }).ToList();
-
-            return _routingProfiles.AsQueryable();
-        }
-    }
-
 
     List<string> _changedTableNames = new List<string>();
     public void Add<TTableInterface>(object entity)
@@ -665,62 +616,6 @@ public class MongoRepository : IBotSharpRepository
         };
 
         _dc.Users.InsertOne(userCollection);
-    }
-    #endregion
-
-    #region Routing
-    public void DeleteRoutingItems()
-    {
-        _dc.RoutingItems.DeleteMany(Builders<RoutingItemCollection>.Filter.Empty);
-    }
-
-    public void DeleteRoutingProfiles()
-    {
-        _dc.RoutingProfiles.DeleteMany(Builders<RoutingProfileCollection>.Filter.Empty);
-    }
-
-    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
-    {
-        var collections = routingItems?.Select(x => new RoutingItemCollection
-        {
-            Id = Guid.NewGuid(),
-            AgentId = Guid.Parse(x.AgentId),
-            Name = x.Name,
-            Description = x.Description,
-            RequiredFields = x.RequiredFields,
-            RedirectTo = !string.IsNullOrEmpty(x.RedirectTo) ? Guid.Parse(x.RedirectTo) : null,
-            Disabled = x.Disabled
-        })?.ToList() ?? new List<RoutingItemCollection>();
-
-        _dc.RoutingItems.InsertMany(collections);
-        return collections.Select(x => new RoutingItem
-        {
-            Id = x.Id.ToString(),
-            AgentId = x.AgentId.ToString(),
-            Name = x.Name,
-            Description = x.Description,
-            RequiredFields = x.RequiredFields,
-            RedirectTo = x.RedirectTo?.ToString(),
-            Disabled = x.Disabled
-        }).ToList();
-    }
-
-    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
-    {
-        var collections = profiles?.Select(x => new RoutingProfileCollection
-        {
-            Id = Guid.NewGuid(),
-            Name = x.Name,
-            AgentIds = x.AgentIds.Select(x => Guid.Parse(x)).ToList()
-        })?.ToList() ?? new List<RoutingProfileCollection>();
-
-        _dc.RoutingProfiles.InsertMany(collections);
-        return collections.Select(x => new RoutingProfile
-        {
-            Id = x.Id.ToString(),
-            Name = x.Name,
-            AgentIds = x.AgentIds.Select(x => x.ToString()).ToList()
-        }).ToList();
     }
     #endregion
 }

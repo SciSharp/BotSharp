@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Routing;
@@ -33,8 +34,13 @@ public class RouteToAgentFn : IFunctionCallback
             }
             else
             {
-                message.CurrentAgentId = agentId;
-                message.ExecutionResult = $"Routed to {args.AgentName}";
+                var db = _services.GetRequiredService<IBotSharpRepository>();
+                var record = db.Agents.FirstOrDefault(x => x.Name.ToLower() == args.AgentName.ToLower());
+                if (record != null)
+                {
+                    message.CurrentAgentId = record.Id;
+                    message.ExecutionResult = $"Routing to {args.AgentName}";
+                }
             }
         }
 
@@ -51,23 +57,23 @@ public class RouteToAgentFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var router = _services.GetRequiredService<IAgentRouting>();
-        var routingRule = router.GetRecordByName(args.AgentName);
 
-        if (routingRule == null)
+        var routingRules = router.GetRulesByName(args.AgentName);
+
+        if (routingRules == null || !routingRules.Any())
         {
             agentId = message.CurrentAgentId;
-            message.ExecutionResult = $"Can't find agent {args.AgentName}";
-            return true;
+            return false;
         }
 
-        agentId = routingRule.AgentId;
+        agentId = routingRules.First().AgentId;
         // Add routed agent
         message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "route_to", agentId);
 
         // Check required fields
         var root = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
         var missingFields = new List<string>();
-        foreach (var field in routingRule.RequiredFields)
+        foreach (var field in routingRules.Where(x => x.Required).Select(x => x.Field))
         {
             if (!root.EnumerateObject().Any(x => x.Name == field))
             {
@@ -96,16 +102,17 @@ public class RouteToAgentFn : IFunctionCallback
         {
             // Add field to args
             message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "missing_fields", missingFields);
-            message.ExecutionResult = $"missing some information: [{string.Join(',', missingFields)}]";
+            message.ExecutionResult = $"missing some information: {string.Join(',', missingFields)}";
 
             // Handle redirect
+            var routingRule = routingRules.FirstOrDefault(x => missingFields.Contains(x.Field));
             if (!string.IsNullOrEmpty(routingRule.RedirectTo))
             {
-                agentId = routingRule.RedirectTo;
-                var agent = router.GetRecordByAgentId(agentId);
+                var db = _services.GetRequiredService<IBotSharpRepository>();
+                var record = db.Agents.First(x => x.Id == routingRule.RedirectTo);
 
                 // Add redirected agent
-                message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", agent.Name);
+                message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", record.Name);
             }
             else
             {
