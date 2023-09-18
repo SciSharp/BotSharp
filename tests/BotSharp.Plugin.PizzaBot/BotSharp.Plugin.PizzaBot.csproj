@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+    <PackageReference Include="BotSharp.Core" Version="0.12.2" />
   </ItemGroup>
 
 </Project>

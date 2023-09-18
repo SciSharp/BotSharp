@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -26,15 +26,30 @@
     <None Remove="crawl-300d-2M-subword.bin" />
   </ItemGroup>
 
+  <ItemGroup Condition="$(SolutionName)==PizzaBot">
+    <PackageReference Include="BotSharp.OpenAPI" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.AzureOpenAI" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.ChatbotUI" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.HuggingFace" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.KnowledgeBase" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.LLamaSharp" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.MetaAI" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.MetaMessenger" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.MongoStorage" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.PaddleSharp" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.Qdrant" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.RoutingSpeeder" Version="$(PackageVersion)" />
+    <PackageReference Include="BotSharp.Plugin.WeChat" Version="$(PackageVersion)" />
+  </ItemGroup>
+    
   <ItemGroup>
     <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.16" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.11.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
+  
+  <ItemGroup Condition="$(SolutionName)==BotSharp">
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AzureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
@@ -48,6 +63,10 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Qdrant\BotSharp.Plugin.Qdrant.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.RoutingSpeeder\BotSharp.Plugin.RoutingSpeeder.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WeChat\BotSharp.Plugin.WeChat.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
   </ItemGroup>
 
 </Project>

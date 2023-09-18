@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;
@@ -51,9 +52,9 @@ public class ChatCompletionProvider : IChatCompletion
 
         var inferenceParams = new InferenceParams()
         {
-            Temperature = 0.9f,
-            AntiPrompts = new List<string> { $"{AgentRole.User}:" },
-            MaxTokens = 256
+            Temperature = 0.1f,
+            AntiPrompts = new List<string> { $"{AgentRole.User}:", "[/INST]" },
+            MaxTokens = 64
         };
 
         string totalResponse = "";
@@ -76,8 +77,6 @@ public class ChatCompletionProvider : IChatCompletion
         {
             totalResponse = totalResponse.Replace(anti, "").Trim();
         }
-
-        _logger.LogInformation($"[{agent.Name}] {AgentRole.Assistant}: {totalResponse}");
 
         var msg = new RoleDialogModel(AgentRole.Assistant, totalResponse)
         {

@@ -119,8 +119,6 @@ public class ChatCompletionProvider : IChatCompletion
         }
         else
         {
-            _logger.LogInformation($"[{agent.Name}] {message.Role}: {message.Content}");
-
             var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
             {
                 CurrentAgentId= agent.Id

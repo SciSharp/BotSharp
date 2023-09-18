@@ -1,0 +1,51 @@
+[  
+    {
+        "name": "get_pizza_price",
+        "description": "call this function to get the pizza price",
+        "parameters": {
+            "type": "object",
+            "properties": {             
+                "pizza_type": {
+                    "type": "string",
+                    "description": "The pizza type."
+                },
+                "quantity": {
+                    "type": "string",
+                    "description": "quantity of pizza."
+                }
+            },
+            "required": ["pizza_type", "quantity"]
+        }
+    },
+	{
+		"name": "get_pizza_types",
+		"description": "get all pizza types.",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+	},
+	{
+		"name": "place_an_order",
+		"description": "Place an order when user has confirmed the pizza type and quantity.",
+        "parameters": {
+            "type": "object",
+            "properties": {             
+                "pizza_type": {
+                    "type": "string",
+                    "description": "The pizza type."
+                },
+                "quantity": {
+                    "type": "number",
+                    "description": "quantity of pizza."
+                },
+                "unit_price": {
+                    "type": "number",
+                    "description": "unit price"
+                }
+            },
+            "required": ["pizza_type", "quantity", "unit_price"]
+        }
+	}
+]

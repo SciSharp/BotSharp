@@ -40,6 +40,7 @@ The main documentation for the site is organized into the following sections:
    :caption: Get Started with BotSharp
    
    quick-start/overview
+   quick-start/get-started
    quick-start/installation
 
 .. _agent-docs:
