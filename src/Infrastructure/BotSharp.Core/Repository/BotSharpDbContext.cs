@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -15,10 +14,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public IQueryable<UserAgent> UserAgents => throw new NotImplementedException();
 
     public IQueryable<Conversation> Conversations => throw new NotImplementedException();
-
-    public IQueryable<RoutingItem> RoutingItems => throw new NotImplementedException();
-
-    public IQueryable<RoutingProfile> RoutingProfiles => throw new NotImplementedException();
 
 
     public int Transaction<TTableInterface>(Action action)
@@ -139,29 +134,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
     public void CreateUser(User user)
-    {
-        throw new NotImplementedException();
-    }
-    #endregion
-
-
-    #region Routing
-    public List<RoutingItem> CreateRoutingItems(List<RoutingItem> routingItems)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<RoutingProfile> CreateRoutingProfiles(List<RoutingProfile> profiles)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void DeleteRoutingItems()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void DeleteRoutingProfiles()
     {
         throw new NotImplementedException();
     }

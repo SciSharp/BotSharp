@@ -4,6 +4,7 @@ global using System.Text;
 global using System.Linq;
 global using System.Threading.Tasks;
 global using System.ComponentModel.DataAnnotations;
+global using System.Text.Json.Serialization;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Agents.Enums;

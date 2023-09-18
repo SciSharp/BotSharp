@@ -77,7 +77,10 @@ public partial class ConversationService
                 var agentService = _services.GetRequiredService<IAgentService>();
                 agent = await agentService.LoadAgent(fn.CurrentAgentId);
 
-                wholeDialogs.Add(fn);
+                if (fn.FunctionName != "route_to_agent")
+                {
+                    wholeDialogs.Add(fn);
+                }
 
                 await GetChatCompletionsAsyncRecursively(agent,
                     wholeDialogs,
@@ -99,13 +102,16 @@ public partial class ConversationService
 
                     return;
                 }
-                
+
                 // Add to dialog history
                 // The server had an error processing your request. Sorry about that!
                 // _storage.Append(conversationId, preAgentId, fn);
 
                 // After function is executed, pass the result to LLM to get a natural response
-                wholeDialogs.Add(fn);
+                if (fn.FunctionName != "route_to_agent")
+                {
+                    wholeDialogs.Add(fn);
+                }
 
                 await GetChatCompletionsAsyncRecursively(agent,
                     wholeDialogs,

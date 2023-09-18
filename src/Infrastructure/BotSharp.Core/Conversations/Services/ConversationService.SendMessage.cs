@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Core.Routing;
