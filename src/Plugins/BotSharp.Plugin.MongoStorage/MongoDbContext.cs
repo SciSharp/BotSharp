@@ -42,10 +42,4 @@ public class MongoDbContext
 
     public IMongoCollection<UserAgentCollection> UserAgents
         => Database.GetCollection<UserAgentCollection>($"{_collectionPrefix}_UserAgents");
-
-    public IMongoCollection<RoutingItemCollection> RoutingItems
-        => Database.GetCollection<RoutingItemCollection>($"{_collectionPrefix}_RoutingItems");
-
-    public IMongoCollection<RoutingProfileCollection> RoutingProfiles
-        => Database.GetCollection<RoutingProfileCollection>($"{_collectionPrefix}_RoutingProfiles");
 }

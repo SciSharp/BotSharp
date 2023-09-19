@@ -15,7 +15,7 @@ public class AgentCreationModel
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }
     public List<string> Profiles { get; set; }
-    public List<RoutingRule> RoutingRules { get; set; }
+    public List<RoutingRuleUpdateModel> RoutingRules { get; set; }
 
     public Agent ToAgent()
     {
@@ -31,7 +31,9 @@ public class AgentCreationModel
             AllowRouting = AllowRouting,
             Disabled = Disabled,
             Profiles = Profiles,
-            RoutingRules = RoutingRules
+            RoutingRules = RoutingRules?
+                            .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?
+                            .ToList() ?? new List<RoutingRule>()
         };
     }
 }

@@ -335,6 +335,8 @@ public class FileRepository : IBotSharpRepository
 
     private void UpdateAgentProfiles(string agentId, List<string> profiles)
     {
+        if (profiles.IsNullOrEmpty()) return;
+
         var (agent, agentFile) = GetAgentFromFile(agentId);
         if (agent == null) return;
 
@@ -346,6 +348,8 @@ public class FileRepository : IBotSharpRepository
 
     private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
     {
+        if (rules.IsNullOrEmpty()) return;
+
         var (agent, agentFile) = GetAgentFromFile(agentId);
         if (agent == null) return;
 
@@ -453,6 +457,10 @@ public class FileRepository : IBotSharpRepository
         agent.Name = inputAgent.Name;
         agent.Description = inputAgent.Description;
         agent.IsPublic = inputAgent.IsPublic;
+        agent.Disabled = inputAgent.Disabled;
+        agent.AllowRouting = inputAgent.AllowRouting;
+        agent.Profiles = inputAgent.Profiles;
+        agent.RoutingRules = inputAgent.RoutingRules;
         agent.UpdatedDateTime = DateTime.UtcNow;
         var json = JsonSerializer.Serialize(agent, _options);
         File.WriteAllText(agentFile, json);

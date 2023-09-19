@@ -42,9 +42,9 @@ public class AgentUpdateModel
     /// <summary>
     /// Profile by channel
     /// </summary>
-    public List<string> Profiles { get; set; }
+    public List<string>? Profiles { get; set; }
 
-    public List<RoutingRule> RoutingRules { get; set; }
+    public List<RoutingRuleUpdateModel>? RoutingRules { get; set; }
 
     public Agent ToAgent()
     {
@@ -56,7 +56,9 @@ public class AgentUpdateModel
             Disabled = Disabled,
             AllowRouting = AllowRouting,
             Profiles = Profiles ?? new List<string>(),
-            RoutingRules = RoutingRules ?? new List<RoutingRule>(),
+            RoutingRules = RoutingRules?
+                            .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?
+                            .ToList() ?? new List<RoutingRule>(),
             Instruction = Instruction ?? string.Empty,
             Templates = Templates ?? new List<AgentTemplate>(),
             Functions = Functions ?? new List<string>(),
