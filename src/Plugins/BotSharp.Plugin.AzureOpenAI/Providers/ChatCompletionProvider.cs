@@ -20,11 +20,12 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
 {
-    protected readonly AzureOpenAiSettings _settings;
-    protected readonly IServiceProvider _services;
-    protected readonly ILogger _logger;
+    private readonly AzureOpenAiSettings _settings;
+    private readonly IServiceProvider _services;
+    private readonly ILogger _logger;
+    private string _model;
 
-    public virtual string Provider => "azure-gpt-3.5";
+    public virtual string Provider => "azure-openai";
 
     public ChatCompletionProvider(AzureOpenAiSettings settings, 
         ILogger<ChatCompletionProvider> logger,
@@ -37,8 +38,16 @@ public class ChatCompletionProvider : IChatCompletion
 
     protected virtual (OpenAIClient, string) GetClient()
     {
-        var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
-        return (client, _settings.DeploymentModel.ChatCompletionModel);
+        if (_model == "gpt-4")
+        {
+            var client = new OpenAIClient(new Uri(_settings.GPT4.Endpoint), new AzureKeyCredential(_settings.GPT4.ApiKey));
+            return (client, _settings.GPT4.DeploymentModel);
+        }
+        else
+        {
+            var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
+            return (client, _settings.DeploymentModel.ChatCompletionModel);
+        }
     }
 
     public List<RoleDialogModel> GetChatSamples(string sampleText)
@@ -242,5 +251,10 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         return chatCompletionsOptions;
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
     }
 }

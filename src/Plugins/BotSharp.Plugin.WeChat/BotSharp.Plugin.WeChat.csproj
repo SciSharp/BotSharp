@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>$(LangVersion)</LangVersion>
-    <VersionPrefix>$(PackageVersion)</VersionPrefix>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
   </PropertyGroup>
 
@@ -14,7 +14,6 @@
     <PackageProjectUrl>https://github.com/Oceania2018/botsharp-channel-weixin</PackageProjectUrl>
     <Copyright>Apache 2.0</Copyright>
     <PackageTags>botsharp, wechat, wexin, chatbot</PackageTags>
-    <VersionPrefix>$(PackageVersion)</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
