@@ -2,9 +2,9 @@ using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Plugin.PizzaBot.Functions;
 
-public class GetBakingTimeFn : IFunctionCallback
+public class GetDeliveryTimeFn : IFunctionCallback
 {
-    public string Name => "get_cooking_remaining_time";
+    public string Name => "get_delivery_time";
 
     public async Task<bool> Execute(RoleDialogModel message)
     {

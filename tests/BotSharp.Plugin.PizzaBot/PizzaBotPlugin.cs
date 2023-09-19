@@ -12,7 +12,7 @@ public class PizzaBotPlugin : IBotSharpPlugin
         services.AddScoped<IFunctionCallback, GetPizzaPricesFn>();
         services.AddScoped<IFunctionCallback, PlaceOrderFn>();
         services.AddScoped<IFunctionCallback, OrderFoundFn>();
-        services.AddScoped<IFunctionCallback, GetBakingTimeFn>();
+        services.AddScoped<IFunctionCallback, GetDeliveryTimeFn>();
 
         // Register hooks
         services.AddScoped<IAgentHook, PizzaBotAgentHook>();

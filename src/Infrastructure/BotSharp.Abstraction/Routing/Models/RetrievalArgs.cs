@@ -16,4 +16,9 @@ public class RetrievalArgs : RoutingArgs
 
     [JsonPropertyName("args")]
     public JsonDocument Arguments { get; set; }
+
+    public override string ToString()
+    {
+        return $"{AgentName} {Question} ({JsonSerializer.Serialize(Arguments)}) => {Answer} ({Reason})";
+    }
 }

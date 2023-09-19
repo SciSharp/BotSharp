@@ -11,4 +11,9 @@ public class FunctionCallFromLlm
 
     [JsonPropertyName("parameters")]
     public RetrievalArgs Parameters { get; set; }
+
+    public override string ToString()
+    {
+        return $"{Function}: {Parameters}";
+    }
 }

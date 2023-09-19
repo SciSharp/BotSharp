@@ -1,9 +1,8 @@
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Routing;
 
@@ -33,6 +32,11 @@ public class Simulator
         }
         
         var response = await SendMessageToReasoner(agent);
+        if (response.Role == AgentRole.Function)
+        {
+
+        }
+
         var args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
         response.FunctionName = args.Function;
         
@@ -42,7 +46,7 @@ public class Simulator
 
             var router = _services.GetRequiredService<IAgentRouting>();
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var record = db.Agents.First(x => x.Name.ToLower() == args.Parameters.AgentName);
+            var record = db.Agents.First(x => x.Name.ToLower() == args.Parameters.AgentName.ToLower());
             response.CurrentAgentId = record.Id;
         }
         else if (args.Function == "interrupt_task_execution")
@@ -75,7 +79,7 @@ public class Simulator
 
         var args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
 
-        if (args.Function == "retrieve_data_from_agent")
+        if (args.Parameters.Arguments != null)
         {
             SaveStateByArgs(args.Parameters.Arguments);
         }
@@ -84,10 +88,28 @@ public class Simulator
             return response;
         }
 
+        if (args.Function == "route_to_agent")
+        {
+            var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == args.Function);
+            var message = new RoleDialogModel(AgentRole.Function, args.Parameters.Question)
+            {
+                FunctionName = args.Function,
+                FunctionArgs = JsonSerializer.Serialize(new RoutingArgs
+                {
+                    AgentName = args.Parameters.AgentName
+                }),
+            };
+            var ret = await function.Execute(message);
+            if (ret)
+            {
+                return message;
+            }
+        }
+
         // Retrieve information from specific agent
         var router = _services.GetRequiredService<IAgentRouting>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.Agents.First(x => x.Name.ToLower() == args.Parameters.AgentName);
+        var record = db.Agents.First(x => x.Name.ToLower() == args.Parameters.AgentName.ToLower());
         response = await SendMessageToAgent(record.Id, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, args.Parameters.Question)

@@ -62,6 +62,7 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IAgentHook, RoutingHook>();
 
         services.AddScoped<Simulator>();
+        services.AddScoped<IRoutingService, RoutingService>();
 
         if (myDatabaseSettings.Default == "FileRepository")
         {

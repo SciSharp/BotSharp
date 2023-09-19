@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
-using BotSharp.Core.Routing;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -52,10 +52,10 @@ public partial class ConversationService
 
         // reasoning
         var settings = _services.GetRequiredService<RoutingSettings>();
-        if (settings.ReasonerId == agent.Id)
+        if (settings.RouterId == agent.Id)
         {
-            var simulator = _services.GetRequiredService<Simulator>();
-            var reasonedContext = await simulator.Enter(agent, wholeDialogs);
+            var routing = _services.GetRequiredService<IRoutingService>();
+            var reasonedContext = await routing.Enter(agent, wholeDialogs);
 
             if (reasonedContext.FunctionName == "interrupt_task_execution")
             {
@@ -83,7 +83,7 @@ public partial class ConversationService
                 }
             }
 
-            simulator.Dialogs.ForEach(x => 
+            routing.Dialogs.ForEach(x => 
             {
                 wholeDialogs.Add(x);
                 if (x.Content != null)
