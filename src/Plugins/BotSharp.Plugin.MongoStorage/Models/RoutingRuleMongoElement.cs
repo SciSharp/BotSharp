@@ -2,20 +2,20 @@ using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
-public class RoutingRuleElement
+public class RoutingRuleMongoElement
 {
     public string Field { get; set; }
     public bool Required { get; set; }
     public Guid? RedirectTo { get; set; }
 
-    public RoutingRuleElement()
+    public RoutingRuleMongoElement()
     {
         
     }
 
-    public static RoutingRuleElement ToMongoElement(RoutingRule routingRule)
+    public static RoutingRuleMongoElement ToMongoElement(RoutingRule routingRule)
     {
-        return new RoutingRuleElement 
+        return new RoutingRuleMongoElement 
         {
             Field = routingRule.Field,
             Required = routingRule.Required,
@@ -23,7 +23,7 @@ public class RoutingRuleElement
         };
     }
 
-    public static RoutingRule ToDomainElement(string agentId, string agentName, RoutingRuleElement rule)
+    public static RoutingRule ToDomainElement(string agentId, string agentName, RoutingRuleMongoElement rule)
     {
         return new RoutingRule
         {

@@ -48,7 +48,7 @@ public class MongoRepository : IBotSharpRepository
                 AllowRouting = x.AllowRouting,
                 Profiles = x.Profiles,
                 RoutingRules = x.RoutingRules?
-                                .Select(r => RoutingRuleElement.ToDomainElement(x.Id.ToString(), x.Name, r))?
+                                .Select(r => RoutingRuleMongoElement.ToDomainElement(x.Id.ToString(), x.Name, r))?
                                 .ToList() ?? new List<RoutingRule>(),
                 CreatedDateTime = x.CreatedTime,
                 UpdatedDateTime = x.UpdatedTime
@@ -218,8 +218,8 @@ public class MongoRepository : IBotSharpRepository
                     Disabled = x.Disabled,
                     Profiles = x.Profiles,
                     RoutingRules = x.RoutingRules?
-                                    .Select(r => RoutingRuleElement.ToMongoElement(r))?
-                                    .ToList() ?? new List<RoutingRuleElement>(),
+                                    .Select(r => RoutingRuleMongoElement.ToMongoElement(r))?
+                                    .ToList() ?? new List<RoutingRuleMongoElement>(),
                     CreatedTime = x.CreatedDateTime,
                     UpdatedTime = x.UpdatedDateTime
                 }).ToList();
@@ -420,7 +420,7 @@ public class MongoRepository : IBotSharpRepository
     {
         if (rules.IsNullOrEmpty()) return;
 
-        var ruleElements = rules.Select(x => RoutingRuleElement.ToMongoElement(x)).ToList();
+        var ruleElements = rules.Select(x => RoutingRuleMongoElement.ToMongoElement(x)).ToList();
         var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
         var update = Builders<AgentCollection>.Update
             .Set(x => x.RoutingRules, ruleElements)
@@ -486,7 +486,7 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.Disabled, agent.Disabled)
             .Set(x => x.AllowRouting, agent.AllowRouting)
             .Set(x => x.Profiles, agent.Profiles)
-            .Set(x => x.RoutingRules, agent.RoutingRules.Select(x => RoutingRuleElement.ToMongoElement(x)).ToList())
+            .Set(x => x.RoutingRules, agent.RoutingRules.Select(x => RoutingRuleMongoElement.ToMongoElement(x)).ToList())
             .Set(x => x.Instruction, agent.Instruction)
             .Set(x => x.Templates, agent.Templates)
             .Set(x => x.Functions, agent.Functions)
