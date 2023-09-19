@@ -218,8 +218,8 @@ public class MongoRepository : IBotSharpRepository
                     Disabled = x.Disabled,
                     Profiles = x.Profiles,
                     RoutingRules = x.RoutingRules?
-                                        .Select(r => RoutingRuleElement.ToMongoElement(r))?
-                                        .ToList() ?? new List<RoutingRuleElement>(),
+                                    .Select(r => RoutingRuleElement.ToMongoElement(r))?
+                                    .ToList() ?? new List<RoutingRuleElement>(),
                     CreatedTime = x.CreatedDateTime,
                     UpdatedTime = x.UpdatedDateTime
                 }).ToList();

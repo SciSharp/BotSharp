@@ -15,7 +15,7 @@ public class AgentCollection : MongoBase
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }
     public List<string> Profiles { get; set; }
-    public List<RoutintRuleElement> RoutingRules { get; set; }
+    public List<RoutingRuleElement> RoutingRules { get; set; }
 
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }

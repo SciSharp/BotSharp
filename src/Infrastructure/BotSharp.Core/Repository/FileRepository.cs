@@ -4,6 +4,7 @@ using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Repository;
 
@@ -240,6 +241,18 @@ public class FileRepository : IBotSharpRepository
             case AgentField.IsPublic:
                 UpdateAgentIsPublic(agent.Id, agent.IsPublic);
                 break;
+            case AgentField.Disabled:
+                UpdateAgentDisabled(agent.Id, agent.Disabled);
+                break;
+            case AgentField.AllowRouting:
+                UpdateAgentAllowRouting(agent.Id, agent.AllowRouting);
+                break;
+            case AgentField.Profiles:
+                UpdateAgentProfiles(agent.Id, agent.Profiles);
+                break;
+            case AgentField.RoutingRules:
+                UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
+                break;
             case AgentField.Instruction:
                 UpdateAgentInstruction(agent.Id, agent.Instruction);
                 break;
@@ -293,6 +306,50 @@ public class FileRepository : IBotSharpRepository
         if (agent == null) return;
 
         agent.IsPublic = isPublic;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
+    private void UpdateAgentDisabled(string agentId, bool disabled)
+    {
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.Disabled = disabled;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
+    private void UpdateAgentAllowRouting(string agentId, bool allowRouting)
+    {
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.AllowRouting = allowRouting;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
+    private void UpdateAgentProfiles(string agentId, List<string> profiles)
+    {
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.Profiles = profiles;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
+    private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
+    {
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.RoutingRules = rules;
         agent.UpdatedDateTime = DateTime.UtcNow;
         var json = JsonSerializer.Serialize(agent, _options);
         File.WriteAllText(agentFile, json);
