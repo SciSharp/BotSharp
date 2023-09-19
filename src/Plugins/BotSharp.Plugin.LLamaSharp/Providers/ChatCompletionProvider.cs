@@ -23,6 +23,7 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
     private readonly LlamaSharpSettings _settings;
+    private string _model;
 
     public ChatCompletionProvider(IServiceProvider services,
         ILogger<ChatCompletionProvider> logger,
@@ -117,5 +118,10 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         return true;
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
     }
 }
