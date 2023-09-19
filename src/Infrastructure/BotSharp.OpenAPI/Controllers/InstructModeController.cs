@@ -20,7 +20,7 @@ public class InstructModeController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/instruct/{agentId}")]
-    public async Task<InstructResult> NewConversation([FromRoute] string agentId,
+    public async Task<InstructResult> InstructCompletion([FromRoute] string agentId,
         [FromBody] InstructMessageModel input)
     {
         var instructor = _services.GetRequiredService<IInstructService>();
@@ -28,12 +28,16 @@ public class InstructModeController : ControllerBase, IApiAdapter
         Agent agent = await agentService.LoadAgent(agentId);
 
         // switch to different instruction template
-        if (!string.IsNullOrEmpty(input.TemplateName))
+        if (!string.IsNullOrEmpty(input.Template))
         {
             var agentSettings = _services.GetRequiredService<AgentSettings>();
-            var filePath = Path.Combine(agentService.GetAgentDataDir(agentId), $"{input.TemplateName}.{agentSettings.TemplateFormat}");
+            var filePath = Path.Combine(agentService.GetAgentDataDir(agentId), $"{input.Template}.{agentSettings.TemplateFormat}");
             agent.Instruction = System.IO.File.ReadAllText(filePath);
         }
+
+        var conv = _services.GetRequiredService<IConversationService>();
+        conv.States.SetState("provider", input.Provider)
+            .SetState("model", input.Model);
 
         return await instructor.ExecuteInstruction(agent,
             new RoleDialogModel(AgentRole.User, input.Text),
