@@ -1,0 +1,15 @@
+{
+  "name": "Payment",
+  "description": "Make payment when user placed new order.",
+  "createdDateTime": "2023-07-26T02:29:25.123224Z",
+  "updatedDateTime": "2023-07-26T02:29:25.123274Z",
+  "id": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd",
+  "allowRouting": true,
+  "routingRules": [
+    {
+      "field": "order_number",
+      "required": true,
+      "redirectTo": "ff431273-0c28-4647-88bf-86d82443c579"
+    }
+  ]
+}

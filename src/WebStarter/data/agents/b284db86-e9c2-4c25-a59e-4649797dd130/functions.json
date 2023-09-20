@@ -1,0 +1,16 @@
+[  
+	{
+		"name": "get_delivery_time",
+		"description": "get order delivery remaining time",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "order_number": {
+                  "type": "string",
+                  "description": "order number."
+                }
+            },
+            "required": ["order_number"]
+        }
+	}
+] 
