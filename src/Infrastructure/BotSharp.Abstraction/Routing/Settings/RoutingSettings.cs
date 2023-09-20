@@ -8,4 +8,8 @@ public class RoutingSettings
     public string RouterId { get; set; } = string.Empty;
 
     public bool EnableReasoning {  get; set; } = false;
+
+    public string Provider {  get; set; } = string.Empty;
+
+    public string Model { get; set; } = string.Empty;
 }
