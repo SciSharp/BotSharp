@@ -1,15 +1,15 @@
 {
   "name": "Payment",
-  "description": "Make payment when user placed new order.",
+  "description": "Make payment when user placed new order and system returned the order number.",
   "createdDateTime": "2023-07-26T02:29:25.123224Z",
   "updatedDateTime": "2023-07-26T02:29:25.123274Z",
-  "id": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd",
+  "id": "fe8c60aa-b114-4ef3-93cb-a8efeac80f75",
   "allowRouting": true,
   "routingRules": [
     {
       "field": "order_number",
       "required": true,
-      "redirectTo": "ff431273-0c28-4647-88bf-86d82443c579"
+      "redirectTo": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd"
     }
   ]
 }
