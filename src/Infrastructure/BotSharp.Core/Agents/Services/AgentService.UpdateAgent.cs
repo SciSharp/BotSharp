@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing.Models;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -15,6 +16,11 @@ public partial class AgentService
 
         record.Name = agent.Name ?? string.Empty;
         record.Description = agent.Description ?? string.Empty;
+        record.IsPublic = agent.IsPublic;
+        record.Disabled = agent.Disabled;
+        record.AllowRouting = agent.AllowRouting;
+        record.Profiles = agent.Profiles ?? new List<string>();
+        record.RoutingRules = agent.RoutingRules ?? new List<RoutingRule>();
         record.Instruction = agent.Instruction ?? string.Empty;
         record.Functions = agent.Functions ?? new List<string>();
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
@@ -53,6 +59,10 @@ public partial class AgentService
                        .SetName(foundAgent.Name)
                        .SetDescription(foundAgent.Description)
                        .SetIsPublic(foundAgent.IsPublic)
+                       .SetDisabled(foundAgent.Disabled)
+                       .SetAllowRouting(foundAgent.AllowRouting)
+                       .SetProfiles(foundAgent.Profiles)
+                       .SetRoutingRules(foundAgent.RoutingRules)
                        .SetInstruction(foundAgent.Instruction)
                        .SetTemplates(foundAgent.Templates)
                        .SetFunctions(foundAgent.Functions)

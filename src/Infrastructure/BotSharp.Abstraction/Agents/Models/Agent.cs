@@ -6,7 +6,7 @@ public class Agent
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 
@@ -81,6 +81,10 @@ public class Agent
             Samples = agent.Samples,
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
+            Disabled = agent.Disabled,
+            AllowRouting = agent.AllowRouting,
+            Profiles = agent.Profiles,
+            RoutingRules = agent.RoutingRules,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime,
         };
@@ -94,7 +98,7 @@ public class Agent
 
     public Agent SetTemplates(List<AgentTemplate> templates)
     {
-        Templates = templates;
+        Templates = templates ?? new List<AgentTemplate>();
         return this;
     }
 
@@ -131,6 +135,30 @@ public class Agent
     public Agent SetIsPublic(bool isPublic)
     {
         IsPublic = isPublic;
+        return this;
+    }
+
+    public Agent SetDisabled(bool disabled)
+    {
+        Disabled = disabled;
+        return this;
+    }
+
+    public Agent SetAllowRouting(bool allowRouting)
+    {
+        AllowRouting = allowRouting;
+        return this;
+    }
+
+    public Agent SetProfiles(List<string> profiles)
+    {
+        Profiles = profiles ?? new List<string>();
+        return this;
+    }
+
+    public Agent SetRoutingRules(List<RoutingRule> rules)
+    {
+        RoutingRules = rules ?? new List<RoutingRule>();
         return this;
     }
 }

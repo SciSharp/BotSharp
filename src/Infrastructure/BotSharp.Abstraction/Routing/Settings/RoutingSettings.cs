@@ -7,8 +7,5 @@ public class RoutingSettings
     /// </summary>
     public string RouterId { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Reasoner Agent Id
-    /// </summary>
-    public string ReasonerId { get; set; } = string.Empty;
+    public bool EnableReasoning {  get; set; } = false;
 }

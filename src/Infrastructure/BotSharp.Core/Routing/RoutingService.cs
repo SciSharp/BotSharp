@@ -4,19 +4,26 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Templating;
+using System.IO;
 
 namespace BotSharp.Core.Routing;
 
 public class RoutingService : IRoutingService
 {
     private readonly IServiceProvider _services;
+    private readonly RoutingSettings _settings;
     private readonly ILogger _logger;
     private List<RoleDialogModel> _dialogs;
     public List<RoleDialogModel> Dialogs => _dialogs;
 
-    public RoutingService(IServiceProvider services, ILogger<RoutingService> logger)
+    public RoutingService(IServiceProvider services,
+        RoutingSettings settings,
+        ILogger<RoutingService> logger)
     {
         _services = services;
+        _settings = settings;
         _logger = logger;
     }
 
@@ -90,7 +97,9 @@ public class RoutingService : IRoutingService
                     new RoleDialogModel(AgentRole.User, inst.Parameters.Question)
                 });
 
-                response.Content += $"\r\nDo you want to continue current task?"; 
+                inst.Parameters.Answer = response.Content;
+                response.Content += $"\r\nDo you want to continue current task?";
+                
                 _dialogs.Add(new RoleDialogModel(AgentRole.Function, $"{record.Name}: {response.Content}")
                 {
                     FunctionName = inst.Function,
@@ -111,9 +120,10 @@ public class RoutingService : IRoutingService
 
     private async Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(Agent reasoner)
     {
+        var responseFormat = "{\"function\": \"\", \"parameters\": {\"agent_name\": \"\", \"args\":{}}";
         var wholeDialogs = new List<RoleDialogModel>
         {
-            new RoleDialogModel(AgentRole.User, @"What's the next step? Response in JSON format with ""function"" and ""parameters"".")
+            new RoleDialogModel(AgentRole.User, $"What's the next step? Response in JSON format {responseFormat}.")
         };
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services);
@@ -131,6 +141,8 @@ public class RoutingService : IRoutingService
         }
 
         args.Function = args.Function.Split('.').Last();
+
+        _logger.LogInformation($"Next Instruction: {args}");
 
         return args;
     }
@@ -179,5 +191,40 @@ public class RoutingService : IRoutingService
                 }
             }
         }
+    }
+
+    public Agent LoadRouter()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var router = new Agent()
+        {
+            Id = _settings.RouterId,
+        };
+        var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
+
+        var dict = new Dictionary<string, object>();
+        dict["routing_records"] = agents.Select(x => new RoutingItem
+        {
+            AgentId = x.Id,
+            Description = x.Description,
+            Name = x.Name,
+            RequiredFields = x.RoutingRules.Where(x => x.Required)
+                .Select(x => x.Field)
+                .ToArray()
+        }).ToArray();
+
+        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Routing", "Prompts");
+        var template = File.ReadAllText(Path.Combine(dir, "router_prompt.liquid"));
+        
+        if (_settings.EnableReasoning)
+        {
+            dict["reasoning_functions"] = File.ReadAllText(Path.Combine(dir, "reasoning_functions.liquid"));
+        }
+
+        var render = _services.GetRequiredService<ITemplateRender>();
+        router.Instruction = render.Render(template, dict);
+
+        return router;
     }
 }

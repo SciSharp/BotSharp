@@ -14,6 +14,6 @@ public class FunctionCallFromLlm
 
     public override string ToString()
     {
-        return $"{Function}: {Parameters}";
+        return $"{Function} {Parameters}";
     }
 }

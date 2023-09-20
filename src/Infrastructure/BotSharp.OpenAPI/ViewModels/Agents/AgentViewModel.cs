@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -12,6 +13,11 @@ public class AgentViewModel
     public List<string> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public bool IsPublic { get; set; }
+    public bool AllowRouting { get; set; }
+    public bool Disabled { get; set; }
+    public List<string> Profiles { get; set; }
+    public List<RoutingRule> RoutingRules { get; set; }
+
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 
@@ -27,6 +33,10 @@ public class AgentViewModel
             Functions = agent.Functions,
             Responses = agent.Responses,
             IsPublic= agent.IsPublic,
+            Disabled = agent.Disabled,
+            AllowRouting = agent.AllowRouting,
+            Profiles = agent.Profiles,
+            RoutingRules = agent.RoutingRules,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime
         };

@@ -51,15 +51,10 @@ public static class BotSharpServiceCollectionExtensions
         config.Bind("Router", routingSettings);
         services.AddSingleton((IServiceProvider x) => routingSettings);
 
-        services.AddScoped<Router>();
-        services.AddScoped<Reasoner>();
         services.AddScoped<IAgentRouting, Router>();
 
         // Register function callback
         services.AddScoped<IFunctionCallback, RouteToAgentFn>();
-
-        // Register Hooks
-        services.AddScoped<IAgentHook, RoutingHook>();
 
         services.AddScoped<Simulator>();
         services.AddScoped<IRoutingService, RoutingService>();

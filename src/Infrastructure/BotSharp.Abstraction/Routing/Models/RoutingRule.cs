@@ -18,4 +18,9 @@ public class RoutingRule
     {
         return $"{AgentName} {Field}";
     }
+
+    public RoutingRule()
+    {
+        
+    }
 }

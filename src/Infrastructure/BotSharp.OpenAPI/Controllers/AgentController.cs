@@ -66,6 +66,38 @@ public class AgentController : ControllerBase, IApiAdapter
         await _agentService.UpdateAgent(model, AgentField.IsPublic);
     }
 
+    [HttpPut("/agent/{agentId}/disabled")]
+    public async Task UpdateAgentDisabled([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        await _agentService.UpdateAgent(model, AgentField.Disabled);
+    }
+
+    [HttpPut("/agent/{agentId}/allow-routing")]
+    public async Task UpdateAgentAllowRouting([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        await _agentService.UpdateAgent(model, AgentField.AllowRouting);
+    }
+
+    [HttpPut("/agent/{agentId}/profiles")]
+    public async Task UpdateAgentProfiles([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        await _agentService.UpdateAgent(model, AgentField.Profiles);
+    }
+
+    [HttpPut("/agent/{agentId}/routing-rules")]
+    public async Task UpdateAgentRoutingRules([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        await _agentService.UpdateAgent(model, AgentField.RoutingRules);
+    }
+
     [HttpPut("/agent/{agentId}/instruction")]
     public async Task UpdateAgentInstruction([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
     {
@@ -83,7 +115,7 @@ public class AgentController : ControllerBase, IApiAdapter
     }
 
     [HttpPut("/agent/{agentId}/templates")]
-    public async Task UpdateAgenttemplates([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
+    public async Task UpdateAgentTemplates([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
     {
         var model = agent.ToAgent();
         model.Id = agentId;

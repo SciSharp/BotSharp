@@ -53,7 +53,7 @@ public class RoutingConversationHook: ConversationHookBase
     public override async Task AfterCompletion(RoleDialogModel message)
     {
         var routerSettings = _services.GetRequiredService<RoutingSettings>();
-        bool saveFlag = (message.CurrentAgentId != routerSettings.RouterId) && (message.CurrentAgentId != routerSettings.ReasonerId);
+        bool saveFlag = message.CurrentAgentId != routerSettings.RouterId;
 
         if (saveFlag)
         {

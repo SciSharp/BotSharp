@@ -19,6 +19,6 @@ public class RetrievalArgs : RoutingArgs
 
     public override string ToString()
     {
-        return $"{AgentName} {Question} ({JsonSerializer.Serialize(Arguments)}) => {Answer} ({Reason})";
+        return $" [{AgentName}]: {Question} ({JsonSerializer.Serialize(Arguments)}) => {Answer} ({Reason})";
     }
 }

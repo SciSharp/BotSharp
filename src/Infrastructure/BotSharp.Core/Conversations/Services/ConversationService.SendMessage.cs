@@ -50,7 +50,7 @@ public partial class ConversationService
             }
         }
 
-        // reasoning
+        // Routing with reasoning
         var settings = _services.GetRequiredService<RoutingSettings>();
         if (settings.RouterId == agent.Id)
         {
@@ -76,6 +76,13 @@ public partial class ConversationService
                 return true;
             }
             else if (reasonedContext.FunctionName == "continue_execute_task")
+            {
+                if (reasonedContext.CurrentAgentId != agent.Id)
+                {
+                    agent = await agentService.LoadAgent(reasonedContext.CurrentAgentId);
+                }
+            }
+            else if (reasonedContext.FunctionName == "route_to_agent")
             {
                 if (reasonedContext.CurrentAgentId != agent.Id)
                 {

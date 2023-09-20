@@ -13,6 +13,7 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly HuggingFaceSettings _settings;
     private readonly ILogger _logger;
+    private string _model;
 
     public ChatCompletionProvider(IServiceProvider services,
         HuggingFaceSettings settings,
@@ -68,5 +69,10 @@ public class ChatCompletionProvider : IChatCompletion
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         return true;
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
     }
 }

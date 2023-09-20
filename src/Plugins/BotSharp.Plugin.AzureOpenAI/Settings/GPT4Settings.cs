@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Routing.Settings;
+namespace BotSharp.Plugin.AzureOpenAI.Settings;
 
 public class GPT4Settings
 {

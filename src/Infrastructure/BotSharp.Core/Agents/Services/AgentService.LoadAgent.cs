@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Agents.Services;
@@ -18,7 +20,9 @@ public partial class AgentService
             hook.OnAgentLoading(ref id);
         }
 
-        var agent = await GetAgent(id);
+        var settings = _services.GetRequiredService<RoutingSettings>();
+        var routingService = _services.GetRequiredService<IRoutingService>();
+        var agent = settings.RouterId == id ? routingService.LoadRouter() : await GetAgent(id);
         var templateDict = new Dictionary<string, object>();
         PopulateState(templateDict);
 

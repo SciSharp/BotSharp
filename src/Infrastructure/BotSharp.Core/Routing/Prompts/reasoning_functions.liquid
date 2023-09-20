@@ -1,0 +1,22 @@
+# retrieve_data_from_agent
+Retrieve data from appropriate agent.
+Parameters:
+    1. agent_name: the name of the agent;
+    2. question: the question you will ask the agent to get the necessary data
+    3. args: required parameters extracted from question and hand over to the next agent. The args should be in JSON format.
+
+# continue_execute_task
+Continue to execute user's request without further information retrival.
+Parameters:
+    1. agent_name: the name of the agent;
+    2. args: required parameters extracted from question.
+
+# interrupt_task_execution
+Can't continue user's request becauase the requirements are not met or you have already known the answer.
+Parameters:
+    1. reason: the reason why the request is interrupted;
+
+# response_to_user
+You have already known the answer according the dialogs.
+Parameters:
+    1. answer: the answer of user's question;

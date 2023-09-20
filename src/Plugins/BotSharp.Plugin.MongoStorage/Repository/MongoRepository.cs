@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
+using BotSharp.Plugin.MongoStorage.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -42,6 +44,12 @@ public class MongoRepository : IBotSharpRepository
                 Functions = x.Functions,
                 Responses = x.Responses,
                 IsPublic = x.IsPublic,
+                Disabled = x.Disabled,
+                AllowRouting = x.AllowRouting,
+                Profiles = x.Profiles,
+                RoutingRules = x.RoutingRules?
+                                .Select(r => RoutingRuleMongoElement.ToDomainElement(x.Id.ToString(), x.Name, r))?
+                                .ToList() ?? new List<RoutingRule>(),
                 CreatedDateTime = x.CreatedTime,
                 UpdatedDateTime = x.UpdatedTime
             }).ToList();
@@ -206,6 +214,12 @@ public class MongoRepository : IBotSharpRepository
                     Functions = x.Functions,
                     Responses = x.Responses,
                     IsPublic = x.IsPublic,
+                    AllowRouting = x.AllowRouting,
+                    Disabled = x.Disabled,
+                    Profiles = x.Profiles,
+                    RoutingRules = x.RoutingRules?
+                                    .Select(r => RoutingRuleMongoElement.ToMongoElement(r))?
+                                    .ToList() ?? new List<RoutingRuleMongoElement>(),
                     CreatedTime = x.CreatedDateTime,
                     UpdatedTime = x.UpdatedDateTime
                 }).ToList();
@@ -221,6 +235,10 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.Functions, agent.Functions)
                         .Set(x => x.Responses, agent.Responses)
                         .Set(x => x.IsPublic, agent.IsPublic)
+                        .Set(x => x.AllowRouting, agent.AllowRouting)
+                        .Set(x => x.Disabled, agent.Disabled)
+                        .Set(x => x.Profiles, agent.Profiles)
+                        .Set(x => x.RoutingRules, agent.RoutingRules)
                         .Set(x => x.CreatedTime, agent.CreatedTime)
                         .Set(x => x.UpdatedTime, agent.UpdatedTime);
                     _dc.Agents.UpdateOne(filter, update, _options);
@@ -299,6 +317,18 @@ public class MongoRepository : IBotSharpRepository
             case AgentField.IsPublic:
                 UpdateAgentIsPublic(agent.Id, agent.IsPublic);
                 break;
+            case AgentField.Disabled:
+                UpdateAgentDisabled(agent.Id, agent.Disabled);
+                break;
+            case AgentField.AllowRouting:
+                UpdateAgentAllowRouting(agent.Id, agent.AllowRouting);
+                break;
+            case AgentField.Profiles:
+                UpdateAgentProfiles(agent.Id, agent.Profiles);
+                break;
+            case AgentField.RoutingRules:
+                UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
+                break;
             case AgentField.Instruction:
                 UpdateAgentInstruction(agent.Id, agent.Instruction);
                 break;
@@ -349,6 +379,51 @@ public class MongoRepository : IBotSharpRepository
         var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
         var update = Builders<AgentCollection>.Update
             .Set(x => x.IsPublic, isPublic)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentDisabled(string agentId, bool disabled)
+    {
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Disabled, disabled)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentAllowRouting(string agentId, bool allowRouting)
+    {
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.AllowRouting, allowRouting)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentProfiles(string agentId, List<string> profiles)
+    {
+        if (profiles.IsNullOrEmpty()) return;
+
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.Profiles, profiles)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
+    {
+        if (rules.IsNullOrEmpty()) return;
+
+        var ruleElements = rules.Select(x => RoutingRuleMongoElement.ToMongoElement(x)).ToList();
+        var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
+        var update = Builders<AgentCollection>.Update
+            .Set(x => x.RoutingRules, ruleElements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -408,6 +483,10 @@ public class MongoRepository : IBotSharpRepository
         var update = Builders<AgentCollection>.Update
             .Set(x => x.Name, agent.Name)
             .Set(x => x.Description, agent.Description)
+            .Set(x => x.Disabled, agent.Disabled)
+            .Set(x => x.AllowRouting, agent.AllowRouting)
+            .Set(x => x.Profiles, agent.Profiles)
+            .Set(x => x.RoutingRules, agent.RoutingRules.Select(x => RoutingRuleMongoElement.ToMongoElement(x)).ToList())
             .Set(x => x.Instruction, agent.Instruction)
             .Set(x => x.Templates, agent.Templates)
             .Set(x => x.Functions, agent.Functions)

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing.Settings;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -44,9 +45,10 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            var agent = db.Agents.First(x => x.Id == agentId);
+            var routingSetting = _services.GetRequiredService<RoutingSettings>();
+            var agentName = routingSetting.RouterId == agentId ? "Router" : db.Agents.First(x => x.Id == agentId).Name;
 
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agent.Name}|");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agentName}|");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
             {
