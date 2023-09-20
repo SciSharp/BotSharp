@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace BotSharp.Abstraction.Routing.Models;
 
@@ -19,6 +18,6 @@ public class RetrievalArgs : RoutingArgs
 
     public override string ToString()
     {
-        return $" [{AgentName}]: {Question} ({JsonSerializer.Serialize(Arguments)}) => {Answer} ({Reason})";
+        return $"[{AgentName}, {Reason}]: ({JsonSerializer.Serialize(Arguments)}) {Question}";
     }
 }

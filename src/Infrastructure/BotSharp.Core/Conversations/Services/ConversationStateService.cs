@@ -126,7 +126,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             _states[name] = defaultValue ?? "";
         }
 
-        if (_states[name] == null)
+        if (string.IsNullOrEmpty(_states[name]))
         {
             return defaultValue;
         }

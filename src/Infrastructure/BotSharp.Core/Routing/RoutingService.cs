@@ -32,7 +32,7 @@ public class RoutingService : IRoutingService
         _dialogs = new List<RoleDialogModel>();
         RoleDialogModel result = new RoleDialogModel(AgentRole.Assistant, "not handled");
 
-        foreach (var dialog in whileDialogs.TakeLast(10))
+        foreach (var dialog in whileDialogs.TakeLast(20))
         {
             agent.Instruction += $"\r\n{dialog.Role}: {dialog.Content}";
         }
@@ -120,13 +120,15 @@ public class RoutingService : IRoutingService
 
     private async Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(Agent reasoner)
     {
-        var responseFormat = "{\"function\": \"\", \"parameters\": {\"agent_name\": \"\", \"args\":{}}";
+        var responseFormat = "{\"function\": \"\", \"parameters\": {\"agent_name\": \"\", \"reason\":\"\", \"args\":{}}";
         var wholeDialogs = new List<RoleDialogModel>
         {
-            new RoleDialogModel(AgentRole.User, $"What's the next step? Response in JSON format {responseFormat}.")
+            new RoleDialogModel(AgentRole.System, $"What's the next step? Response in JSON format {responseFormat}.")
         };
 
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services);
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, 
+            provider: _settings.Provider, 
+            model: _settings.Model);
 
         RoleDialogModel response = null;
         await chatCompletion.GetChatCompletionsAsync(reasoner, wholeDialogs, async msg
@@ -142,7 +144,7 @@ public class RoutingService : IRoutingService
 
         args.Function = args.Function.Split('.').Last();
 
-        _logger.LogInformation($"Next Instruction: {args}");
+        _logger.LogInformation($"*** Next Instruction *** {args}");
 
         return args;
     }

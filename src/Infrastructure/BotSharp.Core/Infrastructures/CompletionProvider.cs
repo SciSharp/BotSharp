@@ -10,12 +10,12 @@ public class CompletionProvider
 
         var state = services.GetRequiredService<IConversationStateService>();
 
-        if (provider == null)
+        if (string.IsNullOrEmpty(provider))
         {
             provider = state.GetState("provider", "azure-openai");
         }
 
-        if (model == null)
+        if (string.IsNullOrEmpty(model))
         {
             model = state.GetState("model", "gpt-3.5-turbo");
         }

@@ -52,6 +52,7 @@ The main documentation for the site is organized into the following sections:
    agent/intro
    agent/conversation
    agent/state
+   agent/router
 
 .. _integration-docs:
 
