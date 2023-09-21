@@ -27,7 +27,7 @@ public class AgentController : ControllerBase, IApiAdapter
 
         // Add the router as agent
         var routing = _services.GetRequiredService<IRoutingService>();
-        agents.Add(routing.LoadRouter());
+        agents.Insert(0, routing.LoadRouter());
 
         return agents.Select(x => AgentViewModel.FromAgent(x)).ToList();
     }
