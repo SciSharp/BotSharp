@@ -59,8 +59,23 @@ public class RoutingService : IRoutingService
             // Compatible with previous Router, can be removed in the future.
             else if (inst.Function == "route_to_agent")
             {
+                // If the agent name is empty, fallback to router
+                if (string.IsNullOrEmpty(inst.Parameters.AgentName))
+                {
+                    result = new RoleDialogModel(AgentRole.Function, inst.Reason)
+                    {
+                        FunctionName = inst.Function,
+                        FunctionArgs = JsonSerializer.Serialize(new RoutingArgs
+                        {
+                            AgentName = inst.Parameters.AgentName
+                        }),
+                        CurrentAgentId = router.Id
+                    };
+                    break;
+                }
+
                 var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
-                result = new RoleDialogModel(AgentRole.Function, inst.Parameters.Question)
+                result = new RoleDialogModel(AgentRole.Function, inst.Reason)
                 {
                     FunctionName = inst.Function,
                     FunctionArgs = JsonSerializer.Serialize(new RoutingArgs
