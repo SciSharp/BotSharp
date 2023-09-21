@@ -4,11 +4,17 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>..\..\packages</OutputPath>
   </PropertyGroup>
 
+  <ItemGroup Condition="$(SolutionName)==PizzaBot">
+    <PackageReference Include="BotSharp.Core" Version="$(BotSharpVersion)" />
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="BotSharp.Core" Version="0.12.2" />
+    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -75,17 +75,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Routing\Prompts\reasoning_functions.liquid" />
     <None Remove="Routing\router_prompt.liquid" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Routing\Prompts\reasoning_functions.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Routing\Prompts\router_prompt.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>

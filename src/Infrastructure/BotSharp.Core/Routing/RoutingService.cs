@@ -224,17 +224,14 @@ public class RoutingService : IRoutingService
                 .ToArray()
         }).ToArray();
 
-        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Routing", "Prompts");
-        var template = File.ReadAllText(Path.Combine(dir, "router_prompt.liquid"));
-
         dict["enable_reasoning"] = _settings.EnableReasoning;
         if (_settings.EnableReasoning)
         {
-            dict["reasoning_functions"] = File.ReadAllText(Path.Combine(dir, "reasoning_functions.liquid"));
+            dict["reasoning_functions"] = PromptConst.REASONING_FUNCTIONS;
         }
 
         var render = _services.GetRequiredService<ITemplateRender>();
-        router.Instruction = render.Render(template, dict);
+        router.Instruction = render.Render(PromptConst.ROUTER_PROMPT, dict);
 
         return router;
     }
