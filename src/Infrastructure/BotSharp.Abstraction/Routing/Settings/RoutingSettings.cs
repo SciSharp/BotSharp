@@ -7,6 +7,8 @@ public class RoutingSettings
     /// </summary>
     public string RouterId { get; set; } = string.Empty;
 
+    public string RouteName { get; set; } = "Router";
+
     public bool EnableReasoning {  get; set; } = false;
 
     public string Provider {  get; set; } = string.Empty;

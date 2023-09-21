@@ -210,6 +210,7 @@ public class RoutingService : IRoutingService
         var router = new Agent()
         {
             Id = _settings.RouterId,
+            Name = _settings.RouteName
         };
         var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
 

@@ -1,5 +1,8 @@
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.ApiAdapters;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.OpenAPI.ViewModels.Agents;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -9,15 +12,23 @@ namespace BotSharp.OpenAPI.Controllers;
 public class AgentController : ControllerBase, IApiAdapter
 {
     private readonly IAgentService _agentService;
-    public AgentController(IAgentService agentService)
+    private readonly IServiceProvider _services;
+
+    public AgentController(IAgentService agentService, IServiceProvider services)
     {
         _agentService = agentService;
+        _services = services;
     }
 
     [HttpGet("/agents")]
     public async Task<List<AgentViewModel>> GetAgents()
     {
         var agents = await _agentService.GetAgents();
+
+        // Add the router as agent
+        var routing = _services.GetRequiredService<IRoutingService>();
+        agents.Add(routing.LoadRouter());
+
         return agents.Select(x => AgentViewModel.FromAgent(x)).ToList();
     }
 
