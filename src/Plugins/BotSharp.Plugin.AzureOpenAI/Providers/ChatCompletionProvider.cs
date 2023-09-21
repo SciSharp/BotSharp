@@ -237,6 +237,8 @@ public class ChatCompletionProvider : IChatCompletion
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
         chatCompletionsOptions.Temperature = temperature;
         chatCompletionsOptions.NucleusSamplingFactor = samplingFactor;
+        chatCompletionsOptions.FrequencyPenalty = 0;
+        chatCompletionsOptions.PresencePenalty = 0;
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)

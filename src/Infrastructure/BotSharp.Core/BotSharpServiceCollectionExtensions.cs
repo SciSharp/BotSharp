@@ -56,7 +56,6 @@ public static class BotSharpServiceCollectionExtensions
         // Register function callback
         services.AddScoped<IFunctionCallback, RouteToAgentFn>();
 
-        services.AddScoped<Simulator>();
         services.AddScoped<IRoutingService, RoutingService>();
 
         if (myDatabaseSettings.Default == "FileRepository")

@@ -10,14 +10,18 @@ public class RetrievalArgs : RoutingArgs
     [JsonPropertyName("answer")]
     public string Answer { get; set; }
 
-    [JsonPropertyName("reason")]
-    public string Reason { get; set; }
-
     [JsonPropertyName("args")]
-    public JsonDocument Arguments { get; set; }
+    public JsonDocument Arguments { get; set; } = JsonDocument.Parse("{}");
 
     public override string ToString()
     {
-        return $"[{AgentName}, {Reason}]: ({JsonSerializer.Serialize(Arguments)}) {Question}";
+        if (string.IsNullOrEmpty(Answer))
+        {
+            return $"[{AgentName}]: ({JsonSerializer.Serialize(Arguments)}) {Question}";
+        }
+        else
+        {
+            return $"[{AgentName}]: ({JsonSerializer.Serialize(Arguments)}) {Question} => {Answer}";
+        }
     }
 }

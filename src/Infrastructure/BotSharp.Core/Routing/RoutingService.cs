@@ -27,24 +27,24 @@ public class RoutingService : IRoutingService
         _logger = logger;
     }
 
-    public async Task<RoleDialogModel> Enter(Agent agent, List<RoleDialogModel> whileDialogs)
+    public async Task<RoleDialogModel> Enter(Agent router, List<RoleDialogModel> whileDialogs)
     {
         _dialogs = new List<RoleDialogModel>();
         RoleDialogModel result = new RoleDialogModel(AgentRole.Assistant, "not handled");
 
         foreach (var dialog in whileDialogs.TakeLast(20))
         {
-            agent.Instruction += $"\r\n{dialog.Role}: {dialog.Content}";
+            router.Instruction += $"\r\n{dialog.Role}: {dialog.Content}";
         }
 
-        var inst = await GetNextInstructionFromReasoner(agent);
+        var inst = await GetNextInstructionFromReasoner($"What's the next step to make user's original goal?", router);
         int loopCount = 0;
         while (loopCount < 3)
         {
             loopCount++;
             if (inst.Function == "continue_execute_task")
             {
-                var router = _services.GetRequiredService<IAgentRouting>();
+                var routing = _services.GetRequiredService<IAgentRouting>();
                 var db = _services.GetRequiredService<IBotSharpRepository>();
                 var record = db.Agents.First(x => x.Name.ToLower() == inst.Parameters.AgentName.ToLower());
 
@@ -73,7 +73,7 @@ public class RoutingService : IRoutingService
             }
             else if (inst.Function == "interrupt_task_execution")
             {
-                result = new RoleDialogModel(AgentRole.User, inst.Parameters.Reason)
+                result = new RoleDialogModel(AgentRole.User, inst.Reason)
                 {
                     FunctionName = inst.Function
                 };
@@ -98,32 +98,39 @@ public class RoutingService : IRoutingService
                 });
 
                 inst.Parameters.Answer = response.Content;
-                response.Content += $"\r\nDo you want to continue current task?";
-                
-                _dialogs.Add(new RoleDialogModel(AgentRole.Function, $"{record.Name}: {response.Content}")
+
+                _dialogs.Add(new RoleDialogModel(AgentRole.Assistant, inst.Parameters.Question)
                 {
-                    FunctionName = inst.Function,
-                    FunctionArgs = JsonSerializer.Serialize(inst.Parameters.Arguments),
-                    ExecutionResult = response.Content,
                     CurrentAgentId = record.Id
                 });
 
-                agent.Instruction += $"\r\n{record.Name}: {response.Content}";
+                router.Instruction += $"\r\n{AgentRole.Assistant}: {inst.Parameters.Question}";
+
+                _dialogs.Add(new RoleDialogModel(AgentRole.Function, inst.Parameters.Answer)
+                {
+                    FunctionName = inst.Function,
+                    FunctionArgs = JsonSerializer.Serialize(inst.Parameters.Arguments),
+                    ExecutionResult = inst.Parameters.Answer,
+                    ExecutionData = response.ExecutionData,
+                    CurrentAgentId = record.Id
+                });
+
+                router.Instruction += $"\r\n{AgentRole.Function}: {response.Content}";
 
                 // Got the response from agent, then send to reasoner again to make the decision
-                inst = await GetNextInstructionFromReasoner(agent);
+                inst = await GetNextInstructionFromReasoner($"What's the next step based on user's original goal and function result?", router);
             }
         }
 
         return result;
     }
 
-    private async Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(Agent reasoner)
+    private async Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(string prompt, Agent reasoner)
     {
-        var responseFormat = "{\"function\": \"\", \"parameters\": {\"agent_name\": \"\", \"reason\":\"\", \"args\":{}}";
+        var responseFormat = JsonSerializer.Serialize(new FunctionCallFromLlm());
         var wholeDialogs = new List<RoleDialogModel>
         {
-            new RoleDialogModel(AgentRole.System, $"What's the next step? Response in JSON format {responseFormat}.")
+            new RoleDialogModel(AgentRole.User, $"{prompt} Response in JSON format {responseFormat}")
         };
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, 
@@ -143,6 +150,7 @@ public class RoutingService : IRoutingService
         }
 
         args.Function = args.Function.Split('.').Last();
+        args.Parameters.AgentName = args.Parameters.AgentName.Split(':').Last().Trim();
 
         _logger.LogInformation($"*** Next Instruction *** {args}");
 
@@ -218,7 +226,8 @@ public class RoutingService : IRoutingService
 
         var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Routing", "Prompts");
         var template = File.ReadAllText(Path.Combine(dir, "router_prompt.liquid"));
-        
+
+        dict["enable_reasoning"] = _settings.EnableReasoning;
         if (_settings.EnableReasoning)
         {
             dict["reasoning_functions"] = File.ReadAllText(Path.Combine(dir, "reasoning_functions.liquid"));

@@ -1,7 +1,7 @@
 [  
 	{
-		"name": "get_delivery_time",
-		"description": "get order delivery remaining time",
+		"name": "get_order_status",
+		"description": "get order status like delivery remaining time",
         "parameters": {
             "type": "object",
             "properties": {
