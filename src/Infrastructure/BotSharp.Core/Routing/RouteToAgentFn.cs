@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
+using System.Drawing;
 
 namespace BotSharp.Core.Routing;
 
@@ -115,6 +116,12 @@ public class RouteToAgentFn : IFunctionCallback
                 // Add redirected agent
                 message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", record.Name);
                 agentId = routingRule.RedirectTo;
+                var logger = _services.GetRequiredService<ILogger<RouteToAgentFn>>();
+#if DEBUG
+                Console.WriteLine($"*** Routing redirect to {record.Name.ToUpper()} ***", Color.Yellow);
+#else
+                logger.LogInformation($"*** Routing redirect to {record.Name.ToUpper()} ***");
+#endif
             }
             else
             {

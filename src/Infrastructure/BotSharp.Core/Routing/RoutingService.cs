@@ -1,12 +1,10 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
-using System.IO;
+using System.Runtime.InteropServices;
 
 namespace BotSharp.Core.Routing;
 
@@ -27,196 +25,56 @@ public class RoutingService : IRoutingService
         _logger = logger;
     }
 
-    public async Task<RoleDialogModel> Enter(Agent router, List<RoleDialogModel> whileDialogs)
+    public async Task<RoleDialogModel> Enter(Agent router, List<RoleDialogModel> wholeDialogs)
     {
         _dialogs = new List<RoleDialogModel>();
-        RoleDialogModel result = new RoleDialogModel(AgentRole.Assistant, "not handled");
+        var result = new RoleDialogModel(AgentRole.Assistant, "Can you repeat your request again?")
+        {
+            CurrentAgentId = router.Id
+        };
 
-        foreach (var dialog in whileDialogs.TakeLast(20))
+        var message = wholeDialogs.Last().Content;
+        foreach (var dialog in wholeDialogs.TakeLast(20))
         {
             router.Instruction += $"\r\n{dialog.Role}: {dialog.Content}";
         }
 
-        var inst = await GetNextInstructionFromReasoner($"What's the next step to make user's original goal?", router);
+        var handlers = _services.GetServices<IRoutingHandler>();
+
+        var handler = handlers.FirstOrDefault(x => x.Name == "get_next_instruction");
+        handler.SetRouter(router);
+        handler.SetDialogs(wholeDialogs);
+
         int loopCount = 0;
-        while (loopCount < 3)
+        while (!result.StopCompletion && loopCount < 5)
         {
             loopCount++;
-            if (inst.Function == "continue_execute_task")
+
+            var inst = await handler.GetNextInstructionFromReasoner($"What's the next step to achieve user's goal?");
+            inst.Question = inst.Question ?? message;
+
+            handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
+            if (handler == null)
             {
-                var routing = _services.GetRequiredService<IAgentRouting>();
-                var db = _services.GetRequiredService<IBotSharpRepository>();
-                var record = db.Agents.First(x => x.Name.ToLower() == inst.Parameters.AgentName.ToLower());
-
-                result = new RoleDialogModel(AgentRole.Function, inst.Parameters.Question)
-                {
-                    FunctionName = inst.Function,
-                    FunctionArgs = JsonSerializer.Serialize(inst.Parameters.Arguments),
-                    CurrentAgentId = record.Id,
-                };
-                break;
+                handler = handlers.FirstOrDefault(x => x.Name == "get_next_instruction");
+                router.Instruction += $"\r\n{AgentRole.System}: the function must be one of [{string.Join(",", GetHandlers().Select(x => x.Name))}].";
+                continue;
             }
-            // Compatible with previous Router, can be removed in the future.
-            else if (inst.Function == "route_to_agent")
-            {
-                // If the agent name is empty, fallback to router
-                if (string.IsNullOrEmpty(inst.Parameters.AgentName))
-                {
-                    result = new RoleDialogModel(AgentRole.Function, inst.Reason)
-                    {
-                        FunctionName = inst.Function,
-                        FunctionArgs = JsonSerializer.Serialize(new RoutingArgs
-                        {
-                            AgentName = inst.Parameters.AgentName
-                        }),
-                        CurrentAgentId = router.Id
-                    };
-                    break;
-                }
+            handler.SetRouter(router);
+            handler.SetDialogs(wholeDialogs);
 
-                var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
-                result = new RoleDialogModel(AgentRole.Function, inst.Reason)
-                {
-                    FunctionName = inst.Function,
-                    FunctionArgs = JsonSerializer.Serialize(new RoutingArgs
-                    {
-                        AgentName = inst.Parameters.AgentName
-                    }),
-                };
-                var ret = await function.Execute(result);
-                break;
-            }
-            else if (inst.Function == "interrupt_task_execution")
-            {
-                result = new RoleDialogModel(AgentRole.User, inst.Reason)
-                {
-                    FunctionName = inst.Function
-                };
-                break;
-            }
-            else if (inst.Function == "response_to_user")
-            {
-                result = new RoleDialogModel(AgentRole.User, inst.Parameters.Answer)
-                {
-                    FunctionName = inst.Function
-                };
-                break;
-            }
-            else if (inst.Function == "retrieve_data_from_agent")
-            {
-                // Retrieve information from specific agent
-                var db = _services.GetRequiredService<IBotSharpRepository>();
-                var record = db.Agents.First(x => x.Name.ToLower() == inst.Parameters.AgentName.ToLower());
-                var response = await RetrieveDataFromAgent(record.Id, new List<RoleDialogModel>
-                {
-                    new RoleDialogModel(AgentRole.User, inst.Parameters.Question)
-                });
+            result = await handler.Handle(inst);
 
-                inst.Parameters.Answer = response.Content;
+            message = result.Content.Replace("\r\n", " ");
+            router.Instruction += $"\r\n{result.Role}: {message}";
 
-                _dialogs.Add(new RoleDialogModel(AgentRole.Assistant, inst.Parameters.Question)
-                {
-                    CurrentAgentId = record.Id
-                });
-
-                router.Instruction += $"\r\n{AgentRole.Assistant}: {inst.Parameters.Question}";
-
-                _dialogs.Add(new RoleDialogModel(AgentRole.Function, inst.Parameters.Answer)
-                {
-                    FunctionName = inst.Function,
-                    FunctionArgs = JsonSerializer.Serialize(inst.Parameters.Arguments),
-                    ExecutionResult = inst.Parameters.Answer,
-                    ExecutionData = response.ExecutionData,
-                    CurrentAgentId = record.Id
-                });
-
-                router.Instruction += $"\r\n{AgentRole.Function}: {response.Content}";
-
-                // Got the response from agent, then send to reasoner again to make the decision
-                inst = await GetNextInstructionFromReasoner($"What's the next step based on user's original goal and function result?", router);
-            }
+            result.StopCompletion = !_settings.EnableReasoning;
         }
 
         return result;
     }
 
-    private async Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(string prompt, Agent reasoner)
-    {
-        var responseFormat = JsonSerializer.Serialize(new FunctionCallFromLlm());
-        var wholeDialogs = new List<RoleDialogModel>
-        {
-            new RoleDialogModel(AgentRole.User, $"{prompt} Response in JSON format {responseFormat}")
-        };
 
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services, 
-            provider: _settings.Provider, 
-            model: _settings.Model);
-
-        RoleDialogModel response = null;
-        await chatCompletion.GetChatCompletionsAsync(reasoner, wholeDialogs, async msg
-            => response = msg, fn
-            => Task.CompletedTask);
-
-        var args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
-
-        if (args.Parameters.Arguments != null)
-        {
-            SaveStateByArgs(args.Parameters.Arguments);
-        }
-
-        args.Function = args.Function.Split('.').Last();
-        args.Parameters.AgentName = args.Parameters.AgentName.Split(':').Last().Trim();
-
-        _logger.LogInformation($"*** Next Instruction *** {args}");
-
-        return args;
-    }
-
-    private async Task<RoleDialogModel> RetrieveDataFromAgent(string agentId, List<RoleDialogModel> wholeDialogs)
-    {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(agentId);
-
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services);
-
-        RoleDialogModel response = null;
-        await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg
-            => response = msg, async fn
-            =>
-            {
-                // execute function
-                // Save states
-                SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(fn.FunctionArgs));
-
-                var conversationService = _services.GetRequiredService<IConversationService>();
-                // Call functions
-                await conversationService.CallFunctions(fn);
-
-                response = fn;
-                response.Content = fn.ExecutionResult;
-            });
-        return response;
-    }
-
-    private void SaveStateByArgs(JsonDocument args)
-    {
-        if (args == null)
-        {
-            return;
-        }
-
-        var stateService = _services.GetRequiredService<IConversationStateService>();
-        if (args.RootElement is JsonElement root)
-        {
-            foreach (JsonProperty property in root.EnumerateObject())
-            {
-                if (!string.IsNullOrEmpty(property.Value.ToString()))
-                {
-                    stateService.SetState(property.Name, property.Value);
-                }
-            }
-        }
-    }
 
     public Agent LoadRouter()
     {
@@ -241,15 +99,24 @@ public class RoutingService : IRoutingService
                 .ToArray()
         }).ToArray();
 
-        dict["enable_reasoning"] = _settings.EnableReasoning;
-        if (_settings.EnableReasoning)
-        {
-            dict["reasoning_functions"] = PromptConst.REASONING_FUNCTIONS;
-        }
+        dict["routing_handlers"] = GetHandlers();
 
         var render = _services.GetRequiredService<ITemplateRender>();
         router.Instruction = render.Render(PromptConst.ROUTER_PROMPT, dict);
 
         return router;
+    }
+
+    private List<RoutingHandlerDef> GetHandlers()
+    {
+        return _services.GetServices<IRoutingHandler>()
+            .Where(x => x.IsReasoning == _settings.EnableReasoning)
+            .Where(x => !string.IsNullOrEmpty(x.Description))
+            .Select(x => new RoutingHandlerDef
+            {
+                Name = x.Name,
+                Description = x.Description,
+                Parameters = x.Parameters
+            }).ToList();
     }
 }

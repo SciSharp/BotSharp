@@ -27,7 +27,7 @@ public partial class ConversationService
                 text = latestResponse.Content.Split("=>").Last();
             }
 
-            await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, text)
+            await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id
             }, onMessageReceived);
@@ -37,7 +37,7 @@ public partial class ConversationService
 
         var result = await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs, async msg =>
         {
-            await HandleAssistantMessage(agent, msg, onMessageReceived);
+            await HandleAssistantMessage(msg, onMessageReceived);
         }, async fn =>
         {
             var preAgentId = agent.Id;
@@ -47,7 +47,7 @@ public partial class ConversationService
             // Function executed has exception
             if (fn.ExecutionResult == null)
             {
-                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, fn.Content)
+                await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
                     CurrentAgentId = fn.CurrentAgentId
                 }, onMessageReceived);
@@ -56,7 +56,7 @@ public partial class ConversationService
             }
             else if (fn.StopCompletion)
             {
-                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, fn.Content)
+                await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, fn.Content)
                 {
                     CurrentAgentId = fn.CurrentAgentId,
                     ExecutionData = fn.ExecutionData,
@@ -95,7 +95,7 @@ public partial class ConversationService
                 var response = await templateService.RenderFunctionResponse(agent.Id, fn);
                 if (!string.IsNullOrEmpty(response))
                 {
-                    await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, response)
+                    await HandleAssistantMessage(new RoleDialogModel(AgentRole.Assistant, response)
                     {
                         CurrentAgentId = agent.Id
                     }, onMessageReceived);
@@ -124,7 +124,7 @@ public partial class ConversationService
         return result;
     }
 
-    private async Task HandleAssistantMessage(Agent agent, RoleDialogModel message, Func<RoleDialogModel, Task> onMessageReceived)
+    private async Task HandleAssistantMessage(RoleDialogModel message, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
@@ -134,7 +134,9 @@ public partial class ConversationService
             await hook.AfterCompletion(message);
         }
 
-        _logger.LogInformation($"[{agent.Name}] {message.Role}: {message.Content}");
+        var agent = await _services.GetRequiredService<IAgentService>().GetAgent(message.CurrentAgentId);
+
+        _logger.LogInformation($"[{agent?.Name ?? "Router"}] {message.Role}: {message.Content}");
 
         await onMessageReceived(message);
 
