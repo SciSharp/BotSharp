@@ -18,6 +18,7 @@ public class TemplateRender : ITemplateRender
         _options = new TemplateOptions();
         _options.MemberAccessStrategy.MemberNameStrategy = MemberNameStrategies.SnakeCase;
         _options.MemberAccessStrategy.Register<RoutingItem>();
+        _options.MemberAccessStrategy.Register<RoutingHandlerDef>();
     }
 
     public string Render(string template, Dictionary<string, object> dict)

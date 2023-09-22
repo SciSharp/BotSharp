@@ -1,0 +1,69 @@
+using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Settings;
+
+namespace BotSharp.Core.Routing.Handlers;
+
+public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
+{
+    public string Name => "retrieve_data_from_agent";
+
+    public string Description => "Retrieve data from appropriate agent.";
+
+    public List<string> Parameters => new List<string>
+    {
+        "1. agent_name: the name of the agent",
+        "2. question: the question you will ask the agent to get the necessary data",
+        "3. reason: why retrieve data",
+        "4. args: required parameters extracted from question and hand over to the next agent. The args should be in JSON format"
+    };
+
+    public bool IsReasoning => true;
+
+    public RetrieveDataFromAgentRoutingHandler(IServiceProvider services, ILogger<RetrieveDataFromAgentRoutingHandler> logger, RoutingSettings settings) 
+        : base(services, logger, settings)
+    {
+    }
+
+    public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
+    {
+        if (string.IsNullOrEmpty(inst.Route.AgentName))
+        {
+            inst = await GetNextInstructionFromReasoner($"What's the next step? your response must have agent name.");
+        }
+
+        // Retrieve information from specific agent
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.Agents.First(x => x.Name.ToLower() == inst.Route.AgentName.ToLower());
+        var response = await InvokeAgent(record.Id, new List<RoleDialogModel>
+                {
+                    new RoleDialogModel(AgentRole.User, inst.Question)
+                });
+
+        inst.Answer = response.Content;
+
+        /*_dialogs.Add(new RoleDialogModel(AgentRole.Assistant, inst.Parameters.Question)
+        {
+            CurrentAgentId = record.Id
+        });*/
+
+        _router.Instruction += $"\r\n{AgentRole.Assistant}: {inst.Question}";
+
+        /*_dialogs.Add(new RoleDialogModel(AgentRole.Function, inst.Parameters.Answer)
+        {
+            FunctionName = inst.Function,
+            FunctionArgs = JsonSerializer.Serialize(inst.Parameters.Arguments),
+            ExecutionResult = inst.Parameters.Answer,
+            ExecutionData = response.ExecutionData,
+            CurrentAgentId = record.Id
+        });*/
+
+        _router.Instruction += $"\r\n{AgentRole.Function}: {response.Content}";
+
+        // Got the response from agent, then send to reasoner again to make the decision
+        inst = await GetNextInstructionFromReasoner($"What's the next step based on user's original goal and function result?");
+
+        return null;
+    }
+}

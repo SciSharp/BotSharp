@@ -9,6 +9,7 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Routing.Handlers;
 
 namespace BotSharp.Core;
 
@@ -56,7 +57,17 @@ public static class BotSharpServiceCollectionExtensions
         // Register function callback
         services.AddScoped<IFunctionCallback, RouteToAgentFn>();
 
+        // Register routing and handlers
         services.AddScoped<IRoutingService, RoutingService>();
+        services.AddScoped<IRoutingHandler, GetNextInstructionRoutingHandler>();
+        services.AddScoped<IRoutingHandler, ResponseToUserRoutingHandler>();
+        services.AddScoped<IRoutingHandler, InterruptTaskExecutionRoutingHandler>();
+        services.AddScoped<IRoutingHandler, RouteToAgentRoutingHandler>();
+        services.AddScoped<IRoutingHandler, ContinueExecuteTaskRoutingHandler>();
+        services.AddScoped<IRoutingHandler, RetrieveDataFromAgentRoutingHandler>();
+        services.AddScoped<IRoutingHandler, TaskEndRoutingHandler>();
+        services.AddScoped<IRoutingHandler, ConversationEndRoutingHandler>();
+        services.AddScoped<IRoutingHandler, TransferToCsrRoutingHandler>();
 
         if (myDatabaseSettings.Default == "FileRepository")
         {

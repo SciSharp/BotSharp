@@ -70,6 +70,8 @@ public class ConversationController : ControllerBase, IApiAdapter
             });
 
         response.Text = string.Join("\r\n", stackMsg.Select(x => x.Content));
+        response.Data = response.Data ?? stackMsg.Last().ExecutionData;
+
         return response;
     }
 }

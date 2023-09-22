@@ -57,40 +57,19 @@ public partial class ConversationService
             var routing = _services.GetRequiredService<IRoutingService>();
             var reasonedContext = await routing.Enter(agent, wholeDialogs);
 
-            if (reasonedContext.FunctionName == "interrupt_task_execution")
+            if (reasonedContext.StopCompletion)
             {
-                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
-                {
-                    CurrentAgentId = agent.Id
-                }, onMessageReceived);
-
+                await HandleAssistantMessage(reasonedContext, onMessageReceived);
                 return true;
             }
-            else if (reasonedContext.FunctionName == "response_to_user")
-            {
-                await HandleAssistantMessage(agent, new RoleDialogModel(AgentRole.Assistant, reasonedContext.Content)
-                {
-                    CurrentAgentId = agent.Id
-                }, onMessageReceived);
 
-                return true;
-            }
-            else if (reasonedContext.FunctionName == "continue_execute_task")
+            // Switch agent
+            if (reasonedContext.CurrentAgentId != agent.Id)
             {
-                if (reasonedContext.CurrentAgentId != agent.Id)
-                {
-                    agent = await agentService.LoadAgent(reasonedContext.CurrentAgentId);
-                }
-            }
-            else if (reasonedContext.FunctionName == "route_to_agent")
-            {
-                if (reasonedContext.CurrentAgentId != agent.Id)
-                {
-                    agent = await agentService.LoadAgent(reasonedContext.CurrentAgentId);
-                }
+                agent = await agentService.LoadAgent(reasonedContext.CurrentAgentId);
             }
 
-            routing.Dialogs.ForEach(x => 
+            routing.Dialogs.ForEach(x =>
             {
                 wholeDialogs.Add(x);
                 if (x.Content != null)
