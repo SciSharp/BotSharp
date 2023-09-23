@@ -36,7 +36,8 @@ public class ConversationStorage : IConversationStorage
 
             sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.FunctionName}|{args}");
 
-            var content = dialog.ExecutionResult.Replace("\r", " ").Replace("\n", " ").Trim();
+            var content = dialog.ExecutionResult ?? dialog.Content;
+            content = content.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
             {
                 return;

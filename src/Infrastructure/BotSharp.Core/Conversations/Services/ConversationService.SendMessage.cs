@@ -51,41 +51,18 @@ public partial class ConversationService
         }
 
         // Routing with reasoning
+        var routing = _services.GetRequiredService<IRoutingService>();
         var settings = _services.GetRequiredService<RoutingSettings>();
-        if (settings.RouterId == agent.Id)
-        {
-            var routing = _services.GetRequiredService<IRoutingService>();
-            var reasonedContext = await routing.Enter(agent, wholeDialogs);
 
-            if (reasonedContext.StopCompletion)
-            {
-                await HandleAssistantMessage(reasonedContext, onMessageReceived);
-                return true;
-            }
+        routing.SetDialogs(wholeDialogs);
 
-            // Switch agent
-            if (reasonedContext.CurrentAgentId != agent.Id)
-            {
-                agent = await agentService.LoadAgent(reasonedContext.CurrentAgentId);
-            }
+        var response = settings.RouterId == agent.Id ?
+            await routing.InstructLoop(agent) :
+            await routing.ExecuteOnce(agent);
 
-            routing.Dialogs.ForEach(x =>
-            {
-                wholeDialogs.Add(x);
-                if (x.Content != null)
-                {
-                    _storage.Append(_conversationId, x);
-                }
-            });
-        }
+        await HandleAssistantMessage(response, onMessageReceived);
 
-        var result = await GetChatCompletionsAsyncRecursively(agent,
-            wholeDialogs,
-            onMessageReceived,
-            onFunctionExecuting,
-            onFunctionExecuted);
-
-        return result;
+        return true;
     }
 
     private async Task<Conversation> GetConversationRecord(string agentId)
@@ -106,19 +83,23 @@ public partial class ConversationService
         return converation;
     }
 
-    private void SaveStateByArgs(string args)
+    private async Task HandleAssistantMessage(RoleDialogModel message, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var stateService = _services.GetRequiredService<IConversationStateService>();
-        var jo = JsonSerializer.Deserialize<object>(args);
-        if (jo is JsonElement root)
+        var hooks = _services.GetServices<IConversationHook>().ToList();
+
+        // After chat completion hook
+        foreach (var hook in hooks)
         {
-            foreach (JsonProperty property in root.EnumerateObject())
-            {
-                if (!string.IsNullOrEmpty(property.Value.ToString()))
-                {
-                    stateService.SetState(property.Name, property.Value);
-                }
-            }
+            await hook.AfterCompletion(message);
         }
+
+        var agent = await _services.GetRequiredService<IAgentService>().GetAgent(message.CurrentAgentId);
+
+        _logger.LogInformation($"[{agent?.Name ?? "Router"}] {message.Role}: {message.Content}");
+
+        await onMessageReceived(message);
+
+        // Add to dialog history
+        _storage.Append(_conversationId, message);
     }
 }

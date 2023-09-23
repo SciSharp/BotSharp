@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -237,8 +238,8 @@ public class ChatCompletionProvider : IChatCompletion
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
         chatCompletionsOptions.Temperature = temperature;
         chatCompletionsOptions.NucleusSamplingFactor = samplingFactor;
-        chatCompletionsOptions.FrequencyPenalty = 0;
-        chatCompletionsOptions.PresencePenalty = 0;
+        // chatCompletionsOptions.FrequencyPenalty = 0;
+        // chatCompletionsOptions.PresencePenalty = 0;
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)
@@ -249,6 +250,7 @@ public class ChatCompletionProvider : IChatCompletion
                     $"{x.Role}: {x.Name} {x.Content}" :
                     $"{x.Role}: {x.Content}";
             }));
+
             _logger.LogInformation(verbose);
         }
 

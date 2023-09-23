@@ -12,8 +12,8 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<string> Parameters => new List<string>
     {
-        "1. answer: the content of response",
-        "2. reason: why response to user"
+        "answer: the content of response",
+        "reason: why response to user"
     };
 
     public bool IsReasoning => false;
@@ -25,8 +25,9 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
     {
-        var result = new RoleDialogModel(AgentRole.User, inst.Answer)
+        var result = new RoleDialogModel(AgentRole.Assistant, inst.Answer)
         {
+            CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
             StopCompletion = true
         };

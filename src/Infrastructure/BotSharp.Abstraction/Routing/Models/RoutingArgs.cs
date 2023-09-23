@@ -2,9 +2,6 @@ namespace BotSharp.Abstraction.Routing.Models;
 
 public class RoutingArgs
 {
-    [JsonPropertyName("user_goal")]
-    public string UserGoal { get; set; } = string.Empty;
-
     [JsonPropertyName("reason")]
     public string Reason { get; set; } = string.Empty;
 

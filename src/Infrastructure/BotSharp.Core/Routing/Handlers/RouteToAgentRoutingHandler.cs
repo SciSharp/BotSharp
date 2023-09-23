@@ -14,11 +14,9 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<string> Parameters => new List<string>
     {
-        "1. agent_name: the name of the agent",
-        "2. reason: why route to this agent",
-        "3. args: parameters extracted from context",
-        "4. answer: if you know how to response without asking to other agent",
-        "5. goal: user's original goal"
+        "agent_name: the name of the agent from AGENTS",
+        "reason: why route to this agent",
+        "args: parameters extracted from context"
     };
 
     public bool IsReasoning => false;
@@ -47,14 +45,8 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         var ret = await function.Execute(message);
 
-        var result = await InvokeAgent(message.CurrentAgentId, _dialogs);
+        var result = await InvokeAgent(message.CurrentAgentId);
         result.ExecutionData = result.ExecutionData ?? message.ExecutionData;
-
-        if (result.Role == AgentRole.Function && !result.StopCompletion)
-        {
-            _dialogs.Add(result);
-            result = await InvokeAgent(message.CurrentAgentId, _dialogs);
-        }
         
         return result;
     }

@@ -15,7 +15,7 @@ public class FunctionCallFromLlm
     public string? Question { get; set; }
 
     [JsonPropertyName("answer")]
-    public string? Answer { get; set; }
+    public string Answer { get; set; } = string.Empty;
 
     [JsonPropertyName("args")]
     public JsonDocument Arguments { get; set; } = JsonDocument.Parse("{}");

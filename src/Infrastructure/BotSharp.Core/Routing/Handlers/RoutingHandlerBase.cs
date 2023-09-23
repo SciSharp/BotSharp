@@ -1,8 +1,9 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Templating;
 using System.Drawing;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Routing.Handlers;
 
@@ -37,7 +38,7 @@ public abstract class RoutingHandlerBase
     public async Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(string prompt)
     {
         var responseFormat = JsonSerializer.Serialize(new FunctionCallFromLlm());
-        var content = $"{prompt} Response must be in JSON format {responseFormat}.";
+        var content = $"{prompt} Response must be in JSON format {responseFormat}";
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services,
             provider: _settings.Provider,
@@ -51,10 +52,16 @@ public abstract class RoutingHandlerBase
             => response = msg, fn
             => Task.CompletedTask);
 
-        FunctionCallFromLlm args = new FunctionCallFromLlm();
+        var args = new FunctionCallFromLlm();
         try
         {
+#if DEBUG
+            Console.WriteLine(response.Content, Color.Gray);
+#else
             _logger.LogInformation(response.Content);
+#endif
+            var pattern = @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}";
+            response.Content = Regex.Match(response.Content, pattern).Value;
             args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
         }
         catch (Exception ex)
@@ -62,7 +69,7 @@ public abstract class RoutingHandlerBase
             _logger.LogError($"{ex.Message}: {response.Content}");
             args.Function = "response_to_user";
             args.Answer = ex.Message;
-            args.Route.AgentName = "";
+            args.Route.AgentName = _settings.RouterName;
         }
 
         if (args.Arguments != null)
@@ -100,15 +107,23 @@ public abstract class RoutingHandlerBase
         return response;
     }
 
-    protected async Task<RoleDialogModel> InvokeAgent(string agentId, List<RoleDialogModel> wholeDialogs)
+    const int MAXIMUM_RECURSION_DEPTH = 2;
+    int CurrentRecursionDepth = 0;
+    protected async Task<RoleDialogModel> InvokeAgent(string agentId)
     {
+        CurrentRecursionDepth++;
+        if (CurrentRecursionDepth > MAXIMUM_RECURSION_DEPTH)
+        {
+            return _dialogs.Last();
+        }
+
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services);
 
         RoleDialogModel response = null;
-        await chatCompletion.GetChatCompletionsAsync(agent, wholeDialogs,
+        await chatCompletion.GetChatCompletionsAsync(agent, _dialogs,
             async msg =>
             {
                 response = msg;
@@ -122,11 +137,33 @@ public abstract class RoutingHandlerBase
                 // Call functions
                 await conversationService.CallFunctions(fn);
 
-                response = fn;
-
-                if (string.IsNullOrEmpty(response.Content))
+                if (string.IsNullOrEmpty(fn.Content))
                 {
-                    response.Content = fn.ExecutionResult;
+                    fn.Content = fn.ExecutionResult;
+                }
+
+                _dialogs.Add(fn);
+
+                if (!fn.StopCompletion)
+                {
+                    // Find response template
+                    var templateService = _services.GetRequiredService<IResponseTemplateService>();
+                    var quickResponse = await templateService.RenderFunctionResponse(agent.Id, fn);
+                    if (!string.IsNullOrEmpty(quickResponse))
+                    {
+                        response = new RoleDialogModel(AgentRole.Assistant, quickResponse)
+                        {
+                            CurrentAgentId = agent.Id
+                        };
+                    }
+                    else
+                    {
+                        response = await InvokeAgent(fn.CurrentAgentId);
+                    }
+                }
+                else
+                {
+                    response = fn;
                 }
             });
 

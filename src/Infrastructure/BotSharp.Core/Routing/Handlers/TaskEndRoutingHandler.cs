@@ -12,7 +12,7 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<string> Parameters => new List<string>
     {
-        "1. abandoned_arguments: the arguments next task can't reuse"
+        "abandoned_arguments: the arguments next task can't reuse"
     };
 
     public bool IsReasoning => true;

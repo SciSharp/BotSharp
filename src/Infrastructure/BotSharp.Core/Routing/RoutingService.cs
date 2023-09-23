@@ -1,10 +1,10 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
-using System.Runtime.InteropServices;
 
 namespace BotSharp.Core.Routing;
 
@@ -25,16 +25,42 @@ public class RoutingService : IRoutingService
         _logger = logger;
     }
 
-    public async Task<RoleDialogModel> Enter(Agent router, List<RoleDialogModel> wholeDialogs)
+    public void SetDialogs(List<RoleDialogModel> dialogs)
     {
-        _dialogs = new List<RoleDialogModel>();
+        _dialogs = dialogs;
+    }
+
+    public async Task<RoleDialogModel> ExecuteOnce(Agent agent)
+    {
+        var message = _dialogs.Last().Content;
+
+        var handlers = _services.GetServices<IRoutingHandler>();
+
+        var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
+        handler.SetDialogs(_dialogs);
+        var result = await handler.Handle(new FunctionCallFromLlm
+        {
+           Function = "route_to_agent",
+           Question = message,
+           Route = new RoutingArgs
+           {
+               Reason = message,
+               AgentName = agent.Name,
+           }
+        });
+
+        return result;
+    }
+
+    public async Task<RoleDialogModel> InstructLoop(Agent router)
+    {
         var result = new RoleDialogModel(AgentRole.Assistant, "Can you repeat your request again?")
         {
             CurrentAgentId = router.Id
         };
 
-        var message = wholeDialogs.Last().Content;
-        foreach (var dialog in wholeDialogs.TakeLast(20))
+        var message = _dialogs.Last().Content;
+        foreach (var dialog in _dialogs.TakeLast(20))
         {
             router.Instruction += $"\r\n{dialog.Role}: {dialog.Content}";
         }
@@ -43,38 +69,37 @@ public class RoutingService : IRoutingService
 
         var handler = handlers.FirstOrDefault(x => x.Name == "get_next_instruction");
         handler.SetRouter(router);
-        handler.SetDialogs(wholeDialogs);
+        handler.SetDialogs(_dialogs);
 
         int loopCount = 0;
-        while (!result.StopCompletion && loopCount < 5)
+        var stop = false;
+        while (!stop && loopCount < 5)
         {
             loopCount++;
 
-            var inst = await handler.GetNextInstructionFromReasoner($"What's the next step to achieve user's goal?");
+            var inst = await handler.GetNextInstructionFromReasoner($"You are the Router, tell me the next step?");
             inst.Question = inst.Question ?? message;
 
             handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
             if (handler == null)
             {
                 handler = handlers.FirstOrDefault(x => x.Name == "get_next_instruction");
-                router.Instruction += $"\r\n{AgentRole.System}: the function must be one of [{string.Join(",", GetHandlers().Select(x => x.Name))}].";
+                router.Instruction += $"\r\n{AgentRole.System}: the function must be one of {string.Join(",", GetHandlers().Select(x => x.Name))}.";
                 continue;
             }
             handler.SetRouter(router);
-            handler.SetDialogs(wholeDialogs);
+            handler.SetDialogs(_dialogs);
 
             result = await handler.Handle(inst);
 
             message = result.Content.Replace("\r\n", " ");
             router.Instruction += $"\r\n{result.Role}: {message}";
 
-            result.StopCompletion = !_settings.EnableReasoning;
+            stop = !_settings.EnableReasoning;
         }
 
         return result;
     }
-
-
 
     public Agent LoadRouter()
     {

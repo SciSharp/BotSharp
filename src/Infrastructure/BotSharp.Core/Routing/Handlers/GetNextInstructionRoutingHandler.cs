@@ -21,6 +21,6 @@ public class GetNextInstructionRoutingHandler : RoutingHandlerBase, IRoutingHand
 
     public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
     {
-        return null;
+        throw new NotImplementedException();
     }
 }

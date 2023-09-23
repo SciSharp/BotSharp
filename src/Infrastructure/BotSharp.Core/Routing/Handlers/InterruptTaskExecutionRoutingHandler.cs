@@ -12,8 +12,8 @@ public class InterruptTaskExecutionRoutingHandler : RoutingHandlerBase, IRouting
 
     public List<string> Parameters => new List<string>
     {
-        "1. reason: the reason why the request is interrupted",
-        "2. answer: the content response to user"
+        "reason: the reason why the request is interrupted",
+        "answer: the content response to user"
     };
 
     public bool IsReasoning => true;
