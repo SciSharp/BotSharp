@@ -13,9 +13,9 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
     public List<string> Parameters => new List<string>
     {
-        "1. agent_name: the name of the agent",
-        "2. args: required parameters extracted from question",
-        "3. reason: why continue to execute current task"
+        "agent_name: the name of the agent",
+        "args: required parameters extracted from question",
+        "reason: why continue to execute current task"
     };
 
     public bool IsReasoning => true;

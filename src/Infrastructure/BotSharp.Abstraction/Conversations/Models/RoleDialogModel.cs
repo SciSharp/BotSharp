@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-
 namespace BotSharp.Abstraction.Conversations.Models;
 
 public class RoleDialogModel

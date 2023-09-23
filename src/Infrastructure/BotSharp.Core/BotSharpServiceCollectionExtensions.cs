@@ -67,7 +67,6 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IRoutingHandler, RetrieveDataFromAgentRoutingHandler>();
         services.AddScoped<IRoutingHandler, TaskEndRoutingHandler>();
         services.AddScoped<IRoutingHandler, ConversationEndRoutingHandler>();
-        services.AddScoped<IRoutingHandler, TransferToCsrRoutingHandler>();
 
         if (myDatabaseSettings.Default == "FileRepository")
         {

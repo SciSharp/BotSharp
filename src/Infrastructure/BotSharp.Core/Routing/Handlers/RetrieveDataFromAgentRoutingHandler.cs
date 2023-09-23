@@ -13,10 +13,10 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public List<string> Parameters => new List<string>
     {
-        "1. agent_name: the name of the agent",
-        "2. question: the question you will ask the agent to get the necessary data",
-        "3. reason: why retrieve data",
-        "4. args: required parameters extracted from question and hand over to the next agent. The args should be in JSON format"
+        "agent_name: the name of the agent",
+        "question: the question you will ask the agent to get the necessary data",
+        "reason: why retrieve data",
+        "args: required parameters extracted from question and hand over to the next agent"
     };
 
     public bool IsReasoning => true;
@@ -36,10 +36,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
         // Retrieve information from specific agent
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.Agents.First(x => x.Name.ToLower() == inst.Route.AgentName.ToLower());
-        var response = await InvokeAgent(record.Id, new List<RoleDialogModel>
-                {
-                    new RoleDialogModel(AgentRole.User, inst.Question)
-                });
+        var response = await InvokeAgent(record.Id);
 
         inst.Answer = response.Content;
 
