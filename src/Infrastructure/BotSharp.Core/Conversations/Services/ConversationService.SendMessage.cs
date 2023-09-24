@@ -63,6 +63,9 @@ public partial class ConversationService
 
         await HandleAssistantMessage(response, onMessageReceived);
 
+        var statistics = _services.GetRequiredService<ITokenStatistics>();
+        statistics.PrintStatistics();
+
         return true;
     }
 

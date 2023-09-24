@@ -5,7 +5,7 @@ public class RoutingArgs
     [JsonPropertyName("reason")]
     public string Reason { get; set; } = string.Empty;
 
-    [JsonPropertyName("agent_name")]
+    [JsonPropertyName("agent")]
     public string AgentName { get; set; } = string.Empty;
 
     public override string ToString()

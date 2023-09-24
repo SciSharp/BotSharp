@@ -14,7 +14,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
-        new NameDesc("agent_name", "the name of the agent"),
+        new NameDesc("agent", "the name of the agent"),
         new NameDesc("question", "the question you will ask the agent to get the necessary data"),
         new NameDesc("reason", "why retrieve data"),
         new NameDesc("args", "required parameters extracted from question and hand over to the next agent")

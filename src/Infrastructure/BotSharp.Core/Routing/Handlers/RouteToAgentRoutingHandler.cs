@@ -15,7 +15,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
-        new NameDesc("agent_name", "the name of the agent from AGENTS"),
+        new NameDesc("agent", "the name of the agent from AGENTS"),
         new NameDesc("reason", "why route to this agent"),
         new NameDesc("args", "parameters extracted from context")
     };

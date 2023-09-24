@@ -61,6 +61,7 @@ public static class BotSharpServiceCollectionExtensions
         }
 
         services.AddScoped<IInstructService, InstructService>();
+        services.AddScoped<ITokenStatistics, TokenStatistics>();
 
         return services;
     }

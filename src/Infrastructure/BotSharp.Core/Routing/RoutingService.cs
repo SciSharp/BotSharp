@@ -4,7 +4,6 @@ using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
-using BotSharp.Abstraction.Templating;
 namespace BotSharp.Core.Routing;
 
 public class RoutingService : IRoutingService
@@ -116,7 +115,8 @@ public class RoutingService : IRoutingService
         var prompt = @"You're a Router with reasoning. Follow these steps to handle user's request:
 1. Read the CONVERSATION context.
 2. Select a appropriate function from FUNCTIONS.
-3. Determine which agent from AGENTS is suitable for the current task.";
+3. Determine which agent from AGENTS is suitable for the current task.
+4. Re-think about selected function is from FUNCTIONS to handle the request.";
 
         // Append function
         prompt += "\r\n";
@@ -160,7 +160,7 @@ public class RoutingService : IRoutingService
             // Append parameters
             if (agent.RequiredFields.Any())
             {
-                prompt += $"\r\nRequired: {string.Join(',', agent.RequiredFields)}.";
+                prompt += $"\r\nRequired: {string.Join(", ", agent.RequiredFields)}.";
             }
             return agent;
         }).ToList();
