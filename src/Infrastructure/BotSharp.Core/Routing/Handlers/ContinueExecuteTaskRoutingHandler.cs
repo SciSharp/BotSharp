@@ -14,7 +14,7 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
-        new NameDesc("agent_name", "the name of the agent"),
+        new NameDesc("agent", "the name of the agent"),
         new NameDesc("args", "required parameters extracted from question"),
         new NameDesc("reason", "why continue to execute current task")
     };

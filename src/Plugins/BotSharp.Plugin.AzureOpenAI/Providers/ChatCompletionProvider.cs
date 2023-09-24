@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -24,17 +23,20 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly AzureOpenAiSettings _settings;
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+    private readonly ITokenStatistics _tokenStatistics;
     private string _model;
 
     public virtual string Provider => "azure-openai";
 
     public ChatCompletionProvider(AzureOpenAiSettings settings, 
         ILogger<ChatCompletionProvider> logger,
-        IServiceProvider services)
+        IServiceProvider services,
+        ITokenStatistics tokenStatistics)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
+        _tokenStatistics = tokenStatistics;
     }
 
     protected virtual (OpenAIClient, string) GetClient()
@@ -105,7 +107,7 @@ public class ChatCompletionProvider : IChatCompletion
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
-        _logger.LogInformation($"Token Usage: {response.Value.Usage.PromptTokens} prompt + {response.Value.Usage.CompletionTokens} completion = {response.Value.Usage.TotalTokens} total");
+        _tokenStatistics.AddToken(response.Value.Usage.PromptTokens, response.Value.Usage.CompletionTokens);
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
