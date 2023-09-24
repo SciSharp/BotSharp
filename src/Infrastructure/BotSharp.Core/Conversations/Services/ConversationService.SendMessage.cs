@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
+using System.Drawing;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -93,9 +94,17 @@ public partial class ConversationService
             await hook.AfterCompletion(message);
         }
 
-        var agent = await _services.GetRequiredService<IAgentService>().GetAgent(message.CurrentAgentId);
+        var routingSetting = _services.GetRequiredService<RoutingSettings>();
+        var agentName = routingSetting.RouterId == message.CurrentAgentId ? 
+            routingSetting.RouterName : 
+            (await _services.GetRequiredService<IAgentService>().GetAgent(message.CurrentAgentId)).Name;
 
-        _logger.LogInformation($"[{agent?.Name ?? "Router"}] {message.Role}: {message.Content}");
+#if DEBUG
+        Console.WriteLine($"[{agentName}] {message.Role}: {message.Content}", Color.Pink);
+#else
+        
+        _logger.LogInformation($"[{agentName}] {message.Role}: {message.Content}");
+#endif
 
         await onMessageReceived(message);
 

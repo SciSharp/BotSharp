@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
@@ -12,11 +13,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public string Description => "Route request to appropriate agent.";
 
-    public List<string> Parameters => new List<string>
+    public List<NameDesc> Parameters => new List<NameDesc>
     {
-        "agent_name: the name of the agent from AGENTS",
-        "reason: why route to this agent",
-        "args: parameters extracted from context"
+        new NameDesc("agent_name", "the name of the agent from AGENTS"),
+        new NameDesc("reason", "why route to this agent"),
+        new NameDesc("args", "parameters extracted from context")
     };
 
     public bool IsReasoning => false;

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -10,10 +11,10 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public string Description => "You know how to response according to the context, don't need to ask specific agent.";
 
-    public List<string> Parameters => new List<string>
+    public List<NameDesc> Parameters => new List<NameDesc>
     {
-        "answer: the content of response",
-        "reason: why response to user"
+        new NameDesc("answer", "the content of response"),
+        new NameDesc("reason", "why response to user")
     };
 
     public bool IsReasoning => false;

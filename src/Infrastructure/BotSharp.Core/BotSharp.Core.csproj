@@ -6,28 +6,17 @@
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
   </PropertyGroup>
-  
-  <PropertyGroup Label="Globals">
-    <SccProjectName>SAK</SccProjectName>
-    <SccProvider>SAK</SccProvider>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;</Configurations>
-  </PropertyGroup>
 
   <PropertyGroup>
     <Authors>Haiping Chen</Authors>
     <Company>SciSharp STACK</Company>
-    <Product>AI Bot Platform Builder</Product>
+    <Product>LL Application Framework</Product>
     <Description>
-      Open source AI Bot platform builder which is written in C# runs on .Net Core and is enterprise oriented. Integrated with multiple bot engines besides BotSharp bot engine. Modulized pipeline design make NLP tasks plugin easily. Abstract platform and NLP task, migrate existed chatbot from a platform into another platform perfectly through dump and restore.
-
-      If you feel that this project is helpful to you, please Star on the project, we will be very grateful.
+      Open source LLM application framework to build scalable, flexible and robust AI system.
     </Description>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/SciSharp/BotSharp</RepositoryUrl>
-    <PackageTags>NLU, Chatbot, Bot, AI Bot, Artificial Intelligence</PackageTags>
+    <PackageTags>Chatbot, Bot, LLM, AI, ChatGPT, OpenAI</PackageTags>
     <PackageReleaseNotes>Support dialogue status tracking.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/SciSharp/BotSharp</PackageProjectUrl>
@@ -54,29 +43,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Accounts\**" />
-    <Compile Remove="Functions\**" />
-    <Compile Remove="Hooks\**" />
-    <Compile Remove="Repository\Abstraction\**" />
-    <EmbeddedResource Remove="Accounts\**" />
-    <EmbeddedResource Remove="Functions\**" />
-    <EmbeddedResource Remove="Hooks\**" />
-    <EmbeddedResource Remove="Repository\Abstraction\**" />
-    <None Remove="Accounts\**" />
-    <None Remove="Functions\**" />
-    <None Remove="Hooks\**" />
-    <None Remove="Repository\Abstraction\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="CoreController.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Routing\router_prompt.liquid" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\..\arts\Icon.png">

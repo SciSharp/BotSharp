@@ -10,8 +10,6 @@ public class GetNextInstructionRoutingHandler : RoutingHandlerBase, IRoutingHand
 
     public string Description => "";
 
-    public List<string> Parameters => new List<string> { };
-
     public bool IsReasoning => false;
 
     public GetNextInstructionRoutingHandler(IServiceProvider services, ILogger<GetNextInstructionRoutingHandler> logger, RoutingSettings settings) 

@@ -9,7 +9,7 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Routing.Handlers;
+using System.Reflection;
 
 namespace BotSharp.Core;
 
@@ -53,20 +53,7 @@ public static class BotSharpServiceCollectionExtensions
         services.AddSingleton((IServiceProvider x) => routingSettings);
 
         services.AddScoped<IAgentRouting, Router>();
-
-        // Register function callback
-        services.AddScoped<IFunctionCallback, RouteToAgentFn>();
-
-        // Register routing and handlers
         services.AddScoped<IRoutingService, RoutingService>();
-        services.AddScoped<IRoutingHandler, GetNextInstructionRoutingHandler>();
-        services.AddScoped<IRoutingHandler, ResponseToUserRoutingHandler>();
-        services.AddScoped<IRoutingHandler, InterruptTaskExecutionRoutingHandler>();
-        services.AddScoped<IRoutingHandler, RouteToAgentRoutingHandler>();
-        services.AddScoped<IRoutingHandler, ContinueExecuteTaskRoutingHandler>();
-        services.AddScoped<IRoutingHandler, RetrieveDataFromAgentRoutingHandler>();
-        services.AddScoped<IRoutingHandler, TaskEndRoutingHandler>();
-        services.AddScoped<IRoutingHandler, ConversationEndRoutingHandler>();
 
         if (myDatabaseSettings.Default == "FileRepository")
         {
@@ -118,7 +105,30 @@ public static class BotSharpServiceCollectionExtensions
         config.Bind("PluginLoader", pluginSettings);
 
         var loader = new PluginLoader(services, config, pluginSettings);
-        loader.Load();
+        loader.Load(assembly =>
+        {
+            // Register routing handlers
+            var handlers = assembly.GetTypes()
+                .Where(x => x.IsClass)
+                .Where(x => x.GetInterface(nameof(IRoutingHandler)) != null)
+                .ToArray();
+
+            foreach (var handler in handlers)
+            {
+                services.AddScoped(typeof(IRoutingHandler), handler);
+            }
+
+            // Register function callback
+            var functions = assembly.GetTypes()
+                .Where(x => x.IsClass)
+                .Where(x => x.GetInterface(nameof(IFunctionCallback)) != null)
+                .ToArray();
+
+            foreach (var function in functions)
+            {
+                services.AddScoped(typeof(IFunctionCallback), function);
+            }
+        });
 
         services.AddSingleton(loader);
     }

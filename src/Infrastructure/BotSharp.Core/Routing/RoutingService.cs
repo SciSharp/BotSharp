@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
-
 namespace BotSharp.Core.Routing;
 
 public class RoutingService : IRoutingService
@@ -113,8 +112,38 @@ public class RoutingService : IRoutingService
         };
         var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
 
-        var dict = new Dictionary<string, object>();
-        dict["routing_records"] = agents.Select(x => new RoutingItem
+        // Assemble prompt
+        var prompt = @"You're a Router with reasoning. Follow these steps to handle user's request:
+1. Read the CONVERSATION context.
+2. Select a appropriate function from FUNCTIONS.
+3. Determine which agent from AGENTS is suitable for the current task.";
+
+        // Append function
+        prompt += "\r\n";
+        prompt += "\r\nFUNCTIONS";
+        GetHandlers().Select((handler, i) =>
+        {
+            prompt += "\r\n";
+            prompt += $"\r\n{i + 1}. {handler.Name}";
+            prompt += $"\r\n{handler.Description}";
+
+            // Append parameters
+            if (handler.Parameters.Any())
+            {
+                prompt += "\r\nParameters:";
+                handler.Parameters.Select((p, i) =>
+                {
+                    prompt += $"\r\n{i + 1}. {p.Name}: {p.Description}";
+                    return p;
+                }).ToList();
+            }
+
+            return handler;
+        }).ToList();
+
+        prompt += "\r\n";
+        prompt += "\r\nAGENTS";
+        agents.Select(x => new RoutingItem
         {
             AgentId = x.Id,
             Description = x.Description,
@@ -122,12 +151,23 @@ public class RoutingService : IRoutingService
             RequiredFields = x.RoutingRules.Where(x => x.Required)
                 .Select(x => x.Field)
                 .ToArray()
-        }).ToArray();
+        }).Select((agent, i) =>
+        {
+            prompt += "\r\n";
+            prompt += $"\r\n{i + 1}. {agent.Name}";
+            prompt += $"\r\n{agent.Description}";
 
-        dict["routing_handlers"] = GetHandlers();
+            // Append parameters
+            if (agent.RequiredFields.Any())
+            {
+                prompt += $"\r\nRequired: {string.Join(',', agent.RequiredFields)}.";
+            }
+            return agent;
+        }).ToList();
 
-        var render = _services.GetRequiredService<ITemplateRender>();
-        router.Instruction = render.Render(PromptConst.ROUTER_PROMPT, dict);
+        prompt += "\r\n";
+        prompt += "\r\nCONVERSATION";
+        router.Instruction = prompt;
 
         return router;
     }

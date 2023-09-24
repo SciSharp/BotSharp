@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -10,9 +11,9 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public string Description => "Call this function when current task is completed.";
 
-    public List<string> Parameters => new List<string>
+    public List<NameDesc> Parameters => new List<NameDesc>
     {
-        "abandoned_arguments: the arguments next task can't reuse"
+        new NameDesc("abandoned_arguments", "the arguments next task can't reuse")
     };
 
     public bool IsReasoning => true;

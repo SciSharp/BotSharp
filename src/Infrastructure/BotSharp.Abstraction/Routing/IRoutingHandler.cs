@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Abstraction.Routing;
 
@@ -8,7 +9,7 @@ public interface IRoutingHandler
     string Description { get; }
     bool IsReasoning { get => false; }
     bool Enabled { get => true; }
-    List<string> Parameters { get => new List<string>(); }
+    List<NameDesc> Parameters { get => new List<NameDesc>(); }
 
     void SetRouter(Agent router) { }
 

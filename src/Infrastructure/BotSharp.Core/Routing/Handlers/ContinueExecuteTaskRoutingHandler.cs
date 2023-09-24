@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
@@ -11,11 +12,11 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
     public string Description => "Continue to execute user's request without further information retrival.";
 
-    public List<string> Parameters => new List<string>
+    public List<NameDesc> Parameters => new List<NameDesc>
     {
-        "agent_name: the name of the agent",
-        "args: required parameters extracted from question",
-        "reason: why continue to execute current task"
+        new NameDesc("agent_name", "the name of the agent"),
+        new NameDesc("args", "required parameters extracted from question"),
+        new NameDesc("reason", "why continue to execute current task")
     };
 
     public bool IsReasoning => true;

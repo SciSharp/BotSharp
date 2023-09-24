@@ -22,7 +22,7 @@ public class PluginLoader
         _settings = settings;
     }
 
-    public void Load()
+    public void Load(Action<Assembly> loaded)
     {
         var executingDir = Directory.GetParent(Assembly.GetEntryAssembly().Location).FullName;
 
@@ -44,6 +44,7 @@ public class PluginLoader
                     Console.WriteLine($"Loaded plugin {module.GetType().Name} from {assemblyName}.", Color.Green);
                 }
 
+                loaded(assembly);
                 _modules.AddRange(modules);
             }
             else

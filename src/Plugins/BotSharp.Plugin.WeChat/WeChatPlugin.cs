@@ -6,18 +6,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Senparc.CO2NET.AspNet;
 using Senparc.CO2NET;
-using Senparc.Weixin.RegisterServices;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Senparc.Weixin;
 using Senparc.Weixin.MP;
 using Senparc.Weixin.MP.MessageHandlers.Middleware;
 using Senparc.Weixin.Entities;
 using Senparc.CO2NET.RegisterServices;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
-using BotSharp.Abstraction.Users;
 using BotSharp.Plugin.WeChat.Users;
 
 namespace BotSharp.Plugin.WeChat

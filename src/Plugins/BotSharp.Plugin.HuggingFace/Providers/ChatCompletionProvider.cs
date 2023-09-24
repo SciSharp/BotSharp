@@ -39,10 +39,10 @@ public class ChatCompletionProvider : IChatCompletion
 
         var api = _services.GetRequiredService<IInferenceApi>();
 
-        if (_settings.Model.Contains('/'))
+        if (_model.Contains('/'))
         {
-            var space = _settings.Model.Split('/')[0];
-            var model = _settings.Model.Split("/")[1];
+            var space = _model.Split('/')[0];
+            var model = _model.Split("/")[1];
 
             var response = await api.Post(space, model, new InferenceInput
             {
