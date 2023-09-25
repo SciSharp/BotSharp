@@ -26,7 +26,7 @@ public class InterruptTaskExecutionRoutingHandler : RoutingHandlerBase, IRouting
 
     public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
     {
-        var result = new RoleDialogModel(AgentRole.User, inst.Route.Reason)
+        var result = new RoleDialogModel(AgentRole.User, inst.Reason)
         {
             FunctionName = inst.Function,
             StopCompletion = true

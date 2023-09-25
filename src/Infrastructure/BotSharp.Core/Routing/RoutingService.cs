@@ -12,7 +12,18 @@ public class RoutingService : IRoutingService
     private readonly RoutingSettings _settings;
     private readonly ILogger _logger;
     private List<RoleDialogModel> _dialogs;
-    public List<RoleDialogModel> Dialogs => _dialogs;
+    public List<RoleDialogModel> Dialogs {
+        get
+        {
+            if (_dialogs == null)
+            {
+                var conv = _services.GetRequiredService<IConversationService>();
+                _dialogs = conv.GetDialogHistory();
+            }
+
+            return _dialogs;
+        }
+    }
 
     public RoutingService(IServiceProvider services,
         RoutingSettings settings,
@@ -23,42 +34,36 @@ public class RoutingService : IRoutingService
         _logger = logger;
     }
 
-    public void SetDialogs(List<RoleDialogModel> dialogs)
-    {
-        _dialogs = dialogs;
-    }
 
     public async Task<RoleDialogModel> ExecuteOnce(Agent agent)
     {
-        var message = _dialogs.Last().Content;
+        var message = Dialogs.Last().Content;
 
         var handlers = _services.GetServices<IRoutingHandler>();
 
         var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
-        handler.SetDialogs(_dialogs);
+        handler.SetDialogs(Dialogs);
         var result = await handler.Handle(new FunctionCallFromLlm
         {
-           Function = "route_to_agent",
-           Question = message,
-           Route = new RoutingArgs
-           {
-               Reason = message,
-               AgentName = agent.Name,
-           }
+            Function = "route_to_agent",
+            Question = message,
+            Reason = message,
+            AgentName = agent.Name
         });
 
         return result;
     }
 
-    public async Task<RoleDialogModel> InstructLoop(Agent router)
+    public async Task<RoleDialogModel> InstructLoop()
     {
+        var router = LoadRouter();
         var result = new RoleDialogModel(AgentRole.Assistant, "Can you repeat your request again?")
         {
             CurrentAgentId = router.Id
         };
 
-        var message = _dialogs.Last().Content;
-        foreach (var dialog in _dialogs.TakeLast(20))
+        var message = Dialogs.Last().Content;
+        foreach (var dialog in Dialogs.TakeLast(20))
         {
             router.Instruction += $"\r\n{dialog.Role}: {dialog.Content}";
         }
@@ -67,7 +72,7 @@ public class RoutingService : IRoutingService
 
         var handler = handlers.FirstOrDefault(x => x.Name == "get_next_instruction");
         handler.SetRouter(router);
-        handler.SetDialogs(_dialogs);
+        handler.SetDialogs(Dialogs);
 
         int loopCount = 0;
         var stop = false;
@@ -86,7 +91,7 @@ public class RoutingService : IRoutingService
                 continue;
             }
             handler.SetRouter(router);
-            handler.SetDialogs(_dialogs);
+            handler.SetDialogs(Dialogs);
 
             result = await handler.Handle(inst);
 
@@ -115,7 +120,7 @@ public class RoutingService : IRoutingService
         var prompt = @"You're a Router with reasoning. Follow these steps to handle user's request:
 1. Read the CONVERSATION context.
 2. Select a appropriate function from FUNCTIONS.
-3. Determine which agent from AGENTS is suitable for the current task.
+3. Determine which agent is suitable according to conversation context.
 4. Re-think about selected function is from FUNCTIONS to handle the request.";
 
         // Append function
@@ -133,7 +138,7 @@ public class RoutingService : IRoutingService
                 prompt += "\r\nParameters:";
                 handler.Parameters.Select((p, i) =>
                 {
-                    prompt += $"\r\n{i + 1}. {p.Name}: {p.Description}";
+                    prompt += $"\r\n    - {p.Name}: {p.Description}";
                     return p;
                 }).ToList();
             }

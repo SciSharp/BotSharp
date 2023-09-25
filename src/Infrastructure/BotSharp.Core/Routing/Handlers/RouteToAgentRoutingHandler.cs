@@ -15,9 +15,9 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
-        new NameDesc("agent", "the name of the agent from AGENTS"),
+        new NameDesc("agent", "the name of the agent"),
         new NameDesc("reason", "why route to this agent"),
-        new NameDesc("args", "parameters extracted from context")
+        new NameDesc("args", "the agent required parameters")
     };
 
     public bool IsReasoning => false;
@@ -29,18 +29,13 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
     {
-        if (string.IsNullOrEmpty(inst.Route.AgentName))
-        {
-            inst = await GetNextInstructionFromReasoner($"What's the next step? your response must have agent name.");
-        }
-
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
         var message = new RoleDialogModel(AgentRole.Function, inst.Question)
         {
             FunctionName = inst.Function,
             FunctionArgs = JsonSerializer.Serialize(new RoutingArgs
             {
-                AgentName = inst.Route.AgentName
+                AgentName = inst.AgentName
             }),
         };
 
