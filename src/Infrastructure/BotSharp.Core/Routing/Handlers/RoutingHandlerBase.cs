@@ -63,13 +63,20 @@ public abstract class RoutingHandlerBase
             var pattern = @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}";
             response.Content = Regex.Match(response.Content, pattern).Value;
             args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
+
+            // Sometimes it populate malformed Function in Agent name
+            if (args.Function == args.AgentName)
+            {
+                args.Function = "route_to_agent";
+                _logger.LogWarning($"Captured LLM response ");
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError($"{ex.Message}: {response.Content}");
             args.Function = "response_to_user";
             args.Answer = ex.Message;
-            args.Route.AgentName = _settings.RouterName;
+            args.AgentName = _settings.RouterName;
         }
 
         if (args.Arguments != null)

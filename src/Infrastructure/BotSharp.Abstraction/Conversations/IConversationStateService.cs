@@ -7,6 +7,7 @@ public interface IConversationStateService
 {
     ConversationState Load(string conversationId);
     string GetState(string name, string defaultValue = "");
+    bool ContainsState(string name);
     ConversationState GetStates();
     IConversationStateService SetState<T>(string name, T value);
     void CleanState();

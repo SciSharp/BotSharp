@@ -29,14 +29,14 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
     {
-        if (string.IsNullOrEmpty(inst.Route.AgentName))
+        if (string.IsNullOrEmpty(inst.AgentName))
         {
             inst = await GetNextInstructionFromReasoner($"What's the next step? your response must have agent name.");
         }
 
         // Retrieve information from specific agent
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.Agents.First(x => x.Name.ToLower() == inst.Route.AgentName.ToLower());
+        var record = db.Agents.First(x => x.Name.ToLower() == inst.AgentName.ToLower());
         var response = await InvokeAgent(record.Id);
 
         inst.Answer = response.Content;

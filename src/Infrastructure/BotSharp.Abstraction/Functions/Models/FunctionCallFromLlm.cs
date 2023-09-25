@@ -3,13 +3,13 @@ using System.Text.Json;
 
 namespace BotSharp.Abstraction.Functions.Models;
 
-public class FunctionCallFromLlm
+public class FunctionCallFromLlm : RoutingArgs
 {
     [JsonPropertyName("function")]
     public string Function { get; set; } = string.Empty;
 
-    [JsonPropertyName("route")]
-    public RoutingArgs Route { get; set; } = new RoutingArgs();
+    [JsonPropertyName("reason")]
+    public string Reason { get; set; } = string.Empty;
 
     [JsonPropertyName("question")]
     public string? Question { get; set; }
@@ -22,13 +22,15 @@ public class FunctionCallFromLlm
 
     public override string ToString()
     {
+        var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {Reason}>";
+
         if (string.IsNullOrEmpty(Answer))
         {
-            return $"[{Function} {Route} {JsonSerializer.Serialize(Arguments)}]: {Question}";
+            return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question}";
         }
         else
         {
-            return $"[{Function} {Route} {JsonSerializer.Serialize(Arguments)}]: {Question} => {Answer}";
+            return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question} => {Answer}";
         }
     }
 }

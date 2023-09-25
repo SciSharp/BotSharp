@@ -13,7 +13,6 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private ConversationState _states;
     private BotSharpDatabaseSettings _dbSettings;
     private string _conversationId;
-    private string _file;
     private readonly IBotSharpRepository _db;
     private List<StateKeyValue> _savedStates;
 
@@ -100,22 +99,6 @@ public class ConversationStateService : IConversationStateService, IDisposable
         //File.Delete(_file);
     }
 
-    private string GetStorageFile(string conversationId)
-    {
-        var dir = Path.Combine(_dbSettings.FileRepository, "conversations", conversationId);
-        if (!Directory.Exists(dir))
-        {
-            Directory.CreateDirectory(dir);
-        }
-
-        var stateFile = Path.Combine(dir, "state.dict");
-        if (!File.Exists(stateFile))
-        {
-            File.WriteAllText(stateFile, "");
-        }
-        return stateFile;
-    }
-
     public ConversationState GetStates()
         => _states;
 
@@ -137,5 +120,10 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public void Dispose()
     {
         Save();
+    }
+
+    public bool ContainsState(string name)
+    {
+        return _states.ContainsKey(name) && !string.IsNullOrEmpty(_states[name]);
     }
 }

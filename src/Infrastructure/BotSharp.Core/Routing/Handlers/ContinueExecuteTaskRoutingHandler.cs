@@ -30,7 +30,7 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
     {
         var routing = _services.GetRequiredService<IAgentRouting>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.Agents.First(x => x.Name.ToLower() == inst.Route.AgentName.ToLower());
+        var record = db.Agents.First(x => x.Name.ToLower() == inst.AgentName.ToLower());
 
         var result = new RoleDialogModel(AgentRole.Function, inst.Question)
         {

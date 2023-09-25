@@ -8,7 +8,7 @@ namespace BotSharp.Core.Conversations.Services;
 public partial class ConversationService
 {
     public async Task<bool> SendMessage(string agentId, 
-        RoleDialogModel lastDialog,
+        RoleDialogModel incoming,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
@@ -18,14 +18,11 @@ public partial class ConversationService
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
-        _logger.LogInformation($"[{agent.Name}] {lastDialog.Role}: {lastDialog.Content}");
+        _logger.LogInformation($"[{agent.Name}] {incoming.Role}: {incoming.Content}");
 
-        lastDialog.CurrentAgentId = agent.Id;
-        
-        var wholeDialogs = GetDialogHistory();
-        wholeDialogs.Add(lastDialog);
+        incoming.CurrentAgentId = agent.Id;
 
-        _storage.Append(_conversationId, lastDialog);
+        _storage.Append(_conversationId, incoming);
 
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
@@ -35,18 +32,13 @@ public partial class ConversationService
             hook.SetAgent(agent)
                 .SetConversation(conversation);
 
-            await hook.OnDialogsLoaded(wholeDialogs);
-            await hook.BeforeCompletion(lastDialog);
+            await hook.BeforeCompletion(incoming);
 
             // Interrupted by hook
-            if (lastDialog.StopCompletion)
+            if (incoming.StopCompletion)
             {
-                var message = new RoleDialogModel(AgentRole.Assistant, lastDialog.Content)
-                {
-                    CurrentAgentId = agent.Id
-                };
-                await onMessageReceived(message);
-                _storage.Append(_conversationId, message);
+                await onMessageReceived(incoming);
+                _storage.Append(_conversationId, incoming);
                 return true;
             }
         }
@@ -55,10 +47,8 @@ public partial class ConversationService
         var routing = _services.GetRequiredService<IRoutingService>();
         var settings = _services.GetRequiredService<RoutingSettings>();
 
-        routing.SetDialogs(wholeDialogs);
-
-        var response = settings.RouterId == agent.Id ?
-            await routing.InstructLoop(agent) :
+        var response = agentId == settings.RouterId ?
+            await routing.InstructLoop() :
             await routing.ExecuteOnce(agent);
 
         await HandleAssistantMessage(response, onMessageReceived);

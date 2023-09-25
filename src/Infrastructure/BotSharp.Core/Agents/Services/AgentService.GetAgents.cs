@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -20,6 +22,13 @@ public partial class AgentService
 #endif
     public async Task<Agent> GetAgent(string id)
     {
+        var settings = _services.GetRequiredService<RoutingSettings>();
+        var routingService = _services.GetRequiredService<IRoutingService>();
+        if (settings.RouterId == id)
+        {
+            return routingService.LoadRouter();
+        }
+
         var profile = _db.GetAgent(id);
 
         var instructionFile = profile?.Instruction;

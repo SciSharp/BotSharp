@@ -20,9 +20,7 @@ public partial class AgentService
             hook.OnAgentLoading(ref id);
         }
 
-        var settings = _services.GetRequiredService<RoutingSettings>();
-        var routingService = _services.GetRequiredService<IRoutingService>();
-        var agent = settings.RouterId == id ? routingService.LoadRouter() : await GetAgent(id);
+        var agent = await GetAgent(id);
         var templateDict = new Dictionary<string, object>();
         PopulateState(templateDict);
 
