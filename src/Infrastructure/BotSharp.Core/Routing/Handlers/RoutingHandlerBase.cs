@@ -65,10 +65,20 @@ public abstract class RoutingHandlerBase
             args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
 
             // Sometimes it populate malformed Function in Agent name
-            if (args.Function == args.AgentName)
+            if (!string.IsNullOrEmpty(args.Function) && args.Function == args.AgentName)
             {
                 args.Function = "route_to_agent";
-                _logger.LogWarning($"Captured LLM response ");
+                _logger.LogWarning($"Captured LLM malformed response");
+            }
+
+            // Another case of malformed response
+            var agentService = _services.GetRequiredService<IAgentService>();
+            var agents = await agentService.GetAgents();
+            if (string.IsNullOrEmpty(args.AgentName) && agents.Select(x => x.Name).Contains(args.Function))
+            {
+                args.AgentName = args.Function;
+                args.Function = "route_to_agent";
+                _logger.LogWarning($"Captured LLM malformed response");
             }
         }
         catch (Exception ex)
