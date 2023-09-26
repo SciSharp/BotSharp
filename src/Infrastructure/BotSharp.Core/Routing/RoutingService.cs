@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
@@ -80,7 +81,7 @@ public class RoutingService : IRoutingService
         {
             loopCount++;
 
-            var inst = await handler.GetNextInstructionFromReasoner($"You are the Router, tell me the next step?");
+            var inst = await handler.GetNextInstructionFromReasoner($"Tell me the next step?");
             inst.Question = inst.Question ?? message;
 
             handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
@@ -117,11 +118,12 @@ public class RoutingService : IRoutingService
         var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
 
         // Assemble prompt
-        var prompt = @"You're a Router with reasoning. Follow these steps to handle user's request:
+        var prompt = @$"You're {_settings.RouterName} ({_settings.Description}). Follow these steps to handle user's request:
 1. Read the CONVERSATION context.
 2. Select a appropriate function from FUNCTIONS.
 3. Determine which agent is suitable according to conversation context.
-4. Re-think about selected function is from FUNCTIONS to handle the request.";
+4. Re-think about selected function is from FUNCTIONS to handle the request.
+5. Make sure agent is not in args.";
 
         // Append function
         prompt += "\r\n";
@@ -154,8 +156,8 @@ public class RoutingService : IRoutingService
             Description = x.Description,
             Name = x.Name,
             RequiredFields = x.RoutingRules.Where(x => x.Required)
-                .Select(x => x.Field)
-                .ToArray()
+                .Select(x => new NameDesc(x.Field, x.Description))
+                .ToList()
         }).Select((agent, i) =>
         {
             prompt += "\r\n";
@@ -165,7 +167,12 @@ public class RoutingService : IRoutingService
             // Append parameters
             if (agent.RequiredFields.Any())
             {
-                prompt += $"\r\nRequired: {string.Join(", ", agent.RequiredFields)}.";
+                prompt += $"\r\nRequired:";
+                agent.RequiredFields.Select((field, i) =>
+                {
+                    prompt += $"\r\n    - {field.Name}: {field.Description}";
+                    return field;
+                }).ToList();
             }
             return agent;
         }).ToList();

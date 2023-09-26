@@ -9,6 +9,7 @@ public class RoutingRule
     public string AgentName { get; set; }
 
     public string Field { get; set; }
+    public string Description { get; set; }
 
     public bool Required { get; set; }
 
