@@ -5,17 +5,8 @@ namespace BotSharp.Abstraction.Functions.Models;
 
 public class FunctionCallFromLlm : RoutingArgs
 {
-    [JsonPropertyName("function")]
-    public string Function { get; set; } = string.Empty;
-
-    [JsonPropertyName("reason")]
-    public string Reason { get; set; } = string.Empty;
-
     [JsonPropertyName("question")]
     public string? Question { get; set; }
-
-    [JsonPropertyName("answer")]
-    public string Answer { get; set; } = string.Empty;
 
     [JsonPropertyName("args")]
     public JsonDocument Arguments { get; set; } = JsonDocument.Parse("{}");

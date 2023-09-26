@@ -81,7 +81,8 @@ public class RoutingService : IRoutingService
         {
             loopCount++;
 
-            var inst = await handler.GetNextInstructionFromReasoner($"Tell me the next step?");
+            var prompt = _settings.EnableReasoning ? "Tell me the next step?" : "Which agent is suitable to handle user's request?";
+            var inst = await handler.GetNextInstructionFromReasoner(prompt);
             inst.Question = inst.Question ?? message;
 
             handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
