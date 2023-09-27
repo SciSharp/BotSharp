@@ -95,6 +95,54 @@ public class ChatCompletionProvider : IChatCompletion
         return functions;
     }
 
+    public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    {
+        var (client, deploymentModel) = GetClient();
+        var chatCompletionsOptions = PrepareOptions(agent, conversations);
+
+        var response = client.GetChatCompletions(deploymentModel, chatCompletionsOptions);
+        var choice = response.Value.Choices[0];
+        var message = choice.Message;
+
+        _tokenStatistics.AddToken(new TokenStatsModel
+        {
+            Model = _model,
+            PromptCount = response.Value.Usage.PromptTokens,
+            CompletionCount = response.Value.Usage.CompletionTokens,
+            PromptCost = 0.0015f,
+            CompletionCost = 0.002f
+        });
+
+        if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
+        {
+            _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name} => {message.FunctionCall.Arguments}");
+
+            var funcContextIn = new RoleDialogModel(AgentRole.Function, message.Content)
+            {
+                CurrentAgentId = agent.Id,
+                FunctionName = message.FunctionCall.Name,
+                FunctionArgs = message.FunctionCall.Arguments
+            };
+
+            // Somethings LLM will generate a function name with agent name.
+            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
+            {
+                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
+            }
+
+            return funcContextIn;
+        }
+        else
+        {
+            var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
+            {
+                CurrentAgentId = agent.Id
+            };
+
+            return msg;
+        }
+    }
+
     public async Task<bool> GetChatCompletionsAsync(Agent agent, 
         List<RoleDialogModel> conversations, 
         Func<RoleDialogModel, Task> onMessageReceived,

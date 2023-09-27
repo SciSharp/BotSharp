@@ -39,29 +39,26 @@ public class ChatCompletionProvider : IChatCompletion
 
         var api = _services.GetRequiredService<IInferenceApi>();
 
-        if (_model.Contains('/'))
+        var space = _model.Split('/')[0];
+        var model = _model.Split("/")[1];
+
+        var response = await api.Post(space, model, new InferenceInput
         {
-            var space = _model.Split('/')[0];
-            var model = _model.Split("/")[1];
+            Inputs = prompt
+        });
 
-            var response = await api.Post(space, model, new InferenceInput
-            {
-                Inputs = prompt
-            });
+        var falcon = JsonSerializer.Deserialize<List<FalconLlmResponse>>(response);
 
-            var falcon = JsonSerializer.Deserialize<List<FalconLlmResponse>>(response);
+        var message = falcon[0].GeneratedText.Trim();
+        _logger.LogInformation($"[{agent.Name}] {AgentRole.Assistant}: {message}");
 
-            var message = falcon[0].GeneratedText.Trim();
-            _logger.LogInformation($"[{agent.Name}] {AgentRole.Assistant}: {message}");
+        var msg = new RoleDialogModel(AgentRole.Assistant, message)
+        {
+            CurrentAgentId = agent.Id
+        };
 
-            var msg = new RoleDialogModel(AgentRole.Assistant, message)
-            {
-                CurrentAgentId = agent.Id
-            };
-
-            // Text response received
-            await onMessageReceived(msg);
-        }
+        // Text response received
+        await onMessageReceived(msg);
 
         return true;
     }
@@ -74,5 +71,41 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    {
+        var content = string.Join("\r\n", conversations.Select(x => $"{AgentRole.System}: {x.Content}")).Trim();
+        content += $"\r\n{AgentRole.Assistant}: ";
+
+        var prompt = agent.Instruction + "\r\n" + content;
+
+        var convSetting = _services.GetRequiredService<ConversationSetting>();
+        if (convSetting.ShowVerboseLog)
+        {
+            _logger.LogInformation(prompt);
+        }
+
+        var api = _services.GetRequiredService<IInferenceApi>();
+
+        var space = _model.Split('/')[0];
+        var model = _model.Split("/")[1];
+
+        var response = api.Post(space, model, new InferenceInput
+        {
+            Inputs = prompt
+        }).Result;
+
+        var falcon = JsonSerializer.Deserialize<List<FalconLlmResponse>>(response);
+
+        var message = falcon[0].GeneratedText.Trim();
+        _logger.LogInformation($"[{agent.Name}] {AgentRole.Assistant}: {message}");
+
+        var msg = new RoleDialogModel(AgentRole.Assistant, message)
+        {
+            CurrentAgentId = agent.Id
+        };
+
+        return msg;
     }
 }

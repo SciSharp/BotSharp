@@ -23,10 +23,10 @@ public partial class AgentService
     public async Task<Agent> GetAgent(string id)
     {
         var settings = _services.GetRequiredService<RoutingSettings>();
-        var routingService = _services.GetRequiredService<IRoutingService>();
+        var routerInstance = _services.GetRequiredService<IRouterInstance>();
         if (settings.RouterId == id)
         {
-            return routingService.LoadRouter();
+            return routerInstance.Load().Router;
         }
 
         var profile = _db.GetAgent(id);

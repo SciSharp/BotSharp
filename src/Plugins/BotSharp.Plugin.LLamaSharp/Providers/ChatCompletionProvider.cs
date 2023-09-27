@@ -36,6 +36,54 @@ public class ChatCompletionProvider : IChatCompletion
 
     public string Provider => "llama-sharp";
 
+    public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    {
+        var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
+        content += $"\r\n{AgentRole.Assistant}: ";
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var model = state.GetState("model", _settings.DefaultModel);
+
+        var llama = _services.GetRequiredService<LlamaAiModel>();
+        llama.LoadModel(model);
+        var executor = llama.GetStatelessExecutor();
+
+        var inferenceParams = new InferenceParams()
+        {
+            Temperature = 0.1f,
+            AntiPrompts = new List<string> { $"{AgentRole.User}:", "[/INST]" },
+            MaxTokens = 64
+        };
+
+        string totalResponse = "";
+
+        var prompt = agent.Instruction + "\r\n" + content;
+
+        var convSetting = _services.GetRequiredService<ConversationSetting>();
+        if (convSetting.ShowVerboseLog)
+        {
+            _logger.LogInformation(prompt);
+        }
+
+        foreach (var response in executor.Infer(prompt, inferenceParams))
+        {
+            Console.Write(response);
+            totalResponse += response;
+        }
+
+        foreach (var anti in inferenceParams.AntiPrompts)
+        {
+            totalResponse = totalResponse.Replace(anti, "").Trim();
+        }
+
+        var msg = new RoleDialogModel(AgentRole.Assistant, totalResponse)
+        {
+            CurrentAgentId = agent.Id
+        };
+
+        return msg;
+    }
+
     public async Task<bool> GetChatCompletionsAsync(Agent agent,
         List<RoleDialogModel> conversations,
         Func<RoleDialogModel, Task> onMessageReceived,

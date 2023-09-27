@@ -52,7 +52,7 @@ public static class BotSharpServiceCollectionExtensions
         config.Bind("Router", routingSettings);
         services.AddSingleton((IServiceProvider x) => routingSettings);
 
-        services.AddScoped<IAgentRouting, Router>();
+        services.AddScoped<IRouterInstance, RouterInstance>();
         services.AddScoped<IRoutingService, RoutingService>();
 
         if (myDatabaseSettings.Default == "FileRepository")

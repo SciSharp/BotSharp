@@ -13,11 +13,7 @@ public interface IRoutingHandler
 
     void SetRouter(Agent router) { }
 
-    void SetDialogs(List<RoleDialogModel> dialogs) { }        
+    void SetDialogs(List<RoleDialogModel> dialogs) { }
 
-    Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(string prompt) 
-        => throw new NotImplementedException(""); 
-
-    Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
-        => throw new NotImplementedException("");
+    Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst);
 }

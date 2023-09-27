@@ -13,6 +13,9 @@ public interface IChatCompletion
     /// <param name="model"></param>
     void SetModelName(string model);
 
+    RoleDialogModel GetChatCompletions(Agent agent,
+        List<RoleDialogModel> conversations);
+
     Task<bool> GetChatCompletionsAsync(Agent agent, 
         List<RoleDialogModel> conversations, 
         Func<RoleDialogModel, Task> onMessageReceived,
