@@ -372,7 +372,7 @@ public class FileRepository : IBotSharpRepository
         File.WriteAllText(instructionFile, instruction);
     }
 
-    private void UpdateAgentFunctions(string agentId, List<string> inputFunctions)
+    private void UpdateAgentFunctions(string agentId, List<FunctionDef> inputFunctions)
     {
         if (inputFunctions.IsNullOrEmpty()) return;
 
@@ -385,8 +385,7 @@ public class FileRepository : IBotSharpRepository
         var functions = new List<string>();
         foreach (var function in inputFunctions)
         {
-            var functionDef = JsonSerializer.Deserialize<FunctionDef>(function, _options);
-            functions.Add(JsonSerializer.Serialize(functionDef, _options));
+            functions.Add(JsonSerializer.Serialize(function, _options));
         }
 
         var functionText = JsonSerializer.Serialize(functions, _options);
@@ -730,14 +729,13 @@ public class FileRepository : IBotSharpRepository
         return instruction;
     }
 
-    private List<string> FetchFunctions(string fileDir)
+    private List<FunctionDef> FetchFunctions(string fileDir)
     {
         var file = Path.Combine(fileDir, "functions.json");
-        if (!File.Exists(file)) return new List<string>();
+        if (!File.Exists(file)) return new List<FunctionDef>();
 
         var functionsJson = File.ReadAllText(file);
-        var functionDefs = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
-        var functions = functionDefs.Select(x => JsonSerializer.Serialize(x, _options)).ToList();
+        var functions = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
         return functions;
     }
 

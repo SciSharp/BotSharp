@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using System.IO;
 
@@ -114,14 +115,13 @@ public partial class AgentService
         return templates;
     }
 
-    private List<string> FetchFunctionsFromFile(string fileDir)
+    private List<FunctionDef> FetchFunctionsFromFile(string fileDir)
     {
         var file = Path.Combine(fileDir, "functions.json");
-        if (!File.Exists(file)) return new List<string>();
+        if (!File.Exists(file)) return new List<FunctionDef>();
 
         var functionsJson = File.ReadAllText(file);
-        var functionDefs = JsonSerializer.Deserialize<List<Abstraction.Functions.Models.FunctionDef>>(functionsJson, _options);
-        var functions = functionDefs.Select(x => JsonSerializer.Serialize(x, _options)).ToList();
+        var functions = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
         return functions;
     }
 

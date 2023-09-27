@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
@@ -441,7 +442,7 @@ public class MongoRepository : IBotSharpRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentFunctions(string agentId, List<string> functions)
+    private void UpdateAgentFunctions(string agentId, List<FunctionDef> functions)
     {
         if (functions.IsNullOrEmpty()) return;
 

@@ -18,51 +18,48 @@ public partial class RoutingService
         var agent = await agentService.LoadAgent(agentId);
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services);
+        RoleDialogModel response = chatCompletion.GetChatCompletions(agent, Dialogs);
 
-        RoleDialogModel response = null;
-        await chatCompletion.GetChatCompletionsAsync(agent, Dialogs,
-            async msg =>
+        if (response.Role == AgentRole.Function)
+        {
+            var fn = response;
+            // execute function
+            // Save states
+            SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(fn.FunctionArgs));
+
+            var conversationService = _services.GetRequiredService<IConversationService>();
+            // Call functions
+            await conversationService.CallFunctions(fn);
+
+            if (string.IsNullOrEmpty(fn.Content))
             {
-                response = msg;
-            }, async fn =>
+                fn.Content = fn.ExecutionResult;
+            }
+
+            Dialogs.Add(fn);
+
+            if (!fn.StopCompletion)
             {
-                // execute function
-                // Save states
-                SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(fn.FunctionArgs));
-
-                var conversationService = _services.GetRequiredService<IConversationService>();
-                // Call functions
-                await conversationService.CallFunctions(fn);
-
-                if (string.IsNullOrEmpty(fn.Content))
+                // Find response template
+                var templateService = _services.GetRequiredService<IResponseTemplateService>();
+                var quickResponse = await templateService.RenderFunctionResponse(agent.Id, fn);
+                if (!string.IsNullOrEmpty(quickResponse))
                 {
-                    fn.Content = fn.ExecutionResult;
-                }
-
-                Dialogs.Add(fn);
-
-                if (!fn.StopCompletion)
-                {
-                    // Find response template
-                    var templateService = _services.GetRequiredService<IResponseTemplateService>();
-                    var quickResponse = await templateService.RenderFunctionResponse(agent.Id, fn);
-                    if (!string.IsNullOrEmpty(quickResponse))
+                    response = new RoleDialogModel(AgentRole.Assistant, quickResponse)
                     {
-                        response = new RoleDialogModel(AgentRole.Assistant, quickResponse)
-                        {
-                            CurrentAgentId = agent.Id
-                        };
-                    }
-                    else
-                    {
-                        response = await InvokeAgent(fn.CurrentAgentId);
-                    }
+                        CurrentAgentId = agent.Id
+                    };
                 }
                 else
                 {
-                    response = fn;
+                    response = await InvokeAgent(fn.CurrentAgentId);
                 }
-            });
+            }
+            else
+            {
+                response = fn;
+            }
+        }
 
         return response;
     }

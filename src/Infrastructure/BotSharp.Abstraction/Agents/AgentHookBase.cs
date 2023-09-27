@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Settings;
+using BotSharp.Abstraction.Functions.Models;
 
 namespace BotSharp.Abstraction.Agents;
 
@@ -34,7 +35,7 @@ public abstract class AgentHookBase : IAgentHook
         return true;
     }
 
-    public virtual bool OnFunctionsLoaded(ref List<string> functions)
+    public virtual bool OnFunctionsLoaded(ref List<FunctionDef> functions)
     {
         _agent.Functions = functions;
         return true;

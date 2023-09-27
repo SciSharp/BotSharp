@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
@@ -10,7 +11,7 @@ public class AgentViewModel
     public string Description { get; set; }
     public string Instruction { get; set; }
     public List<AgentTemplate> Templates { get; set; }
-    public List<string> Functions { get; set; }
+    public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public bool IsPublic { get; set; }
     public bool AllowRouting { get; set; }
