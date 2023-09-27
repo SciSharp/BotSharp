@@ -107,7 +107,14 @@ public class ChatCompletionProvider : IChatCompletion
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
-        _tokenStatistics.AddToken(response.Value.Usage.PromptTokens, response.Value.Usage.CompletionTokens);
+        _tokenStatistics.AddToken(new TokenStatsModel
+        {
+            Model = _model,
+            PromptCount = response.Value.Usage.PromptTokens, 
+            CompletionCount = response.Value.Usage.CompletionTokens,
+            PromptCost = 0.0015f,
+            CompletionCost = 0.002f
+        });
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {

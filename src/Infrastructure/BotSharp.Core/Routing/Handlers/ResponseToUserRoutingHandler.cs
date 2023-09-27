@@ -9,7 +9,7 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 {
     public string Name => "response_to_user";
 
-    public string Description => "You know how to response according to the context, don't need to ask specific agent.";
+    public string Description => "You know how to response according to the context without asking specific agent. For example user greeting.";
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {

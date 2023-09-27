@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 using System.Drawing;
@@ -37,7 +38,12 @@ public abstract class RoutingHandlerBase
 
     public async Task<FunctionCallFromLlm> GetNextInstructionFromReasoner(string prompt)
     {
-        var responseFormat = JsonSerializer.Serialize(new FunctionCallFromLlm());
+        var responseFormat = _settings.EnableReasoning ?
+            JsonSerializer.Serialize(new FunctionCallFromLlm()) :
+            JsonSerializer.Serialize(new RoutingArgs
+            {
+                Function = "route_to_agent"
+            });
         var content = $"{prompt} Response must be in JSON format {responseFormat}";
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services,

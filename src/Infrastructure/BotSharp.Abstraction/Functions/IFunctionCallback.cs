@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
-
 namespace BotSharp.Abstraction.Functions;
 
 public interface IFunctionCallback
