@@ -23,7 +23,7 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
+    public Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
         throw new NotImplementedException();
     }

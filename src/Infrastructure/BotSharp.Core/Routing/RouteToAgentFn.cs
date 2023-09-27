@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using System.Drawing;
 
@@ -57,7 +58,7 @@ public class RouteToAgentFn : IFunctionCallback
     private bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
-        var router = _services.GetRequiredService<IAgentRouting>();
+        var router = _services.GetRequiredService<IRouterInstance>();
 
         var routingRules = router.GetRulesByName(args.AgentName);
 

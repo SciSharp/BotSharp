@@ -26,9 +26,8 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
     {
     }
 
-    public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
+    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
-        var routing = _services.GetRequiredService<IAgentRouting>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.Agents.First(x => x.Name.ToLower() == inst.AgentName.ToLower());
 

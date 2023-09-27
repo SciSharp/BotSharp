@@ -24,7 +24,7 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
+    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
         var result = new RoleDialogModel(AgentRole.Assistant, inst.Answer)
         {

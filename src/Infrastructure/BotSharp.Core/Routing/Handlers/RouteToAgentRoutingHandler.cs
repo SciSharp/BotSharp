@@ -27,7 +27,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<RoleDialogModel> Handle(FunctionCallFromLlm inst)
+    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
         var message = new RoleDialogModel(AgentRole.Function, inst.Question)
@@ -41,7 +41,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         var ret = await function.Execute(message);
 
-        var result = await InvokeAgent(message.CurrentAgentId);
+        var result = await routing.InvokeAgent(message.CurrentAgentId);
         result.ExecutionData = result.ExecutionData ?? message.ExecutionData;
         
         return result;
