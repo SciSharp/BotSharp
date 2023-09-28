@@ -9,7 +9,7 @@ The Open Source LLM Application Framework
 .. image:: https://img.shields.io/discord/1106946823282761851?label=Discord
     :target: `discord`_
 
-**Build the AI bot from scratch with .NET**
+**Connect LLMs to your application with .NET**
 
 > The LLM powered Conversational Service building blocks and best practice 
 
