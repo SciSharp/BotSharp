@@ -189,7 +189,7 @@ public class MongoRepository : IBotSharpRepository
                 {
                     Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
                     AgentId = Guid.Parse(x.AgentId),
-                    UserId = Guid.Parse(x.UserId),
+                    UserId = !string.IsNullOrEmpty(x.UserId) && Guid.TryParse(x.UserId, out var _) ? Guid.Parse(x.UserId) : Guid.Empty,
                     Title = x.Title,
                     States = x.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
                     CreatedTime = x.CreatedTime,
@@ -293,7 +293,7 @@ public class MongoRepository : IBotSharpRepository
                 {
                     Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
                     AgentId = Guid.Parse(x.AgentId),
-                    UserId = Guid.Parse(x.UserId),
+                    UserId = !string.IsNullOrEmpty(x.UserId) && Guid.TryParse(x.UserId, out var _) ? Guid.Parse(x.UserId) : Guid.Empty,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -550,7 +550,7 @@ public class MongoRepository : IBotSharpRepository
         {
             Id = !string.IsNullOrEmpty(conversation.Id) ? Guid.Parse(conversation.Id) : Guid.NewGuid(),
             AgentId = Guid.Parse(conversation.AgentId),
-            UserId = !string.IsNullOrEmpty(conversation.UserId) ? Guid.Parse(conversation.UserId) : Guid.Empty,
+            UserId = !string.IsNullOrEmpty(conversation.UserId) && Guid.TryParse(conversation.UserId, out var _) ? Guid.Parse(conversation.UserId) : Guid.Empty,
             Title = conversation.Title,
             States = conversation.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
             CreatedTime = DateTime.UtcNow,
@@ -652,7 +652,7 @@ public class MongoRepository : IBotSharpRepository
     public List<Conversation> GetConversations(string userId)
     {
         var records = new List<Conversation>();
-        if (string.IsNullOrEmpty(userId)) return records;
+        if (string.IsNullOrEmpty(userId) || Guid.TryParse(userId, out var _)) return records;
 
         var filterByUserId = Builders<ConversationCollection>.Filter.Eq(x => x.UserId, Guid.Parse(userId));
         var conversations = _dc.Conversations.Find(filterByUserId).ToList();
