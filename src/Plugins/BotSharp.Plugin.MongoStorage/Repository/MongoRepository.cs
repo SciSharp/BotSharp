@@ -41,9 +41,15 @@ public class MongoRepository : IBotSharpRepository
                 Name = x.Name,
                 Description = x.Description,
                 Instruction = x.Instruction,
-                Templates = x.Templates,
-                Functions = x.Functions,
-                Responses = x.Responses,
+                Templates = x.Templates?
+                             .Select(t => AgentTemplateMongoElement.ToDomainElement(t))?
+                             .ToList() ?? new List<AgentTemplate>(),
+                Functions = x.Functions?
+                             .Select(f => FunctionDefMongoElement.ToDomainElement(f))?
+                             .ToList() ?? new List<FunctionDef>(),
+                Responses = x.Responses?
+                             .Select(r => AgentResponseMongoElement.ToDomainElement(r))?
+                             .ToList() ?? new List<AgentResponse>(),
                 IsPublic = x.IsPublic,
                 Disabled = x.Disabled,
                 AllowRouting = x.AllowRouting,
@@ -183,7 +189,7 @@ public class MongoRepository : IBotSharpRepository
                 {
                     Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
                     AgentId = Guid.Parse(x.AgentId),
-                    UserId = Guid.Parse(x.UserId),
+                    UserId = !string.IsNullOrEmpty(x.UserId) && Guid.TryParse(x.UserId, out var _) ? Guid.Parse(x.UserId) : Guid.Empty,
                     Title = x.Title,
                     States = x.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
                     CreatedTime = x.CreatedTime,
@@ -211,9 +217,15 @@ public class MongoRepository : IBotSharpRepository
                     Name = x.Name,
                     Description = x.Description,
                     Instruction = x.Instruction,
-                    Templates = x.Templates,
-                    Functions = x.Functions,
-                    Responses = x.Responses,
+                    Templates = x.Templates?
+                                 .Select(t => AgentTemplateMongoElement.ToMongoElement(t))?
+                                 .ToList() ?? new List<AgentTemplateMongoElement>(),
+                    Functions = x.Functions?
+                                 .Select(f => FunctionDefMongoElement.ToMongoElement(f))?
+                                 .ToList() ?? new List<FunctionDefMongoElement>(),
+                    Responses = x.Responses?
+                                 .Select(r => AgentResponseMongoElement.ToMongoElement(r))?
+                                 .ToList() ?? new List<AgentResponseMongoElement>(),
                     IsPublic = x.IsPublic,
                     AllowRouting = x.AllowRouting,
                     Disabled = x.Disabled,
@@ -281,7 +293,7 @@ public class MongoRepository : IBotSharpRepository
                 {
                     Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
                     AgentId = Guid.Parse(x.AgentId),
-                    UserId = Guid.Parse(x.UserId),
+                    UserId = !string.IsNullOrEmpty(x.UserId) && Guid.TryParse(x.UserId, out var _) ? Guid.Parse(x.UserId) : Guid.Empty,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -446,9 +458,10 @@ public class MongoRepository : IBotSharpRepository
     {
         if (functions.IsNullOrEmpty()) return;
 
+        var functionsToUpdate = functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList();
         var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
         var update = Builders<AgentCollection>.Update
-            .Set(x => x.Functions, functions)
+            .Set(x => x.Functions, functionsToUpdate)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -458,9 +471,10 @@ public class MongoRepository : IBotSharpRepository
     {
         if (templates.IsNullOrEmpty()) return;
 
+        var templatesToUpdate = templates.Select(t => AgentTemplateMongoElement.ToMongoElement(t)).ToList();
         var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
         var update = Builders<AgentCollection>.Update
-            .Set(x => x.Templates, templates)
+            .Set(x => x.Templates, templatesToUpdate)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -470,9 +484,10 @@ public class MongoRepository : IBotSharpRepository
     {
         if (responses.IsNullOrEmpty()) return;
 
+        var responsesToUpdate = responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList();
         var filter = Builders<AgentCollection>.Filter.Eq(x => x.Id, Guid.Parse(agentId));
         var update = Builders<AgentCollection>.Update
-            .Set(x => x.Responses, responses)
+            .Set(x => x.Responses, responsesToUpdate)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -487,11 +502,11 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.Disabled, agent.Disabled)
             .Set(x => x.AllowRouting, agent.AllowRouting)
             .Set(x => x.Profiles, agent.Profiles)
-            .Set(x => x.RoutingRules, agent.RoutingRules.Select(x => RoutingRuleMongoElement.ToMongoElement(x)).ToList())
+            .Set(x => x.RoutingRules, agent.RoutingRules.Select(r => RoutingRuleMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Instruction, agent.Instruction)
-            .Set(x => x.Templates, agent.Templates)
-            .Set(x => x.Functions, agent.Functions)
-            .Set(x => x.Responses, agent.Responses)
+            .Set(x => x.Templates, agent.Templates.Select(t => AgentTemplateMongoElement.ToMongoElement(t)).ToList())
+            .Set(x => x.Functions, agent.Functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList())
+            .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
@@ -535,7 +550,7 @@ public class MongoRepository : IBotSharpRepository
         {
             Id = !string.IsNullOrEmpty(conversation.Id) ? Guid.Parse(conversation.Id) : Guid.NewGuid(),
             AgentId = Guid.Parse(conversation.AgentId),
-            UserId = Guid.Parse(conversation.UserId),
+            UserId = !string.IsNullOrEmpty(conversation.UserId) && Guid.TryParse(conversation.UserId, out var _) ? Guid.Parse(conversation.UserId) : Guid.Empty,
             Title = conversation.Title,
             States = conversation.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
             CreatedTime = DateTime.UtcNow,
@@ -637,7 +652,7 @@ public class MongoRepository : IBotSharpRepository
     public List<Conversation> GetConversations(string userId)
     {
         var records = new List<Conversation>();
-        if (string.IsNullOrEmpty(userId)) return records;
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var _)) return records;
 
         var filterByUserId = Builders<ConversationCollection>.Filter.Eq(x => x.UserId, Guid.Parse(userId));
         var conversations = _dc.Conversations.Find(filterByUserId).ToList();

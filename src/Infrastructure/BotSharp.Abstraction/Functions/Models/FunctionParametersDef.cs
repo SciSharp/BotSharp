@@ -18,4 +18,9 @@ public class FunctionParametersDef
 
     [JsonPropertyName("required")]
     public List<string> Required {  get; set; } = new List<string>();
+
+    public FunctionParametersDef()
+    {
+        
+    }
 }
