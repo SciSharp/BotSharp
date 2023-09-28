@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
@@ -22,7 +23,7 @@ public partial class AgentService
         record.Profiles = agent.Profiles ?? new List<string>();
         record.RoutingRules = agent.RoutingRules ?? new List<RoutingRule>();
         record.Instruction = agent.Instruction ?? string.Empty;
-        record.Functions = agent.Functions ?? new List<string>();
+        record.Functions = agent.Functions ?? new List<FunctionDef>();
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
 

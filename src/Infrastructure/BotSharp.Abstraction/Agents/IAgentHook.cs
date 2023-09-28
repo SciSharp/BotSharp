@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Functions.Models;
+
 namespace BotSharp.Abstraction.Agents;
 
 public interface IAgentHook
@@ -15,7 +17,7 @@ public interface IAgentHook
 
     bool OnInstructionLoaded(string template, Dictionary<string, object> dict);
 
-    bool OnFunctionsLoaded(ref List<string> functions);
+    bool OnFunctionsLoaded(ref List<FunctionDef> functions);
 
     bool OnSamplesLoaded(ref string samples);
 

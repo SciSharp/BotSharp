@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
@@ -26,7 +27,7 @@ public class AgentUpdateModel
     /// <summary>
     /// Functions
     /// </summary>
-    public List<string>? Functions { get; set; }
+    public List<FunctionDef>? Functions { get; set; }
 
     /// <summary>
     /// Routes
@@ -61,7 +62,7 @@ public class AgentUpdateModel
                             .ToList() ?? new List<RoutingRule>(),
             Instruction = Instruction ?? string.Empty,
             Templates = Templates ?? new List<AgentTemplate>(),
-            Functions = Functions ?? new List<string>(),
+            Functions = Functions ?? new List<FunctionDef>(),
             Responses = Responses ?? new List<AgentResponse>()
         };
 

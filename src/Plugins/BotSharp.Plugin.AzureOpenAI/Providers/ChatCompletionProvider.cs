@@ -84,17 +84,6 @@ public class ChatCompletionProvider : IChatCompletion
         return samples;
     }
 
-    public List<FunctionDef> GetFunctions(List<string> functionsJson)
-    {
-        var functions = functionsJson?.Select(x => JsonSerializer.Deserialize<FunctionDef>(x, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true
-        }))?.ToList() ?? new List<FunctionDef>();
-
-        return functions;
-    }
-
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var (client, deploymentModel) = GetClient();
@@ -263,8 +252,7 @@ public class ChatCompletionProvider : IChatCompletion
             chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
         }
 
-        var functions = GetFunctions(agent.Functions);
-        foreach (var function in functions)
+        foreach (var function in agent.Functions)
         {
             chatCompletionsOptions.Functions.Add(new FunctionDefinition
             {
@@ -301,11 +289,20 @@ public class ChatCompletionProvider : IChatCompletion
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)
         {
-            var verbose = string.Join("\n", chatCompletionsOptions.Messages.Select(x =>
+            _logger.LogInformation("VERBOSE COMPLETION MESSAGES");
+            var verbose = string.Join("\r\n", chatCompletionsOptions.Messages.Select(x =>
             {
                 return x.Role == ChatRole.Function ?
-                    $"{x.Role}: {x.Name} {x.Content}" :
+                    $"{x.Role}: {x.Name} => {x.Content}" :
                     $"{x.Role}: {x.Content}";
+            }));
+
+            _logger.LogInformation(verbose);
+
+            _logger.LogInformation("VERBOSE FUNCTIONS");
+            verbose = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+            {
+                return $"{x.Name}: {x.Description}\r\n{x.Parameters}";
             }));
 
             _logger.LogInformation(verbose);

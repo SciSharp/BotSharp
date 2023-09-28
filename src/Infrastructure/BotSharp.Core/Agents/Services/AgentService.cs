@@ -27,7 +27,8 @@ public partial class AgentService : IAgentService
         {
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
+            WriteIndented = true,
+            AllowTrailingCommas = true
         };
     }
 

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Abstraction.Agents.Models;
@@ -32,7 +33,7 @@ public class Agent
     /// Functions
     /// </summary>
     [JsonIgnore]
-    public List<string> Functions { get; set; }
+    public List<FunctionDef> Functions { get; set; } = new List<FunctionDef>();
 
     /// <summary>
     /// Responses
@@ -102,9 +103,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetFunctions(List<string> functions)
+    public Agent SetFunctions(List<FunctionDef> functions)
     {
-        Functions = functions ?? new List<string>();
+        Functions = functions ?? new List<FunctionDef>();
         return this;
     }
 
