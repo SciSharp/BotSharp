@@ -652,7 +652,7 @@ public class MongoRepository : IBotSharpRepository
     public List<Conversation> GetConversations(string userId)
     {
         var records = new List<Conversation>();
-        if (string.IsNullOrEmpty(userId) || Guid.TryParse(userId, out var _)) return records;
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var _)) return records;
 
         var filterByUserId = Builders<ConversationCollection>.Filter.Eq(x => x.UserId, Guid.Parse(userId));
         var conversations = _dc.Conversations.Find(filterByUserId).ToList();
