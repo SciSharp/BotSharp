@@ -56,7 +56,7 @@ public partial class ConversationService : IConversationService
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var conversationSettings = _services.GetRequiredService<ConversationSetting>();
         var user = db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
-        var foundUserId = user?.Id ?? _user.Id;
+        var foundUserId = user?.Id ?? string.Empty;
 
         var record = sess;
         record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
