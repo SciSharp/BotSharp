@@ -51,7 +51,7 @@ public class TokenStatistics : ITokenStatistics
 
     public void PrintStatistics()
     {
-        var stats = $"Token Usage: {_promptTokenCount} prompt + {_completionTokenCount} completion = {Total} total tokens. One-Way cost: ${Cost:C4}, accumulated cost: ${AccumulatedCost:C4}. Model: {_model}";
+        var stats = $"Token Usage: {_promptTokenCount} prompt + {_completionTokenCount} completion = {Total} total tokens. One-Way cost: {Cost:C4}, accumulated cost: {AccumulatedCost:C4}. [{_model}]";
 #if DEBUG
         Console.WriteLine(stats, Color.DarkGray);
 #else

@@ -290,11 +290,19 @@ public class ChatCompletionProvider : IChatCompletion
         if (convSetting.ShowVerboseLog)
         {
             _logger.LogInformation("VERBOSE COMPLETION MESSAGES");
-            var verbose = string.Join("\n", chatCompletionsOptions.Messages.Select(x =>
+            var verbose = string.Join("\r\n", chatCompletionsOptions.Messages.Select(x =>
             {
                 return x.Role == ChatRole.Function ?
                     $"{x.Role}: {x.Name} => {x.Content}" :
                     $"{x.Role}: {x.Content}";
+            }));
+
+            _logger.LogInformation(verbose);
+
+            _logger.LogInformation("VERBOSE FUNCTIONS");
+            verbose = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+            {
+                return $"{x.Name}: {x.Description}\r\n{x.Parameters}";
             }));
 
             _logger.LogInformation(verbose);

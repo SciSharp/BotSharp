@@ -1,6 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Agents.Services;
@@ -34,7 +32,7 @@ public partial class AgentService
                 hook.OnInstructionLoaded(agent.Instruction, templateDict);
             }
 
-            if (!agent.Functions.IsNullOrEmpty())
+            if (agent.Functions != null)
             {
                 var functions = agent.Functions;
                 hook.OnFunctionsLoaded(ref functions);

@@ -9,7 +9,6 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Routing;
-using System.Reflection;
 using BotSharp.Core.Routing.Hooks;
 
 namespace BotSharp.Core;
@@ -64,7 +63,7 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IInstructService, InstructService>();
         services.AddScoped<ITokenStatistics, TokenStatistics>();
 
-        services.AddScoped<IAgentHook, AgentHook>();
+        services.AddScoped<IAgentHook, RoutingAgentHook>();
 
         return services;
     }
