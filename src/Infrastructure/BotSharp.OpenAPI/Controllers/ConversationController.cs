@@ -24,7 +24,6 @@ public class ConversationController : ControllerBase, IApiAdapter
         var service = _services.GetRequiredService<IConversationService>();
         var sess = new Conversation
         {
-            UserId = _user.Id,
             AgentId = agentId
         };
         sess = await service.NewConversation(sess);
