@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -12,6 +13,7 @@ public class TokenStatistics : ITokenStatistics
     private readonly ILogger _logger;
     public int Total => _promptTokenCount + _completionTokenCount;
     public string _model;
+    private Stopwatch _timer;
 
     public float Cost => _promptCost + _completionCost;
     public float AccumulatedCost
@@ -51,11 +53,28 @@ public class TokenStatistics : ITokenStatistics
 
     public void PrintStatistics()
     {
-        var stats = $"Token Usage: {_promptTokenCount} prompt + {_completionTokenCount} completion = {Total} total tokens. One-Way cost: {Cost:C4}, accumulated cost: {AccumulatedCost:C4}. [{_model}]";
+        var stats = $"Token Usage: {_promptTokenCount} prompt + {_completionTokenCount} completion = {Total} total tokens ({_timer.ElapsedMilliseconds / 1000f:f2}s). One-Way cost: {Cost:C4}, accumulated cost: {AccumulatedCost:C4}. [{_model}]";
 #if DEBUG
         Console.WriteLine(stats, Color.DarkGray);
 #else
         _logger.LogInformation(stats);
 #endif
+    }
+
+    public void StartTimer()
+    {
+        if (_timer == null)
+        {
+            _timer = Stopwatch.StartNew();
+        }
+        else
+        {
+            _timer.Start();
+        }
+    }
+
+    public void StopTimer()
+    {
+        _timer.Stop();
     }
 }

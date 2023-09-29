@@ -9,13 +9,13 @@ public class RoutingAgentHook : AgentHookBase
     {
     }
 
-    public override bool OnFunctionsLoaded(ref List<FunctionDef> functions)
+    public override bool OnFunctionsLoaded(List<FunctionDef> functions)
     {
         /*functions.Add(new FunctionDef
         {
             Name = "fallback_to_router",
             Description = "If the user's request is beyond your capabilities, you can call this function for help."
         });*/
-        return base.OnFunctionsLoaded(ref functions);
+        return base.OnFunctionsLoaded(functions);
     }
 }

@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
@@ -89,7 +88,9 @@ public class ChatCompletionProvider : IChatCompletion
         var (client, deploymentModel) = GetClient();
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
+        _tokenStatistics.StartTimer();
         var response = client.GetChatCompletions(deploymentModel, chatCompletionsOptions);
+        _tokenStatistics.StopTimer();
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 

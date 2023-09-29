@@ -6,11 +6,12 @@
 `IAgentHook`
 ```csharp
 bool OnAgentLoading(ref string id);
-bool OnInstructionLoaded(ref string instruction);
-bool OnFunctionsLoaded(ref string functions);
+bool OnInstructionLoaded(string template, Dictionary<string, object> dict);
+bool OnFunctionsLoaded(List<FunctionDef> functions);
 bool OnSamplesLoaded(ref string samples);
 Agent OnAgentLoaded();
 ```
+More information about agent hook please go to [Agent Hook](../agent/hook.md).
 
 ## Conversation Hook
 `IConversationHook`
@@ -21,7 +22,7 @@ Task OnFunctionExecuting(RoleDialogModel message);
 Task OnFunctionExecuted(RoleDialogModel message);
 Task AfterCompletion(RoleDialogModel message);
 ```
-
+More information about conversation hook please go to [Conversation Hook](../conversation/hook.md).
 
 ### Conversation State Hook
 `IConversationHook`

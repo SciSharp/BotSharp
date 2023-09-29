@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing;
@@ -22,45 +23,48 @@ public partial class RoutingService
 
         if (response.Role == AgentRole.Function)
         {
-            var fn = response;
-            // execute function
-            // Save states
-            SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(fn.FunctionArgs));
-
-            var conversationService = _services.GetRequiredService<IConversationService>();
-            // Call functions
-            await conversationService.CallFunctions(fn);
-
-            if (string.IsNullOrEmpty(fn.Content))
-            {
-                fn.Content = fn.ExecutionResult;
-            }
-
-            Dialogs.Add(fn);
-
-            if (!fn.StopCompletion)
-            {
-                // Find response template
-                var templateService = _services.GetRequiredService<IResponseTemplateService>();
-                var quickResponse = await templateService.RenderFunctionResponse(agent.Id, fn);
-                if (!string.IsNullOrEmpty(quickResponse))
-                {
-                    response = new RoleDialogModel(AgentRole.Assistant, quickResponse)
-                    {
-                        CurrentAgentId = agent.Id
-                    };
-                }
-                else
-                {
-                    response = await InvokeAgent(fn.CurrentAgentId);
-                }
-            }
-            else
-            {
-                response = fn;
-            }
+            await InvokeFunction(agent, response);
         }
 
         return response;
+    }
+
+    private async Task InvokeFunction(Agent agent, RoleDialogModel response)
+    {
+        // execute function
+        // Save states
+        SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(response.FunctionArgs));
+
+        var conversationService = _services.GetRequiredService<IConversationService>();
+        // Call functions
+        await conversationService.CallFunctions(response);
+
+        if (string.IsNullOrEmpty(response.Content))
+        {
+            response.Content = response.ExecutionResult;
+        }
+
+        Dialogs.Add(response);
+
+        if (!response.StopCompletion)
+        {
+            // Find response template
+            var templateService = _services.GetRequiredService<IResponseTemplateService>();
+            var responseTemplate = await templateService.RenderFunctionResponse(agent.Id, response);
+            if (!string.IsNullOrEmpty(responseTemplate))
+            {
+                response.Role = AgentRole.Assistant;
+                response.Content = responseTemplate;
+            }
+            else
+            {
+                var recursiveResponse = await InvokeAgent(response.CurrentAgentId);
+                response.Role = recursiveResponse.Role;
+                response.Content = recursiveResponse.Content;
+                response.ExecutionResult = recursiveResponse.ExecutionResult;
+                response.ExecutionData = recursiveResponse.ExecutionData;
+                response.StopCompletion = recursiveResponse.StopCompletion;
+            }
+        }
     }
 }

@@ -34,8 +34,7 @@ public partial class AgentService
 
             if (agent.Functions != null)
             {
-                var functions = agent.Functions;
-                hook.OnFunctionsLoaded(ref functions);
+                hook.OnFunctionsLoaded(agent.Functions);
             }
 
             if (!string.IsNullOrEmpty(agent.Samples))

@@ -17,7 +17,7 @@ public interface IAgentHook
 
     bool OnInstructionLoaded(string template, Dictionary<string, object> dict);
 
-    bool OnFunctionsLoaded(ref List<FunctionDef> functions);
+    bool OnFunctionsLoaded(List<FunctionDef> functions);
 
     bool OnSamplesLoaded(ref string samples);
 
