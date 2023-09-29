@@ -92,11 +92,13 @@ public partial class ConversationService
             routingSetting.RouterName : 
             (await _services.GetRequiredService<IAgentService>().GetAgent(message.CurrentAgentId)).Name;
 
+        var text = message.Role == AgentRole.Function ?
+            $"[{agentName}] {message.FunctionName}: {message.Content}" :
+            $"[{agentName}] {message.Role}: {message.Content}";
 #if DEBUG
-        Console.WriteLine($"[{agentName}] {message.Role}: {message.Content}", Color.Pink);
+        Console.WriteLine(text, Color.Pink);
 #else
-        
-        _logger.LogInformation($"[{agentName}] {message.Role}: {message.Content}");
+        _logger.LogInformation(text);
 #endif
 
         await onMessageReceived(message);

@@ -11,6 +11,4 @@ The Routing feature is the core technology used by BotSharp to manage multiple A
 For simple questions raised by users, the ordinary routing function can already handle it. However, for the scenario where the user has a long description and needs to disassemble the task, ordinary routing cannot handle it. At this time, the `Reasoning` feature needs to be turned on, and LLM will respond according to the problem. The complexity is broken down into different small tasks. These small tasks can be processed by the corresponding Agent. During the processing process, the Router will constantly adjust the next step plan to deal with the different results returned by the Agent.
 
 
-### How to register agent to router?
-
-When you add a new Agent, the Router can automatically read the Agent's configuration, but in order for the Router to distribute the Request to the new Agent, you must set the `AllowRouting` attribute to `True`. For more information on how to use Router, please refer to the Agent/Router chapter.
+For more **Routing** related information, please go to [Agent Routing](../agent/router.md).

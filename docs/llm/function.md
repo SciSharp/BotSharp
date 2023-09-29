@@ -1,1 +1,5 @@
 # Function
+
+A **calling function** is a function that is passed as an argument to another function and is executed after a specific event or action occurs. In the context of **large language models (LLMs)**, calling functions can be used to hook into various stages of an LLM application. They are useful for tasks such as logging, monitoring, streaming, and more. For example, in the **BotSharp** framework, calling functions can be used to log information, monitor the progress of an LLM application, or perform other tasks. The BotSharp provides a `callbacks` argument that allows developers to interactive with external systems.
+
+The use of calling functions in LLM applications provides flexibility and extensibility. Developers can customize the behavior of their applications by defining callback handlers that implement specific methods. These handlers can be used for tasks like logging, error handling, or interacting with external systems. The function will be triggered by LLM based on the conversation context.

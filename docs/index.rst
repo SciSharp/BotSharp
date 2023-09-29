@@ -47,12 +47,17 @@ The main documentation for the site is organized into the following sections:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Agent & Conversation
+   :caption: Agent
 
    agent/intro
-   agent/conversation
-   agent/state
    agent/router
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Conversation
+
+   conversation/intro
+   conversation/state
 
 .. _integration-docs:
 
