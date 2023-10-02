@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using System.IO;
 using System.Reflection;
@@ -64,7 +65,8 @@ public class ResponseTemplateService : IResponseTemplateService
         //    .ToList();
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var responses = db.GetAgentResponses(agentId, "intent", message.IntentName);
+        var context = _services.GetRequiredService<RoutingContext>();
+        var responses = db.GetAgentResponses(agentId, "intent", context.IntentName);
 
         if (responses.Count == 0)
         {

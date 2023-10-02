@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing.Models;
+
 namespace BotSharp.Abstraction.Conversations.Models;
 
 public class RoleDialogModel
@@ -27,11 +29,6 @@ public class RoleDialogModel
     /// It's ideal to render in rich content in UI.
     /// </summary>
     public object ExecutionData { get; set; }
-
-    /// <summary>
-    /// Intent name
-    /// </summary>
-    public string IntentName {  get; set; }
 
     /// <summary>
     /// Stop conversation completion

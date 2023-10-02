@@ -13,15 +13,20 @@ public class RouteToAgentFn : IFunctionCallback
 {
     public string Name => "route_to_agent";
     private readonly IServiceProvider _services;
+    private readonly RoutingContext _context;
 
-    public RouteToAgentFn(IServiceProvider services)
+    public RouteToAgentFn(IServiceProvider services, RoutingContext context)
     {
         _services = services;
+        _context = context;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
+
+        // Push to routing stack
+        _context.Push(message.CurrentAgentId);
 
         if (string.IsNullOrEmpty(args.AgentName))
         {
@@ -45,6 +50,8 @@ public class RouteToAgentFn : IFunctionCallback
                 }
             }
         }
+
+        _context.Push(message.CurrentAgentId);
 
         // Set default execution data
         message.ExecutionData = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);

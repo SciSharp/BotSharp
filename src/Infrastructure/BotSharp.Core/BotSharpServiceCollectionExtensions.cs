@@ -10,6 +10,7 @@ using BotSharp.Core.Instructs;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Routing.Hooks;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core;
 
@@ -32,6 +33,7 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
+        services.AddScoped<RoutingContext>();
 
         var databaseSettings = new DatabaseBasicSettings();
         config.Bind("Database", databaseSettings);
