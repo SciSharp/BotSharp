@@ -37,11 +37,13 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
             {
                 AgentName = inst.AgentName
             }),
+            CurrentAgentId = routing.Dialogs.Last().CurrentAgentId
         };
 
         var ret = await function.Execute(message);
 
-        var result = await routing.InvokeAgent(message.CurrentAgentId);
+        var context = _services.GetRequiredService<RoutingContext>();
+        var result = await routing.InvokeAgent(context.CurrentAgentId);
         
         return result;
     }

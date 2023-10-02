@@ -5,7 +5,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    const int MAXIMUM_RECURSION_DEPTH = 2;
+    const int MAXIMUM_RECURSION_DEPTH = 3;
     int CurrentRecursionDepth = 0;
     public async Task<RoleDialogModel> InvokeAgent(string agentId)
     {
