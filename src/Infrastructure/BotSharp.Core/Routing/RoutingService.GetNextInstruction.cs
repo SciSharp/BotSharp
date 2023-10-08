@@ -18,9 +18,12 @@ public partial class RoutingService
             });
         var content = $"{prompt} Response must be in JSON format {responseFormat}";
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var provider = state.GetState("provider", _settings.Provider);
+        var model = state.GetState("model", _settings.Model);
         var chatCompletion = CompletionProvider.GetChatCompletion(_services,
-            provider: _settings.Provider,
-            model: _settings.Model);
+            provider: provider,
+            model: model);
 
         var response = chatCompletion.GetChatCompletions(_routerInstance.Router, new List<RoleDialogModel>
             {

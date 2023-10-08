@@ -29,17 +29,13 @@
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
     <PackageReference Include="BotSharp.OpenAPI" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.AzureOpenAI" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.ChatbotUI" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.HuggingFace" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.KnowledgeBase" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MetaAI" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MetaMessenger" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MongoStorage" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.PaddleSharp" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.Qdrant" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.RoutingSpeeder" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.WeChat" Version="$(BotSharpVersion)" />
   </ItemGroup>
     
   <ItemGroup>
@@ -52,6 +48,7 @@
   <ItemGroup Condition="$(SolutionName)==BotSharp">
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MongoStorage\BotSharp.Plugin.MongoStorage.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AzureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatbotUI\BotSharp.Plugin.ChatbotUI.csproj" />

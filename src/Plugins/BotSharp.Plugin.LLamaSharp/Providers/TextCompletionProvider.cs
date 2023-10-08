@@ -14,6 +14,8 @@ public class TextCompletionProvider : ITextCompletion
 {
     private readonly IServiceProvider _services;
     private readonly LlamaSharpSettings _settings;
+    private string _model;
+    public string Provider => "llama-sharp";
 
     public TextCompletionProvider(IServiceProvider services,
         LlamaSharpSettings settings)
@@ -41,5 +43,10 @@ public class TextCompletionProvider : ITextCompletion
         }
 
         return Task.FromResult(totalResponse);
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
     }
 }

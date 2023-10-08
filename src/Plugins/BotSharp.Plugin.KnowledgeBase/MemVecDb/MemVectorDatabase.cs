@@ -85,6 +85,7 @@ public class MemVectorDatabase : IVectorDb
     {
         var simiMatix = CalCosineSimilarity(vec, records);
 
+        topK = Math.Min(topK, records.Count);
         var topIndex = np.argsort(simiMatix)["::-1"][$":{topK}"];
 
         var resIndex = new List<int>();

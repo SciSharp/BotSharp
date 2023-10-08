@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
-using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +24,7 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly ITokenStatistics _tokenStatistics;
     private string _model;
 
-    public virtual string Provider => "azure-openai";
+    public string Provider => "azure-openai";
 
     public ChatCompletionProvider(AzureOpenAiSettings settings, 
         ILogger<ChatCompletionProvider> logger,

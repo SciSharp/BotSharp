@@ -13,6 +13,8 @@ public class TextCompletionProvider : ITextCompletion
     private readonly AzureOpenAiSettings _settings;
     private readonly ILogger _logger;
     bool _useAzureOpenAI = true;
+    private string _model;
+    public string Provider => "azure-openai";
 
     public TextCompletionProvider(AzureOpenAiSettings settings, ILogger<TextCompletionProvider> logger)
     {
@@ -47,6 +49,11 @@ public class TextCompletionProvider : ITextCompletion
         _logger.LogInformation(text + completion);
 
         return completion.Trim();
+    }
+
+    public void SetModelName(string model)
+    {
+        _model = model;
     }
 
     private OpenAIClient GetOpenAIClient()
