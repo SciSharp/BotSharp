@@ -37,59 +37,15 @@ public class ChatCompletionProvider : IChatCompletion
         _tokenStatistics = tokenStatistics;
     }
 
-    protected virtual (OpenAIClient, string) GetClient()
-    {
-        if (_model == "gpt-4")
-        {
-            var client = new OpenAIClient(new Uri(_settings.GPT4.Endpoint), new AzureKeyCredential(_settings.GPT4.ApiKey));
-            return (client, _settings.GPT4.DeploymentModel);
-        }
-        else
-        {
-            var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
-            return (client, _settings.DeploymentModel.ChatCompletionModel);
-        }
-    }
-
-    public List<RoleDialogModel> GetChatSamples(string sampleText)
-    {
-        var samples = new List<RoleDialogModel>();
-        if (string.IsNullOrEmpty(sampleText))
-        {
-            return samples;
-        }
-
-        var lines = sampleText.Split('\n');
-        for (int i = 0; i < lines.Length; i++)
-        {
-            var line = lines[i];
-            if (string.IsNullOrEmpty(line.Trim()))
-            {
-                continue;
-            }
-            var role = line.Substring(0, line.IndexOf(' ') - 1).Trim();
-            var content = line.Substring(line.IndexOf(' ') + 1).Trim();
-
-            // comments
-            if (role == "##")
-            {
-                continue;
-            }
-
-            samples.Add(new RoleDialogModel(role, content));
-        }
-
-        return samples;
-    }
-
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var (client, deploymentModel) = GetClient();
+        var (client, deploymentModel) = ProviderHelper.GetClient(_model, _settings);
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
         _tokenStatistics.StartTimer();
         var response = client.GetChatCompletions(deploymentModel, chatCompletionsOptions);
         _tokenStatistics.StopTimer();
+
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
@@ -104,7 +60,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
-            _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name} => {message.FunctionCall.Arguments}");
+            _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name}({message.FunctionCall.Arguments})");
 
             var funcContextIn = new RoleDialogModel(AgentRole.Function, message.Content)
             {
@@ -137,7 +93,7 @@ public class ChatCompletionProvider : IChatCompletion
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var (client, deploymentModel) = GetClient();
+        var (client, deploymentModel) = ProviderHelper.GetClient(_model, _settings);
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
         var response = await client.GetChatCompletionsAsync(deploymentModel, chatCompletionsOptions);
@@ -155,7 +111,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
-            _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name} => {message.FunctionCall.Arguments}");
+            _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name}({message.FunctionCall.Arguments})");
 
             var funcContextIn = new RoleDialogModel(AgentRole.Function, message.Content)
             {
@@ -246,7 +202,7 @@ public class ChatCompletionProvider : IChatCompletion
             chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, agent.Knowledges));
         }
 
-        var samples = GetChatSamples(agent.Samples);
+        var samples = ProviderHelper.GetChatSamples(agent.Samples);
         foreach (var message in samples)
         {
             chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));

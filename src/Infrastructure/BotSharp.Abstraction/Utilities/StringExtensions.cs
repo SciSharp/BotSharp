@@ -18,21 +18,6 @@ public static class StringExtensions
             return str;
     }
 
-    public static string CleanPhoneNumber(this string phoneNumber)
-    {
-        if (phoneNumber != null && !phoneNumber.All(char.IsDigit))
-        {
-            phoneNumber = Regex.Replace(phoneNumber, @"[^\d]", "");
-        }
-
-        if (phoneNumber != null && phoneNumber.Length > 10)
-        {
-            phoneNumber = phoneNumber.Substring(1);
-        }
-
-        return phoneNumber;
-    }
-
     public static string[] SplitByNewLine(this string input)
     {
         return input.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);

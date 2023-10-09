@@ -12,6 +12,7 @@ public class RoutingSettings
     public string Description { get; set; } = string.Empty;
 
     public bool EnableReasoning {  get; set; } = false;
+    public bool UseTextCompletion {  get; set; } = false;
 
     public string Provider {  get; set; } = string.Empty;
 

@@ -29,10 +29,9 @@ public class ChatCompletionProvider : IChatCompletion
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var client = new GooglePalmClient(apiKey: _settings.PaLM.ApiKey);
-        List<PalmChatMessage> messages = new()
-        {
-            new(conversations.Last().Content, "user"),
-        };
+        var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
+            .ToList();
+
         _tokenStatistics.StartTimer();
         var response = client.ChatAsync(messages, agent.Instruction, null).Result;
         _tokenStatistics.StopTimer();

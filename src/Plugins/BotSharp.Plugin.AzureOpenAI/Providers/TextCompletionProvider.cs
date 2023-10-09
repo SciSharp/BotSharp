@@ -1,43 +1,68 @@
 using Azure.AI.OpenAI;
-using Azure;
 using BotSharp.Abstraction.MLTasks;
 using System;
 using System.Threading.Tasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using Microsoft.Extensions.Logging;
+using BotSharp.Abstraction.Conversations;
+using Microsoft.Extensions.DependencyInjection;
+using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class TextCompletionProvider : ITextCompletion
 {
+    private readonly IServiceProvider _services;
     private readonly AzureOpenAiSettings _settings;
     private readonly ILogger _logger;
-    bool _useAzureOpenAI = true;
+    private readonly ITokenStatistics _tokenStatistics;
     private string _model;
     public string Provider => "azure-openai";
 
-    public TextCompletionProvider(AzureOpenAiSettings settings, ILogger<TextCompletionProvider> logger)
+    public TextCompletionProvider(IServiceProvider services,
+        AzureOpenAiSettings settings, 
+        ILogger<TextCompletionProvider> logger,
+        ITokenStatistics tokenStatistics)
     {
+        _services = services;
         _settings = settings;
         _logger = logger;
+        _tokenStatistics = tokenStatistics;
     }
 
     public async Task<string> GetCompletion(string text)
     {
-        var client = GetOpenAIClient();
+        var (client, _) = ProviderHelper.GetClient(_model, _settings);
+
         var completionsOptions = new CompletionsOptions()
         {
             Prompts =
             {
                 text
             },
-            Temperature = 0.7f,
             MaxTokens = 256
         };
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var temperature = float.Parse(state.GetState("temperature", "0.5"));
+        var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
+        completionsOptions.Temperature = temperature;
+        completionsOptions.NucleusSamplingFactor = samplingFactor;
+
+        _tokenStatistics.StartTimer();
         var response = await client.GetCompletionsAsync(
             deploymentOrModelName: _settings.DeploymentModel.TextCompletionModel,
             completionsOptions);
+        _tokenStatistics.StopTimer();
+
+        _tokenStatistics.AddToken(new TokenStatsModel
+        {
+            Model = _model,
+            PromptCount = response.Value.Usage.PromptTokens,
+            CompletionCount = response.Value.Usage.CompletionTokens,
+            PromptCost = 0.0015f,
+            CompletionCost = 0.002f
+        });
 
         // OpenAI
         var completion = "";
@@ -46,7 +71,7 @@ public class TextCompletionProvider : ITextCompletion
             completion += t.Text;
         };
 
-        _logger.LogInformation(text + completion);
+        _logger.LogInformation(text);
 
         return completion.Trim();
     }
@@ -54,15 +79,5 @@ public class TextCompletionProvider : ITextCompletion
     public void SetModelName(string model)
     {
         _model = model;
-    }
-
-    private OpenAIClient GetOpenAIClient()
-    {
-        OpenAIClient client = _useAzureOpenAI
-            ? new OpenAIClient(
-               new Uri(_settings.Endpoint),
-               new AzureKeyCredential(_settings.ApiKey))
-            : new OpenAIClient("your-api-key-from-platform.openai.com");
-        return client;
     }
 }

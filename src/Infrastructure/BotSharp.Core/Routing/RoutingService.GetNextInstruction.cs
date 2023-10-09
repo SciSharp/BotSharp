@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using System.Drawing;
 using System.Text.RegularExpressions;
@@ -19,16 +18,30 @@ public partial class RoutingService
         var content = $"{prompt} Response must be in JSON format {responseFormat}";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var provider = state.GetState("provider", _settings.Provider);
-        var model = state.GetState("model", _settings.Model);
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services,
-            provider: provider,
-            model: model);
+        
 
-        var response = chatCompletion.GetChatCompletions(_routerInstance.Router, new List<RoleDialogModel>
+        RoleDialogModel response = default;
+        if (_settings.UseTextCompletion)
+        {
+            var completion = CompletionProvider.GetTextCompletion(_services,
+                provider: _settings.Provider,
+                model: _settings.Model);
+
+            content = _routerInstance.Router.Instruction + "\r\n\r\n" + content + "\r\nResponse: ";
+            var text = await completion.GetCompletion(content);
+            response = new RoleDialogModel(AgentRole.Assistant, text);
+        }
+        else
+        {
+            var completion = CompletionProvider.GetChatCompletion(_services,
+                provider: _settings.Provider,
+                model: _settings.Model);
+
+            response = completion.GetChatCompletions(_routerInstance.Router, new List<RoleDialogModel>
             {
                 new RoleDialogModel(AgentRole.User, content)
             });
+        }
 
         var args = new FunctionCallFromLlm();
         try
