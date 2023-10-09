@@ -21,7 +21,7 @@ public class Agent
     /// Templates
     /// </summary>
     [JsonIgnore]
-    public List<AgentTemplate> Templates { get; set; }
+    public List<AgentTemplate>? Templates { get; set; }
 
     /// <summary>
     /// Samples
@@ -39,7 +39,7 @@ public class Agent
     /// Responses
     /// </summary>
     [JsonIgnore]
-    public List<AgentResponse> Responses { get; set; }
+    public List<AgentResponse>? Responses { get; set; }
 
     /// <summary>
     /// Domain knowledges

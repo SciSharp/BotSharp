@@ -46,7 +46,7 @@ public partial class AgentService
                        .SetResponses(foundAgent.Responses);
         }
 
-        var user = _db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var user = _db.Users.FirstOrDefault(x => x.Id == _user.Id || x.ExternalId == _user.Id);
         var userAgentRecord = new UserAgent
         {
             Id = Guid.NewGuid().ToString(),

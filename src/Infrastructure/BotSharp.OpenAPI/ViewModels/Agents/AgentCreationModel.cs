@@ -8,15 +8,40 @@ public class AgentCreationModel
 {
     public string Name { get; set; }
     public string Description { get; set; }
-    public string Instruction { get; set; }
-    public List<AgentTemplate> Templates { get; set; }
-    public List<FunctionDef> Functions { get; set; }
-    public List<AgentResponse> Responses { get; set; }
+
+    /// <summary>
+    /// LLM default system instructions
+    /// </summary>
+    public string Instruction { get; set; } = string.Empty;
+
+    /// <summary>
+    /// LLM extensible Instructions in addition to the default Instructions
+    /// </summary>
+    public List<AgentTemplate>? Templates { get; set; }
+
+    /// <summary>
+    /// LLM callable function definition
+    /// </summary>
+    public List<FunctionDef> Functions { get; set; } = new List<FunctionDef>();
+
+    /// <summary>
+    /// Response template
+    /// </summary>
+    public List<AgentResponse>? Responses { get; set; }
+
     public bool IsPublic { get; set; }
+
+    /// <summary>
+    /// Whether to allow Router to transfer Request to this Agent
+    /// </summary>
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }
-    public List<string> Profiles { get; set; }
-    public List<RoutingRuleUpdateModel> RoutingRules { get; set; }
+
+    /// <summary>
+    /// Combine different Agents together to form a Profile.
+    /// </summary>
+    public List<string> Profiles { get; set; } = new List<string>();
+    public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new List<RoutingRuleUpdateModel>();
 
     public Agent ToAgent()
     {
@@ -33,8 +58,8 @@ public class AgentCreationModel
             Disabled = Disabled,
             Profiles = Profiles,
             RoutingRules = RoutingRules?
-                            .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?
-                            .ToList() ?? new List<RoutingRule>()
+                .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?
+                .ToList() ?? new List<RoutingRule>()
         };
     }
 }
