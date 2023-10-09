@@ -86,8 +86,8 @@ The main documentation for the site is organized into the following sections:
    :maxdepth: 2
    :caption: Prompt Engineering
 
-   prompt/prompt
-   prompt/template
+   llm/prompt
+   llm/template
    llm/function
    llm/few-shot-learning
 

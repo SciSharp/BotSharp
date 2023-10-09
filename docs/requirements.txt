@@ -1,2 +1,3 @@
 sphinx == 6.2.1
+recommonmark == 0.7.1
 myst-parser

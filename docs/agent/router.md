@@ -10,6 +10,8 @@ This section will explain in detail the usage of Router. Router has a dedicated 
 }
 ```
 
+## How router works
+
 ### How to register agent to router?
 
 When you add a new Agent, the Router can automatically read the Agent's configuration, but in order for the Router to distribute the Request to the new Agent, you must set the `AllowRouting` attribute to `True`. For more information on how to use Router, please refer to the Agent/Router chapter.
