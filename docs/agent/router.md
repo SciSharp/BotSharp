@@ -48,4 +48,24 @@ public class TransferToCsrRoutingHandler : IRoutingHandler
 }
 ```
 
+## Routing - Redirection
+
+Router will maintain an Agent call stack and automatically set the currently active Agent based on the conversation status and redirection configuration.
+
+![calling stack](./assets/routing-calling-stack.png)
+
+You can configure redirection rules based on your business needs.
+
+```json
+{
+    "routingRules": [
+        {
+            "field": "order_number",
+            "required": true,
+            "description": "pizza order number",
+            "redirectTo": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd"
+        }
+    ]
+}
+```
 

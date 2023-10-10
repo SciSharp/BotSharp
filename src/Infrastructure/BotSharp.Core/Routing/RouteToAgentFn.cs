@@ -34,20 +34,26 @@ public class RouteToAgentFn : IFunctionCallback
         }
         else
         {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var targetAgent = db.Agents.FirstOrDefault(x => x.Name.ToLower() == args.AgentName.ToLower());
+            if (targetAgent == null)
+            {
+                message.ExecutionData = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
+                return false;
+            }
+
             var missingfield = HasMissingRequiredField(message, out var agentId);
             if (missingfield && message.CurrentAgentId != agentId)
             {
+                // Stack original Agent
+                _context.Push(targetAgent.Id);
+
                 message.CurrentAgentId = agentId;
             }
             else
             {
-                var db = _services.GetRequiredService<IBotSharpRepository>();
-                var record = db.Agents.FirstOrDefault(x => x.Name.ToLower() == args.AgentName.ToLower());
-                if (record != null)
-                {
-                    message.CurrentAgentId = record.Id;
-                    message.ExecutionResult = $"Routing to {args.AgentName}";
-                }
+                message.CurrentAgentId = targetAgent.Id;
+                message.ExecutionResult = $"Routing to {args.AgentName}";
             }
         }
 
