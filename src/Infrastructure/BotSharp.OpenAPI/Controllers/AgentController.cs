@@ -18,6 +18,13 @@ public class AgentController : ControllerBase, IApiAdapter
         _services = services;
     }
 
+    [HttpGet("/agent/{id}")]
+    public async Task<AgentViewModel> GetAgent([FromRoute] string id)
+    {
+        var agent = await _agentService.GetAgent(id);
+        return AgentViewModel.FromAgent(agent);
+    }
+
     [HttpGet("/agents")]
     public async Task<List<AgentViewModel>> GetAgents()
     {

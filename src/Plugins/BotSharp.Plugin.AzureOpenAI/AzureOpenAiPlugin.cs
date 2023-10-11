@@ -9,6 +9,9 @@ using System;
 
 namespace BotSharp.Platform.AzureAi;
 
+/// <summary>
+/// Azure OpenAI Service
+/// </summary>
 public class AzureOpenAiPlugin : IBotSharpPlugin
 {
     public void RegisterDI(IServiceCollection services, IConfiguration config)

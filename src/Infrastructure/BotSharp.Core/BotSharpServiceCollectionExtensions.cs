@@ -11,6 +11,7 @@ using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Routing.Hooks;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Core.Plugins;
 
 namespace BotSharp.Core;
 
@@ -106,8 +107,9 @@ public static class BotSharpServiceCollectionExtensions
 
     public static void RegisterPlugins(IServiceCollection services, IConfiguration config)
     {
-        var pluginSettings = new PluginLoaderSettings();
+        var pluginSettings = new PluginSettings();
         config.Bind("PluginLoader", pluginSettings);
+        services.AddSingleton(pluginSettings);
 
         var loader = new PluginLoader(services, config, pluginSettings);
         loader.Load(assembly =>

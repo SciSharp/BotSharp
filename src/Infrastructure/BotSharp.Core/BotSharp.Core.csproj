@@ -52,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspects.Cache" Version="2.0.3" />
+    <PackageReference Include="Aspects.Cache" Version="2.0.4" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.2.1" />
     <PackageReference Include="Fluid.Core" Version="2.5.0" />

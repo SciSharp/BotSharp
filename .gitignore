@@ -287,3 +287,4 @@ __pycache__/
 /docs/_build
 *.bin
 /src/WebStarter/data/conversations
+XMLs
