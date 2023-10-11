@@ -18,9 +18,10 @@ public partial class RoutingService
         var content = $"{prompt} Response must be in JSON format {responseFormat}";
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        
 
         RoleDialogModel response = default;
+        var args = new FunctionCallFromLlm();
+
         if (_settings.UseTextCompletion)
         {
             var completion = CompletionProvider.GetTextCompletion(_services,
@@ -37,47 +38,58 @@ public partial class RoutingService
                 provider: _settings.Provider,
                 model: _settings.Model);
 
-            response = completion.GetChatCompletions(_routerInstance.Router, new List<RoleDialogModel>
+            int retryCount = 0;
+
+            while (retryCount < 3)
             {
-                new RoleDialogModel(AgentRole.User, content)
-            });
+                try
+                {
+                    response = completion.GetChatCompletions(_routerInstance.Router, new List<RoleDialogModel>
+                    {
+                        new RoleDialogModel(AgentRole.User, content)
+                    });
+
+                    var pattern = @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}";
+                    response.Content = Regex.Match(response.Content, pattern).Value;
+                    args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"{ex.Message}: {response.Content}");
+                    args.Function = "response_to_user";
+                    args.Answer = ex.Message;
+                    args.AgentName = _settings.RouterName;
+                    content += "\r\nPlease response in JSON format.";
+                }
+                finally 
+                { 
+                    retryCount++; 
+                }
+            }
         }
 
-        var args = new FunctionCallFromLlm();
-        try
-        {
 #if DEBUG
-            Console.WriteLine(response.Content, Color.Gray);
+        Console.WriteLine(response.Content, Color.Gray);
 #else
-            _logger.LogInformation(response.Content);
+        _logger.LogInformation(response.Content);
 #endif
-            var pattern = @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}";
-            response.Content = Regex.Match(response.Content, pattern).Value;
-            args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
 
-            // Sometimes it populate malformed Function in Agent name
-            if (!string.IsNullOrEmpty(args.Function) && args.Function == args.AgentName)
-            {
-                args.Function = "route_to_agent";
-                _logger.LogWarning($"Captured LLM malformed response");
-            }
-
-            // Another case of malformed response
-            var agentService = _services.GetRequiredService<IAgentService>();
-            var agents = await agentService.GetAgents();
-            if (string.IsNullOrEmpty(args.AgentName) && agents.Select(x => x.Name).Contains(args.Function))
-            {
-                args.AgentName = args.Function;
-                args.Function = "route_to_agent";
-                _logger.LogWarning($"Captured LLM malformed response");
-            }
-        }
-        catch (Exception ex)
+        // Sometimes it populate malformed Function in Agent name
+        if (!string.IsNullOrEmpty(args.Function) && args.Function == args.AgentName)
         {
-            _logger.LogError($"{ex.Message}: {response.Content}");
-            args.Function = "response_to_user";
-            args.Answer = ex.Message;
-            args.AgentName = _settings.RouterName;
+            args.Function = "route_to_agent";
+            _logger.LogWarning($"Captured LLM malformed response");
+        }
+
+        // Another case of malformed response
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agents = await agentService.GetAgents();
+        if (string.IsNullOrEmpty(args.AgentName) && agents.Select(x => x.Name).Contains(args.Function))
+        {
+            args.AgentName = args.Function;
+            args.Function = "route_to_agent";
+            _logger.LogWarning($"Captured LLM malformed response");
         }
 
         if (args.Arguments != null)

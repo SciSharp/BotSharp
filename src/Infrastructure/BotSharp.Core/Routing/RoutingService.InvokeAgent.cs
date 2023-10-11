@@ -62,7 +62,7 @@ public partial class RoutingService
                 response.Role = recursiveResponse.Role;
                 response.Content = recursiveResponse.Content;
                 response.ExecutionResult = recursiveResponse.ExecutionResult;
-                response.ExecutionData = recursiveResponse.ExecutionData;
+                response.ExecutionData = recursiveResponse.ExecutionData ?? response.ExecutionData;
                 response.StopCompletion = recursiveResponse.StopCompletion;
             }
         }

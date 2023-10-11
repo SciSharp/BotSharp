@@ -6,9 +6,12 @@ Routing is an important function that allows multiple Agents to work together to
 
 The Routing feature is the core technology used by BotSharp to manage multiple Agents. BotSharp has a built-in intelligent Agent called `Router`. When you enable this function, all user requests will be pre-processed by the Router to determine which Agent to distribute the request to for processing. The advantage of Routing technology is that it can isolate different Agents and allow them to work together to achieve the user's goals. The adoption of `Routing` ensures that Agent can be scalable, flexible and robust enough in enterprise applications.
 
+![routing with reasoning](./assets/routing-redirection.png)
+
 ## Reasoner
 
 For simple questions raised by users, the ordinary routing function can already handle it. However, for the scenario where the user has a long description and needs to disassemble the task, ordinary routing cannot handle it. At this time, the `Reasoning` feature needs to be turned on, and LLM will respond according to the problem. The complexity is broken down into different small tasks. These small tasks can be processed by the corresponding Agent. During the processing process, the Router will constantly adjust the next step plan to deal with the different results returned by the Agent.
 
+![routing with reasoning](./assets/routing-reasoner.png)
 
 For more **Routing** related information, please go to [Agent Routing](../agent/router.md).
