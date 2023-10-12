@@ -14,6 +14,9 @@ namespace BotSharp.Platform.AzureAi;
 /// </summary>
 public class AzureOpenAiPlugin : IBotSharpPlugin
 {
+    public string Name => "Azure OpenAI";
+    public string Description => "Azure OpenAI Service";
+
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new AzureOpenAiSettings();

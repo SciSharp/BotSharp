@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Plugins.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using System.Drawing;
 using System.IO;
@@ -45,20 +46,21 @@ public class PluginLoader
                 foreach (var module in modules)
                 {
                     module.RegisterDI(_services, _config);
-                    string classSummary = GetSummaryComment(module.GetType());
+                    // string classSummary = GetSummaryComment(module.GetType());
+                    var name = string.IsNullOrEmpty(module.Name) ? module.GetType().Name : module.Name;
                     _modules.Add(module);
                     _plugins.Add(new PluginDef
                     {
-                        Name = module.GetType().Name,
-                        Description = classSummary,
+                        Name = name,
+                        Description = module.Description,
                         Assembly = assemblyName
                     });
                     Console.Write($"Loaded plugin ");
-                    Console.Write(module.GetType().Name, Color.Green);
+                    Console.Write(name, Color.Green);
                     Console.WriteLine($" from {assemblyName}.");
-                    if (!string.IsNullOrEmpty(classSummary))
+                    if (!string.IsNullOrEmpty(module.Description))
                     {
-                        Console.WriteLine(classSummary);
+                        Console.WriteLine(module.Description);
                     }
                 }
 
