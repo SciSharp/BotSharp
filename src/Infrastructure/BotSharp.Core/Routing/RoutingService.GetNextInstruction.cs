@@ -9,23 +9,13 @@ public partial class RoutingService
 {
     public async Task<FunctionCallFromLlm> GetNextInstruction(string prompt)
     {
-        var responseRouteToAgent = _settings.EnableReasoning ?
+        var responseFormat = _settings.EnableReasoning ?
             JsonSerializer.Serialize(new FunctionCallFromLlm()) :
             JsonSerializer.Serialize(new RoutingArgs
             {
-                Function = "route_to_agent",
-                AgentName = ""
+                Function = "route_to_agent"
             });
-
-        var responseResponseToUser = _settings.EnableReasoning ?
-            JsonSerializer.Serialize(new FunctionCallFromLlm()) :
-            JsonSerializer.Serialize(new RoutingArgs
-            {
-                Function = "response_to_user",
-                Answer = ""
-            });
-
-        var content = $"{prompt}\r\nIf need to route to specific agent, output in JSON {responseRouteToAgent}.\r\nIf you can handle the request directly, output in JSON {responseResponseToUser}.";
+        var content = $"{prompt} Response must be in JSON format {responseFormat}";
 
         var state = _services.GetRequiredService<IConversationStateService>();
 
