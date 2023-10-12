@@ -25,8 +25,21 @@ public class RouteToAgentFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
 
-        // Push to routing stack
-        _context.Push(message.CurrentAgentId);
+        // Push original task agent
+        if (!string.IsNullOrEmpty(args.OriginalAgent) && args.OriginalAgent.Length < 32)
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var originalAgent = db.Agents.FirstOrDefault(x => x.Name.ToLower() == args.OriginalAgent.ToLower());
+            if (originalAgent != null)
+            {
+                _context.Push(originalAgent.Id);
+            }
+        }
+        else
+        {
+            // Push current agent to routing stack
+            _context.Push(message.CurrentAgentId);
+        }
 
         if (string.IsNullOrEmpty(args.AgentName))
         {
