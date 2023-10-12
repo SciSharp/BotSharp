@@ -1,4 +1,8 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Routing.Hooks;
 
@@ -7,6 +11,17 @@ public class RoutingAgentHook : AgentHookBase
     public RoutingAgentHook(IServiceProvider services, AgentSettings settings) 
         : base(services, settings)
     {
+    }
+
+    public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
+    {
+        dict["router"] = _agent;
+
+        var router = _services.GetRequiredService<IRouterInstance>();
+        dict["routing_agents"] = router.GetRoutingItems();
+        dict["routing_handlers"] = router.GetHandlers();
+
+        return base.OnInstructionLoaded(template, dict);
     }
 
     public override bool OnFunctionsLoaded(List<FunctionDef> functions)

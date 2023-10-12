@@ -6,6 +6,7 @@ public interface IRouterInstance
 {
     string AgentId { get; }
     Agent Router { get; }
+    RoutingItem[] GetRoutingItems();
     List<RoutingHandlerDef> GetHandlers();
     IRouterInstance Load();
     IRouterInstance WithDialogs(List<RoleDialogModel> dialogs);

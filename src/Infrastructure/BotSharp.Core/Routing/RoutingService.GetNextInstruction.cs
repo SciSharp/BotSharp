@@ -49,7 +49,7 @@ public partial class RoutingService
                     _logger.LogError($"{ex.Message}: {response.Content}");
                     args.Function = "response_to_user";
                     args.Answer = ex.Message;
-                    args.AgentName = _settings.RouterName;
+                    args.AgentName = "Router";
                     content += "\r\nPlease response in JSON format.";
                 }
                 finally
@@ -85,7 +85,7 @@ public partial class RoutingService
                     _logger.LogError($"{ex.Message}: {response.Content}");
                     args.Function = "response_to_user";
                     args.Answer = ex.Message;
-                    args.AgentName = _settings.RouterName;
+                    args.AgentName = "Router";
                     content += "\r\nPlease response in JSON format.";
                 }
                 finally 

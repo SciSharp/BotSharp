@@ -89,7 +89,7 @@ public partial class ConversationService
 
         var routingSetting = _services.GetRequiredService<RoutingSettings>();
         var agentName = routingSetting.RouterId == message.CurrentAgentId ? 
-            routingSetting.RouterName : 
+            "Router" : 
             (await _services.GetRequiredService<IAgentService>().GetAgent(message.CurrentAgentId)).Name;
 
         var text = message.Role == AgentRole.Function ?

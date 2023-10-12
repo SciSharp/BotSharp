@@ -7,10 +7,6 @@ public class RoutingSettings
     /// </summary>
     public string RouterId { get; set; } = string.Empty;
 
-    public string RouterName { get; set; } = "Router";
-
-    public string Description { get; set; } = string.Empty;
-
     public bool EnableReasoning {  get; set; } = false;
     public bool UseTextCompletion {  get; set; } = false;
 

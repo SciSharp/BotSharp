@@ -28,80 +28,8 @@ public class RouterInstance : IRouterInstance
 
     public IRouterInstance Load()
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-
-        _router = new Agent()
-        {
-            Id = _settings.RouterId,
-            Name = _settings.RouterName,
-            Description = _settings.Description
-        };
-        var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
-
-        // Assemble prompt
-        var prompt = @$"You're {_settings.RouterName} ({_settings.Description}). Follow these steps to handle user's request:
-1. Read the CONVERSATION context.
-2. Select a appropriate function from FUNCTIONS.
-3. Determine which agent is suitable according to conversation context.
-4. Re-think about selected function is from FUNCTIONS to handle the request.
-5. Make sure agent is not in args.";
-
-        // Append function
-        prompt += "\r\n";
-        prompt += "\r\nFUNCTIONS";
-        GetHandlers().Select((handler, i) =>
-        {
-            prompt += "\r\n";
-            prompt += $"\r\n{i + 1}. {handler.Name}";
-            prompt += $"\r\n{handler.Description}";
-
-            // Append parameters
-            if (handler.Parameters.Any())
-            {
-                prompt += "\r\nParameters:";
-                handler.Parameters.Select((p, i) =>
-                {
-                    prompt += $"\r\n    - {p.Name}: {p.Description}";
-                    return p;
-                }).ToList();
-            }
-
-            return handler;
-        }).ToList();
-
-        prompt += "\r\n";
-        prompt += "\r\nAGENTS";
-        agents.Select(x => new RoutingItem
-        {
-            AgentId = x.Id,
-            Description = x.Description,
-            Name = x.Name,
-            RequiredFields = x.RoutingRules.Where(x => x.Required)
-                .Select(x => new NameDesc(x.Field, x.Description))
-                .ToList()
-        }).Select((agent, i) =>
-        {
-            prompt += "\r\n";
-            prompt += $"\r\n{i + 1}. {agent.Name}";
-            prompt += $"\r\n{agent.Description}";
-
-            // Append parameters
-            if (agent.RequiredFields.Any())
-            {
-                prompt += $"\r\nRequired:";
-                agent.RequiredFields.Select((field, i) =>
-                {
-                    prompt += $"\r\n    - {field.Name}: {field.Description}";
-                    return field;
-                }).ToList();
-            }
-            return agent;
-        }).ToList();
-
-        prompt += "\r\n";
-        prompt += "\r\nCONVERSATION";
-        _router.Instruction = prompt;
-
+        var agentService = _services.GetRequiredService<IAgentService>();
+        _router = agentService.LoadAgent(_settings.RouterId).Result;
         return this;
     }
 
@@ -119,7 +47,7 @@ public class RouterInstance : IRouterInstance
         return _services.GetServices<IRoutingHandler>()
             .Where(x => x.IsReasoning == _settings.EnableReasoning)
             .Where(x => !string.IsNullOrEmpty(x.Description))
-            .Select(x => new RoutingHandlerDef
+            .Select((x, i) => new RoutingHandlerDef
             {
                 Name = x.Name,
                 Description = x.Description,
@@ -155,6 +83,25 @@ public class RouterInstance : IRouterInstance
         }
 
         return records;
+    }
+
+#if !DEBUG
+    [MemoryCache(10 * 60)]
+#endif
+    public RoutingItem[] GetRoutingItems()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
+        return agents.Select(x => new RoutingItem
+        {
+            AgentId = x.Id,
+            Description = x.Description,
+            Name = x.Name,
+            RequiredFields = x.RoutingRules.Where(x => x.Required)
+                .Select(x => new NameDesc(x.Field, x.Description))
+                .ToList()
+        }).ToArray();
     }
 
     public RoutingRule[] GetRulesByName(string name)

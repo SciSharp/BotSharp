@@ -7,4 +7,7 @@ public class RoutingHandlerDef
     public string Name { get; set; }
     public string Description { get; set; }
     public List<NameDesc> Parameters { get; set; }
+
+    public override string ToString()
+        => $"{Name}: {Description} ({Parameters.Count} Parameters)";
 }
