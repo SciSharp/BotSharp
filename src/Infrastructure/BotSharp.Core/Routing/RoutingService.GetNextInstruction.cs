@@ -9,13 +9,23 @@ public partial class RoutingService
 {
     public async Task<FunctionCallFromLlm> GetNextInstruction(string prompt)
     {
-        var responseFormat = _settings.EnableReasoning ?
+        var responseRouteToAgent = _settings.EnableReasoning ?
             JsonSerializer.Serialize(new FunctionCallFromLlm()) :
             JsonSerializer.Serialize(new RoutingArgs
             {
-                Function = "route_to_agent"
+                Function = "route_to_agent",
+                AgentName = ""
             });
-        var content = $"{prompt} Response must be in JSON format {responseFormat}";
+
+        var responseResponseToUser = _settings.EnableReasoning ?
+            JsonSerializer.Serialize(new FunctionCallFromLlm()) :
+            JsonSerializer.Serialize(new RoutingArgs
+            {
+                Function = "response_to_user",
+                Answer = ""
+            });
+
+        var content = $"{prompt}\r\nIf need to route to specific agent, output in JSON {responseRouteToAgent}.\r\nIf you can handle the request directly, output in JSON {responseResponseToUser}.";
 
         var state = _services.GetRequiredService<IConversationStateService>();
 
@@ -29,8 +39,34 @@ public partial class RoutingService
                 model: _settings.Model);
 
             content = _routerInstance.Router.Instruction + "\r\n\r\n" + content + "\r\nResponse: ";
-            var text = await completion.GetCompletion(content);
-            response = new RoleDialogModel(AgentRole.Assistant, text);
+
+            int retryCount = 0;
+
+            while (retryCount < 3)
+            {
+                try
+                {
+                    var text = await completion.GetCompletion(content);
+                    response = new RoleDialogModel(AgentRole.Assistant, text);
+
+                    var pattern = @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}";
+                    response.Content = Regex.Match(response.Content, pattern).Value;
+                    args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"{ex.Message}: {response.Content}");
+                    args.Function = "response_to_user";
+                    args.Answer = ex.Message;
+                    args.AgentName = _settings.RouterName;
+                    content += "\r\nPlease response in JSON format.";
+                }
+                finally
+                {
+                    retryCount++;
+                }
+            }
         }
         else
         {

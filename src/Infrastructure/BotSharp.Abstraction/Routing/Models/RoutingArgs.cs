@@ -9,10 +9,12 @@ public class RoutingArgs
     public string Reason { get; set; } = string.Empty;
 
     [JsonPropertyName("answer")]
-    public string Answer { get; set; } = string.Empty;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Answer { get; set; }
 
     [JsonPropertyName("agent")]
-    public string AgentName { get; set; } = string.Empty;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? AgentName { get; set; }
 
     public override string ToString()
     {

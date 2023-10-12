@@ -23,15 +23,18 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
     private readonly LlamaSharpSettings _settings;
+    private readonly ITokenStatistics _tokenStatistics;
     private string _model;
 
     public ChatCompletionProvider(IServiceProvider services,
         ILogger<ChatCompletionProvider> logger,
-        LlamaSharpSettings settings)
+        LlamaSharpSettings settings,
+        ITokenStatistics tokenStatistics)
     {
         _services = services;
         _logger = logger;
         _settings = settings;
+        _tokenStatistics = tokenStatistics;
     }
 
     public string Provider => "llama-sharp";
@@ -41,11 +44,8 @@ public class ChatCompletionProvider : IChatCompletion
         var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
         content += $"\r\n{AgentRole.Assistant}: ";
 
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var model = state.GetState("model", _settings.DefaultModel);
-
         var llama = _services.GetRequiredService<LlamaAiModel>();
-        llama.LoadModel(model);
+        llama.LoadModel(_model);
         var executor = llama.GetStatelessExecutor();
 
         var inferenceParams = new InferenceParams()
@@ -65,11 +65,13 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(prompt);
         }
 
+        _tokenStatistics.StartTimer();
         foreach (var response in executor.Infer(prompt, inferenceParams))
         {
             Console.Write(response);
             totalResponse += response;
         }
+        _tokenStatistics.StopTimer();
 
         foreach (var anti in inferenceParams.AntiPrompts)
         {
