@@ -20,10 +20,11 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
-        var result = new RoleDialogModel(AgentRole.Assistant, inst.Answer)
+        var result = new RoleDialogModel(AgentRole.Assistant, inst.Response)
         {
             CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
+            ExecutionData = inst,
             StopCompletion = true
         };
         return result;
