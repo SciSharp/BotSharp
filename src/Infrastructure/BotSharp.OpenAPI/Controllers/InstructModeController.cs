@@ -4,6 +4,7 @@ using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -44,5 +45,12 @@ public class InstructModeController : ControllerBase, IApiAdapter
             fn => Task.CompletedTask,
             fn => Task.CompletedTask,
             fn => Task.CompletedTask);
+    }
+
+    [HttpPost("/instruct/text-completion")]
+    public async Task<string> TextCompletion([FromBody] IncomingMessageModel message)
+    {
+        var textCompletion = CompletionProvider.GetTextCompletion(_services);
+        return await textCompletion.GetCompletion(message.Text);
     }
 }

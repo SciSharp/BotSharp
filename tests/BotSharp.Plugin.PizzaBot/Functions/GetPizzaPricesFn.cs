@@ -10,9 +10,10 @@ public class GetPizzaPricesFn : IFunctionCallback
     {
         message.ExecutionData = new
         {
-            cheese_unit_price = "$3.5"
+            pepperoni_unit_price = "$3.2",
+            cheese_unit_price = "$3.5",
+            margherita_unit_price = "$3.8",
         };
-        message.ExecutionResult = "Pepperoni Pizza: $3.5/slice, Cheese Pizza: $2.5/slice, Margherita Pizza: $3.0/slice";
         return true;
     }
 }

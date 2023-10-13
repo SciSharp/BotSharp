@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using BotSharp.Abstraction.Conversations;
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Agents.Enums;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
@@ -40,8 +41,9 @@ public class TextCompletionProvider : ITextCompletion
             {
                 text
             },
-            MaxTokens = 256
+            MaxTokens = 256,
         };
+        completionsOptions.StopSequences.Add($"{AgentRole.Assistant}:");
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = float.Parse(state.GetState("temperature", "0.5"));

@@ -1,7 +1,7 @@
 [  
     {
         "name": "make_payment",
-        "description": "call this function to make payment after system returned the order number",
+        "description": "call this function to make payment",
         "parameters": {
             "type": "object",
             "properties": {

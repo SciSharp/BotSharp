@@ -16,7 +16,8 @@ public partial class RoutingService
             {
                 Function = "route_to_agent"
             });
-        var content = $"{prompt} Response must be in JSON format {responseFormat}";
+        var content = $"{prompt} Response must be in JSON format {responseFormat}.";
+        content += " Set function as conversation_end with courtesy greeting if user is willing to end conversation";
 
         var state = _services.GetRequiredService<IConversationStateService>();
 

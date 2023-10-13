@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -9,12 +8,7 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 {
     public string Name => "conversation_end";
 
-    public string Description => "Call this function when user wants to end this conversation or all tasks have been completed.";
-
-    public List<NameDesc> Parameters => new List<NameDesc>
-    {
-        new NameDesc("reason", "why this conversation is end")
-    };
+    public string Description => "User wants to end the conversation.";
 
     public bool IsReasoning => false;
 
@@ -23,8 +17,14 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
+    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
-        throw new NotImplementedException();
+        var result = new RoleDialogModel(AgentRole.Assistant, inst.Answer)
+        {
+            CurrentAgentId = _settings.RouterId,
+            FunctionName = inst.Function,
+            StopCompletion = true
+        };
+        return result;
     }
 }

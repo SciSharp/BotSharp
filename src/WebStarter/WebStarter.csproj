@@ -29,6 +29,8 @@
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
     <PackageReference Include="BotSharp.OpenAPI" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.AzureOpenAI" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Plugin.GoogleAI" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Plugin.HuggingFace" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.KnowledgeBase" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MetaAI" Version="$(BotSharpVersion)" />
@@ -36,6 +38,8 @@
     <PackageReference Include="BotSharp.Plugin.MongoStorage" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.PaddleSharp" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.RoutingSpeeder" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Plugin.Qdrant" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Plugin.WeChat" Version="$(BotSharpVersion)" />
   </ItemGroup>
     
   <ItemGroup>

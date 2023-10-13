@@ -61,7 +61,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataStorages", "DataStorage
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.MongoStorage", "src\Plugins\BotSharp.Plugin.MongoStorage\BotSharp.Plugin.MongoStorage.csproj", "{DB3DE37B-1208-4ED3-9615-A52AD0AAD69C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.GoogleAI", "src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj", "{8BC29F8A-78D6-422C-B522-10687ADC38ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.GoogleAI", "src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj", "{8BC29F8A-78D6-422C-B522-10687ADC38ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.TestingConsole", "tests\BotSharp.TestingConsole\BotSharp.TestingConsole.csproj", "{5E7EC98F-4A22-4D62-8FF6-746C497CF955}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -223,6 +225,14 @@ Global
 		{8BC29F8A-78D6-422C-B522-10687ADC38ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8BC29F8A-78D6-422C-B522-10687ADC38ED}.Release|x64.ActiveCfg = Release|Any CPU
 		{8BC29F8A-78D6-422C-B522-10687ADC38ED}.Release|x64.Build.0 = Release|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Debug|x64.Build.0 = Debug|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Release|x64.ActiveCfg = Release|Any CPU
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -254,6 +264,7 @@ Global
 		{5CD330E1-9E5A-4112-8346-6E31CA98EF78} = {2635EC9B-2E5F-4313-AC21-0B847F31F36C}
 		{DB3DE37B-1208-4ED3-9615-A52AD0AAD69C} = {5CD330E1-9E5A-4112-8346-6E31CA98EF78}
 		{8BC29F8A-78D6-422C-B522-10687ADC38ED} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
+		{5E7EC98F-4A22-4D62-8FF6-746C497CF955} = {32FAFFFE-A4CB-4FEE-BF7C-84518BBC6DCC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}
