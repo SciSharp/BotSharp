@@ -34,7 +34,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
         var record = db.Agents.First(x => x.Name.ToLower() == inst.AgentName.ToLower());
         var response = await routing.InvokeAgent(record.Id);
 
-        inst.Answer = response.Content;
+        inst.Response = response.Content;
 
         /*_dialogs.Add(new RoleDialogModel(AgentRole.Assistant, inst.Parameters.Question)
         {

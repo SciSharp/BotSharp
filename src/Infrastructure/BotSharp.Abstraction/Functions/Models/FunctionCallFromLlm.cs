@@ -15,13 +15,13 @@ public class FunctionCallFromLlm : RoutingArgs
     {
         var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {Reason}>";
 
-        if (string.IsNullOrEmpty(Answer))
+        if (string.IsNullOrEmpty(Response))
         {
             return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question}";
         }
         else
         {
-            return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question} => {Answer}";
+            return $"[{Function} {route} {JsonSerializer.Serialize(Arguments)}]: {Question} => {Response}";
         }
     }
 }

@@ -8,7 +8,7 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 {
     public string Name => "conversation_end";
 
-    public string Description => "User wants to end the conversation.";
+    public string Description => "User completed his task and wants to end the conversation.";
 
     public bool IsReasoning => false;
 
@@ -19,11 +19,11 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
-        var result = new RoleDialogModel(AgentRole.Assistant, inst.Answer)
+        var result = new RoleDialogModel(AgentRole.Assistant, inst.Response)
         {
             CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
-            StopCompletion = true
+            ExecutionData = inst
         };
         return result;
     }

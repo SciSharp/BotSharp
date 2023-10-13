@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Templating;
 using System.Drawing;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Routing;
@@ -9,17 +11,7 @@ public partial class RoutingService
 {
     public async Task<FunctionCallFromLlm> GetNextInstruction()
     {
-        var prompt = "Which is the next step based on the CONVERSATION? Or you can handle without asking specific agent.";
-        var responseFormat = _settings.EnableReasoning ?
-            JsonSerializer.Serialize(new FunctionCallFromLlm()) :
-            JsonSerializer.Serialize(new RoutingArgs
-            {
-                Function = "route_to_agent"
-            });
-        var content = $"{prompt} Response must be in JSON format {responseFormat}.";
-        content += " Set function as conversation_end with courtesy greeting if user is willing to end conversation";
-
-        var state = _services.GetRequiredService<IConversationStateService>();
+        var content = GetNextStepPrompt();
 
         RoleDialogModel response = default;
         var args = new FunctionCallFromLlm();
@@ -50,7 +42,7 @@ public partial class RoutingService
                 {
                     _logger.LogError($"{ex.Message}: {response.Content}");
                     args.Function = "response_to_user";
-                    args.Answer = ex.Message;
+                    args.Response = ex.Message;
                     args.AgentName = "Router";
                     content += "\r\nPlease response in JSON format.";
                 }
@@ -86,7 +78,7 @@ public partial class RoutingService
                 {
                     _logger.LogError($"{ex.Message}: {response.Content}");
                     args.Function = "response_to_user";
-                    args.Answer = ex.Message;
+                    args.Response = ex.Message;
                     args.AgentName = "Router";
                     content += "\r\nPlease response in JSON format.";
                 }
@@ -134,5 +126,25 @@ public partial class RoutingService
 #endif
 
         return args;
+    }
+
+#if !DEBUG
+    [MemoryCache(60 * 60)]
+#endif
+    private string GetNextStepPrompt()
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        var filePath = Path.Combine(agentService.GetAgentDataDir(_routerInstance.AgentId), $"next_step_prompt.{agentSettings.TemplateFormat}");
+        var template = File.ReadAllText(filePath);
+
+        // If enabled reasoning
+        // JsonSerializer.Serialize(new FunctionCallFromLlm());
+
+        var render = _services.GetRequiredService<ITemplateRender>();
+        return render.Render(template, new Dictionary<string, object>
+        {
+            { "enabled_reasoning", false }
+        });
     }
 }
