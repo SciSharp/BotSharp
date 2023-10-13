@@ -41,6 +41,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         var result = await routing.InvokeAgent(context.CurrentAgentId);
         // Keep last message data for debug
         result.ExecutionData = result.ExecutionData ?? message.ExecutionData;
+        result.FunctionName = result.FunctionName ?? message.FunctionName;
         return result;
     }
 }
