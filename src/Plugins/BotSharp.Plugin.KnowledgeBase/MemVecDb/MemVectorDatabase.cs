@@ -81,14 +81,14 @@ public class MemVectorDatabase : IVectorDb
         return simiMatix;
     }
 
-    public int[] CalCosineSimilarityTopK(float[] vec, List<VecRecord> records, int topK = 10, float filterProb = 0.75f)
+    public (int, float)[] CalCosineSimilarityTopK(float[] vec, List<VecRecord> records, int topK = 10, float filterProb = 0.75f)
     {
         var simiMatix = CalCosineSimilarity(vec, records);
 
         topK = Math.Min(topK, records.Count);
         var topIndex = np.argsort(simiMatix)["::-1"][$":{topK}"];
 
-        var resIndex = new List<int>();
+        var resIndex = new List<(int, float)>();
 
         for (int i = 0; i < topK; i++)
         {
@@ -97,7 +97,7 @@ public class MemVectorDatabase : IVectorDb
 
             if (value > filterProb)
             {
-                resIndex.Add(topIndex[i]);
+                resIndex.Add((topIndex[i], value));
             }
         }
 

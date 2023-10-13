@@ -7,8 +7,9 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<FunctionCallFromLlm> GetNextInstruction(string prompt)
+    public async Task<FunctionCallFromLlm> GetNextInstruction()
     {
+        var prompt = "Which is the next step based on the CONVERSATION? Or you can handle without asking specific agent.";
         var responseFormat = _settings.EnableReasoning ?
             JsonSerializer.Serialize(new FunctionCallFromLlm()) :
             JsonSerializer.Serialize(new RoutingArgs

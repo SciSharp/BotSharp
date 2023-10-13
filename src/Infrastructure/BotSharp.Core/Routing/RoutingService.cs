@@ -76,9 +76,7 @@ public partial class RoutingService : IRoutingService
         {
             loopCount++;
 
-            var prompt = _settings.EnableReasoning ? "Tell me the next step?" : "Which agent is suitable to handle user's request based on the CONVERSATION?";
-            prompt += " Or you can handle without asking specific agent.";
-            var inst = await GetNextInstruction(prompt);
+            var inst = await GetNextInstruction();
             inst.Question = inst.Question ?? message;
 
             var handler = handlers.FirstOrDefault(x => x.Name == inst.Function);

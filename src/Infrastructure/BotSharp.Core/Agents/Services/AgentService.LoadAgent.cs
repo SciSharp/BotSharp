@@ -19,6 +19,11 @@ public partial class AgentService
         }
 
         var agent = await GetAgent(id);
+        if (agent == null)
+        {
+            throw new Exception($"Can't load agent by id: {id}");
+        }
+
         var templateDict = new Dictionary<string, object>();
         PopulateState(templateDict);
 

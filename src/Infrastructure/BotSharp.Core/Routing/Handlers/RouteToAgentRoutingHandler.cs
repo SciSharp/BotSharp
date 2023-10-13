@@ -15,8 +15,9 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
-        new NameDesc("agent", "the name of the agent"),
-        new NameDesc("reason", "why route to this agent"),
+        new NameDesc("next_action_agent", "the name of the next action's agent"),
+        new NameDesc("user_goal_agent", "the agent who can achieve user's original goal"),
+        new NameDesc("reason", "the reason why you select this function or agent"),
         new NameDesc("args", "the agent required parameters")
     };
 
@@ -33,10 +34,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         var message = new RoleDialogModel(AgentRole.Function, inst.Question)
         {
             FunctionName = inst.Function,
-            FunctionArgs = JsonSerializer.Serialize(new RoutingArgs
-            {
-                AgentName = inst.AgentName
-            }),
+            FunctionArgs = JsonSerializer.Serialize(inst),
             CurrentAgentId = routing.Dialogs.Last().CurrentAgentId
         };
 
@@ -44,7 +42,8 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         var context = _services.GetRequiredService<RoutingContext>();
         var result = await routing.InvokeAgent(context.CurrentAgentId);
-        
+        // Keep last message data for debug
+        result.ExecutionData = result.ExecutionData ?? message.ExecutionData;
         return result;
     }
 }
