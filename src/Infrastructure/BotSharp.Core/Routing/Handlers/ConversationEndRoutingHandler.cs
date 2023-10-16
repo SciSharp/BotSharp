@@ -25,6 +25,16 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
             FunctionName = inst.Function,
             ExecutionData = inst
         };
+
+        var hooks = _services.GetServices<IConversationHook>()
+            .OrderBy(x => x.Priority)
+            .ToList();
+
+        foreach (var hook in hooks)
+        {
+            await hook.OnFunctionExecuting(result);
+        }
+
         return result;
     }
 }

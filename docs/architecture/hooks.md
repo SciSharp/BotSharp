@@ -21,6 +21,9 @@ Task BeforeCompletion();
 Task OnFunctionExecuting(RoleDialogModel message);
 Task OnFunctionExecuted(RoleDialogModel message);
 Task AfterCompletion(RoleDialogModel message);
+
+// LLM detected the user's intention to end the conversation
+Task ConversationEnding(RoleDialogModel conversation);
 ```
 More information about conversation hook please go to [Conversation Hook](../conversation/hook.md).
 

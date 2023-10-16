@@ -29,12 +29,7 @@ public class AgentController : ControllerBase, IApiAdapter
     public async Task<List<AgentViewModel>> GetAgents()
     {
         var agents = await _agentService.GetAgents();
-
-        // Add the router as agent
-        var routing = _services.GetRequiredService<IRouterInstance>();
-        agents.Insert(0, routing.Load().Router);
-
-        return agents.Select(x => AgentViewModel.FromAgent(x)).ToList();
+         return agents.Select(x => AgentViewModel.FromAgent(x)).ToList();
     }
 
     [HttpPost("/agent")]

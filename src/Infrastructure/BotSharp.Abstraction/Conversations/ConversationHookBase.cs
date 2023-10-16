@@ -61,4 +61,9 @@ public abstract class ConversationHookBase : IConversationHook
         _dialogs = dialogs;
         return Task.CompletedTask;
     }
+
+    public virtual Task ConversationEnding(RoleDialogModel message)
+    {
+        return Task.CompletedTask;
+    }
 }

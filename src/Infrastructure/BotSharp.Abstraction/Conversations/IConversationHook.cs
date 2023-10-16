@@ -24,4 +24,6 @@ public interface IConversationHook
     Task OnFunctionExecuting(RoleDialogModel message);
     Task OnFunctionExecuted(RoleDialogModel message);
     Task AfterCompletion(RoleDialogModel message);
+
+    Task ConversationEnding(RoleDialogModel conversation);
 }
