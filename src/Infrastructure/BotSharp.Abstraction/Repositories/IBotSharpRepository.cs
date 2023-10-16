@@ -19,7 +19,7 @@ public interface IBotSharpRepository
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
-    Agent GetAgent(string agentId);
+    Agent? GetAgent(string agentId);
     List<string> GetAgentResponses(string agentId, string prefix, string intent);
     string GetAgentTemplate(string agentId, string templateName);
     #endregion

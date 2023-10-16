@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
-
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
@@ -490,20 +489,29 @@ public class FileRepository : IBotSharpRepository
         return responses;
     }
 
-    public Agent GetAgent(string agentId)
+    public Agent? GetAgent(string agentId)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
-        foreach (var dir in Directory.GetDirectories(agentDir))
+        var dir = Directory.GetDirectories(agentDir).FirstOrDefault(x => x.Split(Path.DirectorySeparatorChar).Last() == agentId);
+
+        if (!string.IsNullOrEmpty(dir))
         {
             var json = File.ReadAllText(Path.Combine(dir, "agent.json"));
+            if (string.IsNullOrEmpty(json)) return null;
+
             var record = JsonSerializer.Deserialize<Agent>(json, _options);
-            if (record != null && record.Id == agentId)
-            {
-                var instruction = FetchInstruction(dir);
-                var functions = FetchFunctions(dir);
-                return record.SetInstruction(instruction).SetFunctions(functions);
-            }
+            if (record == null) return null;
+
+            var instruction = FetchInstruction(dir);
+            var functions = FetchFunctions(dir);
+            var templates = FetchTemplates(dir);
+            var responses = FetchResponses(dir);
+            return record.SetInstruction(instruction)
+                             .SetFunctions(functions)
+                             .SetTemplates(templates)
+                             .SetResponses(responses);
         }
+
         return null;
     }
 

@@ -5,6 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 public class RoutingRuleMongoElement
 {
     public string Field { get; set; }
+    public string Description { get; set; }
     public bool Required { get; set; }
     public Guid? RedirectTo { get; set; }
 
@@ -18,6 +19,7 @@ public class RoutingRuleMongoElement
         return new RoutingRuleMongoElement 
         {
             Field = routingRule.Field,
+            Description = routingRule.Description,
             Required = routingRule.Required,
             RedirectTo = !string.IsNullOrEmpty(routingRule.RedirectTo) ? Guid.Parse(routingRule.RedirectTo) : null
         };
@@ -30,6 +32,7 @@ public class RoutingRuleMongoElement
             AgentId = agentId,
             AgentName = agentName,
             Field = rule.Field,
+            Description = rule.Description,
             Required = rule.Required,
             RedirectTo = rule.RedirectTo?.ToString()
         };
