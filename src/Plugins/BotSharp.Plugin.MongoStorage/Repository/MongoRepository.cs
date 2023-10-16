@@ -517,7 +517,7 @@ public class MongoRepository : IBotSharpRepository
 
 
 
-    public Agent GetAgent(string agentId)
+    public Agent? GetAgent(string agentId)
     {
         var foundAgent = Agents.FirstOrDefault(x => x.Id == agentId);
         return foundAgent;

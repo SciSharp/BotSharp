@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.ApiAdapters;
-using BotSharp.Abstraction.Routing;
 using BotSharp.OpenAPI.ViewModels.Agents;
 
 namespace BotSharp.OpenAPI.Controllers;

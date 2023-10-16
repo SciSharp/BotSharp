@@ -1,7 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -27,27 +24,11 @@ public partial class AgentService
     {
         var profile = _db.GetAgent(id);
 
-        var instructionFile = profile?.Instruction;
-        if (instructionFile != null)
+        if (profile == null)
         {
-            profile.Instruction = instructionFile;
-        }
-        else
-        {
-            _logger.LogError($"Can't find instruction file from {instructionFile}");
-        }
-
-        var samplesFile = profile?.Samples;
-        if (samplesFile != null)
-        {
-            profile.Samples = samplesFile;
-        }
-
-        var functionsFile = profile?.Functions;
-        if (functionsFile != null)
-        {
-            profile.Functions = functionsFile;
-        }
+            _logger.LogError($"Can't find agent {id}");
+            return null;
+        };
 
         return profile;
     }
