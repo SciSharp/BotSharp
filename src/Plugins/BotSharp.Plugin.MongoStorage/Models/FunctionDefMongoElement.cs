@@ -38,7 +38,7 @@ public class FunctionDefMongoElement
             Parameters = new FunctionParametersDef
             {
                 Type = mongoFunction.Parameters.Type,
-                Properties = JsonSerializer.Deserialize<JsonDocument>(mongoFunction.Parameters.Properties),
+                Properties = JsonSerializer.Deserialize<JsonDocument>(mongoFunction.Parameters.Properties.IfNullOrEmptyAs("{}")),
                 Required = mongoFunction.Parameters.Required,
             }
         };
