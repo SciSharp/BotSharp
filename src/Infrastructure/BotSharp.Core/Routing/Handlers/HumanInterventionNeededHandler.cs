@@ -4,17 +4,18 @@ using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Handlers;
 
-public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
+public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandler
 {
-    public string Name => "conversation_end";
+    public string Name => "human_intervention_needed";
 
-    public string Description => "User completed his task and wants to end the conversation.";
+    public string Description => "Reach out to a real human or customer representative.";
 
-    public bool IsReasoning => false;
+    private readonly RoutingSettings _settings;
 
-    public ConversationEndRoutingHandler(IServiceProvider services, ILogger<ConversationEndRoutingHandler> logger, RoutingSettings settings) 
+    public HumanInterventionNeededHandler(IServiceProvider services, ILogger<HumanInterventionNeededHandler> logger, RoutingSettings settings)
         : base(services, logger, settings)
     {
+        _settings = settings;
     }
 
     public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
@@ -32,7 +33,7 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         foreach (var hook in hooks)
         {
-            await hook.ConversationEnding(result);
+            await hook.HumanInterventionNeeded(result);
         }
 
         return result;

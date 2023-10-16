@@ -26,6 +26,12 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(agent, conversations)).ToArray());
+
         var content = string.Join("\r\n", conversations.Select(x => $"{AgentRole.System}: {x.Content}")).Trim();
         content += $"\r\n{AgentRole.Assistant}: ";
 
@@ -57,6 +63,13 @@ public class ChatCompletionProvider : IChatCompletion
             CurrentAgentId = agent.Id
         };
 
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(msg, new TokenStatsModel
+            {
+                Model = _model
+            })).ToArray());
+
         // Text response received
         await onMessageReceived(msg);
 
@@ -75,6 +88,12 @@ public class ChatCompletionProvider : IChatCompletion
 
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(agent, conversations)).ToArray());
+
         var content = string.Join("\r\n", conversations.Select(x => $"{AgentRole.System}: {x.Content}")).Trim();
         content += $"\r\n{AgentRole.Assistant}: ";
 
@@ -105,6 +124,13 @@ public class ChatCompletionProvider : IChatCompletion
         {
             CurrentAgentId = agent.Id
         };
+
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(msg, new TokenStatsModel
+            {
+                Model = _model
+            })).ToArray());
 
         return msg;
     }

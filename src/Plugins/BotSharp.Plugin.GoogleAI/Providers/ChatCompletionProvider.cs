@@ -12,35 +12,43 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly GoogleAiSettings _settings;
     private readonly ILogger _logger;
-    private readonly ITokenStatistics _tokenStatistics;
     private string _model;
 
     public ChatCompletionProvider(IServiceProvider services, 
         GoogleAiSettings settings,
-        ILogger<ChatCompletionProvider> logger,
-        ITokenStatistics tokenStatistics)
+        ILogger<ChatCompletionProvider> logger)
     {
         _services = services;
         _settings = settings;
         _logger = logger;
-        _tokenStatistics = tokenStatistics;
     }
 
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(agent, conversations)).ToArray());
+
         var client = new GooglePalmClient(apiKey: _settings.PaLM.ApiKey);
         var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
             .ToList();
 
-        _tokenStatistics.StartTimer();
         var response = client.ChatAsync(messages, agent.Instruction, null).Result;
-        _tokenStatistics.StopTimer();
 
         var message = response.Candidates.First();
         var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
         {
             CurrentAgentId = agent.Id
         };
+
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(msg, new TokenStatsModel
+            {
+                Model = _model
+            })).ToArray());
 
         return msg;
     }

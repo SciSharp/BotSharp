@@ -8,12 +8,12 @@ public interface IAgentHook
     void SetAget(Agent agent);
 
     /// <summary>
-    /// Triggered before loading, you can change the returned id to switch agent.
+    /// Triggered when agent is loading.
+    /// Return different agent for redirection purpose.
     /// </summary>
     /// <param name="id">Agent Id</param>
     /// <returns></returns>
     bool OnAgentLoading(ref string id);
-
 
     bool OnInstructionLoaded(string template, Dictionary<string, object> dict);
 

@@ -1,9 +1,3 @@
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Plugin.LLamaSharp.Settings;
-using LLama;
-using LLama.Common;
-using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;

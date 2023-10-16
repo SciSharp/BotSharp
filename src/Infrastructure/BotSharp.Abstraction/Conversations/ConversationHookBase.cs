@@ -36,7 +36,23 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
-    public virtual Task BeforeCompletion(RoleDialogModel message)
+    public virtual Task OnDialogsLoaded(List<RoleDialogModel> dialogs)
+    {
+        _dialogs = dialogs;
+        return Task.CompletedTask;
+    }
+
+    public virtual Task ConversationEnding(RoleDialogModel message)
+    {
+        return Task.CompletedTask;
+    }
+
+    public virtual Task CurrentTaskEnding(RoleDialogModel conversation)
+    {
+        return Task.CompletedTask;
+    }
+
+    public virtual Task HumanInterventionNeeded(RoleDialogModel conversation)
     {
         return Task.CompletedTask;
     }
@@ -51,18 +67,17 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
-    public virtual Task AfterCompletion(RoleDialogModel message)
+    public virtual Task OnMessageReceived(RoleDialogModel message)
     {
         return Task.CompletedTask;
     }
 
-    public virtual Task OnDialogsLoaded(List<RoleDialogModel> dialogs)
+    public virtual Task OnResponseGenerated(RoleDialogModel message)
     {
-        _dialogs = dialogs;
         return Task.CompletedTask;
     }
 
-    public virtual Task ConversationEnding(RoleDialogModel message)
+    public virtual Task OnConversationInitialized(Conversation conversation)
     {
         return Task.CompletedTask;
     }

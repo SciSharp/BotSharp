@@ -1,14 +1,3 @@
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Plugin.LLamaSharp.Settings;
-using BotSharp.Plugins.LLamaSharp;
-using LLama;
-using LLama.Common;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
-
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
 public class TextCompletionProvider : ITextCompletion
@@ -31,8 +20,14 @@ public class TextCompletionProvider : ITextCompletion
         _tokenStatistics = tokenStatistics;
     }
 
-    public Task<string> GetCompletion(string text)
+    public async Task<string> GetCompletion(string text)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(new Agent(), new List<RoleDialogModel> { new RoleDialogModel(AgentRole.User, text) })).ToArray());
+
         var llama = _services.GetRequiredService<LlamaAiModel>();
         llama.LoadModel(_model);
 
@@ -40,15 +35,22 @@ public class TextCompletionProvider : ITextCompletion
         var inferenceParams = new InferenceParams() { Temperature = 0.5f, MaxTokens = 128 };
 
         _tokenStatistics.StartTimer();
-        string totalResponse = "";
+        string completion = "";
         foreach (var response in executor.Infer(text, inferenceParams))
         {
             Console.Write(response);
-            totalResponse += response;
+            completion += response;
         }
         _tokenStatistics.StopTimer();
 
-        return Task.FromResult(totalResponse);
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, completion), new TokenStatsModel
+            {
+                Model = _model
+            })).ToArray());
+
+        return completion;
     }
 
     public void SetModelName(string model)

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using System.Drawing;
@@ -133,10 +134,9 @@ public partial class RoutingService
 #endif
     private string GetNextStepPrompt()
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var filePath = Path.Combine(agentService.GetAgentDataDir(_routerInstance.AgentId), $"next_step_prompt.{agentSettings.TemplateFormat}");
-        var template = File.ReadAllText(filePath);
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        // _routerInstance.Router.Templates.First(x => x.Name == "next_step_prompt").Content;
+        var template = db.GetAgentTemplate(_routerInstance.AgentId, "next_step_prompt");
 
         // If enabled reasoning
         // JsonSerializer.Serialize(new FunctionCallFromLlm());
@@ -144,7 +144,7 @@ public partial class RoutingService
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>
         {
-            { "enabled_reasoning", false }
+            { "enabled_reasoning", _settings.EnableReasoning }
         });
     }
 }
