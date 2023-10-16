@@ -31,9 +31,7 @@ public class InstructModeController : ControllerBase, IApiAdapter
         // switch to different instruction template
         if (!string.IsNullOrEmpty(input.Template))
         {
-            var agentSettings = _services.GetRequiredService<AgentSettings>();
-            var filePath = Path.Combine(agentService.GetAgentDataDir(agentId), $"{input.Template}.{agentSettings.TemplateFormat}");
-            agent.Instruction = System.IO.File.ReadAllText(filePath);
+            agent.Instruction = agent.Templates.First(x => x.Name == input.Template).Content;
         }
 
         var conv = _services.GetRequiredService<IConversationService>();

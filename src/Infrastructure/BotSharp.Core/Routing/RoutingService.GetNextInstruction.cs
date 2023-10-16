@@ -134,9 +134,7 @@ public partial class RoutingService
 #endif
     private string GetNextStepPrompt()
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        // _routerInstance.Router.Templates.First(x => x.Name == "next_step_prompt").Content;
-        var template = db.GetAgentTemplate(_routerInstance.AgentId, "next_step_prompt");
+        var template = _routerInstance.Router.Templates.First(x => x.Name == "next_step_prompt").Content;
 
         // If enabled reasoning
         // JsonSerializer.Serialize(new FunctionCallFromLlm());
