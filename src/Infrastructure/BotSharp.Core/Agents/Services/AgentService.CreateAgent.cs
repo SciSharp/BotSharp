@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Utilities;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -71,7 +72,7 @@ public partial class AgentService
         {
             var agentJson = File.ReadAllText(Path.Combine(dir, "agent.json"));
             var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
-            if (agent != null && agent.Name == agentName)
+            if (agent != null && agent.Name.IsEqualTo(agentName))
             {
                 var functions = FetchFunctionsFromFile(dir);
                 var instruction = FetchInstructionFromFile(dir);
@@ -99,13 +100,16 @@ public partial class AgentService
     private List<AgentTemplate> FetchTemplatesFromFile(string fileDir)
     {
         var templates = new List<AgentTemplate>();
-        foreach (var file in Directory.GetFiles(fileDir))
+        var templateDir = Path.Combine(fileDir, "templates");
+        if (!Directory.Exists(templateDir)) return templates;
+
+        foreach (var file in Directory.GetFiles(templateDir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
             var splits = fileName.ToLower().Split('.');
             var name = splits[0];
             var extension = splits[1];
-            if (name != "instruction" && extension == _agentSettings.TemplateFormat)
+            if (extension.IsEqualTo(_agentSettings.TemplateFormat))
             {
                 var content = File.ReadAllText(file);
                 templates.Add(new AgentTemplate(name, content));

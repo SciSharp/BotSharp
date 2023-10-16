@@ -22,4 +22,9 @@ public static class StringExtensions
     {
         return input.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
     }
+
+    public static bool IsEqualTo(this string str1, string str2, StringComparison option = StringComparison.OrdinalIgnoreCase)
+    {
+        return str1.Equals(str2, option);
+    }
 }

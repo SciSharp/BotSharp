@@ -399,23 +399,21 @@ public class FileRepository : IBotSharpRepository
         var (agent, agentFile) = GetAgentFromFile(agentId);
         if (agent == null) return;
 
-        var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+        var templateDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
 
-        foreach (var file in Directory.GetFiles(baseDir))
+        if (!Directory.Exists(templateDir))
         {
-            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splits = fileName.ToLower().Split('.');
-            var name = splits[0];
-            var extension = splits[1];
-            if (name != "instruction" && extension == _agentSettings.TemplateFormat)
-            {
-                File.Delete(file);
-            }
+            Directory.CreateDirectory(templateDir);
+        }
+
+        foreach (var file in Directory.GetFiles(templateDir))
+        {
+            File.Delete(file);
         }
 
         foreach (var template in templates)
         {
-            var file = Path.Combine(baseDir, $"{template.Name}.{_agentSettings.TemplateFormat}");
+            var file = Path.Combine(templateDir, $"{template.Name}.{_agentSettings.TemplateFormat}");
             File.WriteAllText(file, template.Content);
         }
     }
@@ -427,8 +425,7 @@ public class FileRepository : IBotSharpRepository
         var (agent, agentFile) = GetAgentFromFile(agentId);
         if (agent == null) return;
 
-        var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
-        var responseDir = Path.Combine(baseDir, "responses");
+        var responseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "responses");
         if (!Directory.Exists(responseDir))
         {
             Directory.CreateDirectory(responseDir);
@@ -512,17 +509,16 @@ public class FileRepository : IBotSharpRepository
 
     public string GetAgentTemplate(string agentId, string templateName)
     {
-        var fileDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
-        if (!Directory.Exists(fileDir)) return string.Empty;
+        var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+        if (!Directory.Exists(dir)) return string.Empty;
 
-        var lowerTemplateName = templateName?.ToLower();
-        foreach (var file in Directory.GetFiles(fileDir))
+        foreach (var file in Directory.GetFiles(dir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
             var splits = fileName.ToLower().Split('.');
             var name = splits[0];
             var extension = splits[1];
-            if (name == lowerTemplateName && extension == _agentSettings.TemplateFormat)
+            if (name.IsEqualTo(templateName) && extension.IsEqualTo(_agentSettings.TemplateFormat))
             {
                 return File.ReadAllText(file);
             }
@@ -742,14 +738,16 @@ public class FileRepository : IBotSharpRepository
     private List<AgentTemplate> FetchTemplates(string fileDir)
     {
         var templates = new List<AgentTemplate>();
+        var templateDir = Path.Combine(fileDir, "templates");
+        if (!Directory.Exists(templateDir)) return templates;
 
-        foreach (var file in Directory.GetFiles(fileDir))
+        foreach (var file in Directory.GetFiles(templateDir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
             var splits = fileName.ToLower().Split('.');
             var name = splits[0];
             var extension = splits[1];
-            if (name != "instruction" && extension == _agentSettings.TemplateFormat)
+            if (extension.Equals(_agentSettings.TemplateFormat, StringComparison.OrdinalIgnoreCase))
             {
                 var content = File.ReadAllText(file);
                 templates.Add(new AgentTemplate(name, content));
