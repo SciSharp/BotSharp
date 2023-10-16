@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Plugin.GoogleAI.Settings;
 using LLMSharp.Google.Palm;
@@ -27,16 +28,28 @@ public class TextCompletionProvider : ITextCompletion
 
     public async Task<string> GetCompletion(string text)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(new Agent(), new List<RoleDialogModel> { new RoleDialogModel(AgentRole.User, text) })).ToArray());
+
         var client = new GooglePalmClient(apiKey: _settings.PaLM.ApiKey);
         _tokenStatistics.StartTimer();
         var response = await client.GenerateTextAsync(text, null);
         _tokenStatistics.StopTimer();
 
         var message = response.Candidates.First();
+        var completion = message.Output.Trim();
 
-        _logger.LogInformation(text);
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, completion), new TokenStatsModel
+            {
+                Model = _model
+            })).ToArray());
 
-        return message.Output.Trim();
+        return completion;
     }
 
     public void SetModelName(string model)

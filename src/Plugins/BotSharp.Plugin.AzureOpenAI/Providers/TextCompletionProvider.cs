@@ -8,6 +8,9 @@ using BotSharp.Abstraction.Conversations;
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Agents.Enums;
+using System.Linq;
+using System.Collections.Generic;
+using BotSharp.Abstraction.Agents.Models;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
@@ -16,23 +19,26 @@ public class TextCompletionProvider : ITextCompletion
     private readonly IServiceProvider _services;
     private readonly AzureOpenAiSettings _settings;
     private readonly ILogger _logger;
-    private readonly ITokenStatistics _tokenStatistics;
     private string _model;
     public string Provider => "azure-openai";
 
     public TextCompletionProvider(IServiceProvider services,
         AzureOpenAiSettings settings, 
-        ILogger<TextCompletionProvider> logger,
-        ITokenStatistics tokenStatistics)
+        ILogger<TextCompletionProvider> logger)
     {
         _services = services;
         _settings = settings;
         _logger = logger;
-        _tokenStatistics = tokenStatistics;
     }
 
     public async Task<string> GetCompletion(string text)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(new Agent(), new List<RoleDialogModel> { new RoleDialogModel(AgentRole.User, text) })).ToArray());
+
         var (client, _) = ProviderHelper.GetClient(_model, _settings);
 
         var completionsOptions = new CompletionsOptions()
@@ -51,20 +57,9 @@ public class TextCompletionProvider : ITextCompletion
         completionsOptions.Temperature = temperature;
         completionsOptions.NucleusSamplingFactor = samplingFactor;
 
-        _tokenStatistics.StartTimer();
         var response = await client.GetCompletionsAsync(
             deploymentOrModelName: _settings.DeploymentModel.TextCompletionModel,
             completionsOptions);
-        _tokenStatistics.StopTimer();
-
-        _tokenStatistics.AddToken(new TokenStatsModel
-        {
-            Model = _model,
-            PromptCount = response.Value.Usage.PromptTokens,
-            CompletionCount = response.Value.Usage.CompletionTokens,
-            PromptCost = 0.0015f,
-            CompletionCost = 0.002f
-        });
 
         // OpenAI
         var completion = "";
@@ -73,7 +68,14 @@ public class TextCompletionProvider : ITextCompletion
             completion += t.Text;
         };
 
-        _logger.LogInformation(text);
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, completion), new TokenStatsModel
+            {
+                Model = _model,
+                PromptCount = response.Value.Usage.PromptTokens,
+                CompletionCount = response.Value.Usage.CompletionTokens
+            })).ToArray());
 
         return completion.Trim();
     }

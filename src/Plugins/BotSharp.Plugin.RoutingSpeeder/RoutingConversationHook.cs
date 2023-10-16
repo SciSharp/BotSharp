@@ -24,7 +24,7 @@ public class RoutingConversationHook: ConversationHookBase
         _services = service;
         _settings = settings;
     }
-    public override async Task BeforeCompletion(RoleDialogModel message)
+    public override async Task OnMessageReceived(RoleDialogModel message)
     {
         var intentClassifier = _services.GetRequiredService<IntentClassifier>();
         var vector = intentClassifier.GetTextEmbedding(message.Content);
@@ -50,7 +50,7 @@ public class RoutingConversationHook: ConversationHookBase
         }
     }
 
-    public override async Task AfterCompletion(RoleDialogModel message)
+    public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var routerSettings = _services.GetRequiredService<RoutingSettings>();
         bool saveFlag = message.CurrentAgentId != routerSettings.RouterId;

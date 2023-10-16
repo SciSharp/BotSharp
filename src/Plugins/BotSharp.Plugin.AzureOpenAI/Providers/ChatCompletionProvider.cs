@@ -21,48 +21,45 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly AzureOpenAiSettings _settings;
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
-    private readonly ITokenStatistics _tokenStatistics;
+    
     private string _model;
 
     public string Provider => "azure-openai";
 
     public ChatCompletionProvider(AzureOpenAiSettings settings, 
         ILogger<ChatCompletionProvider> logger,
-        IServiceProvider services,
-        ITokenStatistics tokenStatistics)
+        IServiceProvider services)
     {
         _settings = settings;
         _logger = logger;
         _services = services;
-        _tokenStatistics = tokenStatistics;
     }
 
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook => 
+            hook.BeforeGenerating(agent, conversations)).ToArray());
+
         var (client, deploymentModel) = ProviderHelper.GetClient(_model, _settings);
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
-        _tokenStatistics.StartTimer();
         var response = client.GetChatCompletions(deploymentModel, chatCompletionsOptions);
-        _tokenStatistics.StopTimer();
-
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
-        _tokenStatistics.AddToken(new TokenStatsModel
+        var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
         {
-            Model = _model,
-            PromptCount = response.Value.Usage.PromptTokens,
-            CompletionCount = response.Value.Usage.CompletionTokens,
-            PromptCost = 0.0015f,
-            CompletionCost = 0.002f
-        });
+            CurrentAgentId = agent.Id
+        };
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
             _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name}({message.FunctionCall.Arguments})");
 
-            var funcContextIn = new RoleDialogModel(AgentRole.Function, message.Content)
+            msg = new RoleDialogModel(AgentRole.Function, message.Content)
             {
                 CurrentAgentId = agent.Id,
                 FunctionName = message.FunctionCall.Name,
@@ -70,22 +67,22 @@ public class ChatCompletionProvider : IChatCompletion
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(funcContextIn.FunctionName))
+            if (!string.IsNullOrEmpty(msg.FunctionName))
             {
-                funcContextIn.FunctionName = funcContextIn.FunctionName.Split('.').Last();
+                msg.FunctionName = msg.FunctionName.Split('.').Last();
             }
-
-            return funcContextIn;
         }
-        else
-        {
-            var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
+
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(msg, new TokenStatsModel
             {
-                CurrentAgentId = agent.Id
-            };
+                Model = _model,
+                PromptCount = response.Value.Usage.PromptTokens,
+                CompletionCount = response.Value.Usage.CompletionTokens
+            })).ToArray());
 
-            return msg;
-        }
+        return msg;
     }
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent, 
@@ -93,6 +90,12 @@ public class ChatCompletionProvider : IChatCompletion
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(agent, conversations)).ToArray());
+
         var (client, deploymentModel) = ProviderHelper.GetClient(_model, _settings);
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
@@ -100,14 +103,19 @@ public class ChatCompletionProvider : IChatCompletion
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
-        _tokenStatistics.AddToken(new TokenStatsModel
+        var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
         {
-            Model = _model,
-            PromptCount = response.Value.Usage.PromptTokens, 
-            CompletionCount = response.Value.Usage.CompletionTokens,
-            PromptCost = 0.0015f,
-            CompletionCost = 0.002f
-        });
+            CurrentAgentId = agent.Id
+        };
+
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(msg, new TokenStatsModel
+            {
+                Model = _model,
+                PromptCount = response.Value.Usage.PromptTokens,
+                CompletionCount = response.Value.Usage.CompletionTokens
+            })).ToArray());
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
@@ -131,11 +139,6 @@ public class ChatCompletionProvider : IChatCompletion
         }
         else
         {
-            var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
-            {
-                CurrentAgentId= agent.Id
-            };
-
             // Text response received
             await onMessageReceived(msg);
         }

@@ -4,14 +4,21 @@ public interface IConversationHook
 {
     int Priority { get; }
     Agent Agent { get; }
+    List<RoleDialogModel> Dialogs { get; }
     IConversationHook SetAgent(Agent agent);
 
     Conversation Conversation { get; }
     IConversationHook SetConversation(Conversation conversation);
 
-    List<RoleDialogModel> Dialogs { get; }
     /// <summary>
-    /// Triggered when dialog history is loaded
+    /// Triggered once for every new conversation.
+    /// </summary>
+    /// <param name="conversation"></param>
+    /// <returns></returns>
+    Task OnConversationInitialized(Conversation conversation);
+
+    /// <summary>
+    /// Triggered when dialog history is loaded.
     /// </summary>
     /// <param name="dialogs"></param>
     /// <returns></returns>
@@ -20,10 +27,43 @@ public interface IConversationHook
     Task OnStateLoaded(ConversationState state);
     Task OnStateChanged(string name, string preValue, string currentValue);
 
-    Task BeforeCompletion(RoleDialogModel message);
-    Task OnFunctionExecuting(RoleDialogModel message);
-    Task OnFunctionExecuted(RoleDialogModel message);
-    Task AfterCompletion(RoleDialogModel message);
+    Task OnMessageReceived(RoleDialogModel message);
 
+    /// <summary>
+    /// Triggered before LLM calls function.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    Task OnFunctionExecuting(RoleDialogModel message);
+
+    /// <summary>
+    /// Triggered when the function calling completed.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    Task OnFunctionExecuted(RoleDialogModel message);
+
+    Task OnResponseGenerated(RoleDialogModel message);
+
+    /// <summary>
+    /// LLM detected the current task is completed.
+    /// It's useful for the situation of multiple tasks in the same conversation.
+    /// </summary>
+    /// <param name="conversation"></param>
+    /// <returns></returns>
+    Task CurrentTaskEnding(RoleDialogModel conversation);
+
+    /// <summary>
+    /// LLM detected the whole conversation is going to be end.
+    /// </summary>
+    /// <param name="conversation"></param>
+    /// <returns></returns>
     Task ConversationEnding(RoleDialogModel conversation);
+
+    /// <summary>
+    /// LLM can't handle user's request or user requests human being to involve.
+    /// </summary>
+    /// <param name="conversation"></param>
+    /// <returns></returns>
+    Task HumanInterventionNeeded(RoleDialogModel conversation);
 }

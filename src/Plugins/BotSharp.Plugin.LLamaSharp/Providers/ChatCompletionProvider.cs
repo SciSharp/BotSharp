@@ -1,21 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Conversations.Settings;
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Plugin.LLamaSharp.Settings;
-using BotSharp.Plugins.LLamaSharp;
-using LLama;
-using LLama.Common;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
@@ -23,24 +5,27 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
     private readonly LlamaSharpSettings _settings;
-    private readonly ITokenStatistics _tokenStatistics;
     private string _model;
 
     public ChatCompletionProvider(IServiceProvider services,
         ILogger<ChatCompletionProvider> logger,
-        LlamaSharpSettings settings,
-        ITokenStatistics tokenStatistics)
+        LlamaSharpSettings settings)
     {
         _services = services;
         _logger = logger;
         _settings = settings;
-        _tokenStatistics = tokenStatistics;
     }
 
     public string Provider => "llama-sharp";
 
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
+        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+
+        // Before chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.BeforeGenerating(agent, conversations)).ToArray());
+
         var content = string.Join("\r\n", conversations.Select(x => $"{x.Role}: {x.Content}")).Trim();
         content += $"\r\n{AgentRole.Assistant}: ";
 
@@ -65,13 +50,11 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(prompt);
         }
 
-        _tokenStatistics.StartTimer();
         foreach (var response in executor.Infer(prompt, inferenceParams))
         {
             Console.Write(response);
             totalResponse += response;
         }
-        _tokenStatistics.StopTimer();
 
         foreach (var anti in inferenceParams.AntiPrompts)
         {
@@ -82,6 +65,13 @@ public class ChatCompletionProvider : IChatCompletion
         {
             CurrentAgentId = agent.Id
         };
+
+        // After chat completion hook
+        Task.WaitAll(hooks.Select(hook =>
+            hook.AfterGenerated(msg, new TokenStatsModel
+            {
+                Model = _model
+            })).ToArray());
 
         return msg;
     }

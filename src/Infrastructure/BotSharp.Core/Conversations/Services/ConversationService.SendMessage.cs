@@ -32,7 +32,7 @@ public partial class ConversationService
             hook.SetAgent(agent)
                 .SetConversation(conversation);
 
-            await hook.BeforeCompletion(incoming);
+            await hook.OnMessageReceived(incoming);
 
             // Interrupted by hook
             if (incoming.StopCompletion)
@@ -79,14 +79,6 @@ public partial class ConversationService
 
     private async Task HandleAssistantMessage(RoleDialogModel message, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var hooks = _services.GetServices<IConversationHook>().ToList();
-
-        // After chat completion hook
-        foreach (var hook in hooks)
-        {
-            await hook.AfterCompletion(message);
-        }
-
         var routingSetting = _services.GetRequiredService<RoutingSettings>();
         var agentName = routingSetting.RouterId == message.CurrentAgentId ? 
             "Router" : 
@@ -100,6 +92,12 @@ public partial class ConversationService
 #else
         _logger.LogInformation(text);
 #endif
+
+        var hooks = _services.GetServices<IConversationHook>().ToList();
+        foreach (var hook in hooks)
+        {
+            await hook.OnResponseGenerated(message);
+        }
 
         await onMessageReceived(message);
 

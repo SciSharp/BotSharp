@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -64,6 +65,13 @@ public partial class ConversationService : IConversationService
         record.Title = "New Conversation";
 
         db.CreateNewConversation(record);
+
+        var hooks = _services.GetServices<IConversationHook>().ToList();
+        foreach (var hook in hooks)
+        {
+            await hook.OnConversationInitialized(record);
+        }
+
         return record;
     }
 
