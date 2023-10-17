@@ -13,6 +13,6 @@ public class RoutingItem
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 
-    [JsonPropertyName("required")]
+    [JsonPropertyName("required_fields")]
     public List<NameDesc> RequiredFields { get; set; } = new List<NameDesc>();
 }
