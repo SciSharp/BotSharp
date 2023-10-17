@@ -20,6 +20,12 @@ AGENTS
 {% for agent in routing_agents %}
 * {{ agent.name }}
 {{ agent.description}}
+{% if agent.required_fields and agent.required_fields != empty -%}
+Required: 
+    {% for f in agent.required_fields -%}
+    {{ f.name }}: {{ f.description }}{{ "\r\n    " }}
+    {%- endfor %}
+{%- endif %}
 {% endfor %}
 
 CONVERSATION
