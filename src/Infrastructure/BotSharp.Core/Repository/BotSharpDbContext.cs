@@ -86,6 +86,21 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
+
+    public void BulkInsertAgents(List<Agent> agents)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void BulkInsertUserAgents(List<UserAgent> userAgents)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool DeleteAgents()
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 
 
@@ -128,7 +143,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
 
     #region User
-    public User GetUserByEmail(string email)
+    public User? GetUserByEmail(string email)
     {
         throw new NotImplementedException();
     }

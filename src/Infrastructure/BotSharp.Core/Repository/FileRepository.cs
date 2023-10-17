@@ -31,7 +31,7 @@ public class FileRepository : IBotSharpRepository
         };
     }
 
-    private List<User> _users;
+    private List<User> _users = new List<User>();
     public IQueryable<User> Users
     {
         get
@@ -52,7 +52,7 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
-    private List<Agent> _agents;
+    private List<Agent> _agents = new List<Agent>();
     public IQueryable<Agent> Agents
     {
         get
@@ -81,7 +81,7 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
-    private List<UserAgent> _userAgents;
+    private List<UserAgent> _userAgents = new List<UserAgent>();
     public IQueryable<UserAgent> UserAgents
     {
         get
@@ -106,7 +106,7 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
-    private List<Conversation> _conversations;
+    private List<Conversation> _conversations = new List<Conversation>();
     public IQueryable<Conversation> Conversations
     {
         get
@@ -534,6 +534,19 @@ public class FileRepository : IBotSharpRepository
 
         return string.Empty;
     }
+
+    public void BulkInsertAgents(List<Agent> agents)
+    {
+    }
+
+    public void BulkInsertUserAgents(List<UserAgent> userAgents)
+    {
+    }
+
+    public bool DeleteAgents()
+    {
+        return false;
+    }
     #endregion
 
     #region Conversation
@@ -684,7 +697,7 @@ public class FileRepository : IBotSharpRepository
     #endregion
 
     #region User
-    public User GetUserByEmail(string email)
+    public User? GetUserByEmail(string email)
     {
         return Users.FirstOrDefault(x => x.Email == email);
     }

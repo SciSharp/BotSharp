@@ -38,6 +38,12 @@ public class AgentController : ControllerBase, IApiAdapter
         return AgentViewModel.FromAgent(createdAgent);
     }
 
+    [HttpPost("/refresh-agents")]
+    public async Task RefreshAgents()
+    {
+        await _agentService.RefreshAgents();
+    }
+
     [HttpPut("/agent/file/{agentId}")]
     public async Task UpdateAgentFromFile([FromRoute] string agentId)
     {
