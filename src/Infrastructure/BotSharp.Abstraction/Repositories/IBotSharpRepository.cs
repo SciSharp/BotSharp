@@ -13,13 +13,16 @@ public interface IBotSharpRepository
     void Add<TTableInterface>(object entity);
 
     #region User
-    User GetUserByEmail(string email);
+    User? GetUserByEmail(string email);
     void CreateUser(User user);
     #endregion
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
     Agent? GetAgent(string agentId);
+    void BulkInsertAgents(List<Agent> agents);
+    void BulkInsertUserAgents(List<UserAgent> userAgents);
+    bool DeleteAgents();
     List<string> GetAgentResponses(string agentId, string prefix, string intent);
     string GetAgentTemplate(string agentId, string templateName);
     #endregion

@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
 
@@ -24,7 +25,7 @@ public class MongoRepository : IBotSharpRepository
         };
     }
 
-    private List<Agent> _agents;
+    private List<Agent> _agents = new List<Agent>();
     public IQueryable<Agent> Agents
     {
         get
@@ -65,7 +66,7 @@ public class MongoRepository : IBotSharpRepository
         }
     }
 
-    private List<User> _users;
+    private List<User> _users = new List<User>();
     public IQueryable<User> Users
     {
         get
@@ -93,7 +94,7 @@ public class MongoRepository : IBotSharpRepository
         }
     }
 
-    private List<UserAgent> _userAgents;
+    private List<UserAgent> _userAgents = new List<UserAgent>();
     public IQueryable<UserAgent> UserAgents
     {
         get
@@ -117,7 +118,7 @@ public class MongoRepository : IBotSharpRepository
         }
     }
 
-    private List<Conversation> _conversations;
+    private List<Conversation> _conversations = new List<Conversation>();
     public IQueryable<Conversation> Conversations
     {
         get
@@ -539,6 +540,72 @@ public class MongoRepository : IBotSharpRepository
 
         return agent.Templates?.FirstOrDefault(x => x.Name == templateName.ToLower())?.Content ?? string.Empty;
     }
+
+    public void BulkInsertAgents(List<Agent> agents)
+    {
+        if (agents.IsNullOrEmpty()) return;
+
+        var agentDocs = agents.Select(x => new AgentCollection
+        {
+            Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
+            Name = x.Name,
+            Description = x.Description,
+            Instruction = x.Instruction,
+            Templates = x.Templates?
+                            .Select(t => AgentTemplateMongoElement.ToMongoElement(t))?
+                            .ToList() ?? new List<AgentTemplateMongoElement>(),
+            Functions = x.Functions?
+                            .Select(f => FunctionDefMongoElement.ToMongoElement(f))?
+                            .ToList() ?? new List<FunctionDefMongoElement>(),
+            Responses = x.Responses?
+                            .Select(r => AgentResponseMongoElement.ToMongoElement(r))?
+                            .ToList() ?? new List<AgentResponseMongoElement>(),
+            IsPublic = x.IsPublic,
+            AllowRouting = x.AllowRouting,
+            Disabled = x.Disabled,
+            Profiles = x.Profiles,
+            RoutingRules = x.RoutingRules?
+                            .Select(r => RoutingRuleMongoElement.ToMongoElement(r))?
+                            .ToList() ?? new List<RoutingRuleMongoElement>(),
+            CreatedTime = x.CreatedDateTime,
+            UpdatedTime = x.UpdatedDateTime
+        }).ToList();
+
+        _dc.Agents.InsertMany(agentDocs);
+    }
+
+    public void BulkInsertUserAgents(List<UserAgent> userAgents)
+    {
+        if (userAgents.IsNullOrEmpty()) return;
+
+        var userAgentDocs = userAgents.Select(x => new UserAgentCollection
+        {
+            Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid() : new Guid(x.Id),
+            AgentId = Guid.Parse(x.AgentId),
+            UserId = !string.IsNullOrEmpty(x.UserId) && Guid.TryParse(x.UserId, out var _) ? Guid.Parse(x.UserId) : Guid.Empty,
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
+
+        _dc.UserAgents.InsertMany(userAgentDocs);
+    }
+
+    public bool DeleteAgents()
+    {
+        try
+        {
+            var userAgentFilter = Builders<UserAgentCollection>.Filter.Empty;
+            var agentfilter = Builders<AgentCollection>.Filter.Empty;
+            _dc.UserAgents.DeleteMany(userAgentFilter);
+            _dc.Agents.DeleteMany(agentfilter);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+        
+    }
     #endregion
 
     #region Conversation
@@ -676,7 +743,7 @@ public class MongoRepository : IBotSharpRepository
     #endregion
 
     #region User
-    public User GetUserByEmail(string email)
+    public User? GetUserByEmail(string email)
     {
         var user = Users.FirstOrDefault(x => x.Email == email);
         return user != null ? new User
