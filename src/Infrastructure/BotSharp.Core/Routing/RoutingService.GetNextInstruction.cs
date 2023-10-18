@@ -1,11 +1,7 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using System.Drawing;
-using System.IO;
 using System.Text.RegularExpressions;
-
 namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
@@ -96,29 +92,10 @@ public partial class RoutingService
         _logger.LogInformation(response.Content);
 #endif
 
-        // Sometimes it populate malformed Function in Agent name
-        if (!string.IsNullOrEmpty(args.Function) && args.Function == args.AgentName)
-        {
-            args.Function = "route_to_agent";
-            _logger.LogWarning($"Captured LLM malformed response");
-        }
+        // Fix LLM malformed response
+        FixMalformedResponse(args);
 
-        // Another case of malformed response
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agents = await agentService.GetAgents();
-        if (string.IsNullOrEmpty(args.AgentName) && agents.Select(x => x.Name).Contains(args.Function))
-        {
-            args.AgentName = args.Function;
-            args.Function = "route_to_agent";
-            _logger.LogWarning($"Captured LLM malformed response");
-        }
-
-        if (args.Arguments != null)
-        {
-            SaveStateByArgs(args.Arguments);
-        }
-
-        args.Function = args.Function.Split('.').Last();
+        SaveStateByArgs(args.Arguments);
 
 #if DEBUG
         Console.WriteLine($"*** Next Instruction *** {args}", Color.Green);
@@ -144,5 +121,55 @@ public partial class RoutingService
         {
             { "enabled_reasoning", _settings.EnableReasoning }
         });
+    }
+
+    /// <summary>
+    /// Sometimes LLM hallucinates and fails to set function names correctly.
+    /// </summary>
+    /// <param name="args"></param>
+    private void FixMalformedResponse(FunctionCallFromLlm args)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agents = agentService.GetAgents().Result;
+        var malformed = false;
+
+        // Sometimes it populate malformed Function in Agent name
+        if (!string.IsNullOrEmpty(args.Function) && 
+            args.Function == args.AgentName)
+        {
+            args.Function = "route_to_agent";
+            malformed = true;
+        }
+
+        // Another case of malformed response
+        if (string.IsNullOrEmpty(args.AgentName) && 
+            agents.Select(x => x.Name).Contains(args.Function))
+        {
+            args.AgentName = args.Function;
+            args.Function = "route_to_agent";
+            malformed = true;
+        }
+
+        // It should be Route to agent, but it is used as Response to user.
+        if (string.IsNullOrEmpty(args.AgentName) &&
+            agents.Select(x => x.Name).Contains(args.AgentName) &&
+            args.Function != "route_to_agent")
+        {
+            args.Function = "route_to_agent";
+            malformed = true;
+        }
+
+        // Function name shouldn't contain dot symbol
+        if (!string.IsNullOrEmpty(args.Function) &&
+            args.Function.Contains('.'))
+        {
+            args.Function = args.Function.Split('.').Last();
+            malformed = true;
+        }
+
+        if (malformed)
+        {
+            _logger.LogWarning($"Captured LLM malformed response");
+        }
     }
 }

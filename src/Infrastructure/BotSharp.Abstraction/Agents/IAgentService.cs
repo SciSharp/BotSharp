@@ -10,7 +10,7 @@ public interface IAgentService
     Task<List<Agent>> GetAgents();
 
     /// <summary>
-    /// Load agent configurations and trigghe hooks
+    /// Load agent configurations and trigger hooks
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
