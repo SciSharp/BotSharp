@@ -1,11 +1,11 @@
 What is the next step based on the CONVERSATION? Or you can handle without asking specific agent.
 
 Response must be in JSON format
-{% if enabled_reasoning -%}
+{% if enabled_reasoning %}
 {
     "function":"route_to_agent"
 }
-{%- else -%}  
+{% else %}  
 {
     "function":"route_to_agent",
     "reason":"the reason why you select this function or agent",
@@ -14,7 +14,7 @@ Response must be in JSON format
     "user_goal_agent":"agent who can achieve user original goal",
     "args": {}
 }
-{%- endif %}
+{% endif %}
 
 If the user has no other tasks need help with, set function as conversation_end with reason and reply user courteously.
 If the user wants to reach out to real human being, set function as human_intervention_needed with reason and reply user courteously.

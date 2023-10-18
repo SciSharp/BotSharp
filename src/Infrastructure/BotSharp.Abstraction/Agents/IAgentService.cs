@@ -10,13 +10,19 @@ public interface IAgentService
     Task<List<Agent>> GetAgents();
 
     /// <summary>
-    /// Load agent configurations and triggher hooks
+    /// Load agent configurations and trigghe hooks
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
     Task<Agent> LoadAgent(string id);
 
+    /// <summary>
+    /// Get agent detail without trigger any hook.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns>Original agent information</returns>
     Task<Agent> GetAgent(string id);
+
     Task<bool> DeleteAgent(string id);
     Task UpdateAgent(Agent agent, AgentField updateField);
     Task UpdateAgentFromFile(string id);

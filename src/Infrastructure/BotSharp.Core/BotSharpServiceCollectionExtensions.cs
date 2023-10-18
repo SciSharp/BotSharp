@@ -12,6 +12,9 @@ using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Routing.Hooks;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Core.Plugins;
+using BotSharp.Abstraction.Evaluations.Settings;
+using BotSharp.Abstraction.Evaluations;
+using BotSharp.Core.Evaluatings;
 
 namespace BotSharp.Core;
 
@@ -67,6 +70,13 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<ITokenStatistics, TokenStatistics>();
 
         services.AddScoped<IAgentHook, RoutingAgentHook>();
+
+        // Evaluation
+        var evalSetting = new EvaluatorSetting();
+        config.Bind("Evaluator", evalSetting);
+        services.AddSingleton((IServiceProvider x) => evalSetting);
+
+        services.AddScoped<IEvaluatingService, EvaluatingService>();
 
         return services;
     }

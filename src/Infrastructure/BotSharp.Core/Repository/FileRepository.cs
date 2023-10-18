@@ -489,6 +489,9 @@ public class FileRepository : IBotSharpRepository
         return responses;
     }
 
+#if !DEBUG
+    [MemoryCache(10 * 60)]
+#endif
     public Agent? GetAgent(string agentId)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
@@ -766,8 +769,8 @@ public class FileRepository : IBotSharpRepository
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
             var splits = fileName.ToLower().Split('.');
-            var name = splits[0];
-            var extension = splits[1];
+            var name = string.Join('.', splits.Take(splits.Length - 1));
+            var extension = splits.Last();
             if (extension.Equals(_agentSettings.TemplateFormat, StringComparison.OrdinalIgnoreCase))
             {
                 var content = File.ReadAllText(file);
