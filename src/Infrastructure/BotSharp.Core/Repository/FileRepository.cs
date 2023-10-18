@@ -43,10 +43,13 @@ public class FileRepository : IBotSharpRepository
 
             var dir = Path.Combine(_dbSettings.FileRepository, "users");
             _users = new List<User>();
-            foreach (var d in Directory.GetDirectories(dir))
+            if (Directory.Exists(dir))
             {
-                var json = File.ReadAllText(Path.Combine(d, "user.json"));
-                _users.Add(JsonSerializer.Deserialize<User>(json, _options));
+                foreach (var d in Directory.GetDirectories(dir))
+                {
+                    var json = File.ReadAllText(Path.Combine(d, "user.json"));
+                    _users.Add(JsonSerializer.Deserialize<User>(json, _options));
+                }
             }
             return _users.AsQueryable();
         }
@@ -64,17 +67,20 @@ public class FileRepository : IBotSharpRepository
 
             var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
             _agents = new List<Agent>();
-            foreach (var d in Directory.GetDirectories(dir))
+            if (Directory.Exists(dir))
             {
-                var json = File.ReadAllText(Path.Combine(d, "agent.json"));
-                var agent = JsonSerializer.Deserialize<Agent>(json, _options);
-                if (agent != null)
+                foreach (var d in Directory.GetDirectories(dir))
                 {
-                    agent = agent.SetInstruction(FetchInstruction(d))
-                                 .SetTemplates(FetchTemplates(d))
-                                 .SetFunctions(FetchFunctions(d))
-                                 .SetResponses(FetchResponses(d));
-                    _agents.Add(agent);
+                    var json = File.ReadAllText(Path.Combine(d, "agent.json"));
+                    var agent = JsonSerializer.Deserialize<Agent>(json, _options);
+                    if (agent != null)
+                    {
+                        agent = agent.SetInstruction(FetchInstruction(d))
+                                     .SetTemplates(FetchTemplates(d))
+                                     .SetFunctions(FetchFunctions(d))
+                                     .SetResponses(FetchResponses(d));
+                        _agents.Add(agent);
+                    }
                 }
             }
             return _agents.AsQueryable();
@@ -93,13 +99,16 @@ public class FileRepository : IBotSharpRepository
 
             var dir = Path.Combine(_dbSettings.FileRepository, "users");
             _userAgents = new List<UserAgent>();
-            foreach (var d in Directory.GetDirectories(dir))
+            if (Directory.Exists(dir))
             {
-                var file = Path.Combine(d, "agents.json");
-                if (Directory.Exists(d) && File.Exists(file))
+                foreach (var d in Directory.GetDirectories(dir))
                 {
-                    var json = File.ReadAllText(file);
-                    _userAgents.AddRange(JsonSerializer.Deserialize<List<UserAgent>>(json, _options));
+                    var file = Path.Combine(d, "agents.json");
+                    if (Directory.Exists(d) && File.Exists(file))
+                    {
+                        var json = File.ReadAllText(file);
+                        _userAgents.AddRange(JsonSerializer.Deserialize<List<UserAgent>>(json, _options));
+                    }
                 }
             }
             return _userAgents.AsQueryable();
@@ -118,13 +127,16 @@ public class FileRepository : IBotSharpRepository
 
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
             _conversations = new List<Conversation>();
-            foreach (var d in Directory.GetDirectories(dir))
+            if (Directory.Exists(dir))
             {
-                var path = Path.Combine(d, "conversation.json");
-                if (File.Exists(path))
+                foreach (var d in Directory.GetDirectories(dir))
                 {
-                    var json = File.ReadAllText(path);
-                    _conversations.Add(JsonSerializer.Deserialize<Conversation>(json, _options));
+                    var path = Path.Combine(d, "conversation.json");
+                    if (File.Exists(path))
+                    {
+                        var json = File.ReadAllText(path);
+                        _conversations.Add(JsonSerializer.Deserialize<Conversation>(json, _options));
+                    }
                 }
             }
             return _conversations.AsQueryable();
@@ -223,7 +235,7 @@ public class FileRepository : IBotSharpRepository
         return _changedTableNames.Count;
     }
 
-    
+
     #region Agent
     public void UpdateAgent(Agent agent, AgentField field)
     {
@@ -365,7 +377,7 @@ public class FileRepository : IBotSharpRepository
         var (agent, agentFile) = GetAgentFromFile(agentId);
         if (agent == null) return;
 
-        var instructionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, 
+        var instructionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
                                         agentId, $"instruction.{_agentSettings.TemplateFormat}");
 
         File.WriteAllText(instructionFile, instruction);
@@ -380,7 +392,7 @@ public class FileRepository : IBotSharpRepository
 
         var functionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
                                         agentId, "functions.json");
-        
+
         var functions = new List<string>();
         foreach (var function in inputFunctions)
         {
