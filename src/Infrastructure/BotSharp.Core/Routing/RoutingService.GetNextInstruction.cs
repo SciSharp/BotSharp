@@ -151,7 +151,7 @@ public partial class RoutingService
         }
 
         // It should be Route to agent, but it is used as Response to user.
-        if (string.IsNullOrEmpty(args.AgentName) &&
+        if (!string.IsNullOrEmpty(args.AgentName) &&
             agents.Select(x => x.Name).Contains(args.AgentName) &&
             args.Function != "route_to_agent")
         {
