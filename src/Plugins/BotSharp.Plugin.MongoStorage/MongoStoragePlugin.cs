@@ -19,7 +19,6 @@ public class MongoStoragePlugin : IBotSharpPlugin
 
         if (dbSettings.Default == "MongoRepository")
         {
-            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
             services.AddScoped((IServiceProvider x) =>
             {
                 var dbSettings = x.GetRequiredService<BotSharpDatabaseSettings>();
