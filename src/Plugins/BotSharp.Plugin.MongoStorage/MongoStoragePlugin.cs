@@ -1,4 +1,6 @@
 using BotSharp.Plugin.MongoStorage.Repository;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace BotSharp.Plugin.MongoStorage;
 
@@ -17,6 +19,7 @@ public class MongoStoragePlugin : IBotSharpPlugin
 
         if (dbSettings.Default == "MongoRepository")
         {
+            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
             services.AddScoped((IServiceProvider x) =>
             {
                 var dbSettings = x.GetRequiredService<BotSharpDatabaseSettings>();
