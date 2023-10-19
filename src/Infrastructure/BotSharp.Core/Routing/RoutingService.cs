@@ -25,6 +25,11 @@ public partial class RoutingService : IRoutingService
         }
     }
 
+    public void RefreshDialogs()
+    {
+        _dialogs = null;
+    }
+
     public RoutingService(IServiceProvider services,
         RoutingSettings settings,
         ILogger<RoutingService> logger,

@@ -56,6 +56,8 @@ public partial class ConversationService
         var statistics = _services.GetRequiredService<ITokenStatistics>();
         statistics.PrintStatistics();
 
+        routing.RefreshDialogs();
+
         return true;
     }
 
