@@ -23,16 +23,11 @@ public class ProviderHelper
         }
     }
 
-    public static List<RoleDialogModel> GetChatSamples(string sampleText)
+    public static List<RoleDialogModel> GetChatSamples(List<string> lines)
     {
         var samples = new List<RoleDialogModel>();
-        if (string.IsNullOrEmpty(sampleText))
-        {
-            return samples;
-        }
 
-        var lines = sampleText.Split('\n');
-        for (int i = 0; i < lines.Length; i++)
+        for (int i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
             if (string.IsNullOrEmpty(line.Trim()))

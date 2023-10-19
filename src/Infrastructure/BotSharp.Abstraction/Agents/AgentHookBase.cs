@@ -41,7 +41,7 @@ public abstract class AgentHookBase : IAgentHook
         return true;
     }
 
-    public virtual bool OnSamplesLoaded(ref string samples)
+    public virtual bool OnSamplesLoaded(List<string> samples)
     {
         _agent.Samples = samples;
         return true;

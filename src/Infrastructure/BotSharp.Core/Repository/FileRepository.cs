@@ -519,10 +519,12 @@ public class FileRepository : IBotSharpRepository
 
             var instruction = FetchInstruction(dir);
             var functions = FetchFunctions(dir);
+            var samples = FetchSamples(dir);
             var templates = FetchTemplates(dir);
             var responses = FetchResponses(dir);
             return record.SetInstruction(instruction)
                              .SetFunctions(functions)
+                             .SetSamples(samples)
                              .SetTemplates(templates)
                              .SetResponses(responses);
         }
@@ -769,6 +771,14 @@ public class FileRepository : IBotSharpRepository
         var functionsJson = File.ReadAllText(file);
         var functions = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
         return functions;
+    }
+
+    private List<string> FetchSamples(string fileDir)
+    {
+        var file = Path.Combine(fileDir, "samples.txt");
+        if (!File.Exists(file)) return new List<string>();
+
+        return File.ReadAllLines(file).ToList();
     }
 
     private List<AgentTemplate> FetchTemplates(string fileDir)

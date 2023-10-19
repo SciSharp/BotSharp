@@ -27,7 +27,7 @@ public class Agent
     /// Samples
     /// </summary>
     [JsonIgnore]
-    public string Samples { get; set; }
+    public List<string> Samples { get; set; }
 
     /// <summary>
     /// Functions
@@ -106,6 +106,12 @@ public class Agent
     public Agent SetFunctions(List<FunctionDef> functions)
     {
         Functions = functions ?? new List<FunctionDef>();
+        return this;
+    }
+
+    public Agent SetSamples(List<string> samples)
+    {
+        Samples = samples ?? new List<string>();
         return this;
     }
 
