@@ -13,6 +13,7 @@ public class AgentViewModel
     public List<AgentTemplate> Templates { get; set; }
     public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
+    public List<string> Samples { get; set; }
     public bool IsPublic { get; set; }
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }
@@ -33,6 +34,7 @@ public class AgentViewModel
             Templates = agent.Templates,
             Functions = agent.Functions,
             Responses = agent.Responses,
+            Samples = agent.Samples,
             IsPublic= agent.IsPublic,
             Disabled = agent.Disabled,
             AllowRouting = agent.AllowRouting,

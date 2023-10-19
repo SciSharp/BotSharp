@@ -13,7 +13,7 @@ public partial class AgentService
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentDir = Path.Combine(dbSettings.FileRepository, _agentSettings.DataDir);
-        var user = _db.Users.FirstOrDefault(x => x.Id == _user.Id || x.ExternalId == _user.Id);
+        var user = _db.GetUserByExternalId(_user.Id);
         var agents = new List<Agent>();
         var userAgents = new List<UserAgent>();
 
@@ -27,10 +27,12 @@ public partial class AgentService
             var instruction = FetchInstructionFromFile(dir);
             var responses = FetchResponsesFromFile(dir);
             var templates = FetchTemplatesFromFile(dir);
+            var samples = FetchSamplesFromFile(dir);
             agent.SetInstruction(instruction)
                  .SetTemplates(templates)
                  .SetFunctions(functions)
-                 .SetResponses(responses);
+                 .SetResponses(responses)
+                 .SetSamples(samples);
 
             var userAgent = new UserAgent
             {

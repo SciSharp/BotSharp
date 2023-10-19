@@ -44,7 +44,7 @@ public class UserService : IUserService
         var (userEmail, password) = base64.SplitAsTuple(":");
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.Users.FirstOrDefault(x => x.Email == userEmail);
+        var record = db.GetUserByEmail(userEmail);
         if (record == null)
         {
             return default;
@@ -97,19 +97,7 @@ public class UserService : IUserService
     public async Task<User> GetMyProfile()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = (from u in db.Users
-                    where u.ExternalId == _user.Id
-                    select new User
-                    {
-                        Id = u.Id,
-                        Email = u.Email,
-                        FirstName = u.FirstName,
-                        LastName = u.LastName,
-                        CreatedTime = u.CreatedTime,
-                        UpdatedTime = u.UpdatedTime,
-                        Password = u.Password,
-                    }).FirstOrDefault();
-
+        var user = db.GetUserByExternalId(_user.Id);
         return user;
     }
 }

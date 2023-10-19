@@ -12,7 +12,7 @@ public partial class AgentService
     {
         if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
-        var record = FindAgent(agent.Id);
+        var record = _db.GetAgent(agent.Id);
         if (record == null) return;
 
         record.Name = agent.Name ?? string.Empty;
@@ -26,25 +26,15 @@ public partial class AgentService
         record.Functions = agent.Functions ?? new List<FunctionDef>();
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
+        record.Samples = agent.Samples ?? new List<string>();
 
         _db.UpdateAgent(record, updateField);
         await Task.CompletedTask;
     }
 
-    private Agent FindAgent(string agentId)
-    {
-        var record = (from a in _db.Agents
-                      join ua in _db.UserAgents on a.Id equals ua.AgentId
-                      join u in _db.Users on ua.UserId equals u.Id
-                      where (ua.UserId == _user.Id || u.ExternalId == _user.Id) &&
-                        a.Id == agentId
-                      select a).FirstOrDefault();
-        return record;
-    }
-
     public async Task UpdateAgentFromFile(string id)
     {
-        var agent = _db.Agents?.FirstOrDefault(x => x.Id == id);
+        var agent = _db.GetAgent(id);
 
         if (agent == null) return;
 
@@ -67,7 +57,8 @@ public partial class AgentService
                        .SetInstruction(foundAgent.Instruction)
                        .SetTemplates(foundAgent.Templates)
                        .SetFunctions(foundAgent.Functions)
-                       .SetResponses(foundAgent.Responses);
+                       .SetResponses(foundAgent.Responses)
+                       .SetSamples(foundAgent.Samples);
 
             _db.UpdateAgent(clonedAgent, AgentField.All);
         }
@@ -87,10 +78,12 @@ public partial class AgentService
                 var instruction = FetchInstructionFromFile(dir);
                 var responses = FetchResponsesFromFile(dir);
                 var templates = FetchTemplatesFromFile(dir);
+                var samples = FetchSamplesFromFile(dir);
                 return agent.SetInstruction(instruction)
                             .SetTemplates(templates)
                             .SetFunctions(functions)
-                            .SetResponses(responses);
+                            .SetResponses(responses)
+                            .SetSamples(samples);
             }
         }
 

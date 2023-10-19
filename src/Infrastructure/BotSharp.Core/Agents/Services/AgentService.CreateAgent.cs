@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Utilities;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -10,11 +9,7 @@ public partial class AgentService
 {
     public async Task<Agent> CreateAgent(Agent agent)
     {
-        var agentRecord = (from a in _db.Agents
-                     join ua in _db.UserAgents on a.Id equals ua.AgentId
-                     join u in _db.Users on ua.UserId equals u.Id
-                     where u.ExternalId == _user.Id && a.Name == agent.Name
-                     select a).FirstOrDefault();
+        var agentRecord = _db.GetAgentsByUser(_user.Id).FirstOrDefault(x => x.Name.IsEqualTo(agent.Name));
 
         if (agentRecord != null)
         {
@@ -47,7 +42,7 @@ public partial class AgentService
                        .SetResponses(foundAgent.Responses);
         }
 
-        var user = _db.Users.FirstOrDefault(x => x.Id == _user.Id || x.ExternalId == _user.Id);
+        var user = _db.GetUserByExternalId(_user.Id);
         var userAgentRecord = new UserAgent
         {
             Id = Guid.NewGuid().ToString(),
@@ -78,10 +73,12 @@ public partial class AgentService
                 var instruction = FetchInstructionFromFile(dir);
                 var responses = FetchResponsesFromFile(dir);
                 var templates = FetchTemplatesFromFile(dir);
+                var samples = FetchSamplesFromFile(dir);
                 return agent.SetInstruction(instruction)
                             .SetTemplates(templates)
                             .SetFunctions(functions)
-                            .SetResponses(responses);
+                            .SetResponses(responses)
+                            .SetSamples(samples);
             }
         }
 
@@ -145,5 +142,14 @@ public partial class AgentService
             responses.Add(new AgentResponse(prefix, intent, content));
         }
         return responses;
+    }
+
+    private List<string> FetchSamplesFromFile(string fileDir)
+    {
+        var file = Path.Combine(fileDir, "samples.txt");
+        if (!File.Exists(file)) return new List<string>();
+
+        var samples = File.ReadAllLines(file);
+        return samples?.ToList() ?? new List<string>();
     }
 }

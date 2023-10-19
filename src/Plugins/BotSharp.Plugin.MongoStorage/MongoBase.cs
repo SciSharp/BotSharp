@@ -6,6 +6,6 @@ namespace BotSharp.Plugin.MongoStorage;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class MongoBase
 {
-    [BsonId(IdGenerator = typeof(GuidGenerator))]
-    public Guid Id { get; set; }
+    [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
+    public string Id { get; set; }
 }

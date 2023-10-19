@@ -72,6 +72,17 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
+    public List<Agent> GetAgents(string? name = null, bool? disabled = null, bool? allowRouting = null,
+        bool? isPublic = null, List<string>? agentIds = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<Agent> GetAgentsByUser(string userId)
+    {
+        throw new NotImplementedException();
+    }
+
     public void UpdateAgent(Agent agent, AgentField field)
     {
         throw new NotImplementedException();
@@ -144,6 +155,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     #region User
     public User? GetUserByEmail(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    public User? GetUserByExternalId(string externalId)
     {
         throw new NotImplementedException();
     }
