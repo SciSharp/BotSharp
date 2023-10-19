@@ -19,7 +19,7 @@ public interface IAgentHook
 
     bool OnFunctionsLoaded(List<FunctionDef> functions);
 
-    bool OnSamplesLoaded(ref string samples);
+    bool OnSamplesLoaded(List<string> samples);
 
     /// <summary>
     /// Triggered when agent is loaded completely.

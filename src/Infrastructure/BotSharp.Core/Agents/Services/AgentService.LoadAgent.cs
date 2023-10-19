@@ -42,10 +42,9 @@ public partial class AgentService
                 hook.OnFunctionsLoaded(agent.Functions);
             }
 
-            if (!string.IsNullOrEmpty(agent.Samples))
+            if (agent.Samples != null)
             {
-                var samples = agent.Samples;
-                hook.OnSamplesLoaded(ref samples);
+                hook.OnSamplesLoaded(agent.Samples);
             }
 
             hook.OnAgentLoaded(agent);
