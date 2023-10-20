@@ -4,22 +4,21 @@ namespace BotSharp.Abstraction.Repositories;
 
 public interface IBotSharpRepository
 {
-    IQueryable<User> Users { get; }
-    IQueryable<Agent> Agents { get; }
-    IQueryable<UserAgent> UserAgents { get; }
-    IQueryable<Conversation> Conversations { get; }
-
     int Transaction<TTableInterface>(Action action);
     void Add<TTableInterface>(object entity);
 
     #region User
     User? GetUserByEmail(string email);
+    User? GetUserByExternalId(string externalId);
     void CreateUser(User user);
     #endregion
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
     Agent? GetAgent(string agentId);
+    List<Agent> GetAgents(string? name = null, bool? disabled = null, bool? allowRouting = null,
+        bool? isPublic = null, List<string>? agentIds = null);
+    List<Agent> GetAgentsByUser(string userId);
     void BulkInsertAgents(List<Agent> agents);
     void BulkInsertUserAgents(List<UserAgent> userAgents);
     bool DeleteAgents();

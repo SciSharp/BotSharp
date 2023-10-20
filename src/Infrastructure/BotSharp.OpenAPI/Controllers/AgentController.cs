@@ -111,7 +111,7 @@ public class AgentController : ControllerBase, IApiAdapter
     {
         var model = agent.ToAgent();
         model.Id = agentId;
-        await _agentService.UpdateAgent(model, AgentField.RoutingRules);
+        await _agentService.UpdateAgent(model, AgentField.RoutingRule);
     }
 
     [HttpPut("/agent/{agentId}/instruction")]
@@ -144,5 +144,13 @@ public class AgentController : ControllerBase, IApiAdapter
         var model = agent.ToAgent();
         model.Id = agentId;
         await _agentService.UpdateAgent(model, AgentField.Response);
+    }
+
+    [HttpPut("/agent/{agentId}/samples")]
+    public async Task UpdateAgentSamples([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        await _agentService.UpdateAgent(model, AgentField.Sample);
     }
 }

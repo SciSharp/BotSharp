@@ -17,7 +17,7 @@ public class AgentCreationModel
     /// <summary>
     /// LLM extensible Instructions in addition to the default Instructions
     /// </summary>
-    public List<AgentTemplate>? Templates { get; set; }
+    public List<AgentTemplate> Templates { get; set; } = new List<AgentTemplate>();
 
     /// <summary>
     /// LLM callable function definition
@@ -27,7 +27,8 @@ public class AgentCreationModel
     /// <summary>
     /// Response template
     /// </summary>
-    public List<AgentResponse>? Responses { get; set; }
+    public List<AgentResponse> Responses { get; set; } = new List<AgentResponse>();
+    public List<string> Samples { get; set; } = new List<string>();
 
     public bool IsPublic { get; set; }
 
@@ -53,6 +54,7 @@ public class AgentCreationModel
             Templates = Templates,
             Functions = Functions,
             Responses = Responses,
+            Samples = Samples,
             IsPublic = IsPublic,
             AllowRouting = AllowRouting,
             Disabled = Disabled,

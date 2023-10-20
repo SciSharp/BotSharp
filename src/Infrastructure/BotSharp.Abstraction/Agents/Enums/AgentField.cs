@@ -9,9 +9,10 @@ public enum AgentField
     Disabled,
     AllowRouting,
     Profiles,
-    RoutingRules,
+    RoutingRule,
     Instruction,
     Function,
     Template,
-    Response
+    Response,
+    Sample
 }

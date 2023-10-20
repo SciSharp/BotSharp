@@ -47,7 +47,7 @@ public class ConversationStorage : IConversationStorage
         else
         {
             var routingSetting = _services.GetRequiredService<RoutingSettings>();
-            var agentName = routingSetting.RouterId == agentId ? "Router" : db.Agents.First(x => x.Id == agentId).Name;
+            var agentName = routingSetting.RouterId == agentId ? "Router" : db.GetAgent(agentId)?.Name;
 
             sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agentName}|");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();

@@ -1,4 +1,6 @@
 using BotSharp.Plugin.MongoStorage.Repository;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace BotSharp.Plugin.MongoStorage;
 

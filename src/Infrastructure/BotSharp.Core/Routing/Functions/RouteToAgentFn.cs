@@ -29,7 +29,7 @@ public class RouteToAgentFn : IFunctionCallback
         if (!string.IsNullOrEmpty(args.OriginalAgent) && args.OriginalAgent.Length < 32)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var originalAgent = db.Agents.FirstOrDefault(x => x.Name.ToLower() == args.OriginalAgent.ToLower());
+            var originalAgent = db.GetAgents(args.OriginalAgent).FirstOrDefault();
             if (originalAgent != null)
             {
                 _context.Push(originalAgent.Id);
@@ -48,7 +48,7 @@ public class RouteToAgentFn : IFunctionCallback
         else
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var targetAgent = db.Agents.FirstOrDefault(x => x.Name.ToLower() == args.AgentName.ToLower());
+            var targetAgent = db.GetAgents(args.AgentName).FirstOrDefault();
             if (targetAgent == null)
             {
                 message.ExecutionData = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
@@ -138,7 +138,7 @@ public class RouteToAgentFn : IFunctionCallback
             if (!string.IsNullOrEmpty(routingRule.RedirectTo))
             {
                 var db = _services.GetRequiredService<IBotSharpRepository>();
-                var record = db.Agents.First(x => x.Id == routingRule.RedirectTo);
+                var record = db.GetAgent(routingRule.RedirectTo);
 
                 // Add redirected agent
                 message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", record.Name);

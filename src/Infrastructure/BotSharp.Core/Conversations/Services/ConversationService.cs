@@ -46,7 +46,7 @@ public partial class ConversationService : IConversationService
     public async Task<List<Conversation>> GetConversations()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var user = db.GetUserByExternalId(_user.Id);
         var conversations = db.GetConversations(user?.Id);
         return conversations.OrderByDescending(x => x.CreatedTime).ToList();
     }
@@ -56,7 +56,7 @@ public partial class ConversationService : IConversationService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var conversationSettings = _services.GetRequiredService<ConversationSetting>();
-        var user = db.Users.FirstOrDefault(x => x.ExternalId == _user.Id);
+        var user = db.GetUserByExternalId(_user.Id);
         var foundUserId = user?.Id ?? string.Empty;
 
         var record = sess;

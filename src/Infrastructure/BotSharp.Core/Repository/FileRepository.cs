@@ -5,6 +5,8 @@ using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
+using Amazon.Util;
+
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
@@ -32,7 +34,11 @@ public class FileRepository : IBotSharpRepository
     }
 
     private List<User> _users = new List<User>();
-    public IQueryable<User> Users
+    private List<Agent> _agents = new List<Agent>();
+    private List<UserAgent> _userAgents = new List<UserAgent>();
+    private List<Conversation> _conversations = new List<Conversation>();
+
+    private IQueryable<User> Users
     {
         get
         {
@@ -55,8 +61,7 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
-    private List<Agent> _agents = new List<Agent>();
-    public IQueryable<Agent> Agents
+    private IQueryable<Agent> Agents
     {
         get
         {
@@ -78,7 +83,8 @@ public class FileRepository : IBotSharpRepository
                         agent = agent.SetInstruction(FetchInstruction(d))
                                      .SetTemplates(FetchTemplates(d))
                                      .SetFunctions(FetchFunctions(d))
-                                     .SetResponses(FetchResponses(d));
+                                     .SetResponses(FetchResponses(d))
+                                     .SetSamples(FetchSamples(d));
                         _agents.Add(agent);
                     }
                 }
@@ -87,8 +93,7 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
-    private List<UserAgent> _userAgents = new List<UserAgent>();
-    public IQueryable<UserAgent> UserAgents
+    private IQueryable<UserAgent> UserAgents
     {
         get
         {
@@ -112,34 +117,6 @@ public class FileRepository : IBotSharpRepository
                 }
             }
             return _userAgents.AsQueryable();
-        }
-    }
-
-    private List<Conversation> _conversations = new List<Conversation>();
-    public IQueryable<Conversation> Conversations
-    {
-        get
-        {
-            if (!_conversations.IsNullOrEmpty())
-            {
-                return _conversations.AsQueryable();
-            }
-
-            var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
-            _conversations = new List<Conversation>();
-            if (Directory.Exists(dir))
-            {
-                foreach (var d in Directory.GetDirectories(dir))
-                {
-                    var path = Path.Combine(d, "conversation.json");
-                    if (File.Exists(path))
-                    {
-                        var json = File.ReadAllText(path);
-                        _conversations.Add(JsonSerializer.Deserialize<Conversation>(json, _options));
-                    }
-                }
-            }
-            return _conversations.AsQueryable();
         }
     }
 
@@ -261,7 +238,7 @@ public class FileRepository : IBotSharpRepository
             case AgentField.Profiles:
                 UpdateAgentProfiles(agent.Id, agent.Profiles);
                 break;
-            case AgentField.RoutingRules:
+            case AgentField.RoutingRule:
                 UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
                 break;
             case AgentField.Instruction:
@@ -275,6 +252,9 @@ public class FileRepository : IBotSharpRepository
                 break;
             case AgentField.Response:
                 UpdateAgentResponses(agent.Id, agent.Responses);
+                break;
+            case AgentField.Sample:
+                UpdateAgentSamples(agent.Id, agent.Samples);
                 break;
             case AgentField.All:
                 UpdateAgentAllFields(agent);
@@ -456,6 +436,17 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
+    private void UpdateAgentSamples(string agentId, List<string> samples)
+    {
+        if (samples.IsNullOrEmpty()) return;
+
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        var file = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "samples.txt");
+        File.WriteAllLines(file, samples);
+    }
+
     private void UpdateAgentAllFields(Agent inputAgent)
     {
         var (agent, agentFile) = GetAgentFromFile(inputAgent.Id);
@@ -476,6 +467,7 @@ public class FileRepository : IBotSharpRepository
         UpdateAgentResponses(inputAgent.Id, inputAgent.Responses);
         UpdateAgentTemplates(inputAgent.Id, inputAgent.Templates);
         UpdateAgentFunctions(inputAgent.Id, inputAgent.Functions);
+        UpdateAgentSamples(inputAgent.Id, inputAgent.Samples);
     }
     #endregion
 
@@ -531,6 +523,50 @@ public class FileRepository : IBotSharpRepository
 
         return null;
     }
+
+    public List<Agent> GetAgents(string? name = null, bool? disabled = null, bool? allowRouting = null,
+        bool? isPublic = null, List<string>? agentIds = null)
+    {
+        var query = Agents;
+        if (!string.IsNullOrEmpty(name))
+        {
+            query = query.Where(x => x.Name.ToLower() == name.ToLower());
+        }
+
+        if (disabled.HasValue)
+        {
+            query = query.Where(x => x.Disabled == disabled);
+        }
+
+        if (allowRouting.HasValue)
+        {
+            query = query.Where(x => x.AllowRouting == allowRouting);
+        }
+
+        if (isPublic.HasValue)
+        {
+            query = query.Where(x => x.IsPublic == isPublic);
+        }
+
+        if (agentIds != null)
+        {
+            query = query.Where(x => agentIds.Contains(x.Id));
+        }
+
+        return query.ToList();
+    }
+
+    public List<Agent> GetAgentsByUser(string userId)
+    {
+        var agentIds = (from ua in UserAgents
+                        join u in Users on ua.UserId equals u.Id
+                        where ua.UserId == userId || u.ExternalId == userId
+                        select ua.AgentId).ToList();
+
+        var agents = GetAgents(isPublic: true, agentIds: agentIds);
+        return agents;
+    }
+
 
     public string GetAgentTemplate(string agentId, string templateName)
     {
@@ -719,6 +755,11 @@ public class FileRepository : IBotSharpRepository
         return Users.FirstOrDefault(x => x.Email == email);
     }
 
+    public User? GetUserByExternalId(string externalId)
+    {
+        return Users.FirstOrDefault(x => x.ExternalId == externalId);
+    }
+
     public void CreateUser(User user)
     {
         var userId = Guid.NewGuid().ToString();
@@ -778,7 +819,7 @@ public class FileRepository : IBotSharpRepository
         var file = Path.Combine(fileDir, "samples.txt");
         if (!File.Exists(file)) return new List<string>();
 
-        return File.ReadAllLines(file).ToList();
+        return File.ReadAllLines(file)?.ToList() ?? new List<string>();
     }
 
     private List<AgentTemplate> FetchTemplates(string fileDir)

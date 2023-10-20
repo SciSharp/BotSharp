@@ -10,6 +10,7 @@ public class AgentCollection : MongoBase
     public List<AgentTemplateMongoElement> Templates { get; set; }
     public List<FunctionDefMongoElement> Functions { get; set; }
     public List<AgentResponseMongoElement> Responses { get; set; }
+    public List<string> Samples { get; set; }
     public bool IsPublic { get; set; }
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }

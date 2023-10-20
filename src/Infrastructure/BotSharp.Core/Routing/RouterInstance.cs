@@ -62,7 +62,7 @@ public class RouterInstance : IRouterInstance
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
+        var agents = db.GetAgents(disabled: false, allowRouting: true);
         var records = agents.SelectMany(x =>
         {
             x.RoutingRules.ForEach(r =>
@@ -92,7 +92,7 @@ public class RouterInstance : IRouterInstance
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var agents = db.Agents.Where(x => !x.Disabled && x.AllowRouting).ToArray();
+        var agents = db.GetAgents(disabled: false, allowRouting: true);
         return agents.Select(x => new RoutingItem
         {
             AgentId = x.Id,

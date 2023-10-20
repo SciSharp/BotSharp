@@ -31,7 +31,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
     {
         // Retrieve information from specific agent
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.Agents.First(x => x.Name.ToLower() == inst.AgentName.ToLower());
+        var record = db.GetAgents(inst.AgentName).FirstOrDefault();
         var response = await routing.InvokeAgent(record.Id);
 
         inst.Response = response.Content;
