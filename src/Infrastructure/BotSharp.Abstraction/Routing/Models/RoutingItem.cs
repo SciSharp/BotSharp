@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Functions.Models;
 
 namespace BotSharp.Abstraction.Routing.Models;
 
@@ -14,5 +14,5 @@ public class RoutingItem
     public string Description { get; set; } = string.Empty;
 
     [JsonPropertyName("required_fields")]
-    public List<NameDesc> RequiredFields { get; set; } = new List<NameDesc>();
+    public List<ParameterPropertyDef> RequiredFields { get; set; } = new List<ParameterPropertyDef>();
 }

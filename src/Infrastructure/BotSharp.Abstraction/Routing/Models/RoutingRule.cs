@@ -10,6 +10,10 @@ public class RoutingRule
 
     public string Field { get; set; }
     public string Description { get; set; }
+    /// <summary>
+    /// Field type: string, number, object
+    /// </summary>
+    public string Type { get; set; }
 
     public bool Required { get; set; }
 

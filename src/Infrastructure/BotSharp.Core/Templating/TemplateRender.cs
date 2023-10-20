@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
@@ -21,6 +22,7 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.MemberNameStrategy = MemberNameStrategies.SnakeCase;
 
         _options.MemberAccessStrategy.Register<NameDesc>();
+        _options.MemberAccessStrategy.Register<ParameterPropertyDef>();
         _options.MemberAccessStrategy.Register<RoleDialogModel>();
         _options.MemberAccessStrategy.Register<Agent>();
         _options.MemberAccessStrategy.Register<RoutingItem>();

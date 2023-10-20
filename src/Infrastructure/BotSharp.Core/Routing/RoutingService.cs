@@ -25,6 +25,11 @@ public partial class RoutingService : IRoutingService
         }
     }
 
+    public void ResetRecursiveCounter()
+    {
+        _currentRecursionDepth = 0;
+    }
+
     public void RefreshDialogs()
     {
         _dialogs = null;
@@ -88,15 +93,12 @@ public partial class RoutingService : IRoutingService
             if (handler == null)
             {
                 handler = handlers.FirstOrDefault(x => x.Name == "get_next_instruction");
-                router.Instruction += $"\r\n{AgentRole.System}: the function must be one of {string.Join(",", _routerInstance.GetHandlers().Select(x => x.Name))}.";
                 continue;
             }
             handler.SetRouter(router);
             handler.SetDialogs(Dialogs);
 
             result = await handler.Handle(this, inst);
-
-            message = result.Content.Replace("\r\n", " ");
 
             stop = !_settings.EnableReasoning;
         }

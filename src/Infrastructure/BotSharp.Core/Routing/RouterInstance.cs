@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
@@ -89,8 +90,9 @@ public class RouterInstance : IRouterInstance
             AgentId = x.Id,
             Description = x.Description,
             Name = x.Name,
-            RequiredFields = x.RoutingRules.Where(x => x.Required)
-                .Select(x => new NameDesc(x.Field, x.Description))
+            RequiredFields = x.RoutingRules
+                .Where(x => x.Required)
+                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type))
                 .ToList()
         }).ToArray();
     }

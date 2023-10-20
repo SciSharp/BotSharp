@@ -18,7 +18,12 @@ public partial class ConversationService
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
-        _logger.LogInformation($"[{agent.Name}] {incoming.Role}: {incoming.Content}");
+        var message = $"Received [{agent.Name}] {incoming.Role}: {incoming.Content}";
+#if DEBUG
+        Console.WriteLine(message, Color.OrangeRed);
+#else
+        _logger.LogInformation(message);
+#endif
 
         incoming.CurrentAgentId = agent.Id;
 
@@ -56,6 +61,7 @@ public partial class ConversationService
         var statistics = _services.GetRequiredService<ITokenStatistics>();
         statistics.PrintStatistics();
 
+        routing.ResetRecursiveCounter();
         routing.RefreshDialogs();
 
         return true;
@@ -81,16 +87,15 @@ public partial class ConversationService
 
     private async Task HandleAssistantMessage(RoleDialogModel message, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var routingSetting = _services.GetRequiredService<RoutingSettings>();
-        var agentName = routingSetting.RouterId == message.CurrentAgentId ? 
-            "Router" : 
-            (await _services.GetRequiredService<IAgentService>().GetAgent(message.CurrentAgentId)).Name;
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+        var agentName = agent.Name;
 
         var text = message.Role == AgentRole.Function ?
-            $"[{agentName}] {message.FunctionName}: {message.Content}" :
-            $"[{agentName}] {message.Role}: {message.Content}";
+            $"Sending [{agentName}] {message.FunctionName}: {message.Content}" :
+            $"Sending [{agentName}] {message.Role}: {message.Content}";
 #if DEBUG
-        Console.WriteLine(text, Color.Pink);
+        Console.WriteLine(text, Color.Yellow);
 #else
         _logger.LogInformation(text);
 #endif

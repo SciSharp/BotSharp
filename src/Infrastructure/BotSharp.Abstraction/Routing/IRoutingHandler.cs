@@ -11,9 +11,9 @@ public interface IRoutingHandler
 {
     string Name { get; }
     string Description { get; }
-    bool IsReasoning { get => false; }
-    bool Enabled { get => true; }
-    List<NameDesc> Parameters { get => new List<NameDesc>(); }
+    bool IsReasoning => false;
+    bool Enabled => true;
+    List<NameDesc> Parameters => new List<NameDesc>();
 
     void SetRouter(Agent router) { }
 

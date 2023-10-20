@@ -94,7 +94,7 @@ public partial class RoutingService
         }
 
 #if DEBUG
-        Console.WriteLine(response.Content, Color.Gray);
+        Console.WriteLine(response.Content, Color.Green);
 #else
         _logger.LogInformation(response.Content);
 #endif

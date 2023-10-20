@@ -6,12 +6,13 @@ namespace BotSharp.Core.Routing;
 public partial class RoutingService
 {
     const int MAXIMUM_RECURSION_DEPTH = 3;
-    int CurrentRecursionDepth = 0;
+    private int _currentRecursionDepth = 0;
     public async Task<RoleDialogModel> InvokeAgent(string agentId)
     {
-        CurrentRecursionDepth++;
-        if (CurrentRecursionDepth > MAXIMUM_RECURSION_DEPTH)
+        _currentRecursionDepth++;
+        if (_currentRecursionDepth > MAXIMUM_RECURSION_DEPTH)
         {
+            _logger.LogWarning($"Current recursive call depth greater than {MAXIMUM_RECURSION_DEPTH}, which will cause unexpected result.");
             return Dialogs.Last();
         }
 
@@ -23,13 +24,15 @@ public partial class RoutingService
 
         if (response.Role == AgentRole.Function)
         {
-            await InvokeFunction(agent, response);
+            return await InvokeFunction(agent, response);
         }
-
-        return response;
+        else
+        {
+            return response;
+        }
     }
 
-    private async Task InvokeFunction(Agent agent, RoleDialogModel response)
+    private async Task<RoleDialogModel> InvokeFunction(Agent agent, RoleDialogModel response)
     {
         // execute function
         // Save states
@@ -41,11 +44,12 @@ public partial class RoutingService
 
         if (string.IsNullOrEmpty(response.Content))
         {
-            response.Content = response.ExecutionResult;
+            response.Content = response.ExecutionResult ?? JsonSerializer.Serialize(response.ExecutionData);
         }
 
         Dialogs.Add(response);
 
+        // Pass execution result to LLM to get response
         if (!response.StopCompletion)
         {
             // Find response template
@@ -54,17 +58,14 @@ public partial class RoutingService
             if (!string.IsNullOrEmpty(responseTemplate))
             {
                 response.Role = AgentRole.Assistant;
-                response.Content = responseTemplate;
+                response.Content = responseTemplate.Trim();
             }
             else
             {
-                var recursiveResponse = await InvokeAgent(response.CurrentAgentId);
-                response.Role = recursiveResponse.Role;
-                response.Content = recursiveResponse.Content;
-                response.ExecutionResult = recursiveResponse.ExecutionResult;
-                response.ExecutionData = recursiveResponse.ExecutionData ?? response.ExecutionData;
-                response.StopCompletion = recursiveResponse.StopCompletion;
+                response = await InvokeAgent(response.CurrentAgentId);
             }
         }
+
+        return response;
     }
 }

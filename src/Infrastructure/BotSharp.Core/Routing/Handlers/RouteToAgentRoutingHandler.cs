@@ -30,18 +30,19 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
     {
+        var context = _services.GetRequiredService<RoutingContext>();
+
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
         var message = new RoleDialogModel(AgentRole.Function, inst.Question)
         {
             FunctionName = inst.Function,
             FunctionArgs = JsonSerializer.Serialize(inst),
-            CurrentAgentId = routing.Dialogs.Last().CurrentAgentId
+            CurrentAgentId = context.GetCurrentAgentId(),
         };
 
         var ret = await function.Execute(message);
 
-        var context = _services.GetRequiredService<RoutingContext>();
-        var result = await routing.InvokeAgent(context.CurrentAgentId);
+        var result = await routing.InvokeAgent(context.GetCurrentAgentId());
         // Keep last message data for debug
         result.ExecutionData = result.ExecutionData ?? message.ExecutionData;
         result.FunctionName = result.FunctionName ?? message.FunctionName;

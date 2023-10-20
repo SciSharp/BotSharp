@@ -29,7 +29,7 @@ public class RouteToAgentFn : IFunctionCallback
         if (!string.IsNullOrEmpty(args.OriginalAgent) && args.OriginalAgent.Length < 32)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var originalAgent = db.GetAgents(args.OriginalAgent).FirstOrDefault();
+            var originalAgent = db.GetAgents(name: args.OriginalAgent).FirstOrDefault();
             if (originalAgent != null)
             {
                 _context.Push(originalAgent.Id);

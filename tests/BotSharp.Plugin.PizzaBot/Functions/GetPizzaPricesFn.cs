@@ -10,9 +10,9 @@ public class GetPizzaPricesFn : IFunctionCallback
     {
         message.ExecutionData = new
         {
-            pepperoni_unit_price = "$3.2",
-            cheese_unit_price = "$3.5",
-            margherita_unit_price = "$3.8",
+            pepperoni_unit_price = 3.2,
+            cheese_unit_price = 3.5,
+            margherita_unit_price = 3.8,
         };
         return true;
     }

@@ -1,7 +1,15 @@
+using BotSharp.Abstraction.Routing.Settings;
+
 namespace BotSharp.Abstraction.Routing.Models;
 
 public class RoutingContext
 {
+    private readonly RoutingSettings _setting;
+    public RoutingContext(RoutingSettings setting)
+    {
+        _setting = setting;
+    }
+
     private Stack<string> _stack { get; set; }
         = new Stack<string>();
 
@@ -13,8 +21,14 @@ public class RoutingContext
     public string OriginAgentId
         => _stack.Last();
 
-    public string CurrentAgentId 
-        => _stack.Peek();
+    public string GetCurrentAgentId()
+    {
+        if (_stack.Count == 0)
+        {
+            _stack.Push(_setting.RouterId);
+        }
+        return _stack.Peek();
+    }
 
     public void Push(string agentId)
     {

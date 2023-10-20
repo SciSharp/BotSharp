@@ -19,9 +19,11 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 
 ### Some Features
 
-* Built-in multi-agents and conversation management.
-* Support multiple LLM platforms.
-* Support export/ import agent from other bot platforms directly. 
+* Built-in multi-agents and conversation with state management.
+* Built-in RAG related interfaces, Memeory based vector searching.
+* Support multiple LLM platforms (ChatGPT, PaLM 2, LLaMA 2).
+* Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
+* Build, test, evaluate and audit your LLM agent in one place.
 * Support different open source UI [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md), [HuggingChat UI](src/Plugins/BotSharp.Plugin.HuggingFace/HuggingChat-UI.md).
 * Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
 
@@ -50,7 +52,3 @@ Read the docs: https://botsharp.readthedocs.io
 If you feel that this project is helpful to you, please Star the project, we would be very grateful.
 
 Member project of [SciSharp STACK](https://github.com/SciSharp) which is the .NET based ecosystem of open-source software for mathematics, science, and engineering.
-
-Scan QR code to join TIM group:
-
-![SciSharp STACK](https://raw.githubusercontent.com/SciSharp/TensorFlow.NET/master/docs/TIM.jpg)

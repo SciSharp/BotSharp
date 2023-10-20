@@ -20,10 +20,10 @@ Response: { "function": "{{ handler.name }}",
 * Agent: {{ agent.name }}
 {{ agent.description}}
 {% if agent.required_fields and agent.required_fields != empty -%}
-Required args: {
+Required args: 
     {% for f in agent.required_fields -%}
-    "{{ f.name }}": "{{ f.description }}"{{ ",\r\n    " }}
-    {%- endfor %}}
+    - {{ f.name }} ({{ f.type }}): {{ f.description }}{{ "\r\n    " }}
+    {%- endfor %}
 {%- endif %}
 {% endfor %}
 
