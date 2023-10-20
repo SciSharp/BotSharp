@@ -41,7 +41,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         if (!_states.ContainsKey(name) || _states[name] != currentValue)
         {
             _states[name] = currentValue;
-            _logger.LogInformation($"Set state: {name} = {value}");
+            _logger.LogInformation($"[STATE] {name} = {value}");
             foreach (var hook in hooks)
             {
                 hook.OnStateChanged(name, preValue, currentValue).Wait();
@@ -62,7 +62,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             foreach (var data in _savedStates)
             {
                 _states[data.Key] = data.Value;
-                _logger.LogInformation($"Loaded state: {data.Key}={data.Value}");
+                _logger.LogInformation($"[STATE] {data.Key} : {data.Value}");
             }
         }
 

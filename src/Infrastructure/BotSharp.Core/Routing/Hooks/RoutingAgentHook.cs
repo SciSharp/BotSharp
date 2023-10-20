@@ -1,8 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Routing.Hooks;
 

@@ -9,7 +9,8 @@ public class FunctionCallFromLlm : RoutingArgs
     public string? Question { get; set; }
 
     [JsonPropertyName("args")]
-    public JsonDocument Arguments { get; set; } = JsonDocument.Parse("{}");
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public JsonDocument? Arguments { get; set; }
 
     public override string ToString()
     {

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -11,6 +12,12 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
     public string Description => "Reach out to a real human or customer representative.";
 
     private readonly RoutingSettings _settings;
+
+    public List<NameDesc> Parameters => new List<NameDesc>
+    {
+        new NameDesc("reason", "why need customer service representative (human being)"),
+        new NameDesc("response", "response content to user")
+    };
 
     public HumanInterventionNeededHandler(IServiceProvider services, ILogger<HumanInterventionNeededHandler> logger, RoutingSettings settings)
         : base(services, logger, settings)

@@ -248,23 +248,27 @@ public class ChatCompletionProvider : IChatCompletion
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)
         {
-            _logger.LogInformation("VERBOSE COMPLETION MESSAGES");
-            var verbose = string.Join("\r\n", chatCompletionsOptions.Messages.Select(x =>
+            if (chatCompletionsOptions.Messages.Count > 0)
             {
-                return x.Role == ChatRole.Function ?
-                    $"{x.Role}: {x.Name} => {x.Content}" :
-                    $"{x.Role}: {x.Content}";
-            }));
+                _logger.LogInformation("VERBOSE COMPLETION MESSAGES");
+                var verbose = string.Join("\r\n", chatCompletionsOptions.Messages.Select(x =>
+                {
+                    return x.Role == ChatRole.Function ?
+                        $"{x.Role}: {x.Name} => {x.Content}" :
+                        $"{x.Role}: {x.Content}";
+                }));
+                _logger.LogInformation(verbose);
+            }
 
-            _logger.LogInformation(verbose);
-
-            _logger.LogInformation("VERBOSE FUNCTIONS");
-            verbose = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+            if (chatCompletionsOptions.Functions.Count > 0)
             {
-                return $"{x.Name}: {x.Description}\r\n{x.Parameters}";
-            }));
-
-            _logger.LogInformation(verbose);
+                _logger.LogInformation("VERBOSE FUNCTIONS");
+                var verbose = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+                {
+                    return $"{x.Name}: {x.Description}\r\n{x.Parameters}";
+                }));
+                _logger.LogInformation(verbose);
+            }
         }
 
         return chatCompletionsOptions;

@@ -21,12 +21,14 @@ public class RoutingArgs
     /// Agent for next action based on user latest response
     /// </summary>
     [JsonPropertyName("next_action_agent")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string AgentName { get; set; }
 
     /// <summary>
     /// Agent who can achieve user original goal
     /// </summary>
     [JsonPropertyName("user_goal_agent")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string OriginalAgent { get; set; }
 
     public override string ToString()

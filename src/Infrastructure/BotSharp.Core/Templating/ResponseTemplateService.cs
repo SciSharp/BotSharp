@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
-using System.IO;
 using System.Reflection;
 
 namespace BotSharp.Core.Templating;

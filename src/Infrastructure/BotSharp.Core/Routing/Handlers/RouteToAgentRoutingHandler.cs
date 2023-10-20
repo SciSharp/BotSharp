@@ -15,6 +15,9 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
+        new NameDesc("reason", "why route to agent"),
+        new NameDesc("next_action_agent", "agent for next action based on user latest response"),
+        new NameDesc("user_goal_agent", "agent who can achieve user original goal"),
         new NameDesc("args", "useful parameters of next action agent")
     };
 

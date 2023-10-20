@@ -8,6 +8,7 @@
   "routingRules": [
     {
       "field": "order_number",
+      "description": "order number",
       "required": true,
       "redirectTo": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd"
     }

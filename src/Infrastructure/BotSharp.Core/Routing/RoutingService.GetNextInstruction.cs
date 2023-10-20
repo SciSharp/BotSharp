@@ -61,6 +61,13 @@ public partial class RoutingService
             {
                 try
                 {
+                    var conversation = "";
+                    foreach (var dialog in _dialogs.TakeLast(20))
+                    {
+                        conversation += $"{dialog.Role}: {dialog.Content}\r\n";
+                    }
+                    content = $"{conversation}\r\n###\r\n{content}";
+
                     response = completion.GetChatCompletions(_routerInstance.Router, new List<RoleDialogModel>
                     {
                         new RoleDialogModel(AgentRole.User, content)
@@ -107,7 +114,7 @@ public partial class RoutingService
     }
 
 #if !DEBUG
-    [MemoryCache(60 * 60)]
+    [MemoryCache(10 * 60)]
 #endif
     private string GetNextStepPrompt()
     {

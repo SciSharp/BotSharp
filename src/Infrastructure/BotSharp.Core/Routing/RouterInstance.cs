@@ -33,15 +33,6 @@ public class RouterInstance : IRouterInstance
         return this;
     }
 
-    public IRouterInstance WithDialogs(List<RoleDialogModel> dialogs)
-    {
-        foreach (var dialog in dialogs.TakeLast(20))
-        {
-            _router.Instruction += $"\r\n{dialog.Role}: {dialog.Content}";
-        }
-        return this;
-    }
-
     public List<RoutingHandlerDef> GetHandlers()
     {
         return _services.GetServices<IRoutingHandler>()

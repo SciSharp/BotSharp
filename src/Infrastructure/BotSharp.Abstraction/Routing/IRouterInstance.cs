@@ -9,6 +9,5 @@ public interface IRouterInstance
     RoutingItem[] GetRoutingItems();
     List<RoutingHandlerDef> GetHandlers();
     IRouterInstance Load();
-    IRouterInstance WithDialogs(List<RoleDialogModel> dialogs);
     RoutingRule[] GetRulesByName(string name);
 }

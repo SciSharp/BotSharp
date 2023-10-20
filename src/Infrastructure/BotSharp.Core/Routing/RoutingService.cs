@@ -63,7 +63,7 @@ public partial class RoutingService : IRoutingService
 
     public async Task<RoleDialogModel> InstructLoop()
     {
-        _routerInstance.Load().WithDialogs(Dialogs);
+        _routerInstance.Load();
         var router = _routerInstance.Router;
 
         var result = new RoleDialogModel(AgentRole.Assistant, "Can you repeat your request again?")
@@ -97,7 +97,6 @@ public partial class RoutingService : IRoutingService
             result = await handler.Handle(this, inst);
 
             message = result.Content.Replace("\r\n", " ");
-            router.Instruction += $"\r\n{result.Role}: {message}";
 
             stop = !_settings.EnableReasoning;
         }
