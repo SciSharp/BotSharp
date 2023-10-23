@@ -34,5 +34,7 @@ public interface IBotSharpRepository
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
     Conversation GetConversation(string conversationId);
     List<Conversation> GetConversations(string userId);
+    void AddExectionLogs(string conversationId, List<string> logs);
+    List<string> GetExectionLogs(string conversationId);
     #endregion
 }

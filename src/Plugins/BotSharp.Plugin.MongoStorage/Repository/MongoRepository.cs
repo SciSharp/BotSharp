@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
-using Aspects.Cache;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -726,6 +725,30 @@ public class MongoRepository : IBotSharpRepository
         }
 
         return records;
+    }
+
+    public void AddExectionLogs(string conversationId, List<string> logs)
+    {
+        if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
+
+        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var update = Builders<ExectionLogCollection>.Update
+            .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
+            .PushEach(x => x.Logs, logs);
+
+        _dc.ExectionLogs.UpdateOne(filter, update, _options);
+    }
+
+    public List<string> GetExectionLogs(string conversationId)
+    {
+        var logs = new List<string>();
+        if (string.IsNullOrEmpty(conversationId)) return logs;
+
+        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var logCollection = _dc.ExectionLogs.Find(filter).FirstOrDefault();
+
+        logs = logCollection?.Logs ?? new List<string>();
+        return logs;
     }
     #endregion
 
