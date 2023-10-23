@@ -4,5 +4,6 @@
   "createdDateTime": "2023-08-18T14:39:32.2349685Z",
   "updatedDateTime": "2023-08-18T14:39:32.2349686Z",
   "id": "b284db86-e9c2-4c25-a59e-4649797dd130",
-  "allowRouting": true
+  "allowRouting": true,
+  "isPublic": true
 }

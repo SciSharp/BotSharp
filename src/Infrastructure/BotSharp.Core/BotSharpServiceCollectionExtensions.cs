@@ -15,6 +15,7 @@ using BotSharp.Core.Plugins;
 using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Core.Evaluatings;
+using BotSharp.Core.Evaluations;
 
 namespace BotSharp.Core;
 
@@ -76,7 +77,9 @@ public static class BotSharpServiceCollectionExtensions
         config.Bind("Evaluator", evalSetting);
         services.AddSingleton((IServiceProvider x) => evalSetting);
 
+        services.AddScoped<IConversationHook, EvaluationConversationHook>();
         services.AddScoped<IEvaluatingService, EvaluatingService>();
+        services.AddScoped<IExecutionLogger, ExecutionLogger>();
 
         return services;
     }

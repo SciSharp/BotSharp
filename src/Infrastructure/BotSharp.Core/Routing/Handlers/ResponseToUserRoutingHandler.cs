@@ -30,7 +30,7 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
-            ExecutionData = inst,
+            Data = inst,
             StopCompletion = true
         };
         return result;

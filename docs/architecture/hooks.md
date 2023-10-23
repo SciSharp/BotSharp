@@ -32,13 +32,13 @@ Task OnFunctionExecuted(RoleDialogModel message);
 Task OnResponseGenerated(RoleDialogModel message);
 
 // LLM detected the current task is completed.
-Task CurrentTaskEnding(RoleDialogModel conversation);
+Task OnCurrentTaskEnding(RoleDialogModel message);
 
 // LLM detected the user's intention to end the conversation
-Task ConversationEnding(RoleDialogModel conversation);
+Task OnConversationEnding(RoleDialogModel message);
 
 // LLM can't handle user's request or user requests human being to involve.
-Task HumanInterventionNeeded(RoleDialogModel conversation);
+Task OnHumanInterventionNeeded(RoleDialogModel message);
 ```
 More information about conversation hook please go to [Conversation Hook](../conversation/hook.md).
 

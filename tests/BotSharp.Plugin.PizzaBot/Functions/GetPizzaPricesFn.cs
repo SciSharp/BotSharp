@@ -8,7 +8,7 @@ public class GetPizzaPricesFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        message.ExecutionData = new
+        message.Data = new
         {
             pepperoni_unit_price = 3.2,
             cheese_unit_price = 3.5,

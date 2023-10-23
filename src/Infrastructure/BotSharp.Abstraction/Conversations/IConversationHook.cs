@@ -51,19 +51,19 @@ public interface IConversationHook
     /// </summary>
     /// <param name="conversation"></param>
     /// <returns></returns>
-    Task CurrentTaskEnding(RoleDialogModel conversation);
+    Task OnCurrentTaskEnding(RoleDialogModel message);
 
     /// <summary>
     /// LLM detected the whole conversation is going to be end.
     /// </summary>
     /// <param name="conversation"></param>
     /// <returns></returns>
-    Task ConversationEnding(RoleDialogModel conversation);
+    Task OnConversationEnding(RoleDialogModel message);
 
     /// <summary>
     /// LLM can't handle user's request or user requests human being to involve.
     /// </summary>
     /// <param name="conversation"></param>
     /// <returns></returns>
-    Task HumanInterventionNeeded(RoleDialogModel conversation);
+    Task OnHumanInterventionNeeded(RoleDialogModel message);
 }

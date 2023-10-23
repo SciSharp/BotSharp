@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Routing.Settings;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -36,7 +34,7 @@ public class ConversationStorage : IConversationStorage
 
             sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.FunctionName}|{args}");
 
-            var content = dialog.ExecutionResult ?? dialog.Content;
+            var content = dialog.Content;
             content = content.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
             {
@@ -84,7 +82,7 @@ public class ConversationStorage : IConversationStorage
                 CurrentAgentId = currentAgentId,
                 FunctionName = funcName,
                 FunctionArgs = funcArgs,
-                ExecutionResult = text,
+                Content = text,
                 CreatedAt = createdAt
             });
         }

@@ -43,7 +43,7 @@ public class RouteToAgentFn : IFunctionCallback
 
         if (string.IsNullOrEmpty(args.AgentName))
         {
-            message.ExecutionResult = $"missing agent name";
+            message.Content = $"missing agent name";
         }
         else
         {
@@ -51,7 +51,7 @@ public class RouteToAgentFn : IFunctionCallback
             var targetAgent = db.GetAgents(args.AgentName).FirstOrDefault();
             if (targetAgent == null)
             {
-                message.ExecutionData = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
+                message.Data = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
                 return false;
             }
 
@@ -66,14 +66,14 @@ public class RouteToAgentFn : IFunctionCallback
             else
             {
                 message.CurrentAgentId = targetAgent.Id;
-                message.ExecutionResult = $"Routing to {args.AgentName}";
+                message.Content = $"Routing to {args.AgentName}";
             }
         }
 
         _context.Push(message.CurrentAgentId);
 
         // Set default execution data
-        message.ExecutionData = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
+        message.Data = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
         return true;
     }
 
@@ -130,8 +130,7 @@ public class RouteToAgentFn : IFunctionCallback
         {
             // Add field to args
             message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "missing_fields", missingFields);
-            message.ExecutionResult = $"missing some information: {string.Join(',', missingFields)}";
-            message.Content = message.ExecutionResult;
+            message.Content = $"missing some information: {string.Join(',', missingFields)}";
 
             // Handle redirect
             var routingRule = routingRules.FirstOrDefault(x => missingFields.Contains(x.Field));

@@ -117,10 +117,10 @@ public class WebhookController : ControllerBase
                 }, async functionExecuted =>
                 {
                     // Render structured data
-                    if (functionExecuted.ExecutionData != null)
+                    if (functionExecuted.Data != null)
                     {
                         // validate data format
-                        var json = JsonSerializer.Serialize(functionExecuted.ExecutionData, jsonOpt);
+                        var json = JsonSerializer.Serialize(functionExecuted.Data, jsonOpt);
 
                         try
                         {

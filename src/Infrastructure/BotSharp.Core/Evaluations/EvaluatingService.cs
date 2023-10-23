@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Abstraction.Evaluations.Models;
 using BotSharp.Abstraction.Evaluations.Settings;
@@ -17,11 +16,13 @@ public class EvaluatingService : IEvaluatingService
         _settings = settings;
     }
 
-    public async Task<EvaluationResult> Evaluate(EvaluationRequest request)
+    public async Task<Conversation> Execute(string task, EvaluationRequest request)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var evaluator = await agentService.GetAgent(_settings.EvaluatorId);
-        var taskPrompt = evaluator.Templates.First(x => x.Name == $"task.{request.Task}").Content;
+        // Task execution mode
+        evaluator.Instruction = evaluator.Templates.First(x => x.Name == "instruction.executor").Content;
+        var taskPrompt = evaluator.Templates.First(x => x.Name == $"task.{task}").Content;
 
         var render = _services.GetRequiredService<ITemplateRender>();
         var prompt = render.Render(evaluator.Instruction, new Dictionary<string, object>
@@ -70,7 +71,12 @@ public class EvaluatingService : IEvaluatingService
         }
 
         result.Dialogs = dialogs;
-        return result;
+        return conv;
+    }
+
+    public async Task<EvaluationResult> Evaluate(string conversationId, EvaluationRequest request)
+    {
+        throw new NotImplementedException();
     }
 
     private async Task<RoleDialogModel> SendMessage(string agentId, string conversationId, string text)
@@ -87,5 +93,10 @@ public class EvaluatingService : IEvaluatingService
             fnExecuted => Task.CompletedTask);
 
         return response;
+    }
+
+    public Task<EvaluationResult> Review(string conversationId, EvaluationRequest request)
+    {
+        throw new NotImplementedException();
     }
 }

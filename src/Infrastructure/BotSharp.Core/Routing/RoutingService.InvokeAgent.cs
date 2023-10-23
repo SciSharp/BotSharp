@@ -42,11 +42,6 @@ public partial class RoutingService
         // Call functions
         await conversationService.CallFunctions(response);
 
-        if (string.IsNullOrEmpty(response.Content))
-        {
-            response.Content = response.ExecutionResult ?? JsonSerializer.Serialize(response.ExecutionData);
-        }
-
         Dialogs.Add(response);
 
         // Pass execution result to LLM to get response

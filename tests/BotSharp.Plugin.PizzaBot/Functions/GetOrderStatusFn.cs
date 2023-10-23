@@ -8,8 +8,8 @@ public class GetOrderStatusFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        message.ExecutionResult = "ready to deliver, will arrived in about 15 minutes.";
-        message.ExecutionData = new
+        message.Content = "ready to deliver, will arrived in about 15 minutes.";
+        message.Data = new
         {
             Status = "Ready to deliver",
             EstimatedTime = "15 minuts"

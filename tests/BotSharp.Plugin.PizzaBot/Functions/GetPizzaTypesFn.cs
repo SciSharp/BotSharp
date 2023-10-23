@@ -8,8 +8,8 @@ public class GetPizzaTypesFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        message.ExecutionResult = "Pepperoni Pizza, Cheese Pizza, Margherita Pizza";
-        message.ExecutionData = new List<string>
+        message.Content = "Pepperoni Pizza, Cheese Pizza, Margherita Pizza";
+        message.Data = new List<string>
         {
             "Pepperoni Pizza",
             "Cheese Pizza",

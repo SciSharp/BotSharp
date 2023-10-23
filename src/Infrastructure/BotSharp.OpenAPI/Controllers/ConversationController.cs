@@ -65,11 +65,11 @@ public class ConversationController : ControllerBase, IApiAdapter
             async fnExecuted =>
             {
                 response.Function = fnExecuted.FunctionName;
-                response.Data = fnExecuted.ExecutionData;
+                response.Data = fnExecuted.Data;
             });
 
         response.Text = string.Join("\r\n", stackMsg.Select(x => x.Content));
-        response.Data = response.Data ?? stackMsg.Last().ExecutionData;
+        response.Data = response.Data ?? stackMsg.Last().Data;
         response.Function = stackMsg.Last().FunctionName;
 
         return response;

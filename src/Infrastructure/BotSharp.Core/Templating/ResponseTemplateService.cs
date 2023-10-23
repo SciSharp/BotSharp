@@ -40,9 +40,9 @@ public class ResponseTemplateService : IResponseTemplateService
             ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
         }
 
-        if (message.ExecutionData != null)
+        if (message.Data != null)
         {
-            ExtractExecuteData(message.ExecutionData, dict);
+            ExtractExecuteData(message.Data, dict);
         }
             
         var text = render.Render(template, dict);
@@ -85,9 +85,9 @@ public class ResponseTemplateService : IResponseTemplateService
             ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
         }
 
-        if (message.ExecutionData != null)
+        if (message.Data != null)
         {
-            ExtractExecuteData(message.ExecutionData, dict);
+            ExtractExecuteData(message.Data, dict);
         }
 
         var text = render.Render(template, dict);

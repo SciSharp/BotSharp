@@ -8,8 +8,8 @@ public class MakePaymentFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        message.ExecutionResult = "Payment proceed successfully. Thank you for your business. Have a great day!";
-        message.ExecutionData = new
+        message.Content = "Payment proceed successfully. Thank you for your business. Have a great day!";
+        message.Data = new
         {
             Transaction = Guid.NewGuid().ToString(),
             Status = "Success"

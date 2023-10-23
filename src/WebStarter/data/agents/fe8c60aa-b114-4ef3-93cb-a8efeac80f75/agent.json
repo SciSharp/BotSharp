@@ -5,6 +5,7 @@
   "updatedDateTime": "2023-07-26T02:29:25.123274Z",
   "id": "fe8c60aa-b114-4ef3-93cb-a8efeac80f75",
   "allowRouting": true,
+  "isPublic": true,
   "routingRules": [
     {
       "field": "order_number",

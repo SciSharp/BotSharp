@@ -30,7 +30,7 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
-            ExecutionData = inst
+            Data = inst
         };
 
         var hooks = _services.GetServices<IConversationHook>()
@@ -39,7 +39,7 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         foreach (var hook in hooks)
         {
-            await hook.ConversationEnding(result);
+            await hook.OnConversationEnding(result);
         }
 
         return result;

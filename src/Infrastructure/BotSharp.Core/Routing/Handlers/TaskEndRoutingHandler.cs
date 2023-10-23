@@ -29,7 +29,7 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
-            ExecutionData = inst
+            Data = inst
         };
 
         var hooks = _services.GetServices<IConversationHook>()
@@ -38,7 +38,7 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         foreach (var hook in hooks)
         {
-            await hook.CurrentTaskEnding(result);
+            await hook.OnCurrentTaskEnding(result);
         }
 
         return result;

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.ApiAdapters;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Abstraction.Evaluations.Models;
 
@@ -14,10 +15,24 @@ public class EvaluationController : ControllerBase, IApiAdapter
         _services = services;
     }
 
-    [HttpPost("/evaluation")]
-    public async Task<EvaluationResult> RunTask([FromBody] EvaluationRequest request)
+    [HttpPost("/evaluation/execute/{task}")]
+    public async Task<Conversation> Execute([FromRoute] string task, [FromBody] EvaluationRequest request)
     {
         var eval = _services.GetRequiredService<IEvaluatingService>();
-        return await eval.Evaluate(request);
+        return await eval.Execute(task, request);
+    }
+
+    [HttpPost("/evaluation/review/{conversationId}")]
+    public async Task<EvaluationResult> Review([FromRoute] string conversationId, [FromBody] EvaluationRequest request)
+    {
+        var eval = _services.GetRequiredService<IEvaluatingService>();
+        return await eval.Review(conversationId, request);
+    }
+
+    [HttpPost("/evaluation/evaluate/{conversationId}")]
+    public async Task<EvaluationResult> Evaluate([FromRoute] string conversationId, [FromBody] EvaluationRequest request)
+    {
+        var eval = _services.GetRequiredService<IEvaluatingService>();
+        return await eval.Evaluate(conversationId, request);
     }
 }

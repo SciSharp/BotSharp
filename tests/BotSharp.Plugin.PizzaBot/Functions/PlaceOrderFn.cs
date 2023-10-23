@@ -15,7 +15,7 @@ public class PlaceOrderFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        message.ExecutionResult = "The order number is P123-01";
+        message.Content = "The order number is P123-01";
         var state = _service.GetRequiredService<IConversationStateService>();
         state.SetState("order_number", "P123-01");
 

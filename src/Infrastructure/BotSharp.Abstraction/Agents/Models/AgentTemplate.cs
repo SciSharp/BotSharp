@@ -15,4 +15,9 @@ public class AgentTemplate
         Name = name;
         Content = content;
     }
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }

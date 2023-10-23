@@ -53,7 +53,7 @@ public partial class InstructService : IInstructService
             },
             async fn =>
             {
-                response.Data = fn.ExecutionData;
+                response.Data = fn.Data;
                 await onFunctionExecuted(fn);
             });
 
@@ -85,13 +85,13 @@ public partial class InstructService : IInstructService
             await HandleFunctionMessage(fn, onFunctionExecuting, onFunctionExecuted);
 
             // Function executed has exception
-            if (fn.ExecutionResult == null || fn.StopCompletion)
+            if (fn.Content == null || fn.StopCompletion)
             {
                 await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, fn.Content));
                 return;
             }
 
-            fn.Content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.ExecutionResult;
+            fn.Content = fn.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim() + " => " + fn.Content;
 
             // Find response template
             var templateService = _services.GetRequiredService<IResponseTemplateService>();

@@ -22,17 +22,11 @@ public class RoleDialogModel
     public string? FunctionArgs { get; set; }
 
     /// <summary>
-    /// Function execution result, this result will be seen by LLM.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? ExecutionResult { get; set; }
-
-    /// <summary>
     /// Function execution structured data, this data won't pass to LLM.
     /// It's ideal to render in rich content in UI.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public object ExecutionData { get; set; }
+    public object Data { get; set; }
 
     /// <summary>
     /// Stop conversation completion
@@ -50,7 +44,7 @@ public class RoleDialogModel
     {
         if (Role == AgentRole.Function)
         {
-            return $"{Role}: {FunctionName} => {ExecutionResult}";
+            return $"{Role}: {FunctionName}({FunctionArgs}) => {Content}";
         }
         else
         {

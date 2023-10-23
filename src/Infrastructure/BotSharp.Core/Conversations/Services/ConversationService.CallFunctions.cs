@@ -34,11 +34,16 @@ public partial class ConversationService
             {
                 // Execute function
                 await fn.Execute(msg);
+
+                if (string.IsNullOrEmpty(msg.Content))
+                {
+                    msg.Content = msg.Content ?? JsonSerializer.Serialize(msg.Data);
+                }
             }
             catch (Exception ex)
             {
-                msg.ExecutionResult = ex.Message;
-                _logger.LogError(msg.ExecutionResult);
+                msg.Content = ex.Message;
+                _logger.LogError(msg.Content);
             }
             
             // After functions have been executed

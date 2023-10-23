@@ -42,17 +42,17 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
-    public virtual Task ConversationEnding(RoleDialogModel message)
+    public virtual Task OnConversationEnding(RoleDialogModel message)
     {
         return Task.CompletedTask;
     }
 
-    public virtual Task CurrentTaskEnding(RoleDialogModel conversation)
+    public virtual Task OnCurrentTaskEnding(RoleDialogModel message)
     {
         return Task.CompletedTask;
     }
 
-    public virtual Task HumanInterventionNeeded(RoleDialogModel conversation)
+    public virtual Task OnHumanInterventionNeeded(RoleDialogModel message)
     {
         return Task.CompletedTask;
     }
@@ -77,7 +77,7 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
-    public virtual Task OnConversationInitialized(Conversation conversation)
+    public virtual Task OnConversationInitialized(Conversation message)
     {
         return Task.CompletedTask;
     }

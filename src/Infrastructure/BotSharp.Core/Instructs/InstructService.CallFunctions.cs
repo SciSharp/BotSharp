@@ -36,8 +36,8 @@ public partial class InstructService
             }
             catch (Exception ex)
             {
-                msg.ExecutionResult = ex.Message;
-                _logger.LogError(msg.ExecutionResult);
+                msg.Content = ex.Message;
+                _logger.LogError(msg.Content);
             }
 
             // After functions have been executed

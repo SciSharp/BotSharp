@@ -31,7 +31,7 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
         {
             CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
-            ExecutionData = inst
+            Data = inst
         };
 
         var hooks = _services.GetServices<IConversationHook>()
@@ -40,7 +40,7 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 
         foreach (var hook in hooks)
         {
-            await hook.HumanInterventionNeeded(result);
+            await hook.OnHumanInterventionNeeded(result);
         }
 
         return result;
