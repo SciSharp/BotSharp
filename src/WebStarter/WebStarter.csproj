@@ -9,17 +9,9 @@
 
   <ItemGroup>
     <Compile Remove="data\**" />
-    <Compile Remove="knowledge_chunks\**" />
-    <Compile Remove="Prompts\**" />
     <Content Remove="data\**" />
-    <Content Remove="knowledge_chunks\**" />
-    <Content Remove="Prompts\**" />
     <EmbeddedResource Remove="data\**" />
-    <EmbeddedResource Remove="knowledge_chunks\**" />
-    <EmbeddedResource Remove="Prompts\**" />
     <None Remove="data\**" />
-    <None Remove="knowledge_chunks\**" />
-    <None Remove="Prompts\**" />
   </ItemGroup>
 
   <ItemGroup>
