@@ -747,6 +747,33 @@ public class FileRepository : IBotSharpRepository
 
         return records;
     }
+
+    public void AddExectionLogs(string conversationId, List<string> logs)
+    {
+        if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
+
+        var dir = Path.Combine(_dbSettings.FileRepository, "conversations", conversationId);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        var file = Path.Combine(dir, "execution.log");
+        File.AppendAllLines(file, logs);
+    }
+
+    public List<string> GetExectionLogs(string conversationId)
+    {
+        var logs = new List<string>();
+        if (string.IsNullOrEmpty(conversationId)) return logs;
+
+        var dir = Path.Combine(_dbSettings.FileRepository, "conversations", conversationId);
+        if (!Directory.Exists(dir)) return logs;
+
+        var file = Path.Combine(dir, "execution.log");
+        logs = File.ReadAllLines(file)?.ToList() ?? new List<string>();
+        return logs;
+    }
     #endregion
 
     #region User

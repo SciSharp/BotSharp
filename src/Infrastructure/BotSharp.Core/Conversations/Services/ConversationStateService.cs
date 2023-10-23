@@ -55,7 +55,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         _conversationId = conversationId;
 
-        _savedStates = _db.GetConversationStates(_conversationId);
+        _savedStates = _db.GetConversationStates(_conversationId).ToList();
 
         if (!_savedStates.IsNullOrEmpty())
         {

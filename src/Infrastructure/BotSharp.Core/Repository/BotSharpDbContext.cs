@@ -150,6 +150,16 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
+
+    public void AddExectionLogs(string conversationId, List<string> logs)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<string> GetExectionLogs(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 
 
