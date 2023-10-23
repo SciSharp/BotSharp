@@ -37,9 +37,13 @@ public class TextCompletionProvider : ITextCompletion
 
         // Before chat completion hook
         Task.WaitAll(hooks.Select(hook =>
-            hook.BeforeGenerating(new Agent(), new List<RoleDialogModel> { new RoleDialogModel(AgentRole.User, text) })).ToArray());
+            hook.BeforeGenerating(new Agent(), 
+                new List<RoleDialogModel> 
+                { 
+                    new RoleDialogModel(AgentRole.User, text) 
+                })).ToArray());
 
-        var (client, _) = ProviderHelper.GetClient(_model, _settings);
+        var client = ProviderHelper.GetClient(_model, _settings);
 
         var completionsOptions = new CompletionsOptions()
         {
@@ -58,7 +62,7 @@ public class TextCompletionProvider : ITextCompletion
         completionsOptions.NucleusSamplingFactor = samplingFactor;
 
         var response = await client.GetCompletionsAsync(
-            deploymentOrModelName: _settings.DeploymentModel.TextCompletionModel,
+            deploymentOrModelName: _model,
             completionsOptions);
 
         // OpenAI

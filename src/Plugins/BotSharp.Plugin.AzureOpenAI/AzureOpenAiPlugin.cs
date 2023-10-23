@@ -24,7 +24,7 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
         config.Bind("AzureOpenAi", settings);
         services.AddSingleton(x =>
         {
-            Console.WriteLine($"Loaded AzureOpenAi settings: {settings.DeploymentModel} ({settings.Endpoint}) {settings.ApiKey.SubstringMax(4)}");
+            Console.WriteLine($"Loaded AzureOpenAi settings: ({settings.Endpoint}) {settings.ApiKey.SubstringMax(4)}");
             return settings;
         });
 

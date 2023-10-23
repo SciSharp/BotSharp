@@ -9,17 +9,17 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class ProviderHelper
 {
-    public static (OpenAIClient, string) GetClient(string model, AzureOpenAiSettings settings)
+    public static OpenAIClient GetClient(string model, AzureOpenAiSettings settings)
     {
         if (model == "gpt-4")
         {
             var client = new OpenAIClient(new Uri(settings.GPT4.Endpoint), new AzureKeyCredential(settings.GPT4.ApiKey));
-            return (client, settings.GPT4.DeploymentModel);
+            return client;
         }
         else
         {
             var client = new OpenAIClient(new Uri(settings.Endpoint), new AzureKeyCredential(settings.ApiKey));
-            return (client, settings.DeploymentModel.ChatCompletionModel);
+            return client;
         }
     }
 

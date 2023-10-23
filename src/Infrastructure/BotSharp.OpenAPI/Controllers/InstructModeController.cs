@@ -4,6 +4,7 @@ using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
 
@@ -24,34 +25,37 @@ public class InstructModeController : ControllerBase, IApiAdapter
     public async Task<InstructResult> InstructCompletion([FromRoute] string agentId,
         [FromBody] InstructMessageModel input)
     {
-        var instructor = _services.GetRequiredService<IInstructService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        state.SetState("provider", input.Provider)
+            .SetState("model", input.Model)
+            .SetState("input_text", input.Text);
+
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
         // switch to different instruction template
         if (!string.IsNullOrEmpty(input.Template))
         {
-            agent.Instruction = agent.Templates.First(x => x.Name == input.Template).Content;
+            var template = agent.Templates.First(x => x.Name == input.Template).Content;
+            var render = _services.GetRequiredService<ITemplateRender>();
+            var dict = new Dictionary<string, object>();
+            state.GetStates().Select(x => dict[x.Key] = x.Value).ToArray();
+            var prompt = render.Render(template, dict);
+            agent.Instruction = prompt;
         }
 
-        var conv = _services.GetRequiredService<IConversationService>();
-        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
-        conv.States.SetState("provider", input.Provider)
-            .SetState("model", input.Model);
-
-        return await instructor.ExecuteInstruction(agent,
-            new RoleDialogModel(AgentRole.User, input.Text),
-            fn => Task.CompletedTask,
-            fn => Task.CompletedTask,
-            fn => Task.CompletedTask);
+        var instructor = _services.GetRequiredService<IInstructService>();
+        return await instructor.Execute(agent,
+            new RoleDialogModel(AgentRole.User, input.Text));
     }
 
     [HttpPost("/instruct/text-completion")]
     public async Task<string> TextCompletion([FromBody] IncomingMessageModel input)
     {
-        var conv = _services.GetRequiredService<IConversationService>();
-        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
-        conv.States.SetState("provider", input.Provider)
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        state.SetState("provider", input.Provider)
             .SetState("model", input.Model);
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);

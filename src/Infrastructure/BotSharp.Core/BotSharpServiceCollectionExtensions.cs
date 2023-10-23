@@ -16,6 +16,7 @@ using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Core.Evaluatings;
 using BotSharp.Core.Evaluations;
+using BotSharp.Abstraction.MLTasks.Settings;
 
 namespace BotSharp.Core;
 
@@ -47,6 +48,14 @@ public static class BotSharpServiceCollectionExtensions
         var myDatabaseSettings = new BotSharpDatabaseSettings();
         config.Bind("Database", myDatabaseSettings);
         services.AddSingleton((IServiceProvider x) => myDatabaseSettings);
+
+        var textCompletionSettings = new TextCompletionSetting();
+        config.Bind("TextCompletion", textCompletionSettings);
+        services.AddSingleton((IServiceProvider x) => textCompletionSettings);
+
+        var chatCompletionSettings = new ChatCompletionSetting();
+        config.Bind("ChatCompletion", chatCompletionSettings);
+        services.AddSingleton((IServiceProvider x) => chatCompletionSettings);
 
         RegisterPlugins(services, config);
 
