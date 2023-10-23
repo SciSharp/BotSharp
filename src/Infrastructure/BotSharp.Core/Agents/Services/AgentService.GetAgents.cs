@@ -7,9 +7,9 @@ public partial class AgentService
 #if !DEBUG
     [MemoryCache(10 * 60)]
 #endif
-    public async Task<List<Agent>> GetAgents()
+    public async Task<List<Agent>> GetAgents(bool? allowRouting = null)
     {
-        var agents = _db.GetAgentsByUser(_user.Id);
+        var agents = _db.GetAgents(allowRouting: allowRouting);
         return await Task.FromResult(agents);
     }
 

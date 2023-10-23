@@ -7,7 +7,7 @@ public interface IAgentService
 {
     Task<Agent> CreateAgent(Agent agent);
     Task RefreshAgents();
-    Task<List<Agent>> GetAgents();
+    Task<List<Agent>> GetAgents(bool? allowRouting = null);
 
     /// <summary>
     /// Load agent configurations and trigger hooks

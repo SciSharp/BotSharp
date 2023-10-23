@@ -137,7 +137,7 @@ public partial class RoutingService
     private void FixMalformedResponse(FunctionCallFromLlm args)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agents = agentService.GetAgents().Result;
+        var agents = agentService.GetAgents(allowRouting: true).Result;
         var malformed = false;
 
         // Sometimes it populate malformed Function in Agent name
