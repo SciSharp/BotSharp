@@ -43,10 +43,10 @@ public class ChatCompletionProvider : IChatCompletion
         Task.WaitAll(hooks.Select(hook => 
             hook.BeforeGenerating(agent, conversations)).ToArray());
 
-        var (client, deploymentModel) = ProviderHelper.GetClient(_model, _settings);
+        var client = ProviderHelper.GetClient(_model, _settings);
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
-        var response = client.GetChatCompletions(deploymentModel, chatCompletionsOptions);
+        var response = client.GetChatCompletions(_model, chatCompletionsOptions);
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
@@ -96,10 +96,10 @@ public class ChatCompletionProvider : IChatCompletion
         Task.WaitAll(hooks.Select(hook =>
             hook.BeforeGenerating(agent, conversations)).ToArray());
 
-        var (client, deploymentModel) = ProviderHelper.GetClient(_model, _settings);
+        var client = ProviderHelper.GetClient(_model, _settings);
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
-        var response = await client.GetChatCompletionsAsync(deploymentModel, chatCompletionsOptions);
+        var response = await client.GetChatCompletionsAsync(_model, chatCompletionsOptions);
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
@@ -148,10 +148,10 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var client = new OpenAIClient(new Uri(_settings.Endpoint), new AzureKeyCredential(_settings.ApiKey));
+        var client = ProviderHelper.GetClient(_model, _settings);
         var chatCompletionsOptions = PrepareOptions(agent, conversations);
 
-        var response = await client.GetChatCompletionsStreamingAsync(_settings.DeploymentModel.ChatCompletionModel, chatCompletionsOptions);
+        var response = await client.GetChatCompletionsStreamingAsync(_model, chatCompletionsOptions);
         using StreamingChatCompletions streaming = response.Value;
 
         string output = "";
