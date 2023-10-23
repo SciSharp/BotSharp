@@ -35,6 +35,7 @@ public class InstructModeController : ControllerBase, IApiAdapter
         }
 
         var conv = _services.GetRequiredService<IConversationService>();
+        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
         conv.States.SetState("provider", input.Provider)
             .SetState("model", input.Model);
 
@@ -46,9 +47,14 @@ public class InstructModeController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/instruct/text-completion")]
-    public async Task<string> TextCompletion([FromBody] IncomingMessageModel message)
+    public async Task<string> TextCompletion([FromBody] IncomingMessageModel input)
     {
+        var conv = _services.GetRequiredService<IConversationService>();
+        input.States.ForEach(x => conv.States.SetState(x.Split('=')[0], x.Split('=')[1]));
+        conv.States.SetState("provider", input.Provider)
+            .SetState("model", input.Model);
+
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
-        return await textCompletion.GetCompletion(message.Text);
+        return await textCompletion.GetCompletion(input.Text);
     }
 }
