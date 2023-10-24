@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Abstraction.Repositories;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Evaluations;
 
@@ -17,6 +18,8 @@ public class ExecutionLogger : IExecutionLogger
 
     public void Append(string conversationId, string content)
     {
+        content = content.Replace("\r\n", " ").Replace("\n", " ");
+        content = Regex.Replace(content, @"\s+", " ");
         var db = _services.GetRequiredService<IBotSharpRepository>();
         db.AddExectionLogs(conversationId, new List<string> { content });
     }

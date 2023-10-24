@@ -4,6 +4,10 @@ namespace BotSharp.Abstraction.Agents;
 
 public interface IAgentHook
 {
+    /// <summary>
+    /// Agent Id
+    /// </summary>
+    string SelfId { get; }
     Agent Agent { get; }
     void SetAget(Agent agent);
 
