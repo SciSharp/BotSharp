@@ -15,6 +15,11 @@ public partial class AgentService
         // Before agent is loaded.
         foreach (var hook in hooks)
         {
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != id)
+            {
+                continue;
+            }
+
             hook.OnAgentLoading(ref id);
         }
 
@@ -30,6 +35,11 @@ public partial class AgentService
         // After agent is loaded
         foreach (var hook in hooks)
         {
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != id)
+            {
+                continue;
+            }
+
             hook.SetAget(agent);
 
             if (!string.IsNullOrEmpty(agent.Instruction))

@@ -66,6 +66,7 @@ The main documentation for the site is organized into the following sections:
    :caption: Interactive Channels
 
    channels/intro
+   channels/components
    channels/messenger
    channels/wechat
 

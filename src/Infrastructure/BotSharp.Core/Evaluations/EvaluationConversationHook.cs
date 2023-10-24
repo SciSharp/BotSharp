@@ -31,13 +31,13 @@ public class EvaluationConversationHook : ConversationHookBase
 
     public override Task OnHumanInterventionNeeded(RoleDialogModel message)
     {
-        _logger.Append(_conversation.Id, $"[{DateTime.Now}] {AgentRole.Function}: trigger event \"{message.FunctionName}\"");
+        _logger.Append(_conversation.Id, $"[{DateTime.Now}] {AgentRole.Function}: trigger_event({{\"event\": \"{message.FunctionName}\"}})");
         return base.OnHumanInterventionNeeded(message);
     }
 
     public override Task OnConversationEnding(RoleDialogModel message)
     {
-        _logger.Append(_conversation.Id, $"[{DateTime.Now}] {AgentRole.Function}: trigger event \"{message.FunctionName}\"");
+        _logger.Append(_conversation.Id, $"[{DateTime.Now}] {AgentRole.Function}: trigger_event({{\"event\": \"{message.FunctionName}\"}})");
         return base.OnConversationEnding(message);
     }
 }

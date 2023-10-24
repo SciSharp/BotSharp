@@ -1,13 +1,18 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Hooks;
 
 public class RoutingAgentHook : AgentHookBase
 {
-    public RoutingAgentHook(IServiceProvider services, AgentSettings settings) 
+    private readonly RoutingSettings _routingSetting;
+    public override string SelfId => _routingSetting.RouterId;
+
+    public RoutingAgentHook(IServiceProvider services, AgentSettings settings, RoutingSettings routingSetting) 
         : base(services, settings)
     {
+        _routingSetting = routingSetting;
     }
 
     public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)

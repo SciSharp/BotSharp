@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing;
@@ -19,7 +20,8 @@ public partial class RoutingService
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services);
+        var settings = _services.GetRequiredService<ChatCompletionSetting>();
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider: settings.Provider, model: settings.Model);
         RoleDialogModel response = chatCompletion.GetChatCompletions(agent, Dialogs);
 
         if (response.Role == AgentRole.Function)

@@ -13,7 +13,7 @@ public class RoutingRule
     /// <summary>
     /// Field type: string, number, object
     /// </summary>
-    public string Type { get; set; }
+    public string Type { get; set; } = "string";
 
     public bool Required { get; set; }
 
