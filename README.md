@@ -17,6 +17,8 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 
 **BotSharp** is in accordance with components principle strictly, decouples every part that is needed in the platform builder. So you can choose different UI/UX, or pick up a different LLM providers. They are all modulized based on unified interfaces. **BotSharp** provides an advanced Agent abstraction layer to efficiently manage complex application scenarios in enterprises, allowing enterprise developers to efficiently integrate AI into business systems.
 
+![](./docs/architecture/assets/llm_diagram.png)
+
 ### Some Features
 
 * Built-in multi-agents and conversation with state management.

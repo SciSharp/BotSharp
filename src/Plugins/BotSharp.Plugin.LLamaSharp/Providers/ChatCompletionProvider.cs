@@ -50,7 +50,7 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(prompt);
         }
 
-        foreach (var response in executor.Infer(prompt, inferenceParams))
+        foreach (var response in executor.InferAsync(prompt, inferenceParams).ToArrayAsync().Result)
         {
             Console.Write(response);
             totalResponse += response;
@@ -108,7 +108,7 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(prompt);
         }
 
-        foreach (var response in executor.Infer(prompt, inferenceParams))
+        await foreach (var response in executor.InferAsync(prompt, inferenceParams))
         {
             Console.Write(response);
             totalResponse += response;
@@ -151,7 +151,7 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(agent.Instruction);
         }
 
-        foreach (var response in executor.Infer(agent.Instruction, inferenceParams))
+        await foreach (var response in executor.InferAsync(agent.Instruction, inferenceParams))
         {
             Console.Write(response);
             totalResponse += response;

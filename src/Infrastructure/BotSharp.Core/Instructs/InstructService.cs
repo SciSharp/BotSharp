@@ -22,6 +22,15 @@ public partial class InstructService : IInstructService
         foreach (var hook in hooks)
         {
             await hook.BeforeCompletion(message);
+
+            // Interrupted by hook
+            if (message.StopCompletion)
+            {
+                return new InstructResult
+                {
+                    Text = message.Content
+                };
+            }
         }
 
         var completer = CompletionProvider.GetTextCompletion(_services);

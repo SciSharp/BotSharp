@@ -36,7 +36,7 @@ public class TextCompletionProvider : ITextCompletion
 
         _tokenStatistics.StartTimer();
         string completion = "";
-        foreach (var response in executor.Infer(text, inferenceParams))
+        await foreach (var response in executor.InferAsync(text, inferenceParams))
         {
             Console.Write(response);
             completion += response;
