@@ -46,8 +46,12 @@ public class InstructModeController : ControllerBase, IApiAdapter
         }
 
         var instructor = _services.GetRequiredService<IInstructService>();
-        return await instructor.Execute(agent,
+        var result = await instructor.Execute(agent,
             new RoleDialogModel(AgentRole.User, input.Text));
+
+        result.States = state.GetStates();
+
+        return result; 
     }
 
     [HttpPost("/instruct/text-completion")]

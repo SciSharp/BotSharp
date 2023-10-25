@@ -62,6 +62,10 @@ public partial class RoutingService
                 response = await InvokeAgent(response.CurrentAgentId);
             }
         }
+        else
+        {
+            response.Role = AgentRole.Assistant;
+        }
 
         return response;
     }

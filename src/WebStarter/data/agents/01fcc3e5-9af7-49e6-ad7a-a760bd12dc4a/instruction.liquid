@@ -3,6 +3,7 @@ You're {{router.name}} ({{router.description}}). Follow these steps to handle us
 2. Select a appropriate function from [FUNCTIONS].
 3. Determine which agent is suitable to handle this conversation.
 4. Re-think about the selected function or agent is the best choice.
+5. For agent required arguments, leave it blank if user doesn't provide it.
 
 [FUNCTIONS]
 {% for handler in routing_handlers %}
