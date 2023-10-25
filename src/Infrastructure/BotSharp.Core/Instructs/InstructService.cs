@@ -21,7 +21,7 @@ public partial class InstructService : IInstructService
         var hooks = _services.GetServices<IInstructHook>();
         foreach (var hook in hooks)
         {
-            if (hook.SelfId != agent.Id)
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agent.Id)
             {
                 continue;
             }
@@ -47,7 +47,7 @@ public partial class InstructService : IInstructService
 
         foreach (var hook in hooks)
         {
-            if (hook.SelfId != agent.Id)
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agent.Id)
             {
                 continue;
             }
