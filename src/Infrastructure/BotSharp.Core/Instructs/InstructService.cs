@@ -21,6 +21,11 @@ public partial class InstructService : IInstructService
         var hooks = _services.GetServices<IInstructHook>();
         foreach (var hook in hooks)
         {
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agent.Id)
+            {
+                continue;
+            }
+
             await hook.BeforeCompletion(message);
 
             // Interrupted by hook
@@ -42,6 +47,11 @@ public partial class InstructService : IInstructService
 
         foreach (var hook in hooks)
         {
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agent.Id)
+            {
+                continue;
+            }
+
             await hook.AfterCompletion(response);
         }
 
