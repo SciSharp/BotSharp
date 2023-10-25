@@ -34,7 +34,6 @@ public partial class InstructService : IInstructService
         }
 
         var completer = CompletionProvider.GetTextCompletion(_services);
-
         var result = await completer.GetCompletion(agent.Instruction);
         var response = new InstructResult
         {

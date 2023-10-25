@@ -11,6 +11,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using System.Linq;
 using System.Collections.Generic;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Settings;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
@@ -55,6 +56,12 @@ public class TextCompletionProvider : ITextCompletion
         };
         completionsOptions.StopSequences.Add($"{AgentRole.Assistant}:");
 
+        var setting = _services.GetRequiredService<ConversationSetting>();
+        if (setting.ShowVerboseLog)
+        {
+            _logger.LogInformation(text);
+        }
+
         var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = float.Parse(state.GetState("temperature", "0.5"));
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
@@ -71,6 +78,11 @@ public class TextCompletionProvider : ITextCompletion
         {
             completion += t.Text;
         };
+
+        if (setting.ShowVerboseLog)
+        {
+            _logger.LogInformation(completion);
+        }
 
         // After chat completion hook
         Task.WaitAll(hooks.Select(hook =>
