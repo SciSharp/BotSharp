@@ -5,9 +5,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-#if !DEBUG
-    [MemoryCache(10 * 60)]
-#endif
+    [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id)
     {
         var hooks = _services.GetServices<IAgentHook>();
