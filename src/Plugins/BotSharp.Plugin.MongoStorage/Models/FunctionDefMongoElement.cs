@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements]
 public class FunctionDefMongoElement
 {
     public string Name { get; set; }

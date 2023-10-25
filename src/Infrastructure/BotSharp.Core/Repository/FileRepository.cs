@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
-using Amazon.Util;
 
 namespace BotSharp.Core.Repository;
 
@@ -380,7 +379,13 @@ public class FileRepository : IBotSharpRepository
         }
 
         var functionText = JsonSerializer.Serialize(functions, _options);
-        File.WriteAllText(functionFile, functionText);
+
+        using (var sw = File.CreateText(functionFile))
+        {
+            sw.Write(functionText);
+        }
+
+        //File.WriteAllText(functionFile, functionText);
     }
 
     private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
