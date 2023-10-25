@@ -7,6 +7,7 @@ public class FunctionDefMongoElement
 {
     public string Name { get; set; }
     public string Description { get; set; }
+    public string? Impact { get; set; }
     public FunctionParametersDefMongoElement Parameters { get; set; } = new FunctionParametersDefMongoElement();
 
     public FunctionDefMongoElement()
@@ -20,6 +21,7 @@ public class FunctionDefMongoElement
         {
             Name = function.Name,
             Description = function.Description,
+            Impact = function.Impact,
             Parameters = new FunctionParametersDefMongoElement
             {
                 Type = function.Parameters.Type,
@@ -35,6 +37,7 @@ public class FunctionDefMongoElement
         {
             Name = mongoFunction.Name,
             Description = mongoFunction.Description,
+            Impact = mongoFunction.Impact,
             Parameters = new FunctionParametersDef
             {
                 Type = mongoFunction.Parameters.Type,
