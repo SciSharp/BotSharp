@@ -379,13 +379,7 @@ public class FileRepository : IBotSharpRepository
         }
 
         var functionText = JsonSerializer.Serialize(functions, _options);
-
-        using (var sw = File.CreateText(functionFile))
-        {
-            sw.Write(functionText);
-        }
-
-        //File.WriteAllText(functionFile, functionText);
+        File.WriteAllText(functionFile, functionText);
     }
 
     private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
