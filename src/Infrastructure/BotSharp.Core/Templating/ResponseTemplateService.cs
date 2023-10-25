@@ -35,6 +35,10 @@ public class ResponseTemplateService : IResponseTemplateService
         // Convert args and execute data to dictionary
         var dict = new Dictionary<string, object>();
 
+        // Populate states
+        var state = _services.GetRequiredService<IConversationStateService>();
+        state.GetStates().Select(x => dict[x.Key] = x.Value).ToList();
+
         if (message.FunctionArgs != null)
         {
             ExtractArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs), dict);
