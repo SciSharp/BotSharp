@@ -372,13 +372,7 @@ public class FileRepository : IBotSharpRepository
         var functionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
                                         agentId, "functions.json");
 
-        var functions = new List<string>();
-        foreach (var function in inputFunctions)
-        {
-            functions.Add(JsonSerializer.Serialize(function, _options));
-        }
-
-        var functionText = JsonSerializer.Serialize(functions, _options);
+        var functionText = JsonSerializer.Serialize(inputFunctions, _options);
         File.WriteAllText(functionFile, functionText);
     }
 
