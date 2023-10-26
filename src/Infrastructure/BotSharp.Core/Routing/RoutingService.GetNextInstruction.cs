@@ -82,9 +82,7 @@ public partial class RoutingService
                         new RoleDialogModel(AgentRole.User, content)
                     });
 
-                    var pattern = @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}";
-                    response.Content = Regex.Match(response.Content, pattern).Value;
-                    args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
+                    args = response.Content.JsonContent<FunctionCallFromLlm>();
                     break;
                 }
                 catch (Exception ex)
