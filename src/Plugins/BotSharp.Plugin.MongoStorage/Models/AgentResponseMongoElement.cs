@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements]
 public class AgentResponseMongoElement
 {
     public string Prefix { get; set; }
