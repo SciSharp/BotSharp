@@ -486,9 +486,6 @@ public class FileRepository : IBotSharpRepository
         return responses;
     }
 
-#if !DEBUG
-    [MemoryCache(10 * 60)]
-#endif
     public Agent? GetAgent(string agentId)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
