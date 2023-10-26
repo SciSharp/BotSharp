@@ -54,8 +54,6 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> NewConversation(Conversation sess)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var conversationSettings = _services.GetRequiredService<ConversationSetting>();
         var user = db.GetUserByExternalId(_user.Id);
         var foundUserId = user?.Id ?? string.Empty;
 
