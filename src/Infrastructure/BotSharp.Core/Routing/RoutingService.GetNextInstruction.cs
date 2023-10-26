@@ -56,15 +56,24 @@ public partial class RoutingService
                 model: _settings.Model);
 
             int retryCount = 0;
+            var agentService = _services.GetRequiredService<IAgentService>();
 
             while (retryCount < 3)
             {
                 try
                 {
                     var conversation = "";
+
                     foreach (var dialog in _dialogs.TakeLast(20))
                     {
-                        conversation += $"{dialog.Role}: {dialog.Content}\r\n";
+                        var role = dialog.Role;
+                        if (role != AgentRole.User)
+                        {
+                            var agent = await agentService.GetAgent(dialog.CurrentAgentId);
+                            role = agent.Name;
+                        }
+                        
+                        conversation += $"{role}: {dialog.Content}\r\n";
                     }
                     content = $"{conversation}\r\n###\r\n{content}";
 
