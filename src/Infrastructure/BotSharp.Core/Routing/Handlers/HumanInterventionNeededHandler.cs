@@ -9,13 +9,13 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 {
     public string Name => "human_intervention_needed";
 
-    public string Description => "Reach out to a real human or customer representative.";
+    public string Description => "Reach out to human being, customer service or customer representative.";
 
     private readonly RoutingSettings _settings;
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
-        new NameDesc("reason", "why need customer service representative (human being)"),
+        new NameDesc("reason", "why need customer service"),
         new NameDesc("response", "response content to user")
     };
 
