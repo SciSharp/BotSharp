@@ -33,6 +33,7 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
         var result = new RoleDialogModel(AgentRole.Function, inst.Question)
         {
+            MessageId = inst.MessageId,
             FunctionName = inst.Function,
             FunctionArgs = JsonSerializer.Serialize(inst.Arguments),
             CurrentAgentId = record.Id

@@ -6,19 +6,13 @@ namespace BotSharp.Core.Conversations.Services;
 public class ConversationStorage : IConversationStorage
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
-    private readonly AgentSettings _agentSettings;
     private readonly IServiceProvider _services;
-    private readonly IUserIdentity _user;
     public ConversationStorage(
         BotSharpDatabaseSettings dbSettings,
-        AgentSettings agentSettings,
-        IServiceProvider services,
-        IUserIdentity user)
+        IServiceProvider services)
     {
         _dbSettings = dbSettings;
-        _agentSettings = agentSettings;
         _services = services;
-        _user = user;
     }
 
     public void Append(string conversationId, RoleDialogModel dialog)
@@ -32,7 +26,7 @@ public class ConversationStorage : IConversationStorage
         {
             var args = dialog.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim();
 
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.FunctionName}|{args}");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}");
 
             var content = dialog.Content;
             content = content.Replace("\r", " ").Replace("\n", " ").Trim();
@@ -44,9 +38,7 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            var agentName = db.GetAgent(agentId)?.Name;
-
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{agentName}|");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}");
             var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
             if (string.IsNullOrEmpty(content))
             {
@@ -73,15 +65,13 @@ public class ConversationStorage : IConversationStorage
             var createdAt = DateTime.Parse(meta.Split('|')[0]);
             var role = meta.Split('|')[1];
             var currentAgentId = meta.Split('|')[2];
-            var funcName = meta.Split('|')[3];
-            var funcArgs= meta.Split('|')[4];
+            var messageId = meta.Split('|')[3];
             var text = dialog.Substring(4);
 
             results.Add(new RoleDialogModel(role, text)
             {
                 CurrentAgentId = currentAgentId,
-                FunctionName = funcName,
-                FunctionArgs = funcArgs,
+                MessageId = messageId,
                 Content = text,
                 CreatedAt = createdAt
             });

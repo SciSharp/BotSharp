@@ -33,6 +33,7 @@ public partial class InstructService : IInstructService
             {
                 return new InstructResult
                 {
+                    MessageId = message.MessageId,
                     Text = message.Content
                 };
             }
@@ -42,6 +43,7 @@ public partial class InstructService : IInstructService
         var result = await completer.GetCompletion(agent.Instruction);
         var response = new InstructResult
         {
+            MessageId = message.MessageId,
             Text = result
         };
 

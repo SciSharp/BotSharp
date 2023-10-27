@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.OpenAPI.ViewModels.Conversations;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -19,15 +20,17 @@ public class ConversationController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/conversation/{agentId}")]
-    public async Task<ConversationViewModel> NewConversation([FromRoute] string agentId)
+    public async Task<ConversationViewModel> NewConversation([FromRoute] string agentId, [FromBody] MessageConfig config)
     {
         var service = _services.GetRequiredService<IConversationService>();
-        var sess = new Conversation
+        var conv = new Conversation
         {
             AgentId = agentId
         };
-        sess = await service.NewConversation(sess);
-        return ConversationViewModel.FromSession(sess);
+        conv = await service.NewConversation(conv);
+        config.States.ForEach(x => conv.States[x.Split('=')[0]] = x.Split('=')[1]);
+
+        return ConversationViewModel.FromSession(conv);
     }
 
     [HttpDelete("/conversation/{agentId}/{conversationId}")]
@@ -51,9 +54,8 @@ public class ConversationController : ControllerBase, IApiAdapter
 
         var response = new MessageResponseModel();
         var stackMsg = new List<RoleDialogModel>();
-
-        await conv.SendMessage(agentId,
-            new RoleDialogModel("user", input.Text),
+        var inputMsg = new RoleDialogModel("user", input.Text);
+        await conv.SendMessage(agentId, inputMsg,
             async msg =>
             {
                 stackMsg.Add(msg);
@@ -71,6 +73,7 @@ public class ConversationController : ControllerBase, IApiAdapter
         response.Text = string.Join("\r\n", stackMsg.Select(x => x.Content));
         response.Data = response.Data ?? stackMsg.Last().Data;
         response.Function = stackMsg.Last().FunctionName;
+        response.MessageId = inputMsg.MessageId;
 
         return response;
     }
