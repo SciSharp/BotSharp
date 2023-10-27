@@ -27,14 +27,12 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
     {
     }
 
-    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         // Retrieve information from specific agent
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetAgents(inst.AgentName).FirstOrDefault();
-        var response = await routing.InvokeAgent(record.Id);
-
-        inst.Response = response.Content;
+        var ret = await routing.InvokeAgent(record.Id, message);
 
         /*_dialogs.Add(new RoleDialogModel(AgentRole.Assistant, inst.Parameters.Question)
         {
@@ -53,11 +51,11 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
             CurrentAgentId = record.Id
         });*/
 
-        _router.Instruction += $"\r\n{AgentRole.Function}: {response.Content}";
+        _router.Instruction += $"\r\n{AgentRole.Function}: {message.Content}";
 
         // Got the response from agent, then send to reasoner again to make the decision
         // inst = await GetNextInstructionFromReasoner($"What's the next step based on user's original goal and function result?");
 
-        return null;
+        return true;
     }
 }

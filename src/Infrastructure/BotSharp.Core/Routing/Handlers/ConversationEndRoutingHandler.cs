@@ -24,15 +24,11 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
+
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var result = new RoleDialogModel(AgentRole.Assistant, inst.Response)
-        {
-            MessageId = inst.MessageId,
-            CurrentAgentId = _settings.RouterId,
-            FunctionName = inst.Function,
-            Data = inst
-        };
+        message.Content = inst.Response;
+        message.FunctionName = inst.Function;
 
         var hooks = _services.GetServices<IConversationHook>()
             .OrderBy(x => x.Priority)
@@ -40,9 +36,9 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         foreach (var hook in hooks)
         {
-            await hook.OnConversationEnding(result);
+            await hook.OnConversationEnding(message);
         }
 
-        return result;
+        return true;
     }
 }

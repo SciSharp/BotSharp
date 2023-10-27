@@ -23,25 +23,17 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var result = new RoleDialogModel(AgentRole.Assistant, inst.Response)
-        {
-            MessageId = inst.MessageId,
-            CurrentAgentId = _settings.RouterId,
-            FunctionName = inst.Function,
-            Data = inst
-        };
-
         var hooks = _services.GetServices<IConversationHook>()
             .OrderBy(x => x.Priority)
             .ToList();
 
         foreach (var hook in hooks)
         {
-            await hook.OnCurrentTaskEnding(result);
+            await hook.OnCurrentTaskEnding(message);
         }
 
-        return result;
+        return true;
     }
 }

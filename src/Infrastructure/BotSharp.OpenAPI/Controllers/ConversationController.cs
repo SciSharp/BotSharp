@@ -53,12 +53,11 @@ public class ConversationController : ControllerBase, IApiAdapter
             .SetState("sampling_factor", input.SamplingFactor);
 
         var response = new MessageResponseModel();
-        var stackMsg = new List<RoleDialogModel>();
         var inputMsg = new RoleDialogModel("user", input.Text);
         await conv.SendMessage(agentId, inputMsg,
             async msg =>
             {
-                stackMsg.Add(msg);
+
             },
             async fnExecuting =>
             {
@@ -66,14 +65,14 @@ public class ConversationController : ControllerBase, IApiAdapter
             },
             async fnExecuted =>
             {
-                response.Function = fnExecuted.FunctionName;
-                response.Data = fnExecuted.Data;
+
             });
 
-        response.Text = string.Join("\r\n", stackMsg.Select(x => x.Content));
-        response.Data = response.Data ?? stackMsg.Last().Data;
-        response.Function = stackMsg.Last().FunctionName;
         response.MessageId = inputMsg.MessageId;
+        response.Text = inputMsg.Content;
+        response.Data = inputMsg.Data;
+        response.Function = inputMsg.FunctionName;
+        response.Instruction = inputMsg.Instruction;
 
         return response;
     }

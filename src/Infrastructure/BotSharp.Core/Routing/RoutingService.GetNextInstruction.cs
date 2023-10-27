@@ -57,6 +57,7 @@ public partial class RoutingService
 
             int retryCount = 0;
             var agentService = _services.GetRequiredService<IAgentService>();
+            var dialogs = Dialogs;
 
             while (retryCount < 3)
             {
@@ -64,7 +65,7 @@ public partial class RoutingService
                 {
                     var conversation = "";
 
-                    foreach (var dialog in _dialogs.TakeLast(20))
+                    foreach (var dialog in dialogs.TakeLast(50))
                     {
                         var role = dialog.Role;
                         if (role != AgentRole.User)
@@ -120,9 +121,6 @@ public partial class RoutingService
         return args;
     }
 
-#if !DEBUG
-    [MemoryCache(10 * 60)]
-#endif
     private string GetNextStepPrompt()
     {
         var template = _routerInstance.Router.Templates.First(x => x.Name == "next_step_prompt").Content;

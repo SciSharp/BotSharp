@@ -8,7 +8,7 @@ public interface IRoutingService
     void ResetRecursiveCounter();
     void RefreshDialogs();
     Task<FunctionCallFromLlm> GetNextInstruction();
-    Task<RoleDialogModel> InvokeAgent(string agentId);
-    Task<RoleDialogModel> InstructLoop();
-    Task<RoleDialogModel> ExecuteOnce(Agent agent);
+    Task<bool> InvokeAgent(string agentId, RoleDialogModel message);
+    Task<bool> InstructLoop(RoleDialogModel message);
+    Task<bool> ExecuteOnce(Agent agent, RoleDialogModel message);
 }

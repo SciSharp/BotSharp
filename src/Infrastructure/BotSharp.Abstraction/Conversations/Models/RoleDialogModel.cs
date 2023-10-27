@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Abstraction.Conversations.Models;
@@ -37,6 +38,8 @@ public class RoleDialogModel : ITrackableMessage
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool StopCompletion { get; set; }
+
+    public FunctionCallFromLlm Instruction { get; set; }
 
     private RoleDialogModel()
     {

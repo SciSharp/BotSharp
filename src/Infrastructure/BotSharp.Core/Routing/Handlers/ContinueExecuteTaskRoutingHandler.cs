@@ -26,19 +26,15 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
     {
     }
 
-    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetAgents(inst.AgentName).FirstOrDefault();
 
-        var result = new RoleDialogModel(AgentRole.Function, inst.Question)
-        {
-            MessageId = inst.MessageId,
-            FunctionName = inst.Function,
-            FunctionArgs = JsonSerializer.Serialize(inst.Arguments),
-            CurrentAgentId = record.Id
-        };
+        message.FunctionName = inst.Function;
+        message.CurrentAgentId = record.Id;
+        message.FunctionArgs = JsonSerializer.Serialize(inst.Arguments);
 
-        return result;
+        return true;
     }
 }

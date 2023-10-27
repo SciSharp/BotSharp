@@ -1,10 +1,7 @@
 namespace BotSharp.Abstraction.Routing.Models;
 
-public class RoutingArgs : ITrackableMessage
+public class RoutingArgs
 {
-    [JsonPropertyName("message_id")]
-    public string MessageId { get; set; }
-
     [JsonPropertyName("function")]
     public string Function { get; set; }
 

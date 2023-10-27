@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Abstraction.Routing;
 
@@ -19,5 +18,5 @@ public interface IRoutingHandler
 
     void SetDialogs(List<RoleDialogModel> dialogs) { }
 
-    Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst);
+    Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message);
 }
