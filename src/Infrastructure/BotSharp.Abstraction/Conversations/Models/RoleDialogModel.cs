@@ -27,6 +27,8 @@ public class RoleDialogModel
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object Data { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public object? RichContent { get; set; }
 
     /// <summary>
     /// Stop conversation completion

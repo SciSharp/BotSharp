@@ -66,11 +66,13 @@ public class ConversationController : ControllerBase, IApiAdapter
             {
                 response.Function = fnExecuted.FunctionName;
                 response.Data = fnExecuted.Data;
+                response.RichContent = fnExecuted.RichContent;
             });
 
         response.Text = string.Join("\r\n", stackMsg.Select(x => x.Content));
         response.Data = response.Data ?? stackMsg.Last().Data;
         response.Function = stackMsg.Last().FunctionName;
+        response.RichContent = response.RichContent ?? stackMsg.Last().RichContent;
 
         return response;
     }

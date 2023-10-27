@@ -28,6 +28,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _states = new ConversationState();
     }
 
+    public string GetConversationId() => _conversationId;
+
     public IConversationStateService SetState<T>(string name, T value)
     {
         if (value == null)
