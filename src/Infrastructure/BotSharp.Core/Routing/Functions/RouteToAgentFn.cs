@@ -66,14 +66,11 @@ public class RouteToAgentFn : IFunctionCallback
             else
             {
                 message.CurrentAgentId = targetAgent.Id;
-                message.Content = $"Routing to {args.AgentName}";
             }
         }
 
         _context.Push(message.CurrentAgentId);
 
-        // Set default execution data
-        message.Data = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
         return true;
     }
 

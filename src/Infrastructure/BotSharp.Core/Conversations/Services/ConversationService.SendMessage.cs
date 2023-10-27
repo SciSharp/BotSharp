@@ -8,7 +8,7 @@ namespace BotSharp.Core.Conversations.Services;
 public partial class ConversationService
 {
     public async Task<bool> SendMessage(string agentId, 
-        RoleDialogModel incoming,
+        RoleDialogModel message,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
@@ -18,16 +18,16 @@ public partial class ConversationService
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
-        var message = $"Received [{agent.Name}] {incoming.Role}: {incoming.Content}";
+        var content = $"Received [{agent.Name}] {message.Role}: {message.Content}";
 #if DEBUG
-        Console.WriteLine(message, Color.OrangeRed);
+        Console.WriteLine(content, Color.OrangeRed);
 #else
-        _logger.LogInformation(message);
+        _logger.LogInformation(content);
 #endif
 
-        incoming.CurrentAgentId = agent.Id;
+        message.CurrentAgentId = agent.Id;
 
-        _storage.Append(_conversationId, incoming);
+        _storage.Append(_conversationId, message);
 
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
@@ -37,13 +37,13 @@ public partial class ConversationService
             hook.SetAgent(agent)
                 .SetConversation(conversation);
 
-            await hook.OnMessageReceived(incoming);
+            await hook.OnMessageReceived(message);
 
             // Interrupted by hook
-            if (incoming.StopCompletion)
+            if (message.StopCompletion)
             {
-                await onMessageReceived(incoming);
-                _storage.Append(_conversationId, incoming);
+                await onMessageReceived(message);
+                _storage.Append(_conversationId, message);
                 return true;
             }
         }
@@ -52,11 +52,11 @@ public partial class ConversationService
         var routing = _services.GetRequiredService<IRoutingService>();
         var settings = _services.GetRequiredService<RoutingSettings>();
 
-        var response = agentId == settings.RouterId ?
-            await routing.InstructLoop() :
-            await routing.ExecuteOnce(agent);
+        var ret = agentId == settings.RouterId ?
+            await routing.InstructLoop(message) :
+            await routing.ExecuteOnce(agent, message);
 
-        await HandleAssistantMessage(response, onMessageReceived);
+        await HandleAssistantMessage(message, onMessageReceived);
 
         var statistics = _services.GetRequiredService<ITokenStatistics>();
         statistics.PrintStatistics();
@@ -64,7 +64,7 @@ public partial class ConversationService
         routing.ResetRecursiveCounter();
         routing.RefreshDialogs();
 
-        return true;
+        return ret;
     }
 
     private async Task<Conversation> GetConversationRecord(string agentId)

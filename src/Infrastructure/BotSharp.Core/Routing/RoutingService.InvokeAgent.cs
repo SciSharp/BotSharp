@@ -8,13 +8,13 @@ public partial class RoutingService
 {
     const int MAXIMUM_RECURSION_DEPTH = 3;
     private int _currentRecursionDepth = 0;
-    public async Task<RoleDialogModel> InvokeAgent(string agentId)
+    public async Task<bool> InvokeAgent(string agentId, RoleDialogModel message)
     {
         _currentRecursionDepth++;
         if (_currentRecursionDepth > MAXIMUM_RECURSION_DEPTH)
         {
             _logger.LogWarning($"Current recursive call depth greater than {MAXIMUM_RECURSION_DEPTH}, which will cause unexpected result.");
-            return Dialogs.Last();
+            return false;
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -23,50 +23,56 @@ public partial class RoutingService
         var settings = _services.GetRequiredService<ChatCompletionSetting>();
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider: settings.Provider, model: settings.Model);
         RoleDialogModel response = chatCompletion.GetChatCompletions(agent, Dialogs);
+        message.Role = response.Role;
 
         if (response.Role == AgentRole.Function)
         {
-            return await InvokeFunction(agent, response);
+            message.FunctionName = response.FunctionName;
+            message.FunctionArgs = response.FunctionArgs;
+
+            await InvokeFunction(agent, message);
         }
         else
         {
-            return response;
+            message.Content = response.Content;
         }
+
+        return true;
     }
 
-    private async Task<RoleDialogModel> InvokeFunction(Agent agent, RoleDialogModel response)
+    private async Task<RoleDialogModel> InvokeFunction(Agent agent, RoleDialogModel message)
     {
         // execute function
         // Save states
-        SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(response.FunctionArgs));
+        SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs));
 
         var conversationService = _services.GetRequiredService<IConversationService>();
         // Call functions
-        await conversationService.CallFunctions(response);
+        await conversationService.CallFunctions(message);
 
-        Dialogs.Add(response);
+        Dialogs.Add(message);
 
         // Pass execution result to LLM to get response
-        if (!response.StopCompletion)
+        if (!message.StopCompletion)
         {
             // Find response template
             var templateService = _services.GetRequiredService<IResponseTemplateService>();
-            var responseTemplate = await templateService.RenderFunctionResponse(agent.Id, response);
+            var responseTemplate = await templateService.RenderFunctionResponse(agent.Id, message);
             if (!string.IsNullOrEmpty(responseTemplate))
             {
-                response.Role = AgentRole.Assistant;
-                response.Content = responseTemplate.Trim();
+                message.Role = AgentRole.Assistant;
+                message.Content = responseTemplate.Trim();
             }
             else
             {
-                response = await InvokeAgent(response.CurrentAgentId);
+                await InvokeAgent(message.CurrentAgentId, message);
             }
         }
         else
         {
-            response.Role = AgentRole.Assistant;
+            message.Role = AgentRole.Assistant;
         }
 
-        return response;
+        return message;
     }
 }

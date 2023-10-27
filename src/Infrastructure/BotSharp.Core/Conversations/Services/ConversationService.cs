@@ -54,8 +54,6 @@ public partial class ConversationService : IConversationService
     public async Task<Conversation> NewConversation(Conversation sess)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var conversationSettings = _services.GetRequiredService<ConversationSetting>();
         var user = db.GetUserByExternalId(_user.Id);
         var foundUserId = user?.Id ?? string.Empty;
 
@@ -80,11 +78,11 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(int lastCount = 20)
+    public List<RoleDialogModel> GetDialogHistory(int lastCount = 50)
     {
         var dialogs = _storage.GetDialogs(_conversationId);
         return dialogs
-            .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-8))
+            .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-24))
             .TakeLast(lastCount)
             .ToList();
     }

@@ -46,37 +46,28 @@ public partial class RoutingService : IRoutingService
         _routerInstance = routerInstance;
     }
 
-
-    public async Task<RoleDialogModel> ExecuteOnce(Agent agent)
+    public async Task<bool> ExecuteOnce(Agent agent, RoleDialogModel message)
     {
-        var message = Dialogs.Last().Content;
-
         var handlers = _services.GetServices<IRoutingHandler>();
 
         var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
         handler.SetDialogs(Dialogs);
+
         var result = await handler.Handle(this, new FunctionCallFromLlm
         {
             Function = "route_to_agent",
-            Question = message,
-            Reason = message,
+            Question = message.Content,
+            Reason = message.Content,
             AgentName = agent.Name
-        });
+        }, message);
 
         return result;
     }
 
-    public async Task<RoleDialogModel> InstructLoop()
+    public async Task<bool> InstructLoop(RoleDialogModel message)
     {
         _routerInstance.Load();
         var router = _routerInstance.Router;
-
-        var result = new RoleDialogModel(AgentRole.Assistant, "Can you repeat your request again?")
-        {
-            CurrentAgentId = router.Id
-        };
-
-        var message = Dialogs.Last().Content;
 
         var handlers = _services.GetServices<IRoutingHandler>();
 
@@ -87,7 +78,8 @@ public partial class RoutingService : IRoutingService
             loopCount++;
 
             var inst = await GetNextInstruction();
-            inst.Question = inst.Question ?? message;
+            message.Instruction = inst;
+            inst.Question = message.Content;
 
             var handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
             if (handler == null)
@@ -98,12 +90,18 @@ public partial class RoutingService : IRoutingService
             handler.SetRouter(router);
             handler.SetDialogs(Dialogs);
 
-            result = await handler.Handle(this, inst);
+            message.FunctionName = inst.Function;
+            message.Role = AgentRole.Function;
+            message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
+            
+            await handler.Handle(this, inst, message);
+
+            inst.Response = message.Content;
 
             stop = !_settings.EnableReasoning;
         }
 
-        return result;
+        return true;
     }
 
     protected void SaveStateByArgs(JsonDocument args)

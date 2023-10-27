@@ -1,6 +1,6 @@
 # Messaging Components
 
-Conversations are a lot more than simple text messages when you are building a AI chatbot.  In addition to text, the `BotSharp`` allows you to send rich-media, like audio, video, and images, and provides a set of structured messaging options in the form of message templates, quick replies, buttons and more. The UI rendering program can render components according to the returned data format.
+Conversations are a lot more than simple text messages when you are building a AI chatbot.  In addition to text, the `BotSharp` allows you to send rich-media, like audio, video, and images, and provides a set of structured messaging options in the form of message templates, quick replies, buttons and more. The UI rendering program can render components according to the returned data format.
 
 
 ## Text Messages
@@ -75,7 +75,7 @@ Message templates are structured message formats used for various purposes to pr
                     ...
                 }
             ]
-        }
+          }
         }
     }
 }

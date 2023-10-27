@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
-using Amazon.Util;
 
 namespace BotSharp.Core.Repository;
 
@@ -373,13 +372,7 @@ public class FileRepository : IBotSharpRepository
         var functionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
                                         agentId, "functions.json");
 
-        var functions = new List<string>();
-        foreach (var function in inputFunctions)
-        {
-            functions.Add(JsonSerializer.Serialize(function, _options));
-        }
-
-        var functionText = JsonSerializer.Serialize(functions, _options);
+        var functionText = JsonSerializer.Serialize(inputFunctions, _options);
         File.WriteAllText(functionFile, functionText);
     }
 
@@ -493,9 +486,6 @@ public class FileRepository : IBotSharpRepository
         return responses;
     }
 
-#if !DEBUG
-    [MemoryCache(10 * 60)]
-#endif
     public Agent? GetAgent(string agentId)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);

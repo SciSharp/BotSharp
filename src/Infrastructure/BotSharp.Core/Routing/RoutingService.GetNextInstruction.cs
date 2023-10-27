@@ -56,15 +56,25 @@ public partial class RoutingService
                 model: _settings.Model);
 
             int retryCount = 0;
+            var agentService = _services.GetRequiredService<IAgentService>();
+            var dialogs = Dialogs;
 
             while (retryCount < 3)
             {
                 try
                 {
                     var conversation = "";
-                    foreach (var dialog in _dialogs.TakeLast(20))
+
+                    foreach (var dialog in dialogs.TakeLast(50))
                     {
-                        conversation += $"{dialog.Role}: {dialog.Content}\r\n";
+                        var role = dialog.Role;
+                        if (role != AgentRole.User)
+                        {
+                            var agent = await agentService.GetAgent(dialog.CurrentAgentId);
+                            role = agent.Name;
+                        }
+                        
+                        conversation += $"{role}: {dialog.Content}\r\n";
                     }
                     content = $"{conversation}\r\n###\r\n{content}";
 
@@ -73,9 +83,7 @@ public partial class RoutingService
                         new RoleDialogModel(AgentRole.User, content)
                     });
 
-                    var pattern = @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}";
-                    response.Content = Regex.Match(response.Content, pattern).Value;
-                    args = JsonSerializer.Deserialize<FunctionCallFromLlm>(response.Content);
+                    args = response.Content.JsonContent<FunctionCallFromLlm>();
                     break;
                 }
                 catch (Exception ex)
@@ -113,9 +121,6 @@ public partial class RoutingService
         return args;
     }
 
-#if !DEBUG
-    [MemoryCache(10 * 60)]
-#endif
     private string GetNextStepPrompt()
     {
         var template = _routerInstance.Router.Templates.First(x => x.Name == "next_step_prompt").Content;

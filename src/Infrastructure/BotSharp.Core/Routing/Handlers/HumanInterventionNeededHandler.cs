@@ -9,30 +9,24 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 {
     public string Name => "human_intervention_needed";
 
-    public string Description => "Reach out to a real human or customer representative.";
-
-    private readonly RoutingSettings _settings;
+    public string Description => "Reach out to human being, customer service or customer representative.";
 
     public List<NameDesc> Parameters => new List<NameDesc>
     {
-        new NameDesc("reason", "why need customer service representative (human being)"),
+        new NameDesc("reason", "why need customer service"),
         new NameDesc("response", "response content to user")
     };
 
     public HumanInterventionNeededHandler(IServiceProvider services, ILogger<HumanInterventionNeededHandler> logger, RoutingSettings settings)
         : base(services, logger, settings)
     {
-        _settings = settings;
+        
     }
 
-    public async Task<RoleDialogModel> Handle(IRoutingService routing, FunctionCallFromLlm inst)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var result = new RoleDialogModel(AgentRole.Assistant, inst.Response)
-        {
-            CurrentAgentId = _settings.RouterId,
-            FunctionName = inst.Function,
-            Data = inst
-        };
+        message.Role = AgentRole.Assistant;
+        message.Content = inst.Response;
 
         var hooks = _services.GetServices<IConversationHook>()
             .OrderBy(x => x.Priority)
@@ -40,9 +34,9 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 
         foreach (var hook in hooks)
         {
-            await hook.OnHumanInterventionNeeded(result);
+            await hook.OnHumanInterventionNeeded(message);
         }
 
-        return result;
+        return true;
     }
 }
