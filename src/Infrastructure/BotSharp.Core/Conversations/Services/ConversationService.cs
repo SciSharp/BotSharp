@@ -78,11 +78,11 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(int lastCount = 20)
+    public List<RoleDialogModel> GetDialogHistory(int lastCount = 50)
     {
         var dialogs = _storage.GetDialogs(_conversationId);
         return dialogs
-            .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-8))
+            .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-24))
             .TakeLast(lastCount)
             .ToList();
     }

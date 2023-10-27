@@ -28,6 +28,7 @@ public class InterruptTaskExecutionRoutingHandler : RoutingHandlerBase, IRouting
     {
         var result = new RoleDialogModel(AgentRole.User, inst.Reason)
         {
+            MessageId = inst.MessageId,
             FunctionName = inst.Function,
             StopCompletion = true
         };

@@ -1,7 +1,11 @@
+using BotSharp.Abstraction.Models;
+
 namespace BotSharp.Abstraction.Conversations.Models;
 
-public class RoleDialogModel
+public class RoleDialogModel : ITrackableMessage
 {
+    public string MessageId { get; set; }
+
     /// <summary>
     /// user, system, assistant, function
     /// </summary>
@@ -34,10 +38,15 @@ public class RoleDialogModel
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool StopCompletion { get; set; }
 
+    private RoleDialogModel()
+    {
+    }
+
     public RoleDialogModel(string role, string text)
     {
         Role = role;
         Content = text;
+        MessageId = Guid.NewGuid().ToString();
     }
 
     public override string ToString()

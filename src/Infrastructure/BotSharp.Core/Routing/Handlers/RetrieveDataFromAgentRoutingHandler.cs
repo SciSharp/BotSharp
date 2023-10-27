@@ -45,6 +45,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
         /*_dialogs.Add(new RoleDialogModel(AgentRole.Function, inst.Parameters.Answer)
         {
+            MessageId = inst.MessageId,
             FunctionName = inst.Function,
             FunctionArgs = JsonSerializer.Serialize(inst.Parameters.Arguments),
             ExecutionResult = inst.Parameters.Answer,

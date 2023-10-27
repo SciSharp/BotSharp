@@ -8,3 +8,4 @@ global using System.Text.Json.Serialization;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Agents.Enums;
+global using BotSharp.Abstraction.Models;

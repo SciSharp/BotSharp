@@ -35,6 +35,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
         var message = new RoleDialogModel(AgentRole.Function, inst.Question)
         {
+            MessageId = inst.MessageId,
             FunctionName = inst.Function,
             FunctionArgs = JsonSerializer.Serialize(inst),
             CurrentAgentId = context.GetCurrentAgentId(),
@@ -46,6 +47,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         // Keep last message data for debug
         result.Data = result.Data ?? message.Data;
         result.FunctionName = result.FunctionName ?? message.FunctionName;
+
         return result;
     }
 }

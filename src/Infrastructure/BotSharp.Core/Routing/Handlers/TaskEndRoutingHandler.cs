@@ -27,6 +27,7 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
         var result = new RoleDialogModel(AgentRole.Assistant, inst.Response)
         {
+            MessageId = inst.MessageId,
             CurrentAgentId = _settings.RouterId,
             FunctionName = inst.Function,
             Data = inst

@@ -76,7 +76,7 @@ public partial class RoutingService : IRoutingService
             CurrentAgentId = router.Id
         };
 
-        var message = Dialogs.Last().Content;
+        var inputMsg = Dialogs.Last();
 
         var handlers = _services.GetServices<IRoutingHandler>();
 
@@ -87,7 +87,8 @@ public partial class RoutingService : IRoutingService
             loopCount++;
 
             var inst = await GetNextInstruction();
-            inst.Question = inst.Question ?? message;
+            inst.MessageId = inputMsg.MessageId;
+            inst.Question = inst.Question ?? inputMsg.Content;
 
             var handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
             if (handler == null)
@@ -99,6 +100,7 @@ public partial class RoutingService : IRoutingService
             handler.SetDialogs(Dialogs);
 
             result = await handler.Handle(this, inst);
+            result.MessageId = inputMsg.MessageId;
 
             stop = !_settings.EnableReasoning;
         }
