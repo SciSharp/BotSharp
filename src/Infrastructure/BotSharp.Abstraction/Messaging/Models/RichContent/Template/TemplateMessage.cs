@@ -6,6 +6,6 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template
 {
     public class TemplateMessage<T>
     {
-        public AttachmentTemplate<T> Attachment { get; set; }
+        public T Attachment { get; set; }
     }
 }
