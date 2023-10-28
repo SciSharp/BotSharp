@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Plugin.HuggingFace.Services;
@@ -97,7 +98,9 @@ public class ChatCompletionProvider : IChatCompletion
         var content = string.Join("\r\n", conversations.Select(x => $"{AgentRole.System}: {x.Content}")).Trim();
         content += $"\r\n{AgentRole.Assistant}: ";
 
-        var prompt = agent.Instruction + "\r\n" + content;
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var instruction = agentService.RenderedInstruction(agent);
+        var prompt = instruction + "\r\n" + content;
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)

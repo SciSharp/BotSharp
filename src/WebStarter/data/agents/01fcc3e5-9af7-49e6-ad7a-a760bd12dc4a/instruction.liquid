@@ -9,21 +9,22 @@ You're {{router.name}} ({{router.description}}). Follow these steps to handle us
 {% for handler in routing_handlers %}
 # {{ handler.description}}
 {% if handler.parameters and handler.parameters != empty -%}
-Response: { "function": "{{ handler.name }}",
+Parameters: 
+    - function: {{ handler.name }}
     {% for p in handler.parameters -%}
-    "{{ p.name }}": "{{ p.description }}"{{ ",\r\n    " }}
-    {%- endfor %}}
+    - {{ p.name }}: {{ p.description }}{{ "\r\n    " }}
+    {%- endfor %}
 {%- endif %}
 {% endfor %}
 
 [AGENTS]
 {% for agent in routing_agents %}
-* Agent: {{ agent.name }}
-{{ agent.description}}
-{% if agent.required_fields and agent.required_fields != empty -%}
-Required args: 
-    {% for f in agent.required_fields -%}
-    - {{ f.name }} ({{ f.type }}): {{ f.description }}{{ "\r\n    " }}
+* {{ agent.description}}
+Agent: {{ agent.name }}
+{% if agent.fields and agent.fields != empty -%}
+Arguments: 
+    {% for f in agent.fields -%}
+    - {{ f.name }}: {{ f.description }} (type: {{ f.type }}, required: {{f.required}}){{ "\r\n    " }}
     {%- endfor %}
 {%- endif %}
 {% endfor %}

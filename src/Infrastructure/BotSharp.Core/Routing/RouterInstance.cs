@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
@@ -36,8 +36,10 @@ public class RouterInstance : IRouterInstance
 
     public List<RoutingHandlerDef> GetHandlers()
     {
+        var planer = _services.GetRequiredService<IPlaner>();
+
         return _services.GetServices<IRoutingHandler>()
-            .Where(x => x.IsReasoning == _settings.EnableReasoning)
+            .Where(x => x.Planers == null || x.Planers.Contains(planer.GetType().Name))
             .Where(x => !string.IsNullOrEmpty(x.Description))
             .Select((x, i) => new RoutingHandlerDef
             {
@@ -90,10 +92,11 @@ public class RouterInstance : IRouterInstance
             AgentId = x.Id,
             Description = x.Description,
             Name = x.Name,
-            RequiredFields = x.RoutingRules
-                .Where(x => x.Required)
-                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type))
-                .ToList()
+            Fields = x.RoutingRules
+                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
+                {
+                    Required = p.Required
+                }).ToList()
         }).ToArray();
     }
 

@@ -12,14 +12,20 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
     public string Description => "Continue to execute user's request without further information retrival.";
 
-    public List<NameDesc> Parameters => new List<NameDesc>
+    public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new NameDesc("agent", "the name of the agent"),
-        new NameDesc("args", "required parameters extracted from question"),
-        new NameDesc("reason", "why continue to execute current task")
+        new ParameterPropertyDef("agent", "the name of the agent"),
+        new ParameterPropertyDef("reason", "why continue to execute current task"),
+        new ParameterPropertyDef("args", "required parameters extracted from question")
+        {
+            Type = "object"
+        }
     };
 
-    public bool IsReasoning => true;
+    public List<string> Planers => new List<string>
+    {
+        "FeedbackReasoningPlanner"
+    };
 
     public ContinueExecuteTaskRoutingHandler(IServiceProvider services, ILogger<ContinueExecuteTaskRoutingHandler> logger, RoutingSettings settings) 
         : base(services, logger, settings)

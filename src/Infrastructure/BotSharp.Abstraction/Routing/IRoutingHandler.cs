@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Planning;
 
 namespace BotSharp.Abstraction.Routing;
 
@@ -10,9 +11,9 @@ public interface IRoutingHandler
 {
     string Name { get; }
     string Description { get; }
-    bool IsReasoning => false;
+    List<string> Planers => null;
     bool Enabled => true;
-    List<NameDesc> Parameters => new List<NameDesc>();
+    List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>();
 
     void SetRouter(Agent router) { }
 

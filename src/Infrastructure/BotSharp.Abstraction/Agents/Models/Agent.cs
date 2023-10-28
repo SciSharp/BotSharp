@@ -65,6 +65,12 @@ public class Agent
     public List<RoutingRule> RoutingRules { get; set; }
         = new List<RoutingRule>();
 
+    /// <summary>
+    /// For rendering deferral
+    /// </summary>
+    [JsonIgnore]
+    public Dictionary<string, object> TemplateDict { get; set; }
+
     public override string ToString()
         => $"{Name} {Id}";
 

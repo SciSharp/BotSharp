@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
+using System.Drawing;
 
 namespace BotSharp.Core.Routing;
 
@@ -69,7 +71,8 @@ public partial class RoutingService : IRoutingService
         _routerInstance.Load();
         var router = _routerInstance.Router;
 
-        var handlers = _services.GetServices<IRoutingHandler>();
+        var planner = _services.GetRequiredService<IPlaner>();
+        var executor = _services.GetRequiredService<IExecutor>();
 
         int loopCount = 0;
         var stop = false;
@@ -77,28 +80,33 @@ public partial class RoutingService : IRoutingService
         {
             loopCount++;
 
-            var inst = await GetNextInstruction();
-            message.Instruction = inst;
-            inst.Question = message.Content;
+            var conversation = await GetConversationContent(Dialogs);
 
-            var handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
-            if (handler == null)
+            // Get instruction from Planner
+            var inst = await planner.GetNextInstruction(router, conversation);
+
+            // Fix LLM malformed response
+            FixMalformedResponse(inst);
+
+            // Save states
+            SaveStateByArgs(inst.Arguments);
+
+#if DEBUG
+            Console.WriteLine($"*** Next Instruction *** {inst}", Color.GreenYellow);
+#else
+            _logger.LogInformation($"*** Next Instruction *** {inst}");
+#endif
+
+            // Handle instruction by Executor
+            var executed = await executor.Execute(this, router, inst, Dialogs, message);
+
+            await planner.AgentExecuted(inst, message);
+
+            // There is no need for the agent to continue processing, indicating that the task has been completed.
+            if (inst.AgentName == null)
             {
-                handler = handlers.FirstOrDefault(x => x.Name == "get_next_instruction");
-                continue;
+                break;
             }
-            handler.SetRouter(router);
-            handler.SetDialogs(Dialogs);
-
-            message.FunctionName = inst.Function;
-            message.Role = AgentRole.Function;
-            message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
-            
-            await handler.Handle(this, inst, message);
-
-            inst.Response = message.Content;
-
-            stop = !_settings.EnableReasoning;
         }
 
         return true;

@@ -11,12 +11,10 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public string Description => "Response according to the context without asking specific agent.";
 
-    public bool IsReasoning => false;
-
-    public List<NameDesc> Parameters => new List<NameDesc>
+    public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new NameDesc("reason", "why response to user"),
-        new NameDesc("response", "response content")
+        new ParameterPropertyDef("reason", "why response to user"),
+        new ParameterPropertyDef("response", "response content")
     };
 
     public ResponseToUserRoutingHandler(IServiceProvider services, ILogger<ResponseToUserRoutingHandler> logger, RoutingSettings settings) 

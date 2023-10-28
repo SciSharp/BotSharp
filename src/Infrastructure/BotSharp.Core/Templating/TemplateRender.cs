@@ -39,6 +39,7 @@ public class TemplateRender : ITemplateRender
         }
         else
         {
+            _logger.LogWarning(error);
             return template;
         }
     }

@@ -1,5 +1,6 @@
 using Azure;
 using Azure.AI.OpenAI;
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
@@ -71,6 +72,12 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 msg.FunctionName = msg.FunctionName.Split('.').Last();
             }
+        }
+
+        var setting = _services.GetRequiredService<ConversationSetting>();
+        if (setting.ShowVerboseLog)
+        {
+            _logger.LogInformation(msg.Content);
         }
 
         // After chat completion hook
@@ -193,11 +200,14 @@ public class ChatCompletionProvider : IChatCompletion
 
     protected ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
+        var agentService = _services.GetRequiredService<IAgentService>();
+
         var chatCompletionsOptions = new ChatCompletionsOptions();
         
         if (!string.IsNullOrEmpty(agent.Instruction))
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, agent.Instruction));
+            var instruction = agentService.RenderedInstruction(agent);
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, instruction));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))

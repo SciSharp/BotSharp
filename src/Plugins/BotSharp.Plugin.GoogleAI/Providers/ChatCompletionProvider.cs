@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Plugin.GoogleAI.Settings;
@@ -35,7 +36,9 @@ public class ChatCompletionProvider : IChatCompletion
         var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
             .ToList();
 
-        var response = client.ChatAsync(messages, agent.Instruction, null).Result;
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var instruction = agentService.RenderedInstruction(agent);
+        var response = client.ChatAsync(messages, instruction, null).Result;
 
         var message = response.Candidates.First();
         var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)

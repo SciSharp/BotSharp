@@ -16,6 +16,10 @@ public interface IAgentService
     /// <returns></returns>
     Task<Agent> LoadAgent(string id);
 
+    string RenderedInstruction(Agent agent);
+
+    string RenderedTemplate(Agent agent, string templateName);
+
     /// <summary>
     /// Get agent detail without trigger any hook.
     /// </summary>

@@ -31,23 +31,10 @@ public class InstructModeController : ControllerBase, IApiAdapter
             .SetState("model", input.Model)
             .SetState("input_text", input.Text);
 
-        var agentService = _services.GetRequiredService<IAgentService>();
-        Agent agent = await agentService.LoadAgent(agentId);
-
-        // switch to different instruction template
-        if (!string.IsNullOrEmpty(input.Template))
-        {
-            var template = agent.Templates.First(x => x.Name == input.Template).Content;
-            var render = _services.GetRequiredService<ITemplateRender>();
-            var dict = new Dictionary<string, object>();
-            state.GetStates().Select(x => dict[x.Key] = x.Value).ToArray();
-            var prompt = render.Render(template, dict);
-            agent.Instruction = prompt;
-        }
-
         var instructor = _services.GetRequiredService<IInstructService>();
-        var result = await instructor.Execute(agent,
-            new RoleDialogModel(AgentRole.User, input.Text));
+        var result = await instructor.Execute(agentId,
+            new RoleDialogModel(AgentRole.User, input.Text),
+            templateName: input.Template);
 
         result.States = state.GetStates();
 

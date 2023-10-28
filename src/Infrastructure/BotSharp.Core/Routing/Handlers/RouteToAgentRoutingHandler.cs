@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
@@ -13,15 +12,16 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public string Description => "Route request to appropriate agent.";
 
-    public List<NameDesc> Parameters => new List<NameDesc>
+    public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new NameDesc("reason", "why route to agent"),
-        new NameDesc("next_action_agent", "agent for next action based on user latest response"),
-        new NameDesc("user_goal_agent", "agent who can achieve user original goal"),
-        new NameDesc("args", "useful parameters of next action agent")
+        new ParameterPropertyDef("reason", "why route to agent"),
+        new ParameterPropertyDef("next_action_agent", "agent for next action based on user latest response"),
+        new ParameterPropertyDef("user_goal_agent", "agent who can achieve user original goal"),
+        new ParameterPropertyDef("args", "useful parameters of next action agent, format: { }")
+        {
+            Type = "object"
+        }
     };
-
-    public bool IsReasoning => false;
 
     public RouteToAgentRoutingHandler(IServiceProvider services, ILogger<RouteToAgentRoutingHandler> logger, RoutingSettings settings) 
         : base(services, logger, settings)

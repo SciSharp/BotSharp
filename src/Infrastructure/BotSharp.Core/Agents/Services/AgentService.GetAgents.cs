@@ -4,14 +4,16 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    [MemoryCache(10 * 60, PerInstanceCache = true)]
+    [MemoryCache(10 * 60)]
     public async Task<List<Agent>> GetAgents(bool? allowRouting = null)
     {
         var agents = _db.GetAgents(allowRouting: allowRouting);
         return await Task.FromResult(agents);
     }
 
-    [MemoryCache(10 * 60, PerInstanceCache = true)]
+#if !DEBUG
+    [MemoryCache(10 * 60)]
+#endif
     public async Task<Agent> GetAgent(string id)
     {
         var profile = _db.GetAgent(id);

@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -11,13 +10,16 @@ public class InterruptTaskExecutionRoutingHandler : RoutingHandlerBase, IRouting
 
     public string Description => "Can't continue user's request becauase the requirements are not met.";
 
-    public List<NameDesc> Parameters => new List<NameDesc>
+    public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new NameDesc("reason", "the reason why the request is interrupted"),
-        new NameDesc("answer", "the content response to user")
+        new ParameterPropertyDef("reason", "the reason why the request is interrupted"),
+        new ParameterPropertyDef("answer", "the content response to user")
     };
 
-    public bool IsReasoning => true;
+    public List<string> Planers => new List<string>
+    {
+        "FeedbackReasoningPlanner"
+    };
 
     public InterruptTaskExecutionRoutingHandler(IServiceProvider services, ILogger<InterruptTaskExecutionRoutingHandler> logger, RoutingSettings settings) 
         : base(services, logger, settings)

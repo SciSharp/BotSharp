@@ -11,12 +11,10 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public string Description => "User completed his task and wants to end the conversation.";
 
-    public bool IsReasoning => false;
-
-    public List<NameDesc> Parameters => new List<NameDesc>
+    public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new NameDesc("reason", "why end conversation"),
-        new NameDesc("response", "response content to user")
+        new ParameterPropertyDef("reason", "why end conversation"),
+        new ParameterPropertyDef("response", "response content to user")
     };
 
     public ConversationEndRoutingHandler(IServiceProvider services, ILogger<ConversationEndRoutingHandler> logger, RoutingSettings settings) 

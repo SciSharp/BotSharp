@@ -17,6 +17,8 @@ using BotSharp.Abstraction.Evaluations;
 using BotSharp.Core.Evaluatings;
 using BotSharp.Core.Evaluations;
 using BotSharp.Abstraction.MLTasks.Settings;
+using BotSharp.Abstraction.Planning;
+using BotSharp.Core.Planning;
 
 namespace BotSharp.Core;
 
@@ -68,6 +70,18 @@ public static class BotSharpServiceCollectionExtensions
         config.Bind("Router", routingSettings);
         services.AddSingleton((IServiceProvider x) => routingSettings);
 
+        services.AddScoped<NaivePlanner>();
+        services.AddScoped<FeedbackReasoningPlanner>();
+        services.AddScoped<IPlaner>(provider =>
+        {
+            if (routingSettings.Planner == "NaivePlanner")
+                return provider.GetRequiredService<NaivePlanner>();
+            else if (routingSettings.Planner == "FeedbackReasoningPlanner")
+                return provider.GetRequiredService<FeedbackReasoningPlanner>();
+            throw new NotImplementedException();
+        });
+
+        services.AddScoped<IExecutor, InstructExecutor>();
         services.AddScoped<IRouterInstance, RouterInstance>();
         services.AddScoped<IRoutingService, RoutingService>();
 

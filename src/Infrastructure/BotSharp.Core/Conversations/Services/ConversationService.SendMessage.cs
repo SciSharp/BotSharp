@@ -20,7 +20,7 @@ public partial class ConversationService
 
         var content = $"Received [{agent.Name}] {message.Role}: {message.Content}";
 #if DEBUG
-        Console.WriteLine(content, Color.OrangeRed);
+        Console.WriteLine(content, Color.GreenYellow);
 #else
         _logger.LogInformation(content);
 #endif

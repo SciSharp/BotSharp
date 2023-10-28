@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents;
+
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
@@ -42,7 +44,9 @@ public class ChatCompletionProvider : IChatCompletion
 
         string totalResponse = "";
 
-        var prompt = agent.Instruction + "\r\n" + content;
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var instruction = agentService.RenderedInstruction(agent);
+        var prompt = instruction + "\r\n" + content;
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)

@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
@@ -12,15 +11,21 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public string Description => "Retrieve data from appropriate agent.";
 
-    public List<NameDesc> Parameters => new List<NameDesc>
+    public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new NameDesc("agent", "the name of the agent"),
-        new NameDesc("question", "the question you will ask the agent to get the necessary data"),
-        new NameDesc("reason", "why retrieve data"),
-        new NameDesc("args", "required parameters extracted from question and hand over to the next agent")
+        new ParameterPropertyDef("agent", "the name of the agent"),
+        new ParameterPropertyDef("question", "the question you will ask the agent to get the necessary data"),
+        new ParameterPropertyDef("reason", "why retrieve data"),
+        new ParameterPropertyDef("args", "required parameters extracted from question and hand over to the next agent")
+        {
+            Type = "object"
+        }
     };
 
-    public bool IsReasoning => true;
+    public List<string> Planers => new List<string>
+    {
+        "FeedbackReasoningPlanner"
+    };
 
     public RetrieveDataFromAgentRoutingHandler(IServiceProvider services, ILogger<RetrieveDataFromAgentRoutingHandler> logger, RoutingSettings settings) 
         : base(services, logger, settings)

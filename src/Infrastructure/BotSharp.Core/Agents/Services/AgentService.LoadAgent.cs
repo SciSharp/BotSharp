@@ -27,8 +27,10 @@ public partial class AgentService
             throw new Exception($"Can't load agent by id: {id}");
         }
 
-        var templateDict = new Dictionary<string, object>();
-        PopulateState(templateDict);
+        agent.TemplateDict = new Dictionary<string, object>();
+
+        // Populate state into dictionary
+        PopulateState(agent.TemplateDict);
 
         // After agent is loaded
         foreach (var hook in hooks)
@@ -42,7 +44,7 @@ public partial class AgentService
 
             if (!string.IsNullOrEmpty(agent.Instruction))
             {
-                hook.OnInstructionLoaded(agent.Instruction, templateDict);
+                hook.OnInstructionLoaded(agent.Instruction, agent.TemplateDict);
             }
 
             if (agent.Functions != null)
@@ -58,13 +60,23 @@ public partial class AgentService
             hook.OnAgentLoaded(agent);
         }
 
-        // render liquid template
-        var render = _services.GetRequiredService<ITemplateRender>();
-        agent.Instruction = render.Render(agent.Instruction, templateDict);
-
         _logger.LogInformation($"Loaded agent {agent}.");
 
         return agent;
+    }
+
+    public string RenderedTemplate(Agent agent, string templateName)
+    {
+        // render liquid template
+        var render = _services.GetRequiredService<ITemplateRender>();
+        var template = agent.Templates.First(x => x.Name == templateName).Content;
+        return render.Render(template, agent.TemplateDict);
+    }
+
+    public string RenderedInstruction(Agent agent)
+    {
+        var render = _services.GetRequiredService<ITemplateRender>();
+        return render.Render(agent.Instruction, agent.TemplateDict);
     }
 
     private void PopulateState(Dictionary<string, object> dict)
