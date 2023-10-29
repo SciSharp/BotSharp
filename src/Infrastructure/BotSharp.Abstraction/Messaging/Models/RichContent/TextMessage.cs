@@ -3,6 +3,6 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent
 {
     public class TextMessage
     {
-        public string? Text { get; set; }
+        public string Text { get; set; } = string.Empty;
     }
 }

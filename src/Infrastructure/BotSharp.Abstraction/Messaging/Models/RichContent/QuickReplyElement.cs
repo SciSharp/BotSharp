@@ -9,6 +9,7 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent
         public string? Payload { get; set; }
         [JsonPropertyName("image_url")]
         public string? ImageUrl { get; set; }
+        [JsonPropertyName("postback_url")]
         public string? PostBackUrl { get; set; }
     }
 }

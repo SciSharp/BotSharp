@@ -10,8 +10,8 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template
 
     public class ButtonElement
     {
-        public string? Type { get; set; }
+        public string Type { get; set; } = string.Empty;
         public string? Url { get; set; }
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
     }
 }

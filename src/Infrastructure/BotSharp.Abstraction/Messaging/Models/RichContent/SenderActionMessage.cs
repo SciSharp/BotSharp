@@ -1,7 +1,7 @@
 
 namespace BotSharp.Abstraction.Messaging.Models.RichContent
 {
-    public class SenderActionModel
+    public class SenderActionMessage
     {
         /* 
          * Requests to display sender action should only include the sender_action parameter and the recipient object.
