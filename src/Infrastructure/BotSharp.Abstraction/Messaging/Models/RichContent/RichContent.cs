@@ -7,7 +7,7 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent
         /// RESPONSE
         /// </summary>
         [JsonPropertyName("messaging_type")]
-        public string? MessagingType { get; set; }
+        public string MessagingType => "RESPONSE";
         public T Message { get; set; }
     }
 }
