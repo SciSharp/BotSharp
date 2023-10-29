@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using System.Drawing;
 
@@ -71,6 +72,7 @@ public partial class RoutingService : IRoutingService
         _routerInstance.Load();
         var router = _routerInstance.Router;
 
+        var context = _services.GetRequiredService<RoutingContext>();
         var planner = _services.GetRequiredService<IPlaner>();
         var executor = _services.GetRequiredService<IExecutor>();
 
@@ -81,12 +83,10 @@ public partial class RoutingService : IRoutingService
             loopCount++;
 
             var conversation = await GetConversationContent(Dialogs);
+            router.TemplateDict["conversation"] = conversation;
 
             // Get instruction from Planner
-            var inst = await planner.GetNextInstruction(router, conversation);
-
-            // Fix LLM malformed response
-            FixMalformedResponse(inst);
+            var inst = await planner.GetNextInstruction(router);
 
             // Save states
             SaveStateByArgs(inst.Arguments);
@@ -96,6 +96,7 @@ public partial class RoutingService : IRoutingService
 #else
             _logger.LogInformation($"*** Next Instruction *** {inst}");
 #endif
+            await planner.AgentExecuting(inst, message);
 
             // Handle instruction by Executor
             var executed = await executor.Execute(this, router, inst, Dialogs, message);
@@ -103,7 +104,7 @@ public partial class RoutingService : IRoutingService
             await planner.AgentExecuted(inst, message);
 
             // There is no need for the agent to continue processing, indicating that the task has been completed.
-            if (inst.AgentName == null)
+            if (context.IsEmpty || context.GetCurrentAgentId() == router.Id)
             {
                 break;
             }

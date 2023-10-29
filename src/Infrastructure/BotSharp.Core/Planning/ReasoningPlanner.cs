@@ -1,29 +1,29 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Planning;
 
-public class FeedbackReasoningPlanner : IPlaner
+public class ReasoningPlanner : IPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public FeedbackReasoningPlanner(IServiceProvider services, ILogger<FeedbackReasoningPlanner> logger)
+    public ReasoningPlanner(IServiceProvider services, ILogger<ReasoningPlanner> logger)
     {
         _services = services;
         _logger = logger;
     }
 
-    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string conversation)
+    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router)
     {
         var next = GetNextStepPrompt(router);
 
         RoleDialogModel response = default;
         var inst = new FunctionCallFromLlm();
-
-        var content = $"{conversation}\r\n###\r\n{next}";
 
         var completion = CompletionProvider.GetChatCompletion(_services,
             model: "llm-gpt4");
@@ -35,7 +35,7 @@ public class FeedbackReasoningPlanner : IPlaner
             {
                 response = completion.GetChatCompletions(router, new List<RoleDialogModel>
                 {
-                    new RoleDialogModel(AgentRole.User, content)
+                    new RoleDialogModel(AgentRole.User, next)
                 });
 
                 inst = response.Content.JsonContent<FunctionCallFromLlm>();
@@ -57,9 +57,28 @@ public class FeedbackReasoningPlanner : IPlaner
         return inst;
     }
 
+    public async Task<bool> AgentExecuting(FunctionCallFromLlm inst, RoleDialogModel message)
+    {
+        message.Content = inst.Question;
+        message.FunctionArgs = JsonSerializer.Serialize(inst.Arguments);
+        
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var agent = db.GetAgents(inst.AgentName).FirstOrDefault();
+
+        var context = _services.GetRequiredService<RoutingContext>();
+        context.Push(agent.Id);
+
+        return true;
+    }
+
     public async Task<bool> AgentExecuted(FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        inst.AgentName = null;
+        var context = _services.GetRequiredService<RoutingContext>();
+        context.Pop();
+
+        // push Router to continue
+        // Make decision according to last agent's response
+
         return true;
     }
 

@@ -65,7 +65,7 @@ public partial class RoutingService
             }
             else
             {
-                await InvokeAgent(message.CurrentAgentId, message);
+                await InvokeAgent(agent.Id, message);
             }
         }
         else

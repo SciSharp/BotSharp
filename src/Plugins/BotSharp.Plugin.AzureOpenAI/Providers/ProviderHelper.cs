@@ -11,7 +11,7 @@ public class ProviderHelper
 {
     public static OpenAIClient GetClient(string model, AzureOpenAiSettings settings)
     {
-        if (model == "gpt-4" || model == "llm-gpt4")
+        if (model.Contains("gpt-4") || model.Contains("gpt4"))
         {
             var client = new OpenAIClient(new Uri(settings.GPT4.Endpoint), new AzureKeyCredential(settings.GPT4.ApiKey));
             return client;

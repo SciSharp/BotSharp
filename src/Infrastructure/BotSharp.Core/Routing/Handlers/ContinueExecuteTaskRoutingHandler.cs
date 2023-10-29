@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Core.Planning;
 
 namespace BotSharp.Core.Routing.Handlers;
 
@@ -24,7 +25,7 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
     public List<string> Planers => new List<string>
     {
-        "FeedbackReasoningPlanner"
+        nameof(ReasoningPlanner)
     };
 
     public ContinueExecuteTaskRoutingHandler(IServiceProvider services, ILogger<ContinueExecuteTaskRoutingHandler> logger, RoutingSettings settings) 

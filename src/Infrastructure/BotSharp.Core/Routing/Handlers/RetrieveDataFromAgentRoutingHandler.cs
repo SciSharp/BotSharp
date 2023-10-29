@@ -1,10 +1,15 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Core.Planning;
 
 namespace BotSharp.Core.Routing.Handlers;
 
+/// <summary>
+/// Retrieve information from specific agent
+/// </summary>
 public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 {
     public string Name => "retrieve_data_from_agent";
@@ -13,9 +18,9 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("agent", "the name of the agent"),
-        new ParameterPropertyDef("question", "the question you will ask the agent to get the necessary data"),
         new ParameterPropertyDef("reason", "why retrieve data"),
+        new ParameterPropertyDef("question", "the question you will ask the agent to get the necessary data"),
+        new ParameterPropertyDef("next_action_agent", "agent that can handle the question"),
         new ParameterPropertyDef("args", "required parameters extracted from question and hand over to the next agent")
         {
             Type = "object"
@@ -24,7 +29,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public List<string> Planers => new List<string>
     {
-        "FeedbackReasoningPlanner"
+        nameof(ReasoningPlanner)
     };
 
     public RetrieveDataFromAgentRoutingHandler(IServiceProvider services, ILogger<RetrieveDataFromAgentRoutingHandler> logger, RoutingSettings settings) 
@@ -34,33 +39,9 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        // Retrieve information from specific agent
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetAgents(inst.AgentName).FirstOrDefault();
-        var ret = await routing.InvokeAgent(record.Id, message);
+        var context = _services.GetRequiredService<RoutingContext>();
+        var ret = await routing.InvokeAgent(context.GetCurrentAgentId(), message);
 
-        /*_dialogs.Add(new RoleDialogModel(AgentRole.Assistant, inst.Parameters.Question)
-        {
-            CurrentAgentId = record.Id
-        });*/
-
-        _router.Instruction += $"\r\n{AgentRole.Assistant}: {inst.Question}";
-
-        /*_dialogs.Add(new RoleDialogModel(AgentRole.Function, inst.Parameters.Answer)
-        {
-            MessageId = inst.MessageId,
-            FunctionName = inst.Function,
-            FunctionArgs = JsonSerializer.Serialize(inst.Parameters.Arguments),
-            ExecutionResult = inst.Parameters.Answer,
-            ExecutionData = response.ExecutionData,
-            CurrentAgentId = record.Id
-        });*/
-
-        _router.Instruction += $"\r\n{AgentRole.Function}: {message.Content}";
-
-        // Got the response from agent, then send to reasoner again to make the decision
-        // inst = await GetNextInstructionFromReasoner($"What's the next step based on user's original goal and function result?");
-
-        return true;
+        return ret;
     }
 }

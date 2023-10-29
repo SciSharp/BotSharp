@@ -24,6 +24,7 @@ public class RoutingContext
     public string OriginAgentId
         => _stack.Where(x => x != _setting.RouterId).Last();
 
+    public bool IsEmpty => !_stack.Any();
     public string GetCurrentAgentId()
     {
         if (_stack.Count == 0)
@@ -44,14 +45,13 @@ public class RoutingContext
     /// <summary>
     /// Pop current agent
     /// </summary>
-    /// <returns>Return next agent</returns>
-    public string Pop()
+    public void Pop()
     {
-        if (_stack.Count > 1)
-        {
-            _stack.Pop();
-        }
+        _stack.Pop();
+    }
 
-        return _stack.Peek();
+    public void Empty()
+    {
+        _stack.Clear();
     }
 }

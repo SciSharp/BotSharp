@@ -58,8 +58,6 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
-            _logger.LogInformation($"[{agent.Name}]: {message.FunctionCall.Name}({message.FunctionCall.Arguments})");
-
             msg = new RoleDialogModel(AgentRole.Function, message.Content)
             {
                 CurrentAgentId = agent.Id,
@@ -77,7 +75,9 @@ public class ChatCompletionProvider : IChatCompletion
         var setting = _services.GetRequiredService<ConversationSetting>();
         if (setting.ShowVerboseLog)
         {
-            _logger.LogInformation(msg.Content);
+            _logger.LogInformation(msg.Role == AgentRole.Function ? 
+                $"[{agent.Name}]: {msg.FunctionName}({msg.FunctionArgs})" :
+                $"[{agent.Name}]: {msg.Content}");
         }
 
         // After chat completion hook

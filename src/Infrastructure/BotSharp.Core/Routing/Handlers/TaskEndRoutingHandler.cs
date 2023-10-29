@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Core.Planning;
 
 namespace BotSharp.Core.Routing.Handlers;
 
@@ -17,7 +18,7 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<string> Planers => new List<string>
     {
-        "FeedbackReasoningPlanner"
+        nameof(ReasoningPlanner)
     };
 
     public TaskEndRoutingHandler(IServiceProvider services, ILogger<TaskEndRoutingHandler> logger, RoutingSettings settings) 
