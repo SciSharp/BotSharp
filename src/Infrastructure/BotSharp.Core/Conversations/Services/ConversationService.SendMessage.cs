@@ -106,7 +106,6 @@ public partial class ConversationService
         message.RichContent = message.RichContent ?? new RichContent<TextMessage>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
-            MessageingType = "RESPONSE",
             Message = new TextMessage { Text = message.Content }
         };
 
