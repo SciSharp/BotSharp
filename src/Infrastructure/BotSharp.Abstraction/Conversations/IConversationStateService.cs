@@ -5,6 +5,7 @@ namespace BotSharp.Abstraction.Conversations;
 /// </summary>
 public interface IConversationStateService
 {
+    string GetConversationId();
     ConversationState Load(string conversationId);
     string GetState(string name, string defaultValue = "");
     bool ContainsState(string name);
