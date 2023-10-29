@@ -12,7 +12,7 @@ public class ConversationController : ControllerBase, IApiAdapter
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
 
-    public ConversationController(IServiceProvider services, 
+    public ConversationController(IServiceProvider services,
         IUserIdentity user)
     {
         _services = services;
@@ -40,8 +40,8 @@ public class ConversationController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/conversation/{agentId}/{conversationId}")]
-    public async Task<MessageResponseModel> SendMessage([FromRoute] string agentId, 
-        [FromRoute] string conversationId, 
+    public async Task<MessageResponseModel> SendMessage([FromRoute] string agentId,
+        [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
@@ -73,6 +73,7 @@ public class ConversationController : ControllerBase, IApiAdapter
         response.Data = inputMsg.Data;
         response.Function = inputMsg.FunctionName;
         response.Instruction = inputMsg.Instruction;
+        response.RichContent = inputMsg.RichContent;
 
         return response;
     }
