@@ -55,24 +55,16 @@ public partial class RoutingService
             var responseTemplate = await templateService.RenderFunctionResponse(agent.Id, message);
             if (!string.IsNullOrEmpty(responseTemplate))
             {
-                dialogs.Add(new RoleDialogModel(AgentRole.Assistant, responseTemplate)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = message.MessageId,
-                    FunctionArgs = message.FunctionArgs,
-                    FunctionName = message.FunctionName
-                });
+                dialogs.Add(RoleDialogModel.From(message,
+                    role: AgentRole.Assistant,
+                    content: responseTemplate));
             }
             else
             {
                 // Save to memory dialogs
-                dialogs.Add(new RoleDialogModel(AgentRole.Function, message.Content)
-                {
-                    CurrentAgentId = agent.Id,
-                    MessageId = message.MessageId,
-                    FunctionArgs = message.FunctionArgs,
-                    FunctionName = message.FunctionName
-                });
+                dialogs.Add(RoleDialogModel.From(message, 
+                    role: AgentRole.Function, 
+                    content: message.Content));
 
                 // Send to LLM
                 await InvokeAgent(agent.Id, dialogs);
@@ -80,14 +72,9 @@ public partial class RoutingService
         }
         else
         {
-            dialogs.Add(new RoleDialogModel(AgentRole.Assistant, message.Content)
-            {
-                CurrentAgentId = agent.Id,
-                MessageId = message.MessageId,
-                FunctionArgs = message.FunctionArgs,
-                FunctionName = message.FunctionName,
-                StopCompletion = true
-            });
+            dialogs.Add(RoleDialogModel.From(message, 
+                role: AgentRole.Assistant, 
+                content: message.Content));
         }
 
         return true;

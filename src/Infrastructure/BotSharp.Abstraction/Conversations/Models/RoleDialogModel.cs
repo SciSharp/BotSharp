@@ -67,4 +67,21 @@ public class RoleDialogModel : ITrackableMessage
             return $"{Role}: {Content}";
         }
     }
+
+    public static RoleDialogModel From(RoleDialogModel source,
+        string? role = null,
+        string? content = null)
+    {
+        return new RoleDialogModel(role ?? source.Role, content ?? source.Content)
+        {
+            CurrentAgentId = source.CurrentAgentId,
+            MessageId = source.MessageId,
+            FunctionArgs = source.FunctionArgs,
+            FunctionName = source.FunctionName,
+            RichContent = source.RichContent,
+            StopCompletion = source.StopCompletion,
+            Instruction = source.Instruction,
+            Data = source.Data
+        };
+    }
 }
