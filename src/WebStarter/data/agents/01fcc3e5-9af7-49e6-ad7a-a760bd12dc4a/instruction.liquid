@@ -19,12 +19,18 @@ Parameters:
 
 [AGENTS]
 {% for agent in routing_agents %}
-* {{ agent.description}}
-Agent: {{ agent.name }}
-{% if agent.fields and agent.fields != empty -%}
-Arguments: 
-    {% for f in agent.fields -%}
-    - {{ f.name }}: {{ f.description }} (type: {{ f.type }}, required: {{f.required}}){{ "\r\n    " }}
+* Agent: {{ agent.name }}
+{{ agent.description}}
+{% if agent.required_fields and agent.required_fields != empty -%}
+Required args: 
+    {% for f in agent.required_fields -%}
+    - {{ f.name }} (type: {{ f.type }}): {{ f.description }}{{ "\r\n    " }}
+    {%- endfor %}
+{%- endif %}
+{% if agent.optional_fields and agent.optional_fields != empty -%}
+Optional args: 
+    {% for f in agent.optional_fields -%}
+    - {{ f.name }} (type: {{ f.type }}): {{ f.description }}{{ "\r\n    " }}
     {%- endfor %}
 {%- endif %}
 {% endfor %}

@@ -13,6 +13,9 @@ public class RoutingItem
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 
-    [JsonPropertyName("fields")]
-    public List<ParameterPropertyDef> Fields { get; set; } = new List<ParameterPropertyDef>();
+    [JsonPropertyName("required_fields")]
+    public List<ParameterPropertyDef> RequiredFields { get; set; } = new List<ParameterPropertyDef>();
+
+    [JsonPropertyName("optional_fields")]
+    public List<ParameterPropertyDef> OptionalFields { get; set; } = new List<ParameterPropertyDef>();
 }

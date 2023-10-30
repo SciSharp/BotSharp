@@ -92,7 +92,14 @@ public class RouterInstance : IRouterInstance
             AgentId = x.Id,
             Description = x.Description,
             Name = x.Name,
-            Fields = x.RoutingRules
+            RequiredFields = x.RoutingRules
+                .Where(p => p.Required)
+                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
+                {
+                    Required = p.Required
+                }).ToList(),
+            OptionalFields = x.RoutingRules
+                .Where(p => !p.Required)
                 .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
                 {
                     Required = p.Required
