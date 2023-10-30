@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -25,8 +24,15 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        message.Content = inst.Response;
-        message.FunctionName = inst.Function;
+        var response = new RoleDialogModel(AgentRole.Assistant, inst.Response)
+        {
+            CurrentAgentId = message.CurrentAgentId,
+            MessageId = message.MessageId,
+            StopCompletion = true,
+            FunctionName = inst.Function
+        };
+
+        _dialogs.Add(response);
 
         var hooks = _services.GetServices<IConversationHook>()
             .OrderBy(x => x.Priority)
@@ -34,7 +40,7 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         foreach (var hook in hooks)
         {
-            await hook.OnConversationEnding(message);
+            await hook.OnConversationEnding(response);
         }
 
         return true;

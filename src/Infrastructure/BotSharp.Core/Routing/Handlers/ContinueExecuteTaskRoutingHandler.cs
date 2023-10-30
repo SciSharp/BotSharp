@@ -7,7 +7,7 @@ using BotSharp.Core.Planning;
 
 namespace BotSharp.Core.Routing.Handlers;
 
-public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHandler
+public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase//, IRoutingHandler
 {
     public string Name => "continue_execute_task";
 
@@ -15,7 +15,8 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("agent", "the name of the agent"),
+        new ParameterPropertyDef("next_action_agent", "agent for next action based on user latest response"),
+        new ParameterPropertyDef("user_goal_agent", "agent who can achieve user original goal"),
         new ParameterPropertyDef("reason", "why continue to execute current task"),
         new ParameterPropertyDef("args", "required parameters extracted from question")
         {
@@ -25,7 +26,7 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase, IRoutingHan
 
     public List<string> Planers => new List<string>
     {
-        nameof(ReasoningPlanner)
+        nameof(HFPlanner)
     };
 
     public ContinueExecuteTaskRoutingHandler(IServiceProvider services, ILogger<ContinueExecuteTaskRoutingHandler> logger, RoutingSettings settings) 

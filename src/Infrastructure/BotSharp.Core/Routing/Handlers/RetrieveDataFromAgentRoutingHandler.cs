@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
@@ -21,6 +20,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
         new ParameterPropertyDef("reason", "why retrieve data"),
         new ParameterPropertyDef("question", "the question you will ask the agent to get the necessary data"),
         new ParameterPropertyDef("next_action_agent", "agent that can handle the question"),
+
         new ParameterPropertyDef("args", "required parameters extracted from question and hand over to the next agent")
         {
             Type = "object"
@@ -29,7 +29,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public List<string> Planers => new List<string>
     {
-        nameof(ReasoningPlanner)
+        nameof(HFPlanner)
     };
 
     public RetrieveDataFromAgentRoutingHandler(IServiceProvider services, ILogger<RetrieveDataFromAgentRoutingHandler> logger, RoutingSettings settings) 
@@ -40,7 +40,22 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var context = _services.GetRequiredService<RoutingContext>();
-        var ret = await routing.InvokeAgent(context.GetCurrentAgentId(), message);
+        var agentId = context.GetCurrentAgentId();
+        var dialogs = new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, inst.Question)
+            {
+                CurrentAgentId = agentId,
+                MessageId = message.MessageId
+            }
+        };
+
+        var ret = await routing.InvokeAgent(agentId, dialogs);
+        var response = dialogs.Last();
+        inst.Response = response.Content;
+
+        // Add final response to parent dialog
+        _dialogs.Add(response);
 
         return ret;
     }

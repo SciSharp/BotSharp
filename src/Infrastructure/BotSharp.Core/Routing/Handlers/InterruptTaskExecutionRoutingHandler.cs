@@ -5,7 +5,7 @@ using BotSharp.Core.Planning;
 
 namespace BotSharp.Core.Routing.Handlers;
 
-public class InterruptTaskExecutionRoutingHandler : RoutingHandlerBase, IRoutingHandler
+public class InterruptTaskExecutionRoutingHandler : RoutingHandlerBase//, IRoutingHandler
 {
     public string Name => "interrupt_task_execution";
 
@@ -19,7 +19,7 @@ public class InterruptTaskExecutionRoutingHandler : RoutingHandlerBase, IRouting
 
     public List<string> Planers => new List<string>
     {
-        nameof(ReasoningPlanner)
+        nameof(HFPlanner)
     };
 
     public InterruptTaskExecutionRoutingHandler(IServiceProvider services, ILogger<InterruptTaskExecutionRoutingHandler> logger, RoutingSettings settings) 

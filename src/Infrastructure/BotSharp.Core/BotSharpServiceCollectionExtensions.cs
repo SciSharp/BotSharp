@@ -71,11 +71,11 @@ public static class BotSharpServiceCollectionExtensions
         services.AddSingleton((IServiceProvider x) => routingSettings);
 
         services.AddScoped<NaivePlanner>();
-        services.AddScoped<ReasoningPlanner>();
+        services.AddScoped<HFPlanner>();
         services.AddScoped<IPlaner>(provider =>
         {
-            if (routingSettings.Planner == nameof(ReasoningPlanner))
-                return provider.GetRequiredService<ReasoningPlanner>();
+            if (routingSettings.Planner == nameof(HFPlanner))
+                return provider.GetRequiredService<HFPlanner>();
             else
                 return provider.GetRequiredService<NaivePlanner>();
         });

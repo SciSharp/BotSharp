@@ -67,7 +67,7 @@ public class KnowledgeService : IKnowledgeService
         sb.AppendLine("ANSWER: ");
         prompt = sb.ToString().Trim();
 
-        var completion = await GetTextCompletion().GetCompletion(prompt);
+        var completion = await GetTextCompletion().GetCompletion(prompt, Guid.Empty.ToString(), Guid.Empty.ToString());
         return JsonSerializer.Deserialize<List<RetrievedResult>>(completion);
     }
 

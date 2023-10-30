@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -24,9 +23,15 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        message.Content = inst.Response;
-        message.StopCompletion = true;
-        message.Role = AgentRole.Assistant;
+        var response = new RoleDialogModel(AgentRole.Assistant, inst.Response)
+        {
+            CurrentAgentId = message.CurrentAgentId,
+            MessageId = message.MessageId,
+            StopCompletion = true
+        };
+
+        _dialogs.Add(response);
+
         return true;
     }
 }

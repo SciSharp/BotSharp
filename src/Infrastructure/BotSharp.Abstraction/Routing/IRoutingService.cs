@@ -2,10 +2,9 @@ namespace BotSharp.Abstraction.Routing;
 
 public interface IRoutingService
 {
-    List<RoleDialogModel> Dialogs { get; }
+    Agent Router { get; }
     void ResetRecursiveCounter();
-    void RefreshDialogs();
-    Task<bool> InvokeAgent(string agentId, RoleDialogModel message);
-    Task<bool> InstructLoop(RoleDialogModel message);
-    Task<bool> ExecuteOnce(Agent agent, RoleDialogModel message);
+    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs);
+    Task<RoleDialogModel> InstructLoop(RoleDialogModel message);
+    Task<RoleDialogModel> ExecuteOnce(Agent agent, RoleDialogModel message);
 }

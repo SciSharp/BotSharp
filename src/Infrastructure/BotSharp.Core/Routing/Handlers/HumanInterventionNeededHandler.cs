@@ -24,8 +24,15 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        message.Role = AgentRole.Assistant;
-        message.Content = inst.Response;
+        var response = new RoleDialogModel(AgentRole.Assistant, inst.Response)
+        {
+            CurrentAgentId = message.CurrentAgentId,
+            MessageId = message.MessageId,
+            StopCompletion = true,
+            FunctionName = inst.Function
+        };
+
+        _dialogs.Add(response);
 
         var hooks = _services.GetServices<IConversationHook>()
             .OrderBy(x => x.Priority)
@@ -33,7 +40,7 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 
         foreach (var hook in hooks)
         {
-            await hook.OnHumanInterventionNeeded(message);
+            await hook.OnHumanInterventionNeeded(response);
         }
 
         return true;

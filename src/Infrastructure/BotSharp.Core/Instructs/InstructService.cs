@@ -46,7 +46,7 @@ public partial class InstructService : IInstructService
             agentService.RenderedTemplate(agent, templateName);
 
         var completer = CompletionProvider.GetTextCompletion(_services);
-        var result = await completer.GetCompletion(prompt);
+        var result = await completer.GetCompletion(prompt, agentId, message.MessageId);
         var response = new InstructResult
         {
             MessageId = message.MessageId,

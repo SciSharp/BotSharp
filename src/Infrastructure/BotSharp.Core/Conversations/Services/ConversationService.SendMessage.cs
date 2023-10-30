@@ -53,19 +53,18 @@ public partial class ConversationService
         var routing = _services.GetRequiredService<IRoutingService>();
         var settings = _services.GetRequiredService<RoutingSettings>();
 
-        var ret = agentId == settings.RouterId ?
+        var response = agentId == settings.RouterId ?
             await routing.InstructLoop(message) :
             await routing.ExecuteOnce(agent, message);
 
-        await HandleAssistantMessage(message, onMessageReceived);
+        await HandleAssistantMessage(response, onMessageReceived);
 
         var statistics = _services.GetRequiredService<ITokenStatistics>();
         statistics.PrintStatistics();
 
         routing.ResetRecursiveCounter();
-        routing.RefreshDialogs();
 
-        return ret;
+        return true;
     }
 
     private async Task<Conversation> GetConversationRecord(string agentId)
@@ -86,15 +85,15 @@ public partial class ConversationService
         return converation;
     }
 
-    private async Task HandleAssistantMessage(RoleDialogModel message, Func<RoleDialogModel, Task> onMessageReceived)
+    private async Task HandleAssistantMessage(RoleDialogModel response, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(message.CurrentAgentId);
+        var agent = await agentService.GetAgent(response.CurrentAgentId);
         var agentName = agent.Name;
 
-        var text = message.Role == AgentRole.Function ?
-            $"Sending [{agentName}] {message.FunctionName}: {message.Content}" :
-            $"Sending [{agentName}] {message.Role}: {message.Content}";
+        var text = response.Role == AgentRole.Function ?
+            $"Sending [{agentName}] {response.FunctionName}: {response.Content}" :
+            $"Sending [{agentName}] {response.Role}: {response.Content}";
 #if DEBUG
         Console.WriteLine(text, Color.Yellow);
 #else
@@ -103,21 +102,21 @@ public partial class ConversationService
 
         // Only read content from RichContent for UI rendering. When richContent is null, create a basic text message for richContent.
         var state = _services.GetRequiredService<IConversationStateService>();
-        message.RichContent = message.RichContent ?? new RichContent<TextMessage>
+        response.RichContent = response.RichContent ?? new RichContent<TextMessage>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
-            Message = new TextMessage { Text = message.Content }
+            Message = new TextMessage { Text = response.Content }
         };
 
         var hooks = _services.GetServices<IConversationHook>().ToList();
         foreach (var hook in hooks)
         {
-            await hook.OnResponseGenerated(message);
+            await hook.OnResponseGenerated(response);
         }
 
-        await onMessageReceived(message);
+        await onMessageReceived(response);
 
         // Add to dialog history
-        _storage.Append(_conversationId, message);
+        _storage.Append(_conversationId, response);
     }
 }

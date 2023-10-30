@@ -3,30 +3,33 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Planning;
 
-public class ReasoningPlanner : IPlaner
+/// <summary>
+/// Human feedback based planner
+/// </summary>
+public class HFPlanner : IPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public ReasoningPlanner(IServiceProvider services, ILogger<ReasoningPlanner> logger)
+    public HFPlanner(IServiceProvider services, ILogger<HFPlanner> logger)
     {
         _services = services;
         _logger = logger;
     }
 
-    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router)
+    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
     {
         var next = GetNextStepPrompt(router);
 
         RoleDialogModel response = default;
         var inst = new FunctionCallFromLlm();
 
-        var completion = CompletionProvider.GetChatCompletion(_services,
-            model: "llm-gpt4");
+        var completion = CompletionProvider.GetChatCompletion(_services);
 
         int retryCount = 0;
         while (retryCount < 3)
@@ -36,6 +39,9 @@ public class ReasoningPlanner : IPlaner
                 response = completion.GetChatCompletions(router, new List<RoleDialogModel>
                 {
                     new RoleDialogModel(AgentRole.User, next)
+                    {
+                        MessageId = messageId
+                    }
                 });
 
                 inst = response.Content.JsonContent<FunctionCallFromLlm>();
@@ -59,14 +65,14 @@ public class ReasoningPlanner : IPlaner
 
     public async Task<bool> AgentExecuting(FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        message.Content = inst.Question;
-        message.FunctionArgs = JsonSerializer.Serialize(inst.Arguments);
-        
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.GetAgents(inst.AgentName).FirstOrDefault();
+        if (!string.IsNullOrEmpty(inst.AgentName))
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var agent = db.GetAgents(inst.AgentName).FirstOrDefault();
 
-        var context = _services.GetRequiredService<RoutingContext>();
-        context.Push(agent.Id);
+            var context = _services.GetRequiredService<RoutingContext>();
+            context.Push(agent.Id);
+        }
 
         return true;
     }
@@ -75,9 +81,6 @@ public class ReasoningPlanner : IPlaner
     {
         var context = _services.GetRequiredService<RoutingContext>();
         context.Pop();
-
-        // push Router to continue
-        // Make decision according to last agent's response
 
         return true;
     }

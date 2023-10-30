@@ -5,9 +5,8 @@ namespace BotSharp.Abstraction.Planning;
 
 public interface IExecutor
 {
-    Task<bool> Execute(IRoutingService routing, 
-        Agent router,
+    Task<RoleDialogModel> Execute(IRoutingService routing, 
         FunctionCallFromLlm inst,
-        List<RoleDialogModel> dialogs,
-        RoleDialogModel message);
+        RoleDialogModel message,
+        List<RoleDialogModel> dialogs);
 }

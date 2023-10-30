@@ -26,13 +26,21 @@ public class TextCompletionProvider : ITextCompletion
         _tokenStatistics = tokenStatistics;
     }
 
-    public async Task<string> GetCompletion(string text)
+    public async Task<string> GetCompletion(string text, string agentId, string messageId)
     {
         var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
         // Before chat completion hook
+        var agent = new Agent()
+        {
+            Id = agentId
+        };
+        var userMessage = new RoleDialogModel(AgentRole.User, text)
+        {
+            MessageId = messageId
+        };
         Task.WaitAll(hooks.Select(hook =>
-            hook.BeforeGenerating(new Agent(), new List<RoleDialogModel> { new RoleDialogModel(AgentRole.User, text) })).ToArray());
+            hook.BeforeGenerating(agent, new List<RoleDialogModel> { userMessage })).ToArray());
 
         var client = new GooglePalmClient(apiKey: _settings.PaLM.ApiKey);
         _tokenStatistics.StartTimer();

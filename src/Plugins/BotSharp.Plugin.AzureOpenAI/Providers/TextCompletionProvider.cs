@@ -32,16 +32,26 @@ public class TextCompletionProvider : ITextCompletion
         _logger = logger;
     }
 
-    public async Task<string> GetCompletion(string text)
+    public async Task<string> GetCompletion(string text, string agentId, string messageId)
     {
         var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
         // Before chat completion hook
+        var agent = new Agent()
+        {
+            Id = agentId,
+        };
+        var message = new RoleDialogModel(AgentRole.User, text)
+        {
+            CurrentAgentId = agentId,
+            MessageId = messageId
+        };
+
         Task.WaitAll(hooks.Select(hook =>
-            hook.BeforeGenerating(new Agent(), 
-                new List<RoleDialogModel> 
-                { 
-                    new RoleDialogModel(AgentRole.User, text) 
+            hook.BeforeGenerating(agent,
+                new List<RoleDialogModel>
+                {
+                    message
                 })).ToArray());
 
         var client = ProviderHelper.GetClient(_model, _settings);
@@ -85,9 +95,15 @@ public class TextCompletionProvider : ITextCompletion
         }
 
         // After chat completion hook
+        var responseMessage = new RoleDialogModel(AgentRole.Assistant, completion)
+        {
+            CurrentAgentId = agentId,
+            MessageId = messageId
+        };
         Task.WaitAll(hooks.Select(hook =>
-            hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, completion), new TokenStatsModel
+            hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
+                Prompt = text,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens

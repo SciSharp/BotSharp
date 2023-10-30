@@ -14,28 +14,12 @@ public partial class RoutingService : IRoutingService
     private readonly RoutingSettings _settings;
     private readonly IRouterInstance _routerInstance;
     private readonly ILogger _logger;
-    private List<RoleDialogModel> _dialogs;
-    public List<RoleDialogModel> Dialogs {
-        get
-        {
-            if (_dialogs == null)
-            {
-                var conv = _services.GetRequiredService<IConversationService>();
-                _dialogs = conv.GetDialogHistory();
-            }
-
-            return _dialogs;
-        }
-    }
+    private Agent _router;
+    public Agent Router => _router;
 
     public void ResetRecursiveCounter()
     {
         _currentRecursionDepth = 0;
-    }
-
-    public void RefreshDialogs()
-    {
-        _dialogs = null;
     }
 
     public RoutingService(IServiceProvider services,
@@ -49,44 +33,57 @@ public partial class RoutingService : IRoutingService
         _routerInstance = routerInstance;
     }
 
-    public async Task<bool> ExecuteOnce(Agent agent, RoleDialogModel message)
+    public async Task<RoleDialogModel> ExecuteOnce(Agent agent, RoleDialogModel message)
     {
         var handlers = _services.GetServices<IRoutingHandler>();
 
         var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
-        handler.SetDialogs(Dialogs);
+        var dialogs = new List<RoleDialogModel> { message };
+        handler.SetDialogs(dialogs);
 
-        var result = await handler.Handle(this, new FunctionCallFromLlm
+        var inst = new FunctionCallFromLlm
         {
             Function = "route_to_agent",
             Question = message.Content,
             Reason = message.Content,
             AgentName = agent.Name
-        }, message);
+        };
 
-        return result;
+        var result = await handler.Handle(this, inst, message);
+
+        var response = dialogs.Last();
+        response.MessageId = message.MessageId;
+        response.Instruction = inst;
+
+        return response;
     }
 
-    public async Task<bool> InstructLoop(RoleDialogModel message)
+    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message)
     {
-        _routerInstance.Load();
-        var router = _routerInstance.Router;
+        _router = _routerInstance.Load()
+            .Router;
+
+        RoleDialogModel response = default;
+
+        var conv = _services.GetRequiredService<IConversationService>();
+        var dialogs = conv.GetDialogHistory();
 
         var context = _services.GetRequiredService<RoutingContext>();
         var planner = _services.GetRequiredService<IPlaner>();
         var executor = _services.GetRequiredService<IExecutor>();
 
+        context.Push(_router.Id);
+
         int loopCount = 0;
-        var stop = false;
-        while (!stop && loopCount < 5)
+        while (loopCount < 5 && !context.IsEmpty)
         {
             loopCount++;
 
-            var conversation = await GetConversationContent(Dialogs);
-            router.TemplateDict["conversation"] = conversation;
+            var conversation = await GetConversationContent(dialogs);
+            _router.TemplateDict["conversation"] = conversation;
 
             // Get instruction from Planner
-            var inst = await planner.GetNextInstruction(router);
+            var inst = await planner.GetNextInstruction(_router, message.MessageId);
 
             // Save states
             SaveStateByArgs(inst.Arguments);
@@ -99,18 +96,12 @@ public partial class RoutingService : IRoutingService
             await planner.AgentExecuting(inst, message);
 
             // Handle instruction by Executor
-            var executed = await executor.Execute(this, router, inst, Dialogs, message);
+            response = await executor.Execute(this, inst, message, dialogs);
 
-            await planner.AgentExecuted(inst, message);
-
-            // There is no need for the agent to continue processing, indicating that the task has been completed.
-            if (context.IsEmpty || context.GetCurrentAgentId() == router.Id)
-            {
-                break;
-            }
+            await planner.AgentExecuted(inst, response);
         }
 
-        return true;
+        return response;
     }
 
     protected void SaveStateByArgs(JsonDocument args)

@@ -3,6 +3,7 @@ namespace BotSharp.Abstraction.Conversations;
 public interface IConversationService
 {
     IConversationStateService States { get; }
+    string ConversationId { get; }
     Task<Conversation> NewConversation(Conversation conversation);
     void SetConversationId(string conversationId, List<string> states);
     Task<Conversation> GetConversation(string id);

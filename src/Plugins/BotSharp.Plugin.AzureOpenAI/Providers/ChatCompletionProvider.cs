@@ -8,6 +8,7 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -45,51 +46,54 @@ public class ChatCompletionProvider : IChatCompletion
             hook.BeforeGenerating(agent, conversations)).ToArray());
 
         var client = ProviderHelper.GetClient(_model, _settings);
-        var chatCompletionsOptions = PrepareOptions(agent, conversations);
+        var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
 
         var response = client.GetChatCompletions(_model, chatCompletionsOptions);
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
-        var msg = new RoleDialogModel(AgentRole.Assistant, message.Content)
+        var responseMessage = new RoleDialogModel(AgentRole.Assistant, message.Content)
         {
-            CurrentAgentId = agent.Id
+            CurrentAgentId = agent.Id,
+            MessageId = conversations.Last().MessageId
         };
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
-            msg = new RoleDialogModel(AgentRole.Function, message.Content)
+            responseMessage = new RoleDialogModel(AgentRole.Function, message.Content)
             {
                 CurrentAgentId = agent.Id,
+                MessageId = conversations.Last().MessageId,
                 FunctionName = message.FunctionCall.Name,
                 FunctionArgs = message.FunctionCall.Arguments
             };
 
             // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(msg.FunctionName))
+            if (!string.IsNullOrEmpty(responseMessage.FunctionName))
             {
-                msg.FunctionName = msg.FunctionName.Split('.').Last();
+                responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
             }
         }
 
         var setting = _services.GetRequiredService<ConversationSetting>();
         if (setting.ShowVerboseLog)
         {
-            _logger.LogInformation(msg.Role == AgentRole.Function ? 
-                $"[{agent.Name}]: {msg.FunctionName}({msg.FunctionArgs})" :
-                $"[{agent.Name}]: {msg.Content}");
+            _logger.LogInformation(responseMessage.Role == AgentRole.Function ? 
+                $"[{agent.Name}]: {responseMessage.FunctionName}({responseMessage.FunctionArgs})" :
+                $"[{agent.Name}]: {responseMessage.Content}");
         }
 
         // After chat completion hook
         Task.WaitAll(hooks.Select(hook =>
-            hook.AfterGenerated(msg, new TokenStatsModel
+            hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
+                Prompt = prompt,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
             })).ToArray());
 
-        return msg;
+        return responseMessage;
     }
 
     public async Task<bool> GetChatCompletionsAsync(Agent agent, 
@@ -104,7 +108,7 @@ public class ChatCompletionProvider : IChatCompletion
             hook.BeforeGenerating(agent, conversations)).ToArray());
 
         var client = ProviderHelper.GetClient(_model, _settings);
-        var chatCompletionsOptions = PrepareOptions(agent, conversations);
+        var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
 
         var response = await client.GetChatCompletionsAsync(_model, chatCompletionsOptions);
         var choice = response.Value.Choices[0];
@@ -119,6 +123,7 @@ public class ChatCompletionProvider : IChatCompletion
         Task.WaitAll(hooks.Select(hook =>
             hook.AfterGenerated(msg, new TokenStatsModel
             {
+                Prompt = prompt,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
@@ -156,7 +161,7 @@ public class ChatCompletionProvider : IChatCompletion
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
         var client = ProviderHelper.GetClient(_model, _settings);
-        var chatCompletionsOptions = PrepareOptions(agent, conversations);
+        var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
 
         var response = await client.GetChatCompletionsStreamingAsync(_model, chatCompletionsOptions);
         using StreamingChatCompletions streaming = response.Value;
@@ -198,7 +203,7 @@ public class ChatCompletionProvider : IChatCompletion
     }
 
 
-    protected ChatCompletionsOptions PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
+    protected (string, ChatCompletionsOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
 
@@ -255,33 +260,50 @@ public class ChatCompletionProvider : IChatCompletion
         // chatCompletionsOptions.FrequencyPenalty = 0;
         // chatCompletionsOptions.PresencePenalty = 0;
 
+        var prompt = GetPrompt(chatCompletionsOptions);
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)
         {
-            if (chatCompletionsOptions.Messages.Count > 0)
-            {
-                _logger.LogInformation("VERBOSE COMPLETION MESSAGES");
-                var verbose = string.Join("\r\n", chatCompletionsOptions.Messages.Select(x =>
+            _logger.LogInformation(prompt);
+        }
+
+        return (prompt, chatCompletionsOptions);
+    }
+
+    private string GetPrompt(ChatCompletionsOptions chatCompletionsOptions)
+    {
+        var prompt = string.Empty;
+
+        if (chatCompletionsOptions.Messages.Count > 0)
+        {
+            // System instruction
+            var verbose = string.Join("\r\n", chatCompletionsOptions.Messages
+                .Where(x => x.Role == AgentRole.System).Select(x =>
+                {
+                    return $"{x.Role}: {x.Content}";
+                }));
+            prompt += $"\r\n[INSTRUCTION]\r\n{verbose}\r\n";
+
+            verbose = string.Join("\r\n", chatCompletionsOptions.Messages
+                .Where(x => x.Role != AgentRole.System).Select(x =>
                 {
                     return x.Role == ChatRole.Function ?
                         $"{x.Role}: {x.Name} => {x.Content}" :
                         $"{x.Role}: {x.Content}";
                 }));
-                _logger.LogInformation(verbose);
-            }
-
-            if (chatCompletionsOptions.Functions.Count > 0)
-            {
-                _logger.LogInformation("VERBOSE FUNCTIONS");
-                var verbose = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
-                {
-                    return $"{x.Name}: {x.Description}\r\n{x.Parameters}";
-                }));
-                _logger.LogInformation(verbose);
-            }
+            prompt += $"\r\n[CONVERSATION]\r\n{verbose}\r\n";
         }
 
-        return chatCompletionsOptions;
+        if (chatCompletionsOptions.Functions.Count > 0)
+        {
+            var functions = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+            {
+                return $"{x.Name}: {x.Description}\r\n{x.Parameters}";
+            }));
+            prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
+        }
+
+        return prompt;
     }
 
     public void SetModelName(string model)

@@ -43,14 +43,14 @@ public class EvaluatingService : IEvaluatingService
         };
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
-        RoleDialogModel response = default;
+        RoleDialogModel response = new RoleDialogModel(AgentRole.User, "");
         var dialogs = new List<RoleDialogModel>();
         int roundCount = 0;
         while (true)
         {
             // var text = string.Join("\r\n", dialogs.Select(x => $"{x.Role}: {x.Content}"));
             // text = instruction + $"\r\n###\r\n{text}\r\n{AgentRole.User}: ";
-            var question = await textCompletion.GetCompletion(prompt);
+            var question = await textCompletion.GetCompletion(prompt, request.AgentId, response.MessageId);
             dialogs.Add(new RoleDialogModel(AgentRole.User, question));
             prompt += question.Trim();
 
@@ -61,9 +61,14 @@ public class EvaluatingService : IEvaluatingService
 
             roundCount++;
 
+            if (roundCount > 10)
+            {
+                Console.WriteLine($"Conversation ended due to execced max round count {roundCount}", Color.Red);
+                break;
+            }
+
             if (response.FunctionName == "conversation_end" ||
-                response.FunctionName == "human_intervention_needed" ||
-                roundCount > 5)
+                response.FunctionName == "human_intervention_needed")
             {
                 Console.WriteLine($"Conversation ended by function {response.FunctionName}", Color.Green);
                 break;

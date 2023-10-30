@@ -8,7 +8,7 @@ public partial class RoutingService
 {
     const int MAXIMUM_RECURSION_DEPTH = 3;
     private int _currentRecursionDepth = 0;
-    public async Task<bool> InvokeAgent(string agentId, RoleDialogModel message)
+    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
     {
         _currentRecursionDepth++;
         if (_currentRecursionDepth > MAXIMUM_RECURSION_DEPTH)
@@ -22,25 +22,22 @@ public partial class RoutingService
 
         var settings = _services.GetRequiredService<ChatCompletionSetting>();
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider: settings.Provider, model: settings.Model);
-        RoleDialogModel response = chatCompletion.GetChatCompletions(agent, Dialogs);
-        message.Role = response.Role;
+
+        RoleDialogModel response = chatCompletion.GetChatCompletions(agent, dialogs);
 
         if (response.Role == AgentRole.Function)
         {
-            message.FunctionName = response.FunctionName;
-            message.FunctionArgs = response.FunctionArgs;
-
-            await InvokeFunction(agent, message);
+            await InvokeFunction(agent, response, dialogs);
         }
         else
         {
-            message.Content = response.Content;
+            dialogs.Add(response);
         }
 
         return true;
     }
 
-    private async Task<RoleDialogModel> InvokeFunction(Agent agent, RoleDialogModel message)
+    private async Task<bool> InvokeFunction(Agent agent, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         // execute function
         // Save states
@@ -50,8 +47,6 @@ public partial class RoutingService
         // Call functions
         await conversationService.CallFunctions(message);
 
-        Dialogs.Add(message);
-
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
         {
@@ -60,19 +55,24 @@ public partial class RoutingService
             var responseTemplate = await templateService.RenderFunctionResponse(agent.Id, message);
             if (!string.IsNullOrEmpty(responseTemplate))
             {
-                message.Role = AgentRole.Assistant;
                 message.Content = responseTemplate.Trim();
+                message.Role = AgentRole.Assistant;
+                dialogs.Add(message);
             }
             else
             {
-                await InvokeAgent(agent.Id, message);
+                // Save to memory dialogs
+                dialogs.Add(new RoleDialogModel(AgentRole.Function, message.Content)
+                {
+                    FunctionArgs = message.FunctionArgs,
+                    FunctionName = message.FunctionName
+                });
+
+                // Send to LLM
+                await InvokeAgent(agent.Id, dialogs);
             }
         }
-        else
-        {
-            message.Role = AgentRole.Assistant;
-        }
 
-        return message;
+        return true;
     }
 }

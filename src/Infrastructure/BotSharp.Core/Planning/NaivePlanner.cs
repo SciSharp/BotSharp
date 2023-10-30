@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace BotSharp.Core.Planning;
 
@@ -17,11 +18,10 @@ public class NaivePlanner : IPlaner
         _logger = logger;
     }
 
-    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router)
+    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
     {
         var next = GetNextStepPrompt(router);
 
-        RoleDialogModel response = default;
         var inst = new FunctionCallFromLlm();
 
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -36,16 +36,20 @@ public class NaivePlanner : IPlaner
         int retryCount = 0;
         while (retryCount < 3)
         {
+            string text = string.Empty;
             try
             {
-                var text = await completion.GetCompletion(content);
-                response = new RoleDialogModel(AgentRole.Assistant, text);
+                text = await completion.GetCompletion(content, router.Id, messageId);
+                var response = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    MessageId = messageId
+                };
                 inst = response.Content.JsonContent<FunctionCallFromLlm>();
                 break;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{ex.Message}: {response.Content}");
+                _logger.LogError($"{ex.Message}: {text}");
                 inst.Function = "response_to_user";
                 inst.Response = ex.Message;
                 inst.AgentName = "Router";
@@ -64,6 +68,10 @@ public class NaivePlanner : IPlaner
 
     public async Task<bool> AgentExecuting(FunctionCallFromLlm inst, RoleDialogModel message)
     {
+        // Set user content as Planner's question
+        message.FunctionName = inst.Function;
+        message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
+
         return true;
     }
 

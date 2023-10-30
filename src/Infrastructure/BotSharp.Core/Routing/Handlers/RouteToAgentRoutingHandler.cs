@@ -35,7 +35,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         message.FunctionArgs = JsonSerializer.Serialize(inst);
         var ret = await function.Execute(message);
 
-        ret = await routing.InvokeAgent(context.GetCurrentAgentId(), message);
+        var agentId = context.GetCurrentAgentId();
+        ret = await routing.InvokeAgent(agentId, _dialogs);
+
+        var response = _dialogs.Last();
+        inst.Response = response.Content;
 
         return true;
     }

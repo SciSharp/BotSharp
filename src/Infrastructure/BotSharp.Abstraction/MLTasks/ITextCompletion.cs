@@ -13,5 +13,5 @@ public interface ITextCompletion
     /// <param name="model"></param>
     void SetModelName(string model);
 
-    Task<string> GetCompletion(string text);
+    Task<string> GetCompletion(string text, string agentId, string messageId);
 }

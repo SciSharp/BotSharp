@@ -1,10 +1,12 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Abstraction.Conversations.Models;
 
 public class RoleDialogModel : ITrackableMessage
 {
+    /// <summary>
+    /// If Role is Assistant, it is same as user's message id.
+    /// </summary>
     public string MessageId { get; set; }
 
     /// <summary>

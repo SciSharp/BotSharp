@@ -18,7 +18,7 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<string> Planers => new List<string>
     {
-        nameof(ReasoningPlanner)
+        nameof(HFPlanner)
     };
 
     public TaskEndRoutingHandler(IServiceProvider services, ILogger<TaskEndRoutingHandler> logger, RoutingSettings settings) 
@@ -32,10 +32,9 @@ public class TaskEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
             .OrderBy(x => x.Priority)
             .ToList();
 
-        foreach (var hook in hooks)
-        {
-            await hook.OnCurrentTaskEnding(message);
-        }
+        Task.WaitAll(hooks
+            .Select(h => h.OnCurrentTaskEnding(message))
+            .ToArray());
 
         return true;
     }

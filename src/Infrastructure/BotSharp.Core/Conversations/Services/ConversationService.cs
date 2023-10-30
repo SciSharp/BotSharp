@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -12,6 +11,7 @@ public partial class ConversationService : IConversationService
     private readonly IConversationStorage _storage;
     private readonly IConversationStateService _state;
     private string _conversationId;
+    public string ConversationId => _conversationId;
 
     public IConversationStateService States => _state;
 

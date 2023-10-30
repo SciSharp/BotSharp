@@ -57,7 +57,11 @@ public class ConversationController : ControllerBase, IApiAdapter
         await conv.SendMessage(agentId, inputMsg,
             async msg =>
             {
-
+                response.Text = msg.Content;
+                response.Function = msg.FunctionName;
+                response.RichContent = msg.RichContent;
+                response.Instruction = msg.Instruction;
+                response.Data = msg.Data;
             },
             async fnExecuting =>
             {
@@ -69,11 +73,6 @@ public class ConversationController : ControllerBase, IApiAdapter
             });
 
         response.MessageId = inputMsg.MessageId;
-        response.Text = inputMsg.Content;
-        response.Data = inputMsg.Data;
-        response.Function = inputMsg.FunctionName;
-        response.Instruction = inputMsg.Instruction;
-        response.RichContent = inputMsg.RichContent;
 
         return response;
     }

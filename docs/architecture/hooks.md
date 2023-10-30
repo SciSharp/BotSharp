@@ -48,3 +48,15 @@ More information about conversation hook please go to [Conversation Hook](../con
 Task OnStateLoaded(ConversationState state);
 Task OnStateChanged(string name, string preValue, string currentValue);
 ```
+
+### Content Generating Hook
+`IContentGeneratingHook`
+
+Model content generating hook, it can be used for logging, metrics and tracing.
+```csharp
+// Before content generating.
+Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations);
+
+// After content generated.
+Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats);
+```

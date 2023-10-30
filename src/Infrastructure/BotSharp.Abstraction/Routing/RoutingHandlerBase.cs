@@ -5,7 +5,6 @@ namespace BotSharp.Abstraction.Routing;
 
 public abstract class RoutingHandlerBase
 {
-    protected Agent _router;
     protected readonly IServiceProvider _services;
     protected readonly ILogger _logger;
     protected RoutingSettings _settings;
@@ -18,11 +17,6 @@ public abstract class RoutingHandlerBase
         _services = services;
         _logger = logger;
         _settings = settings;
-    }
-
-    public void SetRouter(Agent router)
-    {
-        _router = router;
     }
 
     public void SetDialogs(List<RoleDialogModel> dialogs)
