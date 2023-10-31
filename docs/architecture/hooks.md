@@ -42,14 +42,13 @@ Task OnHumanInterventionNeeded(RoleDialogModel message);
 ```
 More information about conversation hook please go to [Conversation Hook](../conversation/hook.md).
 
-### Conversation State Hook
 `IConversationHook`
 ```csharp
 Task OnStateLoaded(ConversationState state);
 Task OnStateChanged(string name, string preValue, string currentValue);
 ```
 
-### Content Generating Hook
+## Content Generating Hook
 `IContentGeneratingHook`
 
 Model content generating hook, it can be used for logging, metrics and tracing.
@@ -59,4 +58,10 @@ Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations);
 
 // After content generated.
 Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats);
+```
+
+`IInstructHook`
+```csharp
+Task BeforeCompletion(Agent agent, RoleDialogModel message);
+Task AfterCompletion(Agent agent, InstructResult result);
 ```

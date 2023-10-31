@@ -16,6 +16,9 @@ public partial class InstructService : IInstructService
 
     public async Task<InstructResult> Execute(string agentId, RoleDialogModel message, string? templateName = null)
     {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        Agent agent = await agentService.LoadAgent(agentId);
+
         // Trigger before completion hooks
         var hooks = _services.GetServices<IInstructHook>();
         foreach (var hook in hooks)
@@ -25,7 +28,7 @@ public partial class InstructService : IInstructService
                 continue;
             }
 
-            await hook.BeforeCompletion(message);
+            await hook.BeforeCompletion(agent, message);
 
             // Interrupted by hook
             if (message.StopCompletion)
@@ -39,9 +42,7 @@ public partial class InstructService : IInstructService
         }
 
         // Render prompt
-        var agentService = _services.GetRequiredService<IAgentService>();
-        Agent agent = await agentService.LoadAgent(agentId);
-        var prompt = string.IsNullOrEmpty(templateName) ? 
+        var prompt = string.IsNullOrEmpty(templateName) ?
             agentService.RenderedInstruction(agent) :
             agentService.RenderedTemplate(agent, templateName);
 
@@ -60,7 +61,7 @@ public partial class InstructService : IInstructService
                 continue;
             }
 
-            await hook.AfterCompletion(response);
+            await hook.AfterCompletion(agent, response);
         }
 
         return response;
