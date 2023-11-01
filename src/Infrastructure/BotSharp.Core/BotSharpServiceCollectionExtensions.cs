@@ -81,7 +81,6 @@ public static class BotSharpServiceCollectionExtensions
         });
 
         services.AddScoped<IExecutor, InstructExecutor>();
-        services.AddScoped<IRouterInstance, RouterInstance>();
         services.AddScoped<IRoutingService, RoutingService>();
 
         if (myDatabaseSettings.Default == "FileRepository")

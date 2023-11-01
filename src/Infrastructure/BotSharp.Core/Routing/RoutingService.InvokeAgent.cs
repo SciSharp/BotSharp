@@ -41,7 +41,8 @@ public partial class RoutingService
     {
         // execute function
         // Save states
-        SaveStateByArgs(JsonSerializer.Deserialize<JsonDocument>(message.FunctionArgs));
+        var states = _services.GetRequiredService<IConversationStateService>();
+        states.SaveStateByArgs(message.FunctionArgs?.JsonContent<JsonDocument>());
 
         var conversationService = _services.GetRequiredService<IConversationService>();
         // Call functions
