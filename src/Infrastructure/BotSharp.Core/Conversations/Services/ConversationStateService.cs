@@ -128,4 +128,23 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         return _states.ContainsKey(name) && !string.IsNullOrEmpty(_states[name]);
     }
+
+    public void SaveStateByArgs(JsonDocument args)
+    {
+        if (args == null)
+        {
+            return;
+        }
+
+        if (args.RootElement is JsonElement root)
+        {
+            foreach (JsonProperty property in root.EnumerateObject())
+            {
+                if (!string.IsNullOrEmpty(property.Value.ToString()))
+                {
+                    SetState(property.Name, property.Value);
+                }
+            }
+        }
+    }
 }

@@ -81,9 +81,9 @@ public class RouteToAgentFn : IFunctionCallback
     private bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
-        var router = _services.GetRequiredService<IRouterInstance>();
+        var routing = _services.GetRequiredService<IRoutingService>();
 
-        var routingRules = router.GetRulesByName(args.AgentName);
+        var routingRules = routing.GetRulesByName(args.AgentName);
 
         if (routingRules == null || !routingRules.Any())
         {

@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
@@ -12,7 +13,6 @@ public partial class RoutingService : IRoutingService
 {
     private readonly IServiceProvider _services;
     private readonly RoutingSettings _settings;
-    private readonly IRouterInstance _routerInstance;
     private readonly ILogger _logger;
     private Agent _router;
     public Agent Router => _router;
@@ -24,13 +24,11 @@ public partial class RoutingService : IRoutingService
 
     public RoutingService(IServiceProvider services,
         RoutingSettings settings,
-        ILogger<RoutingService> logger,
-         IRouterInstance routerInstance)
+        ILogger<RoutingService> logger)
     {
         _services = services;
         _settings = settings;
         _logger = logger;
-        _routerInstance = routerInstance;
     }
 
     public async Task<RoleDialogModel> ExecuteOnce(Agent agent, RoleDialogModel message)
@@ -60,11 +58,12 @@ public partial class RoutingService : IRoutingService
 
     public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message)
     {
-        _router = _routerInstance.Load()
-            .Router;
+        var agentService = _services.GetRequiredService<IAgentService>();
+        _router = await agentService.LoadAgent(_settings.RouterId);
 
         RoleDialogModel response = default;
 
+        var states = _services.GetRequiredService<IConversationStateService>();
         var conv = _services.GetRequiredService<IConversationService>();
         var dialogs = conv.GetDialogHistory();
 
@@ -81,12 +80,13 @@ public partial class RoutingService : IRoutingService
 
             var conversation = await GetConversationContent(dialogs);
             _router.TemplateDict["conversation"] = conversation;
+            _router.TemplateDict["planner"] = _settings.Planner;
 
             // Get instruction from Planner
             var inst = await planner.GetNextInstruction(_router, message.MessageId);
 
             // Save states
-            SaveStateByArgs(inst.Arguments);
+            states.SaveStateByArgs(inst.Arguments);
 
 #if DEBUG
             Console.WriteLine($"*** Next Instruction *** {inst}", Color.GreenYellow);
@@ -104,23 +104,90 @@ public partial class RoutingService : IRoutingService
         return response;
     }
 
-    protected void SaveStateByArgs(JsonDocument args)
+    public List<RoutingHandlerDef> GetHandlers()
     {
-        if (args == null)
+        var planer = _services.GetRequiredService<IPlaner>();
+
+        return _services.GetServices<IRoutingHandler>()
+            .Where(x => x.Planers == null || x.Planers.Contains(planer.GetType().Name))
+            .Where(x => !string.IsNullOrEmpty(x.Description))
+            .Select((x, i) => new RoutingHandlerDef
+            {
+                Name = x.Name,
+                Description = x.Description,
+                Parameters = x.Parameters
+            }).ToList();
+    }
+
+#if !DEBUG
+    [MemoryCache(10 * 60)]
+#endif
+    protected RoutingRule[] GetRoutingRecords()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var agents = db.GetAgents(disabled: false, allowRouting: true);
+        var records = agents.SelectMany(x =>
         {
-            return;
+            x.RoutingRules.ForEach(r =>
+            {
+                r.AgentId = x.Id;
+                r.AgentName = x.Name;
+            });
+            return x.RoutingRules;
+        }).ToArray();
+
+        // Filter agents by profile
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var name = state.GetState("channel");
+        var specifiedProfile = agents.FirstOrDefault(x => x.Profiles.Contains(name));
+        if (specifiedProfile != null)
+        {
+            records = records.Where(x => specifiedProfile.Profiles.Contains(name)).ToArray();
         }
 
-        var stateService = _services.GetRequiredService<IConversationStateService>();
-        if (args.RootElement is JsonElement root)
+        return records;
+    }
+
+#if !DEBUG
+    [MemoryCache(10 * 60)]
+#endif
+    public RoutingItem[] GetRoutingItems()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        var agents = db.GetAgents(disabled: false, allowRouting: true);
+        return agents.Select(x => new RoutingItem
         {
-            foreach (JsonProperty property in root.EnumerateObject())
-            {
-                if (!string.IsNullOrEmpty(property.Value.ToString()))
+            AgentId = x.Id,
+            Description = x.Description,
+            Name = x.Name,
+            RequiredFields = x.RoutingRules
+                .Where(p => p.Required)
+                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
                 {
-                    stateService.SetState(property.Name, property.Value);
-                }
-            }
-        }
+                    Required = p.Required
+                }).ToList(),
+            OptionalFields = x.RoutingRules
+                .Where(p => !p.Required)
+                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
+                {
+                    Required = p.Required
+                }).ToList()
+        }).ToArray();
+    }
+
+    public RoutingRule[] GetRulesByName(string name)
+    {
+        return GetRoutingRecords()
+            .Where(x => x.AgentName.ToLower() == name.ToLower())
+            .ToArray();
+    }
+
+    public RoutingRule[] GetRulesByAgentId(string id)
+    {
+        return GetRoutingRecords()
+            .Where(x => x.AgentId == id)
+            .ToArray();
     }
 }

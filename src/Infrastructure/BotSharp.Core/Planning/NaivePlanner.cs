@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace BotSharp.Core.Planning;
 
@@ -24,14 +23,15 @@ public class NaivePlanner : IPlaner
 
         var inst = new FunctionCallFromLlm();
 
-        var agentService = _services.GetRequiredService<IAgentService>();
+        // text completion
+        /*var agentService = _services.GetRequiredService<IAgentService>();
         var instruction = agentService.RenderedInstruction(router);
         var content = $"{instruction}\r\n###\r\n{next}";
-
-        // text completion
         content =  content + "\r\nResponse: ";
+        var completion = CompletionProvider.GetTextCompletion(_services);*/
 
-        var completion = CompletionProvider.GetTextCompletion(_services);
+        // chat completion
+        var completion = CompletionProvider.GetChatCompletion(_services);
 
         int retryCount = 0;
         while (retryCount < 3)
@@ -39,11 +39,17 @@ public class NaivePlanner : IPlaner
             string text = string.Empty;
             try
             {
-                text = await completion.GetCompletion(content, router.Id, messageId);
-                var response = new RoleDialogModel(AgentRole.Assistant, text)
+                // text completion
+                // text = await completion.GetCompletion(content, router.Id, messageId);
+                var dialogs = new List<RoleDialogModel> 
                 {
-                    MessageId = messageId
+                    new RoleDialogModel(AgentRole.User, next)
+                    {
+                        MessageId = messageId
+                    }
                 };
+                var response = completion.GetChatCompletions(router, dialogs);
+
                 inst = response.Content.JsonContent<FunctionCallFromLlm>();
                 break;
             }

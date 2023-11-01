@@ -282,7 +282,7 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     return $"{x.Role}: {x.Content}";
                 }));
-            prompt += $"\r\n[INSTRUCTION]\r\n{verbose}\r\n";
+            prompt += $"{verbose}\r\n";
 
             verbose = string.Join("\r\n", chatCompletionsOptions.Messages
                 .Where(x => x.Role != AgentRole.System).Select(x =>
@@ -291,7 +291,7 @@ public class ChatCompletionProvider : IChatCompletion
                         $"{x.Role}: {x.Name} => {x.Content}" :
                         $"{x.Role}: {x.Content}";
                 }));
-            prompt += $"\r\n[CONVERSATION]\r\n{verbose}\r\n";
+            prompt += $"\r\n{verbose}\r\n";
         }
 
         if (chatCompletionsOptions.Functions.Count > 0)

@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Planning;
@@ -36,13 +35,14 @@ public class HFPlanner : IPlaner
         {
             try
             {
-                response = completion.GetChatCompletions(router, new List<RoleDialogModel>
+                var dialogs = new List<RoleDialogModel>
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
                         MessageId = messageId
                     }
-                });
+                };
+                response = completion.GetChatCompletions(router, dialogs);
 
                 inst = response.Content.JsonContent<FunctionCallFromLlm>();
                 break;
@@ -80,18 +80,15 @@ public class HFPlanner : IPlaner
     public async Task<bool> AgentExecuted(FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var context = _services.GetRequiredService<RoutingContext>();
-        context.Pop();
-
+        context.Empty();
         return true;
     }
 
     private string GetNextStepPrompt(Agent router)
     {
         var template = router.Templates.First(x => x.Name == "next_step_prompt").Content;
-
         var render = _services.GetRequiredService<ITemplateRender>();
-        return render.Render(template, new Dictionary<string, object>
-        {
-        });
+        var prompt = render.Render(template, router.TemplateDict);
+        return prompt.Trim();
     }
 }
