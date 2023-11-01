@@ -464,9 +464,6 @@ public class FileRepository : IBotSharpRepository
     }
     #endregion
 
-#if !DEBUG
-    [MemoryCache(10 * 60)]
-#endif
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
     {
         var responses = new List<string>();

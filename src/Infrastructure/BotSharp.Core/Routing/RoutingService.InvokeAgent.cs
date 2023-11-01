@@ -23,15 +23,22 @@ public partial class RoutingService
         var settings = _services.GetRequiredService<ChatCompletionSetting>();
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider: settings.Provider, model: settings.Model);
 
-        RoleDialogModel response = chatCompletion.GetChatCompletions(agent, dialogs);
+        var message = dialogs.Last();
+        var response = chatCompletion.GetChatCompletions(agent, dialogs);
 
         if (response.Role == AgentRole.Function)
         {
-            await InvokeFunction(agent, response, dialogs);
+            message = RoleDialogModel.From(message,
+                    role: AgentRole.Function);
+            message.FunctionName = response.FunctionName;
+            message.FunctionArgs = response.FunctionArgs;
+            await InvokeFunction(agent, message, dialogs);
         }
         else
         {
-            dialogs.Add(response);
+            dialogs.Add(RoleDialogModel.From(message,
+                    role: AgentRole.Assistant,
+                    content: response.Content));
         }
 
         return true;

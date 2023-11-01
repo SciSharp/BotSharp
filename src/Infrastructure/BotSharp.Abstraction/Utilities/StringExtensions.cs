@@ -38,6 +38,15 @@ public static class StringExtensions
     public static T? JsonContent<T>(this string text)
     {
         text = JsonContent(text);
-        return JsonSerializer.Deserialize<T>(text);
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            AllowTrailingCommas = true
+        };
+
+        return JsonSerializer.Deserialize<T>(text, options);
     }
 }
