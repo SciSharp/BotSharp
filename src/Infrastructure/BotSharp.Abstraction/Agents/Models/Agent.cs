@@ -28,6 +28,7 @@ public class Agent
     /// </summary>
     [JsonIgnore]
     public List<string> Samples { get; set; }
+        = new List<string>();
 
     /// <summary>
     /// Functions
@@ -70,6 +71,7 @@ public class Agent
     /// </summary>
     [JsonIgnore]
     public Dictionary<string, object> TemplateDict { get; set; }
+        = new Dictionary<string, object>();
 
     public override string ToString()
         => $"{Name} {Id}";

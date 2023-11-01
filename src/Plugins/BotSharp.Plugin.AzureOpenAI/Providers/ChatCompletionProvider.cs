@@ -298,7 +298,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             var functions = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
             {
-                return $"{x.Name}: {x.Description}\r\n{x.Parameters}";
+                return $"\r\n{x.Name}: {x.Description}\r\n{x.Parameters}";
             }));
             prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
         }
