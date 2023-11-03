@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Planning;
@@ -31,7 +32,10 @@ public class NaivePlanner : IPlaner
         var completion = CompletionProvider.GetTextCompletion(_services);*/
 
         // chat completion
-        var completion = CompletionProvider.GetChatCompletion(_services);
+        var routerSetting = _services.GetRequiredService<RoutingSettings>();
+        var completion = CompletionProvider.GetChatCompletion(_services, 
+            provider: routerSetting.Provider,
+            model: routerSetting.Model);
 
         int retryCount = 0;
         while (retryCount < 3)
