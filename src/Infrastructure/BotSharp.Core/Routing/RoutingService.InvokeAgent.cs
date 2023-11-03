@@ -37,9 +37,11 @@ public partial class RoutingService
         }
         else
         {
-            dialogs.Add(RoleDialogModel.From(message,
+            message = RoleDialogModel.From(message,
                     role: AgentRole.Assistant,
-                    content: response.Content));
+                    content: response.Content);
+            message.CurrentAgentId = agent.Id;
+            dialogs.Add(message);
         }
 
         return true;
