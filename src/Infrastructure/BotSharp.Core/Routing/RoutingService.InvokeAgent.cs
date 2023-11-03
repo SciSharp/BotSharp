@@ -32,6 +32,7 @@ public partial class RoutingService
                     role: AgentRole.Function);
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
+            message.CurrentAgentId = agent.Id;
             await InvokeFunction(agent, message, dialogs);
         }
         else
