@@ -72,6 +72,8 @@ public class ConversationController : ControllerBase, IApiAdapter
 
             });
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+        response.States = state.GetStates();
         response.MessageId = inputMsg.MessageId;
 
         return response;

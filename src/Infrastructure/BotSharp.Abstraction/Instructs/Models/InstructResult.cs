@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Models;
-
 namespace BotSharp.Abstraction.Instructs.Models;
 
 public class InstructResult : ITrackableMessage
