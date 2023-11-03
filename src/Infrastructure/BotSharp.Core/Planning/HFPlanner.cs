@@ -86,7 +86,7 @@ public class HFPlanner : IPlaner
 
     private string GetNextStepPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "next_step_prompt").Content;
+        var template = router.Templates.First(x => x.Name == "next_step_prompt.hf_planner").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
         var prompt = render.Render(template, router.TemplateDict);
         return prompt.Trim();
