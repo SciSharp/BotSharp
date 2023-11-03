@@ -18,5 +18,6 @@ public class MessageResponseModel : InstructResult
     /// Rich message for UI rendering
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("rich_content")]
     public object? RichContent { get; set; }
 }
