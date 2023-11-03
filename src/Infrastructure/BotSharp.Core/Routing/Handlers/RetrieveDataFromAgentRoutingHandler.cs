@@ -17,10 +17,10 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("reason", "why retrieve data"),
-        new ParameterPropertyDef("question", "the question you will ask the agent to get the necessary data"),
+        new ParameterPropertyDef("reason", "why choose this function"),
+        new ParameterPropertyDef("question", "the question you will ask the next action agent to get the necessary information"),
         new ParameterPropertyDef("next_action_agent", "agent that can handle the question"),
-
+        new ParameterPropertyDef("user_goal_agent", "agent that can achieve user original goal"),
         new ParameterPropertyDef("args", "required parameters extracted from question and hand over to the next agent")
         {
             Type = "object"
