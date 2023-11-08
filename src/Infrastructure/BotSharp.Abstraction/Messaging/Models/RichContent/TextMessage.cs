@@ -1,8 +1,7 @@
 
-namespace BotSharp.Abstraction.Messaging.Models.RichContent
+namespace BotSharp.Abstraction.Messaging.Models.RichContent;
+
+public class TextMessage : IMessageTemplate
 {
-    public class TextMessage
-    {
-        public string Text { get; set; } = string.Empty;
-    }
+    public string Text { get; set; } = string.Empty;
 }

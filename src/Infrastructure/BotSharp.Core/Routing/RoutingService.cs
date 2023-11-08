@@ -44,7 +44,9 @@ public partial class RoutingService : IRoutingService
             Function = "route_to_agent",
             Question = message.Content,
             Reason = message.Content,
-            AgentName = agent.Name
+            AgentName = agent.Name,
+            OriginalAgent = agent.Name,
+            IsExecutionOnce = true
         };
 
         var result = await handler.Handle(this, inst, message);

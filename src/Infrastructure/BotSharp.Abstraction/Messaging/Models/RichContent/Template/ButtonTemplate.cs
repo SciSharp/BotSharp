@@ -1,8 +1,10 @@
 
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template
 {
-    public class ButtonTemplate : TextMessage
+    public class ButtonTemplate : IMessageTemplate
     {
+        public string Text { get; set; } = string.Empty;
+
         [JsonPropertyName("template_type")]
         public string TemplateType => "button"; 
         public List<ButtonElement> Buttons { get; set; } = new List<ButtonElement>();
