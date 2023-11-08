@@ -101,6 +101,14 @@ public partial class ConversationService
         _logger.LogInformation(text);
 #endif
 
+        // Process rich content
+        if (response.RichContent != null &&
+            response.RichContent is RichContent<IMessageTemplate> template &&
+            string.IsNullOrEmpty(template.Message.Text))
+        {
+            template.Message.Text = response.Content;
+        }
+
         // Only read content from RichContent for UI rendering. When richContent is null, create a basic text message for richContent.
         var state = _services.GetRequiredService<IConversationStateService>();
         response.RichContent = response.RichContent ?? new RichContent<IMessageTemplate>
