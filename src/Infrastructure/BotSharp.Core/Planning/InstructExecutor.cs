@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Messaging.Models;
+using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing;
 
@@ -32,6 +34,14 @@ public class InstructExecutor : IExecutor
         var response = dialogs.Last();
         response.MessageId = message.MessageId;
         response.Instruction = inst;
+
+        // Process rich content
+        if (response.RichContent != null &&
+            response.RichContent is RichContent<IMessageTemplate> template &&
+            string.IsNullOrEmpty(template.Message.Text))
+        {
+            template.Message.Text = response.Content;
+        }
 
         return response;
     }

@@ -12,6 +12,8 @@ public class FunctionCallFromLlm : RoutingArgs
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public JsonDocument? Arguments { get; set; }
 
+    public bool IsExecutionOnce { get; set; }
+
     public override string ToString()
     {
         var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {Reason}>";

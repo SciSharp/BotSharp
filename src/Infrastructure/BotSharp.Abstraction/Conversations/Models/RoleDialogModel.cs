@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Messaging.Models;
+using BotSharp.Abstraction.Messaging.Models.RichContent;
 
 namespace BotSharp.Abstraction.Conversations.Models;
 
@@ -35,7 +37,7 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object Data { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public object? RichContent { get; set; }
+    public RichContent<IMessageTemplate>? RichContent { get; set; }
 
     /// <summary>
     /// Stop conversation completion
