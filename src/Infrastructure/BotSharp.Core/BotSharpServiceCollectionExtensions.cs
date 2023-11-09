@@ -102,6 +102,8 @@ public static class BotSharpServiceCollectionExtensions
         services.AddScoped<IEvaluatingService, EvaluatingService>();
         services.AddScoped<IExecutionLogger, ExecutionLogger>();
 
+        services.AddScoped<IConversationAttachmentService, ConversationAttachmentService>();
+
         return services;
     }
 

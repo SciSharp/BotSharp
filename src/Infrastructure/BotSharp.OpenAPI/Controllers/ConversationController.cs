@@ -2,6 +2,8 @@ using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.OpenAPI.ViewModels.Conversations;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http.Headers;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -77,5 +79,32 @@ public class ConversationController : ControllerBase, IApiAdapter
         response.MessageId = inputMsg.MessageId;
 
         return response;
+    }
+
+    [HttpPost("/conversation/{agentId}/{conversationId}/attachments")]
+    public IActionResult UploadAttachments([FromRoute] string agentId,
+        [FromRoute] string conversationId, 
+        IFormFile[] files)
+    {
+        if (files != null && files.Length > 0)
+        {
+            var attachmentService = _services.GetRequiredService<IConversationAttachmentService>();
+            var dir = attachmentService.GetDirectory(conversationId);
+            foreach (var file in files)
+            {
+                // Save the file, process it, etc.
+                var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                var filePath = Path.Combine(dir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+            }
+
+            return Ok(new { message = "File uploaded successfully." });
+        }
+
+        return BadRequest(new { message = "Invalid file." });
     }
 }

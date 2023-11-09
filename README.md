@@ -24,7 +24,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Built-in multi-agents and conversation with state management.
 * Support multiple LLM Planning approaches to handle different tasks.
 * Built-in RAG related interfaces, Memeory based vector searching.
-* Support multiple LLM platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2).
+* Support multiple LLM platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.
 * Support different open source UI [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md), [HuggingChat UI](src/Plugins/BotSharp.Plugin.HuggingFace/HuggingChat-UI.md).
