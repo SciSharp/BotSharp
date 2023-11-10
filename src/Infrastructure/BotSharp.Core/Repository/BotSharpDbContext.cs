@@ -131,6 +131,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
+    public List<Conversation> GetLastConversations()
+    {
+        throw new NotImplementedException();
+    }
+
     public string GetConversationDialog(string conversationId)
     {
         throw new NotImplementedException();

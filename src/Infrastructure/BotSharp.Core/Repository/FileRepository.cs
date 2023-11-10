@@ -735,6 +735,28 @@ public class FileRepository : IBotSharpRepository
         return records;
     }
 
+    public List<Conversation> GetLastConversations()
+    {
+        var records = new List<Conversation>();
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+
+        foreach (var d in Directory.GetDirectories(dir))
+        {
+            var path = Path.Combine(d, "conversation.json");
+            if (!File.Exists(path)) continue;
+
+            var json = File.ReadAllText(path);
+            var record = JsonSerializer.Deserialize<Conversation>(json, _options);
+            if (record != null)
+            {
+                records.Add(record);
+            }
+        }
+        return records.GroupBy(r => r.UserId)
+            .Select(g => g.OrderByDescending(x => x.CreatedTime).First())
+            .ToList();
+    }
+
     public void AddExectionLogs(string conversationId, List<string> logs)
     {
         if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;

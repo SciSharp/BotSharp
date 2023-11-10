@@ -51,6 +51,12 @@ public partial class ConversationService : IConversationService
         return conversations.OrderByDescending(x => x.CreatedTime).ToList();
     }
 
+    public async Task<List<Conversation>> GetLastConversations()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.GetLastConversations();
+    }
+
     public async Task<Conversation> NewConversation(Conversation sess)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();

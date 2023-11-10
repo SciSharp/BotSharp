@@ -727,6 +727,24 @@ public class MongoRepository : IBotSharpRepository
         return records;
     }
 
+    public List<Conversation> GetLastConversations()
+    {
+        var records = new List<Conversation>();
+        var conversations = _dc.Conversations.Aggregate()
+            .Group(c => c.UserId,
+                g => g.OrderByDescending(x => x.CreatedTime).First())
+            .ToList();
+        return conversations.Select(c => new Conversation()
+        {
+            Id = c.Id.ToString(),
+            AgentId = c.AgentId.ToString(),
+            UserId = c.UserId.ToString(),
+            Title = c.Title,
+            CreatedTime = c.CreatedTime,
+            UpdatedTime = c.UpdatedTime
+        }).ToList();
+    }
+
     public void AddExectionLogs(string conversationId, List<string> logs)
     {
         if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
