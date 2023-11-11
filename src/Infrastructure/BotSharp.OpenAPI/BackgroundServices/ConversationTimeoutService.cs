@@ -1,7 +1,8 @@
+using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations.Models;
 using Microsoft.Extensions.Hosting;
-using System.Threading;
 
-namespace BotSharp.Core.Infrastructures
+namespace BotSharp.OpenAPI.BackgroundServices
 {
     public class ConversationTimeoutService : BackgroundService
     {
