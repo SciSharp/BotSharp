@@ -4,6 +4,7 @@ namespace BotSharp.Abstraction.Planning;
 
 /// <summary>
 /// Task breakdown and execution plan 
+/// https://www.promptingguide.ai/techniques/cot
 /// </summary>
 public interface IPlaner
 {
