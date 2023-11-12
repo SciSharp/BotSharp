@@ -1,17 +1,15 @@
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime;
 using System.Threading.Tasks;
-using BotSharp.Abstraction.Conversations;
-using Microsoft.SemanticKernel;
-using Microsoft.Extensions.DependencyInjection;
-using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Plugin.SemanticKernel
 {
@@ -32,7 +30,6 @@ namespace BotSharp.Plugin.SemanticKernel
             this._services = services;
             this._tokenStatistics = tokenStatistics;
         }
-
 
         public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
         {
@@ -61,7 +58,6 @@ namespace BotSharp.Plugin.SemanticKernel
                 }
             }
 
-
             var response = completion.GetChatCompletionsAsync(chatHistory)
                 .ContinueWith(async t =>
                 {
@@ -70,7 +66,6 @@ namespace BotSharp.Plugin.SemanticKernel
                     return message.Content;
                 }).ConfigureAwait(false).GetAwaiter().GetResult()
                 .ConfigureAwait(false).GetAwaiter().GetResult();
-
 
             var msg = new RoleDialogModel(AgentRole.Assistant, response)
             {

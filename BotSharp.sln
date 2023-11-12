@@ -63,7 +63,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.MongoStorag
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.GoogleAI", "src\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj", "{8BC29F8A-78D6-422C-B522-10687ADC38ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.SemanticKernel", "src\Plugins\BotSharp.Plugin.SemanticKernel\BotSharp.Plugin.SemanticKernel.csproj", "{73EE2CD0-3B27-4F02-A67B-762CBDD740D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.SemanticKernel", "src\Plugins\BotSharp.Plugin.SemanticKernel\BotSharp.Plugin.SemanticKernel.csproj", "{73EE2CD0-3B27-4F02-A67B-762CBDD740D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.SemanticKernel.UnitTests", "tests\BotSharp.Plugin.SemanticKernel.UnitTests\BotSharp.Plugin.SemanticKernel.UnitTests.csproj", "{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -233,6 +235,14 @@ Global
 		{73EE2CD0-3B27-4F02-A67B-762CBDD740D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{73EE2CD0-3B27-4F02-A67B-762CBDD740D0}.Release|x64.ActiveCfg = Release|Any CPU
 		{73EE2CD0-3B27-4F02-A67B-762CBDD740D0}.Release|x64.Build.0 = Release|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Debug|x64.Build.0 = Debug|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Release|x64.ActiveCfg = Release|Any CPU
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -265,6 +275,7 @@ Global
 		{DB3DE37B-1208-4ED3-9615-A52AD0AAD69C} = {5CD330E1-9E5A-4112-8346-6E31CA98EF78}
 		{8BC29F8A-78D6-422C-B522-10687ADC38ED} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
 		{73EE2CD0-3B27-4F02-A67B-762CBDD740D0} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
+		{BC57D428-A1A4-4D38-A2D0-AC6CA943F247} = {32FAFFFE-A4CB-4FEE-BF7C-84518BBC6DCC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}

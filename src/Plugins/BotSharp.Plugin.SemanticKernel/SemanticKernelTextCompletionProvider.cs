@@ -1,15 +1,16 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.MLTasks;
-using Microsoft.SemanticKernel;
-using System;
-using System.Threading.Tasks;
+using Microsoft;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
-using System.Collections.Generic;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.SemanticKernel
 {
@@ -26,11 +27,12 @@ namespace BotSharp.Plugin.SemanticKernel
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
         {
+            Requires.NotNull(kernel, nameof(kernel));
+
             this._kernel = kernel;
             this._services = services;
             this._tokenStatistics = tokenStatistics;
         }
-
 
         public async Task<string> GetCompletion(string text, string agentId, string messageId)
         {
