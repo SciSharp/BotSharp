@@ -51,6 +51,7 @@ public class PluginLoader
                     _modules.Add(module);
                     _plugins.Add(new PluginDef
                     {
+                        Id = module.GetType().FullName,
                         Name = name,
                         Description = module.Description,
                         Assembly = assemblyName

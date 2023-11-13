@@ -16,6 +16,8 @@ namespace BotSharp.Plugin.MetaMessenger;
 /// </summary>
 public class MetaMessengerPlugin : IBotSharpPlugin
 {
+    public string Name => "Meta Messenger";
+
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new MetaMessengerSetting();
