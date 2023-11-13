@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.SemanticKernel
 {
+    /// <summary>
+    /// Use Semantic Kernel as chat completion provider
+    /// </summary>
     public class SemanticKernelChatCompletionProvider : IChatCompletion
     {
         private IKernel _kernel;
@@ -20,8 +23,15 @@ namespace BotSharp.Plugin.SemanticKernel
         private ITokenStatistics _tokenStatistics;
         private string? _model = null;
 
+        /// <inheritdoc/>
         public string Provider => "semantic-kernel";
 
+        /// <summary>
+        /// Create a new instance of <see cref="SemanticKernelChatCompletionProvider"/>
+        /// </summary>
+        /// <param name="kernel"></param>
+        /// <param name="services"></param>
+        /// <param name="tokenStatistics"></param>
         public SemanticKernelChatCompletionProvider(IKernel kernel,
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
@@ -30,7 +40,7 @@ namespace BotSharp.Plugin.SemanticKernel
             this._services = services;
             this._tokenStatistics = tokenStatistics;
         }
-
+        /// <inheritdoc/>
         public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
         {
             var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
@@ -81,18 +91,18 @@ namespace BotSharp.Plugin.SemanticKernel
 
             return msg;
         }
-
+        /// <inheritdoc/>
         public Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
         {
             throw new NotImplementedException();
         }
-
+        /// <inheritdoc/>
         public Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
         {
             throw new NotImplementedException();
         }
 
-
+        /// <inheritdoc/>
         public void SetModelName(string model)
         {
             if (!string.IsNullOrWhiteSpace(model))

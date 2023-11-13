@@ -24,9 +24,15 @@ namespace BotSharp.Plugin.SemanticKernel
         private readonly ITokenStatistics _tokenStatistics;
         private string? _model = null;
 
-        // <inheritdoc/>
+        /// <inheritdoc/>
         public string Provider => "semantic-kernel";
 
+        /// <summary>
+        /// Create a new instance of <see cref="SemanticKernelTextCompletionProvider"/>
+        /// </summary>
+        /// <param name="kernel"></param>
+        /// <param name="services"></param>
+        /// <param name="tokenStatistics"></param>
         public SemanticKernelTextCompletionProvider(IKernel kernel,
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
