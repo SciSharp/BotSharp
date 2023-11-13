@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Messaging.Models;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
@@ -100,9 +101,17 @@ public partial class ConversationService
         _logger.LogInformation(text);
 #endif
 
+        // Process rich content
+        if (response.RichContent != null &&
+            response.RichContent is RichContent<IMessageTemplate> template &&
+            string.IsNullOrEmpty(template.Message.Text))
+        {
+            template.Message.Text = response.Content;
+        }
+
         // Only read content from RichContent for UI rendering. When richContent is null, create a basic text message for richContent.
         var state = _services.GetRequiredService<IConversationStateService>();
-        response.RichContent = response.RichContent ?? new RichContent<TextMessage>
+        response.RichContent = response.RichContent ?? new RichContent<IMessageTemplate>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
             Message = new TextMessage { Text = response.Content }

@@ -24,7 +24,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Built-in multi-agents and conversation with state management.
 * Support multiple LLM Planning approaches to handle different tasks.
 * Built-in RAG related interfaces, Memeory based vector searching.
-* Support multiple LLM platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2).
+* Support multiple LLM platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.
 * Support different open source UI [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md), [HuggingChat UI](src/Plugins/BotSharp.Plugin.HuggingFace/HuggingChat-UI.md).
@@ -39,14 +39,39 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 ```
 2. Run UI project, reference to [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md).
 
-### Extension Libraries
+### Plugins
 
-BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate.
+BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate. Below are the bulit-in plugins:
 
-* Chatbot UI connector. 
-* A channel module of BotSharp for Facebook Messenger.
-* A channel module of BotSharp for Tencent Wechat.
-* A channel module of BotSharp for Telegram.
+#### Data Storages
+- BotSharp.Plugin.MongoStorage
+
+#### LLMs
+- BotSharp.Plugin.AzureOpenAI
+- BotSharp.Plugin.GoogleAI
+- BotSharp.Plugin.MetaAI
+- BotSharp.Plugin.HuggingFace
+- BotSharp.Plugin.LLamaSharp
+
+#### Messaging / Channel
+- BotSharp.OpenAPI
+- BotSharp.Plugin.MetaMessenger
+- BotSharp.Plugin.Twilio
+- BotSharp.Plugin.WeChat
+  
+#### RAGS
+- BotSharp.Plugin.KnowledgeBase
+- BotSharp.Plugin.Qdrant
+
+#### Visions
+- BotSharp.Plugin.PaddleSharp
+
+#### Tools
+- BotSharp.Plugin.RoutingSpeeder
+- BotSharp.Plugin.PizzaBot
+
+#### UIs
+- BotSharp.Plugin.ChatbotUI
 
 ### Documents
 

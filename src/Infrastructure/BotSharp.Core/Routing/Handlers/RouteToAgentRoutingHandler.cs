@@ -36,6 +36,10 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         var ret = await function.Execute(message);
 
         var agentId = context.GetCurrentAgentId();
+        if (inst.IsExecutionOnce)
+        {
+            message.Content = inst.Question;
+        }
         ret = await routing.InvokeAgent(agentId, _dialogs);
 
         var response = _dialogs.Last();

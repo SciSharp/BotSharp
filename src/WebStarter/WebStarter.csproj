@@ -63,6 +63,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
   </ItemGroup>
 
 </Project>
