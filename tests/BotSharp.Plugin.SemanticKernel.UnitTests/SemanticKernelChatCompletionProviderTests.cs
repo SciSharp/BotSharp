@@ -18,6 +18,7 @@ using BotSharp.Abstraction.Models;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
+using BotSharp.Plugin.SemanticKernel.UnitTests.Helpers;
 
 namespace BotSharp.Plugin.SemanticKernel.Tests
 {
@@ -46,13 +47,20 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
                 new RoleDialogModel(AgentRole.User, "Hello")
             };
 
+            _servicesMock.Setup(x => x.GetService(typeof(IEnumerable<IContentGeneratingHook>)))
+                        .Returns(new List<IContentGeneratingHook>());
+            var agentService = new Mock<IAgentService>();
+            agentService.Setup(x => x.RenderedInstruction(agent)).Returns("");
+            _servicesMock.Setup(x => x.GetService(typeof(IAgentService)))
+                .Returns(agentService.Object);
+
             var chatHistoryMock = new Mock<ChatHistory>();
             var chatCompletionMock = new Mock<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>();
             chatCompletionMock.Setup(x => x.CreateNewChat(It.IsAny<string>())).Returns(chatHistoryMock.Object);
             chatCompletionMock.Setup(x => x.GetChatCompletionsAsync(chatHistoryMock.Object, It.IsAny<AIRequestSettings>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<IChatResult>
             {
-                new MockChatResult("How can I help you?")
+                new ResultHelper("How can I help you?")
             });
 
             _kernelMock.Setup(x => x.GetService<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>(null)).Returns(chatCompletionMock.Object);
@@ -64,5 +72,5 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
             Assert.IsType<RoleDialogModel>(result);
         }
     }
-    
+
 }

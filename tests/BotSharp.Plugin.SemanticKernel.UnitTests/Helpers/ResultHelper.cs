@@ -1,14 +1,15 @@
 using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 
 namespace BotSharp.Plugin.SemanticKernel.UnitTests.Helpers
 {
-    public class MockChatResult : IChatResult
+    public class ResultHelper : IChatResult, ITextResult
     {
         public ModelResult ModelResult { get; set; }
         private string _response;
 
-        public MockChatResult(string response)
+        public ResultHelper(string response)
         {
             ModelResult = new ModelResult(response);
             _response = response;
@@ -17,6 +18,11 @@ namespace BotSharp.Plugin.SemanticKernel.UnitTests.Helpers
         public async Task<ChatMessageBase> GetChatMessageAsync(CancellationToken cancellationToken = default)
         {
             return await Task.FromResult(new MockModelResult(_response));
+        }
+
+        public Task<string> GetCompletionAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(_response);
         }
 
         public class MockModelResult : ChatMessageBase

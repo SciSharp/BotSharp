@@ -1,6 +1,9 @@
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
+using Moq;
 
 namespace BotSharp.Plugin.SemanticKernel.Tests
 {
@@ -12,6 +15,14 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
             var services = new ServiceCollection();
             var config = new ConfigurationBuilder().Build();
             var plugin = new SemanticKernelPlugin();
+            services.AddScoped(x =>
+            {
+                return new KernelBuilder()
+                .WithAzureOpenAIChatCompletionService("test", "test", "test")
+                .Build();
+            });
+            services.AddScoped<ITokenStatistics>(x=> Mock.Of<ITokenStatistics>());
+
 
             plugin.RegisterDI(services, config);
 

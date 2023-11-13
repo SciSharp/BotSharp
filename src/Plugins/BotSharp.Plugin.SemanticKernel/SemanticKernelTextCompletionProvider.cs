@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.SemanticKernel
 {
+    /// <summary>
+    /// User Semantic Kernel as text completion provider
+    /// </summary>
     public class SemanticKernelTextCompletionProvider : Abstraction.MLTasks.ITextCompletion
     {
         private readonly IKernel _kernel;
@@ -21,19 +24,21 @@ namespace BotSharp.Plugin.SemanticKernel
         private readonly ITokenStatistics _tokenStatistics;
         private string? _model = null;
 
+        // <inheritdoc/>
         public string Provider => "semantic-kernel";
 
         public SemanticKernelTextCompletionProvider(IKernel kernel,
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
         {
-            Requires.NotNull(kernel, nameof(kernel));
+            Requires.NotNull(kernel, nameof(IKernel));
 
             this._kernel = kernel;
             this._services = services;
             this._tokenStatistics = tokenStatistics;
         }
 
+        /// <inheritdoc/>
         public async Task<string> GetCompletion(string text, string agentId, string messageId)
         {
             var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
@@ -65,9 +70,11 @@ namespace BotSharp.Plugin.SemanticKernel
             return result;
         }
 
+        /// <inheritdoc/>
         public void SetModelName(string model)
         {
-            this._model = model;
+            if (!string.IsNullOrWhiteSpace(model))
+                this._model = model;
         }
     }
 }

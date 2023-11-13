@@ -3,10 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta6" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.6.11" />
   </ItemGroup>
 
@@ -15,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="BotSharp.Plugin.SemanticKernel.UnitTests"/>
+    <InternalsVisibleTo Include="BotSharp.Plugin.SemanticKernel.UnitTests" />
   </ItemGroup>
 
 </Project>

@@ -20,7 +20,7 @@ namespace BotSharp.Plugin.SemanticKernel
         private ITokenStatistics _tokenStatistics;
         private string? _model = null;
 
-        public string Provider => throw new NotImplementedException();
+        public string Provider => "semantic-kernel";
 
         public SemanticKernelChatCompletionProvider(IKernel kernel,
             IServiceProvider services,
@@ -92,9 +92,11 @@ namespace BotSharp.Plugin.SemanticKernel
             throw new NotImplementedException();
         }
 
+
         public void SetModelName(string model)
         {
-            this._model = model;
+            if (!string.IsNullOrWhiteSpace(model))
+                this._model = model;
         }
     }
 }
