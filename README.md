@@ -1,5 +1,5 @@
-# The Open Source LLM Application Framework
-## Connect LLMs to your existing application
+# The Open Source AI Agent Application Framework
+## Connect LLMs to your existing application focused on your business
 
 [![Discord](https://img.shields.io/discord/1106946823282761851?label=Discord)](https://discord.gg/qRVm82fKTS)
 [![QQ群聊](https://img.shields.io/static/v1?label=QQ&message=群聊&color=brightgreen)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=sN9VVMwbWjs5L0ATpizKKxOcZdEPMrp8&authKey=RLDw41bLTrEyEgZZi%2FzT4pYk%2BwmEFgFcrhs8ZbkiVY7a4JFckzJefaYNW6Lk4yPX&noverify=0&group_code=985366726)
@@ -52,6 +52,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 - BotSharp.Plugin.MetaAI
 - BotSharp.Plugin.HuggingFace
 - BotSharp.Plugin.LLamaSharp
+- BotSharp.Plugin.SemanticKernel
 
 #### Messaging / Channel
 - BotSharp.OpenAPI

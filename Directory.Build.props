@@ -2,7 +2,7 @@
  <PropertyGroup>
    <LangVersion>10.0</LangVersion>
    <OutputPath>..\..\..\packages</OutputPath>
-   <BotSharpVersion>0.18.0</BotSharpVersion>
+   <BotSharpVersion>0.19.0</BotSharpVersion>
    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
  </PropertyGroup>
 </Project>

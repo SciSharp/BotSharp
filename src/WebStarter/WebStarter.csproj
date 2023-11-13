@@ -59,11 +59,12 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Qdrant\BotSharp.Plugin.Qdrant.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.RoutingSpeeder\BotSharp.Plugin.RoutingSpeeder.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WeChat\BotSharp.Plugin.WeChat.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.SemanticKernel\BotSharp.Plugin.SemanticKernel.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
   </ItemGroup>
 
 </Project>

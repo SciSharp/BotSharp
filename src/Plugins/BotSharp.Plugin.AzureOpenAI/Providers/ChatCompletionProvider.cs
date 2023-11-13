@@ -47,8 +47,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         var client = ProviderHelper.GetClient(_model, _settings);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
-
-        var response = client.GetChatCompletions(_model, chatCompletionsOptions);
+        chatCompletionsOptions.DeploymentName = _model;
+        var response = client.GetChatCompletions(chatCompletionsOptions);
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
@@ -110,7 +110,8 @@ public class ChatCompletionProvider : IChatCompletion
         var client = ProviderHelper.GetClient(_model, _settings);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
 
-        var response = await client.GetChatCompletionsAsync(_model, chatCompletionsOptions);
+        chatCompletionsOptions.DeploymentName = _model;
+        var response = await client.GetChatCompletionsAsync(chatCompletionsOptions);
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
@@ -162,39 +163,27 @@ public class ChatCompletionProvider : IChatCompletion
     {
         var client = ProviderHelper.GetClient(_model, _settings);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
-
-        var response = await client.GetChatCompletionsStreamingAsync(_model, chatCompletionsOptions);
-        using StreamingChatCompletions streaming = response.Value;
+        chatCompletionsOptions.DeploymentName = _model;
+        var response = await client.GetChatCompletionsStreamingAsync(chatCompletionsOptions);
 
         string output = "";
-        await foreach (var choice in streaming.GetChoicesStreaming())
+        await foreach (var choice in response)
         {
             if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
             {
-                var args = "";
-                await foreach (var message in choice.GetMessageStreaming())
-                {
-                    if (message.FunctionCall == null || message.FunctionCall.Arguments == null)
-                        continue;
-                    Console.Write(message.FunctionCall.Arguments);
-                    args += message.FunctionCall.Arguments;
+                Console.Write(choice.FunctionArgumentsUpdate);
                     
-                }
-                await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), args));
+                await onMessageReceived(new RoleDialogModel(ChatRole.Assistant.ToString(), choice.FunctionArgumentsUpdate));
                 continue;
             }
 
-            await foreach (var message in choice.GetMessageStreaming())
-            {
-                if (message.Content == null)
-                    continue;
-                Console.Write(message.Content);
-                output += message.Content;
+            if (choice.ContentUpdate == null)
+                continue;
+            Console.Write(choice.ContentUpdate);
 
-                _logger.LogInformation(message.Content);
+            _logger.LogInformation(choice.ContentUpdate);
 
-                await onMessageReceived(new RoleDialogModel(message.Role.ToString(), message.Content));
-            }
+            await onMessageReceived(new RoleDialogModel(choice.Role.ToString(), choice.ContentUpdate));
             
             output = "";
         }

@@ -77,10 +77,8 @@ public class TextCompletionProvider : ITextCompletion
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
         completionsOptions.Temperature = temperature;
         completionsOptions.NucleusSamplingFactor = samplingFactor;
-
-        var response = await client.GetCompletionsAsync(
-            deploymentOrModelName: _model,
-            completionsOptions);
+        completionsOptions.DeploymentName = _model;
+        var response = await client.GetCompletionsAsync(completionsOptions);
 
         // OpenAI
         var completion = "";
