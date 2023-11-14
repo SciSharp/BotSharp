@@ -72,7 +72,7 @@ public class ConversationController : ControllerBase, IApiAdapter
     }
 
     [HttpPost("/conversation/{agentId}/{conversationId}")]
-    public async Task<MessageResponseModel> SendMessage([FromRoute] string agentId,
+    public async Task<ChatResponseModel> SendMessage([FromRoute] string agentId,
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
@@ -84,7 +84,7 @@ public class ConversationController : ControllerBase, IApiAdapter
             .SetState("temperature", input.Temperature)
             .SetState("sampling_factor", input.SamplingFactor);
 
-        var response = new MessageResponseModel();
+        var response = new ChatResponseModel();
         var inputMsg = new RoleDialogModel("user", input.Text);
         await conv.SendMessage(agentId, inputMsg,
             async msg =>

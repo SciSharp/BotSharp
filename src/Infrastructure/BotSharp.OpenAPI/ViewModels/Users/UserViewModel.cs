@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Users;
@@ -8,6 +9,7 @@ public class UserViewModel
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Email { get; set; }
+    public string Role { get; set; } = UserRole.Client;
 
     public string FullName => $"{FirstName} {LastName}";
 
@@ -18,7 +20,8 @@ public class UserViewModel
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email
+            Email = user.Email,
+            Role = user.Role
         };
     }
 }

@@ -1,11 +1,17 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.OpenAPI.ViewModels.Users;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Conversations;
 
-public class MessageResponseModel : InstructResult
+public class ChatResponseModel : InstructResult
 {
+    [JsonPropertyName("conversation_id")]
+    public string ConversationId { get; set; }
+
+    public UserViewModel Sender { get; set; }
+
     public string Function { get; set; }
 
     /// <summary>
@@ -20,4 +26,6 @@ public class MessageResponseModel : InstructResult
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("rich_content")]
     public object? RichContent { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

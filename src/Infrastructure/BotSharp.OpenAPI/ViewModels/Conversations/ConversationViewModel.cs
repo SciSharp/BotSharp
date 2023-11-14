@@ -9,6 +9,7 @@ public class ConversationViewModel
     public string AgentId { get; set; }
     public string Title { get; set; } = string.Empty;
     public UserViewModel User {  get; set; } = new UserViewModel();
+    public int UnreadMsgCount { get; set; }
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
