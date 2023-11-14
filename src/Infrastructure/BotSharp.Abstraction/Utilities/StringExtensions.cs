@@ -21,7 +21,20 @@ public static class StringExtensions
 
     public static string[] SplitByNewLine(this string input)
     {
+        if (input == null)
+        {
+            return new string[0];
+        }
         return input.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    public static string RemoveNewLine(this string input)
+    {
+        if (input == null)
+        {
+            return null;
+        }
+        return input.Replace("\r", " ").Replace("\n", " ").Trim();
     }
 
     public static bool IsEqualTo(this string str1, string str2, StringComparison option = StringComparison.OrdinalIgnoreCase)

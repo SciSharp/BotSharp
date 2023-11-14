@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Users.Enums;
-using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -82,6 +81,11 @@ public partial class ConversationService : IConversationService
 
     public List<RoleDialogModel> GetDialogHistory(int lastCount = 50)
     {
+        if (string.IsNullOrEmpty(_conversationId))
+        {
+            throw new ArgumentNullException("ConversationId is null.");
+        }
+
         var dialogs = _storage.GetDialogs(_conversationId);
         return dialogs
             .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-24))

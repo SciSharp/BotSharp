@@ -15,7 +15,15 @@ public class RoleDialogModel : ITrackableMessage
     /// user, system, assistant, function
     /// </summary>
     public string Role { get; set; }
+
+    /// <summary>
+    /// User id when Role is User
+    /// </summary>
+    public string SenderId { get; set; }
+
+    [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public string Content { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

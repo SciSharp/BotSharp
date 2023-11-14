@@ -27,5 +27,6 @@ public class ChatResponseModel : InstructResult
     [JsonPropertyName("rich_content")]
     public object? RichContent { get; set; }
 
+    [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

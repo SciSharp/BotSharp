@@ -24,12 +24,12 @@ public class ConversationStorage : IConversationStorage
 
         if (dialog.Role == AgentRole.Function)
         {
-            var args = dialog.FunctionArgs.Replace("\r", " ").Replace("\n", " ").Trim();
+            // var args = dialog.FunctionArgs.RemoveNewLine();
 
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{agentId}");
 
             var content = dialog.Content;
-            content = content.Replace("\r", " ").Replace("\n", " ").Trim();
+            content = content.RemoveNewLine();
             if (string.IsNullOrEmpty(content))
             {
                 return;
@@ -38,8 +38,8 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}");
-            var content = dialog.Content.Replace("\r", " ").Replace("\n", " ").Trim();
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.SenderId}");
+            var content = dialog.Content.RemoveNewLine();
             if (string.IsNullOrEmpty(content))
             {
                 return;
@@ -62,10 +62,12 @@ public class ConversationStorage : IConversationStorage
         {
             var meta = dialogs[i];
             var dialog = dialogs[i + 1];
-            var createdAt = DateTime.Parse(meta.Split('|')[0]);
-            var role = meta.Split('|')[1];
-            var currentAgentId = meta.Split('|')[2];
-            var messageId = meta.Split('|')[3];
+            var blocks = meta.Split('|');
+            var createdAt = DateTime.Parse(blocks[0]);
+            var role = blocks[1];
+            var currentAgentId = blocks[2];
+            var messageId = blocks[3];
+            var senderId = blocks[4];
             var text = dialog.Substring(4);
 
             results.Add(new RoleDialogModel(role, text)
@@ -73,7 +75,8 @@ public class ConversationStorage : IConversationStorage
                 CurrentAgentId = currentAgentId,
                 MessageId = messageId,
                 Content = text,
-                CreatedAt = createdAt
+                CreatedAt = createdAt,
+                SenderId = senderId,
             });
         }
         return results;

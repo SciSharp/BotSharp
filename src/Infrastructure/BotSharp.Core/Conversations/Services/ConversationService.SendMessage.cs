@@ -28,6 +28,7 @@ public partial class ConversationService
 #endif
 
         message.CurrentAgentId = agent.Id;
+        message.SenderId = _user.Id;
 
         _storage.Append(_conversationId, message);
 

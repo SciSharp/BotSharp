@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Models;
 using BotSharp.OpenAPI.ViewModels.Conversations;
 using BotSharp.OpenAPI.ViewModels.Users;
 using Microsoft.AspNetCore.Http;
+using Microsoft.VisualBasic;
 using System.Net.Http.Headers;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -65,8 +66,35 @@ public class ConversationController : ControllerBase, IApiAdapter
         return list;
     }
 
-    [HttpDelete("/conversation/{agentId}/{conversationId}")]
-    public async Task DeleteConversation([FromRoute] string agentId, [FromRoute] string conversationId)
+    [HttpGet("/conversation/{conversationId}/dialogs")]
+    public async Task<IEnumerable<ChatResponseModel>> GetDialogs([FromRoute] string conversationId)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        conv.SetConversationId(conversationId, new List<string>());
+        var history = conv.GetDialogHistory();
+
+        var userService = _services.GetRequiredService<IUserService>();
+
+        var dialogs = new List<ChatResponseModel>();
+        foreach (var message in history)
+        {
+            var user = await userService.GetUser(message.SenderId);
+
+            dialogs.Add(new ChatResponseModel
+            {
+                ConversationId = conversationId,
+                MessageId = message.MessageId,
+                CreatedAt = message.CreatedAt,
+                Text = message.Content,
+                Sender = UserViewModel.FromUser(user)
+            });
+        }
+
+        return dialogs;
+    }
+
+    [HttpDelete("/conversation/{conversationId}")]
+    public async Task DeleteConversation([FromRoute] string conversationId)
     {
         var service = _services.GetRequiredService<IConversationService>();
     }
@@ -107,13 +135,13 @@ public class ConversationController : ControllerBase, IApiAdapter
         var state = _services.GetRequiredService<IConversationStateService>();
         response.States = state.GetStates();
         response.MessageId = inputMsg.MessageId;
+        response.ConversationId = conversationId;
 
         return response;
     }
 
-    [HttpPost("/conversation/{agentId}/{conversationId}/attachments")]
-    public IActionResult UploadAttachments([FromRoute] string agentId,
-        [FromRoute] string conversationId, 
+    [HttpPost("/conversation/{conversationId}/attachments")]
+    public IActionResult UploadAttachments([FromRoute] string conversationId, 
         IFormFile[] files)
     {
         if (files != null && files.Length > 0)
