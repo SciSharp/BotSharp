@@ -52,7 +52,11 @@ public class FileRepository : IBotSharpRepository
             {
                 foreach (var d in Directory.GetDirectories(dir))
                 {
-                    var json = File.ReadAllText(Path.Combine(d, "user.json"));
+                    var userFile = Path.Combine(d, "user.json");
+                    if (!Directory.Exists(d) || !File.Exists(userFile))
+                        continue;
+
+                    var json = File.ReadAllText(userFile);
                     _users.Add(JsonSerializer.Deserialize<User>(json, _options));
                 }
             }
@@ -75,7 +79,11 @@ public class FileRepository : IBotSharpRepository
             {
                 foreach (var d in Directory.GetDirectories(dir))
                 {
-                    var json = File.ReadAllText(Path.Combine(d, "agent.json"));
+                    var file = Path.Combine(d, "agent.json");
+                    if (!Directory.Exists(d) || !File.Exists(file))
+                        continue;
+
+                    var json = File.ReadAllText(file);
                     var agent = JsonSerializer.Deserialize<Agent>(json, _options);
                     if (agent != null)
                     {
@@ -108,11 +116,11 @@ public class FileRepository : IBotSharpRepository
                 foreach (var d in Directory.GetDirectories(dir))
                 {
                     var file = Path.Combine(d, "agents.json");
-                    if (Directory.Exists(d) && File.Exists(file))
-                    {
-                        var json = File.ReadAllText(file);
-                        _userAgents.AddRange(JsonSerializer.Deserialize<List<UserAgent>>(json, _options));
-                    }
+                    if (!Directory.Exists(d) || !File.Exists(file))
+                        continue;
+
+                    var json = File.ReadAllText(file);
+                    _userAgents.AddRange(JsonSerializer.Deserialize<List<UserAgent>>(json, _options));
                 }
             }
             return _userAgents.AsQueryable();
@@ -777,6 +785,7 @@ public class FileRepository : IBotSharpRepository
     public void CreateUser(User user)
     {
         var userId = Guid.NewGuid().ToString();
+        user.Id = userId;
         var dir = Path.Combine(_dbSettings.FileRepository, "users", userId);
         if (!Directory.Exists(dir))
         {

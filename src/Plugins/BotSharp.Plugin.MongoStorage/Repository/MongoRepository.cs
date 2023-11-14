@@ -148,6 +148,7 @@ public class MongoRepository : IBotSharpRepository
                     Password = x.Password,
                     Email = x.Email,
                     ExternalId = x.ExternalId,
+                    Role = x.Role,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -162,6 +163,7 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.Salt, user.Salt)
                         .Set(x => x.Password, user.Password)
                         .Set(x => x.ExternalId, user.ExternalId)
+                        .Set(x => x.Role, user.Role)
                         .Set(x => x.CreatedTime, user.CreatedTime)
                         .Set(x => x.UpdatedTime, user.UpdatedTime);
                     _dc.Users.UpdateOne(filter, update, _options);
@@ -174,6 +176,7 @@ public class MongoRepository : IBotSharpRepository
                     Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
                     AgentId = x.AgentId,
                     UserId = !string.IsNullOrEmpty(x.UserId) ? x.UserId : string.Empty,
+                    Editable = x.Editable,
                     CreatedTime = x.CreatedTime,
                     UpdatedTime = x.UpdatedTime
                 }).ToList();
@@ -184,6 +187,7 @@ public class MongoRepository : IBotSharpRepository
                     var update = Builders<UserAgentCollection>.Update
                         .Set(x => x.AgentId, userAgent.AgentId)
                         .Set(x => x.UserId, userAgent.UserId)
+                        .Set(x => x.Editable, userAgent.Editable)
                         .Set(x => x.CreatedTime, userAgent.CreatedTime)
                         .Set(x => x.UpdatedTime, userAgent.UpdatedTime);
                     _dc.UserAgents.UpdateOne(filter, update, _options);
@@ -571,6 +575,7 @@ public class MongoRepository : IBotSharpRepository
             Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
             AgentId = x.AgentId,
             UserId = !string.IsNullOrEmpty(x.UserId) ? x.UserId : string.Empty,
+            Editable = x.Editable,
             CreatedTime = x.CreatedTime,
             UpdatedTime = x.UpdatedTime
         }).ToList();
@@ -764,7 +769,8 @@ public class MongoRepository : IBotSharpRepository
             Email = user.Email,
             Password = user.Password,
             Salt = user.Salt,
-            ExternalId = user.ExternalId
+            ExternalId = user.ExternalId,
+            Role = user.Role
         } : null;
     }
 
@@ -779,7 +785,8 @@ public class MongoRepository : IBotSharpRepository
             Email = user.Email,
             Password = user.Password,
             Salt = user.Salt,
-            ExternalId = user.ExternalId
+            ExternalId = user.ExternalId,
+            Role = user.Role
         } : null;
     }
 
@@ -796,6 +803,7 @@ public class MongoRepository : IBotSharpRepository
             Password = user.Password,
             Email = user.Email,
             ExternalId = user.ExternalId,
+            Role = user.Role,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
         };

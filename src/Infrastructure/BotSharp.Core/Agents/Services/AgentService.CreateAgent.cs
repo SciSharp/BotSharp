@@ -48,6 +48,7 @@ public partial class AgentService
             Id = Guid.NewGuid().ToString(),
             UserId = user.Id,
             AgentId = foundAgent?.Id ?? agentRecord.Id,
+            Editable = false,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
         };
