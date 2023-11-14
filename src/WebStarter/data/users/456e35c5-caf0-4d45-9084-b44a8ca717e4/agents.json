@@ -4,27 +4,7 @@
     "agentId": "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a",
     "updatedTime": "2023-08-14T18:14:11.6833783Z",
     "createdTime": "2023-08-14T18:14:11.6829767Z",
+    "editable": true,
     "id": "1273379c-4419-460a-b0a2-5695afd097f5"
-  },
-  {
-    "userId": "456e35c5-caf0-4d45-9084-b44a8ca717e4",
-    "agentId": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd",
-    "updatedTime": "2023-08-14T18:14:11.6833783Z",
-    "createdTime": "2023-08-14T18:14:11.6829767Z",
-    "id": "91ec91bc-2854-4c21-be7e-4a6806406d56"
-  },
-  {
-    "userId": "456e35c5-caf0-4d45-9084-b44a8ca717e4",
-    "agentId": "b284db86-e9c2-4c25-a59e-4649797dd130",
-    "updatedTime": "2023-08-14T18:14:11.6833783Z",
-    "createdTime": "2023-08-14T18:14:11.6829767Z",
-    "id": "1d6e86ee-1f72-4ac3-93bc-549a65855dc6"
-  },
-  {
-    "userId": "456e35c5-caf0-4d45-9084-b44a8ca717e4",
-    "agentId": "fe8c60aa-b114-4ef3-93cb-a8efeac80f75",
-    "updatedTime": "2023-08-14T18:14:11.6833783Z",
-    "createdTime": "2023-08-14T18:14:11.6829767Z",
-    "id": "b10c3209-6fd6-41d1-afd9-ea9543be286d"
   }
 ]

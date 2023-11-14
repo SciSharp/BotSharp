@@ -1,0 +1,11 @@
+{
+  "firstName": "Elon",
+  "lastName": "Musk",
+  "email": "csr1@gmail.com",
+  "salt": "55f8fafcf829479ca97e635937440fee",
+  "password": "3b459ae9988628d41f0362c499a768dd",
+  "role": "csr",
+  "updatedTime": "2023-11-13T18:00:00Z",
+  "createdTime": "2023-11-13T18:00:00Z",
+  "id": "e465af5f-044f-414b-b670-92834929b96c"
+}
