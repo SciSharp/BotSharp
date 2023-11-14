@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -46,15 +48,15 @@ public partial class ConversationService : IConversationService
     public async Task<List<Conversation>> GetConversations()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserByExternalId(_user.Id);
-        var conversations = db.GetConversations(user?.Id);
+        var user = db.GetUserById(_user.Id);
+        var conversations = db.GetConversations(user.Role == UserRole.CSR ? null : user?.Id);
         return conversations.OrderByDescending(x => x.CreatedTime).ToList();
     }
 
     public async Task<Conversation> NewConversation(Conversation sess)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserByExternalId(_user.Id);
+        var user = db.GetUserById(_user.Id);
         var foundUserId = user?.Id ?? string.Empty;
 
         var record = sess;

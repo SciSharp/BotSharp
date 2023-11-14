@@ -169,7 +169,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public User? GetUserByExternalId(string externalId)
+    public User? GetUserById(string id)
     {
         throw new NotImplementedException();
     }

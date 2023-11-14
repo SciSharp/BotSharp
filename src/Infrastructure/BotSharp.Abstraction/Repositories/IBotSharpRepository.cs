@@ -9,7 +9,7 @@ public interface IBotSharpRepository
 
     #region User
     User? GetUserByEmail(string email);
-    User? GetUserByExternalId(string externalId);
+    User? GetUserById(string id);
     void CreateUser(User user);
     #endregion
 

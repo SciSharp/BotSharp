@@ -2,6 +2,7 @@ using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.OpenAPI.ViewModels.Conversations;
+using BotSharp.OpenAPI.ViewModels.Users;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 
@@ -27,12 +28,41 @@ public class ConversationController : ControllerBase, IApiAdapter
         var service = _services.GetRequiredService<IConversationService>();
         var conv = new Conversation
         {
-            AgentId = agentId
+            AgentId = agentId,
+            UserId = _user.Id
         };
         conv = await service.NewConversation(conv);
         config.States.ForEach(x => conv.States[x.Split('=')[0]] = x.Split('=')[1]);
 
         return ConversationViewModel.FromSession(conv);
+    }
+
+    [HttpGet("/conversations/{agentId}")]
+    public async Task<IEnumerable<ConversationViewModel>> GetConversations()
+    {
+        var service = _services.GetRequiredService<IConversationService>();
+        var conversations = await service.GetConversations();
+        var userService = _services.GetRequiredService<IUserService>();
+        var list = conversations.Select(x => new ConversationViewModel
+        {
+            Id = x.Id,
+            AgentId = x.AgentId,
+            Title = x.Title,
+            User = new UserViewModel
+            {
+                Id = x.UserId,
+            },
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
+
+        foreach (var item in list)
+        {
+            var user = await userService.GetUser(item.User.Id);
+            item.User = UserViewModel.FromUser(user);
+        }
+
+        return list;
     }
 
     [HttpDelete("/conversation/{agentId}/{conversationId}")]

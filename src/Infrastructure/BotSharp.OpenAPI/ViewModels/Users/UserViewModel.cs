@@ -9,6 +9,8 @@ public class UserViewModel
     public string LastName { get; set; }
     public string Email { get; set; }
 
+    public string FullName => $"{FirstName} {LastName}";
+
     public static UserViewModel FromUser(User user)
     {
         return new UserViewModel

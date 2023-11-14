@@ -77,7 +77,7 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
-    public virtual Task OnConversationInitialized(Conversation message)
+    public virtual Task OnConversationInitialized(Conversation conversation)
     {
         return Task.CompletedTask;
     }

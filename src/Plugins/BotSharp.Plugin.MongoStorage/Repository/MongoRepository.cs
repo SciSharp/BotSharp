@@ -768,9 +768,9 @@ public class MongoRepository : IBotSharpRepository
         } : null;
     }
 
-    public User? GetUserByExternalId(string externalId)
+    public User? GetUserById(string id)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.ExternalId == externalId);
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == id || x.ExternalId == id);
         return user != null ? new User
         {
             Id = user.Id,

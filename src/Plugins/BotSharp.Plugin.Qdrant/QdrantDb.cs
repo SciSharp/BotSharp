@@ -1,9 +1,8 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.VectorStorage;
 using Microsoft.Extensions.DependencyInjection;
-using QdrantCSharp;
-using QdrantCSharp.Enums;
-using QdrantCSharp.Models;
+using Qdrant.Client;
+using Qdrant.Client.Grpc;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +13,7 @@ namespace BotSharp.Plugin.Qdrant;
 
 public class QdrantDb : IVectorDb
 {
-    private readonly QdrantHttpClient _client;
+    private readonly QdrantClient _client;
     private readonly QdrantSetting _setting;
     private readonly IServiceProvider _services;
 
@@ -23,9 +22,9 @@ public class QdrantDb : IVectorDb
     {
         _setting = setting;
         _services = services;
-        _client = new QdrantHttpClient
+        _client = new QdrantClient
         (
-            url: _setting.Url,
+            host: _setting.Url,
             apiKey: _setting.ApiKey
         );
     }
@@ -33,8 +32,8 @@ public class QdrantDb : IVectorDb
     public async Task<List<string>> GetCollections()
     {
         // List all the collections
-        var collections = await _client.GetCollections();
-        return collections.Result.Collections.Select(x => x.Name).ToList();
+        var collections = await _client.ListCollectionsAsync();
+        return collections.ToList();
     }
 
     public async Task CreateCollection(string collectionName, int dim)
@@ -43,7 +42,11 @@ public class QdrantDb : IVectorDb
         if (!collections.Contains(collectionName))
         {
             // Create a new collection
-            await _client.CreateCollection(collectionName, new VectorParams(size: dim, distance: Distance.COSINE));
+            await _client.CreateCollectionAsync(collectionName, new VectorParams()
+            {
+                Size = (ulong)dim,
+                Distance = Distance.Cosine
+            });
 
             var agentService = _services.GetRequiredService<IAgentService>();
             var agentDataDir = agentService.GetAgentDataDir(collectionName);
@@ -52,7 +55,7 @@ public class QdrantDb : IVectorDb
         }
 
         // Get collection info
-        var collectionInfo = await _client.GetCollection(collectionName);
+        var collectionInfo = await _client.GetCollectionInfoAsync(collectionName);
         if (collectionInfo == null)
         {
             throw new Exception($"Create {collectionName} failed.");
@@ -62,9 +65,16 @@ public class QdrantDb : IVectorDb
     public async Task Upsert(string collectionName, int id, float[] vector, string text)
     {
         // Insert vectors
-        await _client.Upsert(collectionName, points: new List<PointStruct>
+        await _client.UpsertAsync(collectionName, points: new List<PointStruct>
         {
-            new PointStruct(id: id, vector: vector)
+            new PointStruct() 
+            {
+                Id = new PointId()
+                {
+                    Num = (ulong)id,
+                },
+                Vectors = vector
+            }
         });
 
         // Store chunks in local file system
@@ -76,13 +86,13 @@ public class QdrantDb : IVectorDb
 
     public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
     {
-        var result = await _client.Search(collectionName, vector, limit);
+        var result = await _client.SearchAsync(collectionName, vector, limit: (ulong)limit);
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agentDataDir = agentService.GetAgentDataDir(collectionName);
         var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
         var texts = File.ReadAllLines(knowledgePath);
 
-        return result.Result.Select(x => texts[x.Id]).ToList();
+        return result.Select(x => texts[x.Id.Num]).ToList();
     }
 }

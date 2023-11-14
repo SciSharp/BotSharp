@@ -5,6 +5,7 @@ public class UserAgent
     public string Id { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
     public string AgentId { get; set; } = string.Empty;
+    public bool Editable { get; set; }
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }

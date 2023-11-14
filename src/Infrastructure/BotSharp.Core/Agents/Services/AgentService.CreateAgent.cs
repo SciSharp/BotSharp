@@ -42,7 +42,7 @@ public partial class AgentService
                        .SetResponses(foundAgent.Responses);
         }
 
-        var user = _db.GetUserByExternalId(_user.Id);
+        var user = _db.GetUserById(_user.Id);
         var userAgentRecord = new UserAgent
         {
             Id = Guid.NewGuid().ToString(),

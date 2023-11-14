@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Qdrant.Client" Version="0.1.0" />
+    <PackageReference Include="Qdrant.Client" Version="1.6.0-alpha.1" />
   </ItemGroup>
 
   <ItemGroup>

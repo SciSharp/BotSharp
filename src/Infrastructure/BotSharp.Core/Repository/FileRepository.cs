@@ -726,7 +726,7 @@ public class FileRepository : IBotSharpRepository
 
             var json = File.ReadAllText(path);
             var record = JsonSerializer.Deserialize<Conversation>(json, _options);
-            if (record != null && record.UserId == userId)
+            if (record != null && (record.UserId == userId || userId == null))
             {
                 records.Add(record);
             }
@@ -769,9 +769,9 @@ public class FileRepository : IBotSharpRepository
         return Users.FirstOrDefault(x => x.Email == email);
     }
 
-    public User? GetUserByExternalId(string externalId)
+    public User? GetUserById(string id = null)
     {
-        return Users.FirstOrDefault(x => x.ExternalId == externalId);
+        return Users.FirstOrDefault(x => x.ExternalId == id || x.Id == id);
     }
 
     public void CreateUser(User user)
