@@ -610,6 +610,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = conversation.AgentId,
             UserId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty,
             Title = conversation.Title,
+            Status = conversation.Status,
             States = conversation.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow,
@@ -700,6 +701,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = conv.AgentId.ToString(),
             UserId = conv.UserId.ToString(),
             Title = conv.Title,
+            Status = conv.Status,
             Dialog = dialog?.Dialog ?? string.Empty,
             States = new ConversationState(conv.States ?? new List<StateKeyValue>()),
             CreatedTime = conv.CreatedTime,
@@ -724,6 +726,7 @@ public class MongoRepository : IBotSharpRepository
                 AgentId = conv.AgentId.ToString(),
                 UserId = conv.UserId.ToString(),
                 Title = conv.Title,
+                Status = conv.Status,
                 CreatedTime = conv.CreatedTime,
                 UpdatedTime = conv.UpdatedTime
             });
@@ -745,6 +748,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = c.AgentId.ToString(),
             UserId = c.UserId.ToString(),
             Title = c.Title,
+            Status = c.Status,
             CreatedTime = c.CreatedTime,
             UpdatedTime = c.UpdatedTime
         }).ToList();
