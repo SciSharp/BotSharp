@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using System.Text.Json.Serialization;
@@ -18,6 +19,16 @@ public class UserViewModel
 
     public static UserViewModel FromUser(User user)
     {
+        if (user == null)
+        {
+            return new UserViewModel
+            {
+                FirstName = "AI",
+                LastName = "Assistant",
+                Role = AgentRole.Assistant
+            };
+        }
+
         return new UserViewModel
         {
             Id = user.Id,

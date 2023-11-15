@@ -44,18 +44,7 @@ public class ConversationController : ControllerBase, IApiAdapter
         var service = _services.GetRequiredService<IConversationService>();
         var conversations = await service.GetConversations();
         var userService = _services.GetRequiredService<IUserService>();
-        var list = conversations.Select(x => new ConversationViewModel
-        {
-            Id = x.Id,
-            AgentId = x.AgentId,
-            Title = x.Title,
-            User = new UserViewModel
-            {
-                Id = x.UserId,
-            },
-            CreatedTime = x.CreatedTime,
-            UpdatedTime = x.UpdatedTime
-        }).ToList();
+        var list = conversations.Select(x => ConversationViewModel.FromSession(x)).ToList();
 
         foreach (var item in list)
         {
