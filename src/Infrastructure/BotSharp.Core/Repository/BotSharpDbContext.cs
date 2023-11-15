@@ -156,6 +156,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
+    public void UpdateConversationStatus(string conversationId, string status)
+    {
+        throw new NotImplementedException();
+    }
+
     public void AddExectionLogs(string conversationId, List<string> logs)
     {
         throw new NotImplementedException();

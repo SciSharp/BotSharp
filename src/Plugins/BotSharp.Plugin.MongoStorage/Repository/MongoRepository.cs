@@ -683,6 +683,21 @@ public class MongoRepository : IBotSharpRepository
         _dc.Conversations.UpdateOne(filter, update);
     }
 
+    public void UpdateConversationStatus(string conversationId, string status)
+    {
+        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(status)) return;
+
+        var filter = Builders<ConversationCollection>.Filter.Eq(x => x.Id, conversationId);
+        var foundConv = _dc.Conversations.Find(filter).FirstOrDefault();
+        if (foundConv == null) return;
+
+        var update = Builders<ConversationCollection>.Update
+            .Set(x => x.Status, status)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Conversations.UpdateOne(filter, update);
+    }
+
     public Conversation GetConversation(string conversationId)
     {
         if (string.IsNullOrEmpty(conversationId)) return null;

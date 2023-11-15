@@ -694,6 +694,23 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
+    public void UpdateConversationStatus(string conversationId, string status)
+    {
+        var convDir = FindConversationDirectory(conversationId);
+        if (!string.IsNullOrEmpty(convDir))
+        {
+            var convFile = Path.Combine(convDir, "conversation.json");
+            if (File.Exists(convFile))
+            {
+                var json = File.ReadAllText(convFile);
+                var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+                conv.Status = status;
+                conv.UpdatedTime = DateTime.UtcNow;
+                File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+            }
+        }
+    }
+
     public Conversation GetConversation(string conversationId)
     {
         var convDir = FindConversationDirectory(conversationId);
