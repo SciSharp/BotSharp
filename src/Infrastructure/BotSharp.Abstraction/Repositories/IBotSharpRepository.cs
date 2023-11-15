@@ -32,6 +32,7 @@ public interface IBotSharpRepository
     void UpdateConversationDialog(string conversationId, string dialogs);
     List<StateKeyValue> GetConversationStates(string conversationId);
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
+    void UpdateConversationStatus(string conversationId, string status);
     Conversation GetConversation(string conversationId);
     List<Conversation> GetConversations(string userId);
     List<Conversation> GetLastConversations();
