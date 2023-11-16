@@ -3,6 +3,7 @@ using BotSharp.Plugin.MetaAI.Settings;
 using FastText.NetWrapper;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.MetaAI.Providers;
 
@@ -26,19 +27,19 @@ public class fastTextEmbeddingProvider : ITextEmbedding
 
     }
 
-    public float[] GetVector(string text)
+    public Task<float[]> GetVectorAsync(string text)
     {
         LoadModel();
-        return _fastText.GetSentenceVector(text);
+        return Task.FromResult(_fastText.GetSentenceVector(text));
     }
 
-    public List<float[]> GetVectors(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
     {
         LoadModel();
         var vectors = new List<float[]>();
         for (int i = 0; i < texts.Count; i++)
         {
-            vectors.Add(GetVector(texts[i]));
+            vectors.Add(await GetVectorAsync(texts[i]));
         }
         return vectors;
     }

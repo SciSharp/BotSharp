@@ -12,12 +12,15 @@ namespace BotSharp.Plugin.SemanticKernel.UnitTests.Helpers
 {
     internal class SemanticKernelHelper : IChatCompletion, ITextCompletion, IAIService
     {
+        private Dictionary<string, string> _attributes = new();
         private readonly string _excepted;
 
         public SemanticKernelHelper(string excepted)
         {
             this._excepted = excepted;
         }
+
+        public IReadOnlyDictionary<string, string> Attributes => _attributes;
 
         public ChatHistory CreateNewChat(string? instructions = null)
         {
@@ -26,7 +29,7 @@ namespace BotSharp.Plugin.SemanticKernel.UnitTests.Helpers
 
         public Task<IReadOnlyList<IChatResult>> GetChatCompletionsAsync(ChatHistory chat, AIRequestSettings? requestSettings = null, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult<IReadOnlyList<IChatResult>>( new List<IChatResult> { new ResultHelper(_excepted) });
+            return Task.FromResult<IReadOnlyList<IChatResult>>(new List<IChatResult> { new ResultHelper(_excepted) });
         }
 
         public Task<IReadOnlyList<ITextResult>> GetCompletionsAsync(string text, AIRequestSettings? requestSettings = null, CancellationToken cancellationToken = default)

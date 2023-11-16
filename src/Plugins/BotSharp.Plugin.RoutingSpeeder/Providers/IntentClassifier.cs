@@ -33,8 +33,8 @@ public class IntentClassifier
     private string[] _labels;
     public string[] Labels => _labels == null ? GetLabels() : _labels;
 
-    public IntentClassifier(IServiceProvider services, 
-        ClassifierSetting settings, 
+    public IntentClassifier(IServiceProvider services,
+        ClassifierSetting settings,
         KnowledgeBaseSettings knowledgeBaseSettings,
         ILogger logger)
     {
@@ -140,7 +140,7 @@ public class IntentClassifier
             .FirstOrDefault(x => x.GetType().FullName.EndsWith(knowledgeSettings.TextEmbedding));
 
         var x = np.zeros((1, embedding.Dimension), dtype: np.float32);
-        x[0] = embedding.GetVector(text);
+        x[0] = embedding.GetVectorAsync(text).GetAwaiter().GetResult();
         return x;
     }
 
@@ -178,7 +178,7 @@ public class IntentClassifier
         {
             var texts = File.ReadAllLines(filePath, Encoding.UTF8).ToList();
 
-            vectorList.AddRange(vector.GetVectors(texts));
+            vectorList.AddRange(vector.GetVectorsAsync(texts).GetAwaiter().GetResult());
             string fileName = Path.GetFileNameWithoutExtension(filePath);
             labelList.AddRange(Enumerable.Repeat(fileName, texts.Count).ToList());
         }
