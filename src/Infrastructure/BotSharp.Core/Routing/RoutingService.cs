@@ -36,7 +36,9 @@ public partial class RoutingService : IRoutingService
         var handlers = _services.GetServices<IRoutingHandler>();
 
         var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
-        var dialogs = new List<RoleDialogModel> { message };
+
+        var conv = _services.GetRequiredService<IConversationService>();
+        var dialogs = conv.GetDialogHistory();
         handler.SetDialogs(dialogs);
 
         var inst = new FunctionCallFromLlm
