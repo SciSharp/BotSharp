@@ -26,7 +26,7 @@ public class ConversationStorage : IConversationStorage
         {
             // var args = dialog.FunctionArgs.RemoveNewLine();
 
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{agentId}");
+            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.FunctionName}");
 
             var content = dialog.Content;
             content = content.RemoveNewLine();
@@ -67,7 +67,8 @@ public class ConversationStorage : IConversationStorage
             var role = blocks[1];
             var currentAgentId = blocks[2];
             var messageId = blocks[3];
-            var senderId = blocks[4];
+            var senderId = role == AgentRole.Function ? currentAgentId : blocks[4];
+            var function = role == AgentRole.Function ? blocks[4] : null;
             var text = dialog.Substring(4);
 
             results.Add(new RoleDialogModel(role, text)
@@ -77,6 +78,7 @@ public class ConversationStorage : IConversationStorage
                 Content = text,
                 CreatedAt = createdAt,
                 SenderId = senderId,
+                FunctionName = function
             });
         }
         return results;
