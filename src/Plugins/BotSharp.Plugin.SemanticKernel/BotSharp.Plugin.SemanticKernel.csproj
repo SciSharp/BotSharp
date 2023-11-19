@@ -10,9 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta7" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.0.0-beta7" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.6.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta8" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.0.0-beta8" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,7 +15,7 @@ namespace BotSharp.Plugin.SemanticKernel.UnitTests.Helpers
             _response = response;
         }
 
-        public async Task<ChatMessageBase> GetChatMessageAsync(CancellationToken cancellationToken = default)
+        public async Task<ChatMessage> GetChatMessageAsync(CancellationToken cancellationToken = default)
         {
             return await Task.FromResult(new MockModelResult(_response));
         }
@@ -25,7 +25,7 @@ namespace BotSharp.Plugin.SemanticKernel.UnitTests.Helpers
             return Task.FromResult(_response);
         }
 
-        public class MockModelResult : ChatMessageBase
+        public class MockModelResult : ChatMessage
         {
             public MockModelResult(string content) : base(AuthorRole.Assistant, content, null)
             {

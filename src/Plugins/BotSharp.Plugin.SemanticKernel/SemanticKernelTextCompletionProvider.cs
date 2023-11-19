@@ -19,7 +19,7 @@ namespace BotSharp.Plugin.SemanticKernel
     /// </summary>
     public class SemanticKernelTextCompletionProvider : Abstraction.MLTasks.ITextCompletion
     {
-        private readonly IKernel _kernel;
+        private readonly Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion _kernelTextCompletion;
         private readonly IServiceProvider _services;
         private readonly ITokenStatistics _tokenStatistics;
         private string? _model = null;
@@ -30,16 +30,14 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <summary>
         /// Create a new instance of <see cref="SemanticKernelTextCompletionProvider"/>
         /// </summary>
-        /// <param name="kernel"></param>
+        /// <param name="textCompletion"></param>
         /// <param name="services"></param>
         /// <param name="tokenStatistics"></param>
-        public SemanticKernelTextCompletionProvider(IKernel kernel,
+        public SemanticKernelTextCompletionProvider(Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion textCompletion,
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
         {
-            Requires.NotNull(kernel, nameof(IKernel));
-
-            this._kernel = kernel;
+            this._kernelTextCompletion = textCompletion;
             this._services = services;
             this._tokenStatistics = tokenStatistics;
         }
@@ -61,7 +59,7 @@ namespace BotSharp.Plugin.SemanticKernel
             Task.WaitAll(hooks.Select(hook =>
                 hook.BeforeGenerating(agent, new List<RoleDialogModel> { userMessage })).ToArray());
 
-            var completion = _kernel.GetService<Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion>(_model);
+            var completion = this._kernelTextCompletion;
             _tokenStatistics.StartTimer();
             var result = await completion.CompleteAsync(text);
             _tokenStatistics.StopTimer();

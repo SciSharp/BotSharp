@@ -24,17 +24,17 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
 {
     public class SemanticKernelChatCompletionProviderTests
     {
-        private readonly Mock<IKernel> _kernelMock;
+        private readonly Mock<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion> _chatCompletionMock;
         private readonly Mock<IServiceProvider> _servicesMock;
         private readonly Mock<ITokenStatistics> _tokenStatisticsMock;
         private readonly SemanticKernelChatCompletionProvider _provider;
 
         public SemanticKernelChatCompletionProviderTests()
         {
-            _kernelMock = new Mock<IKernel>();
+            _chatCompletionMock = new Mock<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>();
             _servicesMock = new Mock<IServiceProvider>();
             _tokenStatisticsMock = new Mock<ITokenStatistics>();
-            _provider = new SemanticKernelChatCompletionProvider(_kernelMock.Object, _servicesMock.Object, _tokenStatisticsMock.Object);
+            _provider = new SemanticKernelChatCompletionProvider(_chatCompletionMock, _servicesMock.Object, _tokenStatisticsMock.Object);
         }
 
         [Fact]
