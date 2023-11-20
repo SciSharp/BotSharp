@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Memory;
@@ -17,17 +18,20 @@ namespace BotSharp.Plugin.SemanticKernel
     public class SemanticKernelTextEmbeddingProvider : ITextEmbedding
     {
         private readonly ITextEmbeddingGeneration _embedding;
+        private readonly IConfiguration _configuration;
 
         /// <summary>
         /// Constructor of <see cref="SemanticKernelTextEmbeddingProvider"/>
         /// </summary>
-        public SemanticKernelTextEmbeddingProvider(ITextEmbeddingGeneration embedding)
+        public SemanticKernelTextEmbeddingProvider(ITextEmbeddingGeneration embedding, IConfiguration configuration)
         {
             this._embedding = embedding;
+            this._configuration = configuration;
+            this.Dimension = configuration.GetValue<int>("SemanticKernel:Dimension");
         }
 
         /// <inheritdoc/>
-        public int Dimension { get; }
+        public int Dimension { get; set; }
 
         /// <inheritdoc/>
         public async Task<float[]> GetVectorAsync(string text)

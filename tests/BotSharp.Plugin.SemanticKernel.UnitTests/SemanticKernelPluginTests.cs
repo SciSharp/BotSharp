@@ -16,6 +16,9 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
         {
             var services = new ServiceCollection();
             var config = new ConfigurationBuilder().Build();
+
+            services.AddSingleton<IConfiguration>(config);
+
             var plugin = new SemanticKernelPlugin();
             services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion>());
             services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>());

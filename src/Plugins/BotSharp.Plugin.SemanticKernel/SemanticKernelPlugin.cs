@@ -20,6 +20,7 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <inheritdoc/>
         public void RegisterDI(IServiceCollection services, IConfiguration config)
         {
+
             var provider = services.BuildServiceProvider().CreateScope().ServiceProvider;
 
             if (provider.GetService<Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion>() != null)
