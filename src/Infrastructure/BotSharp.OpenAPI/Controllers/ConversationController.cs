@@ -33,7 +33,7 @@ public class ConversationController : ControllerBase, IApiAdapter
             UserId = _user.Id
         };
         conv = await service.NewConversation(conv);
-        config.States.ForEach(x => conv.States[x.Split('=')[0]] = x.Split('=')[1]);
+        service.SetConversationId(conv.Id, config.States);
 
         return ConversationViewModel.FromSession(conv);
     }
