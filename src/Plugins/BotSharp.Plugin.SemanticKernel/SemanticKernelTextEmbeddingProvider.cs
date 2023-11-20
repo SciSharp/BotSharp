@@ -21,10 +21,9 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <summary>
         /// Constructor of <see cref="SemanticKernelTextEmbeddingProvider"/>
         /// </summary>
-        public SemanticKernelTextEmbeddingProvider(ITextEmbeddingGeneration embedding, int dimension)
+        public SemanticKernelTextEmbeddingProvider(ITextEmbeddingGeneration embedding)
         {
             this._embedding = embedding;
-            Dimension = dimension;
         }
 
         /// <inheritdoc/>

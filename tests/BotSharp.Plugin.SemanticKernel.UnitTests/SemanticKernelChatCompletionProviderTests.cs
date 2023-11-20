@@ -34,7 +34,7 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
             _chatCompletionMock = new Mock<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>();
             _servicesMock = new Mock<IServiceProvider>();
             _tokenStatisticsMock = new Mock<ITokenStatistics>();
-            _provider = new SemanticKernelChatCompletionProvider(_chatCompletionMock, _servicesMock.Object, _tokenStatisticsMock.Object);
+            _provider = new SemanticKernelChatCompletionProvider(_chatCompletionMock.Object, _servicesMock.Object, _tokenStatisticsMock.Object);
         }
 
         [Fact]
@@ -55,15 +55,13 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
                 .Returns(agentService.Object);
 
             var chatHistoryMock = new Mock<ChatHistory>();
-            var chatCompletionMock = new Mock<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>();
-            chatCompletionMock.Setup(x => x.CreateNewChat(It.IsAny<string>())).Returns(chatHistoryMock.Object);
-            chatCompletionMock.Setup(x => x.GetChatCompletionsAsync(chatHistoryMock.Object, It.IsAny<AIRequestSettings>(), It.IsAny<CancellationToken>()))
+            _chatCompletionMock.Setup(x => x.CreateNewChat(It.IsAny<string>())).Returns(chatHistoryMock.Object);
+            _chatCompletionMock.Setup(x => x.GetChatCompletionsAsync(chatHistoryMock.Object, It.IsAny<AIRequestSettings>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<IChatResult>
             {
                 new ResultHelper("How can I help you?")
             });
 
-            _kernelMock.Setup(x => x.GetService<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>(null)).Returns(chatCompletionMock.Object);
 
             // Act
             var result = _provider.GetChatCompletions(agent, conversations);
