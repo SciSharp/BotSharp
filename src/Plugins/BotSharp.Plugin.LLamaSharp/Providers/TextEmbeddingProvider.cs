@@ -15,7 +15,7 @@ public class TextEmbeddingProvider : ITextEmbedding
         _settings = settings;
     }
 
-    public float[] GetVector(string text)
+    public Task<float[]> GetVectorAsync(string text)
     {
         if (_embedder == null)
         {
@@ -23,10 +23,10 @@ public class TextEmbeddingProvider : ITextEmbedding
             _embedder = new LLamaEmbedder(new ModelParams(path));
         }
 
-        return _embedder.GetEmbeddings(text);
+        return Task.FromResult(_embedder.GetEmbeddings(text));
     }
 
-    public List<float[]> GetVectors(List<string> texts)
+    public Task<List<float[]>> GetVectorsAsync(List<string> texts)
     {
         throw new NotImplementedException();
     }

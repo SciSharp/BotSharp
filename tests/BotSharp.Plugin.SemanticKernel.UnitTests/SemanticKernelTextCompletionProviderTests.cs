@@ -37,10 +37,7 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
            
             var text = "Hello";
             var expected = "Hello, world!";
-            var _kernel = new KernelBuilder()
-               .WithAIService<ITextCompletion>("", new SemanticKernelHelper(expected))
-               .Build();
-            var provider = new SemanticKernelTextCompletionProvider(_kernel, _services, _tokenStatistics);
+            var provider = new SemanticKernelTextCompletionProvider(new SemanticKernelHelper(expected), _services, _tokenStatistics);
 
             // Act
             var result = await provider.GetCompletion(text, "agent1", "message1");

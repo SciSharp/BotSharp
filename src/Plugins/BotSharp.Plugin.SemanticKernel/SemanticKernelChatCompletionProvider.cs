@@ -18,7 +18,7 @@ namespace BotSharp.Plugin.SemanticKernel
     /// </summary>
     public class SemanticKernelChatCompletionProvider : IChatCompletion
     {
-        private IKernel _kernel;
+        private Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion _kernelChatCompletion;
         private IServiceProvider _services;
         private ITokenStatistics _tokenStatistics;
         private string? _model = null;
@@ -29,14 +29,14 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <summary>
         /// Create a new instance of <see cref="SemanticKernelChatCompletionProvider"/>
         /// </summary>
-        /// <param name="kernel"></param>
+        /// <param name="chatCompletion"></param>
         /// <param name="services"></param>
         /// <param name="tokenStatistics"></param>
-        public SemanticKernelChatCompletionProvider(IKernel kernel,
+        public SemanticKernelChatCompletionProvider(Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion chatCompletion,
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
         {
-            this._kernel = kernel;
+            this._kernelChatCompletion = chatCompletion;
             this._services = services;
             this._tokenStatistics = tokenStatistics;
         }
@@ -49,7 +49,7 @@ namespace BotSharp.Plugin.SemanticKernel
             Task.WaitAll(hooks.Select(hook =>
                 hook.BeforeGenerating(agent, conversations)).ToArray());
 
-            var completion = _kernel.GetService<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>(_model);
+            var completion = this._kernelChatCompletion;
 
             var agentService = _services.GetRequiredService<IAgentService>();
             var instruction = agentService.RenderedInstruction(agent);

@@ -31,7 +31,7 @@ public class KnowledgeService : IKnowledgeService
         await db.CreateCollection(knowledge.AgentId, textEmbedding.Dimension);
         foreach (var line in lines)
         {
-            var vec = textEmbedding.GetVector(line);
+            var vec = await textEmbedding.GetVectorAsync(line);
             await db.Upsert(knowledge.AgentId, idStart, vec, line);
             idStart++;
             Console.WriteLine($"Saved vector {idStart}/{lines.Count}: {line}\n");
@@ -41,7 +41,7 @@ public class KnowledgeService : IKnowledgeService
     public async Task<string> GetKnowledges(KnowledgeRetrievalModel retrievalModel)
     {
         var textEmbedding = GetTextEmbedding();
-        var vector = textEmbedding.GetVector(retrievalModel.Question);
+        var vector = await textEmbedding.GetVectorAsync(retrievalModel.Question);
 
         // Vector search
         var result = await GetVectorDb().Search(retrievalModel.AgentId, vector, limit: 10);
