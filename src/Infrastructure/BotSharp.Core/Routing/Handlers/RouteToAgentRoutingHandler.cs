@@ -42,7 +42,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         var agent = await agentService.LoadAgent(agentId);
         inst.AgentName = agent.Name;
 
-        if (inst.IsExecutionOnce)
+        if (inst.ExecutingDirectly)
         {
             message.Content = inst.Question;
         }

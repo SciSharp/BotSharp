@@ -17,6 +17,8 @@ public class Conversation
 
     public string Status { get; set; } = ConversationStatus.Open;
 
+    public string Channel { get; set; } = ConversationChannel.OpenAPI;
+
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }

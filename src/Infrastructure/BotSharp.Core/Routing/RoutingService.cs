@@ -31,7 +31,7 @@ public partial class RoutingService : IRoutingService
         _logger = logger;
     }
 
-    public async Task<RoleDialogModel> ExecuteOnce(Agent agent, RoleDialogModel message)
+    public async Task<RoleDialogModel> ExecuteDirectly(Agent agent, RoleDialogModel message)
     {
         var handlers = _services.GetServices<IRoutingHandler>();
 
@@ -48,7 +48,7 @@ public partial class RoutingService : IRoutingService
             Reason = message.Content,
             AgentName = agent.Name,
             OriginalAgent = agent.Name,
-            IsExecutionOnce = true
+            ExecutingDirectly = true
         };
 
         var result = await handler.Handle(this, inst, message);

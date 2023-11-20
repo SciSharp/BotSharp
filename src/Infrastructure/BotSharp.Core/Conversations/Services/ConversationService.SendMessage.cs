@@ -57,7 +57,7 @@ public partial class ConversationService
 
         var response = agentId == settings.RouterId ?
             await routing.InstructLoop(message) :
-            await routing.ExecuteOnce(agent, message);
+            await routing.ExecuteDirectly(agent, message);
 
         await HandleAssistantMessage(response, onMessageReceived);
 

@@ -13,7 +13,7 @@ public class FunctionCallFromLlm : RoutingArgs
     public JsonDocument? Arguments { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-    public bool IsExecutionOnce { get; set; }
+    public bool ExecutingDirectly { get; set; }
 
     public override string ToString()
     {

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.OpenAPI.ViewModels.Users;
 using System.Text.Json.Serialization;
@@ -20,6 +21,7 @@ public class ConversationViewModel
 
     public string Event { get; set; }
 
+    public string Channel { get; set; } = ConversationChannel.OpenAPI;
     public string Status { get; set; }
 
     [JsonPropertyName("updated_time")]
@@ -38,6 +40,7 @@ public class ConversationViewModel
             },
             AgentId = sess.AgentId,
             Title = sess.Title,
+            Channel = sess.Channel,
             Status = sess.Status,
             CreatedTime = sess.CreatedTime,
             UpdatedTime = sess.UpdatedTime

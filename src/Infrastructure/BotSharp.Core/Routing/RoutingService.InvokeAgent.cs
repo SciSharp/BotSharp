@@ -21,8 +21,7 @@ public partial class RoutingService
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
-        var settings = _services.GetRequiredService<ChatCompletionSetting>();
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider: settings.Provider, model: settings.Model);
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services);
 
         var message = dialogs.Last();
         var response = chatCompletion.GetChatCompletions(agent, dialogs);

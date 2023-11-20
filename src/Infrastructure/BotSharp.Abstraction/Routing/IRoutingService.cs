@@ -19,5 +19,5 @@ public interface IRoutingService
     /// <param name="agent"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    Task<RoleDialogModel> ExecuteOnce(Agent agent, RoleDialogModel message);
+    Task<RoleDialogModel> ExecuteDirectly(Agent agent, RoleDialogModel message);
 }
