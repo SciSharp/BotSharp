@@ -625,22 +625,20 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
-    public string GetConversationDialog(string conversationId)
+    public List<DialogElement> GetConversationDialogs(string conversationId)
     {
+        var dialogs = new List<DialogElement>();
         var convDir = FindConversationDirectory(conversationId);
         if (!string.IsNullOrEmpty(convDir))
         {
             var dialogDir = Path.Combine(convDir, "dialogs.txt");
-            if (File.Exists(dialogDir))
-            {
-                return File.ReadAllText(dialogDir);
-            }
+            dialogs = CollectDialogElements(dialogDir);
         }
 
-        return string.Empty;
+        return dialogs;
     }
 
-    public void UpdateConversationDialog(string conversationId, string dialogs)
+    public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
     {
         var convDir = FindConversationDirectory(conversationId);
         if (!string.IsNullOrEmpty(convDir))
@@ -648,7 +646,8 @@ public class FileRepository : IBotSharpRepository
             var dialogDir = Path.Combine(convDir, "dialogs.txt");
             if (File.Exists(dialogDir))
             {
-                File.WriteAllText(dialogDir, dialogs);
+                var texts = ParseDialogElements(dialogs);
+                File.AppendAllLines(dialogDir, texts);
             }
         }
 
@@ -662,15 +661,7 @@ public class FileRepository : IBotSharpRepository
         if (!string.IsNullOrEmpty(convDir))
         {
             var stateDir = Path.Combine(convDir, "state.dict");
-            if (File.Exists(stateDir))
-            {
-                var dict = File.ReadAllLines(stateDir);
-                foreach (var line in dict)
-                {
-                    var data = line.Split('=');
-                    curStates.Add(new StateKeyValue(data[0], data[1]));
-                }
-            }
+            curStates = CollectConversationStates(stateDir);
         }
 
         return curStates;
@@ -721,16 +712,16 @@ public class FileRepository : IBotSharpRepository
             var record = JsonSerializer.Deserialize<Conversation>(content, _options);
 
             var dialogFile = Path.Combine(convDir, "dialogs.txt");
-            if (record != null && File.Exists(dialogFile))
+            if (record != null)
             {
-                record.Dialog = File.ReadAllText(dialogFile);
+                record.Dialogs = CollectDialogElements(dialogFile);
             }
 
             var stateFile = Path.Combine(convDir, "state.dict");
-            if (record != null && File.Exists(stateFile))
+            if (record != null)
             {
-                var states = File.ReadLines(stateFile);
-                record.States = new ConversationState(states.Select(x => new StateKeyValue(x.Split('=')[0], x.Split('=')[1])).ToList());
+                var states = CollectConversationStates(stateFile);
+                record.States = new ConversationState(states);
             }
 
             return record;
@@ -772,14 +763,13 @@ public class FileRepository : IBotSharpRepository
 
             var json = File.ReadAllText(path);
             var record = JsonSerializer.Deserialize<Conversation>(json, _options);
-            if (record != null)
-            {
-                records.Add(record);
-            }
+            if (record == null) continue;
+
+            records.Add(record);
         }
         return records.GroupBy(r => r.UserId)
-            .Select(g => g.OrderByDescending(x => x.CreatedTime).First())
-            .ToList();
+                      .Select(g => g.OrderByDescending(x => x.CreatedTime).First())
+                      .ToList();
     }
 
     public void AddExectionLogs(string conversationId, List<string> logs)
@@ -943,6 +933,55 @@ public class FileRepository : IBotSharpRepository
         }
 
         return null;
+    }
+
+    private List<DialogElement> CollectDialogElements(string dialogDir)
+    {
+        var dialogs = new List<DialogElement>();
+
+        if (!File.Exists(dialogDir)) return dialogs;
+
+        var rawDialogs = File.ReadAllLines(dialogDir);
+        if (!rawDialogs.IsNullOrEmpty())
+        {
+            for (int i = 0; i < rawDialogs.Count(); i += 2)
+            {
+                var meta = rawDialogs[i];
+                var content = rawDialogs[i + 1];
+                var trimmed = content.Substring(4);
+                dialogs.Add(new DialogElement(meta, trimmed));
+            }
+        }
+        return dialogs;
+    }
+
+    private List<string> ParseDialogElements(List<DialogElement> dialogs)
+    {
+        var dialogTexts = new List<string>();
+        if (dialogs.IsNullOrEmpty()) return dialogTexts;
+
+        foreach (var element in dialogs)
+        {
+            dialogTexts.Add(element.MetaData);
+            var content = $"  - {element.Content}";
+            dialogTexts.Add(content);
+        }
+
+        return dialogTexts;
+    }
+
+    private List<StateKeyValue> CollectConversationStates(string stateDir)
+    {
+        var states = new List<StateKeyValue>();
+        if (!File.Exists(stateDir)) return states;
+
+        var dict = File.ReadAllLines(stateDir);
+        foreach (var line in dict)
+        {
+            var data = line.Split('=');
+            states.Add(new StateKeyValue(data[0], data[1]));
+        }
+        return states;
     }
     #endregion
 }
