@@ -136,7 +136,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public string GetConversationDialog(string conversationId)
+    public List<DialogElement> GetConversationDialogs(string conversationId)
     {
         throw new NotImplementedException();
     }
@@ -146,7 +146,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public void UpdateConversationDialog(string conversationId, string dialogs)
+    public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
     {
         throw new NotImplementedException();
     }

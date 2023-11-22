@@ -62,11 +62,10 @@ public partial class RoutingService
         if (!message.StopCompletion)
         {
             var routing = _services.GetRequiredService<RoutingContext>();
-            var agentId = routing.GetCurrentAgentId();
-
+            
             // Find response template
             var templateService = _services.GetRequiredService<IResponseTemplateService>();
-            var responseTemplate = await templateService.RenderFunctionResponse(agentId, message);
+            var responseTemplate = await templateService.RenderFunctionResponse(message.CurrentAgentId, message);
             if (!string.IsNullOrEmpty(responseTemplate))
             {
                 dialogs.Add(RoleDialogModel.From(message,
@@ -80,7 +79,8 @@ public partial class RoutingService
                     role: AgentRole.Function, 
                     content: message.Content));
 
-                // Send to LLM
+                // Send to Next LLM
+                var agentId = routing.GetCurrentAgentId();
                 await InvokeAgent(agentId, dialogs);
             }
         }

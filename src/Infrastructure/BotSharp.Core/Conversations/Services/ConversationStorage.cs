@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories;
+using System;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -19,49 +20,44 @@ public class ConversationStorage : IConversationStorage
     {
         var agentId = dialog.CurrentAgentId;
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dialogText = db.GetConversationDialog(conversationId);
-        var sb = new StringBuilder(dialogText);
+        var dialogElements = new List<DialogElement>();
 
         if (dialog.Role == AgentRole.Function)
         {
             // var args = dialog.FunctionArgs.RemoveNewLine();
-
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.FunctionName}");
-
-            var content = dialog.Content;
-            content = content.RemoveNewLine();
-            if (string.IsNullOrEmpty(content))
-            {
-                return;
-            }
-            sb.AppendLine($"  - {content}");
-        }
-        else
-        {
-            sb.AppendLine($"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.SenderId}");
+            var meta = $"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.FunctionName}";
             var content = dialog.Content.RemoveNewLine();
             if (string.IsNullOrEmpty(content))
             {
                 return;
             }
-            sb.AppendLine($"  - {content}");
+            dialogElements.Add(new DialogElement(meta, content));
+        }
+        else
+        {
+            var meta = $"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.SenderId}";
+            var content = dialog.Content.RemoveNewLine();
+            if (string.IsNullOrEmpty(content))
+            {
+                return;
+            }
+
+            dialogElements.Add(new DialogElement(meta, content));
         }
 
-        var updatedDialogs = sb.ToString();
-        db.UpdateConversationDialog(conversationId, updatedDialogs);
+        db.AppendConversationDialogs(conversationId, dialogElements);
     }
 
     public List<RoleDialogModel> GetDialogs(string conversationId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dialogText = db.GetConversationDialog(conversationId);
-        var dialogs = dialogText.SplitByNewLine();
+        var dialogs = db.GetConversationDialogs(conversationId);
 
         var results = new List<RoleDialogModel>();
-        for (int i = 0; i < dialogs.Length; i += 2)
+        foreach (var dialog in dialogs)
         {
-            var meta = dialogs[i];
-            var dialog = dialogs[i + 1];
+            var meta = dialog.MetaData;
+            var content = dialog.Content;
             var blocks = meta.Split('|');
             var createdAt = DateTime.Parse(blocks[0]);
             var role = blocks[1];
@@ -69,13 +65,11 @@ public class ConversationStorage : IConversationStorage
             var messageId = blocks[3];
             var senderId = role == AgentRole.Function ? currentAgentId : blocks[4];
             var function = role == AgentRole.Function ? blocks[4] : null;
-            var text = dialog.Substring(4);
-
-            results.Add(new RoleDialogModel(role, text)
+            
+            results.Add(new RoleDialogModel(role, content)
             {
                 CurrentAgentId = currentAgentId,
                 MessageId = messageId,
-                Content = text,
                 CreatedAt = createdAt,
                 SenderId = senderId,
                 FunctionName = function

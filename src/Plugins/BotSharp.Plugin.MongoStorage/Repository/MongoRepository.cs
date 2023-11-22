@@ -620,25 +620,27 @@ public class MongoRepository : IBotSharpRepository
         {
             Id = Guid.NewGuid().ToString(),
             ConversationId = conv.Id,
-            Dialog = string.Empty
+            Dialogs = new List<DialogMongoElement>()
         };
 
         _dc.Conversations.InsertOne(conv);
         _dc.ConversationDialogs.InsertOne(dialog);
     }
 
-    public string GetConversationDialog(string conversationId)
+    public List<DialogElement> GetConversationDialogs(string conversationId)
     {
-        if (string.IsNullOrEmpty(conversationId)) return string.Empty;
+        var dialogs = new List<DialogElement>();
+        if (string.IsNullOrEmpty(conversationId)) return dialogs;
 
         var filter = Builders<ConversationDialogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundDialog = _dc.ConversationDialogs.Find(filter).FirstOrDefault();
-        if (foundDialog == null) return string.Empty;
+        if (foundDialog == null) return dialogs;
 
-        return foundDialog.Dialog;
+        var formattedDialog = foundDialog.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList();
+        return formattedDialog ?? new List<DialogElement>();
     }
 
-    public void UpdateConversationDialog(string conversationId, string dialogs)
+    public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
 
@@ -650,7 +652,8 @@ public class MongoRepository : IBotSharpRepository
         var foundDialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
         if (foundDialog == null) return;
 
-        var updateDialog = Builders<ConversationDialogCollection>.Update.Set(x => x.Dialog, dialogs);
+        var dialogElements = dialogs.Select(x => DialogMongoElement.ToMongoElement(x)).ToList();
+        var updateDialog = Builders<ConversationDialogCollection>.Update.PushEach(x => x.Dialogs, dialogElements);
         var updateConv = Builders<ConversationCollection>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.ConversationDialogs.UpdateOne(filterDialog, updateDialog);
@@ -723,6 +726,8 @@ public class MongoRepository : IBotSharpRepository
 
         if (conv == null) return null;
 
+        var dialogElements = dialog?.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList() ?? new List<DialogElement>();
+        
         return new Conversation
         {
             Id = conv.Id.ToString(),
@@ -730,7 +735,7 @@ public class MongoRepository : IBotSharpRepository
             UserId = conv.UserId.ToString(),
             Title = conv.Title,
             Status = conv.Status,
-            Dialog = dialog?.Dialog ?? string.Empty,
+            Dialogs = dialogElements,
             States = new ConversationState(conv.States ?? new List<StateKeyValue>()),
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
@@ -767,9 +772,8 @@ public class MongoRepository : IBotSharpRepository
     {
         var records = new List<Conversation>();
         var conversations = _dc.Conversations.Aggregate()
-            .Group(c => c.UserId,
-                g => g.OrderByDescending(x => x.CreatedTime).First())
-            .ToList();
+                                             .Group(c => c.UserId, g => g.OrderByDescending(x => x.CreatedTime).First())
+                                             .ToList();
         return conversations.Select(c => new Conversation()
         {
             Id = c.Id.ToString(),
@@ -788,8 +792,8 @@ public class MongoRepository : IBotSharpRepository
 
         var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
         var update = Builders<ExectionLogCollection>.Update
-            .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
-            .PushEach(x => x.Logs, logs);
+                                                    .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
+                                                    .PushEach(x => x.Logs, logs);
 
         _dc.ExectionLogs.UpdateOne(filter, update, _options);
     }

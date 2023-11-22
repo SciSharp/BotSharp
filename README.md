@@ -39,11 +39,29 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 ```
 2. Run UI project, reference to [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md).
 
+### Core Modules
+
+The core module is mainly composed of abstraction and framework function implementation, combined with some common tools.
+
+- Plugin Loader
+- Hooking
+- Authentication
+- Agent Profile
+- Conversation & State
+- Routing & Planning
+- Templating
+- File Repository
+- Caching
+- Rich Content
+- LLM Provider
+
+
 ### Plugins
 
 BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate. Below are the bulit-in plugins:
 
 #### Data Storages
+- BotSharp.Plugin.MongoStorage
 - BotSharp.Plugin.MongoStorage
 
 #### LLMs
