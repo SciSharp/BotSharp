@@ -28,8 +28,8 @@ public interface IBotSharpRepository
 
     #region Conversation
     void CreateNewConversation(Conversation conversation);
-    string GetConversationDialog(string conversationId);
-    void UpdateConversationDialog(string conversationId, string dialogs);
+    List<DialogElement> GetConversationDialogs(string conversationId);
+    void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
     List<StateKeyValue> GetConversationStates(string conversationId);
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
     void UpdateConversationStatus(string conversationId, string status);
