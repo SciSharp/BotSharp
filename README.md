@@ -61,7 +61,7 @@ The core module is mainly composed of abstraction and framework function impleme
 BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate. Below are the bulit-in plugins:
 
 #### Data Storages
-- BotSharp.Plugin.MongoStorage
+- BotSharp.Plugin.FileRepository
 - BotSharp.Plugin.MongoStorage
 
 #### LLMs
@@ -74,11 +74,13 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 
 #### Messaging / Channel
 - BotSharp.OpenAPI
+- BotSharp.Plugin.ChatHub
 - BotSharp.Plugin.MetaMessenger
 - BotSharp.Plugin.Twilio
+- BotSharp.Plugin.TelegramBots
 - BotSharp.Plugin.WeChat
   
-#### RAGS
+#### RAGs
 - BotSharp.Plugin.KnowledgeBase
 - BotSharp.Plugin.Qdrant
 

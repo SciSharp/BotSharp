@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -65,6 +65,8 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
   </ItemGroup>
 
 </Project>
