@@ -36,7 +36,13 @@ public partial class ConversationService : IConversationService
     {
         throw new NotImplementedException();
     }
-
+    public async Task<Conversation> UpdateConversationTitle(string id, string title)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.UpdateConversationTitle(id, title);
+        var conversation = db.GetConversation(id);
+        return conversation;
+    }
     public async Task<Conversation> GetConversation(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();

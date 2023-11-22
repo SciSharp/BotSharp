@@ -128,5 +128,7 @@ public partial class ConversationService
 
         // Add to dialog history
         _storage.Append(_conversationId, response);
+        var conversation = _services.GetRequiredService<IConversationService>();
+        var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.Reason);
     }
 }

@@ -150,7 +150,10 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
-
+    public void UpdateConversationTitle(string conversationId, string title)
+    {
+        throw new NotImplementedException();
+    }
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         throw new NotImplementedException();
