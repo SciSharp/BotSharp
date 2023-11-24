@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core;
 using BotSharp.Core.Users.Services;
@@ -8,7 +9,12 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
+    });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

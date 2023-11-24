@@ -1,7 +1,6 @@
-
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template
 {
-    public class MultiSelectTemplate : IMessageTemplate
+    public class MultiSelectTemplateMessage : IRichMessage
     {
         public string Text { get; set; } = string.Empty;
 

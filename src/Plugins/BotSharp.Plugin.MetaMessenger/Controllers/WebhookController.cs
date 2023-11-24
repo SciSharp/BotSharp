@@ -1,21 +1,7 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Plugin.MetaMessenger.GraphAPIs;
-using BotSharp.Plugin.MetaMessenger.MessagingModels;
-using BotSharp.Plugin.MetaMessenger.Settings;
-using BotSharp.Plugin.MetaMessenger.WebhookModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Refit;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.MetaMessenger.Controllers;
 
@@ -41,7 +27,7 @@ public class WebhookController : ControllerBase
         [FromQuery(Name = "hub.challenge")] string challenge,
         [FromRoute] string agentId)
     {
-        Console.WriteLine(agentId);
+        Console.WriteLine($"Verificate {mode} {token} {challenge} {agentId}");
         return challenge;
     }
 
@@ -64,103 +50,32 @@ public class WebhookController : ControllerBase
         // https://developers.facebook.com/docs/messenger-platform/webhooks#verification-requests
         try
         {
+            string senderId = "";
+            string message = "";
+
             // received message
             if (req.Entry[0].Messaging[0].Message != null)
             {
-                var reply = new QuickReplyMessage();
-                var senderId = req.Entry[0].Messaging[0].Sender.Id;
-                var input = req.Entry[0].Messaging[0].Message.Text;
-
-                var setting = _services.GetRequiredService<MetaMessengerSetting>();
-                var messenger = _services.GetRequiredService<IMessengerGraphAPI>();
-                var jsonOpt = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                };
-
-                var recipient = JsonSerializer.Serialize(new { Id = senderId }, jsonOpt);
-
-                // Marking seen
-                await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
-                {
-                    AccessToken = setting.PageAccessToken,
-                    Recipient = recipient,
-                    SenderAction = SenderActionEnum.MarkSeen
-                });
-
-                // Typing on
-                await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
-                {
-                    AccessToken = setting.PageAccessToken,
-                    Recipient = recipient,
-                    SenderAction = SenderActionEnum.TypingOn
-                });
-
-                // Go to LLM
-                var conv = _services.GetRequiredService<IConversationService>();
-                conv.SetConversationId(senderId, new List<string> 
-                { 
-                    "channel=messenger" 
-                });
-
-                var result = await conv.SendMessage(agentId, new RoleDialogModel("user", input), async msg =>
-                {
-                    reply.Text = msg.Content;
-                }, async functionExecuting =>
-                {
-                    /*await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
-                    {
-                        AccessToken = setting.PageAccessToken,
-                        Recipient = JsonSerializer.Serialize(new { Id = sessionId }, jsonOpt),
-                        Message = JsonSerializer.Serialize(new { Text = "I'm pulling the relevent information, please wait a second ..." }, jsonOpt)
-                    });*/
-                }, async functionExecuted =>
-                {
-                    // Render structured data
-                    if (functionExecuted.Data != null)
-                    {
-                        // validate data format
-                        var json = JsonSerializer.Serialize(functionExecuted.Data, jsonOpt);
-
-                        try
-                        {
-                            var parsed = JsonSerializer.Deserialize<QuickReplyMessageItem[]>(json, jsonOpt);
-                            if (parsed.Length > 0)
-                            {
-                                reply.QuickReplies = parsed;
-                            }
-                        }
-                        catch(Exception ex)
-                        {
-                            _logger.LogError(ex, ex.Message);
-                        }
-                    }
-                });
-
-                // Response to user
-                await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
-                {
-                    AccessToken = setting.PageAccessToken,
-                    Recipient = recipient,
-                    Message = JsonSerializer.Serialize(reply, jsonOpt)
-                });
-
-                // Typing off
-                await messenger.SendMessage(setting.ApiVersion, setting.PageId, new SendingMessageRequest
-                {
-                    AccessToken = setting.PageAccessToken,
-                    Recipient = recipient,
-                    SenderAction = SenderActionEnum.TypingOff
-                });
+                senderId = req.Entry[0].Messaging[0].Sender.Id;
+                message = req.Entry[0].Messaging[0].Message.Text;
             }
+            else if (req.Entry[0].Messaging[0].Postback != null)
+            {
+                senderId = req.Entry[0].Messaging[0].Sender.Id;
+                message = req.Entry[0].Messaging[0].Postback.Payload;
+            }
+
+            var handler = _services.GetRequiredService<MessageHandleService>();
+
+            await handler.Handle(senderId, agentId, message);
         }
         catch (ApiException ex)
         {
-            Console.WriteLine(ex.Content);
+            _logger.LogError(ex.Content);
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.ToString());
+            _logger.LogError(ex.ToString());
         }
 
         return Ok(new WebhookResponse

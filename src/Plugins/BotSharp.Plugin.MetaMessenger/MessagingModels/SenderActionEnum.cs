@@ -1,5 +1,3 @@
-using System.Runtime.Serialization;
-
 namespace BotSharp.Plugin.MetaMessenger.MessagingModels;
 
 public enum SenderActionEnum

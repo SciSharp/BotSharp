@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Messaging.Models.RichContent
 {
-    public class RichContent<T> where T : IMessageTemplate
+    public class RichContent<T> where T : IRichMessage
     {
         public Recipient Recipient { get; set; } = new Recipient();
         /// <summary>

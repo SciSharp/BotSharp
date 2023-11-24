@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Messaging.Models;
+using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
@@ -104,7 +104,7 @@ public partial class ConversationService
 
         // Process rich content
         if (response.RichContent != null &&
-            response.RichContent is RichContent<IMessageTemplate> template &&
+            response.RichContent is RichContent<IRichMessage> template &&
             string.IsNullOrEmpty(template.Message.Text))
         {
             template.Message.Text = response.Content;
@@ -112,10 +112,10 @@ public partial class ConversationService
 
         // Only read content from RichContent for UI rendering. When richContent is null, create a basic text message for richContent.
         var state = _services.GetRequiredService<IConversationStateService>();
-        response.RichContent = response.RichContent ?? new RichContent<IMessageTemplate>
+        response.RichContent = response.RichContent ?? new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
-            Message = new TextMessage { Text = response.Content }
+            Message = new TextMessage(response.Content)
         };
 
         var hooks = _services.GetServices<IConversationHook>().ToList();

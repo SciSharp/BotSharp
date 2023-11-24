@@ -27,4 +27,10 @@ public class SendingMessageRequest
 
     [AliasAs("sender_action")]
     public SenderActionEnum? SenderAction { get; set; }
+
+    public SendingMessageRequest(string token, string recipient)
+    {
+        AccessToken = token;
+        Recipient = recipient;
+    }
 }

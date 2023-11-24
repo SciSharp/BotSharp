@@ -1,9 +1,4 @@
-using BotSharp.Plugin.MetaMessenger.MessagingModels;
 using Refit;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.MetaMessenger.GraphAPIs;
 

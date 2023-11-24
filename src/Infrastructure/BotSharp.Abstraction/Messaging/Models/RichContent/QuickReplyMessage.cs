@@ -1,7 +1,6 @@
-
 namespace BotSharp.Abstraction.Messaging.Models.RichContent
 {
-    public class QuickReplyMessage : IMessageTemplate
+    public class QuickReplyMessage : IRichMessage
     {
         public string Text { get; set; } = string.Empty;
 

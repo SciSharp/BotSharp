@@ -1,7 +1,6 @@
-
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template
 {
-    public class ButtonTemplate : IMessageTemplate
+    public class ButtonTemplateMessage : IRichMessage
     {
         public string Text { get; set; } = string.Empty;
 

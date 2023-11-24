@@ -1,13 +1,4 @@
-using BotSharp.Abstraction.Plugins;
-using BotSharp.Plugin.MetaMessenger.GraphAPIs;
-using BotSharp.Plugin.MetaMessenger.Settings;
-using BotSharp.Abstraction.Utilities;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Refit;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BotSharp.Plugin.MetaMessenger;
 
@@ -35,6 +26,8 @@ public class MetaMessengerPlugin : IBotSharpPlugin
                     var setting = sp.GetRequiredService<MetaMessengerSetting>();
                     c.BaseAddress = new Uri($"{setting.Endpoint}");
                 });
-            //.AddHttpMessageHandler<AuthHeaderHandler>();
+        //.AddHttpMessageHandler<AuthHeaderHandler>();
+
+        services.AddScoped<MessageHandleService>();
     }
 }
