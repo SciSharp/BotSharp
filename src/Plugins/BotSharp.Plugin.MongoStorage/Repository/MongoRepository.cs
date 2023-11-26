@@ -627,6 +627,17 @@ public class MongoRepository : IBotSharpRepository
         _dc.ConversationDialogs.InsertOne(dialog);
     }
 
+    public bool DeleteConversation(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+        var filterConv = Builders<ConversationCollection>.Filter.Eq(x => x.Id, conversationId);
+        var filterDialog = Builders<ConversationDialogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+
+        var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
+        var convDeleted = _dc.Conversations.DeleteMany(filterConv);
+        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0;
+    }
+
     public List<DialogElement> GetConversationDialogs(string conversationId)
     {
         var dialogs = new List<DialogElement>();

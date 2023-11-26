@@ -28,6 +28,7 @@ public interface IBotSharpRepository
 
     #region Conversation
     void CreateNewConversation(Conversation conversation);
+    bool DeleteConversation(string conversationId);
     List<DialogElement> GetConversationDialogs(string conversationId);
     void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
     List<StateKeyValue> GetConversationStates(string conversationId);

@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
-
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
@@ -623,6 +622,17 @@ public class FileRepository : IBotSharpRepository
         {
             File.WriteAllText(stateDir, string.Empty);
         }
+    }
+
+    public bool DeleteConversation(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
+        if (!Directory.Exists(dir)) return false;
+
+        Directory.Delete(dir, true);
+        return true;
     }
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
