@@ -32,10 +32,13 @@ public partial class ConversationService : IConversationService
         _logger = logger;
     }
 
-    public Task DeleteConversation(string id)
+    public async Task<bool> DeleteConversation(string id)
     {
-        throw new NotImplementedException();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var isDeleted = db.DeleteConversation(id);
+        return await Task.FromResult(isDeleted);
     }
+
     public async Task<Conversation> UpdateConversationTitle(string id, string title)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();

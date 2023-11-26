@@ -83,9 +83,11 @@ public class ConversationController : ControllerBase, IApiAdapter
     }
 
     [HttpDelete("/conversation/{conversationId}")]
-    public async Task DeleteConversation([FromRoute] string conversationId)
+    public async Task<bool> DeleteConversation([FromRoute] string conversationId)
     {
-        var service = _services.GetRequiredService<IConversationService>();
+        var conversationService = _services.GetRequiredService<IConversationService>();
+        var response = await conversationService.DeleteConversation(conversationId);
+        return response;
     }
 
     [HttpPost("/conversation/{agentId}/{conversationId}")]

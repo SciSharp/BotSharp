@@ -121,6 +121,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
+    public bool DeleteConversation(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+
     public Conversation GetConversation(string conversationId)
     {
         throw new NotImplementedException();

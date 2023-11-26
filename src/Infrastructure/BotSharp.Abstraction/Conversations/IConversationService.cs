@@ -10,7 +10,7 @@ public interface IConversationService
     Task<List<Conversation>> GetConversations();
     Task<Conversation> UpdateConversationTitle(string id, string title);
     Task<List<Conversation>> GetLastConversations();
-    Task DeleteConversation(string id);
+    Task<bool> DeleteConversation(string id);
 
     /// <summary>
     /// Send message to LLM
