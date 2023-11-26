@@ -12,5 +12,5 @@ public class WebhookMessageBody
 
     [JsonPropertyName("quick_reply")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public QuickReplyMessage QuickReply { get;set; }
+    public WebhookMessagePostback QuickReply { get;set; }
 }

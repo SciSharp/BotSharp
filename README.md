@@ -29,6 +29,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Build, test, evaluate and audit your LLM agent in one place.
 * Support different open source UI [Chatbot UI](src/Plugins/BotSharp.Plugin.ChatbotUI/Chatbot-UI.md), [HuggingChat UI](src/Plugins/BotSharp.Plugin.HuggingFace/HuggingChat-UI.md).
 * Abstract standard Rich Content data structure. Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
+* Provide RESTful Open API and WebSocket real-time communication.
 
 ### Quick Started
 1. Run backend service
@@ -61,7 +62,7 @@ The core module is mainly composed of abstraction and framework function impleme
 BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate. Below are the bulit-in plugins:
 
 #### Data Storages
-- BotSharp.Plugin.FileRepository
+- BotSharp.Core.Repository
 - BotSharp.Plugin.MongoStorage
 
 #### LLMs

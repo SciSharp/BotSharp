@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Messaging.Models.RichContent;
+using BotSharp.Abstraction.Utilities;
 
 namespace BotSharp.Plugin.MetaMessenger.Services;
 
@@ -53,34 +54,48 @@ public class MessageHandleService
         var replies = new List<IRichMessage>();
         var result = await conv.SendMessage(agentId, new RoleDialogModel("user", message), async msg =>
         {
-            if (!string.IsNullOrEmpty(msg.Content))
+            if (msg.RichContent != null)
+            {
+                // Official API doesn't support to show extra content above the products
+                if (!string.IsNullOrEmpty(msg.RichContent.Message.Text) &&
+                    // avoid duplicated text
+                    msg.RichContent.Message is not QuickReplyMessage)
+                {
+                    replies.Add(new TextMessage(msg.RichContent.Message.Text));
+                }
+
+                if (msg.RichContent.Message is GenericTemplateMessage genericTemplate)
+                {
+                    replies.Add(new AttachmentMessage
+                    {
+                        Attachment = new AttachmentBody
+                        {
+                            Payload = genericTemplate
+                        }
+                    });
+                }
+                else if (msg.RichContent.Message is CouponTemplateMessage couponTemplate)
+                {
+                    replies.Add(new AttachmentMessage
+                    {
+                        Attachment = new AttachmentBody
+                        {
+                            Payload = couponTemplate
+                        }
+                    });
+                }
+                else if (msg.RichContent.Message is QuickReplyMessage quickReplyMessage)
+                {
+                    replies.Add(quickReplyMessage);
+                }
+                else
+                {
+                    replies.Add(msg.RichContent.Message);
+                }
+            }
+            else
             {
                 replies.Add(new TextMessage(msg.Content));
-            }
-
-            if (msg.RichContent.Message is GenericTemplateMessage genericTemplate)
-            {
-                replies.Add(new AttachmentMessage
-                {
-                    Attachment = new AttachmentBody
-                    {
-                        Payload = genericTemplate
-                    }
-                });
-            }
-            else if (msg.RichContent.Message is CouponTemplateMessage couponTemplate)
-            {
-                replies.Add(new AttachmentMessage
-                {
-                    Attachment = new AttachmentBody
-                    {
-                        Payload = couponTemplate
-                    }
-                });
-            }
-            else if (msg.RichContent.Message is not TextMessage)
-            {
-                replies.Add(msg.RichContent.Message);
             }
         },
         _ => Task.CompletedTask,
@@ -90,10 +105,10 @@ public class MessageHandleService
         foreach(var reply in replies)
         {
             await messenger.SendMessage(setting.ApiVersion, setting.PageId,
-            new SendingMessageRequest(setting.PageAccessToken, recipient)
-            {
-                Message = JsonSerializer.Serialize(reply, _serializerOptions)
-            });
+                new SendingMessageRequest(setting.PageAccessToken, recipient)
+                {
+                    Message = JsonSerializer.Serialize(reply, _serializerOptions)
+                });
             Thread.Sleep(500);
         }
 

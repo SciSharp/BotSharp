@@ -57,7 +57,15 @@ public class WebhookController : ControllerBase
             if (req.Entry[0].Messaging[0].Message != null)
             {
                 senderId = req.Entry[0].Messaging[0].Sender.Id;
-                message = req.Entry[0].Messaging[0].Message.Text;
+
+                if (req.Entry[0].Messaging[0].Message.QuickReply != null)
+                {
+                    message = req.Entry[0].Messaging[0].Message.QuickReply.Payload;
+                }
+                else
+                {
+                    message = req.Entry[0].Messaging[0].Message.Text;
+                }
             }
             else if (req.Entry[0].Messaging[0].Postback != null)
             {
