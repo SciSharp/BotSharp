@@ -1,8 +1,8 @@
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template
 {
-    public class MultiSelectTemplateMessage : RichMessageBase, IRichMessage
+    public class MultiSelectTemplateMessage : IRichMessage
     {
-        public override string Type => "template";
+        public string Text { get; set; } = string.Empty;
 
         [JsonPropertyName("template_type")]
         public string TemplateType => "multi-select";

@@ -1,8 +1,8 @@
 namespace BotSharp.Abstraction.Messaging.Models.RichContent
 {
-    public class QuickReplyMessage : RichMessageBase, IRichMessage
+    public class QuickReplyMessage : IRichMessage
     {
-        public override string Type => "quick reply";
+        public string Text { get; set; } = string.Empty;
 
         [JsonPropertyName("quick_replies")]
         public List<QuickReplyElement> QuickReplies { get; set; } = new List<QuickReplyElement>();

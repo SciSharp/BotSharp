@@ -107,10 +107,11 @@ public class MessageHandleService
         // Response to user
         foreach(var reply in replies)
         {
+            var content = JsonSerializer.Serialize(reply, _serializerOptions);
             await messenger.SendMessage(setting.ApiVersion, setting.PageId,
                 new SendingMessageRequest(setting.PageAccessToken, recipient)
                 {
-                    Message = JsonSerializer.Serialize(reply, _serializerOptions)
+                    Message = content
                 });
             Thread.Sleep(500);
         }

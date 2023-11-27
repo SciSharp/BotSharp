@@ -1,8 +1,8 @@
 namespace BotSharp.Abstraction.Messaging.Models.RichContent;
 
-public class TextMessage : RichMessageBase, IRichMessage
+public class TextMessage : IRichMessage
 {
-    public string Type => "text";
+    public string Text { get; set; } = string.Empty;
 
     public TextMessage(string text)
     {
