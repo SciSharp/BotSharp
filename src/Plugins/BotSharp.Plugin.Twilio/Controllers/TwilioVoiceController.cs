@@ -47,13 +47,13 @@ public class TwilioVoiceController : TwilioController
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(sessionId, new List<string>
         {
+            $"channel={ConversationChannel.Phone}",
             $"calling_phone={input.DialCallSid}"
         });
 
         VoiceResponse response = default;
 
         var result = await conv.SendMessage(agentId,
-            ConversationChannel.Phone,
             new RoleDialogModel(AgentRole.User, input.SpeechResult),
             async msg =>
             {

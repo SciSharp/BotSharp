@@ -88,12 +88,14 @@ public class EvaluatingService : IEvaluatingService
     private async Task<RoleDialogModel> SendMessage(string agentId, string conversationId, string text)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, new List<string>());
+        conv.SetConversationId(conversationId, new List<string>
+        {
+            $"channel={ConversationChannel.OpenAPI}"
+        });
 
         RoleDialogModel response = default;
 
         await conv.SendMessage(agentId,
-            ConversationChannel.OpenAPI,
             new RoleDialogModel(AgentRole.User, text),
             async msg => response = msg,
             fnExecuting => Task.CompletedTask,

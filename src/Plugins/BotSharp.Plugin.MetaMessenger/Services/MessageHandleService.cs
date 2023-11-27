@@ -48,10 +48,13 @@ public class MessageHandleService
 
         // Go to LLM
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(sender, new List<string>());
+        conv.SetConversationId(sender, new List<string>
+        {
+            $"channel={ConversationChannel.Messenger}"
+        });
 
         var replies = new List<IRichMessage>();
-        var result = await conv.SendMessage(agentId, ConversationChannel.Messenger, 
+        var result = await conv.SendMessage(agentId,
             new RoleDialogModel(AgentRole.User, message), async msg =>
             {
                 if (msg.RichContent != null)
