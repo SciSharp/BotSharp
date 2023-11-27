@@ -13,6 +13,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import Link from 'svelte-link';
+	import { myInfo } from '$lib/services/auth-service.js';
 	import { signalr } from '$lib/services/signalr-service.js';
     import { sendMessageToHub, GetDialogs } from '$lib/services/conversation-service.js';
 	import { setAuthorization } from '$lib/helpers/http';
@@ -31,7 +32,10 @@
 	const params = $page.params;
 	
 	let text = "Hi";
-	
+
+	/** @type {import('$typedefs').UserModel} */
+	let currentUser;
+
 	// @ts-ignore
     let scrollbar;
 
@@ -39,8 +43,11 @@
     let dialogs = [];
 	
 	onMount(async () => {
-		const token = $page.url.searchParams.get('token');
+		const token = $page.url.searchParams.get('token') ?? "unauthorized";
 		setAuthorization(token);
+
+		currentUser = await myInfo(token);
+
 		dialogs = await GetDialogs(params.conversationId);
 		signalr.onMessageReceivedFromClient = onMessageReceivedFromClient;
 		signalr.onMessageReceivedFromCsr = onMessageReceivedFromCsr;
@@ -86,11 +93,6 @@
 		viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' }); // set scroll offset
 	  }, 200);
     }
-
-	const currentUser = {
-		name: 'Annie Holder',
-		isActive: true
-	};
 </script>
 
 <div class="d-lg-flex">
@@ -99,7 +101,7 @@
 			<div class="p-4 border-bottom" style="height: 10vh">
 				<div class="row">
 					<div class="col-md-4 col-9">
-						<h5 class="font-size-15 mb-1">Steven Franklin</h5>
+						<h5 class="font-size-15 mb-1">Guest</h5>
 						<p class="text-muted mb-0">
 							<i class="mdi mdi-circle text-success align-middle me-1" /> Active now
 						</p>
@@ -174,7 +176,7 @@
 						</li>
 						{#each dialogs as message}
 						<li id={'test_k' + message.message_id}
-							class={message.sender.role === 'client' ? 'right' : ''}>
+							class={message.sender.id === currentUser.id ? 'right' : ''}>
 							<div class="conversation-list">
 								<Dropdown>
 									<DropdownToggle class="dropdown-toggle" tag="span" color="">

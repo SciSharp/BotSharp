@@ -22,7 +22,7 @@
                 userToken = token;
             });
         } else {
-            userToken = $page.url.searchParams.get('token');
+            userToken = $page.url.searchParams.get('token') ?? "unauthorized";
         }
         setAuthorization(userToken);
         conversation = await newConversation(params.agentId);

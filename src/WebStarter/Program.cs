@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core;
 using BotSharp.Core.Users.Services;
+using BotSharp.Plugin.ChatHub;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -50,13 +51,13 @@ builder.Services.AddBotSharp(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCorsPolicy",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
+        builder => builder.WithOrigins("http://localhost:5010")
                    .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
+                   .AllowAnyHeader()
+                   .AllowCredentials());
 });
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -78,5 +79,7 @@ app.UseBotSharp();
 #if DEBUG
 app.UseCors("MyCorsPolicy");
 #endif
+
+app.MapHub<SignalRHub>("/chatHub");
 
 app.Run();

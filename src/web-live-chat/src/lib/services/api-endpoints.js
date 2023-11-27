@@ -2,6 +2,7 @@ const host = 'http://localhost:5500';
 
 // user
 export const tokenUrl = `${host}/token`;
+export const myInfoUrl = `${host}/user/my`;
 export const usrCreationUrl = `${host}/user`;
 
 // plugin
