@@ -32,12 +32,7 @@ public class MongoRepository : IBotSharpRepository
 
     public void Add<TTableInterface>(object entity)
     {
-        if (entity is Conversation conversation)
-        {
-            _conversations.Add(conversation);
-            _changedTableNames.Add(nameof(Conversation));
-        }
-        else if (entity is Agent agent)
+        if (entity is Agent agent)
         {
             _agents.Add(agent);
             _changedTableNames.Add(nameof(Agent));
@@ -61,33 +56,7 @@ public class MongoRepository : IBotSharpRepository
 
         foreach (var table in _changedTableNames)
         {
-            if (table == nameof(Conversation))
-            {
-                var conversations = _conversations.Select(x => new ConversationCollection
-                {
-                    Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
-                    AgentId = x.AgentId,
-                    UserId = !string.IsNullOrEmpty(x.UserId) ? x.UserId : string.Empty,
-                    Title = x.Title,
-                    States = x.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
-                    CreatedTime = x.CreatedTime,
-                    UpdatedTime = x.UpdatedTime
-                }).ToList();
-
-                foreach (var conversation in conversations)
-                {
-                    var filter = Builders<ConversationCollection>.Filter.Eq(x => x.Id, conversation.Id);
-                    var update = Builders<ConversationCollection>.Update
-                        .Set(x => x.AgentId, conversation.AgentId)
-                        .Set(x => x.UserId, conversation.UserId)
-                        .Set(x => x.Title, conversation.Title)
-                        .Set(x => x.States, conversation.States)
-                        .Set(x => x.CreatedTime, conversation.CreatedTime)
-                        .Set(x => x.UpdatedTime, conversation.UpdatedTime);
-                    _dc.Conversations.UpdateOne(filter, update, _options);
-                }
-            }
-            else if (table == nameof(Agent))
+            if (table == nameof(Agent))
             {
                 var agents = _agents.Select(x => new AgentCollection
                 {
@@ -610,6 +579,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = conversation.AgentId,
             UserId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty,
             Title = conversation.Title,
+            Channel = conversation.Channel,
             Status = conversation.Status,
             States = conversation.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
             CreatedTime = DateTime.UtcNow,
@@ -670,6 +640,7 @@ public class MongoRepository : IBotSharpRepository
         _dc.ConversationDialogs.UpdateOne(filterDialog, updateDialog);
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
+
     public void UpdateConversationTitle(string conversationId, string title)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -684,6 +655,7 @@ public class MongoRepository : IBotSharpRepository
 
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
+
     public List<StateKeyValue> GetConversationStates(string conversationId)
     {
         var states = new List<StateKeyValue>();
@@ -745,6 +717,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = conv.AgentId.ToString(),
             UserId = conv.UserId.ToString(),
             Title = conv.Title,
+            Channel = conv.Channel,
             Status = conv.Status,
             Dialogs = dialogElements,
             States = new ConversationState(conv.States ?? new List<StateKeyValue>()),
@@ -753,13 +726,20 @@ public class MongoRepository : IBotSharpRepository
         };
     }
 
-    public List<Conversation> GetConversations(string userId)
+    public List<Conversation> GetConversations(string? agentId = null, string? status = null, string? channel = null, string? userId = null)
     {
         var records = new List<Conversation>();
         if (string.IsNullOrEmpty(userId)) return records;
 
-        var filterByUserId = Builders<ConversationCollection>.Filter.Eq(x => x.UserId, userId);
-        var conversations = _dc.Conversations.Find(filterByUserId).ToList();
+        var builder = Builders<ConversationCollection>.Filter;
+        var filters = new List<FilterDefinition<ConversationCollection>>();
+
+        if (!string.IsNullOrEmpty(agentId)) filters.Add(builder.Eq(x => x.AgentId, agentId));
+        if (!string.IsNullOrEmpty(status)) filters.Add(builder.Eq(x => x.Status, status));
+        if (!string.IsNullOrEmpty(channel)) filters.Add(builder.Eq(x => x.Channel, channel));
+        if (!string.IsNullOrEmpty(userId)) filters.Add(builder.Eq(x => x.UserId, userId));
+
+        var conversations = _dc.Conversations.Find(builder.And(filters)).ToList();
 
         foreach (var conv in conversations)
         {
@@ -770,6 +750,7 @@ public class MongoRepository : IBotSharpRepository
                 AgentId = conv.AgentId.ToString(),
                 UserId = conv.UserId.ToString(),
                 Title = conv.Title,
+                Channel = conv.Channel,
                 Status = conv.Status,
                 CreatedTime = conv.CreatedTime,
                 UpdatedTime = conv.UpdatedTime
@@ -791,6 +772,7 @@ public class MongoRepository : IBotSharpRepository
             AgentId = c.AgentId.ToString(),
             UserId = c.UserId.ToString(),
             Title = c.Title,
+            Channel = c.Channel,
             Status = c.Status,
             CreatedTime = c.CreatedTime,
             UpdatedTime = c.UpdatedTime
