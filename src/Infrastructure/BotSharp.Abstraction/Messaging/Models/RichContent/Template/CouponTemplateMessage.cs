@@ -4,15 +4,17 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 /// Coupon Template
 /// https://developers.facebook.com/docs/messenger-platform/send-messages/template/coupon
 /// </summary>
-public class CouponTemplateMessage : IRichMessage, ITemplateMessage
+public class CouponTemplateMessage : RichMessageBase, IRichMessage, ITemplateMessage
 {
-    [JsonIgnore]
-    public string Text { get; set; }
-    public string Title { get; set; }
-    public string Subtitle { get; set; }
+    public override string Type => "template";
 
     [JsonPropertyName("template_type")]
-    public string TemplateType => "coupon";
+    public override string TemplateType => "coupon";
+
+    [JsonIgnore]
+    public override string Text { get; set; }
+    public string Title { get; set; }
+    public string Subtitle { get; set; }
 
     [JsonPropertyName("coupon_code")]
     public string CouponCode { get; set; }

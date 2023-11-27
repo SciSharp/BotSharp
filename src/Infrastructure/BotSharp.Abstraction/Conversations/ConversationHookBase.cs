@@ -81,4 +81,9 @@ public abstract class ConversationHookBase : IConversationHook
     {
         return Task.CompletedTask;
     }
+
+    public virtual Task OnUserAgentConnectedInitially(Conversation conversation)
+    {
+        return Task.CompletedTask;
+    }
 }

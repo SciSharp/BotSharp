@@ -17,6 +17,19 @@
  */
 
 /**
+ * @typedef {Object} AgentWelcomeInfo
+ * @property {string[]} messages - The welcome messages in Rich content format.
+ */
+
+/**
+ * @typedef {Object} AgentModel
+ * @property {string} id - Agent Id.
+ * @property {string} name - Agent name.
+ * @property {string} description - Agent description.
+ * @property {AgentWelcomeInfo} welcome_info - Welcome information.
+ */
+
+/**
  * @typedef {Object} ConversationModel
  * @property {string} id - The conversation id.
  * @property {string} title - The conversation title.

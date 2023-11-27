@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -15,12 +16,20 @@ public class AgentViewModel
     public List<AgentResponse> Responses { get; set; }
     public List<string> Samples { get; set; }
     public bool IsPublic { get; set; }
+
+    [JsonPropertyName("allow_routing")]
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }
     public List<string> Profiles { get; set; }
+
+    [JsonPropertyName("routing_rules")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<RoutingRule> RoutingRules { get; set; }
 
+    [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }
+
+    [JsonPropertyName("updated_datetime")]
     public DateTime UpdatedDateTime { get; set; }
 
     public static AgentViewModel FromAgent(Agent agent)

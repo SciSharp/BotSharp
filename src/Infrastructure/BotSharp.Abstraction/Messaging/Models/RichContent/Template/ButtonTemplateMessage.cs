@@ -3,12 +3,12 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template
     /// <summary>
     /// https://developers.facebook.com/docs/messenger-platform/send-messages/buttons
     /// </summary>
-    public class ButtonTemplateMessage : IRichMessage
+    public class ButtonTemplateMessage : RichMessageBase, IRichMessage, ITemplateMessage
     {
-        public string Text { get; set; } = string.Empty;
+        public override string Type => "template";
 
         [JsonPropertyName("template_type")]
-        public string TemplateType => "button"; 
+        public override string TemplateType => "button"; 
         public List<ButtonElement> Buttons { get; set; } = new List<ButtonElement>();
     }
 

@@ -11,6 +11,14 @@ public interface IConversationHook
     IConversationHook SetConversation(Conversation conversation);
 
     /// <summary>
+    /// Triggered when user connects with agent first time.
+    /// This hook is the good timing to show welcome infomation.
+    /// </summary>
+    /// <param name="conversation"></param>
+    /// <returns></returns>
+    Task OnUserAgentConnectedInitially(Conversation conversation);
+
+    /// <summary>
     /// Triggered once for every new conversation.
     /// </summary>
     /// <param name="conversation"></param>

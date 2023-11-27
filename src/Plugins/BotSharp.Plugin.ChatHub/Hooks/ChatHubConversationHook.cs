@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Messaging;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -12,6 +13,30 @@ public class ChatHubConversationHook : ConversationHookBase
     {
         _services = services;
         _chatHub = chatHub;
+    }
+
+    public override async Task OnUserAgentConnectedInitially(Conversation conversation)
+    {
+        var agentService = _services.GetService<IAgentService>();
+        var agent = await agentService.LoadAgent(conversation.AgentId);
+
+        // Check if the Welcome template exists.
+        var welcomeTemplate = agent.Templates.FirstOrDefault(x => x.Name == "welcome");
+        if (welcomeTemplate != null)
+        {
+            var messages = JsonSerializer.Deserialize<RichMessageBase[]>(welcomeTemplate.Content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            foreach (var message in messages)
+            {
+                await Task.Delay(300);
+                await OnResponseGenerated(new RoleDialogModel(AgentRole.Assistant, message.Text));
+            }
+        }
+
+        await base.OnUserAgentConnectedInitially(conversation);
     }
 
     public override async Task OnConversationInitialized(Conversation conversation)

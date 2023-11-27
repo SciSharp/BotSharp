@@ -14,6 +14,7 @@ export const agentDetailUrl = `${host}/agent/{id}`;
 
 // conversation
 export const conversationInitUrl = `${host}/conversation/{agentId}`
+export const conversationReadyUrl = `${host}/conversation/{conversationId}/ready`
 export const conversationMessageUrl = `${host}/conversation/{agentId}/{conversationId}`
 export const conversationsUrl = `${host}/conversations/{agentId}`
 export const dialogsUrl = `${host}/conversation/{conversationId}/dialogs`
