@@ -1,8 +1,10 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
 
@@ -416,35 +418,34 @@ public class MongoRepository : IBotSharpRepository
         };
     }
 
-    public List<Agent> GetAgents(string? name = null, bool? disabled = null, bool? allowRouting = null,
-        bool? isPublic = null, List<string>? agentIds = null)
+    public List<Agent> GetAgents(AgentFilter filter)
     {
         var agents = new List<Agent>();
         IQueryable<AgentCollection> query = _dc.Agents.AsQueryable();
 
-        if (!string.IsNullOrEmpty(name))
+        if (!string.IsNullOrEmpty(filter.AgentName))
         {
-            query = query.Where(x => x.Name.ToLower() == name.ToLower());
+            query = query.Where(x => x.Name.ToLower() == filter.AgentName.ToLower());
         }
         
-        if (disabled.HasValue)
+        if (filter.Disabled.HasValue)
         {
-            query = query.Where(x => x.Disabled == disabled);
+            query = query.Where(x => x.Disabled == filter.Disabled);
         }
 
-        if (allowRouting.HasValue)
+        if (filter.AllowRouting.HasValue)
         {
-            query = query.Where(x => x.AllowRouting == allowRouting);
+            query = query.Where(x => x.AllowRouting == filter.AllowRouting);
         }
 
-        if (isPublic.HasValue)
+        if (filter.IsPublic.HasValue)
         {
-            query = query.Where(x => x.IsPublic == isPublic);
+            query = query.Where(x => x.IsPublic == filter.IsPublic);
         }
 
-        if (agentIds != null)
+        if (filter.AgentIds != null)
         {
-            query = query.Where(x => agentIds.Contains(x.Id));
+            query = query.Where(x => filter.AgentIds.Contains(x.Id));
         }
 
         return query.ToList().Select(x => new Agent
@@ -480,7 +481,12 @@ public class MongoRepository : IBotSharpRepository
                     where ua.UserId == userId || u.ExternalId == userId
                     select ua.AgentId).ToList();
 
-        var agents = GetAgents(isPublic: true, agentIds: agentIds);
+        var filter = new AgentFilter
+        {
+            IsPublic = true,
+            AgentIds = agentIds
+        };
+        var agents = GetAgents(filter);
         return agents;
     }
 
@@ -726,18 +732,16 @@ public class MongoRepository : IBotSharpRepository
         };
     }
 
-    public List<Conversation> GetConversations(string? agentId = null, string? status = null, string? channel = null, string? userId = null)
+    public List<Conversation> GetConversations(ConversationFilter filter)
     {
         var records = new List<Conversation>();
-        if (string.IsNullOrEmpty(userId)) return records;
-
         var builder = Builders<ConversationCollection>.Filter;
         var filters = new List<FilterDefinition<ConversationCollection>>();
 
-        if (!string.IsNullOrEmpty(agentId)) filters.Add(builder.Eq(x => x.AgentId, agentId));
-        if (!string.IsNullOrEmpty(status)) filters.Add(builder.Eq(x => x.Status, status));
-        if (!string.IsNullOrEmpty(channel)) filters.Add(builder.Eq(x => x.Channel, channel));
-        if (!string.IsNullOrEmpty(userId)) filters.Add(builder.Eq(x => x.UserId, userId));
+        if (!string.IsNullOrEmpty(filter.AgentId)) filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
+        if (!string.IsNullOrEmpty(filter.Status)) filters.Add(builder.Eq(x => x.Status, filter.Status));
+        if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));
+        if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
 
         var conversations = _dc.Conversations.Find(builder.And(filters)).ToList();
 

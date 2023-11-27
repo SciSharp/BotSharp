@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Repositories.Filters;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -9,7 +10,8 @@ public partial class AgentService
 #endif
     public async Task<List<Agent>> GetAgents(bool? allowRouting = null)
     {
-        var agents = _db.GetAgents(allowRouting: allowRouting);
+        var filter = new AgentFilter { AllowRouting = allowRouting };
+        var agents = _db.GetAgents(filter);
         return await Task.FromResult(agents);
     }
 

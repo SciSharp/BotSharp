@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -57,8 +58,11 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(_user.Id);
-        var targetUserId = user.Role == UserRole.CSR ? null : user?.Id;
-        var conversations = db.GetConversations(userId: targetUserId);
+        var filter = new ConversationFilter
+        {
+            UserId = user.Role == UserRole.CSR ? string.Empty : user?.Id
+        };
+        var conversations = db.GetConversations(filter);
         return conversations.OrderByDescending(x => x.CreatedTime).ToList();
     }
 
