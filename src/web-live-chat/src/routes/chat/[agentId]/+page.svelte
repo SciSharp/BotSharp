@@ -13,7 +13,8 @@
     /** @type {import('$typedefs').ConversationModel} */
     let conversation;
     let conversationId = "undefined";
-    let agentId = "undefined";
+
+    let agentId = params.agentId;
 
     onMount(async () => {
         let userToken = "";
@@ -25,9 +26,11 @@
             userToken = $page.url.searchParams.get('token') ?? "unauthorized";
         }
         setAuthorization(userToken);
-        conversation = await newConversation(params.agentId);
+
+        // new conversation
+        conversation = await newConversation(agentId);
         conversationId = conversation.id;
-        agentId = params.agentId;
+
         window.location.href = `/chat/${agentId}/${conversationId}?token=${userToken}`;
     });
 </script>

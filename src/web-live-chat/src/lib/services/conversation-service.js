@@ -2,6 +2,7 @@ import {
         conversationInitUrl, 
         conversationMessageUrl,
         dialogsUrl, 
+        conversationReadyUrl,
     } from './api-endpoints.js';
 
 import axios from 'axios';
@@ -14,6 +15,16 @@ import axios from 'axios';
 export async function newConversation(agentId) {
     let url = conversationInitUrl.replace("{agentId}", agentId);
     const response = await axios.post(url, {});
+    return response.data;
+}
+
+/**
+ * Coversation is ready
+ * @param {string} conversationId 
+ */
+export async function conversationReady(conversationId) {
+    let url = conversationReadyUrl.replace("{conversationId}", conversationId);
+    const response = await axios.patch(url, {});
     return response.data;
 }
 

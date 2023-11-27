@@ -5,7 +5,7 @@
     <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>

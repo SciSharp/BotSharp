@@ -13,10 +13,9 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import Link from 'svelte-link';
-	import { myInfo } from '$lib/services/auth-service.js';
-	import { signalr } from '$lib/services/signalr-service.js';
-    import { sendMessageToHub, GetDialogs } from '$lib/services/conversation-service.js';
 	import { setAuthorization } from '$lib/helpers/http';
+	import { signalr } from '$lib/services/signalr-service.js';
+    import { sendMessageToHub, GetDialogs, conversationReady } from '$lib/services/conversation-service.js';
 
 	const options = {
 		scrollbars: {
@@ -32,9 +31,12 @@
 	const params = $page.params;
 	
 	let text = "Hi";
+	
+	/** @type {import('$typedefs').AgentModel} */
+	export let agent;
 
 	/** @type {import('$typedefs').UserModel} */
-	let currentUser;
+	export let currentUser;
 
 	// @ts-ignore
     let scrollbar;
@@ -46,13 +48,14 @@
 		const token = $page.url.searchParams.get('token') ?? "unauthorized";
 		setAuthorization(token);
 
-		currentUser = await myInfo(token);
-
 		dialogs = await GetDialogs(params.conversationId);
+
 		signalr.onMessageReceivedFromClient = onMessageReceivedFromClient;
 		signalr.onMessageReceivedFromCsr = onMessageReceivedFromCsr;
 		signalr.onMessageReceivedFromAssistant = onMessageReceivedFromAssistant;
 		await signalr.start();
+
+		await conversationReady(params.conversationId);
 
 		const scrollElements = document.querySelectorAll('.scrollbar');
 		scrollElements.forEach((item) => {

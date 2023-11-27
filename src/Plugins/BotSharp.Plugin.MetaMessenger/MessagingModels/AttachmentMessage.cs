@@ -10,4 +10,6 @@ public class AttachmentMessage : IRichMessage
 
     [JsonPropertyName("attachment")]
     public AttachmentBody Attachment { get; set; }
+
+    public string Type => "template";
 }
