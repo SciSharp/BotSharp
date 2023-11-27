@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Abstraction.Repositories;
@@ -16,8 +17,7 @@ public interface IBotSharpRepository
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
     Agent? GetAgent(string agentId);
-    List<Agent> GetAgents(string? name = null, bool? disabled = null, bool? allowRouting = null,
-        bool? isPublic = null, List<string>? agentIds = null);
+    List<Agent> GetAgents(AgentFilter filter);
     List<Agent> GetAgentsByUser(string userId);
     void BulkInsertAgents(List<Agent> agents);
     void BulkInsertUserAgents(List<UserAgent> userAgents);
@@ -35,7 +35,7 @@ public interface IBotSharpRepository
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
     void UpdateConversationStatus(string conversationId, string status);
     Conversation GetConversation(string conversationId);
-    List<Conversation> GetConversations(string? agentId = null, string? status = null, string? channel = null, string? userId = null);
+    List<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
     List<Conversation> GetLastConversations();
     void AddExectionLogs(string conversationId, List<string> logs);

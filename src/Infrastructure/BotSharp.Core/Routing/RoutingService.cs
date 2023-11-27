@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
@@ -130,7 +131,12 @@ public partial class RoutingService : IRoutingService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var agents = db.GetAgents(disabled: false, allowRouting: true);
+        var filter = new AgentFilter
+        {
+            Disabled = false,
+            AllowRouting = true
+        };
+        var agents = db.GetAgents(filter);
         var records = agents.SelectMany(x =>
         {
             x.RoutingRules.ForEach(r =>
@@ -160,7 +166,12 @@ public partial class RoutingService : IRoutingService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var agents = db.GetAgents(disabled: false, allowRouting: true);
+        var filter = new AgentFilter
+        {
+            Disabled = false,
+            AllowRouting = true
+        };
+        var agents = db.GetAgents(filter);
         return agents.Select(x => new RoutingItem
         {
             AgentId = x.Id,
