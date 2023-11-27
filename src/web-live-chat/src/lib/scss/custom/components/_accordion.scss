@@ -1,0 +1,52 @@
+
+//
+// accordion.scss
+//
+
+.custom-accordion {
+    .accordion-list {
+        display: flex;
+        border-radius: 7px;
+        background-color: var(--#{$prefix}tertiary-bg);
+        padding: 12px 20px;
+        color: var(--#{$prefix}body-color);
+        font-weight: $font-weight-semibold;
+        align-items: center;
+        justify-content: space-between;
+        &.collapsed {
+            i.accor-plus-icon {
+                &:before {
+                    content: "\F0415";
+                }
+            }
+        }
+
+        .accor-plus-icon{
+            display: inline-block;
+            font-size: 16px;
+            height: 24px;
+            width: 24px;
+            line-height: 22px;
+            background-color: var(--#{$prefix}secondary-bg);
+            text-align: center;
+            border-radius: 50%;
+        }
+    }
+
+    
+    a {
+
+        &.collapsed {
+            i.accor-down-icon {
+                &:before {
+                    content: "\F0140";
+                }
+            }
+        }
+    }
+
+
+    .card-body {
+        color: var(--#{prefix}secondary-color);
+    }
+}

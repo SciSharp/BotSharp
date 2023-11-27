@@ -1,0 +1,51 @@
+/* =============
+   General
+============= */
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+// .h1,.h2,.h3,.h4,.h5,.h6,
+// h1,h2,h3,h4,h5,h6 {
+//   color: $gray-700;
+// }
+
+a {
+  text-decoration: none !important;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: $form-label-margin-bottom;
+}
+
+// blockquote
+
+.blockquote {
+  padding: 10px 20px;
+  border-left: 4px solid var(--#{$variable-prefix}border-color);
+}
+
+.blockquote-reverse {
+  border-left: 0;
+  border-right: 4px solid var(--#{$variable-prefix}border-color);
+  text-align: right;
+}
+
+// container
+
+.container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl{
+  @media (min-width: 1200px){
+      max-width: 1140px;
+  }
+}
+
+// row
+
+.row{
+  > * {
+      position: relative;
+  }
+}

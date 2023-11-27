@@ -1,0 +1,284 @@
+// 
+// structure-rtl.scss
+//
+
+// topbar.scss
+
+.navbar-header {
+  padding: 0 0 0 calc(#{$grid-gutter-width} / 2);
+}
+
+.app-search{
+  .form-control{
+    padding-right: 40px;
+    padding-left: 20px;
+  }
+  span {
+    left: auto;
+    right: 13px;
+  }
+}
+
+.noti-icon {
+  .badge {
+    right: auto;
+    left: 4px;
+  }
+}
+
+.main-content {
+  margin-left: 0px;
+  margin-right: $sidebar-width;
+}
+
+.footer {
+  left: 0px;
+  right: $sidebar-width;
+}
+
+// Sidebar
+
+#sidebar-menu {
+  .has-arrow {
+    &:after {
+      float: left;
+    }
+  }
+
+  ul {
+    li {
+      ul.sub-menu {
+        li {
+          a {
+            padding: .4rem 3.5rem .4rem 1.5rem;
+          }
+
+          ul.sub-menu {
+
+            li {
+              a {
+                padding: .4rem 4.5rem .4rem 1.5rem;
+                font-size: 13.5px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.vertical-collpsed {
+  .main-content {
+    margin-left: 0px;
+    margin-right: $sidebar-collapsed-width;
+  }
+
+  .footer {
+    left: 0px;
+    right: $sidebar-collapsed-width;
+  }
+
+  .vertical-menu {
+    #sidebar-menu {
+      >ul {
+        >li {
+          >a {
+            i {
+              margin-left: 0;
+              margin-right: 4px;
+            }
+
+            span {
+              padding-right: 25px;
+              padding-left: 0;
+            }
+          }
+
+          &:hover {
+            >ul {
+              left: 0;
+              right: 70px;
+            }
+          }
+        }
+
+        ul li:hover>ul {
+          left: auto;
+          right: 190px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 992px) {
+
+  .main-content {
+    margin-right: 0 !important;
+  }
+
+  .footer {
+    right: 0;
+  }
+}
+
+// right-sidebar.scss
+//
+
+.right-bar {
+  float: left !important;
+  left: -($rightbar-width + 10px);
+  right: auto;
+
+  .user-box {
+    .user-img {
+      .user-edit {
+        right: 0;
+        left: -5px;
+      }
+    }
+  }
+}
+
+.right-bar-enabled {
+  .right-bar {
+    left: 0;
+    right: auto;
+  }
+}
+
+
+// Compact sidebar
+
+body[data-sidebar-size=small] {
+  #sidebar-menu {
+    ul {
+      li {
+        ul.sub-menu {
+          li {
+            a {
+              padding-right: 1.5rem;
+            }
+
+            ul.sub-menu {
+
+              li {
+                a {
+                  padding-right: 1.5rem;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &.vertical-collpsed {
+    .vertical-menu {
+      #sidebar-menu {
+        text-align: right;
+      }
+    }
+
+    .main-content {
+      margin-left: 0;
+      margin-right: $sidebar-collapsed-width;
+    }
+
+    body[data-sidebar-size=small].vertical-collpsed .footer {
+      left: 70px;
+    }
+  }
+
+  .main-content {
+    margin-right: $sidebar-width-sm;
+    margin-left: 0;
+  }
+}
+
+// Horizontal layout
+
+body[data-layout=horizontal] {
+  .main-content {
+    margin-right: 0 !important;
+  }
+
+  .footer {
+    right: 0 !important;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .topnav {
+    .navbar-nav {
+      .nav-item {
+        &:first-of-type {
+          .nav-link {
+            padding-left: 1.3rem;
+            padding-right: 0;
+          }
+        }
+      }
+    }
+
+    .dropdown {
+      .dropdown-menu {
+        right: 0px;
+        left: auto;
+      }
+    }
+  }
+}
+
+.arrow-down {
+  &:after {
+    margin-left: 0px;
+    margin-right: 10px;
+  }
+}
+
+.navbar-nav {
+  .dropdown-menu {
+    text-align: right;
+  }
+}
+
+@media (min-width: 992px) {
+  .topnav {
+    .dropdown {
+      .dropdown-menu {
+        .arrow-down::after {
+          right: auto;
+          left: 15px;
+          transform: rotate(45deg) translateY(-50%);
+        }
+
+        .dropdown {
+          .dropdown-menu {
+            right: 100% !important;
+            left: auto !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 991.98px) {
+  .topnav {
+    .dropdown {
+      .dropdown-menu {
+        padding-left: 0px;
+        padding-right: 15px;
+      }
+    }
+  }
+}
+
+.topnav-menu{
+  .navbar-nav{
+    padding-right: 0;
+  }
+}

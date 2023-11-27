@@ -1,0 +1,31 @@
+
+//
+// Rating
+//
+
+.symbol{
+  border-color: var(--#{$prefix}secondary-bg);
+}
+
+.rating-symbol-background, .rating-symbol-foreground {
+  font-size: 24px;
+}
+
+.symbol-empty {
+  background-color: var(--#{$prefix}gray-400);
+}
+
+.rating-symbol-foreground {
+  top: 0px;
+}
+
+.rating-star{
+  > span{
+    display: inline-block;
+    vertical-align: middle;
+
+    &.badge{
+      margin-left: 4px;
+    }
+  }
+}
