@@ -57,7 +57,8 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(_user.Id);
-        var conversations = db.GetConversations(user.Role == UserRole.CSR ? null : user?.Id);
+        var targetUserId = user.Role == UserRole.CSR ? null : user?.Id;
+        var conversations = db.GetConversations(userId: targetUserId);
         return conversations.OrderByDescending(x => x.CreatedTime).ToList();
     }
 

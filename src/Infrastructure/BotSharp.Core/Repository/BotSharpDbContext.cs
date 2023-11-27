@@ -131,7 +131,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<Conversation> GetConversations(string userId)
+    public List<Conversation> GetConversations(string? agentId = null, string? status = null, string? channel = null, string? userId = null)
     {
         throw new NotImplementedException();
     }

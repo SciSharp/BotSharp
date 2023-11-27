@@ -9,7 +9,7 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    public async Task<bool> SendMessage(string agentId, 
+    public async Task<bool> SendMessage(string agentId,
         RoleDialogModel message,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
@@ -73,12 +73,15 @@ public partial class ConversationService
     {
         var converation = await GetConversation(_conversationId);
 
-        // Create conversation if this conversation not exists
+        // Create conversation if this conversation does not exist
         if (converation == null)
         {
+            var state = _services.GetRequiredService<IConversationStateService>();
+            var channel = state.GetState("channel");
             var sess = new Conversation
             {
                 Id = _conversationId,
+                Channel = channel,
                 AgentId = agentId
             };
             converation = await NewConversation(sess);

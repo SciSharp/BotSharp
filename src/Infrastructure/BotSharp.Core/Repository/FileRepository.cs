@@ -128,12 +128,7 @@ public class FileRepository : IBotSharpRepository
 
     public void Add<TTableInterface>(object entity)
     {
-        if (entity is Conversation conversation)
-        {
-            _conversations.Add(conversation);
-            _changedTableNames.Add(nameof(Conversation));
-        }
-        else if (entity is Agent agent)
+        if (entity is Agent agent)
         {
             _agents.Add(agent);
             _changedTableNames.Add(nameof(Agent));
@@ -159,20 +154,7 @@ public class FileRepository : IBotSharpRepository
         // Persist to disk
         foreach (var table in _changedTableNames)
         {
-            if (table == nameof(Conversation))
-            {
-                foreach (var conversation in _conversations)
-                {
-                    var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversation.Id);
-                    if (!Directory.Exists(dir))
-                    {
-                        Directory.CreateDirectory(dir);
-                    }
-                    var path = Path.Combine(dir, "conversation.json");
-                    File.WriteAllText(path, JsonSerializer.Serialize(conversation, _options));
-                }
-            }
-            else if (table == nameof(Agent))
+            if (table == nameof(Agent))
             {
                 foreach (var agent in _agents)
                 {
@@ -730,32 +712,29 @@ public class FileRepository : IBotSharpRepository
     public Conversation GetConversation(string conversationId)
     {
         var convDir = FindConversationDirectory(conversationId);
-        if (!string.IsNullOrEmpty(convDir))
+        if (string.IsNullOrEmpty(convDir)) return null;
+
+        var convFile = Path.Combine(convDir, "conversation.json");
+        var content = File.ReadAllText(convFile);
+        var record = JsonSerializer.Deserialize<Conversation>(content, _options);
+
+        var dialogFile = Path.Combine(convDir, "dialogs.txt");
+        if (record != null)
         {
-            var convFile = Path.Combine(convDir, "conversation.json");
-            var content = File.ReadAllText(convFile);
-            var record = JsonSerializer.Deserialize<Conversation>(content, _options);
-
-            var dialogFile = Path.Combine(convDir, "dialogs.txt");
-            if (record != null)
-            {
-                record.Dialogs = CollectDialogElements(dialogFile);
-            }
-
-            var stateFile = Path.Combine(convDir, "state.dict");
-            if (record != null)
-            {
-                var states = CollectConversationStates(stateFile);
-                record.States = new ConversationState(states);
-            }
-
-            return record;
+            record.Dialogs = CollectDialogElements(dialogFile);
         }
 
-        return null;
+        var stateFile = Path.Combine(convDir, "state.dict");
+        if (record != null)
+        {
+            var states = CollectConversationStates(stateFile);
+            record.States = new ConversationState(states);
+        }
+
+        return record;
     }
 
-    public List<Conversation> GetConversations(string userId)
+    public List<Conversation> GetConversations(string? agentId = null, string? status = null, string? channel = null, string? userId = null)
     {
         var records = new List<Conversation>();
         var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
@@ -767,10 +746,16 @@ public class FileRepository : IBotSharpRepository
 
             var json = File.ReadAllText(path);
             var record = JsonSerializer.Deserialize<Conversation>(json, _options);
-            if (record != null && (record.UserId == userId || userId == null))
-            {
-                records.Add(record);
-            }
+            if (record == null) continue;
+
+            var matched = true;
+            if (!string.IsNullOrEmpty(agentId)) matched = matched && record.AgentId == agentId;
+            if (!string.IsNullOrEmpty(status)) matched = matched && record.Status == status;
+            if (!string.IsNullOrEmpty(channel)) matched = matched && record.Channel == channel;
+            if (!string.IsNullOrEmpty(userId)) matched = matched && record.UserId == userId;
+
+            if (!matched) continue;
+            records.Add(record);
         }
 
         return records;

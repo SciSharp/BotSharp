@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Utilities;
 
@@ -48,58 +50,59 @@ public class MessageHandleService
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(sender, new List<string>
         {
-            "channel=messenger"
+            $"channel={ConversationChannel.Messenger}"
         });
 
         var replies = new List<IRichMessage>();
-        var result = await conv.SendMessage(agentId, new RoleDialogModel("user", message), async msg =>
-        {
-            if (msg.RichContent != null)
+        var result = await conv.SendMessage(agentId,
+            new RoleDialogModel(AgentRole.User, message), async msg =>
             {
-                // Official API doesn't support to show extra content above the products
-                if (!string.IsNullOrEmpty(msg.RichContent.Message.Text) &&
-                    // avoid duplicated text
-                    msg.RichContent.Message is not QuickReplyMessage)
+                if (msg.RichContent != null)
                 {
-                    replies.Add(new TextMessage(msg.RichContent.Message.Text));
-                }
+                    // Official API doesn't support to show extra content above the products
+                    if (!string.IsNullOrEmpty(msg.RichContent.Message.Text) &&
+                        // avoid duplicated text
+                        msg.RichContent.Message is not QuickReplyMessage)
+                    {
+                        replies.Add(new TextMessage(msg.RichContent.Message.Text));
+                    }
 
-                if (msg.RichContent.Message is GenericTemplateMessage genericTemplate)
-                {
-                    replies.Add(new AttachmentMessage
+                    if (msg.RichContent.Message is GenericTemplateMessage genericTemplate)
                     {
-                        Attachment = new AttachmentBody
+                        replies.Add(new AttachmentMessage
                         {
-                            Payload = genericTemplate
-                        }
-                    });
-                }
-                else if (msg.RichContent.Message is CouponTemplateMessage couponTemplate)
-                {
-                    replies.Add(new AttachmentMessage
+                            Attachment = new AttachmentBody
+                            {
+                                Payload = genericTemplate
+                            }
+                        });
+                    }
+                    else if (msg.RichContent.Message is CouponTemplateMessage couponTemplate)
                     {
-                        Attachment = new AttachmentBody
+                        replies.Add(new AttachmentMessage
                         {
-                            Payload = couponTemplate
-                        }
-                    });
-                }
-                else if (msg.RichContent.Message is QuickReplyMessage quickReplyMessage)
-                {
-                    replies.Add(quickReplyMessage);
+                            Attachment = new AttachmentBody
+                            {
+                                Payload = couponTemplate
+                            }
+                        });
+                    }
+                    else if (msg.RichContent.Message is QuickReplyMessage quickReplyMessage)
+                    {
+                        replies.Add(quickReplyMessage);
+                    }
+                    else
+                    {
+                        replies.Add(msg.RichContent.Message);
+                    }
                 }
                 else
                 {
-                    replies.Add(msg.RichContent.Message);
+                    replies.Add(new TextMessage(msg.Content));
                 }
-            }
-            else
-            {
-                replies.Add(new TextMessage(msg.Content));
-            }
-        },
-        _ => Task.CompletedTask,
-        _ => Task.CompletedTask);
+            },
+            _ => Task.CompletedTask,
+            _ => Task.CompletedTask);
 
         // Response to user
         foreach(var reply in replies)

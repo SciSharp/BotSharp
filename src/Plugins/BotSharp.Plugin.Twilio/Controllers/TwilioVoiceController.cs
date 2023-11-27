@@ -15,6 +15,7 @@ using Twilio.Http;
 using Twilio.TwiML.Messaging;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Conversations.Enums;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
 
@@ -46,20 +47,22 @@ public class TwilioVoiceController : TwilioController
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(sessionId, new List<string>
         {
-            "channel=phone",
+            $"channel={ConversationChannel.Phone}",
             $"calling_phone={input.DialCallSid}"
         });
 
         VoiceResponse response = default;
 
-        var result = await conv.SendMessage(agentId, new RoleDialogModel(AgentRole.User, input.SpeechResult), async msg =>
-        {
-            response = HangUp(msg.Content);
-        }, async functionExecuting =>
-        {
-        }, async functionExecuted =>
-        {
-        });
+        var result = await conv.SendMessage(agentId,
+            new RoleDialogModel(AgentRole.User, input.SpeechResult),
+            async msg =>
+            {
+                response = HangUp(msg.Content);
+            }, async functionExecuting =>
+            {
+            }, async functionExecuted =>
+            {
+            });
 
         return TwiML(response);
     }
