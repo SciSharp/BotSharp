@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Conversations.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ public class OpenAiMessageInput : IncomingMessageModel
 {
     public string AgentId { get; set; } = string.Empty;
     public string ConversationId { get; set; } = string.Empty;
-    public override string Channel { get; set; } = "webchat";
+    public override string Channel { get; set; } = ConversationChannel.WebChat;
 
     public List<OpenAiMessageBody> Messages { get; set; } = new List<OpenAiMessageBody>();
 

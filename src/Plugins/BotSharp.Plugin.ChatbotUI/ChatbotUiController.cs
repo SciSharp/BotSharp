@@ -77,12 +77,12 @@ public class ChatbotUiController : ControllerBase, IApiAdapter
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(input.ConversationId, input.States);
         conv.States.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("channel", input.Channel)
-            .SetState("temperature", input.Temperature)
-            .SetState("sampling_factor", input.SamplingFactor);
+                   .SetState("model", input.Model)
+                   .SetState("temperature", input.Temperature)
+                   .SetState("sampling_factor", input.SamplingFactor);
 
-        var result = await conv.SendMessage(input.AgentId, 
+        var result = await conv.SendMessage(input.AgentId,
+            input.Channel,
             message, 
             async msg => 
                 await OnChunkReceived(outputStream, msg),

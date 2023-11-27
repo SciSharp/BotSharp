@@ -712,7 +712,7 @@ public class FileRepository : IBotSharpRepository
     public Conversation GetConversation(string conversationId)
     {
         var convDir = FindConversationDirectory(conversationId);
-        if (!string.IsNullOrEmpty(convDir)) return null;
+        if (string.IsNullOrEmpty(convDir)) return null;
 
         var convFile = Path.Combine(convDir, "conversation.json");
         var content = File.ReadAllText(convFile);

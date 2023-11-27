@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.ApiAdapters;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.OpenAPI.ViewModels.Conversations;
@@ -30,6 +31,7 @@ public class ConversationController : ControllerBase, IApiAdapter
         var conv = new Conversation
         {
             AgentId = agentId,
+            Channel = ConversationChannel.OpenAPI,
             UserId = _user.Id
         };
         conv = await service.NewConversation(conv);
@@ -97,15 +99,14 @@ public class ConversationController : ControllerBase, IApiAdapter
     {
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(conversationId, input.States);
-        conv.States.SetState("channel", input.Channel)
-            .SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("temperature", input.Temperature)
-            .SetState("sampling_factor", input.SamplingFactor);
+        conv.States.SetState("provider", input.Provider)
+                   .SetState("model", input.Model)
+                   .SetState("temperature", input.Temperature)
+                   .SetState("sampling_factor", input.SamplingFactor);
 
         var response = new ChatResponseModel();
         var inputMsg = new RoleDialogModel("user", input.Text);
-        await conv.SendMessage(agentId, inputMsg,
+        await conv.SendMessage(agentId, input.Channel, inputMsg,
             async msg =>
             {
                 response.Text = msg.Content;

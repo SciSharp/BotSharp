@@ -143,11 +143,12 @@ public partial class RoutingService : IRoutingService
 
         // Filter agents by profile
         var state = _services.GetRequiredService<IConversationStateService>();
-        var name = state.GetState("channel");
-        var specifiedProfile = agents.FirstOrDefault(x => x.Profiles.Contains(name));
+        var conversation = db.GetConversation(state.GetConversationId());
+        var channel = conversation?.Channel;
+        var specifiedProfile = agents.FirstOrDefault(x => x.Profiles.Contains(channel));
         if (specifiedProfile != null)
         {
-            records = records.Where(x => specifiedProfile.Profiles.Contains(name)).ToArray();
+            records = records.Where(x => specifiedProfile.Profiles.Contains(channel)).ToArray();
         }
 
         return records;

@@ -9,13 +9,14 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    public async Task<bool> SendMessage(string agentId, 
+    public async Task<bool> SendMessage(string agentId,
+        string channel,
         RoleDialogModel message,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
-        var conversation = await GetConversationRecord(agentId);
+        var conversation = await GetConversationRecord(agentId, channel);
 
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
@@ -69,16 +70,17 @@ public partial class ConversationService
         return true;
     }
 
-    private async Task<Conversation> GetConversationRecord(string agentId)
+    private async Task<Conversation> GetConversationRecord(string agentId, string channel)
     {
         var converation = await GetConversation(_conversationId);
 
-        // Create conversation if this conversation not exists
+        // Create conversation if this conversation does not exist
         if (converation == null)
         {
             var sess = new Conversation
             {
                 Id = _conversationId,
+                Channel = channel,
                 AgentId = agentId
             };
             converation = await NewConversation(sess);

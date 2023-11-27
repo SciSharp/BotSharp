@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Abstraction.Evaluations.Models;
 using BotSharp.Abstraction.Evaluations.Settings;
@@ -92,7 +93,8 @@ public class EvaluatingService : IEvaluatingService
         RoleDialogModel response = default;
 
         await conv.SendMessage(agentId,
-            new RoleDialogModel("user", text),
+            ConversationChannel.OpenAPI,
+            new RoleDialogModel(AgentRole.User, text),
             async msg => response = msg,
             fnExecuting => Task.CompletedTask,
             fnExecuted => Task.CompletedTask);

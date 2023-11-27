@@ -16,13 +16,15 @@ public interface IConversationService
     /// Send message to LLM
     /// </summary>
     /// <param name="agentId"></param>
+    /// <param name="channel"></param>
     /// <param name="conversationId"></param>
     /// <param name="lastDalog"></param>
     /// <param name="onMessageReceived"></param>
     /// <param name="onFunctionExecuting">This delegate is useful when you want to report progress on UI</param>
     /// <param name="onFunctionExecuted">This delegate is useful when you want to report progress on UI</param>
     /// <returns></returns>
-    Task<bool> SendMessage(string agentId, 
+    Task<bool> SendMessage(string agentId,
+        string channel,
         RoleDialogModel lastDalog, 
         Func<RoleDialogModel, Task> onMessageReceived, 
         Func<RoleDialogModel, Task> onFunctionExecuting,
