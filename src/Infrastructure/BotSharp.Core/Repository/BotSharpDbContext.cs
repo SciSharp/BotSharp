@@ -197,4 +197,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
     #endregion
+
+    #region LLM Completion Log
+    public void SaveLlmCompletionLog(LlmCompletionLog log)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
 }

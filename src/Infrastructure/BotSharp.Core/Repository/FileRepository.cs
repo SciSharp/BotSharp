@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Core.Repository;
 
@@ -617,10 +618,10 @@ public class FileRepository : IBotSharpRepository
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
 
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
-        if (!Directory.Exists(dir)) return false;
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir)) return false;
 
-        Directory.Delete(dir, true);
+        Directory.Delete(convDir, true);
         return true;
     }
 
@@ -842,6 +843,25 @@ public class FileRepository : IBotSharpRepository
     }
     #endregion
 
+    #region LLM Completion Log
+    public void SaveLlmCompletionLog(LlmCompletionLog log)
+    {
+        var convDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, log.ConversationId);
+        if (!Directory.Exists(convDir)) return;
+
+        var logDir = Path.Combine(convDir, "llm_prompt_log");
+        if (!Directory.Exists(logDir))
+        {
+            Directory.CreateDirectory(logDir);
+        }
+
+        var fileName = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id;
+        var file = Path.Combine(logDir, $"{fileName}.log");
+        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+    }
+    #endregion
+
+
     #region Private methods
     private string GetAgentDataDir(string agentId)
     {
@@ -934,22 +954,10 @@ public class FileRepository : IBotSharpRepository
 
     private string? FindConversationDirectory(string conversationId)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
+        if (!Directory.Exists(dir)) return null;
 
-        foreach (var d in Directory.GetDirectories(dir))
-        {
-            var path = Path.Combine(d, "conversation.json");
-            if (!File.Exists(path)) continue;
-
-            var json = File.ReadAllText(path);
-            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-            if (conv != null && conv.Id == conversationId)
-            {
-                return d;
-            }
-        }
-
-        return null;
+        return dir;
     }
 
     private List<DialogElement> CollectDialogElements(string dialogDir)

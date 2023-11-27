@@ -41,4 +41,8 @@ public interface IBotSharpRepository
     void AddExectionLogs(string conversationId, List<string> logs);
     List<string> GetExectionLogs(string conversationId);
     #endregion
+
+    #region LLM Completion Log
+    void SaveLlmCompletionLog(LlmCompletionLog log);
+    #endregion
 }
