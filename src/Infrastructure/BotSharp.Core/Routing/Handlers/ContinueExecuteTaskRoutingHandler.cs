@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Core.Planning;
@@ -37,7 +38,8 @@ public class ContinueExecuteTaskRoutingHandler : RoutingHandlerBase//, IRoutingH
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetAgents(inst.AgentName).FirstOrDefault();
+        var filter = new AgentFilter { AgentName = inst.AgentName };
+        var record = db.GetAgents(filter).FirstOrDefault();
 
         message.FunctionName = inst.Function;
         message.CurrentAgentId = record.Id;

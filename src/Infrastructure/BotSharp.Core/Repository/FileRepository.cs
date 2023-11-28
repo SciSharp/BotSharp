@@ -5,6 +5,10 @@ using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Utilities;
+using BotSharp.Abstraction.Conversations.Models;
+
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
@@ -500,33 +504,32 @@ public class FileRepository : IBotSharpRepository
         return null;
     }
 
-    public List<Agent> GetAgents(string? name = null, bool? disabled = null, bool? allowRouting = null,
-        bool? isPublic = null, List<string>? agentIds = null)
+    public List<Agent> GetAgents(AgentFilter filter)
     {
         var query = Agents;
-        if (!string.IsNullOrEmpty(name))
+        if (!string.IsNullOrEmpty(filter.AgentName))
         {
-            query = query.Where(x => x.Name.ToLower() == name.ToLower());
+            query = query.Where(x => x.Name.ToLower() == filter.AgentName.ToLower());
         }
 
-        if (disabled.HasValue)
+        if (filter.Disabled.HasValue)
         {
-            query = query.Where(x => x.Disabled == disabled);
+            query = query.Where(x => x.Disabled == filter.Disabled);
         }
 
-        if (allowRouting.HasValue)
+        if (filter.AllowRouting.HasValue)
         {
-            query = query.Where(x => x.AllowRouting == allowRouting);
+            query = query.Where(x => x.AllowRouting == filter.AllowRouting);
         }
 
-        if (isPublic.HasValue)
+        if (filter.IsPublic.HasValue)
         {
-            query = query.Where(x => x.IsPublic == isPublic);
+            query = query.Where(x => x.IsPublic == filter.IsPublic);
         }
 
-        if (agentIds != null)
+        if (filter.AgentIds != null)
         {
-            query = query.Where(x => agentIds.Contains(x.Id));
+            query = query.Where(x => filter.AgentIds.Contains(x.Id));
         }
 
         return query.ToList();
@@ -539,7 +542,12 @@ public class FileRepository : IBotSharpRepository
                         where ua.UserId == userId || u.ExternalId == userId
                         select ua.AgentId).ToList();
 
-        var agents = GetAgents(isPublic: true, agentIds: agentIds);
+        var filter = new AgentFilter
+        {
+            IsPublic = true,
+            AgentIds = agentIds
+        };
+        var agents = GetAgents(filter);
         return agents;
     }
 
@@ -552,7 +560,7 @@ public class FileRepository : IBotSharpRepository
         foreach (var file in Directory.GetFiles(dir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splits = fileName.ToLower().Split('.');
+            var splits = ParseFileNameByPath(fileName.ToLower());
             var name = splits[0];
             var extension = splits[1];
             if (name.IsEqualTo(templateName) && extension.IsEqualTo(_agentSettings.TemplateFormat))
@@ -610,10 +618,10 @@ public class FileRepository : IBotSharpRepository
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
 
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
-        if (!Directory.Exists(dir)) return false;
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir)) return false;
 
-        Directory.Delete(dir, true);
+        Directory.Delete(convDir, true);
         return true;
     }
 
@@ -734,7 +742,7 @@ public class FileRepository : IBotSharpRepository
         return record;
     }
 
-    public List<Conversation> GetConversations(string? agentId = null, string? status = null, string? channel = null, string? userId = null)
+    public List<Conversation> GetConversations(ConversationFilter filter)
     {
         var records = new List<Conversation>();
         var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
@@ -749,10 +757,10 @@ public class FileRepository : IBotSharpRepository
             if (record == null) continue;
 
             var matched = true;
-            if (!string.IsNullOrEmpty(agentId)) matched = matched && record.AgentId == agentId;
-            if (!string.IsNullOrEmpty(status)) matched = matched && record.Status == status;
-            if (!string.IsNullOrEmpty(channel)) matched = matched && record.Channel == channel;
-            if (!string.IsNullOrEmpty(userId)) matched = matched && record.UserId == userId;
+            if (!string.IsNullOrEmpty(filter.AgentId)) matched = matched && record.AgentId == filter.AgentId;
+            if (!string.IsNullOrEmpty(filter.Status)) matched = matched && record.Status == filter.Status;
+            if (!string.IsNullOrEmpty(filter.Channel)) matched = matched && record.Channel == filter.Channel;
+            if (!string.IsNullOrEmpty(filter.UserId)) matched = matched && record.UserId == filter.UserId;
 
             if (!matched) continue;
             records.Add(record);
@@ -834,6 +842,25 @@ public class FileRepository : IBotSharpRepository
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
     }
     #endregion
+
+    #region LLM Completion Log
+    public void SaveLlmCompletionLog(LlmCompletionLog log)
+    {
+        var convDir = FindConversationDirectory(log.ConversationId);
+        if (!Directory.Exists(convDir)) return;
+
+        var logDir = Path.Combine(convDir, "llm_prompt_log");
+        if (!Directory.Exists(logDir))
+        {
+            Directory.CreateDirectory(logDir);
+        }
+
+        var index = GetLlmCompletionLogIndex(logDir, log.MessageId);
+        var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
+        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+    }
+    #endregion
+
 
     #region Private methods
     private string GetAgentDataDir(string agentId)
@@ -927,22 +954,10 @@ public class FileRepository : IBotSharpRepository
 
     private string? FindConversationDirectory(string conversationId)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
+        if (!Directory.Exists(dir)) return null;
 
-        foreach (var d in Directory.GetDirectories(dir))
-        {
-            var path = Path.Combine(d, "conversation.json");
-            if (!File.Exists(path)) continue;
-
-            var json = File.ReadAllText(path);
-            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-            if (conv != null && conv.Id == conversationId)
-            {
-                return d;
-            }
-        }
-
-        return null;
+        return dir;
     }
 
     private List<DialogElement> CollectDialogElements(string dialogDir)
@@ -992,6 +1007,31 @@ public class FileRepository : IBotSharpRepository
             states.Add(new StateKeyValue(data[0], data[1]));
         }
         return states;
+    }
+
+    private int GetLlmCompletionLogIndex(string logDir, string id)
+    {
+        var files = Directory.GetFiles(logDir);
+        if (files.IsNullOrEmpty())
+            return 0;
+
+        var logIndexes = files.Where(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return fileName[0].IsEqualTo(id);
+        }).Select(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return int.Parse(fileName[1]);
+        }).ToList();
+
+        return logIndexes.IsNullOrEmpty() ? 0 : logIndexes.Max() + 1;
+    }
+
+    private string[] ParseFileNameByPath(string path, string separator = ".")
+    {
+        var name = path.Split(Path.DirectorySeparatorChar).Last();
+        return name.Split(separator);
     }
     #endregion
 }

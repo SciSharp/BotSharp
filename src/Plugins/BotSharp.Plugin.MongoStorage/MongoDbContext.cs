@@ -45,4 +45,7 @@ public class MongoDbContext
 
     public IMongoCollection<UserAgentCollection> UserAgents
         => Database.GetCollection<UserAgentCollection>($"{_collectionPrefix}_UserAgents");
+
+    public IMongoCollection<LlmCompletionLogCollection> LlmCompletionLogs
+        => Database.GetCollection<LlmCompletionLogCollection>($"{_collectionPrefix}_Llm_Completion_Logs");
 }

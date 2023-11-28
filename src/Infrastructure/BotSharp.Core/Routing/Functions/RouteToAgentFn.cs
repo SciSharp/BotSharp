@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using System.Drawing;
@@ -29,7 +30,8 @@ public class RouteToAgentFn : IFunctionCallback
         if (!string.IsNullOrEmpty(args.OriginalAgent) && args.OriginalAgent.Length < 32)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var originalAgent = db.GetAgents(name: args.OriginalAgent).FirstOrDefault();
+            var filter = new AgentFilter { AgentName = args.OriginalAgent };
+            var originalAgent = db.GetAgents(filter).FirstOrDefault();
             if (originalAgent != null)
             {
                 _context.Push(originalAgent.Id);
@@ -48,7 +50,8 @@ public class RouteToAgentFn : IFunctionCallback
         else
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var targetAgent = db.GetAgents(args.AgentName).FirstOrDefault();
+            var filter = new AgentFilter { AgentName = args.AgentName };
+            var targetAgent = db.GetAgents(filter).FirstOrDefault();
             if (targetAgent == null)
             {
                 message.Data = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);

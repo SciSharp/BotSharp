@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -72,8 +73,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<Agent> GetAgents(string? name = null, bool? disabled = null, bool? allowRouting = null,
-        bool? isPublic = null, List<string>? agentIds = null)
+    public List<Agent> GetAgents(AgentFilter filter)
     {
         throw new NotImplementedException();
     }
@@ -131,7 +131,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<Conversation> GetConversations(string? agentId = null, string? status = null, string? channel = null, string? userId = null)
+    public List<Conversation> GetConversations(ConversationFilter filter)
     {
         throw new NotImplementedException();
     }
@@ -193,6 +193,13 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
     public void CreateUser(User user)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    #region LLM Completion Log
+    public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
         throw new NotImplementedException();
     }

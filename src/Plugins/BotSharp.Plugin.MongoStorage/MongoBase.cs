@@ -1,5 +1,3 @@
-using MongoDB.Bson.Serialization.Attributes;
-
 namespace BotSharp.Plugin.MongoStorage;
 
 [BsonIgnoreExtraElements(Inherited = true)]
