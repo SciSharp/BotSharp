@@ -1,10 +1,9 @@
 import { 
         conversationInitUrl, 
         conversationMessageUrl,
-        dialogsUrl, 
-        conversationReadyUrl,
+        dialogsUrl,
     } from './api-endpoints.js';
-
+import { setAuthorization } from '$lib/helpers/http';
 import axios from 'axios';
 
 /**
@@ -13,18 +12,9 @@ import axios from 'axios';
  * @returns {Promise<import('$typedefs').ConversationModel>}
  */
 export async function newConversation(agentId) {
+    setAuthorization();
     let url = conversationInitUrl.replace("{agentId}", agentId);
     const response = await axios.post(url, {});
-    return response.data;
-}
-
-/**
- * Coversation is ready
- * @param {string} conversationId 
- */
-export async function conversationReady(conversationId) {
-    let url = conversationReadyUrl.replace("{conversationId}", conversationId);
-    const response = await axios.patch(url, {});
     return response.data;
 }
 
@@ -34,6 +24,7 @@ export async function conversationReady(conversationId) {
  * @returns {Promise<import('$typedefs').ChatResponseModel[]>}
  */
 export async function GetDialogs(conversationId) {
+    setAuthorization();
     let url = dialogsUrl.replace("{conversationId}", conversationId);
     const response = await axios.get(url);
     return response.data;

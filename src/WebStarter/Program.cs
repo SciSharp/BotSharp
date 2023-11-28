@@ -68,6 +68,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapHub<SignalRHub>("/chatHub");
+app.UseMiddleware<WebSocketsMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -79,7 +82,5 @@ app.UseBotSharp();
 #if DEBUG
 app.UseCors("MyCorsPolicy");
 #endif
-
-app.MapHub<SignalRHub>("/chatHub");
 
 app.Run();

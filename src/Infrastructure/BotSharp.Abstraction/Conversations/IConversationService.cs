@@ -5,7 +5,6 @@ public interface IConversationService
     IConversationStateService States { get; }
     string ConversationId { get; }
     Task<Conversation> NewConversation(Conversation conversation);
-    Task MarkConnectionReady(string conversationId);
     void SetConversationId(string conversationId, List<string> states);
     Task<Conversation> GetConversation(string id);
     Task<List<Conversation>> GetConversations();

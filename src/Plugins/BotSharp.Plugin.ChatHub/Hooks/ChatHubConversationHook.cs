@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using Microsoft.AspNetCore.SignalR;
 
@@ -8,12 +7,15 @@ public class ChatHubConversationHook : ConversationHookBase
 {
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
+    private readonly IUserIdentity _user;
 
     public ChatHubConversationHook(IServiceProvider services,
-        IHubContext<SignalRHub> chatHub)
+        IHubContext<SignalRHub> chatHub,
+        IUserIdentity user)
     {
         _services = services;
         _chatHub = chatHub;
+        _user = user;
     }
 
     public override async Task OnUserAgentConnectedInitially(Conversation conversation)
@@ -33,7 +35,18 @@ public class ChatHubConversationHook : ConversationHookBase
             foreach (var message in messages)
             {
                 await Task.Delay(300);
-                await OnResponseGenerated(new RoleDialogModel(AgentRole.Assistant, message.Text));
+
+                await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", new ChatResponseModel()
+                {
+                    ConversationId = conversation.Id,
+                    Text = message.Text,
+                    Sender = new UserViewModel()
+                    {
+                        FirstName = "AI",
+                        LastName = "Assistant",
+                        Role = AgentRole.Assistant
+                    }
+                });
             }
         }
 
@@ -75,7 +88,7 @@ public class ChatHubConversationHook : ConversationHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
 
-        await _chatHub.Clients.All.SendAsync("OnMessageReceivedFromAssistant", new ChatResponseModel()
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,

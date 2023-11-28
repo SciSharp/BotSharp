@@ -1,5 +1,6 @@
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { chatHubUrl } from '$lib/services/api-endpoints.js';
+import { getUserStore } from '$lib/helpers/store.js';
 
 // create a writable store to store the connection object
 /** @type {HubConnection} */
@@ -21,10 +22,12 @@ export const signalr = {
   onMessageReceivedFromAssistant: () => {},
 
   // start the connection
-  async start() {
+  /** @param {string} conversationId */
+  async start(conversationId) {
     // create a new connection object with the hub URL and some options
+    let user = getUserStore();
     connection = new HubConnectionBuilder()
-      .withUrl(chatHubUrl) // the hub URL, change it according to your server
+      .withUrl(chatHubUrl + `?conversationId=${conversationId}&access_token=${user.token}`) // the hub URL, change it according to your server
       .withAutomaticReconnect() // enable automatic reconnection
       .configureLogging(LogLevel.Information) // configure the logging level
       .build();

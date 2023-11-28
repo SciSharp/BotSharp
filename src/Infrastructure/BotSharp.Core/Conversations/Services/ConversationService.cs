@@ -118,15 +118,4 @@ public partial class ConversationService : IConversationService
         _state.Load(_conversationId);
         states.ForEach(x => _state.SetState(x.Split('=')[0], x.Split('=')[1]));
     }
-
-    public async Task MarkConnectionReady(string conversationId)
-    {
-        var hooks = _services.GetServices<IConversationHook>();
-        var conv = await GetConversation(conversationId);
-        foreach (var hook in hooks)
-        {
-            // Need to check if user connected with agent is the first time.
-            await hook.OnUserAgentConnectedInitially(conv);
-        }
-    }
 }

@@ -41,13 +41,6 @@ public class ConversationController : ControllerBase, IApiAdapter
         return ConversationViewModel.FromSession(conv);
     }
 
-    [HttpPatch("/conversation/{conversationId}/ready")]
-    public async Task ReadyToInteractive([FromRoute] string conversationId)
-    {
-        var service = _services.GetRequiredService<IConversationService>();
-        await service.MarkConnectionReady(conversationId);
-    }
-
     [HttpGet("/conversations/{agentId}")]
     public async Task<IEnumerable<ConversationViewModel>> GetConversations()
     {

@@ -1,5 +1,6 @@
 import { userStore, getUserStore } from '$lib/helpers/store.js';
 import { tokenUrl,  myInfoUrl, usrCreationUrl } from './api-endpoints.js';
+import axios from 'axios';
 
 /**
  * This callback type is called `requestCallback` and is displayed as a global symbol.
@@ -37,31 +38,20 @@ export async function getToken(email, password, onSucceed) {
 }
 
 /**
+ * Set token from exteranl
  * @param {string} token
+ */
+export function setToken(token) {
+    let user = getUserStore();
+    userStore.set({ ...user, init: false, loggedIn: true, token: token });
+}
+
+/**
  * @returns {Promise<import('$typedefs').UserModel>}
  */
-export async function myInfo(token) {
-    const headers = {
-        Authorization: `Bearer ${token}`,
-    };
-
-    const info = await fetch(myInfoUrl, {
-        method: 'GET',
-        headers: headers,
-    }).then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            alert(response.statusText);
-        }
-    }).then(result => {
-        let user = getUserStore();
-        userStore.set({ ...user, init: false, id: result.id });
-        return result;
-    })
-    .catch(error => alert(error.message));
-
-    return info;
+export async function myInfo() {
+    const response = await axios.get(myInfoUrl);
+    return response.data;
 }
 
 /**

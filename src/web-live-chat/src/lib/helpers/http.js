@@ -1,10 +1,11 @@
 import axios from 'axios';
+import { getUserStore } from '$lib/helpers/store.js';
 
 /**
  * Set axios http headers globally
- * @param {string} token 
  */
-export function setAuthorization(token) {
+export function setAuthorization() {
+    let user = getUserStore();
     let headers = axios.defaults.headers;
-    headers.common['Authorization'] = `Bearer ${token}`;
+    headers.common['Authorization'] = `Bearer ${user.token}`;
 }

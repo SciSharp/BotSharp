@@ -15,7 +15,6 @@
 	import Headtitle from '$lib/common/HeadTitle.svelte';
 	import { getToken } from '$lib/services/auth-service.js'
 	import { goto } from '$app/navigation';
-	import { setAuthorization } from '$lib/helpers/http';
 
 	let username = 'guest@gmail.com';
 	let password = '';
@@ -29,8 +28,7 @@
 			isOpen = true;
 			msg = 'Authentication success';
 			status = 'success';
-			setAuthorization(token);
-			goto(`/chat/01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a?token=${token}`);
+			goto(`/chat/01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a`);
 		});
 	}
 </script>

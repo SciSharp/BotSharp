@@ -2,7 +2,6 @@
 	import Chat from './chat-box.svelte';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { setAuthorization } from '$lib/helpers/http';
 	import { myInfo } from '$lib/services/auth-service.js';
 	import { getAgent } from '$lib/services/agent-service.js';
 
@@ -15,10 +14,7 @@
 	let currentUser;
 
     onMount(async () => {
-		const token = $page.url.searchParams.get('token') ?? "unauthorized";
-		setAuthorization(token);
-
-		currentUser = await myInfo(token);
+		currentUser = await myInfo();
 
 		// get agent profile
 		let agentId = params.agentId;
