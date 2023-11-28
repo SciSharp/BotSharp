@@ -560,7 +560,7 @@ public class FileRepository : IBotSharpRepository
         foreach (var file in Directory.GetFiles(dir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splits = fileName.ToLower().Split('.');
+            var splits = ParseFileNameByPath(fileName.ToLower());
             var name = splits[0];
             var extension = splits[1];
             if (name.IsEqualTo(templateName) && extension.IsEqualTo(_agentSettings.TemplateFormat))
@@ -846,7 +846,7 @@ public class FileRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
-        var convDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, log.ConversationId);
+        var convDir = FindConversationDirectory(log.ConversationId);
         if (!Directory.Exists(convDir)) return;
 
         var logDir = Path.Combine(convDir, "llm_prompt_log");
@@ -855,8 +855,8 @@ public class FileRepository : IBotSharpRepository
             Directory.CreateDirectory(logDir);
         }
 
-        var fileName = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id;
-        var file = Path.Combine(logDir, $"{fileName}.log");
+        var index = GetLlmCompletionLogIndex(logDir, log.MessageId);
+        var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
         File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
     }
     #endregion
@@ -1007,6 +1007,31 @@ public class FileRepository : IBotSharpRepository
             states.Add(new StateKeyValue(data[0], data[1]));
         }
         return states;
+    }
+
+    private int GetLlmCompletionLogIndex(string logDir, string id)
+    {
+        var files = Directory.GetFiles(logDir);
+        if (files.IsNullOrEmpty())
+            return 0;
+
+        var logIndexes = files.Where(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return fileName[0].IsEqualTo(id);
+        }).Select(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return int.Parse(fileName[1]);
+        }).ToList();
+
+        return logIndexes.IsNullOrEmpty() ? 0 : logIndexes.Max() + 1;
+    }
+
+    private string[] ParseFileNameByPath(string path, string separator = ".")
+    {
+        var name = path.Split(Path.DirectorySeparatorChar).Last();
+        return name.Split(separator);
     }
     #endregion
 }
