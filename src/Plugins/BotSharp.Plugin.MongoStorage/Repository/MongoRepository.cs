@@ -862,4 +862,22 @@ public class MongoRepository : IBotSharpRepository
         _dc.Users.InsertOne(userCollection);
     }
     #endregion
+
+    #region LLM Completion Log
+    public void SaveLlmCompletionLog(LlmCompletionLog log)
+    {
+        var completiongLog = new LlmCompletionLogCollection
+        {
+            Id = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id,
+            ConversationId = log.ConversationId,
+            MessageId = log.MessageId,
+            AgentId = log.AgentId,
+            Prompt = log.Prompt,
+            Response = log.Response,
+            CreateDateTime = log.CreateDateTime
+        };
+
+        _dc.LlmCompletionLogs.InsertOne(completiongLog);
+    }
+    #endregion
 }

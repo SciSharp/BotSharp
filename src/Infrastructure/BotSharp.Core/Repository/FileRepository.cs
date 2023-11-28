@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Core.Repository;
 
@@ -559,7 +560,7 @@ public class FileRepository : IBotSharpRepository
         foreach (var file in Directory.GetFiles(dir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splits = fileName.ToLower().Split('.');
+            var splits = ParseFileNameByPath(fileName.ToLower());
             var name = splits[0];
             var extension = splits[1];
             if (name.IsEqualTo(templateName) && extension.IsEqualTo(_agentSettings.TemplateFormat))
@@ -617,10 +618,10 @@ public class FileRepository : IBotSharpRepository
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
 
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
-        if (!Directory.Exists(dir)) return false;
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir)) return false;
 
-        Directory.Delete(dir, true);
+        Directory.Delete(convDir, true);
         return true;
     }
 
@@ -842,6 +843,25 @@ public class FileRepository : IBotSharpRepository
     }
     #endregion
 
+    #region LLM Completion Log
+    public void SaveLlmCompletionLog(LlmCompletionLog log)
+    {
+        var convDir = FindConversationDirectory(log.ConversationId);
+        if (!Directory.Exists(convDir)) return;
+
+        var logDir = Path.Combine(convDir, "llm_prompt_log");
+        if (!Directory.Exists(logDir))
+        {
+            Directory.CreateDirectory(logDir);
+        }
+
+        var index = GetLlmCompletionLogIndex(logDir, log.MessageId);
+        var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
+        File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
+    }
+    #endregion
+
+
     #region Private methods
     private string GetAgentDataDir(string agentId)
     {
@@ -934,22 +954,10 @@ public class FileRepository : IBotSharpRepository
 
     private string? FindConversationDirectory(string conversationId)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+        var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
+        if (!Directory.Exists(dir)) return null;
 
-        foreach (var d in Directory.GetDirectories(dir))
-        {
-            var path = Path.Combine(d, "conversation.json");
-            if (!File.Exists(path)) continue;
-
-            var json = File.ReadAllText(path);
-            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-            if (conv != null && conv.Id == conversationId)
-            {
-                return d;
-            }
-        }
-
-        return null;
+        return dir;
     }
 
     private List<DialogElement> CollectDialogElements(string dialogDir)
@@ -999,6 +1007,31 @@ public class FileRepository : IBotSharpRepository
             states.Add(new StateKeyValue(data[0], data[1]));
         }
         return states;
+    }
+
+    private int GetLlmCompletionLogIndex(string logDir, string id)
+    {
+        var files = Directory.GetFiles(logDir);
+        if (files.IsNullOrEmpty())
+            return 0;
+
+        var logIndexes = files.Where(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return fileName[0].IsEqualTo(id);
+        }).Select(file =>
+        {
+            var fileName = ParseFileNameByPath(file);
+            return int.Parse(fileName[1]);
+        }).ToList();
+
+        return logIndexes.IsNullOrEmpty() ? 0 : logIndexes.Max() + 1;
+    }
+
+    private string[] ParseFileNameByPath(string path, string separator = ".")
+    {
+        var name = path.Split(Path.DirectorySeparatorChar).Last();
+        return name.Split(separator);
     }
     #endregion
 }
