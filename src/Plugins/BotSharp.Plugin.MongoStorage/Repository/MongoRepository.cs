@@ -12,12 +12,14 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public class MongoRepository : IBotSharpRepository
 {
+    private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly MongoDbContext _dc;
     private readonly IServiceProvider _services;
     private UpdateOptions _options;
 
-    public MongoRepository(MongoDbContext dc, IServiceProvider services)
+    public MongoRepository(BotSharpDatabaseSettings dbSettings, MongoDbContext dc, IServiceProvider services)
     {
+        _dbSettings = dbSettings;
         _dc = dc;
         _services = services;
         _options = new UpdateOptions
@@ -782,30 +784,6 @@ public class MongoRepository : IBotSharpRepository
             UpdatedTime = c.UpdatedTime
         }).ToList();
     }
-
-    public void AddExectionLogs(string conversationId, List<string> logs)
-    {
-        if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
-
-        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
-        var update = Builders<ExectionLogCollection>.Update
-                                                    .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
-                                                    .PushEach(x => x.Logs, logs);
-
-        _dc.ExectionLogs.UpdateOne(filter, update, _options);
-    }
-
-    public List<string> GetExectionLogs(string conversationId)
-    {
-        var logs = new List<string>();
-        if (string.IsNullOrEmpty(conversationId)) return logs;
-
-        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
-        var logCollection = _dc.ExectionLogs.Find(filter).FirstOrDefault();
-
-        logs = logCollection?.Logs ?? new List<string>();
-        return logs;
-    }
     #endregion
 
     #region User
@@ -863,9 +841,41 @@ public class MongoRepository : IBotSharpRepository
     }
     #endregion
 
+    #region Execution Log
+    public void AddExecutionLogs(string conversationId, List<string> logs)
+    {
+        var isEnabled = _dbSettings.Log.EnableExecutionLog;
+        if (!isEnabled) return;
+
+        if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
+
+        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var update = Builders<ExectionLogCollection>.Update
+                                                    .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
+                                                    .PushEach(x => x.Logs, logs);
+
+        _dc.ExectionLogs.UpdateOne(filter, update, _options);
+    }
+
+    public List<string> GetExecutionLogs(string conversationId)
+    {
+        var logs = new List<string>();
+        if (string.IsNullOrEmpty(conversationId)) return logs;
+
+        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var logCollection = _dc.ExectionLogs.Find(filter).FirstOrDefault();
+
+        logs = logCollection?.Logs ?? new List<string>();
+        return logs;
+    }
+    #endregion
+
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
+        var isEnabled = _dbSettings.Log.EnableLlmCompletionLog;
+        if (!isEnabled) return;
+
         var completiongLog = new LlmCompletionLogCollection
         {
             Id = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id,

@@ -168,16 +168,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
-
-    public void AddExectionLogs(string conversationId, List<string> logs)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<string> GetExectionLogs(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
     #endregion
 
 
@@ -193,6 +183,19 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
     public void CreateUser(User user)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+
+    #region Execution Log
+    public void AddExecutionLogs(string conversationId, List<string> logs)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<string> GetExecutionLogs(string conversationId)
     {
         throw new NotImplementedException();
     }
