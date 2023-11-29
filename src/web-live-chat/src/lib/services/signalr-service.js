@@ -9,16 +9,16 @@ let connection;
 // create a SignalR service object that exposes methods to interact with the hub
 export const signalr = {
 
-  /** @type {function} */
+  /** @type {import('$typedefs').OnConversationInitialized} */
   onConversationInitFromClient: () => {},
 
-  /** @type {function} */
+  /** @type {import('$typedefs').OnMessageReceived} */
   onMessageReceivedFromClient: () => {},
 
-  /** @type {function} */
+  /** @type {import('$typedefs').OnMessageReceived} */
   onMessageReceivedFromCsr: () => {},
   
-  /** @type {function} */
+  /** @type {import('$typedefs').OnMessageReceived} */
   onMessageReceivedFromAssistant: () => {},
 
   // start the connection
@@ -43,27 +43,35 @@ export const signalr = {
     // register handlers for the hub methods
     connection.on('OnConversationInitFromClient', (conversation) => {
       // do something when receiving a message, such as updating the UI or showing a notification
-      console.log(`[OnConversationInitFromClient] ${conversation.id}: ${conversation.title}`);
-      this.onConversationInitFromClient(conversation);
+      if (conversationId === conversation.id) {
+        console.log(`[OnConversationInitFromClient] ${conversation.id}: ${conversation.title}`);
+        this.onConversationInitFromClient(conversation);
+      }
     });
 
     // register handlers for the hub methods
     connection.on('OnMessageReceivedFromClient', (message) => {
       // do something when receiving a message, such as updating the UI or showing a notification
-      console.log(`[OnMessageReceivedFromClient] ${message.sender.role}: ${message.text}`);
-      this.onMessageReceivedFromClient(message);
+      if (conversationId === message.conversation_id) {
+        console.log(`[OnMessageReceivedFromClient] ${message.sender.role}: ${message.text}`);
+        this.onMessageReceivedFromClient(message);
+      }
     });
 
     connection.on('OnMessageReceivedFromCsr', (message) => {
       // do something when receiving a message, such as updating the UI or showing a notification
-      console.log(`[OnMessageReceivedFromCsr] ${message.role}: ${message.content}`);
-      this.onMessageReceivedFromCsr(message);
+      if (conversationId === message.conversation_id) {
+        console.log(`[OnMessageReceivedFromCsr] ${message.role}: ${message.content}`);
+        this.onMessageReceivedFromCsr(message);
+      }
     });
 
     connection.on('OnMessageReceivedFromAssistant', (message) => {
       // do something when receiving a message, such as updating the UI or showing a notification
-      console.log(`[OnMessageReceivedFromAssistant] ${message.sender.role}: ${message.text}`);
-      this.onMessageReceivedFromAssistant(message);
+      if (conversationId === message.conversation_id) {
+        console.log(`[OnMessageReceivedFromAssistant] ${message.sender.role}: ${message.text}`);
+        this.onMessageReceivedFromAssistant(message);
+      }
     });
   },
 

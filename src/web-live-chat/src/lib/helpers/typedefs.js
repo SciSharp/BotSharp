@@ -49,6 +49,22 @@
  * @property {Date} created_at - The message sent time.
  */
 
+/**
+ * Invoked when a new conersation is created.
+ * This callback type is called `requestCallback` and is displayed as a global symbol.
+ *
+ * @callback OnConversationInitialized
+ * @param {ConversationModel} conversation
+ */
+
+/**
+ * Invoked when message is received form chatHub.
+ * This callback type is called `requestCallback` and is displayed as a global symbol.
+ *
+ * @callback OnMessageReceived
+ * @param {ChatResponseModel} message
+ */
+
 // having to export an empty object here is annoying, 
 // but required for vscode to pass on your types. 
 export default {};

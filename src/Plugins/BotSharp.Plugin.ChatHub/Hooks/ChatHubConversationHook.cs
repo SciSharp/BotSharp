@@ -61,7 +61,7 @@ public class ChatHubConversationHook : ConversationHookBase
         var user = await userService.GetUser(conv.User.Id);
         conv.User = UserViewModel.FromUser(user);
 
-        await _chatHub.Clients.All.SendAsync("OnConversationInitFromClient", conv);
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationInitFromClient", conv);
 
         await base.OnConversationInitialized(conversation);
     }
@@ -73,7 +73,7 @@ public class ChatHubConversationHook : ConversationHookBase
         var sender = await userService.GetMyProfile();
 
         // Update console conversation UI for CSR
-        await _chatHub.Clients.All.SendAsync("OnMessageReceivedFromClient", new ChatResponseModel()
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromClient", new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
