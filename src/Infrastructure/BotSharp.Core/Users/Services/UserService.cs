@@ -94,6 +94,7 @@ public class UserService : IUserService
         return tokenHandler.WriteToken(token);
     }
 
+    [MemoryCache(10 * 60)]
     public async Task<User> GetMyProfile()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
