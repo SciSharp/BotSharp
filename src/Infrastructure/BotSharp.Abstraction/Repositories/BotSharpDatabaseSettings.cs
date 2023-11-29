@@ -6,7 +6,6 @@ public class BotSharpDatabaseSettings : DatabaseBasicSettings
     public string FileRepository { get; set; }
     public string BotSharpMongoDb { get; set; }
     public string TablePrefix { get; set; }
-    public BotSharpLogSetting Log { get; set; }
     public DbConnectionSetting BotSharp { get; set; }
 }
 
@@ -29,10 +28,4 @@ public class DbConnectionSetting
     {
         Slavers = new string[0];
     }
-}
-
-public class BotSharpLogSetting
-{
-    public bool EnableLlmCompletionLog { get; set; }
-    public bool EnableExecutionLog { get; set; }
 }

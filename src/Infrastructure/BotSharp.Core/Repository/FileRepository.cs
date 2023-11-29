@@ -817,9 +817,6 @@ public class FileRepository : IBotSharpRepository
     #region Execution Log
     public void AddExecutionLogs(string conversationId, List<string> logs)
     {
-        var isEnabled = _dbSettings.Log.EnableExecutionLog;
-        if (!isEnabled) return;
-
         if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
 
         var dir = Path.Combine(_dbSettings.FileRepository, "conversations", conversationId);
@@ -849,9 +846,6 @@ public class FileRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
-        var isEnabled = _dbSettings.Log.EnableLlmCompletionLog;
-        if (!isEnabled) return;
-
         var convDir = FindConversationDirectory(log.ConversationId);
         if (!Directory.Exists(convDir)) return;
 

@@ -4,7 +4,6 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
-using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
 
@@ -12,14 +11,12 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public class MongoRepository : IBotSharpRepository
 {
-    private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly MongoDbContext _dc;
     private readonly IServiceProvider _services;
     private UpdateOptions _options;
 
-    public MongoRepository(BotSharpDatabaseSettings dbSettings, MongoDbContext dc, IServiceProvider services)
+    public MongoRepository(MongoDbContext dc, IServiceProvider services)
     {
-        _dbSettings = dbSettings;
         _dc = dc;
         _services = services;
         _options = new UpdateOptions
@@ -844,9 +841,6 @@ public class MongoRepository : IBotSharpRepository
     #region Execution Log
     public void AddExecutionLogs(string conversationId, List<string> logs)
     {
-        var isEnabled = _dbSettings.Log.EnableExecutionLog;
-        if (!isEnabled) return;
-
         if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
 
         var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
@@ -873,9 +867,6 @@ public class MongoRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
-        var isEnabled = _dbSettings.Log.EnableLlmCompletionLog;
-        if (!isEnabled) return;
-
         var completiongLog = new LlmCompletionLogCollection
         {
             Id = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id,
