@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Loggers;
+
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
 public class TextCompletionProvider : ITextCompletion

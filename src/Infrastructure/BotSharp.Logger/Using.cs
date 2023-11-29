@@ -1,0 +1,15 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Text;
+global using System.Threading.Tasks;
+global using System.Linq;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.Logging;
+global using BotSharp.Abstraction.Loggers;
+global using BotSharp.Abstraction.Agents.Models;
+global using BotSharp.Abstraction.Conversations.Models;
+global using BotSharp.Abstraction.Conversations;
+global using BotSharp.Abstraction.Repositories;
+global using BotSharp.Abstraction.Conversations.Settings;
+global using BotSharp.Logger.Hooks;

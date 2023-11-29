@@ -855,6 +855,7 @@ public class FileRepository : IBotSharpRepository
             Directory.CreateDirectory(logDir);
         }
 
+        log.Id = Guid.NewGuid().ToString();
         var index = GetLlmCompletionLogIndex(logDir, log.MessageId);
         var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
         File.WriteAllText(file, JsonSerializer.Serialize(log, _options));

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Loggers;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 

@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
+    <PackageReference Include="BotSharp.Logger" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.OpenAPI" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.AzureOpenAI" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.GoogleAI" Version="$(BotSharpVersion)" />
@@ -45,6 +46,7 @@
   
   <ItemGroup Condition="$(SolutionName)==BotSharp">
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MongoStorage\BotSharp.Plugin.MongoStorage.csproj" />

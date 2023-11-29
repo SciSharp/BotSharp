@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Loggers;
 using BotSharp.Plugin.GoogleAI.Settings;
 using LLMSharp.Google.Palm;
 using Microsoft.Extensions.Logging;

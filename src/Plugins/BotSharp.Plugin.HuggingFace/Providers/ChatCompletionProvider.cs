@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Settings;
+using BotSharp.Abstraction.Loggers;
 using BotSharp.Plugin.HuggingFace.Services;
 using BotSharp.Plugin.HuggingFace.Settings;
 using Microsoft.Extensions.Logging;
