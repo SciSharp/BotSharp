@@ -7,6 +7,8 @@ public class CommonContentGeneratingHook : IContentGeneratingHook
         _services = services;
     }
 
+
+
     /// <summary>
     /// After content generated.
     /// </summary>
