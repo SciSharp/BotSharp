@@ -7,12 +7,6 @@ public class CommonContentGeneratingHook : IContentGeneratingHook
         _services = services;
     }
 
-
-
-    /// <summary>
-    /// After content generated.
-    /// </summary>
-    /// <returns></returns>
     public async Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
     {
         SaveLlmCompletionLog(message, tokenStats);
