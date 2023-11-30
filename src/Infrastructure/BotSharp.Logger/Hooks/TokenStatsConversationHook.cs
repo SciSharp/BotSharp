@@ -1,15 +1,5 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.MLTasks;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+namespace BotSharp.Logger.Hooks;
 
-namespace BotSharp.Plugin.AzureOpenAI.Hooks;
-
-/// <summary>
-/// Token statistics for Azure OpenAI
-/// </summary>
 public class TokenStatsConversationHook : IContentGeneratingHook
 {
     private readonly ITokenStatistics _tokenStatistics;
@@ -22,14 +12,15 @@ public class TokenStatsConversationHook : IContentGeneratingHook
     public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
     {
         _tokenStatistics.StartTimer();
+        await Task.CompletedTask;
     }
 
     public async Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
     {
         _tokenStatistics.StopTimer();
-
         tokenStats.PromptCost = 0.0015f;
         tokenStats.CompletionCost = 0.002f;
         _tokenStatistics.AddToken(tokenStats);
+        await Task.CompletedTask;
     }
 }

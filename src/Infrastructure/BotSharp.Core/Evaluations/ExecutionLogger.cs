@@ -21,6 +21,6 @@ public class ExecutionLogger : IExecutionLogger
         content = content.Replace("\r\n", " ").Replace("\n", " ");
         content = Regex.Replace(content, @"\s+", " ");
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.AddExectionLogs(conversationId, new List<string> { content });
+        db.AddExecutionLogs(conversationId, new List<string> { content });
     }
 }

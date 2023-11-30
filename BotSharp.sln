@@ -73,7 +73,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.WebDriver",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.ChatHub", "src\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj", "{EDCD9C20-2D9D-4098-A16E-03F97B306CB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.TelegramBots", "src\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj", "{DCA18996-4D3A-4E98-BCD0-1FB77C59253E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.TelegramBots", "src\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj", "{DCA18996-4D3A-4E98-BCD0-1FB77C59253E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Logger", "src\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj", "{5CA3335E-E6AD-46FD-B277-29BBC3A16500}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -283,6 +285,14 @@ Global
 		{DCA18996-4D3A-4E98-BCD0-1FB77C59253E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DCA18996-4D3A-4E98-BCD0-1FB77C59253E}.Release|x64.ActiveCfg = Release|Any CPU
 		{DCA18996-4D3A-4E98-BCD0-1FB77C59253E}.Release|x64.Build.0 = Release|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Debug|x64.Build.0 = Debug|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Release|x64.ActiveCfg = Release|Any CPU
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -320,6 +330,7 @@ Global
 		{F06B22CB-B143-4680-8FFF-35B9E50E6C47} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{EDCD9C20-2D9D-4098-A16E-03F97B306CB8} = {64264688-0F5C-4AB0-8F2B-B59B717CCE00}
 		{DCA18996-4D3A-4E98-BCD0-1FB77C59253E} = {64264688-0F5C-4AB0-8F2B-B59B717CCE00}
+		{5CA3335E-E6AD-46FD-B277-29BBC3A16500} = {E29DC6C4-5E57-48C5-BCB0-6B8F84782749}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}

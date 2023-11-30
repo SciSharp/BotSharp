@@ -22,9 +22,9 @@ using BotSharp.Core.Planning;
 
 namespace BotSharp.Core;
 
-public static class BotSharpServiceCollectionExtensions
+public static class BotSharpCoreExtensions
 {
-    public static IServiceCollection AddBotSharp(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddBotSharpCore(this IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IUserService, UserService>();
 

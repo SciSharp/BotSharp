@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.GoogleAI.Settings;

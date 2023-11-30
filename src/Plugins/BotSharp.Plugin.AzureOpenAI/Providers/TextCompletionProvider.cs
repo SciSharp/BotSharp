@@ -11,7 +11,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using System.Linq;
 using System.Collections.Generic;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Settings;
+using BotSharp.Abstraction.Loggers;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
@@ -19,22 +19,20 @@ public class TextCompletionProvider : ITextCompletion
 {
     private readonly IServiceProvider _services;
     private readonly AzureOpenAiSettings _settings;
-    private readonly ILogger _logger;
     private string _model;
     public string Provider => "azure-openai";
 
     public TextCompletionProvider(IServiceProvider services,
-        AzureOpenAiSettings settings, 
-        ILogger<TextCompletionProvider> logger)
+        AzureOpenAiSettings settings)
     {
         _services = services;
         _settings = settings;
-        _logger = logger;
     }
 
     public async Task<string> GetCompletion(string text, string agentId, string messageId)
     {
-        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var logHook = _services.GetService<IVerboseLogHook>();
 
         // Before chat completion hook
         var agent = new Agent()
@@ -47,7 +45,7 @@ public class TextCompletionProvider : ITextCompletion
             MessageId = messageId
         };
 
-        Task.WaitAll(hooks.Select(hook =>
+        Task.WaitAll(contentHooks.Select(hook =>
             hook.BeforeGenerating(agent,
                 new List<RoleDialogModel>
                 {
@@ -65,12 +63,7 @@ public class TextCompletionProvider : ITextCompletion
             MaxTokens = 256,
         };
         completionsOptions.StopSequences.Add($"{AgentRole.Assistant}:");
-
-        var setting = _services.GetRequiredService<ConversationSetting>();
-        if (setting.ShowVerboseLog)
-        {
-            _logger.LogInformation(text);
-        }
+        logHook?.GenerateLog(text);
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = float.Parse(state.GetState("temperature", "0.5"));
@@ -87,10 +80,7 @@ public class TextCompletionProvider : ITextCompletion
             completion += t.Text;
         };
 
-        if (setting.ShowVerboseLog)
-        {
-            _logger.LogInformation(completion);
-        }
+        logHook?.GenerateLog(completion);
 
         // After chat completion hook
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, completion)
@@ -98,7 +88,7 @@ public class TextCompletionProvider : ITextCompletion
             CurrentAgentId = agentId,
             MessageId = messageId
         };
-        Task.WaitAll(hooks.Select(hook =>
+        Task.WaitAll(contentHooks.Select(hook =>
             hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
                 Prompt = text,

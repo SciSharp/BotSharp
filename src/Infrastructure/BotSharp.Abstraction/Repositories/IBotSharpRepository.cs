@@ -38,8 +38,11 @@ public interface IBotSharpRepository
     List<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
     List<Conversation> GetLastConversations();
-    void AddExectionLogs(string conversationId, List<string> logs);
-    List<string> GetExectionLogs(string conversationId);
+    #endregion
+
+    #region Execution Log
+    void AddExecutionLogs(string conversationId, List<string> logs);
+    List<string> GetExecutionLogs(string conversationId);
     #endregion
 
     #region LLM Completion Log

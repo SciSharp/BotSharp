@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Utilities;
-using BotSharp.Plugin.AzureOpenAI.Hooks;
 using BotSharp.Plugin.AzureOpenAI.Providers;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +29,5 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
 
         services.AddScoped<ITextCompletion, TextCompletionProvider>();
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
-        services.AddScoped<IContentGeneratingHook, TokenStatsConversationHook>();
     }
 }
