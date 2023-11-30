@@ -102,6 +102,7 @@ The main documentation for the site is organized into the following sections:
    architecture/plugin
    architecture/hooks
    architecture/routing
+   architecture/logging
    architecture/data-persistence
 
 If you feel that this project is helpful to you, please Star us on the project, we will be very grateful.
