@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.MLTasks;
+namespace BotSharp.Abstraction.Loggers;
 
 /// <summary>
 /// Model content generating hook, it can be used for logging, metrics and tracing.

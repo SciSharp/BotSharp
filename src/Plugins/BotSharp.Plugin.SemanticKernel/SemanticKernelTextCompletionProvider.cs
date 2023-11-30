@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Loggers;
 using Microsoft;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;

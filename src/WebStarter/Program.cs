@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core;
 using BotSharp.Core.Users.Services;
+using BotSharp.Logger;
 using BotSharp.Plugin.ChatHub;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -46,7 +47,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IUserIdentity, UserIdentity>();
 
 // Add BotSharp
-builder.Services.AddBotSharp(builder.Configuration);
+builder.Services.AddBotSharpCore(builder.Configuration);
+builder.Services.AddBotSharpLogger(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
