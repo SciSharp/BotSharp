@@ -12,6 +12,18 @@ public interface IContentGeneratingHook
     Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations) => Task.CompletedTask;
 
     /// <summary>
+    /// Before function is invoked
+    /// </summary>
+    /// <returns></returns>
+    Task BeforeFunctionInvoked(RoleDialogModel message, TokenStatsModel tokenStats) => Task.CompletedTask;
+
+    /// <summary>
+    /// After function is invoked
+    /// </summary>
+    /// <returns></returns>
+    Task AfterFunctionInvoked(RoleDialogModel message, TokenStatsModel tokenStats) => Task.CompletedTask;
+
+    /// <summary>
     /// After content generated.
     /// </summary>
     /// <returns></returns>
