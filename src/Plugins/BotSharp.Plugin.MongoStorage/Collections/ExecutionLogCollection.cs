@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class ExectionLogCollection : MongoBase
+public class ExecutionLogCollection : MongoBase
 {
     public string ConversationId { get; set; }
     public List<string> Logs { get; set; }

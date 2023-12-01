@@ -605,9 +605,14 @@ public class MongoRepository : IBotSharpRepository
     public bool DeleteConversation(string conversationId)
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
+
         var filterConv = Builders<ConversationCollection>.Filter.Eq(x => x.Id, conversationId);
         var filterDialog = Builders<ConversationDialogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterExeLog = Builders<ExecutionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterPromptLog = Builders<LlmCompletionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
 
+        var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
+        var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
         return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0;
@@ -843,8 +848,8 @@ public class MongoRepository : IBotSharpRepository
     {
         if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
 
-        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
-        var update = Builders<ExectionLogCollection>.Update
+        var filter = Builders<ExecutionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var update = Builders<ExecutionLogCollection>.Update
                                                     .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
                                                     .PushEach(x => x.Logs, logs);
 
@@ -856,7 +861,7 @@ public class MongoRepository : IBotSharpRepository
         var logs = new List<string>();
         if (string.IsNullOrEmpty(conversationId)) return logs;
 
-        var filter = Builders<ExectionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filter = Builders<ExecutionLogCollection>.Filter.Eq(x => x.ConversationId, conversationId);
         var logCollection = _dc.ExectionLogs.Find(filter).FirstOrDefault();
 
         logs = logCollection?.Logs ?? new List<string>();
