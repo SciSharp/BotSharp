@@ -3,7 +3,6 @@ using BotSharp.Abstraction.MLTasks;
 using System;
 using System.Threading.Tasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
-using Microsoft.Extensions.Logging;
 using BotSharp.Abstraction.Conversations;
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations.Models;
@@ -32,7 +31,6 @@ public class TextCompletionProvider : ITextCompletion
     public async Task<string> GetCompletion(string text, string agentId, string messageId)
     {
         var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-        var logHook = _services.GetService<IVerboseLogHook>();
 
         // Before chat completion hook
         var agent = new Agent()
@@ -63,7 +61,6 @@ public class TextCompletionProvider : ITextCompletion
             MaxTokens = 256,
         };
         completionsOptions.StopSequences.Add($"{AgentRole.Assistant}:");
-        logHook?.GenerateLog(text);
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = float.Parse(state.GetState("temperature", "0.5"));
@@ -79,8 +76,6 @@ public class TextCompletionProvider : ITextCompletion
         {
             completion += t.Text;
         };
-
-        logHook?.GenerateLog(completion);
 
         // After chat completion hook
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, completion)

@@ -4,7 +4,6 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Conversations.Settings;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.AzureOpenAI.Settings;
@@ -39,7 +38,6 @@ public class ChatCompletionProvider : IChatCompletion
     public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-        var logHook = _services.GetService<IVerboseLogHook>();
 
         // Before chat completion hook
         Task.WaitAll(contentHooks.Select(hook => 
@@ -74,11 +72,6 @@ public class ChatCompletionProvider : IChatCompletion
                 responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
             }
         }
-
-        var log = responseMessage.Role == AgentRole.Function ?
-                $"[{agent.Name}]: {responseMessage.FunctionName}({responseMessage.FunctionArgs})" :
-                $"[{agent.Name}]: {responseMessage.Content}";
-        logHook?.GenerateLog(log);
 
         // After chat completion hook
         Task.WaitAll(contentHooks.Select(hook =>
@@ -192,7 +185,6 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, ChatCompletionsOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var logHook = _services.GetService<IVerboseLogHook>();
 
         var chatCompletionsOptions = new ChatCompletionsOptions();
         
@@ -248,7 +240,6 @@ public class ChatCompletionProvider : IChatCompletion
         // chatCompletionsOptions.PresencePenalty = 0;
 
         var prompt = GetPrompt(chatCompletionsOptions);
-        logHook?.GenerateLog(prompt);
 
         return (prompt, chatCompletionsOptions);
     }

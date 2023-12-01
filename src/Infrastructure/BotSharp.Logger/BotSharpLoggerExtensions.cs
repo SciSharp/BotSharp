@@ -6,7 +6,7 @@ public static class BotSharpLoggerExtensions
     {
         services.AddScoped<IContentGeneratingHook, CommonContentGeneratingHook>();
         services.AddScoped<IContentGeneratingHook, TokenStatsConversationHook>();
-        services.AddScoped<IVerboseLogHook, VerboseLogHook>();
+        services.AddScoped<IContentGeneratingHook, VerboseLogHook>();
         return services;
     }
 }
