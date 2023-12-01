@@ -1,14 +1,12 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.GoogleAI.Settings;
 using LLMSharp.Google.Palm;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.Metrics;
-using static System.Net.Mime.MediaTypeNames;
+using LLMSharp.Google.Palm.DiscussService;
 
 namespace BotSharp.Plugin.GoogleAI.Providers;
 
@@ -39,19 +37,25 @@ public class ChatCompletionProvider : IChatCompletion
 
         var client = new GooglePalmClient(apiKey: _settings.PaLM.ApiKey);
 
-        var (prompt, messages) = PrepareOptions(agent, conversations);
+        var (prompt, messages, hasFunctions) = PrepareOptions(agent, conversations);
 
         RoleDialogModel msg;
         
-        if (messages == null)
+        if (hasFunctions)
         {
             // use text completion
-            var response = client.GenerateTextAsync(prompt, null).Result;
+            // var response = client.GenerateTextAsync(prompt, null).Result;
+            var response = client.ChatAsync(new PalmChatCompletionRequest
+            {
+                Context = prompt,
+                Messages = messages,
+                Temperature = 0.1f
+            }).Result;
 
             var message = response.Candidates.First();
 
             // check if returns function calling
-            var llmResponse = message.Output.JsonContent<FunctionCallingResponse>();
+            var llmResponse = message.Content.JsonContent<FunctionCallingResponse>();
 
             msg = new RoleDialogModel(llmResponse.Role, llmResponse.Content)
             {
@@ -79,13 +83,14 @@ public class ChatCompletionProvider : IChatCompletion
         Task.WaitAll(hooks.Select(hook =>
             hook.AfterGenerated(msg, new TokenStatsModel
             {
+                Prompt = prompt,
                 Model = _model
             })).ToArray());
 
         return msg;
     }
 
-    private (string, List<PalmChatMessage>) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
+    private (string, List<PalmChatMessage>, bool) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var prompt = "";
 
@@ -98,6 +103,9 @@ public class ChatCompletionProvider : IChatCompletion
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var router = routing.Router;
+
+        var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
+            .ToList();
 
         if (agent.Functions != null && agent.Functions.Count > 0)
         {
@@ -118,13 +126,13 @@ public class ChatCompletionProvider : IChatCompletion
 
             prompt += "\r\n\r\n" + router.Templates.FirstOrDefault(x => x.Name == "response_with_function").Content;
 
-            return (prompt, null);
+            return (prompt, new List<PalmChatMessage>
+            {
+                new PalmChatMessage("Which function should be used for the next step based on latest user or function response, output your response in JSON:", AgentRole.User),
+            }, true);
         }
 
-        var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
-            .ToList();
-
-        return (prompt, messages);
+        return (prompt, messages, false);
     }
 
     public Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
