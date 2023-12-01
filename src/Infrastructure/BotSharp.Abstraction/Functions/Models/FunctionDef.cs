@@ -4,7 +4,10 @@ public class FunctionDef
 {
     public string Name { get; set; }
     public string Description { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Impact { get; set; }
+
     public FunctionParametersDef Parameters { get; set; } = new FunctionParametersDef();
 
     public override string ToString()
