@@ -40,8 +40,10 @@ public class ChatCompletionProvider : IChatCompletion
         var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
         // Before chat completion hook
-        Task.WaitAll(contentHooks.Select(hook => 
-            hook.BeforeGenerating(agent, conversations)).ToArray());
+        foreach (var hook in contentHooks)
+        {
+            hook.BeforeGenerating(agent, conversations).Wait();
+        }
 
         var client = ProviderHelper.GetClient(_model, _settings);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
@@ -74,14 +76,16 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // After chat completion hook
-        Task.WaitAll(contentHooks.Select(hook =>
+        foreach(var hook in contentHooks)
+        {
             hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
                 Prompt = prompt,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
-            })).ToArray());
+            }).Wait();
+        }
 
         return responseMessage;
     }
@@ -94,8 +98,10 @@ public class ChatCompletionProvider : IChatCompletion
         var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
         // Before chat completion hook
-        Task.WaitAll(hooks.Select(hook =>
-            hook.BeforeGenerating(agent, conversations)).ToArray());
+        foreach (var hook in hooks)
+        {
+            await hook.BeforeGenerating(agent, conversations);
+        }
 
         var client = ProviderHelper.GetClient(_model, _settings);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
@@ -111,14 +117,16 @@ public class ChatCompletionProvider : IChatCompletion
         };
 
         // After chat completion hook
-        Task.WaitAll(hooks.Select(hook =>
-            hook.AfterGenerated(msg, new TokenStatsModel
+        foreach (var hook in hooks)
+        {
+            await hook.AfterGenerated(msg, new TokenStatsModel
             {
                 Prompt = prompt,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
-            })).ToArray());
+            });
+        }
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
