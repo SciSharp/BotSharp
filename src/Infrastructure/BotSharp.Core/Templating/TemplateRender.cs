@@ -22,6 +22,7 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.MemberNameStrategy = MemberNameStrategies.SnakeCase;
 
         _options.MemberAccessStrategy.Register<NameDesc>();
+        _options.MemberAccessStrategy.Register<FunctionDef>();
         _options.MemberAccessStrategy.Register<ParameterPropertyDef>();
         _options.MemberAccessStrategy.Register<RoleDialogModel>();
         _options.MemberAccessStrategy.Register<Agent>();

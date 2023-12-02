@@ -33,6 +33,7 @@ public class RoleDialogModel : ITrackableMessage
     /// Function name if LLM response function call
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("function_name")]
     public string? FunctionName { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
