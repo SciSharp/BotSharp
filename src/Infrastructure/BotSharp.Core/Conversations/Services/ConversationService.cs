@@ -54,16 +54,17 @@ public partial class ConversationService : IConversationService
         return conversation;
     }
 
-    public async Task<List<Conversation>> GetConversations()
+    public async Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(_user.Id);
-        var filter = new ConversationFilter
-        {
-            UserId = user.Role == UserRole.CSR ? string.Empty : user?.Id
-        };
         var conversations = db.GetConversations(filter);
-        return conversations.OrderByDescending(x => x.CreatedTime).ToList();
+        var result = new PagedItems<Conversation>
+        {
+            Count = conversations.Count(),
+            Items = conversations.OrderByDescending(x => x.CreatedTime)
+        };
+        return result;
     }
 
     public async Task<List<Conversation>> GetLastConversations()

@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.ApiAdapters;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Abstraction.Evaluations.Models;
 

@@ -6,6 +6,7 @@ global using System.Threading.Tasks;
 global using System.ComponentModel.DataAnnotations;
 global using System.Text.Json.Serialization;
 global using BotSharp.Abstraction.Agents.Models;
+global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Models;

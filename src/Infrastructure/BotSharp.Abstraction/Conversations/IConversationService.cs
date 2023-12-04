@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories.Filters;
+
 namespace BotSharp.Abstraction.Conversations;
 
 public interface IConversationService
@@ -7,7 +9,7 @@ public interface IConversationService
     Task<Conversation> NewConversation(Conversation conversation);
     void SetConversationId(string conversationId, List<string> states);
     Task<Conversation> GetConversation(string id);
-    Task<List<Conversation>> GetConversations();
+    Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter);
     Task<Conversation> UpdateConversationTitle(string id, string title);
     Task<List<Conversation>> GetLastConversations();
     Task<bool> DeleteConversation(string id);

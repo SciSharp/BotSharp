@@ -1,14 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.ApiAdapters;
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Models;
-using BotSharp.OpenAPI.ViewModels.Conversations;
-using BotSharp.OpenAPI.ViewModels.Users;
-using Microsoft.AspNetCore.Http;
-using Microsoft.VisualBasic;
-using System.Net.Http.Headers;
-
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
@@ -41,13 +30,16 @@ public class ConversationController : ControllerBase, IApiAdapter
         return ConversationViewModel.FromSession(conv);
     }
 
-    [HttpGet("/conversations/{agentId}")]
-    public async Task<IEnumerable<ConversationViewModel>> GetConversations()
+    [HttpGet("/conversations")]
+    public async Task<PagedItems<ConversationViewModel>> GetConversations([FromQuery] ConversationFilter filter)
     {
         var service = _services.GetRequiredService<IConversationService>();
-        var conversations = await service.GetConversations();
+        var conversations = await service.GetConversations(filter);
+
         var userService = _services.GetRequiredService<IUserService>();
-        var list = conversations.Select(x => ConversationViewModel.FromSession(x)).ToList();
+        var list = conversations.Items
+            .Select(x => ConversationViewModel.FromSession(x))
+            .ToList();
 
         foreach (var item in list)
         {
@@ -55,7 +47,11 @@ public class ConversationController : ControllerBase, IApiAdapter
             item.User = UserViewModel.FromUser(user);
         }
 
-        return list;
+        return new PagedItems<ConversationViewModel>
+        {
+            Count = conversations.Count,
+            Items = list
+        };
     }
 
     [HttpGet("/conversation/{conversationId}/dialogs")]
