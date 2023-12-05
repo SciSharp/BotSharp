@@ -38,8 +38,8 @@ public class VerboseLogHook : IContentGeneratingHook
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
         var log = message.Role == AgentRole.Function ?
-                $"[[msg_id: {message.MessageId}] [{agent.Name}]: {message.FunctionName}({message.FunctionArgs})" :
-                $"[[msg_id: {message.MessageId}] [{agent.Name}]: {message.Content}";
+                $"[[msg_id: {message.MessageId}] [{agent?.Name}]: {message.FunctionName}({message.FunctionArgs})" :
+                $"[[msg_id: {message.MessageId}] [{agent?.Name}]: {message.Content}";
 
         _logger.LogInformation(tokenStats.Prompt);
         _logger.LogInformation(log);

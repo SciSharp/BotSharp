@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.ApiAdapters;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
@@ -48,6 +45,6 @@ public class InstructModeController : ControllerBase, IApiAdapter
             .SetState("model", input.Model);
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
-        return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.Empty.ToString());
+        return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.NewGuid().ToString());
     }
 }
