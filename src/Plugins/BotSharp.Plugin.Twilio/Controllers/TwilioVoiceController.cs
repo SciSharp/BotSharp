@@ -1,21 +1,7 @@
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Plugin.Twilio.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System;
-using Twilio.AspNet.Common;
-using Twilio.AspNet.Core;
-using Twilio.TwiML;
-using Twilio.TwiML.Voice;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using BotSharp.Abstraction.Routing.Settings;
-using Twilio.Http;
-using Twilio.TwiML.Messaging;
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Conversations.Enums;
+using System.IdentityModel.Tokens.Jwt;
+using BotSharp.Plugin.Twilio.Services;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
 
@@ -30,12 +16,29 @@ public class TwilioVoiceController : TwilioController
         _settings = settings;
         _services = services;
     }
-    
+
+    [Authorize]
+    [HttpGet("/twilio/token")]
+    public Token GetAccessToken()
+    {
+        var twilio = _services.GetRequiredService<TwilioService>();
+        var accessToken = twilio.GetAccessToken();
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        return new Token
+        {
+            AccessToken = accessToken,
+            ExpireTime = jwt.Payload.Exp.Value,
+            TokenType = "Bearer",
+            Scope = "api"
+        };
+    }
+
     [HttpPost("/twilio/voice/welcome")]
     public async Task<TwiMLResult> StartConversation(VoiceRequest request)
     {
         string sessionId = $"TwilioVoice_{request.CallSid}";
-        var response = ReturnInstructions("Hello, how may I help you?");
+        var twilio = _services.GetRequiredService<TwilioService>();
+        var response = twilio.ReturnInstructions("Hello, how may I help you?");
         return TwiML(response);
     }
 
@@ -51,13 +54,18 @@ public class TwilioVoiceController : TwilioController
             $"calling_phone={input.DialCallSid}"
         });
 
+        var twilio = _services.GetRequiredService<TwilioService>();
         VoiceResponse response = default;
 
         var result = await conv.SendMessage(agentId,
             new RoleDialogModel(AgentRole.User, input.SpeechResult),
             async msg =>
             {
-                response = HangUp(msg.Content);
+                response = twilio.ReturnInstructions(msg.Content);
+                if (msg.FunctionName == "conversation_end")
+                {
+                    response = twilio.HangUp(msg.Content);
+                }
             }, async functionExecuting =>
             {
             }, async functionExecuted =>
@@ -65,54 +73,5 @@ public class TwilioVoiceController : TwilioController
             });
 
         return TwiML(response);
-    }
-
-    private VoiceResponse ReturnInstructions(string message)
-    {
-        var routingSetting = _services.GetRequiredService<RoutingSettings>();
-
-        var response = new VoiceResponse();
-        var gather = new Gather()
-        {
-            Input = new List<Gather.InputEnum>() 
-            { 
-                Gather.InputEnum.Speech 
-            },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.RouterId}")
-        };
-        gather.Say(message);
-        response.Append(gather);
-        return response;
-    }
-
-    private VoiceResponse HangUp(string message)
-    {
-        var response = new VoiceResponse();
-        if (!string.IsNullOrEmpty(message))
-        {
-            response.Say(message);
-        }
-        response.Hangup();
-        return response;
-    }
-
-    private VoiceResponse HoldOn(int interval, string message = null)
-    {
-        var routingSetting = _services.GetRequiredService<RoutingSettings>();
-
-        var response = new VoiceResponse();
-        var gather = new Gather()
-        {
-            Input = new List<Gather.InputEnum>() { Gather.InputEnum.Speech },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.RouterId}"),
-            ActionOnEmptyResult = true
-        };
-        if (!string.IsNullOrEmpty(message))
-        {
-            gather.Say(message);
-        }
-        gather.Pause(interval);
-        response.Append(gather);
-        return response;
     }
 }
