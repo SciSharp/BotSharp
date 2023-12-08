@@ -108,11 +108,6 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         if (!_states.ContainsKey(name))
         {
-            _states[name] = defaultValue ?? "";
-        }
-
-        if (string.IsNullOrEmpty(_states[name]))
-        {
             return defaultValue;
         }
 
