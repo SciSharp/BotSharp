@@ -5,7 +5,8 @@
 		DropdownMenu,
 		DropdownItem,
 		Form,
-		Input
+		Input,
+		Button
 	} from 'sveltestrap';
 
 	import 'overlayscrollbars/overlayscrollbars.css';
@@ -90,62 +91,26 @@
 		viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' }); // set scroll offset
 	  }, 200);
     }
+
+	function close() {
+		window.parent.postMessage({ action: "close" }, "*");
+	}
 </script>
 
 <div class="d-lg-flex">
 	<div class="w-100 user-chat">
 		<div class="card">
-			<div class="p-4 border-bottom" style="height: 10vh">
+			<div class="p-4 border-bottom" style="height: 12vh">
 				<div class="row">
-					<div class="col-md-4 col-9">
+					<div class="col-md-4 col-7">
 						<h5 class="font-size-15 mb-1">Guest</h5>
 						<p class="text-muted mb-0">
 							<i class="mdi mdi-circle text-success align-middle me-1" /> Active now
 						</p>
 					</div>
 
-					<div class="col-md-8 col-3">
+					<div class="col-md-8 col-5">
 						<ul class="list-inline user-chat-nav text-end mb-0">
-							<li class="list-inline-item d-none d-sm-inline-block">
-								<Dropdown>
-									<DropdownToggle class="nav-btn dropdown-toggle" tag="button" color="">
-										<i class="bx bx-search-alt-2" />
-									</DropdownToggle>
-
-									<DropdownMenu class="dropdown-menu dropdown-menu-end dropdown-menu-md">
-										<Form class="p-3">
-											<div class="form-group m-0">
-												<div class="input-group">
-													<Input
-														type="text"
-														class="form-control"
-														placeholder="Search ..."
-														aria-label="Recipient's username"
-													/>
-
-													<button class="btn btn-primary" type="submit"
-														><i class="mdi mdi-magnify" /></button
-													>
-												</div>
-											</div>
-										</Form>
-									</DropdownMenu>
-								</Dropdown>
-							</li>
-
-							<li class="list-inline-item d-none d-sm-inline-block">
-								<Dropdown>
-									<DropdownToggle tag="button" class="nav-btn dropdown-toggle" color="">
-										<i class="bx bx-cog" />
-									</DropdownToggle>
-									<DropdownMenu class="dropdown-menu-end">
-										<DropdownItem>View Profile</DropdownItem>
-										<DropdownItem>Clear chat</DropdownItem>
-										<DropdownItem>Muted</DropdownItem>
-										<DropdownItem>Delete</DropdownItem>
-									</DropdownMenu>
-								</Dropdown>
-							</li>
 							<li class="list-inline-item">
 								<Dropdown>
 									<DropdownToggle tag="button" class="nav-btn dropdown-toggle" color="">
@@ -158,12 +123,19 @@
 									</DropdownMenu>
 								</Dropdown>
 							</li>
+							<li class="list-inline-item d-sm-inline-block">
+								<button type="submit" class="btn btn-secondary btn-rounded chat-send w-md waves-effect waves-light"
+									on:click={close}
+								>
+									<span class="d-none d-sm-inline-block me-2" >Close</span> <i class="mdi mdi-window-close"></i>
+								</button>
+							</li>
 						</ul>
 					</div>
 				</div>
 			</div>
 
-			<div class="scrollbar" style="height: 80vh">
+			<div class="scrollbar" style="height: 78vh">
 				<div class="chat-conversation p-3">
 					<ul class="list-unstyled mb-0">
 						<li>
