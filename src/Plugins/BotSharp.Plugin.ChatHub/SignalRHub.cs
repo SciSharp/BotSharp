@@ -33,13 +33,15 @@ public class SignalRHub : Hub
         if (!string.IsNullOrEmpty(conversationId))
         {
             var conv = await convService.GetConversation(conversationId);
-
-            foreach (var hook in hooks)
+            if (conv != null)
             {
-                // Check if user connected with agent is the first time.
-                if (!conv.Dialogs.Any())
+                foreach (var hook in hooks)
                 {
-                    await hook.OnUserAgentConnectedInitially(conv);
+                    // Check if user connected with agent is the first time.
+                    if (!conv.Dialogs.Any())
+                    {
+                        await hook.OnUserAgentConnectedInitially(conv);
+                    }
                 }
             }
         }

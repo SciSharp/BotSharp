@@ -16,6 +16,7 @@
 	import Link from 'svelte-link';
 	import { signalr } from '$lib/services/signalr-service.js';
     import { sendMessageToHub, GetDialogs } from '$lib/services/conversation-service.js';
+	import { format } from '$lib/helpers/datetime';
 
 	const options = {
 		scrollbars: {
@@ -103,7 +104,7 @@
 			<div class="p-4 border-bottom" style="height: 12vh">
 				<div class="row">
 					<div class="col-md-4 col-7">
-						<h5 class="font-size-15 mb-1">Guest</h5>
+						<h5 class="font-size-15 mb-1">{agent.name}</h5>
 						<p class="text-muted mb-0">
 							<i class="mdi mdi-circle text-success align-middle me-1" /> Active now
 						</p>
@@ -160,12 +161,19 @@
 								</Dropdown>
 
 								<div class="ctext-wrap">
-									<div class="conversation-name">{message.sender.full_name}</div>
-									<p>{message.text}</p>
+									{#if message.sender.id === currentUser.id}
+									<!--<div class="conversation-name">{message.sender.full_name}</div>-->
+									<span>{message.text}</span>
 									<p class="chat-time mb-0">
 										<i class="bx bx-time-five align-middle me-1" />
-										{message.created_at}
-									</p>
+										{format(message.created_at, 'short-time')}
+									</p>									
+									{:else}
+									<div class="flex-shrink-0 align-self-center me-3">
+										<img src="/images/users/bot.png" class="rounded-circle avatar-xs" alt="avatar">
+										<span>{message.text}</span>
+									</div>
+									{/if}
 								</div>
 							</div>
 						</li>
@@ -181,12 +189,6 @@
 							<input type="text" class="form-control chat-input" bind:value={text} placeholder="Enter Message..." />
 							<div class="chat-input-links" id="tooltip-container">
 								<ul class="list-inline mb-0">
-									<li class="list-inline-item">
-										<Link href="#" title="Emoji"><i class="mdi mdi-emoticon-happy-outline" /></Link>
-									</li>
-									<li class="list-inline-item">
-										<Link href="#" title="Images"><i class="mdi mdi-file-image-outline" /></Link>
-									</li>
 									<li class="list-inline-item">
 										<Link href="#" title="Add Files"><i class="mdi mdi-file-document-outline" /></Link>
 									</li>
