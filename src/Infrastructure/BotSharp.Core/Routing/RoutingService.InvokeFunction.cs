@@ -9,6 +9,7 @@ public partial class RoutingService
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
         if (function == null) return false;
 
+        message.FunctionName = name;
         return await function.Execute(message);
     }
 }
