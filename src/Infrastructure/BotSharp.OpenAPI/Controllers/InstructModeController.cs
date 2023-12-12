@@ -47,4 +47,22 @@ public class InstructModeController : ControllerBase, IApiAdapter
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
         return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.NewGuid().ToString());
     }
+
+    [HttpPost("/instruct/chat-completion")]
+    public async Task<string> ChatCompletion([FromBody] IncomingMessageModel input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        state.SetState("provider", input.Provider)
+            .SetState("model", input.Model);
+
+        var textCompletion = CompletionProvider.GetChatCompletion(_services);
+        return textCompletion.GetChatCompletions(new Agent()
+        {
+            Id = Guid.Empty.ToString(),
+        }, new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, input.Text)
+        }).Content;
+    }
 }
