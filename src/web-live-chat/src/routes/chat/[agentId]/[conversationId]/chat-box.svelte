@@ -104,7 +104,7 @@
 			<div class="p-4 border-bottom" style="height: 12vh">
 				<div class="row">
 					<div class="col-md-4 col-7">
-						<h5 class="font-size-15 mb-1">{agent.name}</h5>
+						<h5 class="font-size-15 mb-1">{agent?.name}</h5>
 						<p class="text-muted mb-0">
 							<i class="mdi mdi-circle text-success align-middle me-1" /> Active now
 						</p>
