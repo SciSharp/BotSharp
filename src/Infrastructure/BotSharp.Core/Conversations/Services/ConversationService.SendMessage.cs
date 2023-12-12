@@ -99,9 +99,9 @@ public partial class ConversationService
         var agent = await agentService.GetAgent(response.CurrentAgentId);
         var agentName = agent.Name;
 
-        var text = response.Role == AgentRole.Function ?
-            $"Sending [{agentName}] {response.FunctionName}: {response.Content}" :
-            $"Sending [{agentName}] {response.Role}: {response.Content}";
+        // Send message always in assistant role
+        response.Role = AgentRole.Assistant;
+        var text = $"Sending [{agentName}] {response.Role}: {response.Content}";
 #if DEBUG
         Console.WriteLine(text, Color.Yellow);
 #else
