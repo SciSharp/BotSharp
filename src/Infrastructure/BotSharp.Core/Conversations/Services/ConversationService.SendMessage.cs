@@ -32,7 +32,11 @@ public partial class ConversationService
 
         _storage.Append(_conversationId, message);
 
+        var statistics = _services.GetRequiredService<ITokenStatistics>();
         var hooks = _services.GetServices<IConversationHook>().ToList();
+
+        RoleDialogModel response = message;
+        bool stopCompletion = false;
 
         // Before chat completion hook
         foreach (var hook in hooks)
@@ -45,26 +49,25 @@ public partial class ConversationService
             // Interrupted by hook
             if (message.StopCompletion)
             {
-                await onMessageReceived(message);
-                _storage.Append(_conversationId, message);
-                return true;
+                stopCompletion = true;
             }
         }
 
-        // Routing with reasoning
-        var routing = _services.GetRequiredService<IRoutingService>();
-        var settings = _services.GetRequiredService<RoutingSettings>();
+        if (!stopCompletion)
+        {
+            // Routing with reasoning
+            var routing = _services.GetRequiredService<IRoutingService>();
+            var settings = _services.GetRequiredService<RoutingSettings>();
 
-        var response = agentId == settings.RouterId ?
-            await routing.InstructLoop(message) :
-            await routing.ExecuteDirectly(agent, message);
+            response = agentId == settings.RouterId ?
+                await routing.InstructLoop(message) :
+                await routing.ExecuteDirectly(agent, message);
+
+            routing.ResetRecursiveCounter();
+        }
 
         await HandleAssistantMessage(response, onMessageReceived);
-
-        var statistics = _services.GetRequiredService<ITokenStatistics>();
         statistics.PrintStatistics();
-
-        routing.ResetRecursiveCounter();
 
         return true;
     }
@@ -131,7 +134,11 @@ public partial class ConversationService
 
         // Add to dialog history
         _storage.Append(_conversationId, response);
-        var conversation = _services.GetRequiredService<IConversationService>();
-        var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.Reason);
+
+        if (response.Instruction != null)
+        {
+            var conversation = _services.GetRequiredService<IConversationService>();
+            var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.Reason);
+        }
     }
 }

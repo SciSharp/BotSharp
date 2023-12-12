@@ -10,6 +10,7 @@ public partial class RoutingService
         if (function == null) return false;
 
         message.FunctionName = name;
+        message.Role = AgentRole.Function;
         return await function.Execute(message);
     }
 }

@@ -29,7 +29,7 @@ public interface IConversationService
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted);
 
-    List<RoleDialogModel> GetDialogHistory(int lastCount = 20);
+    List<RoleDialogModel> GetDialogHistory(int lastCount = 50);
     Task CleanHistory(string agentId);
 
     Task CallFunctions(RoleDialogModel msg);
