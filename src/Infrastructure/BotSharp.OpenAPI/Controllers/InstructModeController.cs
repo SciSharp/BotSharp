@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
