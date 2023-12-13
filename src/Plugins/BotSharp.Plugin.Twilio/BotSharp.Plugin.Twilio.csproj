@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="StrongGrid" Version="0.102.0" />
     <PackageReference Include="Twilio.AspNet.Common" Version="8.0.2" />
     <PackageReference Include="Twilio.AspNet.Core" Version="8.0.2" />
   </ItemGroup>

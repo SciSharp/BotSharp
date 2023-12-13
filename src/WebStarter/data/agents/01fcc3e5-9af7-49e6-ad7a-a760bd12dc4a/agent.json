@@ -7,6 +7,6 @@
   "isPublic": true,
   "llmConfig": {
     "provider": "azure-openai",
-    "model": "gpt-35-turbo"
+    "model": "one"
   }
 }
