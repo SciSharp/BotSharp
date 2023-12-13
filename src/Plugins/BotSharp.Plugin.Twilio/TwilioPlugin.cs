@@ -1,4 +1,4 @@
-using BotSharp.Plugin.Twilio.Settings;
+using BotSharp.Plugin.Twilio.Services;
 
 namespace BotSharp.Plugin.Twilio;
 
@@ -12,5 +12,7 @@ public class TwilioPlugin : IBotSharpPlugin
         var setting = new TwilioSetting();
         config.Bind("Twilio", setting);
         services.AddSingleton(setting);
+
+        services.AddScoped<TwilioService>();
     }
 }

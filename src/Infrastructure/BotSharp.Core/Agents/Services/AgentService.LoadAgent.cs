@@ -8,6 +8,11 @@ public partial class AgentService
     [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id)
     {
+        if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
+        {
+            return null;
+        }
+
         var hooks = _services.GetServices<IAgentHook>();
 
         // Before agent is loaded.

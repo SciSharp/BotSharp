@@ -2,7 +2,7 @@ using BotSharp.Plugin.MongoStorage.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class AgentCollection : MongoBase
+public class AgentDocument : MongoBase
 {
     public string Name { get; set; }
     public string Description { get; set; }

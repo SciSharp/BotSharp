@@ -1,4 +1,5 @@
-const host = 'http://localhost:5500';
+import { PUBLIC_API_HOST } from '$env/static/public';
+const host = PUBLIC_API_HOST;
 
 // user
 export const tokenUrl = `${host}/token`;

@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Conversations.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace BotSharp.Plugin.ChatHub;
 
@@ -31,14 +29,20 @@ public class SignalRHub : Hub
         var hooks = _services.GetServices<IConversationHook>();
         var convService = _services.GetRequiredService<IConversationService>();
         _context.HttpContext.Request.Query.TryGetValue("conversationId", out var conversationId);
-        var conv = await convService.GetConversation(conversationId);
 
-        foreach (var hook in hooks)
+        if (!string.IsNullOrEmpty(conversationId))
         {
-            // Check if user connected with agent is the first time.
-            if (!conv.Dialogs.Any())
+            var conv = await convService.GetConversation(conversationId);
+            if (conv != null)
             {
-                await hook.OnUserAgentConnectedInitially(conv);
+                foreach (var hook in hooks)
+                {
+                    // Check if user connected with agent is the first time.
+                    if (!conv.Dialogs.Any())
+                    {
+                        await hook.OnUserAgentConnectedInitially(conv);
+                    }
+                }
             }
         }
 

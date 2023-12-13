@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace BotSharp.Abstraction.Users.Models;
 
 public class Token

@@ -5,7 +5,8 @@
 		DropdownMenu,
 		DropdownItem,
 		Form,
-		Input
+		Input,
+		Button
 	} from 'sveltestrap';
 
 	import 'overlayscrollbars/overlayscrollbars.css';
@@ -15,6 +16,7 @@
 	import Link from 'svelte-link';
 	import { signalr } from '$lib/services/signalr-service.js';
     import { sendMessageToHub, GetDialogs } from '$lib/services/conversation-service.js';
+	import { format } from '$lib/helpers/datetime';
 
 	const options = {
 		scrollbars: {
@@ -90,62 +92,26 @@
 		viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' }); // set scroll offset
 	  }, 200);
     }
+
+	function close() {
+		window.parent.postMessage({ action: "close" }, "*");
+	}
 </script>
 
 <div class="d-lg-flex">
 	<div class="w-100 user-chat">
 		<div class="card">
-			<div class="p-4 border-bottom" style="height: 10vh">
+			<div class="p-4 border-bottom" style="height: 12vh">
 				<div class="row">
-					<div class="col-md-4 col-9">
-						<h5 class="font-size-15 mb-1">Guest</h5>
+					<div class="col-md-4 col-7">
+						<h5 class="font-size-15 mb-1">{agent?.name}</h5>
 						<p class="text-muted mb-0">
 							<i class="mdi mdi-circle text-success align-middle me-1" /> Active now
 						</p>
 					</div>
 
-					<div class="col-md-8 col-3">
+					<div class="col-md-8 col-5">
 						<ul class="list-inline user-chat-nav text-end mb-0">
-							<li class="list-inline-item d-none d-sm-inline-block">
-								<Dropdown>
-									<DropdownToggle class="nav-btn dropdown-toggle" tag="button" color="">
-										<i class="bx bx-search-alt-2" />
-									</DropdownToggle>
-
-									<DropdownMenu class="dropdown-menu dropdown-menu-end dropdown-menu-md">
-										<Form class="p-3">
-											<div class="form-group m-0">
-												<div class="input-group">
-													<Input
-														type="text"
-														class="form-control"
-														placeholder="Search ..."
-														aria-label="Recipient's username"
-													/>
-
-													<button class="btn btn-primary" type="submit"
-														><i class="mdi mdi-magnify" /></button
-													>
-												</div>
-											</div>
-										</Form>
-									</DropdownMenu>
-								</Dropdown>
-							</li>
-
-							<li class="list-inline-item d-none d-sm-inline-block">
-								<Dropdown>
-									<DropdownToggle tag="button" class="nav-btn dropdown-toggle" color="">
-										<i class="bx bx-cog" />
-									</DropdownToggle>
-									<DropdownMenu class="dropdown-menu-end">
-										<DropdownItem>View Profile</DropdownItem>
-										<DropdownItem>Clear chat</DropdownItem>
-										<DropdownItem>Muted</DropdownItem>
-										<DropdownItem>Delete</DropdownItem>
-									</DropdownMenu>
-								</Dropdown>
-							</li>
 							<li class="list-inline-item">
 								<Dropdown>
 									<DropdownToggle tag="button" class="nav-btn dropdown-toggle" color="">
@@ -158,12 +124,19 @@
 									</DropdownMenu>
 								</Dropdown>
 							</li>
+							<li class="list-inline-item d-sm-inline-block">
+								<button type="submit" class="btn btn-secondary btn-rounded chat-send w-md waves-effect waves-light"
+									on:click={close}
+								>
+									<span class="d-none d-sm-inline-block me-2" >Close</span> <i class="mdi mdi-window-close"></i>
+								</button>
+							</li>
 						</ul>
 					</div>
 				</div>
 			</div>
 
-			<div class="scrollbar" style="height: 80vh">
+			<div class="scrollbar" style="height: 78vh">
 				<div class="chat-conversation p-3">
 					<ul class="list-unstyled mb-0">
 						<li>
@@ -188,12 +161,19 @@
 								</Dropdown>
 
 								<div class="ctext-wrap">
-									<div class="conversation-name">{message.sender.full_name}</div>
-									<p>{message.text}</p>
+									{#if message.sender.id === currentUser.id}
+									<!--<div class="conversation-name">{message.sender.full_name}</div>-->
+									<span>{message.text}</span>
 									<p class="chat-time mb-0">
 										<i class="bx bx-time-five align-middle me-1" />
-										{message.created_at}
-									</p>
+										{format(message.created_at, 'short-time')}
+									</p>									
+									{:else}
+									<div class="flex-shrink-0 align-self-center me-3">
+										<img src="/images/users/bot.png" class="rounded-circle avatar-xs" alt="avatar">
+										<span>{message.text}</span>
+									</div>
+									{/if}
 								</div>
 							</div>
 						</li>
@@ -209,12 +189,6 @@
 							<input type="text" class="form-control chat-input" bind:value={text} placeholder="Enter Message..." />
 							<div class="chat-input-links" id="tooltip-container">
 								<ul class="list-inline mb-0">
-									<li class="list-inline-item">
-										<Link href="#" title="Emoji"><i class="mdi mdi-emoticon-happy-outline" /></Link>
-									</li>
-									<li class="list-inline-item">
-										<Link href="#" title="Images"><i class="mdi mdi-file-image-outline" /></Link>
-									</li>
 									<li class="list-inline-item">
 										<Link href="#" title="Add Files"><i class="mdi mdi-file-document-outline" /></Link>
 									</li>

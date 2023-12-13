@@ -1,7 +1,3 @@
-using BotSharp.Abstraction.ApiAdapters;
-using BotSharp.Abstraction.Users.Models;
-using BotSharp.OpenAPI.ViewModels.Users;
-
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]

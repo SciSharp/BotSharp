@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Abstraction.Knowledges.Models;
-using Microsoft.AspNetCore.Http;
 using BotSharp.Abstraction.Knowledges.Settings;
 
 namespace BotSharp.OpenAPI.Controllers;

@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class LlmCompletionLogCollection : MongoBase
+public class LlmCompletionLogDocument : MongoBase
 {
     public string ConversationId { get; set; }
     public string MessageId { get; set; }
