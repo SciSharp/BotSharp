@@ -19,6 +19,8 @@ using BotSharp.Core.Evaluations;
 using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Core.Planning;
+using BotSharp.Abstraction.MLTasks;
+using static Dapper.SqlMapper;
 
 namespace BotSharp.Core;
 
@@ -27,7 +29,7 @@ public static class BotSharpCoreExtensions
     public static IServiceCollection AddBotSharpCore(this IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IUserService, UserService>();
-
+        services.AddScoped<ILlmProviderSettingService, LlmProviderSettingService>();
         services.AddScoped<IAgentService, AgentService>();
 
         var agentSettings = new AgentSettings();
@@ -51,13 +53,16 @@ public static class BotSharpCoreExtensions
         config.Bind("Database", myDatabaseSettings);
         services.AddSingleton((IServiceProvider x) => myDatabaseSettings);
 
-        var textCompletionSettings = new TextCompletionSetting();
-        config.Bind("TextCompletion", textCompletionSettings);
-        services.AddSingleton((IServiceProvider x) => textCompletionSettings);
-
-        var chatCompletionSettings = new ChatCompletionSetting();
-        config.Bind("ChatCompletion", chatCompletionSettings);
-        services.AddSingleton((IServiceProvider x) => chatCompletionSettings);
+        var llmProviders = new List<LlmProviderSetting>();
+        config.Bind("LlmProviders", llmProviders);
+        services.AddSingleton((IServiceProvider x) =>
+        {
+            foreach (var llmProvider in llmProviders)
+            {
+                Console.WriteLine($"Loaded LlmProvider {llmProvider.Provider} settings with {llmProvider.Models.Count} models.");
+            }
+            return llmProviders;
+        });
 
         RegisterPlugins(services, config);
 

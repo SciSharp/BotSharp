@@ -16,14 +16,19 @@ Suppose we need to write a Pizza restaurant order AI Bot. First, specify a name 
 BotSharp uses the latest large language model in natural language understanding, can interact with OpenAI's ChatGPT, and also supports the most widely used open source large language model [LLaMA](https://ai.meta.com/blog/large-language-model-llama-meta-ai/) and its fine-tuning model. In this example, we use [Azure OpenAI](https://azure.microsoft.com/en-us/products/ai-services/openai-service) as the LLM engine. 
 
 ```json
-"AzureOpenAi": {
-    "ApiKey": "",
-    "Endpoint": "",
-    "DeploymentModel": {
-        "ChatCompletionModel": "",
-        "TextCompletionModel": ""
+"LlmProviders": [
+    {
+        "Provider": "azure-openai",
+        "Models": [{
+            "Name": "gpt-35-turbo",
+            "ApiKey": "",
+            "Endpoint": "https://gpt-35-turbo.openai.azure.com/",
+            "Type": "chat",
+            "PromptCost": 0.0015,
+            "CompletionCost": 0.002
+        }]
     }
-}
+]
 ```
 
 If you use the installation package to run, please ensure that the [BotSharp.Plugin.AzureOpenAI](https://www.nuget.org/packages/BotSharp.Plugin.AzureOpenAI) plugin package is installed.

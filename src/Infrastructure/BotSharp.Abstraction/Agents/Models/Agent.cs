@@ -12,6 +12,11 @@ public class Agent
     public DateTime UpdatedDateTime { get; set; }
 
     /// <summary>
+    /// Default LLM settings
+    /// </summary>
+    public AgentLlmConfig? LlmConfig { get; set; }
+
+    /// <summary>
     /// Instruction
     /// </summary>
     [JsonIgnore]

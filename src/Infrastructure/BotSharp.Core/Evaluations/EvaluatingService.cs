@@ -20,7 +20,7 @@ public class EvaluatingService : IEvaluatingService
     public async Task<Conversation> Execute(string task, EvaluationRequest request)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var evaluator = await agentService.GetAgent(_settings.EvaluatorId);
+        var evaluator = await agentService.GetAgent(_settings.AgentId);
         // Task execution mode
         evaluator.Instruction = evaluator.Templates.First(x => x.Name == "instruction.executor").Content;
         var taskPrompt = evaluator.Templates.First(x => x.Name == $"task.{task}").Content;

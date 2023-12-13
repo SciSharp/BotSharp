@@ -4,5 +4,9 @@
   "createdDateTime": "2023-08-18T14:39:32.2349685Z",
   "updatedDateTime": "2023-08-18T14:39:32.2349686Z",
   "id": "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a",
-  "isPublic": true
+  "isPublic": true,
+  "llmConfig": {
+    "provider": "azure-openai",
+    "model": "gpt-35-turbo"
+  }
 }

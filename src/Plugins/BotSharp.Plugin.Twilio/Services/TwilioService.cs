@@ -56,7 +56,7 @@ public class TwilioService
             {
                 Gather.InputEnum.Speech
             },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.RouterId}")
+            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.AgentId}")
         };
         gather.Say(message);
         response.Append(gather);
@@ -82,7 +82,7 @@ public class TwilioService
         var gather = new Gather()
         {
             Input = new List<Gather.InputEnum>() { Gather.InputEnum.Speech },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.RouterId}"),
+            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.AgentId}"),
             ActionOnEmptyResult = true
         };
         if (!string.IsNullOrEmpty(message))
