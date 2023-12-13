@@ -19,14 +19,29 @@ PS D:\> dotnet build
 `BotSharp` can work with serveral LLM providers. Update `appsettings.json` in your project. Below config is tasking Azure OpenAI as the LLM backend
 
 ```json
-"AzureOpenAi": {
-    "ApiKey": "",
-    "Endpoint": "https://xxx.openai.azure.com/",
-    "DeploymentModel": {
-      "ChatCompletionModel": "",
-      "TextCompletionModel": ""
-    }
-}
+"LlmProviders": [
+  {
+    "Provider": "azure-openai",
+    "Models": [
+      {
+        "Name": "gpt-35-turbo",
+        "ApiKey": "",
+        "Endpoint": "https://gpt-35-turbo.openai.azure.com/",
+        "Type": "chat",
+        "PromptCost": 0.0015,
+        "CompletionCost": 0.002
+      },
+      {
+        "Name": "gpt-35-turbo-instruct",
+        "ApiKey": "",
+        "Endpoint": "https://gpt-35-turbo-instruct.openai.azure.com/",
+        "Type": "text",
+        "PromptCost": 0.0015,
+        "CompletionCost": 0.002
+      }
+    ]
+  }
+]
 ```
 
 ### Run backend web project

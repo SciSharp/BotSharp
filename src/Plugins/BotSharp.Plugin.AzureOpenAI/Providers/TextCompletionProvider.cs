@@ -50,7 +50,7 @@ public class TextCompletionProvider : ITextCompletion
                     message
                 })).ToArray());
 
-        var client = ProviderHelper.GetClient(_model, _settings);
+        var client = ProviderHelper.GetClient(_model, _services);
 
         var completionsOptions = new CompletionsOptions()
         {
@@ -87,6 +87,7 @@ public class TextCompletionProvider : ITextCompletion
             hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
                 Prompt = text,
+                Provider = Provider,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
