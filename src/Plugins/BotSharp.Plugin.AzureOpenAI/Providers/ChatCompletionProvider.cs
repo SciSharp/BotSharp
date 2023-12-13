@@ -45,7 +45,7 @@ public class ChatCompletionProvider : IChatCompletion
             hook.BeforeGenerating(agent, conversations).Wait();
         }
 
-        var client = ProviderHelper.GetClient(_model, _settings);
+        var client = ProviderHelper.GetClient(_model, _services);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
         chatCompletionsOptions.DeploymentName = _model;
         var response = client.GetChatCompletions(chatCompletionsOptions);
@@ -81,6 +81,7 @@ public class ChatCompletionProvider : IChatCompletion
             hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
                 Prompt = prompt,
+                Provider = Provider,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
@@ -103,7 +104,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetClient(_model, _settings);
+        var client = ProviderHelper.GetClient(_model, _services);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
 
         chatCompletionsOptions.DeploymentName = _model;
@@ -122,6 +123,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.AfterGenerated(msg, new TokenStatsModel
             {
                 Prompt = prompt,
+                Provider = Provider,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
@@ -159,7 +161,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var client = ProviderHelper.GetClient(_model, _settings);
+        var client = ProviderHelper.GetClient(_model, _services);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
         chatCompletionsOptions.DeploymentName = _model;
         var response = await client.GetChatCompletionsStreamingAsync(chatCompletionsOptions);

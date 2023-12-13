@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Conversations.Models;
-
 namespace BotSharp.OpenAPI.ViewModels.Conversations;
 
 public class NewMessageModel : IncomingMessageModel
