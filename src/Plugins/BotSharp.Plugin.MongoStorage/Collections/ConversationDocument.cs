@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class ConversationCollection : MongoBase
+public class ConversationDocument : MongoBase
 {
     public string AgentId { get; set; }
     public string UserId { get; set; }

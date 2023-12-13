@@ -28,24 +28,24 @@ public class MongoDbContext
 
     private IMongoDatabase Database { get { return _mongoClient.GetDatabase(_mongoDbDatabaseName); } }
 
-    public IMongoCollection<AgentCollection> Agents
-        => Database.GetCollection<AgentCollection>($"{_collectionPrefix}_Agents");
+    public IMongoCollection<AgentDocument> Agents
+        => Database.GetCollection<AgentDocument>($"{_collectionPrefix}_Agents");
 
-    public IMongoCollection<ConversationCollection> Conversations
-        => Database.GetCollection<ConversationCollection>($"{_collectionPrefix}_Conversations");
+    public IMongoCollection<ConversationDocument> Conversations
+        => Database.GetCollection<ConversationDocument>($"{_collectionPrefix}_Conversations");
 
-    public IMongoCollection<ConversationDialogCollection> ConversationDialogs
-        => Database.GetCollection<ConversationDialogCollection>($"{_collectionPrefix}_ConversationDialogs");
+    public IMongoCollection<ConversationDialogDocument> ConversationDialogs
+        => Database.GetCollection<ConversationDialogDocument>($"{_collectionPrefix}_ConversationDialogs");
 
-    public IMongoCollection<ExecutionLogCollection> ExectionLogs
-        => Database.GetCollection<ExecutionLogCollection>($"{_collectionPrefix}_ExecutionLogs");
+    public IMongoCollection<ExecutionLogDocument> ExectionLogs
+        => Database.GetCollection<ExecutionLogDocument>($"{_collectionPrefix}_ExecutionLogs");
 
-    public IMongoCollection<UserCollection> Users
-        => Database.GetCollection<UserCollection>($"{_collectionPrefix}_Users");
+    public IMongoCollection<UserDocument> Users
+        => Database.GetCollection<UserDocument>($"{_collectionPrefix}_Users");
 
-    public IMongoCollection<UserAgentCollection> UserAgents
-        => Database.GetCollection<UserAgentCollection>($"{_collectionPrefix}_UserAgents");
+    public IMongoCollection<UserAgentDocument> UserAgents
+        => Database.GetCollection<UserAgentDocument>($"{_collectionPrefix}_UserAgents");
 
-    public IMongoCollection<LlmCompletionLogCollection> LlmCompletionLogs
-        => Database.GetCollection<LlmCompletionLogCollection>($"{_collectionPrefix}_Llm_Completion_Logs");
+    public IMongoCollection<LlmCompletionLogDocument> LlmCompletionLogs
+        => Database.GetCollection<LlmCompletionLogDocument>($"{_collectionPrefix}_Llm_Completion_Logs");
 }
