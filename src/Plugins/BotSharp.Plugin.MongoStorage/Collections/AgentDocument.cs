@@ -16,6 +16,7 @@ public class AgentDocument : MongoBase
     public bool Disabled { get; set; }
     public List<string> Profiles { get; set; }
     public List<RoutingRuleMongoElement> RoutingRules { get; set; }
+    public AgentLlmConfigMongoElement? LlmConfig { get; set; }
 
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }

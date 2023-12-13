@@ -26,6 +26,10 @@ public class AgentViewModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<RoutingRule> RoutingRules { get; set; }
 
+    [JsonPropertyName("llmConfig")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AgentLlmConfig? LlmConfig { get; set; }
+
     [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }
 
@@ -49,6 +53,7 @@ public class AgentViewModel
             AllowRouting = agent.AllowRouting,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
+            LlmConfig = agent.LlmConfig,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime
         };

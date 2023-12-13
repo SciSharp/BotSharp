@@ -246,6 +246,9 @@ public class FileRepository : IBotSharpRepository
             case AgentField.Sample:
                 UpdateAgentSamples(agent.Id, agent.Samples);
                 break;
+            case AgentField.LlmConfig:
+                UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
+                break;
             case AgentField.All:
                 UpdateAgentAllFields(agent);
                 break;
@@ -431,6 +434,17 @@ public class FileRepository : IBotSharpRepository
         File.WriteAllLines(file, samples);
     }
 
+    private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
+    {
+        var (agent, agentFile) = GetAgentFromFile(agentId);
+        if (agent == null) return;
+
+        agent.LlmConfig = config;
+        agent.UpdatedDateTime = DateTime.UtcNow;
+        var json = JsonSerializer.Serialize(agent, _options);
+        File.WriteAllText(agentFile, json);
+    }
+
     private void UpdateAgentAllFields(Agent inputAgent)
     {
         var (agent, agentFile) = GetAgentFromFile(inputAgent.Id);
@@ -493,10 +507,10 @@ public class FileRepository : IBotSharpRepository
             var templates = FetchTemplates(dir);
             var responses = FetchResponses(dir);
             return record.SetInstruction(instruction)
-                             .SetFunctions(functions)
-                             .SetSamples(samples)
-                             .SetTemplates(templates)
-                             .SetResponses(responses);
+                         .SetFunctions(functions)
+                         .SetSamples(samples)
+                         .SetTemplates(templates)
+                         .SetResponses(responses);
         }
 
         return null;
