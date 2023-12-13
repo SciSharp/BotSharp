@@ -149,4 +149,12 @@ public class AgentController : ControllerBase, IApiAdapter
         model.Id = agentId;
         await _agentService.UpdateAgent(model, AgentField.Sample);
     }
+
+    [HttpPut("/agent/{agentId}/llm-config")]
+    public async Task UpdateAgentLlmConfig([FromRoute] string agentId, [FromBody] AgentUpdateModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        await _agentService.UpdateAgent(model, AgentField.LlmConfig);
+    }
 }

@@ -7,7 +7,7 @@ namespace BotSharp.Core.Routing.Hooks;
 public class RoutingAgentHook : AgentHookBase
 {
     private readonly RoutingSettings _routingSetting;
-    public override string SelfId => _routingSetting.RouterId;
+    public override string SelfId => _routingSetting.AgentId;
 
     public RoutingAgentHook(IServiceProvider services, AgentSettings settings, RoutingSettings routingSetting) 
         : base(services, settings)

@@ -67,6 +67,12 @@ public class Agent
         = new List<RoutingRule>();
 
     /// <summary>
+    /// Agent LLM Config, i.e., provider & model
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AgentLlmConfig? LlmConfig { get; set; }
+
+    /// <summary>
     /// For rendering deferral
     /// </summary>
     [JsonIgnore]
@@ -174,6 +180,12 @@ public class Agent
     public Agent SetRoutingRules(List<RoutingRule> rules)
     {
         RoutingRules = rules ?? new List<RoutingRule>();
+        return this;
+    }
+
+    public Agent SetLlmConfig(AgentLlmConfig? llmConfig)
+    {
+        LlmConfig = llmConfig;
         return this;
     }
 }
