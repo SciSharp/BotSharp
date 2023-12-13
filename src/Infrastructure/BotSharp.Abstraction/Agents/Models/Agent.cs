@@ -14,6 +14,7 @@ public class Agent
     /// <summary>
     /// Default LLM settings
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentLlmConfig? LlmConfig { get; set; }
 
     /// <summary>
@@ -70,12 +71,6 @@ public class Agent
 
     public List<RoutingRule> RoutingRules { get; set; }
         = new List<RoutingRule>();
-
-    /// <summary>
-    /// Agent LLM Config, i.e., provider & model
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AgentLlmConfig? LlmConfig { get; set; }
 
     /// <summary>
     /// For rendering deferral
