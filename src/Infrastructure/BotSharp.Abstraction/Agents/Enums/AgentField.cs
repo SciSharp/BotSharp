@@ -14,5 +14,6 @@ public enum AgentField
     Function,
     Template,
     Response,
-    Sample
+    Sample,
+    LlmConfig
 }

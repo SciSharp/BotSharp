@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.MLTasks;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -36,19 +37,24 @@ public class TokenStatistics : ITokenStatistics
         _model = stats.Model;
         _promptTokenCount += stats.PromptCount;
         _completionTokenCount += stats.CompletionCount;
-        _promptCost += stats.PromptCount / 1000f * stats.PromptCost;
-        _completionCost += stats.CompletionCount / 1000f * stats.CompletionCost;
+
+        var settingsService = _services.GetRequiredService<ILlmProviderSettingService>();
+        var settings = settingsService.GetSetting(stats.Provider, _model);
+
+        _promptCost += stats.PromptCount / 1000f * settings.PromptCost;
+        _completionCost += stats.CompletionCount / 1000f * settings.CompletionCost;
 
         // Accumulated Token
         var stat = _services.GetRequiredService<IConversationStateService>();
-        var count1 = int.Parse(stat.GetState("prompt_total", "0"));
-        stat.SetState("prompt_total", stats.PromptCount + count1);
-        var count2 = int.Parse(stat.GetState("completion_total", "0"));
-        stat.SetState("completion_total", stats.CompletionCount + count2);
+        var inputCount = int.Parse(stat.GetState("prompt_total", "0"));
+        stat.SetState("prompt_total", stats.PromptCount + inputCount);
+        var outputCount = int.Parse(stat.GetState("completion_total", "0"));
+        stat.SetState("completion_total", stats.CompletionCount + outputCount);
 
         // Total cost
-        var count3 = float.Parse(stat.GetState("llm_total_cost", "0"));
-        stat.SetState("llm_total_cost", stats.PromptCount / 1000f * stats.PromptCost + stats.CompletionCount / 1000f * stats.CompletionCost + count3);
+        var total_cost = float.Parse(stat.GetState("llm_total_cost", "0"));
+        total_cost += Cost;
+        stat.SetState("llm_total_cost", total_cost);
     }
 
     public void PrintStatistics()

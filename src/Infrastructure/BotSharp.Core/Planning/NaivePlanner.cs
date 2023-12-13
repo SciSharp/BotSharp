@@ -32,10 +32,9 @@ public class NaivePlanner : IPlaner
         var completion = CompletionProvider.GetTextCompletion(_services);*/
 
         // chat completion
-        var routerSetting = _services.GetRequiredService<RoutingSettings>();
         var completion = CompletionProvider.GetChatCompletion(_services, 
-            provider: routerSetting.Provider,
-            model: routerSetting.Model);
+            provider: router?.LlmConfig?.Provider,
+            model: router?.LlmConfig?.Model);
 
         int retryCount = 0;
         while (retryCount < 3)

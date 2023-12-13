@@ -39,7 +39,8 @@ public partial class AgentService
                        .SetInstruction(foundAgent.Instruction)
                        .SetTemplates(foundAgent.Templates)
                        .SetFunctions(foundAgent.Functions)
-                       .SetResponses(foundAgent.Responses);
+                       .SetResponses(foundAgent.Responses)
+                       .SetLlmConfig(foundAgent.LlmConfig);
         }
 
         var user = _db.GetUserById(_user.Id);

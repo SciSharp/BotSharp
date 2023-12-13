@@ -82,6 +82,7 @@ public class MongoRepository : IBotSharpRepository
                     RoutingRules = x.RoutingRules?
                                     .Select(r => RoutingRuleMongoElement.ToMongoElement(r))?
                                     .ToList() ?? new List<RoutingRuleMongoElement>(),
+                    LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
                     CreatedTime = x.CreatedDateTime,
                     UpdatedTime = x.UpdatedDateTime
                 }).ToList();
@@ -102,6 +103,7 @@ public class MongoRepository : IBotSharpRepository
                         .Set(x => x.Disabled, agent.Disabled)
                         .Set(x => x.Profiles, agent.Profiles)
                         .Set(x => x.RoutingRules, agent.RoutingRules)
+                        .Set(x => x.LlmConfig, agent.LlmConfig)
                         .Set(x => x.CreatedTime, agent.CreatedTime)
                         .Set(x => x.UpdatedTime, agent.UpdatedTime);
                     _dc.Agents.UpdateOne(filter, update, _options);
@@ -210,6 +212,9 @@ public class MongoRepository : IBotSharpRepository
                 break;
             case AgentField.Sample:
                 UpdateAgentSamples(agent.Id, agent.Samples);
+                break;
+            case AgentField.LlmConfig:
+                UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                 break;
             case AgentField.All:
                 UpdateAgentAllFields(agent);
@@ -362,6 +367,17 @@ public class MongoRepository : IBotSharpRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
+    private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
+    {
+        var llmConfig = AgentLlmConfigMongoElement.ToMongoElement(config);
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.LlmConfig, llmConfig)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
     private void UpdateAgentAllFields(Agent agent)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agent.Id);
@@ -377,6 +393,7 @@ public class MongoRepository : IBotSharpRepository
             .Set(x => x.Functions, agent.Functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList())
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Samples, agent.Samples)
+            .Set(x => x.LlmConfig, AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig))
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
@@ -413,7 +430,8 @@ public class MongoRepository : IBotSharpRepository
             Profiles = agent.Profiles,
             RoutingRules = !agent.RoutingRules.IsNullOrEmpty() ? agent.RoutingRules
                                 .Select(r => RoutingRuleMongoElement.ToDomainElement(agent.Id, agent.Name, r))
-                                .ToList() : new List<RoutingRule>()
+                                .ToList() : new List<RoutingRule>(),
+            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agent.LlmConfig)
         };
     }
 
@@ -469,7 +487,8 @@ public class MongoRepository : IBotSharpRepository
             Profiles = x.Profiles,
             RoutingRules = !x.RoutingRules.IsNullOrEmpty() ? x.RoutingRules
                                 .Select(r => RoutingRuleMongoElement.ToDomainElement(x.Id, x.Name, r))
-                                .ToList() : new List<RoutingRule>()
+                                .ToList() : new List<RoutingRule>(),
+            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(x.LlmConfig)
         }).ToList();
     }
 
@@ -482,8 +501,8 @@ public class MongoRepository : IBotSharpRepository
 
         var filter = new AgentFilter
         {
-            IsPublic = true,
-            AgentIds = agentIds
+            AgentIds = agentIds,
+            IsPublic = true
         };
         var agents = GetAgents(filter);
         return agents;
@@ -533,6 +552,7 @@ public class MongoRepository : IBotSharpRepository
             RoutingRules = x.RoutingRules?
                             .Select(r => RoutingRuleMongoElement.ToMongoElement(r))?
                             .ToList() ?? new List<RoutingRuleMongoElement>(),
+            LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
             CreatedTime = x.CreatedDateTime,
             UpdatedTime = x.UpdatedDateTime
         }).ToList();

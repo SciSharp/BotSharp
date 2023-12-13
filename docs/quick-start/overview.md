@@ -22,14 +22,3 @@ Even with this simple question, you can see conversational experience are hard t
 Your code would have to handle all these different types of requests ro carry out the same logic: looking up some forecast information for a feature. For this reason, a traditional computer interface would tend to force users to input a well-known, standard request at the detriment of the user experience, because it's just easier.
 
 However, BotSharp lets you easily achieve a conversational user experience by handling the natural language understanding (NLU) for you. When you use BotSharp, you can create agents that can understand the meaning of natural language and the nuances and trainslate that to structured meaning your software can understand.
-
-Features
--------------
-
-* Built-in multi-Agents management, easy to build Bot as a Service platform.
-* Integrate with multiple LLMs like ChatGPT and LLaMA.
-* Using plug-in design, it is easy to expand functions. 
-* Working with multiple Vector Stores for senmatic search.
-* Supporting different UI providers like [Chatbot UI](https://github.com/SciSharp/chatbot-ui) and [HuggingChat UI](https://github.com/huggingface/chat-ui).
-* Integrated with popular social platforms like Facebook Messenger, Slack and Telegram.
-* Providing REST APIs to work with your own UI.

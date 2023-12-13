@@ -43,6 +43,7 @@ public class AgentCreationModel
     /// </summary>
     public List<string> Profiles { get; set; } = new List<string>();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new List<RoutingRuleUpdateModel>();
+    public AgentLlmConfig? LlmConfig { get; set; }
 
     public Agent ToAgent()
     {
@@ -61,7 +62,8 @@ public class AgentCreationModel
             Profiles = Profiles,
             RoutingRules = RoutingRules?
                 .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?
-                .ToList() ?? new List<RoutingRule>()
+                .ToList() ?? new List<RoutingRule>(),
+            LlmConfig = LlmConfig
         };
     }
 }

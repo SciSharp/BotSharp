@@ -47,6 +47,8 @@ public class AgentUpdateModel
 
     public List<RoutingRuleUpdateModel>? RoutingRules { get; set; }
 
+    public AgentLlmConfig? LlmConfig { get; set; }
+
     public Agent ToAgent()
     {
         var agent = new Agent()
@@ -63,7 +65,8 @@ public class AgentUpdateModel
             Instruction = Instruction ?? string.Empty,
             Templates = Templates ?? new List<AgentTemplate>(),
             Functions = Functions ?? new List<FunctionDef>(),
-            Responses = Responses ?? new List<AgentResponse>()
+            Responses = Responses ?? new List<AgentResponse>(),
+            LlmConfig = LlmConfig
         };
 
         return agent;

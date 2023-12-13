@@ -12,6 +12,12 @@ public class Agent
     public DateTime UpdatedDateTime { get; set; }
 
     /// <summary>
+    /// Default LLM settings
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AgentLlmConfig? LlmConfig { get; set; }
+
+    /// <summary>
     /// Instruction
     /// </summary>
     [JsonIgnore]
@@ -94,6 +100,7 @@ public class Agent
             AllowRouting = agent.AllowRouting,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
+            LlmConfig = agent.LlmConfig,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime,
         };
@@ -174,6 +181,12 @@ public class Agent
     public Agent SetRoutingRules(List<RoutingRule> rules)
     {
         RoutingRules = rules ?? new List<RoutingRule>();
+        return this;
+    }
+
+    public Agent SetLlmConfig(AgentLlmConfig? llmConfig)
+    {
+        LlmConfig = llmConfig;
         return this;
     }
 }

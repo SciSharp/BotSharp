@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.MLTasks.Settings;
 
 namespace BotSharp.Core.Infrastructures;
 
@@ -7,19 +6,18 @@ public class CompletionProvider
 {
     public static IChatCompletion GetChatCompletion(IServiceProvider services, string? provider = null, string? model = null)
     {
-        var settings = services.GetRequiredService<ChatCompletionSetting>();
         var completions = services.GetServices<IChatCompletion>();
 
         var state = services.GetRequiredService<IConversationStateService>();
 
         if (string.IsNullOrEmpty(provider))
         {
-            provider = state.GetState("provider", settings.Provider ?? "azure-openai");
+            provider = state.GetState("provider", "azure-openai");
         }
 
         if (string.IsNullOrEmpty(model))
         {
-            model = state.GetState("model", settings.Model ?? "gpt-3.5-turbo");
+            model = state.GetState("model", "gpt-35-turbo-4k");
         }
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
@@ -36,19 +34,18 @@ public class CompletionProvider
 
     public static ITextCompletion GetTextCompletion(IServiceProvider services, string? provider = null, string? model = null)
     {
-        var settings = services.GetRequiredService<TextCompletionSetting>();
         var completions = services.GetServices<ITextCompletion>();
 
         var state = services.GetRequiredService<IConversationStateService>();
 
         if (string.IsNullOrEmpty(provider))
         {
-            provider = state.GetState("provider", settings.Provider ?? "azure-openai");
+            provider = state.GetState("provider", "azure-openai");
         }
 
         if (string.IsNullOrEmpty(model))
         {
-            model = state.GetState("model", settings.Model ?? "gpt-3.5-turbo");
+            model = state.GetState("model", "gpt-35-turbo-instruct");
         }
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);

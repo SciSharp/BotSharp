@@ -27,6 +27,7 @@ public partial class AgentService
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
         record.Samples = agent.Samples ?? new List<string>();
+        record.LlmConfig = agent.LlmConfig;
 
         _db.UpdateAgent(record, updateField);
         await Task.CompletedTask;
@@ -58,7 +59,8 @@ public partial class AgentService
                        .SetTemplates(foundAgent.Templates)
                        .SetFunctions(foundAgent.Functions)
                        .SetResponses(foundAgent.Responses)
-                       .SetSamples(foundAgent.Samples);
+                       .SetSamples(foundAgent.Samples)
+                       .SetLlmConfig(foundAgent.LlmConfig);
 
             _db.UpdateAgent(clonedAgent, AgentField.All);
         }
