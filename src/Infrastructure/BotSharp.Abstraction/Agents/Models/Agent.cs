@@ -100,6 +100,7 @@ public class Agent
             AllowRouting = agent.AllowRouting,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
+            LlmConfig = agent.LlmConfig,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime,
         };

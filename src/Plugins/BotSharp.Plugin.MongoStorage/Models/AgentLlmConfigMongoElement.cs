@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 public class AgentLlmConfigMongoElement
 {
     public string? Provider { get; set; }
-    public string Model { get; set; }
+    public string? Model { get; set; }
 
     public static AgentLlmConfigMongoElement? ToMongoElement(AgentLlmConfig? config)
     {
