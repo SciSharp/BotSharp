@@ -25,12 +25,14 @@ public class InstructModeController : ControllerBase, IApiAdapter
         input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
         state.SetState("provider", input.Provider)
             .SetState("model", input.Model)
+            .SetState("instruction", input.Instruction)
             .SetState("input_text", input.Text);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
             new RoleDialogModel(AgentRole.User, input.Text),
-            templateName: input.Template);
+            templateName: input.Template,
+            instruction: input.Instruction);
 
         result.States = state.GetStates();
 
