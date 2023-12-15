@@ -16,7 +16,7 @@ public partial class InstructService : IInstructService
         _logger = logger;
     }
 
-    public async Task<InstructResult> Execute(string agentId, RoleDialogModel message, string? templateName = null)
+    public async Task<InstructResult> Execute(string agentId, RoleDialogModel message, string? templateName = null, string? instruction = null)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
@@ -48,7 +48,8 @@ public partial class InstructService : IInstructService
             agentService.RenderedInstruction(agent) :
             agentService.RenderedTemplate(agent, templateName);
 
-        var completer = CompletionProvider.GetCompletion(_services);
+        var completer = CompletionProvider.GetCompletion(_services,
+            agentConfig: agent.LlmConfig);
         var response = new InstructResult
         {
             MessageId = message.MessageId
@@ -63,7 +64,8 @@ public partial class InstructService : IInstructService
             var result = chatCompleter.GetChatCompletions(new Agent
             {
                 Id = agentId,
-                Name = agent.Name
+                Name = agent.Name,
+                Instruction = instruction
             }, new List<RoleDialogModel>
             {
                 new RoleDialogModel(AgentRole.User, prompt)
