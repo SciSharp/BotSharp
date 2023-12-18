@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.9" />
+    <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.12" />
   </ItemGroup>
 
   <ItemGroup>

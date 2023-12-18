@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LLamaSharp" Version="0.6.0" />
+    <PackageReference Include="LLamaSharp" Version="0.8.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Qdrant.Client" Version="1.6.0-alpha.1" />
+    <PackageReference Include="Qdrant.Client" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>

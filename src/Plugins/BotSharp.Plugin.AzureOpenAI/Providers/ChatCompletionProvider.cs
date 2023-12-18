@@ -201,18 +201,20 @@ public class ChatCompletionProvider : IChatCompletion
         if (!string.IsNullOrEmpty(agent.Instruction))
         {
             var instruction = agentService.RenderedInstruction(agent);
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, instruction));
+            chatCompletionsOptions.Messages.Add(new ChatRequestSystemMessage(instruction));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System, agent.Knowledges));
+            chatCompletionsOptions.Messages.Add(new ChatRequestSystemMessage(agent.Knowledges));
         }
 
         var samples = ProviderHelper.GetChatSamples(agent.Samples);
         foreach (var message in samples)
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
+            chatCompletionsOptions.Messages.Add(message.Role == AgentRole.User ? 
+                new ChatRequestUserMessage(message.Content) :
+                new ChatRequestAssistantMessage(message.Content));
         }
 
         foreach (var function in agent.Functions)
@@ -229,14 +231,15 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == ChatRole.Function)
             {
-                chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content)
-                {
-                    Name = message.FunctionName
-                });
+                chatCompletionsOptions.Messages.Add(new ChatRequestFunctionMessage(message.FunctionName, message.Content));
             }
-            else
+            else if (message.Role == ChatRole.User)
             {
-                chatCompletionsOptions.Messages.Add(new ChatMessage(message.Role, message.Content));
+                chatCompletionsOptions.Messages.Add(new ChatRequestUserMessage(message.Content));
+            }
+            else if (message.Role == ChatRole.Assistant)
+            {
+                chatCompletionsOptions.Messages.Add(new ChatRequestAssistantMessage(message.Content));
             }
         }
 
@@ -262,7 +265,8 @@ public class ChatCompletionProvider : IChatCompletion
         {
             // System instruction
             var verbose = string.Join("\r\n", chatCompletionsOptions.Messages
-                .Where(x => x.Role == AgentRole.System).Select(x =>
+                .Where(x => x.Role == AgentRole.System)
+                .Select(x => x as ChatRequestSystemMessage).Select(x =>
                 {
                     return $"{x.Role}: {x.Content}";
                 }));
@@ -271,9 +275,25 @@ public class ChatCompletionProvider : IChatCompletion
             verbose = string.Join("\r\n", chatCompletionsOptions.Messages
                 .Where(x => x.Role != AgentRole.System).Select(x =>
                 {
-                    return x.Role == ChatRole.Function ?
-                        $"{x.Role}: {x.Name} => {x.Content}" :
-                        $"{x.Role}: {x.Content}";
+                    if (x.Role == ChatRole.Function)
+                    {
+                        var m = x as ChatRequestFunctionMessage;
+                        return $"{m.Role}: {m.Name} => {m.Content}";
+                    }
+                    else if (x.Role == ChatRole.User)
+                    {
+                        var m = x as ChatRequestUserMessage;
+                        return $"{m.Role}: {m.Content}";
+                    }
+                    else if (x.Role == ChatRole.Assistant)
+                    {
+                        var m = x as ChatRequestAssistantMessage;
+                        return $"{m.Role}: {m.Content}";
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("Not found role");
+                    }
                 }));
             prompt += $"\r\n{verbose}\r\n";
         }

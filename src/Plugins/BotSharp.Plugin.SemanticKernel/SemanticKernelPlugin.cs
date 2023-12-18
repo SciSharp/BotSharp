@@ -20,28 +20,10 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <inheritdoc/>
         public void RegisterDI(IServiceCollection services, IConfiguration config)
         {
-
-            var provider = services.BuildServiceProvider().CreateScope().ServiceProvider;
-
-            if (provider.GetService<Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion>() != null)
-            {
-                services.AddScoped<ITextCompletion, SemanticKernelTextCompletionProvider>();
-            }
-
-            if (provider.GetService<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>() != null)
-            {
-                services.AddScoped<IChatCompletion, SemanticKernelChatCompletionProvider>();
-            }
-
-            if (provider.GetService<Microsoft.SemanticKernel.Memory.IMemoryStore>() != null)
-            {
-                services.AddScoped<IVectorDb, SemanticKernelMemoryStoreProvider>();
-            }
-
-            if (provider.GetService<Microsoft.SemanticKernel.AI.Embeddings.ITextEmbeddingGeneration>() != null)
-            {
-                services.AddScoped<ITextEmbedding, SemanticKernelTextEmbeddingProvider>();
-            }
+            services.AddScoped<ITextCompletion, SemanticKernelTextCompletionProvider>();
+            services.AddScoped<IChatCompletion, SemanticKernelChatCompletionProvider>();
+            services.AddScoped<IVectorDb, SemanticKernelMemoryStoreProvider>();
+            services.AddScoped<ITextEmbedding, SemanticKernelTextEmbeddingProvider>();
         }
     }
 }
