@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Utilities;
+using System.Text.Json.Serialization.Metadata;
 
 namespace BotSharp.Plugin.MetaMessenger.Services;
 
@@ -19,7 +20,11 @@ public class MessageHandleService
             Converters =
             {
                 new RichContentJsonConverter(),
-                new TemplateMessageJsonConverter()
+                new TemplateMessageJsonConverter(),
+            },
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            {
+                Modifiers = { ConditionalSerialization.IgnoreRichType }
             }
         };
     }

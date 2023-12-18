@@ -1,15 +1,14 @@
+namespace BotSharp.Abstraction.Messaging.Models.RichContent;
 
-namespace BotSharp.Abstraction.Messaging.Models.RichContent
+public class QuickReplyElement
 {
-    public class QuickReplyElement
-    {
-        [JsonPropertyName("content_type")]
-        public string ContentType { get; set; } = "text";
+    [JsonPropertyName("content_type")]
+    public string ContentType { get; set; } = "text";
 
-        public string Title { get; set; } = string.Empty;
-        public string? Payload { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Payload { get; set; }
 
-        [JsonPropertyName("image_url")]
-        public string? ImageUrl { get; set; }
-    }
+    [JsonPropertyName("image_url")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ImageUrl { get; set; }
 }

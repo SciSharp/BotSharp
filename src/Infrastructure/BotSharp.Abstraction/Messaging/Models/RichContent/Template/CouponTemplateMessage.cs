@@ -6,6 +6,8 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 /// </summary>
 public class CouponTemplateMessage : IRichMessage, ITemplateMessage
 {
+    [JsonPropertyName("rich_type")]
+    public string RichType => "coupon_template";
     [JsonIgnore]
     public string Text { get; set; }
     public string Title { get; set; }

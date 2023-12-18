@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using Microsoft.AspNetCore.SignalR;
 
@@ -27,10 +28,8 @@ public class ChatHubConversationHook : ConversationHookBase
         var welcomeTemplate = agent.Templates.FirstOrDefault(x => x.Name == "welcome");
         if (welcomeTemplate != null)
         {
-            var messages = JsonSerializer.Deserialize<TextMessage[]>(welcomeTemplate.Content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            var richContentService = _services.GetRequiredService<IRichContentService>();
+            var messages = richContentService.ConvertToMessages(welcomeTemplate.Content);
 
             foreach (var message in messages)
             {

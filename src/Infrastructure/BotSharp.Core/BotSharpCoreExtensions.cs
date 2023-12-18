@@ -20,7 +20,8 @@ using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Core.Planning;
 using BotSharp.Abstraction.MLTasks;
-using static Dapper.SqlMapper;
+using BotSharp.Abstraction.Messaging;
+using BotSharp.Core.Messaging;
 
 namespace BotSharp.Core;
 
@@ -97,6 +98,9 @@ public static class BotSharpCoreExtensions
         services.AddScoped<ITokenStatistics, TokenStatistics>();
 
         services.AddScoped<IAgentHook, RoutingAgentHook>();
+
+        // Rich content messaging
+        services.AddScoped<IRichContentService, RichContentService>();
 
         // Evaluation
         var evalSetting = new EvaluatorSetting();
