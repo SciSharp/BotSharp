@@ -892,6 +892,8 @@ public class MongoRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
+        if (log == null || string.IsNullOrEmpty(log.ConversationId)) return;
+
         var completiongLog = new LlmCompletionLogDocument
         {
             Id = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id,

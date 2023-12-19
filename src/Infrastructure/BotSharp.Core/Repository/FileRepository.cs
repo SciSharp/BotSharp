@@ -860,8 +860,10 @@ public class FileRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
+        if (log == null || string.IsNullOrEmpty(log.ConversationId)) return;
+
         var convDir = FindConversationDirectory(log.ConversationId);
-        if (!Directory.Exists(convDir)) return;
+        if (string.IsNullOrEmpty(convDir)) return;
 
         var logDir = Path.Combine(convDir, "llm_prompt_log");
         if (!Directory.Exists(logDir))
@@ -870,7 +872,7 @@ public class FileRepository : IBotSharpRepository
         }
 
         log.Id = Guid.NewGuid().ToString();
-        var index = GetLlmCompletionLogIndex(logDir, log.MessageId);
+        var index = GetNextLlmCompletionLogIndex(logDir, log.MessageId);
         var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
         File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
     }
@@ -969,6 +971,8 @@ public class FileRepository : IBotSharpRepository
 
     private string? FindConversationDirectory(string conversationId)
     {
+        if (string.IsNullOrEmpty(conversationId)) return null;
+
         var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
         if (!Directory.Exists(dir)) return null;
 
@@ -1024,7 +1028,7 @@ public class FileRepository : IBotSharpRepository
         return states;
     }
 
-    private int GetLlmCompletionLogIndex(string logDir, string id)
+    private int GetNextLlmCompletionLogIndex(string logDir, string id)
     {
         var files = Directory.GetFiles(logDir);
         if (files.IsNullOrEmpty())
