@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using Microsoft.AspNetCore.SignalR;
+using System.Text.Json.Serialization.Metadata;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -9,7 +11,7 @@ public class ChatHubConversationHook : ConversationHookBase
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IUserIdentity _user;
-
+    private readonly JsonSerializerOptions _serializerOptions;
     public ChatHubConversationHook(IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         IUserIdentity user)
@@ -17,15 +19,25 @@ public class ChatHubConversationHook : ConversationHookBase
         _services = services;
         _chatHub = chatHub;
         _user = user;
+
+        _serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters =
+            {
+                new RichContentJsonConverter(),
+                new TemplateMessageJsonConverter(),
+            }
+        };
     }
 
     public override async Task OnUserAgentConnectedInitially(Conversation conversation)
     {
-        var agentService = _services.GetService<IAgentService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(conversation.AgentId);
 
         // Check if the Welcome template exists.
-        var welcomeTemplate = agent.Templates.FirstOrDefault(x => x.Name == "welcome");
+        var welcomeTemplate = agent.Templates?.FirstOrDefault(x => x.Name == "welcome");
         if (welcomeTemplate != null)
         {
             var richContentService = _services.GetRequiredService<IRichContentService>();
@@ -33,19 +45,22 @@ public class ChatHubConversationHook : ConversationHookBase
 
             foreach (var message in messages)
             {
-                await Task.Delay(300);
-
-                await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", new ChatResponseModel()
+                var json = JsonSerializer.Serialize(new ChatResponseModel()
                 {
                     ConversationId = conversation.Id,
                     Text = message.Text,
+                    RichContent = new RichContent<IRichMessage>(message),
                     Sender = new UserViewModel()
                     {
                         FirstName = "AI",
                         LastName = "Assistant",
                         Role = AgentRole.Assistant
                     }
-                });
+                }, _serializerOptions);
+
+                await Task.Delay(300);
+
+                await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
             }
         }
 
@@ -92,6 +107,7 @@ public class ChatHubConversationHook : ConversationHookBase
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
             Text = message.Content,
+            RichContent = message.RichContent,
             Sender = new UserViewModel()
             {
                 FirstName = "AI",

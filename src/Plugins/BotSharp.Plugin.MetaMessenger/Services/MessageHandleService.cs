@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.Utilities;
 using System.Text.Json.Serialization.Metadata;
 
 namespace BotSharp.Plugin.MetaMessenger.Services;

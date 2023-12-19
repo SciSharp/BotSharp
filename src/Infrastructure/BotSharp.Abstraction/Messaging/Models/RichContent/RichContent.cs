@@ -9,4 +9,14 @@ public class RichContent<T> where T : IRichMessage
     [JsonPropertyName("messaging_type")]
     public string MessagingType => "RESPONSE";
     public T Message { get; set; }
+
+    public RichContent()
+    {
+        
+    }
+
+    public RichContent(T message)
+    {
+        Message = message;
+    }
 }

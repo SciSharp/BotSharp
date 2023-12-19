@@ -17,6 +17,8 @@
 	import { signalr } from '$lib/services/signalr-service.js';
     import { sendMessageToHub, GetDialogs } from '$lib/services/conversation-service.js';
 	import { format } from '$lib/helpers/datetime';
+	import RcText from './rc-text.svelte';
+	import RcQuickReply from './rc-quick-reply.svelte';
 
 	const options = {
 		scrollbars: {
@@ -31,7 +33,7 @@
 	};
 	const params = $page.params;
 	
-	let text = "Hi";
+	let text = "";
 	
 	/** @type {import('$typedefs').AgentModel} */
 	export let agent;
@@ -170,8 +172,12 @@
 									</p>									
 									{:else}
 									<div class="flex-shrink-0 align-self-center me-3">
-										<img src="/images/users/bot.png" class="rounded-circle avatar-xs" alt="avatar">
-										<span>{message.text}</span>
+										<img src="/images/users/chatbot.png" class="rounded-circle avatar-xs" alt="avatar">
+										{#if message.rich_content.message.rich_type == 'text'}
+										<RcText message={message.rich_content.message} />
+										{:else if message.rich_content.message.rich_type == 'quick_reply'}
+										<RcQuickReply message={message.rich_content.message} />
+										{/if}
 									</div>
 									{/if}
 								</div>
