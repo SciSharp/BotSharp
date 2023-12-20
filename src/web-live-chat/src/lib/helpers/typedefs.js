@@ -66,8 +66,7 @@ IRichContent.prototype.rich_type;
 IRichContent.prototype.text;
 
 /**
- * @typedef {IRichContent} TextMessage
- * @implements {IRichContent}
+ * @typedef {Object} TextMessage
  * @property {string} text
  * @property {string} rich_type 
  */
@@ -81,7 +80,7 @@ IRichContent.prototype.text;
  */
 
 /**
- * @typedef {IRichContent} QuickReplyMessage
+ * @typedef {Object} QuickReplyMessage
  * @property {string} text
  * @property {string} rich_type
  * @property {QuickReplyElement[]} quick_replies

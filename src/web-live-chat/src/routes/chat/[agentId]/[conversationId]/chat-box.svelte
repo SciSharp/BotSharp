@@ -176,7 +176,11 @@
 										{#if message.rich_content.message.rich_type == 'text'}
 										<RcText message={message.rich_content.message} />
 										{:else if message.rich_content.message.rich_type == 'quick_reply'}
-										<RcQuickReply message={message.rich_content.message} />
+										<RcQuickReply 
+											agentId={params.agentId} 
+											conversationId={params.conversationId} 
+											message={message.rich_content.message} 
+										/>
 										{/if}
 									</div>
 									{/if}

@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using Microsoft.AspNetCore.SignalR;
-using System.Text.Json.Serialization.Metadata;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -102,7 +101,7 @@ public class ChatHubConversationHook : ConversationHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
 
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", new ChatResponseModel()
+        var json = JsonSerializer.Serialize(new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
@@ -114,7 +113,8 @@ public class ChatHubConversationHook : ConversationHookBase
                 LastName = "Assistant",
                 Role = AgentRole.Assistant
             }
-        });
+        }, _serializerOptions);
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
 
         await base.OnResponseGenerated(message);
     }
