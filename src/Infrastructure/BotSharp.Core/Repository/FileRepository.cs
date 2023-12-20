@@ -8,6 +8,7 @@ using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Repositories.Models;
 
 namespace BotSharp.Core.Repository;
 
@@ -652,6 +653,33 @@ public class FileRepository : IBotSharpRepository
         return dialogs;
     }
 
+    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
+    {
+        var dialogElements = GetConversationDialogs(conversationId);
+        if (dialogElements.IsNullOrEmpty() || updateElements.IsNullOrEmpty()) return;
+
+        var convDir = FindConversationDirectory(conversationId);
+        if (!string.IsNullOrEmpty(convDir))
+        {
+            var dialogDir = Path.Combine(convDir, "dialogs.txt");
+            if (File.Exists(dialogDir))
+            {
+                var updated = dialogElements.Select((x, idx) =>
+                {
+                    var found = updateElements.FirstOrDefault(e => e.Index == idx);
+                    if (found != null)
+                    {
+                        x.Content = found.UpdateContent;
+                    }
+                    return x;
+                }).ToList();
+
+                var texts = ParseDialogElements(updated);
+                File.WriteAllLines(dialogDir, texts);
+            }
+        }
+    }
+
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
     {
         var convDir = FindConversationDirectory(conversationId);
@@ -864,7 +892,9 @@ public class FileRepository : IBotSharpRepository
     {
         if (log == null) return;
 
-        log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.Empty.ToString());
+        log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+
         var convDir = FindConversationDirectory(log.ConversationId);
         if (string.IsNullOrEmpty(convDir))
         {
@@ -878,8 +908,6 @@ public class FileRepository : IBotSharpRepository
             Directory.CreateDirectory(logDir);
         }
 
-        log.Id = Guid.NewGuid().ToString();
-        log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         var index = GetNextLlmCompletionLogIndex(logDir, log.MessageId);
         var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
         File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
