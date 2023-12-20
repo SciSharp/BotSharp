@@ -37,8 +37,10 @@ public static class StringExtensions
         return input.Replace("\r", " ").Replace("\n", " ").Trim();
     }
 
-    public static bool IsEqualTo(this string str1, string str2, StringComparison option = StringComparison.OrdinalIgnoreCase)
+    public static bool IsEqualTo(this string? str1, string? str2, StringComparison option = StringComparison.OrdinalIgnoreCase)
     {
+        if (str1 == null) return str2 == null;
+
         return str1.Equals(str2, option);
     }
 

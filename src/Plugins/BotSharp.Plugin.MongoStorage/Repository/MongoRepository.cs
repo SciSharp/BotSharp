@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
@@ -635,7 +636,8 @@ public class MongoRepository : IBotSharpRepository
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
-        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0;
+        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0
+            || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0;
     }
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
@@ -649,6 +651,27 @@ public class MongoRepository : IBotSharpRepository
 
         var formattedDialog = foundDialog.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList();
         return formattedDialog ?? new List<DialogElement>();
+    }
+
+    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
+    {
+        if (string.IsNullOrEmpty(conversationId) || updateElements.IsNullOrEmpty()) return;
+
+        var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundDialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
+        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty()) return;
+
+        foundDialog.Dialogs = foundDialog.Dialogs.Select((x, idx) =>
+        {
+            var found = updateElements.FirstOrDefault(e => e.Index == idx);
+            if (found != null)
+            {
+                x.Content = found.UpdateContent;
+            }
+            return x;
+        }).ToList();
+        
+        _dc.ConversationDialogs.ReplaceOne(filterDialog, foundDialog);
     }
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
@@ -892,20 +915,26 @@ public class MongoRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
-        if (log == null || string.IsNullOrEmpty(log.ConversationId)) return;
+        if (log == null) return;
 
-        var completiongLog = new LlmCompletionLogDocument
+        var conversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        var messageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+
+        var logElement = new PromptLogElement
         {
-            Id = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id,
-            ConversationId = log.ConversationId,
-            MessageId = log.MessageId,
+            MessageId = messageId,
             AgentId = log.AgentId,
             Prompt = log.Prompt,
             Response = log.Response,
             CreateDateTime = log.CreateDateTime
         };
 
-        _dc.LlmCompletionLogs.InsertOne(completiongLog);
+        var filter = Builders<LlmCompletionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var update = Builders<LlmCompletionLogDocument>.Update
+                                                       .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
+                                                       .Push(x => x.Logs, logElement);
+
+        _dc.LlmCompletionLogs.UpdateOne(filter, update, _options);
     }
     #endregion
 }

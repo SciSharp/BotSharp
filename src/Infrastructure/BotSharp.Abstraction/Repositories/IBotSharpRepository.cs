@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Abstraction.Repositories;
@@ -30,6 +31,7 @@ public interface IBotSharpRepository
     void CreateNewConversation(Conversation conversation);
     bool DeleteConversation(string conversationId);
     List<DialogElement> GetConversationDialogs(string conversationId);
+    void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements);
     void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
     List<StateKeyValue> GetConversationStates(string conversationId);
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
