@@ -66,8 +66,9 @@ export const signalr = {
       }
     });
 
-    connection.on('OnMessageReceivedFromAssistant', (message) => {
+    connection.on('OnMessageReceivedFromAssistant', (json) => {
       // do something when receiving a message, such as updating the UI or showing a notification
+      const message = JSON.parse(json);
       if (conversationId === message.conversation_id) {
         console.log(`[OnMessageReceivedFromAssistant] ${message.sender.role}: ${message.text}`);
         this.onMessageReceivedFromAssistant(message);

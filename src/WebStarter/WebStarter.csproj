@@ -39,9 +39,7 @@
     
   <ItemGroup>
     <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.6.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.16" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.11.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
   
   <ItemGroup Condition="$(SolutionName)==BotSharp">

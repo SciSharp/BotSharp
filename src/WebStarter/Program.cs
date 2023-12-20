@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core;
+using BotSharp.OpenAPI;
 using BotSharp.Core.Users.Services;
 using BotSharp.Logger;
 using BotSharp.Plugin.ChatHub;
@@ -10,20 +10,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
-        options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
-    });
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddScoped<IUserIdentity, UserIdentity>();
 // Add bearer authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -44,10 +31,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddScoped<IUserIdentity, UserIdentity>();
-
 // Add BotSharp
 builder.Services.AddBotSharpCore(builder.Configuration);
+builder.Services.AddBotSharpOpenAPI(builder.Configuration);
 builder.Services.AddBotSharpLogger(builder.Configuration);
 
 builder.Services.AddCors(options =>

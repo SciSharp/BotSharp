@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace BotSharp.Abstraction.Messaging;
+namespace BotSharp.Abstraction.Messaging.JsonConverters;
 
 public class TemplateMessageJsonConverter : JsonConverter<ITemplateMessage>
 {

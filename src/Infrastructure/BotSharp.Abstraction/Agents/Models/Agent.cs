@@ -21,7 +21,7 @@ public class Agent
     /// Instruction
     /// </summary>
     [JsonIgnore]
-    public string Instruction { get; set; }
+    public string? Instruction { get; set; }
 
     /// <summary>
     /// Templates
@@ -52,7 +52,7 @@ public class Agent
     /// Domain knowledges
     /// </summary>
     [JsonIgnore]
-    public string Knowledges { get; set; }
+    public string? Knowledges { get; set; }
 
     public bool IsPublic { get; set; }
 
