@@ -6,6 +6,8 @@ using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Utilities;
+using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Core.Repository;
 
@@ -860,10 +862,15 @@ public class FileRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
-        if (log == null || string.IsNullOrEmpty(log.ConversationId)) return;
+        if (log == null) return;
 
+        log.ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.Empty.ToString());
         var convDir = FindConversationDirectory(log.ConversationId);
-        if (string.IsNullOrEmpty(convDir)) return;
+        if (string.IsNullOrEmpty(convDir))
+        {
+            convDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, log.ConversationId);
+            Directory.CreateDirectory(convDir);
+        }
 
         var logDir = Path.Combine(convDir, "llm_prompt_log");
         if (!Directory.Exists(logDir))
@@ -872,6 +879,7 @@ public class FileRepository : IBotSharpRepository
         }
 
         log.Id = Guid.NewGuid().ToString();
+        log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         var index = GetNextLlmCompletionLogIndex(logDir, log.MessageId);
         var file = Path.Combine(logDir, $"{log.MessageId}.{index}.log");
         File.WriteAllText(file, JsonSerializer.Serialize(log, _options));

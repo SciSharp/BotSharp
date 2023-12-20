@@ -4,8 +4,10 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
+using System.Reflection.Emit;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -892,13 +894,13 @@ public class MongoRepository : IBotSharpRepository
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
-        if (log == null || string.IsNullOrEmpty(log.ConversationId)) return;
+        if (log == null) return;
 
         var completiongLog = new LlmCompletionLogDocument
         {
-            Id = string.IsNullOrEmpty(log.Id) ? Guid.NewGuid().ToString() : log.Id,
-            ConversationId = log.ConversationId,
-            MessageId = log.MessageId,
+            Id = log.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString()),
+            ConversationId = log.ConversationId.IfNullOrEmptyAs(Guid.Empty.ToString()),
+            MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString()),
             AgentId = log.AgentId,
             Prompt = log.Prompt,
             Response = log.Response,
