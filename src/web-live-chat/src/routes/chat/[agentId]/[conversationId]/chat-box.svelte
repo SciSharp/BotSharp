@@ -15,6 +15,7 @@
 	import { onMount } from 'svelte';
 	import Link from 'svelte-link';
 	import { signalr } from '$lib/services/signalr-service.js';
+	import { webSpeech } from '$lib/services/web-speech.js';
     import { sendMessageToHub, GetDialogs } from '$lib/services/conversation-service.js';
 	import { format } from '$lib/helpers/datetime';
 	import RcText from './rc-text.svelte';
@@ -43,6 +44,7 @@
 
 	// @ts-ignore
     let scrollbar;
+	let microphoneIcon = "microphone-off";
 
     /** @type {import('$typedefs').ChatResponseModel[]} */
     let dialogs = [];
@@ -78,17 +80,36 @@
 
     /** @param {import('$typedefs').ChatResponseModel} message */
     function onMessageReceivedFromAssistant(message) {
-      dialogs.push(message);
-      refresh();
+		webSpeech.utter(message.text);
+		// clean rich content elements
+		dialogs.forEach(dialog => {
+			if (dialog.rich_content.messaging_type == "quick_reply") {
+				dialog.rich_content.quick_repies = [];
+			}
+		});
+
+		dialogs.push(message);
+		refresh();
     }    
 
-    async function sendMessage() {
+    async function sendTextMessage() {
       await sendMessageToHub(params.agentId, params.conversationId, text);
     }
+
+    async function startListen() {
+		microphoneIcon = "microphone";
+		webSpeech.onSpeechToTextDetected = async (transcript) => {
+			text = transcript;
+			await sendTextMessage();
+			microphoneIcon = "microphone-off";
+		}
+		webSpeech.start();
+    }	
 
     function refresh() {
       // trigger UI render
       dialogs = dialogs;
+
       setTimeout(() => {
 		const { viewport } = scrollbar.elements();
 		viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' }); // set scroll offset
@@ -194,8 +215,16 @@
 
 			<div class="p-3 chat-input-section" style="height: 10vh">
 				<div class="row">
+					<div class="col-auto">
+						<button
+							type="submit"
+							class="btn btn-primary btn-rounded waves-effect waves-light"
+							on:click={startListen}>
+							<i class="mdi mdi-{microphoneIcon} md-36" />
+						</button>
+					</div>
 					<div class="col">
-						<div class="position-relative">
+						<div class="position-relative">						
 							<input type="text" class="form-control chat-input" bind:value={text} placeholder="Enter Message..." />
 							<div class="chat-input-links" id="tooltip-container">
 								<ul class="list-inline mb-0">
@@ -210,10 +239,10 @@
 						<button
 							type="submit"
 							class="btn btn-primary btn-rounded chat-send w-md waves-effect waves-light"
-							on:click={sendMessage}
+							on:click={sendTextMessage}
 							><span class="d-none d-sm-inline-block me-2">Send</span>
-							<i class="mdi mdi-send" /></button
-						>
+							<i class="mdi mdi-send" />
+						</button>
 					</div>
 				</div>
 			</div>
