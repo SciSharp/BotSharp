@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -142,6 +143,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
     {
         throw new NotImplementedException();
     }
