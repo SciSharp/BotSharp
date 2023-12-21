@@ -118,6 +118,14 @@ IRichContent.prototype.text;
  * @param {ChatResponseModel} message
  */
 
+/**
+ * Invoked when speech to text is detected.
+ *
+ * @callback OnSpeechToTextDetected
+ * @param {string} text
+ */
+
+
 // having to export an empty object here is annoying, 
 // but required for vscode to pass on your types. 
 export default {};

@@ -28,7 +28,7 @@
 			isOpen = true;
 			msg = 'Authentication success';
 			status = 'success';
-			goto(`/chat/01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a`);
+			goto(`/chat`);
 		});
 	}
 </script>
