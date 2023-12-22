@@ -1,0 +1,51 @@
+// 
+// File manager.scss
+//
+
+// file manager
+
+.filemanager-sidebar{
+    
+    @media (min-width: 1200px){
+        min-width: 230px;
+        max-width: 230px;
+    }
+
+    @media (min-width: 1366px){
+        min-width: 280px;
+        max-width: 280px;
+    }
+
+}
+
+.categories-list{
+    padding: 4px 0;
+    li{
+        a{
+            display: block;
+            padding: 8px 12px;
+            color: var(--#{$prefix}body-color);
+            font-weight: $font-weight-medium;
+        }
+
+        &.active{
+            a{
+                color: $primary;
+            }
+        }
+
+        ul{
+            padding-left: 16px;
+            li{
+                a{
+                    padding: 4px 12px;
+                    color: var(--#{$prefix}secondary-color);
+                    font-size: 13px;
+                    font-weight: $font-weight-normal;
+                }
+            }
+        }
+    }
+}
+
+

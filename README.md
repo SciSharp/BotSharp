@@ -27,7 +27,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Support multiple LLM platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.
-* Build-in Web Live Chat UI written in SvelteKit.
+* Build-in Agent Builder UI written in SvelteKit.
 * Abstract standard Rich Content data structure. Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
 * Provide RESTful Open API and WebSocket real-time communication.
 
@@ -39,18 +39,17 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
  PS D:\BotSharp\> dotnet run -p .\src\WebStarter
 ```
 
-2. Run UI project, reference to [Web Live Chat](src/web-live-chat/README.md).
+2. Run UI project, reference to [Agent Builder](src/agent-builder/README.md).
 ```sh
-PS D:\> cd .\src\web-live-chat
+PS D:\> cd .\src\agent-builder
 PS D:\> npm install --force
 PS D:\> npm run dev
 ```
 
-Access http://localhost:5010/chat/01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a
+Access http://localhost:5015/
 
-![Alt text](./docs/static/screenshots/web-live-chat.png)
-
-
+<img src="./docs/static/screenshots/agent-builder-agents.png" height="450px"/>
+<img src="./docs/static/screenshots/web-live-chat.png" height="450px"/>
 
 ### Core Modules
 

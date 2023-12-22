@@ -1,0 +1,89 @@
+// 
+// authentication.scss
+//
+
+
+// authentication home icon
+.home-btn {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+}
+
+// auth 2
+
+.auth-logo{
+    .auth-logo-dark{
+        display: var(--#{$prefix}display-block);
+    }
+    .auth-logo-light{
+        display: var(--#{$prefix}display-none);
+    }
+}
+
+.auth-body-bg{
+    background-color: var(--#{$prefix}secondary-bg);
+}
+
+
+// auth-pass-inputgroup
+
+.auth-pass-inputgroup{
+    input[type="input"] + .btn .mdi-eye-outline{
+        &:before{
+            content: "\F06D1";
+        }
+    }
+}
+
+// authentication full page
+
+.auth-full-bg{
+    background-color: rgba($primary, 0.25);
+    display: flex;
+
+    @media (min-width: 1200px){
+        height: 100vh;
+    }
+    
+
+    &::before{
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+    }
+
+    .bg-overlay{
+        background: url("../images/bg-auth-overlay.png");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+}
+
+.auth-full-page-content{
+    display: flex;
+
+    @media (min-width: 1200px){
+        min-height: 100vh;
+    }
+}
+
+.auth-review-carousel{
+    &.owl-theme {
+        .owl-dots {
+            .owl-dot{
+                span{
+                    background-color: rgba($primary, 0.25);
+                }
+                &.active, &:hover{
+                    span{
+                        background-color: $primary;
+                    }
+                }
+            }
+        }
+    }
+}

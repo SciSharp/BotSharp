@@ -1,0 +1,233 @@
+/*
+Template Name: Skote - Admin & Dashboard Template
+Author: Themesbrand
+Version: 4.1.0.
+Website: https://themesbrand.com/
+Contact: themesbrand@gmail.com
+File: Main Css File
+*/
+
+//Fonts
+@import "custom/fonts/fonts";
+
+//Core files
+@import "./node_modules/bootstrap/scss/functions";
+@import "./node_modules/bootstrap/scss/variables";
+@import "variables";
+@import "variables-dark";
+@import "./node_modules/bootstrap/scss/mixins";
+
+// Structure
+@import "custom/structure/general";
+@import "custom/structure/topbar";
+@import "custom/structure/page-head";
+@import "custom/structure/footer";
+@import "custom/structure/right-sidebar";
+@import "custom/structure/vertical";
+@import "custom/structure/horizontal-nav";
+@import "custom/structure/layouts";
+
+// Components
+@import "custom/components/waves";
+@import "custom/components/avatar";
+@import "custom/components/accordion";
+@import "custom/components/helper";
+@import "custom/components/preloader";
+@import "custom/components/forms";
+@import "custom/components/widgets";
+@import "custom/components/demos";
+@import "custom/components/print";
+
+// Plugins
+@import "custom/plugins/custom-scrollbar";
+@import "custom/plugins/calendar";
+@import "custom/plugins/calendar-full";
+@import "custom/plugins/dragula";
+@import "custom/plugins/session-timeout";
+@import "custom/plugins/range-slider";
+@import "custom/plugins/sweatalert2";
+@import "custom/plugins/rating";
+@import "custom/plugins/toastr";
+@import "custom/plugins/parsley";
+@import "custom/plugins/select2";
+
+@import "custom/plugins/switch";
+@import "custom/plugins/colorpicker";
+@import "custom/plugins/timepicker";
+@import "custom/plugins/datepicker";
+@import "custom/plugins/bootstrap-touchspin";
+@import "custom/plugins/form-editors";
+@import "custom/plugins/form-upload";
+@import "custom/plugins/form-wizard";
+@import "custom/plugins/datatable";
+@import "custom/plugins/responsive-table";
+@import "custom/plugins/table-editable";
+@import "custom/plugins/apexcharts";
+@import "custom/plugins/echarts";
+@import "custom/plugins/flot";
+@import "custom/plugins/sparkline-chart";
+@import "custom/plugins/google-map";
+@import "custom/plugins/vector-maps";
+@import "custom/plugins/leaflet-maps";
+
+// Pages
+@import "custom/pages/authentication";
+@import "custom/pages/ecommerce";
+@import "custom/pages/email";
+@import "custom/pages/file-manager";
+@import "custom/pages/chat";
+@import "custom/pages/projects";
+@import "custom/pages/contacts";
+@import "custom/pages/crypto";
+@import "custom/pages/coming-soon";
+@import "custom/pages/timeline";
+@import "custom/pages/extras-pages";
+@import "custom/pages/jobs";
+
+
+//RTL
+// @import "custom/rtl/bootstrap-rtl";
+// @import "custom/rtl/components-rtl";
+// @import "custom/rtl/float-rtl";
+// @import "custom/rtl/general-rtl";
+// @import "custom/rtl/pages-rtl";
+// @import "custom/rtl/plugins-rtl";
+// @import "custom/rtl/spacing-rtl";
+// @import "custom/rtl/structure-rtl";
+// @import "custom/rtl/text-rtl";
+
+// custom css
+.tab-content .nav-tabs {
+  display: none;
+}
+
+// dropzone 
+.dropzone .dz-message {
+  text-align: center;
+}
+
+[data-bs-theme="dark"] {
+  .right-bar .right-bar-toggle {
+    color: #575d64;
+    background-color: #fff;
+  }
+
+  .svelte-select {
+    max-height: 20px !important;
+    min-height: 37px !important;
+    background-color: var(--bs-secondary-bg) !important;
+    border-color: var(--bs-border-color-translucent) !important;
+    padding-right: 5px !important;
+
+    .value-container {
+      padding: 0 !important;
+
+      .selected-item {
+        color: #dedddd !important;
+        font-size: .8125rem !important;
+        z-index: 1;
+      }
+
+      input {
+        background-color: var(--bs-secondary-bg) !important;
+        font-size: .8125rem !important;
+      }
+
+    }
+
+    .indicators {
+      font-size: .8125rem !important;
+
+      .clear-select {
+        height: 18px !important;
+        width: 18px !important;
+        // font-size: .8125rem !important;
+      }
+    }
+  }
+
+  .svelte-select-list {
+    background-color: #282b2e !important;
+  }
+
+  // Modal
+  .modal {
+    .modal-content{
+      background-color: var(--bs-modal-bg);
+      border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);
+    }
+  }
+}
+
+// select elements
+.svelte-select {
+  max-height: 20px !important;
+  min-height: 37px !important;
+  // background-color: #f3f6f9 !important;
+  border-color: #f3f6f9 !important;
+  padding-right: 5px !important;
+
+  .value-container {
+    padding: 0 !important;
+
+    .selected-item {
+      color: #000 !important;
+      font-size: .8125rem !important;
+      z-index: 1;
+    }
+
+    input {
+      // background-color: #f3f6f9 !important;
+      font-size: .8125rem !important;
+    }
+
+  }
+
+  .indicators {
+    font-size: .8125rem !important;
+
+    .clear-select {
+      height: 18px !important;
+      width: 18px !important;
+
+    }
+  }
+}
+
+.jvm-zoom-btn {
+  position: absolute;
+  left: 10px;
+  background: #424242;
+  padding: 2px;
+  color: white;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  line-height: 10px;
+  text-align: center;
+  left: 28px;
+  border-radius: 3px;
+
+  &.jvm-zoom-btn {
+
+    top: 90px;
+  }
+
+  &.jvm-zoomout {
+    top: 110px;
+  }
+}
+
+// data tables
+
+.sort {
+  &.asc::after {
+    content: "▲"/"";
+    float: right;
+  }
+
+  &.desc::after{
+    content: "▼"/"";
+    float: right;
+  }
+}
