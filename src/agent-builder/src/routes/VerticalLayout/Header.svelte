@@ -48,7 +48,7 @@
 						<img src='/images/logo.png' alt="" height="25" />
 					</span>
 					<span class="logo-lg">
-						<img src='/images/logo.png' alt="" height="65" />
+						<img src='/images/logo.png' alt="" height="50" />
 					</span>
 				</a>
 
@@ -57,7 +57,7 @@
 						<img src='/images/logo.png' alt="" height="25" />
 					</span>
 					<span class="logo-lg">
-						<img src='/images/logo.png' alt="" height="65" />
+						<img src='/images/logo.png' alt="" height="50" />
 					</span>
 				</a>
 			</div>
@@ -84,16 +84,6 @@
 			<FullScreenDropdown />
 			<NotificationDropdown />
 			<ProfileDropdown />
-
-			<Dropdown class="d-inline-block">
-				<button
-					type="button"
-					class="btn header-item noti-icon right-bar-toggle waves-effect"
-					on:click={toggleRightBar}
-				>
-					<i class="bx bx-cog bx-spin" />
-				</button>
-			</Dropdown>
 		</div>
 	</div>
 </header>

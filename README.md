@@ -48,7 +48,7 @@ PS D:\> npm run dev
 
 Access http://localhost:5015/
 
-<img src="./docs/static/screenshots/agent-builder-agents.png" height="450px"/>
+<img src="./docs/static/screenshots/agent-builder-conversations.png" height="450px"/>
 <img src="./docs/static/screenshots/web-live-chat.png" height="450px"/>
 
 ### Core Modules

@@ -1,26 +1,27 @@
-const host = 'http://localhost:5500';
+export const host = 'http://localhost:5500';
 
-// user
-export const tokenUrl = `${host}/token`;
-export const myInfoUrl = `${host}/user/my`;
-export const usrCreationUrl = `${host}/user`;
+export const endpoints = {
+    // user
+    tokenUrl: `${host}/token`,
+    myInfoUrl: `${host}/user/my`,
+    usrCreationUrl: `${host}/user`,
+    
+    // plugin
+    pluginListUrl: `${host}/plugins`,
+    
+    // agent
+    agentListUrl: `${host}/agents`,
+    agentDetailUrl: `${host}/agent/{id}`,
+    
+    // conversation
+    conversationInitUrl: `${host}/conversation/{agentId}`,
+    conversationMessageUrl: `${host}/conversation/{agentId}/{conversationId}`,
+    conversationsUrl: `${host}/conversations`,
+    conversationCountUrl: `${host}/conversations/count`,
+    conversationDeletionUrl: `${host}/conversation/{conversationId}`,
+    dialogsUrl: `${host}/conversation/{conversationId}/dialogs`,
+    
+    // chathub 
+    chatHubUrl: `${host}/chatHub`,
+}
 
-// plugin
-export const pluginListUrl = `${host}/plugins`;
-
-// agent
-export const agentListUrl = `${host}/agents`;
-export const agentDetailUrl = `${host}/agent/{id}`;
-
-// conversation
-export const conversationInitUrl = `${host}/conversation/{agentId}`
-export const conversationMessageUrl = `${host}/conversation/{agentId}/{conversationId}`
-export const conversationsUrl = `${host}/conversations`
-export const conversationCountUrl = `${host}/conversations/count`
-export const dialogsUrl = `${host}/conversation/{conversationId}/dialogs`
-
-// chathub
-export const chatHubUrl = `${host}/chatHub`;
-
-// Twilio
-export const twilioAccessTokenUrl = `${host}/twilio/token`;

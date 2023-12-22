@@ -22,4 +22,6 @@
     });
 </script>
 
+{#if currentUser }
 <Chat currentUser={currentUser} agent={agent} />
+{/if}

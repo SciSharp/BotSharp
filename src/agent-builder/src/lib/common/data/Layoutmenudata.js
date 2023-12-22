@@ -14,7 +14,7 @@ const Navdata = [
   },
   {
     "icon": "bx bx-conversation",
-    "label": "Conversation",
+    "label": "Conversations",
     "link": "/conversation"
   },
   {

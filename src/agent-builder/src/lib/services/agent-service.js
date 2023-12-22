@@ -1,5 +1,5 @@
 import { getUserStore } from '$lib/helpers/store.js';
-import { agentListUrl, agentDetailUrl } from '$lib/services/api-endpoints.js';
+import { endpoints } from '$lib/services/api-endpoints.js';
 
 export async function getAgents() {
     let user = getUserStore();
@@ -7,7 +7,7 @@ export async function getAgents() {
         Authorization: `Bearer ${user.token}`,
     };
 
-    const response = await fetch(agentListUrl, {
+    const response = await fetch(endpoints.agentListUrl, {
         headers: headers
     }).then(response => {
         if (response.ok) {
@@ -28,7 +28,7 @@ export async function getAgent(id) {
         Authorization: `Bearer ${user.token}`,
     };
 
-    const response = await fetch(agentDetailUrl.replace("{id}", id), {
+    const response = await fetch(endpoints.agentDetailUrl.replace("{id}", id), {
         headers: headers
     }).then(response => {
         if (response.ok) {

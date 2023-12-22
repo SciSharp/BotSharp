@@ -8,7 +8,7 @@
     const countdown = () => {
       if(browser){
       // Set the date we're counting down to
-      var countDownDate = new Date("Dec 30, 2024").getTime();
+      var countDownDate = new Date("Dec 30, 2025").getTime();
   
       // Update the count down every 1 second
       var countDown = setInterval(function () {
@@ -79,7 +79,7 @@
                       <Row class="justify-content-center mt-5">
                           <Col sm="8">
                               <div class="maintenance-img">
-                                <img src="/images/megamenu-img.png" alt="" style="width: 50vw;" />
+                                <img src="/images/megamenu-img.png" alt="" style="width: 25vw;" />
                               </div>
                           </Col>
                       </Row>

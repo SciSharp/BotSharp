@@ -4,7 +4,6 @@
 		DropdownToggle,
 		DropdownMenu,
 		DropdownItem,
-		Form,
 		Input,
 		Button
 	} from 'sveltestrap';
@@ -194,14 +193,16 @@
 									{:else}
 									<div class="flex-shrink-0 align-self-center me-3">
 										<img src="/images/users/chatbot.png" class="rounded-circle avatar-xs" alt="avatar">
-										{#if message.rich_content.message.rich_type == 'text'}
+										{#if message.rich_content && message.rich_content.message.rich_type == 'text'}
 										<RcText message={message.rich_content.message} />
-										{:else if message.rich_content.message.rich_type == 'quick_reply'}
+										{:else if message.rich_content && message.rich_content.message.rich_type == 'quick_reply'}
 										<RcQuickReply 
 											agentId={params.agentId} 
 											conversationId={params.conversationId} 
 											message={message.rich_content.message} 
 										/>
+										{:else}
+										<span>{message.text}</span>
 										{/if}
 									</div>
 									{/if}

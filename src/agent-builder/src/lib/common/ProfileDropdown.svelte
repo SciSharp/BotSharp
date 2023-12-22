@@ -29,17 +29,9 @@
 			<span>Profile</span>
 		</DropdownItem>
 		<DropdownItem href="#"
-			><i class="bx bx-wallet font-size-16 align-middle me-1" />
-			<span>My Wallet</span>
-		</DropdownItem>
-		<DropdownItem href="#"
 			><span class="badge bg-success float-end">11</span><i
 				class="bx bx-wrench font-size-16 align-middle me-1"
 			/> <span key="t-settings">Settings</span>
-		</DropdownItem>
-		<DropdownItem href="#">
-			<i class="bx bx-lock-open font-size-16 align-middle me-1" />
-			<span key="t-lock-screen">Lock screen</span>
 		</DropdownItem>
 		<DropdownItem divider />
 		<DropdownItem href="#" >

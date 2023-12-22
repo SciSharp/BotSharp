@@ -1,5 +1,6 @@
 import { userStore, getUserStore } from '$lib/helpers/store.js';
-import { tokenUrl,  myInfoUrl, usrCreationUrl } from './api-endpoints.js';
+import { setAuthorization } from '$lib/helpers/http';
+import { endpoints } from './api-endpoints.js';
 import axios from 'axios';
 
 /**
@@ -13,7 +14,7 @@ export async function getToken(email, password, onSucceed) {
         Authorization: `Basic ${credentials}`,
     };
 
-    await fetch(tokenUrl, {
+    await fetch(endpoints.tokenUrl, {
         method: 'POST',
         headers: headers,
     }).then(response => {
@@ -43,7 +44,8 @@ export function setToken(token) {
  * @returns {Promise<import('$types').UserModel>}
  */
 export async function myInfo() {
-    const response = await axios.get(myInfoUrl);
+    setAuthorization();
+    const response = await axios.get(endpoints.myInfoUrl);
     return response.data;
 }
 
@@ -62,7 +64,7 @@ export async function register(firstName, lastName, email, password, onSucceed) 
         password
     });
 
-    await fetch(usrCreationUrl, {
+    await fetch(endpoints.usrCreationUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
