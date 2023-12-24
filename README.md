@@ -24,10 +24,10 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Built-in multi-agents and conversation with state management.
 * Support multiple LLM Planning approaches to handle different tasks.
 * Built-in RAG related interfaces, Memeory based vector searching.
-* Support multiple LLM platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2, HuggingFace).
+* Support multiple AI platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.
-* Build-in Agent Builder UI written in SvelteKit.
+* Build-in `BotSharp UI` written in [SvelteKit](https://kit.svelte.dev/).
 * Abstract standard Rich Content data structure. Integrate with popular message channels like Facebook Messenger, Slack and Telegram.
 * Provide RESTful Open API and WebSocket real-time communication.
 
@@ -39,9 +39,10 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
  PS D:\BotSharp\> dotnet run -p .\src\WebStarter
 ```
 
-2. Run UI project, reference to [Agent Builder](src/agent-builder/README.md).
+2. Run Admin UI project, reference to [BotSharp UI](https://github.com/SciSharp/BotSharp-UI).
 ```sh
-PS D:\> cd .\src\agent-builder
+PS D:\> git clone https://github.com/SciSharp/BotSharp-UI
+PS D:\> cd BotSharp-UI
 PS D:\> npm install --force
 PS D:\> npm run dev
 ```
@@ -49,8 +50,6 @@ PS D:\> npm run dev
 Access http://localhost:5015/
 
 <img src="./docs/static/screenshots/agent-builder-agents.png" height="450px"/>
-<img src="./docs/static/screenshots/agent-builder-conversations.png" height="450px"/>
-<img src="./docs/static/screenshots/web-live-chat.png" height="450px"/>
 
 ### Core Modules
 
