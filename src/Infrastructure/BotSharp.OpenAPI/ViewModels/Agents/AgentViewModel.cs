@@ -26,7 +26,7 @@ public class AgentViewModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<RoutingRule> RoutingRules { get; set; }
 
-    [JsonPropertyName("llmConfig")]
+    [JsonPropertyName("llm_config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentLlmConfig? LlmConfig { get; set; }
 
