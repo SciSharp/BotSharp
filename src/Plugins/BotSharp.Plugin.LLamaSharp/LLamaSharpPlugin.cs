@@ -1,14 +1,14 @@
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Plugin.LLamaSharp.Providers;
-using BotSharp.Plugin.LLamaSharp.Settings;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Plugins.LLamaSharp;
 
 public class LLamaSharpPlugin : IBotSharpPlugin
 {
+    public string Name => "LLamaSharp";
+    public string Description => "The C#/.NET binding of llama.cpp. Run local LLaMA/GPT model easily and fast in C#!";
+    public string IconUrl => "https://raw.githubusercontent.com/SciSharp/LLamaSharp/master/Assets/LLamaSharpLogo.png";
+
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var llamaSharpSettings = new LlamaSharpSettings();

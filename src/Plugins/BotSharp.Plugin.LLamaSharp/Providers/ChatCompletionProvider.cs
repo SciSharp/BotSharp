@@ -55,7 +55,7 @@ public class ChatCompletionProvider : IChatCompletion
             _logger.LogInformation(prompt);
         }
 
-        foreach (var response in executor.InferAsync(prompt, inferenceParams).ToArrayAsync().Result)
+        foreach (var response in executor.InferAsync(prompt, inferenceParams).GetAsyncEnumerator().Current)
         {
             Console.Write(response);
             totalResponse += response;

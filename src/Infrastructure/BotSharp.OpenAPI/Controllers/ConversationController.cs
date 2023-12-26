@@ -81,6 +81,24 @@ public class ConversationController : ControllerBase, IApiAdapter
         return dialogs;
     }
 
+    [HttpGet("/conversation/{conversationId}")]
+    public async Task<ConversationViewModel> GetConversation([FromRoute] string conversationId)
+    {
+        var service = _services.GetRequiredService<IConversationService>();
+        var conversations = await service.GetConversations(new ConversationFilter
+        {
+            Id = conversationId
+        });
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var result = ConversationViewModel.FromSession(conversations.Items.First());
+
+        var user = await userService.GetUser(result.User.Id);
+        result.User = UserViewModel.FromUser(user);
+
+        return result;
+    }
+
     [HttpDelete("/conversation/{conversationId}")]
     public async Task<bool> DeleteConversation([FromRoute] string conversationId)
     {

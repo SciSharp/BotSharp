@@ -15,7 +15,8 @@ namespace BotSharp.Platform.AzureAi;
 public class AzureOpenAiPlugin : IBotSharpPlugin
 {
     public string Name => "Azure OpenAI";
-    public string Description => "Azure OpenAI Service";
+    public string Description => "Azure OpenAI Service (ChatGPT 3.5 Turbo / 4.0)";
+    public string IconUrl => "https://nanfor.com/cdn/shop/files/cursos-propios-Azure-openAI.jpg?v=1692877741";
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {

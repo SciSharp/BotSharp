@@ -1,6 +1,4 @@
 using BotSharp.Plugin.MongoStorage.Repository;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 
 namespace BotSharp.Plugin.MongoStorage;
 
@@ -10,7 +8,8 @@ namespace BotSharp.Plugin.MongoStorage;
 public class MongoStoragePlugin : IBotSharpPlugin
 {
     public string Name => "MongoDB Storage";
-    public string Description => "MongoDB as the repository";
+    public string Description => "MongoDB as the repository, store data in document.";
+    public string IconUrl => "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrFrT-_0VYV4PraApwSUmsf4pBGWgvLTaLZGUd7942FxjErsA5iaL4n5Q7CplOmVtwEQ&usqp=CAU";
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {

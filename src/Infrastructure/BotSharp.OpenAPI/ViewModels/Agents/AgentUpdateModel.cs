@@ -1,18 +1,19 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
 public class AgentUpdateModel
 {
-    public string? Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// Instruction
     /// </summary>
-    public string? Instruction { get; set; }
+    public string Instruction { get; set; } = string.Empty;
 
     /// <summary>
     /// Templates
@@ -22,7 +23,7 @@ public class AgentUpdateModel
     /// <summary>
     /// Samples
     /// </summary>
-    public string? Samples { get; set; }
+    public List<string>? Samples { get; set; }
 
     /// <summary>
     /// Functions
@@ -33,8 +34,10 @@ public class AgentUpdateModel
     /// Routes
     /// </summary>
     public List<AgentResponse>? Responses { get; set; }
+    [JsonPropertyName("is_public")]
 
     public bool IsPublic { get; set; }
+    [JsonPropertyName("allow_routing")]
 
     public bool AllowRouting { get; set; }
 
@@ -44,8 +47,10 @@ public class AgentUpdateModel
     /// Profile by channel
     /// </summary>
     public List<string>? Profiles { get; set; }
+    [JsonPropertyName("routing_rules")]
 
     public List<RoutingRuleUpdateModel>? RoutingRules { get; set; }
+    [JsonPropertyName("llm_config")]
 
     public AgentLlmConfig? LlmConfig { get; set; }
 

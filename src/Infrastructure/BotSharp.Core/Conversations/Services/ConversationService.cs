@@ -112,7 +112,6 @@ public partial class ConversationService : IConversationService
 
         var dialogs = _storage.GetDialogs(_conversationId);
         return dialogs
-            .Where(x => x.CreatedAt > DateTime.UtcNow.AddHours(-24))
             .TakeLast(lastCount)
             .ToList();
     }

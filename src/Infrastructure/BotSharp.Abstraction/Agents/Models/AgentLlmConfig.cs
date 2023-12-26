@@ -3,6 +3,12 @@ namespace BotSharp.Abstraction.Agents.Models;
 public class AgentLlmConfig
 {
     /// <summary>
+    /// Is inherited from default Agent Settings
+    /// </summary>
+    [JsonPropertyName("is_inherit")]
+    public bool IsInherit { get; set; }
+
+    /// <summary>
     /// Completion Provider
     /// </summary>
     [JsonPropertyName("provider")]

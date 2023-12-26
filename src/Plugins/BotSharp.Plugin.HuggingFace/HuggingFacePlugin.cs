@@ -8,6 +8,9 @@ namespace BotSharp.Plugin.HuggingFace;
 
 public class HuggingFacePlugin : IBotSharpPlugin
 {
+    public string Name => "Hugging Face";
+    public string Description => "The Home of Machine Learning - Create, discover and collaborate on ML better.";
+    public string IconUrl => "https://upload.wikimedia.org/wikipedia/he/e/ee/Hugging_Face_logo.png";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new HuggingFaceSettings();

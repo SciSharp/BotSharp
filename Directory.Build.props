@@ -1,5 +1,6 @@
 <Project>
  <PropertyGroup>
+   <TargetFramework>net6.0</TargetFramework>
    <LangVersion>10.0</LangVersion>
    <OutputPath>..\..\..\packages</OutputPath>
    <BotSharpVersion>0.20.0</BotSharpVersion>

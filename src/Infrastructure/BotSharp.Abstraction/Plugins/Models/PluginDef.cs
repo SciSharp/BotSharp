@@ -6,4 +6,6 @@ public class PluginDef
     public string Name { get; set; }
     public string Description { get; set; }
     public string Assembly { get; set; }
+    [JsonPropertyName("icon_url")]
+    public string IconUrl { get; set; }
 }

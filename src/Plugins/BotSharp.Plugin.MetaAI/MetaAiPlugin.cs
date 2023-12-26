@@ -11,6 +11,9 @@ namespace BotSharp.Plugin.MetaAI;
 
 public class MetaAiPlugin : IBotSharpPlugin
 {
+    public string Name => "Meta AI";
+    public string Description => "Innovating with the freedom to explore, discover and apply AI at scale.";
+    public string IconUrl => "https://static.xx.fbcdn.net/rsrc.php/yJ/r/C1E_YZIckM5.svg";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new MetaAiSettings();

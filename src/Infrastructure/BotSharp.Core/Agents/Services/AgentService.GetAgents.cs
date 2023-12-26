@@ -26,7 +26,15 @@ public partial class AgentService
         {
             _logger.LogError($"Can't find agent {id}");
             return null;
-        };
+        }
+
+        // Load llm config
+        var agentSetting = _services.GetRequiredService<AgentSettings>();
+        if (profile.LlmConfig == null)
+        {
+            profile.LlmConfig = agentSetting.LlmConfig;
+            profile.LlmConfig.IsInherit = true;
+        }
 
         return profile;
     }

@@ -14,52 +14,54 @@ using Senparc.CO2NET.RegisterServices;
 using Microsoft.Extensions.Logging;
 using BotSharp.Plugin.WeChat.Users;
 
-namespace BotSharp.Plugin.WeChat
+namespace BotSharp.Plugin.WeChat;
+
+public class WeChatPlugin : IBotSharpAppPlugin
 {
+    public string Name => "Tecent Wechat";
+    public string Description => "Free messaging and calling app, support voice,photo,video and text messages.";
+    public string IconUrl => "https://i.pinimg.com/originals/66/c9/44/66c94415043811725165e59b371a0aa2.png";
 
-    public class WeChatPlugin : IBotSharpAppPlugin
+    public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        public void RegisterDI(IServiceCollection services, IConfiguration config)
+        services.AddScoped<IWeChatAccountUserService,WeChatAccountUserService> ();
+
+        services.AddMemoryCache();
+
+        services.Configure<SenparcWeixinSetting>(config.GetSection("WeChat"));
+
+        if (!Senparc.CO2NET.RegisterServices.RegisterServiceExtension.SenparcGlobalServicesRegistered)
         {
-            services.AddScoped<IWeChatAccountUserService,WeChatAccountUserService> ();
-
-            services.AddMemoryCache();
-
-            services.Configure<SenparcWeixinSetting>(config.GetSection("WeChat"));
-
-            if (!Senparc.CO2NET.RegisterServices.RegisterServiceExtension.SenparcGlobalServicesRegistered)
-            {
-                services = services.AddSenparcGlobalServices(config);
-            }
-            WeChatBackgroundService.AgentId = config["WeChat:AgentId"];
-
-            services.AddSingleton<WeChatBackgroundService>();
-            
-            services.AddHostedService(s => s.GetRequiredService<WeChatBackgroundService>());
-
-            services.TryAddSingleton<IMessageQueue>(s => s.GetRequiredService<WeChatBackgroundService>());
+            services = services.AddSenparcGlobalServices(config);
         }
+        WeChatBackgroundService.AgentId = config["WeChat:AgentId"];
 
-        public void Configure(IApplicationBuilder app)
+        services.AddSingleton<WeChatBackgroundService>();
+        
+        services.AddHostedService(s => s.GetRequiredService<WeChatBackgroundService>());
+
+        services.TryAddSingleton<IMessageQueue>(s => s.GetRequiredService<WeChatBackgroundService>());
+    }
+
+    public void Configure(IApplicationBuilder app)
+    {
+        var env = app.ApplicationServices.GetRequiredService<IHostEnvironment>();
+        var logger = app.ApplicationServices.GetRequiredService<ILogger<WeChatPlugin>>();
+
+        var register = app.UseSenparcGlobal(env);
+        register.UseSenparcWeixin(null, (svc, settings) =>
         {
-            var env = app.ApplicationServices.GetRequiredService<IHostEnvironment>();
-            var logger = app.ApplicationServices.GetRequiredService<ILogger<WeChatPlugin>>();
+            svc.RegisterMpAccount(settings, "WeChat");
+        }, app.ApplicationServices);
 
-            var register = app.UseSenparcGlobal(env);
-            register.UseSenparcWeixin(null, (svc, settings) =>
-            {
-                svc.RegisterMpAccount(settings, "WeChat");
-            }, app.ApplicationServices);
+        app.UseMessageHandlerForMp("/WeChatAsync", BotSharpMessageHandler.GenerateMessageHandler, options =>
+        {
+            options.AccountSettingFunc = context => Senparc.Weixin.Config.SenparcWeixinSetting;
+            options.EnbleResponseLog = false;
+            options.EnableRequestLog = false;
+        });
 
-            app.UseMessageHandlerForMp("/WeChatAsync", BotSharpMessageHandler.GenerateMessageHandler, options =>
-            {
-                options.AccountSettingFunc = context => Senparc.Weixin.Config.SenparcWeixinSetting;
-                options.EnbleResponseLog = false;
-                options.EnableRequestLog = false;
-            });
+        logger.LogInformation("WeChat Message Handler is running on /WeChatAsync.");
 
-            logger.LogInformation("WeChat Message Handler is running on /WeChatAsync.");
-
-        }
     }
 }

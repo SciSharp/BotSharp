@@ -9,6 +9,7 @@ namespace BotSharp.Plugin.ChatHub;
 public class ChatHubPlugin : IBotSharpPlugin
 {
     public string Name => "Chat Hub";
+    public string Description => "A communication channel connects agents and users in real-time.";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         // Register hooks

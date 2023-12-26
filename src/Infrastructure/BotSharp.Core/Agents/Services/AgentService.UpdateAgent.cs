@@ -27,7 +27,10 @@ public partial class AgentService
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
         record.Samples = agent.Samples ?? new List<string>();
-        record.LlmConfig = agent.LlmConfig;
+        if (!agent.LlmConfig.IsInherit)
+        {
+            record.LlmConfig = agent.LlmConfig;
+        }
 
         _db.UpdateAgent(record, updateField);
         await Task.CompletedTask;

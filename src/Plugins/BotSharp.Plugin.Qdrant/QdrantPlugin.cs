@@ -7,6 +7,9 @@ namespace BotSharp.Plugin.Qdrant;
 
 public class QdrantPlugin : IBotSharpPlugin
 {
+    public string Name => "Qdrant";
+    public string Description => "Vector Database - Make the most of your Unstructured Data";
+    public string IconUrl => "https://qdrant.tech/images/logo_with_text.png";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new QdrantSetting();

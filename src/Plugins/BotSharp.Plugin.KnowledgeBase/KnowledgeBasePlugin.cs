@@ -4,6 +4,8 @@ namespace BotSharp.Plugin.KnowledgeBase;
 
 public class KnowledgeBasePlugin : IBotSharpPlugin
 {
+    public string Name => "Knowledge Base";
+    public string Description => "Embedding private data and feed them into LLM in the conversation.";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new KnowledgeBaseSettings();

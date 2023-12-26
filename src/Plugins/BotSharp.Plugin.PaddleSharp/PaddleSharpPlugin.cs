@@ -10,6 +10,9 @@ namespace BotSharp.Plugin.PaddleOCR;
 
 public class PaddleSharpPlugin : IBotSharpPlugin
 {
+    public string Name => "PaddlePaddle";
+    public string Description => "An Open-Source Deep Learning Platform Originated from Industrial Practice";
+    public string IconUrl => "https://miro.medium.com/v2/resize:fit:549/1*oZeecXkOoTzEYp-btIKwxw.jpeg";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new PaddleSharpSettings();
