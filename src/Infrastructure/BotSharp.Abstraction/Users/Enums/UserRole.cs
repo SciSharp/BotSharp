@@ -16,4 +16,9 @@ public class UserRole
     /// Client
     /// </summary>
     public const string Client = "client";
+
+    /// <summary>
+    /// AI Assistant
+    /// </summary>
+    public const string Assistant = "assistant";
 }

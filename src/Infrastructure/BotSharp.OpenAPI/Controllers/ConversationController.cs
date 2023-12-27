@@ -93,6 +93,9 @@ public class ConversationController : ControllerBase
         var userService = _services.GetRequiredService<IUserService>();
         var result = ConversationViewModel.FromSession(conversations.Items.First());
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+        result.States = state.Load(conversationId);
+
         var user = await userService.GetUser(result.User.Id);
         result.User = UserViewModel.FromUser(user);
 

@@ -799,10 +799,11 @@ public class FileRepository : IBotSharpRepository
             if (record == null) continue;
 
             var matched = true;
-            if (!string.IsNullOrEmpty(filter.AgentId)) matched = matched && record.AgentId == filter.AgentId;
-            if (!string.IsNullOrEmpty(filter.Status)) matched = matched && record.Status == filter.Status;
-            if (!string.IsNullOrEmpty(filter.Channel)) matched = matched && record.Channel == filter.Channel;
-            if (!string.IsNullOrEmpty(filter.UserId)) matched = matched && record.UserId == filter.UserId;
+            if(filter.Id != null) matched = matched && record.Id == filter.Id;
+            if (filter.AgentId != null) matched = matched && record.AgentId == filter.AgentId;
+            if (filter.Status != null) matched = matched && record.Status == filter.Status;
+            if (filter.Channel != null) matched = matched && record.Channel == filter.Channel;
+            if (filter.UserId != null) matched = matched && record.UserId == filter.UserId;
 
             if (!matched) continue;
             records.Add(record);

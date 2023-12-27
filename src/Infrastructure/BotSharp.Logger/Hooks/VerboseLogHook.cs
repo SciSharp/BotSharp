@@ -24,7 +24,7 @@ public class VerboseLogHook : IContentGeneratingHook
         if (!_convSettings.ShowVerboseLog) return;
 
         var dialog = conversations.Last();
-        var log = $"[msg_id: {dialog.MessageId}] {dialog.Role}: {dialog.Content}";
+        var log = $"{dialog.Role}: {dialog.Content} [msg_id: {dialog.MessageId}] ==>";
         _logger.LogInformation(log);
 
         await Task.CompletedTask;
@@ -38,8 +38,8 @@ public class VerboseLogHook : IContentGeneratingHook
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
         var log = message.Role == AgentRole.Function ?
-                $"[[msg_id: {message.MessageId}] [{agent?.Name}]: {message.FunctionName}({message.FunctionArgs})" :
-                $"[[msg_id: {message.MessageId}] [{agent?.Name}]: {message.Content}";
+                $"[{agent?.Name}]: {message.FunctionName}({message.FunctionArgs})" :
+                $"[{agent?.Name}]: {message.Content}" + $" <== [msg_id: {message.MessageId}]";
 
         _logger.LogInformation(tokenStats.Prompt);
         _logger.LogInformation(log);
