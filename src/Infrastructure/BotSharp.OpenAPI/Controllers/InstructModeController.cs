@@ -8,7 +8,7 @@ namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class InstructModeController : ControllerBase, IApiAdapter
+public class InstructModeController : ControllerBase
 {
     private readonly IServiceProvider _services;
 

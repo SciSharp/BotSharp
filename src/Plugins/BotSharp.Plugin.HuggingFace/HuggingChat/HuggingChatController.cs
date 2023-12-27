@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.ApiAdapters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json.Serialization;
@@ -8,7 +7,7 @@ using BotSharp.Abstraction.TextGeneratives;
 
 namespace BotSharp.Plugin.HuggingFace.HuggingChat;
 
-public class HuggingChatController : ControllerBase, IApiAdapter
+public class HuggingChatController : ControllerBase
 {
     public HuggingChatController()
     {

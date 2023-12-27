@@ -2,7 +2,7 @@ namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class AgentController : ControllerBase, IApiAdapter
+public class AgentController : ControllerBase
 {
     private readonly IAgentService _agentService;
     private readonly IServiceProvider _services;

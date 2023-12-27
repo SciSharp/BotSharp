@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using BotSharp.Abstraction.ApiAdapters;
 using BotSharp.Plugin.ChatbotUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations;
@@ -22,7 +21,7 @@ namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
 [Authorize]
 [ApiController]
-public class ChatbotUiController : ControllerBase, IApiAdapter
+public class ChatbotUiController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<ChatbotUiController> _logger;

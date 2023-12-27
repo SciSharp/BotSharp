@@ -2,7 +2,7 @@ namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class ConversationController : ControllerBase, IApiAdapter
+public class ConversationController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;

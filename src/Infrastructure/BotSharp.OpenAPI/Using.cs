@@ -20,7 +20,6 @@ global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Abstraction.Agents.Settings;
 global using BotSharp.Abstraction.Conversations.Settings;
 global using BotSharp.Abstraction.Agents.Enums;
-global using BotSharp.Abstraction.ApiAdapters;
 global using BotSharp.Abstraction.Conversations.Enums;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Models;

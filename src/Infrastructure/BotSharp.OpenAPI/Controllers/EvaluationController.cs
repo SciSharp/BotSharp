@@ -5,7 +5,7 @@ namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class EvaluationController : ControllerBase, IApiAdapter
+public class EvaluationController : ControllerBase
 {
     private readonly IServiceProvider _services;
     public EvaluationController(IServiceProvider services)

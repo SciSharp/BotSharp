@@ -5,7 +5,7 @@ namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class KnowledgeController : ControllerBase, IApiAdapter
+public class KnowledgeController : ControllerBase
 {
     private readonly IKnowledgeService _knowledgeService;
     private readonly IServiceProvider _services;

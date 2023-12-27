@@ -1,11 +1,10 @@
-using BotSharp.Abstraction.ApiAdapters;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Controllers;
 
 [Authorize]
 [ApiController]
-public class ChatHubController : ControllerBase, IApiAdapter
+public class ChatHubController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;

@@ -2,7 +2,7 @@ namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
 [ApiController]
-public class UserController : ControllerBase, IApiAdapter
+public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     public UserController(IUserService userService)
