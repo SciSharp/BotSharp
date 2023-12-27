@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Caching.Memory;
+
 namespace BotSharp.Core.Infrastructures;
 
 public static class Utilities
@@ -19,5 +21,14 @@ public static class Utilities
     {
         var splits = str.Split(sep);
         return (splits[0], splits[1]);
+    }
+
+    public static void ClearCache()
+    {
+        // Clear whole cache.
+        if (new MemoryCacheAttribute(0).Cache is MemoryCache memcache)
+        {
+            memcache.Compact(100);
+        }
     }
 }

@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories;
+using Microsoft.Extensions.Caching.Memory;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -51,5 +51,7 @@ public partial class AgentService
 
         _db.BulkInsertAgents(agents);
         _db.BulkInsertUserAgents(userAgents);
+
+        Utilities.ClearCache();
     }
 }

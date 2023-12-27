@@ -33,6 +33,9 @@ public partial class AgentService
         }
 
         _db.UpdateAgent(record, updateField);
+
+        Utilities.ClearCache();
+
         await Task.CompletedTask;
     }
 
@@ -66,6 +69,8 @@ public partial class AgentService
                        .SetLlmConfig(foundAgent.LlmConfig);
 
             _db.UpdateAgent(clonedAgent, AgentField.All);
+
+            Utilities.ClearCache();
         }
 
         await Task.CompletedTask;

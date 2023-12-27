@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]

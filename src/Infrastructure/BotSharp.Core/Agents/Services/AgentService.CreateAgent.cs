@@ -60,6 +60,8 @@ public partial class AgentService
             _db.Add<IBotSharpTable>(userAgentRecord);
         });
 
+        Utilities.ClearCache();
+
         return agentRecord;
     }
 
