@@ -71,4 +71,9 @@ app.UseBotSharp();
 app.UseCors("MyCorsPolicy");
 #endif
 
+// Host BotSharp UI built in adapter-static
+app.UseFileServer();
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.Run();

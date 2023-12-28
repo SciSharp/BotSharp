@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Repositories.Filters;
+
 namespace BotSharp.Abstraction.Agents;
 
 /// <summary>
@@ -7,7 +9,7 @@ public interface IAgentService
 {
     Task<Agent> CreateAgent(Agent agent);
     Task RefreshAgents();
-    Task<List<Agent>> GetAgents(bool? allowRouting = null);
+    Task<List<Agent>> GetAgents(AgentFilter filter);
 
     /// <summary>
     /// Load agent configurations and trigger hooks

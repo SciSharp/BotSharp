@@ -62,6 +62,7 @@ public class Agent
     public bool AllowRouting {  get; set; }
 
     public bool Disabled { get; set; }
+    public string IconUrl { get; set; }
 
     /// <summary>
     /// Profile by channel

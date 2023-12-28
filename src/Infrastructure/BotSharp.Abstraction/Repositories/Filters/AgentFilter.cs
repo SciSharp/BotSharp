@@ -6,5 +6,6 @@ public class AgentFilter
     public bool? Disabled { get; set; }
     public bool? AllowRouting { get; set; }
     public bool? IsPublic { get; set; }
+    public bool? IsRouter { get; set; }
     public List<string>? AgentIds { get; set; }
 }

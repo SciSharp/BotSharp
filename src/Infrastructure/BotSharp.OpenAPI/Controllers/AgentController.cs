@@ -21,9 +21,9 @@ public class AgentController : ControllerBase
     }
 
     [HttpGet("/agents")]
-    public async Task<List<AgentViewModel>> GetAgents()
+    public async Task<List<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
     {
-        var agents = await _agentService.GetAgents();
+        var agents = await _agentService.GetAgents(filter);
          return agents.Select(x => AgentViewModel.FromAgent(x)).ToList();
     }
 

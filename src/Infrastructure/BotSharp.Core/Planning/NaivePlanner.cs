@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Planning;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
@@ -108,7 +109,10 @@ public class NaivePlanner : IPlaner
     private void FixMalformedResponse(FunctionCallFromLlm args)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agents = agentService.GetAgents(allowRouting: true).Result;
+        var agents = agentService.GetAgents(new AgentFilter 
+        { 
+            AllowRouting = true
+        }).Result;
         var malformed = false;
 
         // Sometimes it populate malformed Function in Agent name

@@ -21,6 +21,8 @@ public class AgentViewModel
     [JsonPropertyName("allow_routing")]
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }
+    [JsonPropertyName("icon_url")]
+    public string IconUrl { get; set; }
     public List<string> Profiles { get; set; }
 
     [JsonPropertyName("routing_rules")]
@@ -51,6 +53,7 @@ public class AgentViewModel
             Samples = agent.Samples,
             IsPublic= agent.IsPublic,
             Disabled = agent.Disabled,
+            IconUrl = agent.IconUrl,
             AllowRouting = agent.AllowRouting,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,

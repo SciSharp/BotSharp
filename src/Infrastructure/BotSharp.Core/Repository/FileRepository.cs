@@ -6,24 +6,26 @@ using BotSharp.Abstraction.Agents.Models;
 using MongoDB.Driver;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Utilities;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Models;
+using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Repository;
 
 public class FileRepository : IBotSharpRepository
 {
+    private readonly IServiceProvider _services;
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly AgentSettings _agentSettings;
     private readonly ConversationSetting _conversationSettings;
     private JsonSerializerOptions _options;
 
     public FileRepository(
+        IServiceProvider services,
         BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
         ConversationSetting conversationSettings)
     {
+        _services = services;
         _dbSettings = dbSettings;
         _agentSettings = agentSettings;
         _conversationSettings = conversationSettings;
@@ -540,6 +542,14 @@ public class FileRepository : IBotSharpRepository
         if (filter.IsPublic.HasValue)
         {
             query = query.Where(x => x.IsPublic == filter.IsPublic);
+        }
+
+        if (filter.IsRouter.HasValue)
+        {
+            var route = _services.GetRequiredService<RoutingSettings>();
+            query = filter.IsRouter.Value ?
+                query.Where(x => x.Id == route.AgentId) :
+                query.Where(x => x.Id != route.AgentId);
         }
 
         if (filter.AgentIds != null)

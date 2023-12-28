@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
@@ -459,6 +460,14 @@ public class MongoRepository : IBotSharpRepository
         if (filter.IsPublic.HasValue)
         {
             query = query.Where(x => x.IsPublic == filter.IsPublic);
+        }
+
+        if (filter.IsRouter.HasValue)
+        {
+            var route = _services.GetRequiredService<RoutingSettings>();
+            query = filter.IsRouter.Value ?
+                query.Where(x => x.Id == route.AgentId) :
+                query.Where(x => x.Id != route.AgentId);
         }
 
         if (filter.AgentIds != null)
