@@ -24,8 +24,15 @@ public class ConversationStorage : IConversationStorage
 
         if (dialog.Role == AgentRole.Function)
         {
-            // var args = dialog.FunctionArgs.RemoveNewLine();
-            var meta = $"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.FunctionName}";
+            var meta = new DialogMeta 
+            {
+                Role = dialog.Role,
+                AgentId = agentId,
+                MessageId = dialog.MessageId,
+                FunctionName = dialog.FunctionName,
+                CreateTime = dialog.CreatedAt
+            }; 
+            
             var content = dialog.Content.RemoveNewLine();
             if (string.IsNullOrEmpty(content))
             {
@@ -35,7 +42,15 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            var meta = $"{dialog.CreatedAt}|{dialog.Role}|{agentId}|{dialog.MessageId}|{dialog.SenderId}";
+            var meta = new DialogMeta
+            {
+                Role = dialog.Role,
+                AgentId = agentId,
+                MessageId = dialog.MessageId,
+                SenderId = dialog.SenderId,
+                CreateTime = dialog.CreatedAt
+            };
+            
             var content = dialog.Content.RemoveNewLine();
             if (string.IsNullOrEmpty(content))
             {
@@ -58,13 +73,12 @@ public class ConversationStorage : IConversationStorage
         {
             var meta = dialog.MetaData;
             var content = dialog.Content;
-            var blocks = meta.Split('|');
-            var createdAt = DateTime.Parse(blocks[0]);
-            var role = blocks[1];
-            var currentAgentId = blocks[2];
-            var messageId = blocks[3];
-            var senderId = role == AgentRole.Function ? currentAgentId : blocks[4];
-            var function = role == AgentRole.Function ? blocks[4] : null;
+            var role = meta.Role;
+            var currentAgentId = meta.AgentId;
+            var messageId = meta.MessageId;
+            var function = role == AgentRole.Function ? meta.FunctionName : null;
+            var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
+            var createdAt = meta.CreateTime;
             
             results.Add(new RoleDialogModel(role, content)
             {

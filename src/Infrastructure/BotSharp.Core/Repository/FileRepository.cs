@@ -1037,9 +1037,18 @@ public class FileRepository : IBotSharpRepository
         {
             for (int i = 0; i < rawDialogs.Count(); i += 2)
             {
-                var meta = rawDialogs[i];
+                var blocks = rawDialogs[i].Split("|");
                 var content = rawDialogs[i + 1];
                 var trimmed = content.Substring(4);
+                var meta = new DialogMeta
+                {
+                    Role = blocks[1],
+                    AgentId = blocks[2],
+                    MessageId = blocks[3],
+                    FunctionName = blocks[1] == AgentRole.Function ? blocks[4] : null,
+                    SenderId = blocks[1] == AgentRole.Function ? null : blocks[4],
+                    CreateTime = DateTime.Parse(blocks[0])
+                };
                 dialogs.Add(new DialogElement(meta, trimmed));
             }
         }
@@ -1053,7 +1062,10 @@ public class FileRepository : IBotSharpRepository
 
         foreach (var element in dialogs)
         {
-            dialogTexts.Add(element.MetaData);
+            var meta = element.MetaData;
+            var source = meta.FunctionName ?? meta.SenderId;
+            var metaStr = $"{meta.CreateTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{source}";
+            dialogTexts.Add(metaStr);
             var content = $"  - {element.Content}";
             dialogTexts.Add(content);
         }
