@@ -25,7 +25,7 @@ public class Conversation
 
 public class DialogElement
 {
-    public string MetaData { get; set; }
+    public DialogMeta MetaData { get; set; }
     public string Content { get; set; }
 
     public DialogElement()
@@ -33,9 +33,19 @@ public class DialogElement
 
     }
 
-    public DialogElement(string meta, string content)
+    public DialogElement(DialogMeta meta, string content)
     {
         MetaData = meta;
         Content = content;
     }
+}
+
+public class DialogMeta
+{
+    public string Role { get; set; }
+    public string AgentId { get; set; }
+    public string MessageId { get; set; }
+    public string? FunctionName { get; set; }
+    public string? SenderId { get; set; }
+    public DateTime CreateTime { get; set; }
 }
