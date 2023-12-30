@@ -12,10 +12,8 @@ using Sdcb.PaddleOCR;
 using System.Threading.Tasks;
 using BotSharp.Abstraction.Knowledges;
 using System.Linq;
-using Docnet;
 using Docnet.Core.Models;
 using Docnet.Core;
-using Docnet.Core.Converters;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -33,9 +31,9 @@ public class Pdf2TextConverter : IPdf2TextConverter
         _paddleSharpSettings = paddleSharpSettings;
     }
 
-    public async Task<string> ConvertPdfToText(IFormFile formFile, int? startPageNum, int? endPageNum)
+    public async Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
     {
-        await ConvertPdfToLocalImagesAsync(formFile, startPageNum, endPageNum);
+        await ConvertPdfToLocalImagesAsync(filePath, startPageNum, endPageNum);
         return await LocalImageToTextsAsync();
     }
 
@@ -115,16 +113,9 @@ public class Pdf2TextConverter : IPdf2TextConverter
         };
     }
 
-    private async Task ConvertPdfToLocalImagesAsync(IFormFile formFile, int? startPageNum, int? endPageNum)
+    private async Task ConvertPdfToLocalImagesAsync(string filePath, int? startPageNum, int? endPageNum)
     {
         string rootFileName;
-
-        var filePath = Path.GetTempFileName();
-
-        using (var stream = System.IO.File.Create(filePath))
-        {
-            await formFile.CopyToAsync(stream);
-        }
 
         using var images = new MagickImageCollection();
         // _magicReadSettings.Density = new Density((double)300);

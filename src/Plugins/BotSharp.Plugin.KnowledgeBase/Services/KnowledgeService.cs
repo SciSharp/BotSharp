@@ -15,6 +15,29 @@ public class KnowledgeService : IKnowledgeService
         _textChopper = textChopper;
     }
 
+    public async Task EmbedKnowledge(KnowledgeCreationModel knowledge)
+    {
+        var idStart = 0;
+        var lines = _textChopper.Chop(knowledge.Content, new ChunkOption
+        {
+            Size = 1024,
+            Conjunction = 32,
+            SplitByWord = true,
+        });
+
+        var db = GetVectorDb();
+        var textEmbedding = GetTextEmbedding();
+
+        await db.CreateCollection("shared", textEmbedding.Dimension);
+        foreach (var line in lines)
+        {
+            var vec = await textEmbedding.GetVectorAsync(line);
+            await db.Upsert("shared", idStart, vec, line);
+            idStart++;
+            Console.WriteLine($"Saved vector {idStart}/{lines.Count}: {line}\n");
+        }
+    }
+
     public async Task Feed(KnowledgeFeedModel knowledge)
     {
         var idStart = 0;

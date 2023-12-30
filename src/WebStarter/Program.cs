@@ -39,7 +39,8 @@ builder.Services.AddBotSharpLogger(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCorsPolicy",
-        builder => builder.WithOrigins("http://localhost:5015")
+        builder => builder.WithOrigins("http://localhost:5015", 
+                        "https://botsharp.scisharpstack.org")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
                    .AllowCredentials());

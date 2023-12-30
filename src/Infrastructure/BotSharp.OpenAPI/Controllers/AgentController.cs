@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing.Settings;
+
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
@@ -11,6 +13,13 @@ public class AgentController : ControllerBase
     {
         _agentService = agentService;
         _services = services;
+    }
+
+    [HttpGet("/agent/settings")]
+    public AgentSettings GetSettings()
+    {
+        var settings = _services.GetRequiredService<AgentSettings>();
+        return settings;
     }
 
     [HttpGet("/agent/{id}")]

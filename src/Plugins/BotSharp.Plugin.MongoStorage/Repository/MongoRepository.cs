@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
@@ -468,6 +469,14 @@ public class MongoRepository : IBotSharpRepository
             query = filter.IsRouter.Value ?
                 query.Where(x => x.Id == route.AgentId) :
                 query.Where(x => x.Id != route.AgentId);
+        }
+
+        if (filter.IsEvaluator.HasValue)
+        {
+            var evaluate = _services.GetRequiredService<EvaluatorSetting>();
+            query = filter.IsEvaluator.Value ?
+                query.Where(x => x.Id == evaluate.AgentId) :
+                query.Where(x => x.Id != evaluate.AgentId);
         }
 
         if (filter.AgentIds != null)

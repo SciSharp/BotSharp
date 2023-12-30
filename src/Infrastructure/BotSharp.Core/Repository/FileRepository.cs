@@ -8,6 +8,7 @@ using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Evaluations.Settings;
 
 namespace BotSharp.Core.Repository;
 
@@ -550,6 +551,14 @@ public class FileRepository : IBotSharpRepository
             query = filter.IsRouter.Value ?
                 query.Where(x => x.Id == route.AgentId) :
                 query.Where(x => x.Id != route.AgentId);
+        }
+
+        if (filter.IsEvaluator.HasValue)
+        {
+            var evaluate = _services.GetRequiredService<EvaluatorSetting>();
+            query = filter.IsEvaluator.Value ?
+                query.Where(x => x.Id == evaluate.AgentId) :
+                query.Where(x => x.Id != evaluate.AgentId);
         }
 
         if (filter.AgentIds != null)

@@ -7,6 +7,6 @@ namespace BotSharp.Abstraction.Knowledges
 {
     public interface IPdf2TextConverter
     {
-        Task<string> ConvertPdfToText(IFormFile formFile, int? startPageNum, int? endPageNum);
+        Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum);
     }
 }
