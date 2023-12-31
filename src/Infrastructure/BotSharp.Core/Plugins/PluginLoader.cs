@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Plugins.Models;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using System.Drawing;
 using System.IO;

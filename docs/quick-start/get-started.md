@@ -20,6 +20,20 @@ Next, try to access the chat from `Open API`, we public our [Postman collection]
 
 ![Pizza Bot Starter](assets/PizzaBotSample4.png)
 
+### Launch the UI
+
+BotSharp has an official front-end project to be used in conjunction with the backend. The main function of this project is to allow developers to visualize various configurations of the backend.
+
+```console
+git clone https://github.com/SciSharp/BotSharp-UI
+cd BotSharp-UI
+npm install --force
+npm run dev
+```
+
+Access the http://localhost:5015/
+
+![BotSharp UI Router](assets/BotSharp-UI-Router.png)
 
 ### Run in debug mode
 

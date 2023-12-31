@@ -37,4 +37,4 @@ Now we can update the prompt to the chatbot definition through the [Agent Update
 
 ![Alt text](assets/agent-update.png)
 
-After the update is successful, the robot will have a system prompt, and the subsequent dialogue will interact with the user based on the background knowledge of the system prompt. So far, the creation of the Agent has been completed, but the real dialogue has not yet started. The following will continue to introduce the last step, the [Agent Conversation](conversation.md) part.
+After the update is successful, the robot will have a system prompt, and the subsequent dialogue will interact with the user based on the background knowledge of the system prompt. So far, the creation of the Agent has been completed, but the real dialogue has not yet started. The following will continue to introduce the last step, the [Agent Conversation](../conversation/intro.md) part.

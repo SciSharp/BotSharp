@@ -52,6 +52,7 @@ The main documentation for the site is organized into the following sections:
 
    agent/intro
    agent/router
+   agent/hook
 
 .. toctree::
    :maxdepth: 2
@@ -59,6 +60,7 @@ The main documentation for the site is organized into the following sections:
 
    conversation/intro
    conversation/state
+   conversation/hook
 
 .. _integration-docs:
 
