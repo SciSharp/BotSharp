@@ -22,10 +22,10 @@ public class InstructModeController : ControllerBase
         [FromBody] InstructMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
-        state.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("instruction", input.Instruction)
+        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1], true));
+        state.SetState("provider", input.Provider, true)
+            .SetState("model", input.Model, true)
+            .SetState("instruction", input.Instruction, true)
             .SetState("input_text", input.Text);
 
         var instructor = _services.GetRequiredService<IInstructService>();

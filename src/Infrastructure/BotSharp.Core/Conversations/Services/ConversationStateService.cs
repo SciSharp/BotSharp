@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories;
-using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -11,26 +10,33 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private ConversationState _states;
-    private BotSharpDatabaseSettings _dbSettings;
+    private ConversationHistoryState _historyStates;
     private string _conversationId;
     private readonly IBotSharpRepository _db;
-    private List<StateKeyValue> _savedStates;
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
-        IServiceProvider services, 
-        BotSharpDatabaseSettings dbSettings,
+        IServiceProvider services,
         IBotSharpRepository db)
     {
         _logger = logger;
         _services = services;
-        _dbSettings = dbSettings;
         _db = db;
         _states = new ConversationState();
+        _historyStates = new ConversationHistoryState();
     }
 
     public string GetConversationId() => _conversationId;
 
-    public IConversationStateService SetState<T>(string name, T value)
+
+    /// <summary>
+    /// Set conversation state
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="value"></param>
+    /// <param name="isConst">whether the state is related to message or not</param>
+    /// <returns></returns>
+    public IConversationStateService SetState<T>(string name, T value, bool isConst = false)
     {
         if (value == null)
         {
@@ -40,6 +46,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
         string preValue = _states.ContainsKey(name) ? _states[name] : "";
+
         if (!_states.ContainsKey(name) || _states[name] != currentValue)
         {
             _states[name] = currentValue;
@@ -47,6 +54,28 @@ public class ConversationStateService : IConversationStateService, IDisposable
             foreach (var hook in hooks)
             {
                 hook.OnStateChanged(name, preValue, currentValue).Wait();
+            }
+
+            var historyStateValue = new HistoryStateValue
+            {
+                Data = currentValue,
+                UpdateTime = DateTime.UtcNow
+            };
+
+            if (!_historyStates.ContainsKey(name))
+            {
+                _historyStates[name] = new List<HistoryStateValue>();
+            }
+
+            if (isConst)
+            {
+                _historyStates[name] = new List<HistoryStateValue> { historyStateValue };
+            }
+            else
+            {
+                var messageId = GetCurrentMessageId();
+                historyStateValue.MessageId = messageId ?? string.Empty;
+                _historyStates[name].Add(historyStateValue);
             }
         }
 
@@ -57,14 +86,16 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         _conversationId = conversationId;
 
-        _savedStates = _db.GetConversationStates(_conversationId).ToList();
+        var savedStates = _db.GetConversationStates(_conversationId).ToList();
+        _historyStates = new ConversationHistoryState(savedStates);
 
-        if (!_savedStates.IsNullOrEmpty())
+        if (!savedStates.IsNullOrEmpty())
         {
-            foreach (var data in _savedStates)
+            foreach (var state in savedStates)
             {
-                _states[data.Key] = data.Value;
-                _logger.LogInformation($"[STATE] {data.Key} : {data.Value}");
+                var value = state.Values.LastOrDefault()?.Data ?? string.Empty;
+                _states[state.Key] = value;
+                _logger.LogInformation($"[STATE] {state.Key} : {value}");
             }
         }
 
@@ -85,24 +116,23 @@ public class ConversationStateService : IConversationStateService, IDisposable
             return;
         }
 
-        var states = new List<StateKeyValue>();
+        var historyStates = new List<HistoryStateKeyValue>();
 
-        foreach (var dic in _states)
+        foreach (var dic in _historyStates)
         {
-            states.Add(new StateKeyValue(dic.Key, dic.Value));
+            historyStates.Add(new HistoryStateKeyValue(dic.Key, dic.Value));
         }
 
-        _db.UpdateConversationStates(_conversationId, states);
-        _logger.LogInformation($"Saved state {_conversationId}");
+        _db.UpdateConversationStates(_conversationId, historyStates);
+        _logger.LogInformation($"Saved states of conversation {_conversationId}");
     }
 
     public void CleanState()
     {
-        //File.Delete(_file);
+        
     }
 
-    public ConversationState GetStates()
-        => _states;
+    public ConversationState GetStates() => _states;
 
     public string GetState(string name, string defaultValue = "")
     {
@@ -141,5 +171,13 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 }
             }
         }
+    }
+
+    private string? GetCurrentMessageId()
+    {
+        if (string.IsNullOrEmpty(_conversationId)) return null;
+
+        var dialogs = _db.GetConversationDialogs(_conversationId);
+        return dialogs.LastOrDefault()?.MetaData?.MessageId;
     }
 }

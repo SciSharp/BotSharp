@@ -33,8 +33,8 @@ public interface IBotSharpRepository
     List<DialogElement> GetConversationDialogs(string conversationId);
     void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements);
     void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
-    List<StateKeyValue> GetConversationStates(string conversationId);
-    void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
+    List<HistoryStateKeyValue> GetConversationStates(string conversationId);
+    void UpdateConversationStates(string conversationId, List<HistoryStateKeyValue> states);
     void UpdateConversationStatus(string conversationId, string status);
     Conversation GetConversation(string conversationId);
     List<Conversation> GetConversations(ConversationFilter filter);

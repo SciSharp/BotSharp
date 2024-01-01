@@ -644,7 +644,7 @@ public class FileRepository : IBotSharpRepository
         var stateDir = Path.Combine(dir, "state.dict");
         if (!File.Exists(stateDir))
         {
-            File.WriteAllText(stateDir, string.Empty);
+            File.WriteAllText(stateDir, "[]");
         }
     }
 
@@ -730,33 +730,31 @@ public class FileRepository : IBotSharpRepository
             }
         }
     }
-    public List<StateKeyValue> GetConversationStates(string conversationId)
+    public List<HistoryStateKeyValue> GetConversationStates(string conversationId)
     {
-        var curStates = new List<StateKeyValue>();
+        var curStates = new List<HistoryStateKeyValue>();
         var convDir = FindConversationDirectory(conversationId);
         if (!string.IsNullOrEmpty(convDir))
         {
-            var stateDir = Path.Combine(convDir, "state.dict");
-            curStates = CollectConversationStates(stateDir);
+            var stateFile = Path.Combine(convDir, "state.dict");
+            curStates = CollectConversationStates(stateFile);
         }
 
         return curStates;
     }
 
-    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
+    public void UpdateConversationStates(string conversationId, List<HistoryStateKeyValue> states)
     {
-        var localStates = new List<string>();
+        if (states.IsNullOrEmpty()) return;
+
         var convDir = FindConversationDirectory(conversationId);
         if (!string.IsNullOrEmpty(convDir))
         {
-            var stateDir = Path.Combine(convDir, "state.dict");
-            if (File.Exists(stateDir))
+            var stateFile = Path.Combine(convDir, "state.dict");
+            if (File.Exists(stateFile))
             {
-                foreach (var data in states)
-                {
-                    localStates.Add($"{data.Key}={data.Value}");
-                }
-                File.WriteAllLines(stateDir, localStates);
+                var stateStr = JsonSerializer.Serialize(states, _options);
+                File.WriteAllText(stateFile, stateStr);
             }
         }
     }
@@ -796,8 +794,13 @@ public class FileRepository : IBotSharpRepository
         var stateFile = Path.Combine(convDir, "state.dict");
         if (record != null)
         {
-            var states = CollectConversationStates(stateFile);
-            record.States = new ConversationState(states);
+            var historyStates = CollectConversationStates(stateFile);
+            var recentStates = historyStates.Select(x => new StateKeyValue
+            {
+                Key = x.Key,
+                Value = x.Values.LastOrDefault()?.Data ?? string.Empty
+            }).ToList();
+            record.States = new ConversationState(recentStates);
         }
 
         return record;
@@ -1082,18 +1085,16 @@ public class FileRepository : IBotSharpRepository
         return dialogTexts;
     }
 
-    private List<StateKeyValue> CollectConversationStates(string stateDir)
+    private List<HistoryStateKeyValue> CollectConversationStates(string stateFile)
     {
-        var states = new List<StateKeyValue>();
-        if (!File.Exists(stateDir)) return states;
+        var states = new List<HistoryStateKeyValue>();
+        if (!File.Exists(stateFile)) return states;
 
-        var dict = File.ReadAllLines(stateDir);
-        foreach (var line in dict)
-        {
-            var data = line.Split('=');
-            states.Add(new StateKeyValue(data[0], data[1]));
-        }
-        return states;
+        var stateStr = File.ReadAllText(stateFile);
+        if (string.IsNullOrEmpty(stateStr)) return states;
+
+        states = JsonSerializer.Deserialize<List<HistoryStateKeyValue>>(stateStr, _options);
+        return states ?? new List<HistoryStateKeyValue>();
     }
 
     private int GetNextLlmCompletionLogIndex(string logDir, string id)

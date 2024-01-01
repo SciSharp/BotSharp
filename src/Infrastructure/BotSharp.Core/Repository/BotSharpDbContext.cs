@@ -152,7 +152,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<StateKeyValue> GetConversationStates(string conversationId)
+    public List<HistoryStateKeyValue> GetConversationStates(string conversationId)
     {
         throw new NotImplementedException();
     }
@@ -165,7 +165,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
-    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
+    public void UpdateConversationStates(string conversationId, List<HistoryStateKeyValue> states)
     {
         throw new NotImplementedException();
     }

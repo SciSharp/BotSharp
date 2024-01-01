@@ -447,7 +447,7 @@ public class MongoRepository : IBotSharpRepository
         {
             query = query.Where(x => x.Name.ToLower() == filter.AgentName.ToLower());
         }
-        
+
         if (filter.Disabled.HasValue)
         {
             query = query.Where(x => x.Disabled == filter.Disabled);
@@ -514,9 +514,9 @@ public class MongoRepository : IBotSharpRepository
     public List<Agent> GetAgentsByUser(string userId)
     {
         var agentIds = (from ua in _dc.UserAgents.AsQueryable()
-                    join u in _dc.Users.AsQueryable() on ua.UserId equals u.Id
-                    where ua.UserId == userId || u.ExternalId == userId
-                    select ua.AgentId).ToList();
+                        join u in _dc.Users.AsQueryable() on ua.UserId equals u.Id
+                        where ua.UserId == userId || u.ExternalId == userId
+                        select ua.AgentId).ToList();
 
         var filter = new AgentFilter
         {
@@ -608,7 +608,7 @@ public class MongoRepository : IBotSharpRepository
         {
             return false;
         }
-        
+
     }
     #endregion
 
@@ -625,7 +625,6 @@ public class MongoRepository : IBotSharpRepository
             Title = conversation.Title,
             Channel = conversation.Channel,
             Status = conversation.Status,
-            States = conversation.States?.ToKeyValueList() ?? new List<StateKeyValue>(),
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow,
         };
@@ -637,8 +636,16 @@ public class MongoRepository : IBotSharpRepository
             Dialogs = new List<DialogMongoElement>()
         };
 
+        var states = new ConversationStateDocument
+        {
+            Id = Guid.NewGuid().ToString(),
+            ConversationId = conv.Id,
+            States = new List<StateMongoElement>()
+        };
+
         _dc.Conversations.InsertOne(conv);
         _dc.ConversationDialogs.InsertOne(dialog);
+        _dc.ConversationStates.InsertOne(states);
     }
 
     public bool DeleteConversation(string conversationId)
@@ -647,14 +654,16 @@ public class MongoRepository : IBotSharpRepository
 
         var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterSates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var filterExeLog = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
 
         var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
+        var statesDeleted = _dc.ConversationStates.DeleteMany(filterSates);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
-        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0
+        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
             || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0;
     }
 
@@ -688,7 +697,7 @@ public class MongoRepository : IBotSharpRepository
             }
             return x;
         }).ToList();
-        
+
         _dc.ConversationDialogs.ReplaceOne(filterDialog, foundDialog);
     }
 
@@ -727,30 +736,37 @@ public class MongoRepository : IBotSharpRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
-    public List<StateKeyValue> GetConversationStates(string conversationId)
+    public List<HistoryStateKeyValue> GetConversationStates(string conversationId)
     {
-        var states = new List<StateKeyValue>();
+        var states = new List<HistoryStateKeyValue>();
         if (string.IsNullOrEmpty(conversationId)) return states;
 
-        var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
-        var foundConversation = _dc.Conversations.Find(filter).FirstOrDefault();
-        var savedStates = foundConversation?.States ?? new List<StateKeyValue>();
+        var filter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundStates = _dc.ConversationStates.Find(filter).FirstOrDefault();
+        if (foundStates == null || foundStates.States.IsNullOrEmpty()) return states;
+
+        var savedStates = foundStates.States.Select(x => StateMongoElement.ToDomainElement(x)).ToList();
         return savedStates;
     }
 
-    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
+    public void UpdateConversationStates(string conversationId, List<HistoryStateKeyValue> states)
     {
-        if (string.IsNullOrEmpty(conversationId)) return;
+        if (string.IsNullOrEmpty(conversationId) || states.IsNullOrEmpty()) return;
 
-        var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
-        var foundConv = _dc.Conversations.Find(filter).FirstOrDefault();
+        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var foundConv = _dc.Conversations.Find(filterConv).FirstOrDefault();
         if (foundConv == null) return;
 
-        var update = Builders<ConversationDocument>.Update
-            .Set(x => x.States, states)
-            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+        var filterStates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundStates = _dc.ConversationStates.Find(filterStates).FirstOrDefault();
+        if (foundStates == null) return;
 
-        _dc.Conversations.UpdateOne(filter, update);
+        var saveStates = states.Select(x => StateMongoElement.ToMongoElement(x)).ToList();
+        var updateStates = Builders<ConversationStateDocument>.Update.Set(x => x.States, saveStates);
+        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.ConversationStates.UpdateOne(filterStates, updateStates);
+        _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
     public void UpdateConversationStatus(string conversationId, string status)
@@ -774,14 +790,21 @@ public class MongoRepository : IBotSharpRepository
 
         var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterState = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
 
         var conv = _dc.Conversations.Find(filterConv).FirstOrDefault();
         var dialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
+        var states = _dc.ConversationStates.Find(filterState).FirstOrDefault();
 
         if (conv == null) return null;
 
         var dialogElements = dialog?.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList() ?? new List<DialogElement>();
-        
+        var recentStates = states.States?.Select(x => new StateKeyValue
+        {
+            Key = x.Key,
+            Value = x.Values.LastOrDefault()?.Data ?? string.Empty
+        })?.ToList() ?? new List<StateKeyValue>();
+
         return new Conversation
         {
             Id = conv.Id.ToString(),
@@ -791,7 +814,7 @@ public class MongoRepository : IBotSharpRepository
             Channel = conv.Channel,
             Status = conv.Status,
             Dialogs = dialogElements,
-            States = new ConversationState(conv.States ?? new List<StateKeyValue>()),
+            States = new ConversationState(recentStates),
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
         };
@@ -938,7 +961,7 @@ public class MongoRepository : IBotSharpRepository
         var conversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         var messageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
 
-        var logElement = new PromptLogElement
+        var logElement = new PromptLogMongoElement
         {
             MessageId = messageId,
             AgentId = log.AgentId,
