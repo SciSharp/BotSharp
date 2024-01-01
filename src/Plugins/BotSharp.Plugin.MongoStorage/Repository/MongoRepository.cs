@@ -753,20 +753,14 @@ public class MongoRepository : IBotSharpRepository
     {
         if (string.IsNullOrEmpty(conversationId) || states.IsNullOrEmpty()) return;
 
-        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
-        var foundConv = _dc.Conversations.Find(filterConv).FirstOrDefault();
-        if (foundConv == null) return;
-
         var filterStates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundStates = _dc.ConversationStates.Find(filterStates).FirstOrDefault();
         if (foundStates == null) return;
 
         var saveStates = states.Select(x => StateMongoElement.ToMongoElement(x)).ToList();
         var updateStates = Builders<ConversationStateDocument>.Update.Set(x => x.States, saveStates);
-        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.ConversationStates.UpdateOne(filterStates, updateStates);
-        _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
     public void UpdateConversationStatus(string conversationId, string status)
