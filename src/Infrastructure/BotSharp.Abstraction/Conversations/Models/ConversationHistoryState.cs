@@ -14,9 +14,4 @@ public class ConversationHistoryState : Dictionary<string, List<HistoryStateValu
             this[pair.Key] = pair.Values;
         }
     }
-
-    //public List<StateKeyValue> ToKeyValueList()
-    //{
-    //    return this.Select(x => new StateKeyValue(x.Key, x.Value)).ToList();
-    //}
 }
