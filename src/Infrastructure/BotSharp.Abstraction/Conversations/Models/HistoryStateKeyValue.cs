@@ -19,7 +19,6 @@ public class HistoryStateKeyValue
 
 public class HistoryStateValue
 {
-    public string? MessageId { get; set; }
     public string Data { get; set; }
     public DateTime UpdateTime { get; set; }
 

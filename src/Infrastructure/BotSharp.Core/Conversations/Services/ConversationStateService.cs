@@ -34,9 +34,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <param name="value"></param>
-    /// <param name="isConst">whether the state is related to message or not</param>
+    /// <param name="isNeedVersion">whether the state is related to message or not</param>
     /// <returns></returns>
-    public IConversationStateService SetState<T>(string name, T value)
+    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true)
     {
         if (value == null)
         {
@@ -58,17 +58,18 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
             var historyStateValue = new HistoryStateValue
             {
-                MessageId = GetCurrentMessageId(),
                 Data = currentValue,
                 UpdateTime = DateTime.UtcNow
             };
 
-            if (!_historyStates.ContainsKey(name))
+            if (!_historyStates.ContainsKey(name) || !isNeedVersion)
             {
-                _historyStates[name] = new List<HistoryStateValue>();
+                _historyStates[name] = new List<HistoryStateValue> { historyStateValue };
             }
-
-            _historyStates[name].Add(historyStateValue);
+            else
+            {
+                _historyStates[name].Add(historyStateValue);
+            }
         }
 
         return this;
@@ -163,13 +164,5 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 }
             }
         }
-    }
-
-    private string? GetCurrentMessageId()
-    {
-        if (string.IsNullOrEmpty(_conversationId)) return null;
-
-        var dialogs = _db.GetConversationDialogs(_conversationId);
-        return dialogs.LastOrDefault()?.MetaData?.MessageId;
     }
 }

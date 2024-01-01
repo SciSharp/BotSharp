@@ -28,7 +28,6 @@ public class StateMongoElement
 
 public class StateValueMongoElement
 {
-    public string? MessageId { get; set; }
     public string Data { get; set; }
     public DateTime UpdateTime { get; set; }
 
@@ -36,7 +35,6 @@ public class StateValueMongoElement
     {
         return new StateValueMongoElement
         {
-            MessageId = element.MessageId,
             Data = element.Data,
             UpdateTime = element.UpdateTime
         };
@@ -46,7 +44,6 @@ public class StateValueMongoElement
     {
         return new HistoryStateValue
         {
-            MessageId = element.MessageId,
             Data = element.Data,
             UpdateTime = element.UpdateTime
         };
