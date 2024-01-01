@@ -36,7 +36,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// <param name="value"></param>
     /// <param name="isConst">whether the state is related to message or not</param>
     /// <returns></returns>
-    public IConversationStateService SetState<T>(string name, T value, bool isConst = false)
+    public IConversationStateService SetState<T>(string name, T value)
     {
         if (value == null)
         {
@@ -58,6 +58,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
             var historyStateValue = new HistoryStateValue
             {
+                MessageId = GetCurrentMessageId(),
                 Data = currentValue,
                 UpdateTime = DateTime.UtcNow
             };
@@ -67,16 +68,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 _historyStates[name] = new List<HistoryStateValue>();
             }
 
-            if (isConst)
-            {
-                _historyStates[name] = new List<HistoryStateValue> { historyStateValue };
-            }
-            else
-            {
-                var messageId = GetCurrentMessageId();
-                historyStateValue.MessageId = messageId ?? string.Empty;
-                _historyStates[name].Add(historyStateValue);
-            }
+            _historyStates[name].Add(historyStateValue);
         }
 
         return this;

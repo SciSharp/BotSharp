@@ -12,7 +12,7 @@ public interface IConversationStateService
     string GetState(string name, string defaultValue = "");
     bool ContainsState(string name);
     ConversationState GetStates();
-    IConversationStateService SetState<T>(string name, T value, bool isConst = false);
+    IConversationStateService SetState<T>(string name, T value);
     void SaveStateByArgs(JsonDocument args);
     void CleanState();
     void Save();

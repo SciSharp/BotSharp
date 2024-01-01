@@ -120,6 +120,6 @@ public partial class ConversationService : IConversationService
     {
         _conversationId = conversationId;
         _state.Load(_conversationId);
-        states.ForEach(x => _state.SetState(x.Split('=')[0], x.Split('=')[1], true));
+        states.ForEach(x => _state.SetState(x.Split('=')[0], x.Split('=')[1]));
     }
 }
