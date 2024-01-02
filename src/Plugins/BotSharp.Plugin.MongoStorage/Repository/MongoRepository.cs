@@ -617,7 +617,7 @@ public class MongoRepository : IBotSharpRepository
     {
         if (conversation == null) return;
 
-        var conv = new ConversationDocument
+        var convDoc = new ConversationDocument
         {
             Id = !string.IsNullOrEmpty(conversation.Id) ? conversation.Id : Guid.NewGuid().ToString(),
             AgentId = conversation.AgentId,
@@ -629,23 +629,33 @@ public class MongoRepository : IBotSharpRepository
             UpdatedTime = DateTime.UtcNow,
         };
 
-        var dialog = new ConversationDialogDocument
+        var dialogDoc = new ConversationDialogDocument
         {
             Id = Guid.NewGuid().ToString(),
-            ConversationId = conv.Id,
+            ConversationId = convDoc.Id,
             Dialogs = new List<DialogMongoElement>()
         };
 
-        var states = new ConversationStateDocument
+        var states = conversation.States ?? new Dictionary<string, string>();
+        var initialStates = states.Select(x => new StateMongoElement
+        {
+            Key = x.Key,
+            Values = new List<StateValueMongoElement>
+            { 
+                new StateValueMongoElement { Data = x.Value, UpdateTime = DateTime.UtcNow }
+            }
+        }).ToList();
+
+        var stateDoc = new ConversationStateDocument
         {
             Id = Guid.NewGuid().ToString(),
-            ConversationId = conv.Id,
-            States = new List<StateMongoElement>()
+            ConversationId = convDoc.Id,
+            States = initialStates
         };
 
-        _dc.Conversations.InsertOne(conv);
-        _dc.ConversationDialogs.InsertOne(dialog);
-        _dc.ConversationStates.InsertOne(states);
+        _dc.Conversations.InsertOne(convDoc);
+        _dc.ConversationDialogs.InsertOne(dialogDoc);
+        _dc.ConversationStates.InsertOne(stateDoc);
     }
 
     public bool DeleteConversation(string conversationId)
@@ -736,9 +746,9 @@ public class MongoRepository : IBotSharpRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
-    public List<HistoryStateKeyValue> GetConversationStates(string conversationId)
+    public List<StateKeyValue> GetConversationStates(string conversationId)
     {
-        var states = new List<HistoryStateKeyValue>();
+        var states = new List<StateKeyValue>();
         if (string.IsNullOrEmpty(conversationId)) return states;
 
         var filter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
@@ -749,7 +759,7 @@ public class MongoRepository : IBotSharpRepository
         return savedStates;
     }
 
-    public void UpdateConversationStates(string conversationId, List<HistoryStateKeyValue> states)
+    public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
         if (string.IsNullOrEmpty(conversationId) || states.IsNullOrEmpty()) return;
 
@@ -793,11 +803,11 @@ public class MongoRepository : IBotSharpRepository
         if (conv == null) return null;
 
         var dialogElements = dialog?.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList() ?? new List<DialogElement>();
-        var recentStates = states.States?.Select(x => new StateKeyValue
+        var curStates = new Dictionary<string, string>();
+        states.States.ForEach(x =>
         {
-            Key = x.Key,
-            Value = x.Values.LastOrDefault()?.Data ?? string.Empty
-        })?.ToList() ?? new List<StateKeyValue>();
+            curStates[x.Key] = x.Values.LastOrDefault()?.Data ?? string.Empty;
+        });
 
         return new Conversation
         {
@@ -808,7 +818,7 @@ public class MongoRepository : IBotSharpRepository
             Channel = conv.Channel,
             Status = conv.Status,
             Dialogs = dialogElements,
-            States = new ConversationState(recentStates),
+            States = curStates,
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
         };

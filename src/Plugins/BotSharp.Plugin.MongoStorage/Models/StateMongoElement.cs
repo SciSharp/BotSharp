@@ -7,7 +7,7 @@ public class StateMongoElement
     public string Key { get; set; }
     public List<StateValueMongoElement> Values { get; set; }
 
-    public static StateMongoElement ToMongoElement(HistoryStateKeyValue state)
+    public static StateMongoElement ToMongoElement(StateKeyValue state)
     {
         return new StateMongoElement
         {
@@ -16,12 +16,12 @@ public class StateMongoElement
         };
     }
 
-    public static HistoryStateKeyValue ToDomainElement(StateMongoElement state)
+    public static StateKeyValue ToDomainElement(StateMongoElement state)
     {
-        return new HistoryStateKeyValue
+        return new StateKeyValue
         {
             Key = state.Key,
-            Values = state.Values?.Select(x => StateValueMongoElement.ToDomainElement(x))?.ToList() ?? new List<HistoryStateValue>()
+            Values = state.Values?.Select(x => StateValueMongoElement.ToDomainElement(x))?.ToList() ?? new List<StateValue>()
         };
     }
 }
@@ -31,7 +31,7 @@ public class StateValueMongoElement
     public string Data { get; set; }
     public DateTime UpdateTime { get; set; }
 
-    public static StateValueMongoElement ToMongoElement(HistoryStateValue element)
+    public static StateValueMongoElement ToMongoElement(StateValue element)
     {
         return new StateValueMongoElement
         {
@@ -40,9 +40,9 @@ public class StateValueMongoElement
         };
     }
 
-    public static HistoryStateValue ToDomainElement(StateValueMongoElement element)
+    public static StateValue ToDomainElement(StateValueMongoElement element)
     {
-        return new HistoryStateValue
+        return new StateValue
         {
             Data = element.Data,
             UpdateTime = element.UpdateTime

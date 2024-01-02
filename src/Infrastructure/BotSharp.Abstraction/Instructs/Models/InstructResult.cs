@@ -6,5 +6,5 @@ public class InstructResult : ITrackableMessage
     public string MessageId { get; set; }
     public string Text { get; set; }
     public object Data { get; set; }
-    public ConversationState States { get; set; }
+    public Dictionary<string, string> States { get; set; }
 }

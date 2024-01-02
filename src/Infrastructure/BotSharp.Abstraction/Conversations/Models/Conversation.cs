@@ -13,7 +13,7 @@ public class Conversation
     public List<DialogElement> Dialogs { get; set; } = new List<DialogElement>();
 
     [JsonIgnore]
-    public ConversationState States { get; set; } = new ConversationState();
+    public Dictionary<string, string> States { get; set; } = new Dictionary<string, string>();
 
     public string Status { get; set; } = ConversationStatus.Open;
 

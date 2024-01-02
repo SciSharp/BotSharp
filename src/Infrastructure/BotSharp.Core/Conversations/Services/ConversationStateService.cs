@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories;
+using System.Linq;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -10,7 +11,6 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private ConversationState _states;
-    private ConversationHistoryState _historyStates;
     private string _conversationId;
     private readonly IBotSharpRepository _db;
 
@@ -22,7 +22,6 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _services = services;
         _db = db;
         _states = new ConversationState();
-        _historyStates = new ConversationHistoryState();
     }
 
     public string GetConversationId() => _conversationId;
@@ -43,51 +42,56 @@ public class ConversationStateService : IConversationStateService, IDisposable
             return this;
         }
 
+        var preValue = string.Empty;
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
-        string preValue = _states.ContainsKey(name) ? _states[name] : "";
 
-        if (!_states.ContainsKey(name) || _states[name] != currentValue)
+        if (_states.TryGetValue(name, out var values))
         {
-            _states[name] = currentValue;
+            preValue = values.LastOrDefault()?.Data ?? string.Empty;
+        }
+
+        if (!_states.ContainsKey(name) || preValue != currentValue)
+        {
             _logger.LogInformation($"[STATE] {name} = {value}");
             foreach (var hook in hooks)
             {
                 hook.OnStateChanged(name, preValue, currentValue).Wait();
             }
 
-            var historyStateValue = new HistoryStateValue
+            var stateValue = new StateValue
             {
                 Data = currentValue,
                 UpdateTime = DateTime.UtcNow
             };
 
-            if (!_historyStates.ContainsKey(name) || !isNeedVersion)
+            if (!_states.ContainsKey(name) || !isNeedVersion)
             {
-                _historyStates[name] = new List<HistoryStateValue> { historyStateValue };
+                _states[name] = new List<StateValue> { stateValue };
             }
             else
             {
-                _historyStates[name].Add(historyStateValue);
+                _states[name].Add(stateValue);
             }
         }
 
         return this;
     }
 
-    public ConversationState Load(string conversationId)
+    public Dictionary<string, string> Load(string conversationId)
     {
         _conversationId = conversationId;
 
         var savedStates = _db.GetConversationStates(_conversationId).ToList();
-        _historyStates = new ConversationHistoryState(savedStates);
+        _states = new ConversationState(savedStates);
+        var curStates = new Dictionary<string, string>();
 
         if (!savedStates.IsNullOrEmpty())
         {
             foreach (var state in savedStates)
             {
                 var value = state.Values.LastOrDefault()?.Data ?? string.Empty;
-                _states[state.Key] = value;
+                curStates[state.Key] = value;
                 _logger.LogInformation($"[STATE] {state.Key} : {value}");
             }
         }
@@ -99,7 +103,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             hook.OnStateLoaded(_states).Wait();
         }
 
-        return _states;
+        return curStates;
     }
 
     public void Save()
@@ -109,32 +113,40 @@ public class ConversationStateService : IConversationStateService, IDisposable
             return;
         }
 
-        var historyStates = new List<HistoryStateKeyValue>();
+        var states = new List<StateKeyValue>();
 
-        foreach (var dic in _historyStates)
+        foreach (var dic in _states)
         {
-            historyStates.Add(new HistoryStateKeyValue(dic.Key, dic.Value));
+            states.Add(new StateKeyValue(dic.Key, dic.Value));
         }
 
-        _db.UpdateConversationStates(_conversationId, historyStates);
+        _db.UpdateConversationStates(_conversationId, states);
         _logger.LogInformation($"Saved states of conversation {_conversationId}");
     }
 
     public void CleanState()
     {
-        
+        _states.Clear();
     }
 
-    public ConversationState GetStates() => _states;
+    public Dictionary<string, string> GetStates()
+    {
+        var curStates = new Dictionary<string, string>();
+        foreach (var state in _states)
+        {
+            curStates[state.Key] = state.Value.LastOrDefault()?.Data ?? string.Empty;
+        }
+        return curStates;
+    }
 
     public string GetState(string name, string defaultValue = "")
     {
-        if (!_states.ContainsKey(name))
+        if (!_states.ContainsKey(name) || _states[name].IsNullOrEmpty())
         {
             return defaultValue;
         }
 
-        return _states[name];
+        return _states[name].Last().Data;
     }
 
     public void Dispose()
@@ -144,7 +156,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public bool ContainsState(string name)
     {
-        return _states.ContainsKey(name) && !string.IsNullOrEmpty(_states[name]);
+        return _states.ContainsKey(name)
+            && !_states[name].IsNullOrEmpty()
+            && !string.IsNullOrEmpty(_states[name].Last().Data);
     }
 
     public void SaveStateByArgs(JsonDocument args)

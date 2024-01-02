@@ -8,10 +8,10 @@ namespace BotSharp.Abstraction.Conversations;
 public interface IConversationStateService
 {
     string GetConversationId();
-    ConversationState Load(string conversationId);
+    Dictionary<string, string> Load(string conversationId);
     string GetState(string name, string defaultValue = "");
     bool ContainsState(string name);
-    ConversationState GetStates();
+    Dictionary<string, string> GetStates();
     IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true);
     void SaveStateByArgs(JsonDocument args);
     void CleanState();
