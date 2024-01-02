@@ -20,7 +20,7 @@ public class ConversationViewModel
 
     public string Channel { get; set; } = ConversationChannel.OpenAPI;
     public string Status { get; set; }
-    public ConversationState States { get; set; }
+    public Dictionary<string, string> States { get; set; }
 
     [JsonPropertyName("updated_time")]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;

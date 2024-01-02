@@ -37,6 +37,9 @@ public class MongoDbContext
     public IMongoCollection<ConversationDialogDocument> ConversationDialogs
         => Database.GetCollection<ConversationDialogDocument>($"{_collectionPrefix}_ConversationDialogs");
 
+    public IMongoCollection<ConversationStateDocument> ConversationStates
+        => Database.GetCollection<ConversationStateDocument>($"{_collectionPrefix}_ConversationStates");
+
     public IMongoCollection<ExecutionLogDocument> ExectionLogs
         => Database.GetCollection<ExecutionLogDocument>($"{_collectionPrefix}_ExecutionLogs");
 

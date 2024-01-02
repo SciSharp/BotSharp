@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace BotSharp.Abstraction.Repositories.Records;
 
 public class ConversationRecord : RecordBase
@@ -17,9 +15,6 @@ public class ConversationRecord : RecordBase
 
     [JsonIgnore]
     public string Dialog { get; set; }
-
-    [JsonIgnore]
-    public List<StateKeyValue> States { get; set; }
 
     [Required]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;

@@ -152,7 +152,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<StateKeyValue> GetConversationStates(string conversationId)
+    public ConversationState GetConversationStates(string conversationId)
     {
         throw new NotImplementedException();
     }

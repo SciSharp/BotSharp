@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.Repositories;
-using System.IO;
+using System.Linq;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -11,60 +11,87 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private ConversationState _states;
-    private BotSharpDatabaseSettings _dbSettings;
     private string _conversationId;
     private readonly IBotSharpRepository _db;
-    private List<StateKeyValue> _savedStates;
 
     public ConversationStateService(ILogger<ConversationStateService> logger,
-        IServiceProvider services, 
-        BotSharpDatabaseSettings dbSettings,
+        IServiceProvider services,
         IBotSharpRepository db)
     {
         _logger = logger;
         _services = services;
-        _dbSettings = dbSettings;
         _db = db;
         _states = new ConversationState();
     }
 
     public string GetConversationId() => _conversationId;
 
-    public IConversationStateService SetState<T>(string name, T value)
+
+    /// <summary>
+    /// Set conversation state
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="value"></param>
+    /// <param name="isNeedVersion">whether the state is related to message or not</param>
+    /// <returns></returns>
+    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true)
     {
         if (value == null)
         {
             return this;
         }
 
+        var preValue = string.Empty;
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
-        string preValue = _states.ContainsKey(name) ? _states[name] : "";
-        if (!_states.ContainsKey(name) || _states[name] != currentValue)
+
+        if (_states.TryGetValue(name, out var values))
         {
-            _states[name] = currentValue;
+            preValue = values?.LastOrDefault()?.Data ?? string.Empty;
+        }
+
+        if (!_states.ContainsKey(name) || preValue != currentValue)
+        {
             _logger.LogInformation($"[STATE] {name} = {value}");
             foreach (var hook in hooks)
             {
                 hook.OnStateChanged(name, preValue, currentValue).Wait();
+            }
+
+            var stateValue = new StateValue
+            {
+                Data = currentValue,
+                UpdateTime = DateTime.UtcNow
+            };
+
+            if (!_states.ContainsKey(name) || !isNeedVersion)
+            {
+                _states[name] = new List<StateValue> { stateValue };
+            }
+            else
+            {
+                _states[name].Add(stateValue);
             }
         }
 
         return this;
     }
 
-    public ConversationState Load(string conversationId)
+    public Dictionary<string, string> Load(string conversationId)
     {
         _conversationId = conversationId;
 
-        _savedStates = _db.GetConversationStates(_conversationId).ToList();
+        _states = _db.GetConversationStates(_conversationId);
+        var curStates = new Dictionary<string, string>();
 
-        if (!_savedStates.IsNullOrEmpty())
+        if (!_states.IsNullOrEmpty())
         {
-            foreach (var data in _savedStates)
+            foreach (var state in _states)
             {
-                _states[data.Key] = data.Value;
-                _logger.LogInformation($"[STATE] {data.Key} : {data.Value}");
+                var value = state.Value?.LastOrDefault()?.Data ?? string.Empty;
+                curStates[state.Key] = value;
+                _logger.LogInformation($"[STATE] {state.Key} : {value}");
             }
         }
 
@@ -75,7 +102,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             hook.OnStateLoaded(_states).Wait();
         }
 
-        return _states;
+        return curStates;
     }
 
     public void Save()
@@ -93,25 +120,32 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
 
         _db.UpdateConversationStates(_conversationId, states);
-        _logger.LogInformation($"Saved state {_conversationId}");
+        _logger.LogInformation($"Saved states of conversation {_conversationId}");
     }
 
     public void CleanState()
     {
-        //File.Delete(_file);
+        _states.Clear();
     }
 
-    public ConversationState GetStates()
-        => _states;
+    public Dictionary<string, string> GetStates()
+    {
+        var curStates = new Dictionary<string, string>();
+        foreach (var state in _states)
+        {
+            curStates[state.Key] = state.Value?.LastOrDefault()?.Data ?? string.Empty;
+        }
+        return curStates;
+    }
 
     public string GetState(string name, string defaultValue = "")
     {
-        if (!_states.ContainsKey(name))
+        if (!_states.ContainsKey(name) || _states[name].IsNullOrEmpty())
         {
             return defaultValue;
         }
 
-        return _states[name];
+        return _states[name].Last().Data;
     }
 
     public void Dispose()
@@ -121,7 +155,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public bool ContainsState(string name)
     {
-        return _states.ContainsKey(name) && !string.IsNullOrEmpty(_states[name]);
+        return _states.ContainsKey(name)
+            && !_states[name].IsNullOrEmpty()
+            && !string.IsNullOrEmpty(_states[name].Last().Data);
     }
 
     public void SaveStateByArgs(JsonDocument args)

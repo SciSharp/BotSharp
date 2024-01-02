@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.MongoStorage.Models;
 
-public class PromptLogElement
+public class PromptLogMongoElement
 {
     public string MessageId { get; set; }
     public string AgentId { get; set; }

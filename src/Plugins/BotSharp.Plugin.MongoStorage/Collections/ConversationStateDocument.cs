@@ -2,8 +2,8 @@ using BotSharp.Plugin.MongoStorage.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class LlmCompletionLogDocument : MongoBase
+public class ConversationStateDocument : MongoBase
 {
     public string ConversationId { get; set; }
-    public List<PromptLogMongoElement> Logs { get; set; }
+    public List<StateMongoElement> States { get; set; }
 }
