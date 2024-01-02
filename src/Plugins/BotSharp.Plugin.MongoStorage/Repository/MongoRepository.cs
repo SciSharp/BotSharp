@@ -716,13 +716,7 @@ public class MongoRepository : IBotSharpRepository
         if (string.IsNullOrEmpty(conversationId)) return;
 
         var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
-        var foundConv = _dc.Conversations.Find(filterConv).FirstOrDefault();
-        if (foundConv == null) return;
-
         var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var foundDialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
-        if (foundDialog == null) return;
-
         var dialogElements = dialogs.Select(x => DialogMongoElement.ToMongoElement(x)).ToList();
         var updateDialog = Builders<ConversationDialogDocument>.Update.PushEach(x => x.Dialogs, dialogElements);
         var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow);
@@ -736,9 +730,6 @@ public class MongoRepository : IBotSharpRepository
         if (string.IsNullOrEmpty(conversationId)) return;
 
         var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
-        var foundConv = _dc.Conversations.Find(filterConv).FirstOrDefault();
-        if (foundConv == null) return;
-
         var updateConv = Builders<ConversationDocument>.Update
             .Set(x => x.UpdatedTime, DateTime.UtcNow)
             .Set(x => x.Title, title);
@@ -764,9 +755,6 @@ public class MongoRepository : IBotSharpRepository
         if (string.IsNullOrEmpty(conversationId) || states.IsNullOrEmpty()) return;
 
         var filterStates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var foundStates = _dc.ConversationStates.Find(filterStates).FirstOrDefault();
-        if (foundStates == null) return;
-
         var saveStates = states.Select(x => StateMongoElement.ToMongoElement(x)).ToList();
         var updateStates = Builders<ConversationStateDocument>.Update.Set(x => x.States, saveStates);
 
@@ -778,9 +766,6 @@ public class MongoRepository : IBotSharpRepository
         if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(status)) return;
 
         var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
-        var foundConv = _dc.Conversations.Find(filter).FirstOrDefault();
-        if (foundConv == null) return;
-
         var update = Builders<ConversationDocument>.Update
             .Set(x => x.Status, status)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
@@ -938,8 +923,8 @@ public class MongoRepository : IBotSharpRepository
 
         var filter = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var update = Builders<ExecutionLogDocument>.Update
-                                                    .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
-                                                    .PushEach(x => x.Logs, logs);
+                                                   .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
+                                                   .PushEach(x => x.Logs, logs);
 
         _dc.ExectionLogs.UpdateOne(filter, update, _options);
     }

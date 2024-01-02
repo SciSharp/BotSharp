@@ -15,13 +15,6 @@ public class AgentController : ControllerBase
         _services = services;
     }
 
-    [HttpGet("/test")]
-    public async Task Test()
-    {
-
-    }
-
-
     [HttpGet("/agent/settings")]
     public AgentSettings GetSettings()
     {
