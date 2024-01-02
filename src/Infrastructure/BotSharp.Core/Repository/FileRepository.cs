@@ -753,7 +753,7 @@ public class FileRepository : IBotSharpRepository
         }
     }
 
-    public List<StateKeyValue> GetConversationStates(string conversationId)
+    public ConversationState GetConversationStates(string conversationId)
     {
         var states = new List<StateKeyValue>();
         var convDir = FindConversationDirectory(conversationId);
@@ -763,7 +763,7 @@ public class FileRepository : IBotSharpRepository
             states = CollectConversationStates(stateFile);
         }
 
-        return states;
+        return new ConversationState(states);
     }
 
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
@@ -821,7 +821,7 @@ public class FileRepository : IBotSharpRepository
             var curStates = new Dictionary<string, string>();
             states.ForEach(x =>
             {
-                curStates[x.Key] = x.Values.LastOrDefault()?.Data ?? string.Empty;
+                curStates[x.Key] = x.Values?.LastOrDefault()?.Data ?? string.Empty;
             });
             record.States = curStates;
         }

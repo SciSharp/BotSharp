@@ -746,9 +746,9 @@ public class MongoRepository : IBotSharpRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
-    public List<StateKeyValue> GetConversationStates(string conversationId)
+    public ConversationState GetConversationStates(string conversationId)
     {
-        var states = new List<StateKeyValue>();
+        var states = new ConversationState();
         if (string.IsNullOrEmpty(conversationId)) return states;
 
         var filter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
@@ -756,7 +756,7 @@ public class MongoRepository : IBotSharpRepository
         if (foundStates == null || foundStates.States.IsNullOrEmpty()) return states;
 
         var savedStates = foundStates.States.Select(x => StateMongoElement.ToDomainElement(x)).ToList();
-        return savedStates;
+        return new ConversationState(savedStates);
     }
 
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
@@ -806,7 +806,7 @@ public class MongoRepository : IBotSharpRepository
         var curStates = new Dictionary<string, string>();
         states.States.ForEach(x =>
         {
-            curStates[x.Key] = x.Values.LastOrDefault()?.Data ?? string.Empty;
+            curStates[x.Key] = x.Values?.LastOrDefault()?.Data ?? string.Empty;
         });
 
         return new Conversation

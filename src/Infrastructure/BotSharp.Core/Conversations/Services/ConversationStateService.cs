@@ -48,7 +48,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         if (_states.TryGetValue(name, out var values))
         {
-            preValue = values.LastOrDefault()?.Data ?? string.Empty;
+            preValue = values?.LastOrDefault()?.Data ?? string.Empty;
         }
 
         if (!_states.ContainsKey(name) || preValue != currentValue)
@@ -82,15 +82,14 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         _conversationId = conversationId;
 
-        var savedStates = _db.GetConversationStates(_conversationId).ToList();
-        _states = new ConversationState(savedStates);
+        _states = _db.GetConversationStates(_conversationId);
         var curStates = new Dictionary<string, string>();
 
-        if (!savedStates.IsNullOrEmpty())
+        if (!_states.IsNullOrEmpty())
         {
-            foreach (var state in savedStates)
+            foreach (var state in _states)
             {
-                var value = state.Values.LastOrDefault()?.Data ?? string.Empty;
+                var value = state.Value?.LastOrDefault()?.Data ?? string.Empty;
                 curStates[state.Key] = value;
                 _logger.LogInformation($"[STATE] {state.Key} : {value}");
             }
@@ -134,7 +133,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var curStates = new Dictionary<string, string>();
         foreach (var state in _states)
         {
-            curStates[state.Key] = state.Value.LastOrDefault()?.Data ?? string.Empty;
+            curStates[state.Key] = state.Value?.LastOrDefault()?.Data ?? string.Empty;
         }
         return curStates;
     }
