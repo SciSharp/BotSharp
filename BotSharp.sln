@@ -75,7 +75,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.ChatHub", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.TelegramBots", "src\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj", "{DCA18996-4D3A-4E98-BCD0-1FB77C59253E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Logger", "src\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj", "{5CA3335E-E6AD-46FD-B277-29BBC3A16500}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Logger", "src\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj", "{5CA3335E-E6AD-46FD-B277-29BBC3A16500}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

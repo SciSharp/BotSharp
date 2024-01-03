@@ -1,0 +1,30 @@
+[  
+    {
+        "name": "open_browser",
+        "description": "open a browser",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "website url."
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "click_html_element",
+        "description": "Click the html element in a web page.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "element_name": {
+                  "type": "string",
+                  "description": "the html element name."
+                }
+            },
+            "required": ["element_name"]
+        }
+    }
+]

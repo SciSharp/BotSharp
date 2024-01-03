@@ -14,6 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="documents\**" />
+    <EmbeddedResource Remove="documents\**" />
+    <None Remove="documents\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
