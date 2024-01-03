@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -26,9 +26,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /E /I /D /Y &quot;$(SolutionDir)src/Plugins/BotSharp.Plugin.WebDriver/agents&quot; &quot;$(SolutionDir)src/WebStarter/data/agents&quot;" />
-  </Target>
 
 </Project>
