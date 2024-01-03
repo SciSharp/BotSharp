@@ -61,12 +61,13 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WeChat\BotSharp.Plugin.WeChat.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SemanticKernel\BotSharp.Plugin.SemanticKernel.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
   </ItemGroup>
   
   <ItemGroup>
