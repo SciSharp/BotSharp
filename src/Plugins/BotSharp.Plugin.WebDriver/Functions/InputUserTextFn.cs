@@ -1,15 +1,17 @@
+
+using BotSharp.Abstraction.Agents;
 using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class OpenBrowserFn : IFunctionCallback
+public class InputUserTextFn : IFunctionCallback
 {
-    public string Name => "open_browser";
+    public string Name => "input_user_text";
 
     private readonly IServiceProvider _services;
     private readonly PlaywrightWebDriver _driver;
 
-    public OpenBrowserFn(IServiceProvider services,
+    public InputUserTextFn(IServiceProvider services,
         PlaywrightWebDriver driver)
     {
         _services = services;
@@ -20,9 +22,11 @@ public class OpenBrowserFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
 
-        var browser = await _driver.LaunchBrowser(args.Url);
-        message.Content = "Executed successfully.";
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        await _driver.InputUserText(agent, args, message.MessageId);
 
+        message.Content = "Executed successfully.";
         return true;
     }
 }
