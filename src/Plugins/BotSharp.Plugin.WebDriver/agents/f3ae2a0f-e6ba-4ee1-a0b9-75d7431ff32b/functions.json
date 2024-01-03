@@ -26,5 +26,23 @@
             },
             "required": ["element_name"]
         }
+    },
+    {
+        "name": "input_user_text",
+        "description": "Input text in input box of web page when user requests.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "element_name": {
+                  "type": "string",
+                  "description": "the html element name."
+                },
+                "input_text": {
+                    "type": "string",
+                    "description": "user input."
+                  }
+            },
+            "required": ["element_name"]
+        }
     }
 ]

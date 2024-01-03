@@ -1,3 +1,4 @@
+using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 using BotSharp.Plugin.WebDriver.Services;
 using Microsoft.Extensions.Configuration;
 

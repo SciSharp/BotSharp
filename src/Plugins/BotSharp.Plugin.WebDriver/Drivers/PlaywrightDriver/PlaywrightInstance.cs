@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.WebDriver.Drivers;
+namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public class PlaywrightInstance : IDisposable
 {
@@ -10,8 +10,8 @@ public class PlaywrightInstance : IDisposable
     public IBrowser Browser => _browser;
     public IPage Page => _page;
 
-    public void SetPlaywright(IPlaywright playwright) {  _playwright = playwright; }
-    public void SetBrowser(IBrowser browser) {  _browser = browser; }
+    public void SetPlaywright(IPlaywright playwright) { _playwright = playwright; }
+    public void SetBrowser(IBrowser browser) { _browser = browser; }
     public void SetPage(IPage page) { _page = page; }
 
     public void Dispose()
