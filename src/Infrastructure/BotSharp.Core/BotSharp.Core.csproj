@@ -62,4 +62,8 @@
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /E /I /D /Y &quot;$(SolutionDir)src/Infrastructure/BotSharp.Core/Planning/agents&quot; &quot;$(SolutionDir)src/WebStarter/data/agents&quot;" />
+  </Target>
+
 </Project>
