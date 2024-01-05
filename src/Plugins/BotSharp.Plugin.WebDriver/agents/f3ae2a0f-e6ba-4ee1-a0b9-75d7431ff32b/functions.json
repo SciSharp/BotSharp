@@ -10,7 +10,7 @@
                   "description": "website url."
                 }
             },
-            "required": []
+            "required": ["url"]
         }
     },
     {
@@ -42,7 +42,7 @@
                     "description": "user input."
                   }
             },
-            "required": ["element_name"]
+            "required": ["element_name", "input_text"]
         }
     }
 ]

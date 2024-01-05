@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Records;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -29,12 +28,15 @@ public class UserService : IUserService
         }
 
         record = user;
+        record.UserName = user.UserName.ToLower();
         record.Email = user.Email.ToLower();
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
-        record.ExternalId = _user.Id;
 
         db.CreateUser(record);
+
+        Utilities.ClearCache();
+
         return record;
     }
 

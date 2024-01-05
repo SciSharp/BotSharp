@@ -14,7 +14,7 @@ public partial class PlaywrightWebDriver
         foreach (var a in anchors)
         {
             var text = await a.TextContentAsync();
-            str.Add($"<a>{text}</a>");
+            str.Add($"<a>{(string.IsNullOrEmpty(text) ? "EMPTY" : text)}</a>");
         }
 
         var buttons = await body.QuerySelectorAllAsync("button");

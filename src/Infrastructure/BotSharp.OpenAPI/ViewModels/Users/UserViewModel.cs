@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Users.Enums;
-using BotSharp.Abstraction.Users.Models;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Users;
@@ -8,6 +6,8 @@ namespace BotSharp.OpenAPI.ViewModels.Users;
 public class UserViewModel
 {
     public string Id { get; set; }
+    [JsonPropertyName("user_name")]
+    public string UserName { get; set; }
     [JsonPropertyName("first_name")]
     public string FirstName { get; set; }
     [JsonPropertyName("last_name")]
@@ -32,6 +32,7 @@ public class UserViewModel
         return new UserViewModel
         {
             Id = user.Id,
+            UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,

@@ -24,7 +24,7 @@ public class SignalRHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        _logger.LogInformation($"SignalR Hub: {_user.FirstName} {_user.LastName} ({Context.UserIdentifier}) connected in {Context.ConnectionId} [{DateTime.Now}]");
+        _logger.LogInformation($"SignalR Hub: {_user.FirstName} {_user.LastName} ({Context.User.Identity.Name}) connected in {Context.ConnectionId}");
 
         var hooks = _services.GetServices<IConversationHook>();
         var convService = _services.GetRequiredService<IConversationService>();
@@ -32,6 +32,7 @@ public class SignalRHub : Hub
 
         if (!string.IsNullOrEmpty(conversationId))
         {
+            _logger.LogInformation($"Connection {Context.ConnectionId} is with conversation {conversationId}");
             var conv = await convService.GetConversation(conversationId);
             if (conv != null)
             {

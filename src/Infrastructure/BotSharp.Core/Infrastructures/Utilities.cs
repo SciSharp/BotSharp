@@ -23,6 +23,9 @@ public static class Utilities
         return (splits[0], splits[1]);
     }
 
+    /// <summary>
+    /// Flush cache
+    /// </summary>
     public static void ClearCache()
     {
         // Clear whole cache.

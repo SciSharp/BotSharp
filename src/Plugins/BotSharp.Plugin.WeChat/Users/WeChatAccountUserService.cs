@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Users;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Core.Repository;
 using Microsoft.EntityFrameworkCore;
+using Senparc.Weixin.MP.AdvancedAPIs.MerChant;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,6 +22,7 @@ namespace BotSharp.Plugin.WeChat.Users
         {
             var user = await userService.CreateUser(new User()
             {
+                UserName = openId + "@" + appId + ".wechat",
                 Email = openId + "@" + appId + ".wechat",
                 Password = openId
             });

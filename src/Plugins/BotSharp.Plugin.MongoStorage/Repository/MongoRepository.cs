@@ -117,6 +117,7 @@ public class MongoRepository : IBotSharpRepository
                 var users = _users.Select(x => new UserDocument
                 {
                     Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+                    UserName = x.UserName,
                     FirstName = x.FirstName,
                     LastName = x.LastName,
                     Salt = x.Salt,
@@ -132,6 +133,7 @@ public class MongoRepository : IBotSharpRepository
                 {
                     var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, user.Id);
                     var update = Builders<UserDocument>.Update
+                        .Set(x => x.UserName, user.UserName)
                         .Set(x => x.FirstName, user.FirstName)
                         .Set(x => x.LastName, user.LastName)
                         .Set(x => x.Email, user.Email)
@@ -868,6 +870,7 @@ public class MongoRepository : IBotSharpRepository
         return user != null ? new User
         {
             Id = user.Id,
+            UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
@@ -884,6 +887,7 @@ public class MongoRepository : IBotSharpRepository
         return user != null ? new User
         {
             Id = user.Id,
+            UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
@@ -901,6 +905,7 @@ public class MongoRepository : IBotSharpRepository
         var userCollection = new UserDocument
         {
             Id = Guid.NewGuid().ToString(),
+            UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Salt = user.Salt,

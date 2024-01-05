@@ -17,6 +17,9 @@ public class UserIdentity : IUserIdentity
     public string Id 
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value!;
 
+    public string UserName
+        => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value!;
+
     public string Email 
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value!;
 

@@ -2,6 +2,7 @@ namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class UserDocument : MongoBase
 {
+    public string UserName { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Email { get; set; }
