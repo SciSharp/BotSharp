@@ -3,14 +3,14 @@ using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class InputUserTextFn : IFunctionCallback
+public class ClickButtonFn : IFunctionCallback
 {
-    public string Name => "input_user_text";
+    public string Name => "click_button";
 
     private readonly IServiceProvider _services;
     private readonly PlaywrightWebDriver _driver;
 
-    public InputUserTextFn(IServiceProvider services,
+    public ClickButtonFn(IServiceProvider services,
         PlaywrightWebDriver driver)
     {
         _services = services;
@@ -23,9 +23,10 @@ public class InputUserTextFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _driver.InputUserText(agent, args, message.MessageId);
+        await _driver.ClickElement(agent, args, message.MessageId);
 
-        message.Content = "Input text successfully.";
+        message.Content = "Executed successfully.";
+
         return true;
     }
 }

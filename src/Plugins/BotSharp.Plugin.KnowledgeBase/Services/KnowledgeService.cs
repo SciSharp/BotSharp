@@ -67,7 +67,8 @@ public class KnowledgeService : IKnowledgeService
         var vector = await textEmbedding.GetVectorAsync(retrievalModel.Question);
 
         // Vector search
-        var result = await GetVectorDb().Search(retrievalModel.AgentId, vector, limit: 10);
+        var db = GetVectorDb();
+        var result = await db.Search("shared", vector, limit: 10);
 
         // Restore 
         return string.Join("\n\n", result.Select((x, i) => $"### Paragraph {i + 1} ###\n{x.Trim()}"));

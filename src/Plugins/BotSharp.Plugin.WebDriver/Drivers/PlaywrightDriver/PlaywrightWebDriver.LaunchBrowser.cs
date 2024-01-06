@@ -4,21 +4,7 @@ public partial class PlaywrightWebDriver
 {
     public async Task<IBrowser> LaunchBrowser(string? url)
     {
-        if (_instance.Playwright == null)
-        {
-            var playwright = await Playwright.CreateAsync();
-            _instance.SetPlaywright(playwright);
-        }
-
-        if (_instance.Browser == null)
-        {
-            var browser = await _instance.Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-            {
-                Headless = false,
-                Channel = "chrome",
-            });
-            _instance.SetBrowser(browser);
-        }
+        await _instance.InitInstance();
 
         if (!string.IsNullOrEmpty(url))
         {

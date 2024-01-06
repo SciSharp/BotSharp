@@ -13,7 +13,7 @@ namespace BotSharp.Plugin.Qdrant;
 
 public class QdrantDb : IVectorDb
 {
-    private readonly QdrantClient _client;
+    private QdrantClient _client;
     private readonly QdrantSetting _setting;
     private readonly IServiceProvider _services;
 
@@ -22,11 +22,20 @@ public class QdrantDb : IVectorDb
     {
         _setting = setting;
         _services = services;
-        _client = new QdrantClient
-        (
-            host: _setting.Url,
-            apiKey: _setting.ApiKey
-        );
+
+    }
+
+    private QdrantClient GetClient()
+    {
+        if (_client == null)
+        {
+            _client = new QdrantClient
+            (
+                host: _setting.Url,
+                apiKey: _setting.ApiKey
+            );
+        }
+        return _client;
     }
 
     public async Task<List<string>> GetCollections()
@@ -42,7 +51,7 @@ public class QdrantDb : IVectorDb
         if (!collections.Contains(collectionName))
         {
             // Create a new collection
-            await _client.CreateCollectionAsync(collectionName, new VectorParams()
+            await GetClient().CreateCollectionAsync(collectionName, new VectorParams()
             {
                 Size = (ulong)dim,
                 Distance = Distance.Cosine
@@ -65,7 +74,7 @@ public class QdrantDb : IVectorDb
     public async Task Upsert(string collectionName, int id, float[] vector, string text)
     {
         // Insert vectors
-        await _client.UpsertAsync(collectionName, points: new List<PointStruct>
+        await GetClient().UpsertAsync(collectionName, points: new List<PointStruct>
         {
             new PointStruct() 
             {
@@ -86,7 +95,7 @@ public class QdrantDb : IVectorDb
 
     public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
     {
-        var result = await _client.SearchAsync(collectionName, vector, limit: (ulong)limit);
+        var result = await GetClient().SearchAsync(collectionName, vector, limit: (ulong)limit);
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agentDataDir = agentService.GetAgentDataDir(collectionName);

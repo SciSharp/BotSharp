@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -14,8 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="agents\**" />
     <Compile Remove="documents\**" />
+    <EmbeddedResource Remove="agents\**" />
     <EmbeddedResource Remove="documents\**" />
+    <None Remove="agents\**" />
     <None Remove="documents\**" />
   </ItemGroup>
 

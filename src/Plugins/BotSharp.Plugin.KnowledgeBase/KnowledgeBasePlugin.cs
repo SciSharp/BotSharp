@@ -12,6 +12,8 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         config.Bind("KnowledgeBase", settings);
         services.AddSingleton(x => settings);
 
+        var a = config["KnowledgeBase"];
+
         services.AddScoped<ITextChopper, TextChopperService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();

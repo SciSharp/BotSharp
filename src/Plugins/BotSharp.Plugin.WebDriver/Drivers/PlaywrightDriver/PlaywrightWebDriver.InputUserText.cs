@@ -29,9 +29,21 @@ public partial class PlaywrightWebDriver
         }
 
         var driverService = _services.GetRequiredService<WebDriverService>();
-        var htmlElementContextOut = await driverService.FindElement(agent, string.Join("", str), context.ElementName, messageId);
+        var htmlElementContextOut = await driverService.LocateElement(agent, string.Join("", str), context.ElementName, messageId);
+
+        if (htmlElementContextOut.Index < 0)
+        {
+            throw new Exception($"Can't locate the web element {context.ElementName}.");
+        }
 
         var element = _instance.Page.Locator(htmlElementContextOut.TagName).Nth(htmlElementContextOut.Index);
-        await element.FillAsync(context.InputText);
+        try
+        {
+            await element.FillAsync(context.InputText);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
     }
 }

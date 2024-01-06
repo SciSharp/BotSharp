@@ -19,10 +19,10 @@ public class OpenBrowserFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
-
         var browser = await _driver.LaunchBrowser(args.Url);
-        message.Content = "Executed successfully.";
-
+        message.Content = string.IsNullOrEmpty(args.Url) ? "Launch browser successfully." : $"Open website successfully.";
+        message.Content += "\r\nWhat would you like to do next?";
+        message.StopCompletion = true;
         return true;
     }
 }

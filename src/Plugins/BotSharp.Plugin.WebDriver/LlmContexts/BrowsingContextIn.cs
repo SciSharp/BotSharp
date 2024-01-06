@@ -12,4 +12,10 @@ public class BrowsingContextIn
 
     [JsonPropertyName("input_text")]
     public string? InputText { get; set; }
+
+    [JsonPropertyName("password")]
+    public string? Password { get; set; }
+
+    [JsonPropertyName("question")]
+    public string? Question { get; set; }
 }

@@ -7,20 +7,24 @@ public class MemVectorDatabase : IVectorDb
 {
     private readonly Dictionary<string, int> _collections = new Dictionary<string, int>();
     private readonly Dictionary<string, List<VecRecord>> _vectors = new Dictionary<string, List<VecRecord>>();
-    public Task CreateCollection(string collectionName, int dim)
+    public async Task CreateCollection(string collectionName, int dim)
     {
         _collections[collectionName] = dim;
         _vectors[collectionName] = new List<VecRecord>();
-        return Task.CompletedTask;
     }
 
-    public Task<List<string>> GetCollections()
+    public async Task<List<string>> GetCollections()
     {
-        return Task.FromResult(_collections.Select(x => x.Key).ToList());
+        return _collections.Select(x => x.Key).ToList();
     }
 
-    public Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
+    public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
     {
+        if (!_vectors.ContainsKey(collectionName))
+        {
+            return new List<string>();
+        }
+
         var similarities = CalCosineSimilarity(vector, _vectors[collectionName]);
         // var similarities2 = CalEuclideanDistance(vector, _vectors[collectionName]);
 
@@ -30,10 +34,10 @@ public class MemVectorDatabase : IVectorDb
             .Select(i => _vectors[collectionName][i].Text)
             .ToList();
 
-        return Task.FromResult(texts);
+        return texts;
     }
 
-    public Task Upsert(string collectionName, int id, float[] vector, string text)
+    public async Task Upsert(string collectionName, int id, float[] vector, string text)
     {
         _vectors[collectionName].Add(new VecRecord
         {
@@ -41,8 +45,6 @@ public class MemVectorDatabase : IVectorDb
             Vector = vector,
             Text = text
         });
-
-        return Task.CompletedTask;
     }
 
     private float[] CalEuclideanDistance(float[] vec, List<VecRecord> records)

@@ -3,14 +3,14 @@ using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class ClickHtmlElementFn : IFunctionCallback
+public class InputUserPasswordFn : IFunctionCallback
 {
-    public string Name => "click_html_element";
+    public string Name => "input_user_password";
 
     private readonly IServiceProvider _services;
     private readonly PlaywrightWebDriver _driver;
 
-    public ClickHtmlElementFn(IServiceProvider services,
+    public InputUserPasswordFn(IServiceProvider services,
         PlaywrightWebDriver driver)
     {
         _services = services;
@@ -23,10 +23,9 @@ public class ClickHtmlElementFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _driver.ClickElement(agent, args, message.MessageId);
+        await _driver.InputUserPassword(agent, args, message.MessageId);
 
-        message.Content = "Executed successfully.";
-
+        message.Content = "Input password successfully";
         return true;
     }
 }

@@ -6,12 +6,24 @@ public class PlaywrightInstance : IDisposable
     IBrowser _browser;
     IPage _page;
 
-    public IPlaywright Playwright => _playwright;
+    // public IPlaywright Playwright => _playwright;
     public IBrowser Browser => _browser;
     public IPage Page => _page;
 
-    public void SetPlaywright(IPlaywright playwright) { _playwright = playwright; }
-    public void SetBrowser(IBrowser browser) { _browser = browser; }
+    public async Task InitInstance()
+    {
+        if (_playwright == null)
+        {
+            _playwright = await Playwright.CreateAsync();
+
+            _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            {
+                Headless = false,
+                Channel = "chrome",
+            });
+        }
+    }
+
     public void SetPage(IPage page) { _page = page; }
 
     public void Dispose()

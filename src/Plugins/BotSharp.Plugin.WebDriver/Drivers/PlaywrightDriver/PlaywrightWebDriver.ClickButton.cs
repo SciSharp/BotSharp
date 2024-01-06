@@ -10,24 +10,31 @@ public partial class PlaywrightWebDriver
         var body = await _instance.Page.QuerySelectorAsync("body");
 
         var str = new List<string>();
-        var anchors = await body.QuerySelectorAllAsync("a");
+        /*var anchors = await body.QuerySelectorAllAsync("a");
         foreach (var a in anchors)
         {
             var text = await a.TextContentAsync();
             str.Add($"<a>{(string.IsNullOrEmpty(text) ? "EMPTY" : text)}</a>");
-        }
+        }*/
 
         var buttons = await body.QuerySelectorAllAsync("button");
         foreach (var btn in buttons)
         {
             var text = await btn.TextContentAsync();
-            str.Add($"<button>{text}</button>");
+            var name = await btn.GetAttributeAsync("name");
+            var id = await btn.GetAttributeAsync("id");
+            str.Add($"<button name='{name}' id='{id}'>{text}</button>");
         }
 
         var driverService = _services.GetRequiredService<WebDriverService>();
-        var htmlElementContextOut = await driverService.FindElement(agent, string.Join("", str), context.ElementName, messageId);
+        var htmlElementContextOut = await driverService.LocateElement(agent, string.Join("", str), context.ElementName, messageId);
 
-        var element = _instance.Page.Locator(htmlElementContextOut.TagName).Nth(htmlElementContextOut.Index);
-        await element.ClickAsync();
+        var tags = await _instance.Page.QuerySelectorAllAsync(htmlElementContextOut.TagName);
+        var button = tags[htmlElementContextOut.Index];
+        if (button.AsElement() == null)
+        {
+            throw new Exception($"Can't find web element {context.ElementName}");
+        }
+        await button.ClickAsync();
     }
 }
