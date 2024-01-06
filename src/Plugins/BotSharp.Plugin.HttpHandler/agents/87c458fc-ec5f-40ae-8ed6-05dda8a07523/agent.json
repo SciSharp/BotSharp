@@ -1,0 +1,9 @@
+{
+  "name": "HTTP Handler",
+  "description": "Use Web API to interact with other systems to obtain or update data.",
+  "createdDateTime": "2024-01-06T00:00:00Z",
+  "updatedDateTime": "2024-01-06T00:00:00Z",
+  "id": "87c458fc-ec5f-40ae-8ed6-05dda8a07523",
+  "allowRouting": true,
+  "isPublic": true
+}

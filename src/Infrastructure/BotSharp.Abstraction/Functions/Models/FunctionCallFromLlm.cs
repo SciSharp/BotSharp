@@ -15,6 +15,13 @@ public class FunctionCallFromLlm : RoutingArgs
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool ExecutingDirectly { get; set; }
 
+    /// <summary>
+    /// Router routed to a wrong agent.
+    /// Set this flag as True will force router to re-route current request to a new agent.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public bool UnmatchedAgent { get; set; }
+
     public override string ToString()
     {
         var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {Reason}>";

@@ -20,7 +20,9 @@ public class TextEmbeddingProvider : ITextEmbedding
         if (_embedder == null)
         {
             var path = Path.Combine(_settings.ModelDir, _settings.DefaultModel);
-            _embedder = new LLamaEmbedder(new ModelParams(path));
+            var @params = new ModelParams(path);
+            using var weights = LLamaWeights.LoadFromFile(@params);
+            _embedder = new LLamaEmbedder(weights, @params);
         }
 
         return Task.FromResult(_embedder.GetEmbeddings(text));

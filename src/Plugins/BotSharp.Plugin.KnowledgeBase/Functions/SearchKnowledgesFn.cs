@@ -28,8 +28,7 @@ public class SearchKnowledgesFn : IFunctionCallback
         if (string.IsNullOrEmpty(knowledge))
         {
             message.Content = "Can't find any relevant data in local knowledge base.";
-            var routingCtx = _services.GetRequiredService<RoutingContext>();
-            routingCtx.Pop();
+            message.UnmatchedAgent = true;
         }
 
         return true;

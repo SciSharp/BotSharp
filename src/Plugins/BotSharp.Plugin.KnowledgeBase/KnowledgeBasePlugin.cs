@@ -6,6 +6,9 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
 {
     public string Name => "Knowledge Base";
     public string Description => "Embedding private data and feed them into LLM in the conversation.";
+    public string IconUrl => "https://cdn-icons-png.flaticon.com/512/9592/9592995.png";
+    public bool WithAgent => true;
+
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new KnowledgeBaseSettings();

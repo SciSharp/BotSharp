@@ -50,6 +50,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         var response = _dialogs.Last();
         inst.Response = response.Content;
+        inst.UnmatchedAgent = response.UnmatchedAgent;
 
         return true;
     }

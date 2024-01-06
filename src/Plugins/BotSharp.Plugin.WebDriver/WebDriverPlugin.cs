@@ -7,7 +7,9 @@ namespace BotSharp.Plugin.Playwrights;
 public class WebDriverPlugin : IBotSharpPlugin
 {
     public string Name => "Web Driver";
-    public string Description => "Manipulate web browser in automation tools.";
+    public string Description => "Empower agent to manipulate web browser in automation tools.";
+    public string IconUrl => "https://cdn-icons-png.flaticon.com/512/8576/8576378.png";
+    public bool WithAgent => true;
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {

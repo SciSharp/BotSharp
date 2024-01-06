@@ -20,6 +20,10 @@ public class PlaywrightInstance : IDisposable
             {
                 Headless = false,
                 Channel = "chrome",
+                Args = new[] 
+                { 
+                    "--start-maximized" 
+                }
             });
         }
     }

@@ -59,8 +59,18 @@ public partial class RoutingService
         // Call functions
         await conversationService.CallFunctions(message);
 
+        // Router selected the wrong agent, handle this excluding the agent
+        if (message.UnmatchedAgent)
+        {
+            // Save to memory dialogs
+            var msg = RoleDialogModel.From(message,
+                role: AgentRole.Function,
+                content: message.Content);
+            msg.UnmatchedAgent = true;
+            dialogs.Add(msg);
+        }
         // Pass execution result to LLM to get response
-        if (!message.StopCompletion)
+        else if (!message.StopCompletion)
         {
             var routing = _services.GetRequiredService<RoutingContext>();
             

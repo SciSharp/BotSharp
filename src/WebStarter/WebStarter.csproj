@@ -35,10 +35,11 @@
     <PackageReference Include="BotSharp.Plugin.RoutingSpeeder" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.Qdrant" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.WeChat" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Plugin.HttpHandler" Version="$(BotSharpVersion)" />
   </ItemGroup>
     
   <ItemGroup>
-    <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.8.1" />
+    <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.9.1" />
     <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.16.0" />
   </ItemGroup>
   
@@ -64,6 +65,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
   </ItemGroup>
   
   <ItemGroup>

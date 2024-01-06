@@ -53,6 +53,12 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool StopCompletion { get; set; }
 
+    /// <summary>
+    /// Router routed to a wrong agent.
+    /// Set this flag as True will force router to re-route current request to a new agent.
+    /// </summary>
+    public bool UnmatchedAgent {  get; set; }
+
     public FunctionCallFromLlm Instruction { get; set; }
 
     private RoleDialogModel()

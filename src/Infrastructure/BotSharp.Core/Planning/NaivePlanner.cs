@@ -76,7 +76,7 @@ public class NaivePlanner : IPlaner
         return inst;
     }
 
-    public async Task<bool> AgentExecuting(FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         // Set user content as Planner's question
         message.FunctionName = inst.Function;
@@ -85,10 +85,24 @@ public class NaivePlanner : IPlaner
         return true;
     }
 
-    public async Task<bool> AgentExecuted(FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var context = _services.GetRequiredService<RoutingContext>();
-        context.Empty();
+        if (inst.UnmatchedAgent)
+        {
+            var unmatchedAgentId = context.GetCurrentAgentId();
+            
+            // Exclude the wrong routed agent
+            var agents = router.TemplateDict["routing_agents"] as RoutingItem[];
+            router.TemplateDict["routing_agents"] = agents.Where(x => x.AgentId != unmatchedAgentId).ToArray();
+
+            // Handover to Router;
+            context.Pop();
+        }
+        else
+        {
+            context.Empty();
+        }
         return true;
     }
 

@@ -9,6 +9,6 @@ namespace BotSharp.Abstraction.Planning;
 public interface IPlaner
 {
     Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId);
-    Task<bool> AgentExecuting(FunctionCallFromLlm inst, RoleDialogModel message);
-    Task<bool> AgentExecuted(FunctionCallFromLlm inst, RoleDialogModel message);
+    Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message);
+    Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message);
 }

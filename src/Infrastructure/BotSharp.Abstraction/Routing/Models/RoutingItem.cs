@@ -18,4 +18,9 @@ public class RoutingItem
 
     [JsonPropertyName("optional_fields")]
     public List<ParameterPropertyDef> OptionalFields { get; set; } = new List<ParameterPropertyDef>();
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }

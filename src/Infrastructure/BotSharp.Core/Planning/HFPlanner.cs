@@ -67,7 +67,7 @@ public class HFPlanner : IPlaner
         return inst;
     }
 
-    public async Task<bool> AgentExecuting(FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         if (!string.IsNullOrEmpty(inst.AgentName))
         {
@@ -82,7 +82,7 @@ public class HFPlanner : IPlaner
         return true;
     }
 
-    public async Task<bool> AgentExecuted(FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var context = _services.GetRequiredService<RoutingContext>();
         context.Empty();

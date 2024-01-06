@@ -1,7 +1,5 @@
 using BotSharp.Abstraction.Messaging.JsonConverters;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BotSharp.OpenAPI;
 

@@ -14,8 +14,8 @@
         }
     },
     {
-        "name": "click_html_element",
-        "description": "Click the html element in a web page.",
+        "name": "click_button",
+        "description": "Click a button in a web page.",
         "parameters": {
             "type": "object",
             "properties": {
@@ -28,21 +28,49 @@
         }
     },
     {
+        "name": "extract_data_from_page",
+        "description": "Extract data from current web page.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "question": {
+                  "type": "string",
+                  "description": "the information user wants to know"
+                }
+            },
+            "required": ["question"]
+        }
+    },
+    {
         "name": "input_user_text",
-        "description": "Input text in input box of web page when user requests.",
+        "description": "Input non-sensitive text in current web page.",
         "parameters": {
             "type": "object",
             "properties": {
                 "element_name": {
                   "type": "string",
-                  "description": "the html element name."
+                  "description": "the html input box element name."
                 },
                 "input_text": {
                     "type": "string",
-                    "description": "user input."
+                    "description": "non-sensitive text user provided."
                   }
             },
             "required": ["element_name", "input_text"]
+        }
+    },
+    {
+        "name": "input_user_password",
+        "description": "Input password in current web page",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "description": "user password"
+                  }
+            },
+            "required": ["password"]
         }
     }
 ]

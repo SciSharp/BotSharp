@@ -98,12 +98,12 @@ public partial class RoutingService : IRoutingService
 #else
             _logger.LogInformation($"*** Next Instruction *** {inst}");
 #endif
-            await planner.AgentExecuting(inst, message);
+            await planner.AgentExecuting(_router, inst, message);
 
             // Handle instruction by Executor
             response = await executor.Execute(this, inst, message, dialogs);
 
-            await planner.AgentExecuted(inst, response);
+            await planner.AgentExecuted(_router, inst, response);
         }
 
         return response;
