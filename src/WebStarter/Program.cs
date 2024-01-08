@@ -51,9 +51,9 @@ builder.Services.AddSignalR();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI();
 }
 
@@ -68,9 +68,7 @@ app.MapControllers();
 // Use BotSharp
 app.UseBotSharp();
 
-#if DEBUG
 app.UseCors("MyCorsPolicy");
-#endif
 
 // Host BotSharp UI built in adapter-static
 app.UseFileServer();

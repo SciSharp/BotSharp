@@ -1,47 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <Authors>Haiping Chen</Authors>
-    <Company>SciSharp STACK</Company>
-    <Product>LL Application Framework</Product>
-    <Description>
-      Open source LLM application framework to build scalable, flexible and robust AI system.
-    </Description>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/SciSharp/BotSharp</RepositoryUrl>
-    <PackageTags>Chatbot, Bot, LLM, AI, ChatGPT, OpenAI</PackageTags>
-    <PackageReleaseNotes>Support dialogue status tracking.</PackageReleaseNotes>
-    <Copyright>Since 2018 Haiping Chen</Copyright>
-    <PackageProjectUrl>https://github.com/SciSharp/BotSharp</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/SciSharp/BotSharp/master/docs/static/logos/BotSharp.png</PackageIconUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/SciSharp/BotSharp/master/LICENSE</PackageLicenseUrl>
-    <PackageIcon>Icon.png</PackageIcon>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <NoWarn>1701;1702</NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE;</DefineConstants>
-    <NoWarn>1701;1702</NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <NoWarn>1701;1702</NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,7 +15,7 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>

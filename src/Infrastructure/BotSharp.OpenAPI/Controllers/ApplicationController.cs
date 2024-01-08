@@ -12,6 +12,13 @@ public class ApplicationController : ControllerBase
         _services = services;
     }
 
+    [AllowAnonymous]
+    [HttpGet("/app/health")]
+    public IActionResult Health()
+    {
+        return Ok(new { });
+    }
+
     [HttpGet("/app/shutdown")]
     public IActionResult Restart()
     {

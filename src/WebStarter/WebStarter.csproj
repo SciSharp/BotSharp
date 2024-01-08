@@ -6,19 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <UserSecretsId>4fb8c9df-7975-4926-ba73-46c8ca440691</UserSecretsId>
-    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="data\**" />
-    <Content Remove="data\**" />
-    <EmbeddedResource Remove="data\**" />
-    <None Remove="data\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="crawl-300d-2M-subword.bin" />
-  </ItemGroup>
 
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
     <PackageReference Include="BotSharp.Logger" Version="$(BotSharpVersion)" />
@@ -27,20 +15,38 @@
     <PackageReference Include="BotSharp.Plugin.GoogleAI" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.HuggingFace" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.KnowledgeBase" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MetaAI" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MetaMessenger" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MongoStorage" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.PaddleSharp" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.RoutingSpeeder" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.Qdrant" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.WeChat" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.HttpHandler" Version="$(BotSharpVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="data\models\dbpedia.ftz" />
+    <None Remove="data\models\intent-classifier.h5" />
+    <None Remove="data\models\label.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\models\dbpedia.ftz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\models\intent-classifier.h5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\models\label.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
     
   <ItemGroup>
-    <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.9.1" />
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.16.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
   </ItemGroup>
   
   <ItemGroup Condition="$(SolutionName)==BotSharp">
@@ -53,10 +59,8 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatbotUI\BotSharp.Plugin.ChatbotUI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.HuggingFace\BotSharp.Plugin.HuggingFace.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.KnowledgeBase\BotSharp.Plugin.KnowledgeBase.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.LLamaSharp\BotSharp.Plugin.LLamaSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaAI\BotSharp.Plugin.MetaAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaMessenger\BotSharp.Plugin.MetaMessenger.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.PaddleSharp\BotSharp.Plugin.PaddleSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Qdrant\BotSharp.Plugin.Qdrant.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.RoutingSpeeder\BotSharp.Plugin.RoutingSpeeder.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WeChat\BotSharp.Plugin.WeChat.csproj" />
@@ -64,16 +68,11 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
+    <Folder Include="data\conversations\" />
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
   
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
 </Project>
