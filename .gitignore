@@ -288,3 +288,4 @@ __pycache__/
 *.bin
 /src/WebStarter/data/conversations
 XMLs
+logs

@@ -7,8 +7,17 @@ using BotSharp.Plugin.ChatHub;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog(Log.Logger);
 
 builder.Services.AddScoped<IUserIdentity, UserIdentity>();
 // Add bearer authentication
@@ -40,7 +49,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCorsPolicy",
         builder => builder.WithOrigins("http://localhost:5015", 
-                        "https://botsharp.scisharpstack.org")
+                        "https://botsharp.scisharpstack.org",
+                        "https://chat.scisharpstack.org")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
                    .AllowCredentials());
