@@ -13,6 +13,9 @@ public class BrowsingContextIn
     [JsonPropertyName("input_text")]
     public string? InputText { get; set; }
 
+    [JsonPropertyName("update_value")]
+    public string? UpdateValue { get; set; }
+
     [JsonPropertyName("password")]
     public string? Password { get; set; }
 

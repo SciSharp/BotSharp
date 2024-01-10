@@ -11,13 +11,17 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Log.Logger = new LoggerConfiguration()
+var loggerConfig = new LoggerConfiguration();
+Log.Logger = loggerConfig
+#if DEBUG
     .MinimumLevel.Debug()
+#else
+    .MinimumLevel.Warning()
+#endif
     .WriteTo.Console()
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
-
-builder.Host.UseSerilog(Log.Logger);
+builder.Host.UseSerilog();
 
 builder.Services.AddScoped<IUserIdentity, UserIdentity>();
 // Add bearer authentication
@@ -48,7 +52,8 @@ builder.Services.AddBotSharpLogger(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCorsPolicy",
-        builder => builder.WithOrigins("http://localhost:5015", 
+        builder => builder.WithOrigins("http://localhost:5015",
+                        "http://localhost:5500",
                         "https://botsharp.scisharpstack.org",
                         "https://chat.scisharpstack.org")
                    .AllowAnyMethod()
@@ -61,14 +66,8 @@ builder.Services.AddSignalR();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerUI();
-}
-
 app.MapHub<SignalRHub>("/chatHub");
-app.UseMiddleware<WebSocketsMiddleware>();
+app.UseChatHub();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -77,12 +76,9 @@ app.MapControllers();
 
 // Use BotSharp
 app.UseBotSharp();
+app.UseBotSharpOpenAPI();
+app.UseBotSharpUI();
 
 app.UseCors("MyCorsPolicy");
-
-// Host BotSharp UI built in adapter-static
-app.UseFileServer();
-app.UseDefaultFiles();
-app.UseStaticFiles();
 
 app.Run();

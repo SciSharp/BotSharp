@@ -43,11 +43,13 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 ```sh
 PS D:\> git clone https://github.com/SciSharp/BotSharp-UI
 PS D:\> cd BotSharp-UI
-PS D:\> npm install --force
+PS D:\> npm install
 PS D:\> npm run dev
 ```
 
-Access http://localhost:5015/
+Access http://localhost:5015/ 
+
+[Online Demo with UI](https://botsharp.azurewebsites.net/)
 
 <img src="./docs/static/screenshots/agent-builder-agents.png" height="450px"/>
 

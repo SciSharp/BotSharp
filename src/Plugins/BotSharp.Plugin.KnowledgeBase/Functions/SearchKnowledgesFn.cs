@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Plugin.KnowledgeBase.LlmContexts;
 
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
