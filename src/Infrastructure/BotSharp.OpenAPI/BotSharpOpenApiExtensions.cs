@@ -41,7 +41,7 @@ public static class BotSharpOpenApiExtensions
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"])),
                 ValidateIssuer = enableValidation,
                 ValidateAudience = enableValidation,
-                ValidateLifetime = enableValidation,
+                ValidateLifetime = enableValidation && !env.IsDevelopment(),
                 ValidateIssuerSigningKey = enableValidation
             };
 

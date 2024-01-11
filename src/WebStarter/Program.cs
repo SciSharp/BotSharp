@@ -14,7 +14,9 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Warning()
 #endif
     .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("logs/log-.txt", 
+        shared: true, 
+        rollingInterval: RollingInterval.Day)
     .CreateLogger();
 builder.Host.UseSerilog();
 
