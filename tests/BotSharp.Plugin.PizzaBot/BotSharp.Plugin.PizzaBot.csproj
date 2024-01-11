@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -17,6 +17,104 @@
     <Compile Remove="documents\**" />
     <EmbeddedResource Remove="documents\**" />
     <None Remove="documents\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="data\agents\b284db86-e9c2-4c25-a59e-4649797dd130\agent.json" />
+    <None Remove="data\agents\b284db86-e9c2-4c25-a59e-4649797dd130\functions.json" />
+    <None Remove="data\agents\b284db86-e9c2-4c25-a59e-4649797dd130\instruction.liquid" />
+    <None Remove="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\agent.json" />
+    <None Remove="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\functions.json" />
+    <None Remove="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\instruction.liquid" />
+    <None Remove="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\responses\func.get_pizza_price.0.liquid" />
+    <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\agent.json" />
+    <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\instruction.liquid" />
+    <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.executor.liquid" />
+    <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.reviewer.liquid" />
+    <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\task.place_pizza_order.liquid" />
+    <None Remove="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\agent.json" />
+    <None Remove="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\functions.json" />
+    <None Remove="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\instruction.liquid" />
+    <None Remove="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\agents.json" />
+    <None Remove="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\user.json" />
+    <None Remove="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\agents.json" />
+    <None Remove="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\user.json" />
+    <None Remove="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\agents.json" />
+    <None Remove="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\user.json" />
+    <None Remove="data\users\e465af5f-044f-414b-b670-92834929b96c\agents.json" />
+    <None Remove="data\users\e465af5f-044f-414b-b670-92834929b96c\user.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\b284db86-e9c2-4c25-a59e-4649797dd130\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\b284db86-e9c2-4c25-a59e-4649797dd130\functions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\b284db86-e9c2-4c25-a59e-4649797dd130\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\functions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd\responses\func.get_pizza_price.0.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.executor.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.reviewer.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\task.place_pizza_order.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\functions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\agents.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\user.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\agents.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\user.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\agents.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\user.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\e465af5f-044f-414b-b670-92834929b96c\agents.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\users\e465af5f-044f-414b-b670-92834929b96c\user.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

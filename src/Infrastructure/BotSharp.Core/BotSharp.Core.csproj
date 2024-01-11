@@ -45,6 +45,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\instruction.liquid" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\next_step_prompt.hf_planner.liquid" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\next_step_prompt.liquid" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\response_with_function.liquid" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\welcome.liquid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\next_step_prompt.hf_planner.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\next_step_prompt.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\response_with_function.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\welcome.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\..\arts\Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

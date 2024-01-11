@@ -51,6 +51,8 @@ public class FileRepository : IBotSharpRepository
             AllowTrailingCommas = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
+
+        _dbSettings.FileRepository = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _dbSettings.FileRepository);
     }
 
     private List<User> _users = new List<User>();

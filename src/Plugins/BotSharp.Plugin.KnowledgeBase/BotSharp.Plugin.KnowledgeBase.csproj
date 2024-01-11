@@ -10,6 +10,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="agents\**" />
+    <EmbeddedResource Remove="agents\**" />
+    <None Remove="agents\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="data\agents\f5679799-ba89-4fef-936a-bcc311e5f14d\agent.json" />
+    <None Remove="data\agents\f5679799-ba89-4fef-936a-bcc311e5f14d\functions.json" />
+    <None Remove="data\agents\f5679799-ba89-4fef-936a-bcc311e5f14d\instruction.liquid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\f5679799-ba89-4fef-936a-bcc311e5f14d\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f5679799-ba89-4fef-936a-bcc311e5f14d\functions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f5679799-ba89-4fef-936a-bcc311e5f14d\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="PdfPig" Version="0.1.9-alpha-20231119-4537e" />
     <PackageReference Include="TensorFlow.Keras" Version="0.15.0" />
   </ItemGroup>
