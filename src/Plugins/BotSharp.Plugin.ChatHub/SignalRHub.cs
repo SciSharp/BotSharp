@@ -49,9 +49,4 @@ public class SignalRHub : Hub
 
         await base.OnConnectedAsync();
     }
-
-    public Task PushEventLog(string message)
-    {
-        return Task.CompletedTask;
-    }
 }
