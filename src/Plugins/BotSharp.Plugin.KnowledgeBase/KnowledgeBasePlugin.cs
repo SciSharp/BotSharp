@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Plugins.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.KnowledgeBase;
@@ -20,5 +21,14 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         services.AddScoped<ITextChopper, TextChopperService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
+    }
+
+    public PluginMenuDef[] GetMenus()
+    {
+        return new PluginMenuDef[]
+        {
+            new PluginMenuDef("RAG", isHeader: true, weight: 20),
+            new PluginMenuDef("Knowledge Base", link: "/page/knowledge-base", icon: "bx bx-book-open", weight: 21),
+        };
     }
 }

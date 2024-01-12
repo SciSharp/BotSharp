@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Plugins.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,4 +16,6 @@ public interface IBotSharpPlugin
     bool WithAgent => false;
 
     void RegisterDI(IServiceCollection services, IConfiguration config);
+
+    PluginMenuDef[] GetMenus() => new PluginMenuDef[0];
 }

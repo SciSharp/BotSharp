@@ -56,6 +56,7 @@ public class PluginLoader
                         Assembly = assemblyName,
                         IconUrl = module.IconUrl,
                         WithAgent = module.WithAgent,
+                        Menus = module.GetMenus(),
                     });
                     Console.Write($"Loaded plugin ");
                     Console.Write(name, Color.Green);

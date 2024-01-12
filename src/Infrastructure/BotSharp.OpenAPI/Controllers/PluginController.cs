@@ -22,4 +22,29 @@ public class PluginController : ControllerBase
         var loader = _services.GetRequiredService<PluginLoader>();
         return loader.GetPlugins();
     }
+
+    [HttpGet("/plugin/menu")]
+    public List<PluginMenuDef> GetPluginMenu()
+    {
+        var menus = new List<PluginMenuDef>
+        {
+            new PluginMenuDef("Dashboard", link: "/page/dashboard", icon: "bx bx-home-circle", weight: 1),
+            new PluginMenuDef("Agent", isHeader: true, weight: 5),
+            new PluginMenuDef("Router", link: "/page/agent/router", icon: "bx bx-map-pin", weight: 6),
+            // new PluginMenuDef("Evaluator", link: "/page/agent/evaluator", icon: "bx bx-task", weight: 7),
+            new PluginMenuDef("Agents", link: "/page/agent", icon: "bx bx-bot", weight: 8),
+            new PluginMenuDef("Conversation", isHeader: true, weight: 15),
+            new PluginMenuDef("Conversations", link: "/page/conversation", icon: "bx bx-conversation", weight: 16),
+            new PluginMenuDef("System", isHeader: true, weight: 30),
+            new PluginMenuDef("Plugins", link: "/page/plugin", icon: "bx bx-plug", weight: 31),
+            new PluginMenuDef("Settings", link: "/page/setting", icon: "bx bx-cog", weight: 32),
+        };
+        var loader = _services.GetRequiredService<PluginLoader>();
+        foreach (var plugin in loader.GetPlugins())
+        {
+            menus.AddRange(plugin.Menus);
+        }
+        menus = menus.OrderBy(x => x.Weight).ToList();
+        return menus;
+    }
 }
