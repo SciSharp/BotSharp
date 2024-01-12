@@ -7,6 +7,7 @@ namespace BotSharp.Plugin.MetaMessenger;
 /// </summary>
 public class MetaMessengerPlugin : IBotSharpPlugin
 {
+    public string Id => "3694d49c-ddc4-43ea-b019-4d3b373ad570";
     public string Name => "Meta Messenger";
     public string Description => "Messaging service that allows users to connect with others and share content.";
     public string IconUrl => "https://static.xx.fbcdn.net/rsrc.php/yJ/r/C1E_YZIckM5.svg";

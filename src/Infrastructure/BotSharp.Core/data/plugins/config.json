@@ -1,0 +1,9 @@
+{
+	"Comment": "User can change this configuration dynamically and reflect updates to UI.",
+	"EnabledPlugins": [
+		"058094a7-4ad3-4284-b94d-ac1373cf63d8",
+		"65185362-392c-44fd-a023-95a198824436",
+		"5b18ca9b-82ed-494b-b121-e3499661edb0",
+		"6e52d42d-1e23-406b-8599-36af36c83209"
+	]
+}

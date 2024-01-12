@@ -20,7 +20,7 @@ public class PluginController : ControllerBase
     public List<PluginDef> GetPlugins()
     {
         var loader = _services.GetRequiredService<PluginLoader>();
-        return loader.GetPlugins();
+        return loader.GetPlugins(_services);
     }
 
     [HttpGet("/plugin/menu")]
@@ -40,11 +40,29 @@ public class PluginController : ControllerBase
             new PluginMenuDef("Settings", link: "/page/setting", icon: "bx bx-cog", weight: 32),
         };
         var loader = _services.GetRequiredService<PluginLoader>();
-        foreach (var plugin in loader.GetPlugins())
+        foreach (var plugin in loader.GetPlugins(_services))
         {
+            if (!plugin.Enabled)
+            {
+                continue;
+            }
             menus.AddRange(plugin.Menus);
         }
         menus = menus.OrderBy(x => x.Weight).ToList();
         return menus;
+    }
+
+    [HttpPost("/plugin/{id}/enable")]
+    public PluginDef EnablePlugin([FromRoute] string id)
+    {
+        var loader = _services.GetRequiredService<PluginLoader>();
+        return loader.UpdatePluginStatus(_services, id, true);
+    }
+
+    [HttpPost("/plugin/{id}/disable")]
+    public PluginDef DisablePluginStats([FromRoute] string id)
+    {
+        var loader = _services.GetRequiredService<PluginLoader>();
+        return loader.UpdatePluginStatus(_services, id, false);
     }
 }

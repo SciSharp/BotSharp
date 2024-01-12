@@ -5,6 +5,7 @@ namespace BotSharp.Plugins.LLamaSharp;
 
 public class LLamaSharpPlugin : IBotSharpPlugin
 {
+    public string Id => "3999f668-9fbf-4a91-bd4d-df5b7dfcd90e";
     public string Name => "LLamaSharp";
     public string Description => "The C#/.NET binding of llama.cpp. Run local LLaMA/GPT model easily and fast in C#!";
     public string IconUrl => "https://raw.githubusercontent.com/SciSharp/LLamaSharp/master/Assets/LLamaSharpLogo.png";

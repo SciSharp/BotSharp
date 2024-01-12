@@ -12,5 +12,7 @@ public class PluginDef
     [JsonPropertyName("with_agent")]
     public bool WithAgent { get; set; }
 
+    public bool Enabled { get; set; }
+
     public PluginMenuDef[] Menus { get; set; }
 }

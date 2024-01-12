@@ -6,6 +6,10 @@ namespace BotSharp.Abstraction.Plugins;
 
 public interface IBotSharpPlugin
 {
+    /// <summary>
+    /// Plugin id (guid)
+    /// </summary>
+    string Id { get; }
     string Name => "";
     string Description => "";
     string IconUrl => "https://avatars.githubusercontent.com/u/44989469?s=200&v=4";

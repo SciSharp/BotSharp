@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
@@ -16,7 +17,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public IQueryable<UserAgent> UserAgents => throw new NotImplementedException();
 
     public IQueryable<Conversation> Conversations => throw new NotImplementedException();
-
 
     public int Transaction<TTableInterface>(Action action)
     {
@@ -67,6 +67,10 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         }
     }
 
+    #region Plugin
+    public PluginConfig GetPluginConfig() => throw new NotImplementedException(); 
+    public void SavePluginConfig(PluginConfig config) => throw new NotImplementedException();
+    #endregion
 
     #region Agent
     public Agent GetAgent(string agentId)

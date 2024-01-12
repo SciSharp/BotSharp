@@ -10,10 +10,11 @@ using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Evaluations.Settings;
 using System.Text.Encodings.Web;
+using BotSharp.Abstraction.Plugins.Models;
 
 namespace BotSharp.Core.Repository;
 
-public class FileRepository : IBotSharpRepository
+public partial class FileRepository : IBotSharpRepository
 {
     private readonly IServiceProvider _services;
     private readonly BotSharpDatabaseSettings _dbSettings;
@@ -31,6 +32,7 @@ public class FileRepository : IBotSharpRepository
     private const string DIALOG_FILE = "dialogs.txt";
     private const string STATE_FILE = "state.json";
     private const string EXECUTION_LOG_FILE = "execution.log";
+    private const string PLUGIN_CONFIG_FILE = "config.json";
 
     public FileRepository(
         IServiceProvider services,
@@ -59,6 +61,7 @@ public class FileRepository : IBotSharpRepository
     private List<Agent> _agents = new List<Agent>();
     private List<UserAgent> _userAgents = new List<UserAgent>();
     private List<Conversation> _conversations = new List<Conversation>();
+    private PluginConfig? _pluginConfig = null;
 
     private IQueryable<User> Users
     {
@@ -149,81 +152,6 @@ public class FileRepository : IBotSharpRepository
             return _userAgents.AsQueryable();
         }
     }
-
-    public void Add<TTableInterface>(object entity)
-    {
-        if (entity is Agent agent)
-        {
-            _agents.Add(agent);
-            _changedTableNames.Add(nameof(Agent));
-        }
-        else if (entity is User user)
-        {
-            _users.Add(user);
-            _changedTableNames.Add(nameof(User));
-        }
-        else if (entity is UserAgent userAgent)
-        {
-            _userAgents.Add(userAgent);
-            _changedTableNames.Add(nameof(UserAgent));
-        }
-    }
-
-    List<string> _changedTableNames = new List<string>();
-    public int Transaction<TTableInterface>(Action action)
-    {
-        _changedTableNames.Clear();
-        action();
-
-        // Persist to disk
-        foreach (var table in _changedTableNames)
-        {
-            if (table == nameof(Agent))
-            {
-                foreach (var agent in _agents)
-                {
-                    var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agent.Id);
-                    if (!Directory.Exists(dir))
-                    {
-                        Directory.CreateDirectory(dir);
-                    }
-                    var path = Path.Combine(dir, AGENT_FILE);
-                    File.WriteAllText(path, JsonSerializer.Serialize(agent, _options));
-                }
-            }
-            else if (table == nameof(User))
-            {
-                foreach (var user in _users)
-                {
-                    var dir = Path.Combine(_dbSettings.FileRepository, "users", user.Id);
-                    if (!Directory.Exists(dir))
-                    {
-                        Directory.CreateDirectory(dir);
-                    }
-                    var path = Path.Combine(dir, USER_FILE);
-                    File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
-                }
-            }
-            else if (table == nameof(UserAgent))
-            {
-                _userAgents.GroupBy(x => x.UserId)
-                    .Select(x => x.Key).ToList()
-                    .ForEach(uid =>
-                    {
-                        var agents = _userAgents.Where(x => x.UserId == uid).ToList();
-                        if (agents.Any())
-                        {
-                            var dir = Path.Combine(_dbSettings.FileRepository, "users", uid);
-                            var path = Path.Combine(dir, USER_AGENT_FILE);
-                            File.WriteAllText(path, JsonSerializer.Serialize(agents, _options));
-                        }
-                    });
-            }
-        }
-
-        return _changedTableNames.Count;
-    }
-
 
     #region Agent
     public void UpdateAgent(Agent agent, AgentField field)

@@ -10,6 +10,7 @@ namespace BotSharp.Plugin.RoutingSpeeder;
 
 public class RoutingSpeederPlugin : IBotSharpPlugin
 {
+    public string Id => "e7dff028-462d-47d2-85aa-dc56a6d362ee";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new RouterSpeederSettings();

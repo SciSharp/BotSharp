@@ -11,6 +11,7 @@ namespace BotSharp.Plugin.SemanticKernel
     /// </summary>
     public class SemanticKernelPlugin : IBotSharpPlugin
     {
+        public string Id => "849e5ab9-276f-4cf1-8041-c089fe1a1aeb";
         /// <inheritdoc/>
         public string Name => "Semantic Kernel";
 

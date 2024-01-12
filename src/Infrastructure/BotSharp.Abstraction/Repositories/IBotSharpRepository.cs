@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Users.Models;
@@ -8,6 +9,11 @@ public interface IBotSharpRepository
 {
     int Transaction<TTableInterface>(Action action);
     void Add<TTableInterface>(object entity);
+
+    #region Plugin
+    PluginConfig GetPluginConfig(); 
+    void SavePluginConfig(PluginConfig config);
+    #endregion
 
     #region User
     User? GetUserByEmail(string email);

@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.Core.Plugins;
 
@@ -50,7 +51,7 @@ public class PluginLoader
                     _modules.Add(module);
                     _plugins.Add(new PluginDef
                     {
-                        Id = module.GetType().FullName,
+                        Id = module.Id,
                         Name = name,
                         Description = module.Description,
                         Assembly = assemblyName,
@@ -76,9 +77,43 @@ public class PluginLoader
         });
     }
 
-    public List<PluginDef> GetPlugins()
+    public List<PluginDef> GetPlugins(IServiceProvider services)
     {
+        // Apply user configurations
+        var db = services.GetRequiredService<IBotSharpRepository>();
+        var config = db.GetPluginConfig();
+        foreach (var plugin in _plugins)
+        {
+            plugin.Enabled = config.EnabledPlugins.Contains(plugin.Id);
+        }
         return _plugins;
+    }
+
+    public PluginDef UpdatePluginStatus(IServiceProvider services, string id, bool enable)
+    {
+        var plugin = _plugins.First(x => x.Id == id);
+        plugin.Enabled = enable;
+
+        // save to config
+        var db = services.GetRequiredService<IBotSharpRepository>();
+        var config = db.GetPluginConfig();
+        if (enable)
+        {
+            if (!config.EnabledPlugins.Exists(x => x == id))
+            {
+                config.EnabledPlugins.Add(id);
+                db.SavePluginConfig(config);
+            }
+        }
+        else
+        {
+            if (config.EnabledPlugins.Exists(x => x == id))
+            {
+                config.EnabledPlugins.Remove(id);
+                db.SavePluginConfig(config);
+            }
+        }
+        return plugin;
     }
 
     public string GetSummaryComment(Type member)

@@ -18,6 +18,7 @@ namespace BotSharp.Plugin.WeChat;
 
 public class WeChatPlugin : IBotSharpAppPlugin
 {
+    public string Id => "f5e5113b-c1de-4d69-b4b1-9bc6efed7253";
     public string Name => "Tecent Wechat";
     public string Description => "Free messaging and calling app, support voice,photo,video and text messages.";
     public string IconUrl => "https://i.pinimg.com/originals/66/c9/44/66c94415043811725165e59b371a0aa2.png";

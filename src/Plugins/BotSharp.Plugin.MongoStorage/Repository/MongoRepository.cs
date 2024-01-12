@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Routing.Models;
@@ -174,6 +175,18 @@ public class MongoRepository : IBotSharpRepository
 
         return _changedTableNames.Count;
     }
+
+    #region Plugin
+    public PluginConfig GetPluginConfig()
+    {
+        return new PluginConfig();
+    }
+
+    public void SavePluginConfig(PluginConfig config)
+    {
+
+    } 
+    #endregion
 
     #region Agent
     public void UpdateAgent(Agent agent, AgentField field)
@@ -971,5 +984,6 @@ public class MongoRepository : IBotSharpRepository
 
         _dc.LlmCompletionLogs.UpdateOne(filter, update, _options);
     }
+
     #endregion
 }
