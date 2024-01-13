@@ -61,7 +61,10 @@ public class Agent
     /// </summary>
     public bool AllowRouting {  get; set; }
 
-    public bool Disabled { get; set; }
+    /// <summary>
+    /// Default is True, user will enable this by installing appropriate plugin.
+    /// </summary>
+    public bool Disabled { get; set; } = true;
     public string IconUrl { get; set; }
 
     /// <summary>
