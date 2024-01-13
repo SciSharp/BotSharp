@@ -56,7 +56,7 @@ public class PluginLoader
                         Description = module.Description,
                         Assembly = assemblyName,
                         IconUrl = module.IconUrl,
-                        WithAgent = module.WithAgent,
+                        AgentIds = module.AgentIds,
                         Menus = module.GetMenus(),
                     });
                     Console.Write($"Loaded plugin ");
@@ -104,6 +104,15 @@ public class PluginLoader
                 config.EnabledPlugins.Add(id);
                 db.SavePluginConfig(config);
             }
+
+            // enable agents
+            var agentService = services.GetRequiredService<IAgentService>();
+            foreach (var agentId in plugin.AgentIds) 
+            {
+                var agent = agentService.LoadAgent(agentId).Result;
+                agent.Disabled = false;
+                agentService.UpdateAgent(agent, AgentField.Disabled);
+            } 
         }
         else
         {
@@ -111,6 +120,15 @@ public class PluginLoader
             {
                 config.EnabledPlugins.Remove(id);
                 db.SavePluginConfig(config);
+            }
+
+            // disable agents
+            var agentService = services.GetRequiredService<IAgentService>();
+            foreach (var agentId in plugin.AgentIds)
+            {
+                var agent = agentService.LoadAgent(agentId).Result;
+                agent.Disabled = true;
+                agentService.UpdateAgent(agent, AgentField.Disabled);
             }
         }
         return plugin;

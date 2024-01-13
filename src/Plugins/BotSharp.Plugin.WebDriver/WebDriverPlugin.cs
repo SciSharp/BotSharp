@@ -10,7 +10,7 @@ public class WebDriverPlugin : IBotSharpPlugin
     public string Name => "Web Driver";
     public string Description => "Empower agent to manipulate web browser in automation tools.";
     public string IconUrl => "https://cdn-icons-png.flaticon.com/512/8576/8576378.png";
-    public bool WithAgent => true;
+    public string[] AgentIds => new[] { "f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b" };
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {

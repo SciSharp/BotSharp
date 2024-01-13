@@ -9,8 +9,8 @@ public class PluginDef
     [JsonPropertyName("icon_url")]
     public string IconUrl { get; set; }
 
-    [JsonPropertyName("with_agent")]
-    public bool WithAgent { get; set; }
+    [JsonPropertyName("agent_ids")]
+    public string[] AgentIds { get; set; }
 
     public bool Enabled { get; set; }
 
