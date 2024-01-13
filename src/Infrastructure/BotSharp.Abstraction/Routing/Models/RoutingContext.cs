@@ -19,18 +19,14 @@ public class RoutingContext
     public string IntentName { get; set; }
 
     /// <summary>
-    /// Agent that can handl user original goal.
+    /// Agent that can handle user original goal.
     /// </summary>
     public string OriginAgentId
-        => _stack.Where(x => x != _setting.AgentId).Last();
+        => _stack.Where(x => !_setting.AgentIds.Contains(x)).Last();
 
     public bool IsEmpty => !_stack.Any();
     public string GetCurrentAgentId()
     {
-        if (_stack.Count == 0)
-        {
-            _stack.Push(_setting.AgentId);
-        }
         return _stack.Peek();
     }
 

@@ -58,6 +58,11 @@ public class RouteToAgentFn : IFunctionCallback
                 return false;
             }
 
+            if (targetAgent.Disabled)
+            {
+                return false;
+            }
+
             var missingfield = HasMissingRequiredField(message, out var agentId);
             if (missingfield && message.CurrentAgentId != agentId)
             {

@@ -115,6 +115,8 @@ public class ConversationController : ControllerBase
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
+
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(conversationId, input.States);
         conv.States.SetState("channel", input.Channel)
@@ -124,7 +126,7 @@ public class ConversationController : ControllerBase
                    .SetState("sampling_factor", input.SamplingFactor);
 
         var response = new ChatResponseModel();
-        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
+        
         await conv.SendMessage(agentId, inputMsg,
             async msg =>
             {

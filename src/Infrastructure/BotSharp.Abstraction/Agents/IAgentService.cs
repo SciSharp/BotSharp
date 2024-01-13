@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 
 namespace BotSharp.Abstraction.Agents;
@@ -34,4 +35,6 @@ public interface IAgentService
     Task UpdateAgentFromFile(string id);
     string GetDataDir();
     string GetAgentDataDir(string agentId);
+
+    PluginDef GetPlugin(string agentId);
 }
