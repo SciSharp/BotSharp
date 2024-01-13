@@ -18,7 +18,8 @@ public partial class AgentService
                     agentId
                 },
                 Assembly = typeof(AgentService).Assembly.FullName.Split(',').First(),
-                Name = "BotSharp.Core"
+                Name = "BotSharp",
+                Enabled = true,
             };
     }
 }

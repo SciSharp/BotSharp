@@ -21,7 +21,9 @@ public partial class AgentService
             agent.Plugin = GetPlugin(agent.Id);
         }
 
-        return await Task.FromResult(agents);
+        agents = agents.Where(x => x.Installed).ToList();
+
+        return agents;
     }
 
 #if !DEBUG

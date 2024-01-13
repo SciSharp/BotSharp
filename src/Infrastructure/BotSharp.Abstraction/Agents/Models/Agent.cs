@@ -63,6 +63,9 @@ public class Agent
     [JsonIgnore]
     public PluginDef Plugin {  get; set; }
 
+    [JsonIgnore]
+    public bool Installed => Plugin.Enabled;
+
     /// <summary>
     /// Allow to be routed
     /// </summary>
