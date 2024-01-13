@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -11,6 +12,15 @@ public partial class AgentService
     public async Task<List<Agent>> GetAgents(AgentFilter filter)
     {
         var agents = _db.GetAgents(filter);
+
+        // Set IsRouter
+        var routeSetting = _services.GetRequiredService<RoutingSettings>();
+        foreach (var agent in agents)
+        {
+            agent.IsRouter = routeSetting.AgentIds.Contains(agent.Id);
+            agent.Plugin = GetPlugin(agent.Id);
+        }
+
         return await Task.FromResult(agents);
     }
 
@@ -34,6 +44,11 @@ public partial class AgentService
             profile.LlmConfig = agentSetting.LlmConfig;
             profile.LlmConfig.IsInherit = true;
         }
+
+        // Set IsRouter
+        var routeSetting = _services.GetRequiredService<RoutingSettings>();
+        profile.IsRouter = routeSetting.AgentIds.Contains(profile.Id);
+        profile.Plugin = GetPlugin(profile.Id);
 
         return profile;
     }

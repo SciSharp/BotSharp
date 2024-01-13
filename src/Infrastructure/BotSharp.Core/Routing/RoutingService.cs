@@ -64,7 +64,7 @@ public partial class RoutingService : IRoutingService
     public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        _router = await agentService.LoadAgent(_settings.AgentId);
+        _router = await agentService.LoadAgent(message.CurrentAgentId);
 
         RoleDialogModel response = default;
 

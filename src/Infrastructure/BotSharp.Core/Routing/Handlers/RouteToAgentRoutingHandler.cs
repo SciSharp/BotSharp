@@ -46,7 +46,20 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             message.Content = inst.Question;
         }
-        ret = await routing.InvokeAgent(agentId, _dialogs);
+
+        if (agent.Disabled)
+        {
+            var content = $"This agent ({agent.Name}) is disabled, please install the corresponding plugin ({agent.Plugin.Name}) to activate this agent.";
+
+            message = RoleDialogModel.From(message,
+                role: AgentRole.Assistant,
+                content: content);
+            _dialogs.Add(message);
+        }
+        else
+        {
+            ret = await routing.InvokeAgent(agentId, _dialogs);
+        }
 
         var response = _dialogs.Last();
         inst.Response = response.Content;

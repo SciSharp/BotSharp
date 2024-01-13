@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Abstraction.Agents.Models;
@@ -55,6 +56,12 @@ public class Agent
     public string? Knowledges { get; set; }
 
     public bool IsPublic { get; set; }
+
+    [JsonIgnore]
+    public bool IsRouter { get; set; }
+
+    [JsonIgnore]
+    public PluginDef Plugin {  get; set; }
 
     /// <summary>
     /// Allow to be routed

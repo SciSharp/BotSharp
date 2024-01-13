@@ -21,6 +21,16 @@ public partial class InstructService : IInstructService
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
+        if (agent.Disabled)
+        {
+            var content = $"This agent ({agent.Name}) is disabled, please install the corresponding plugin ({agent.Plugin.Name}) to activate this agent.";
+            return new InstructResult
+            {
+                MessageId = message.MessageId,
+                Text = content
+            };
+        }
+
         // Trigger before completion hooks
         var hooks = _services.GetServices<IInstructHook>();
         foreach (var hook in hooks)

@@ -1,3 +1,4 @@
+using BotSharp.Plugin.Twilio.Settings;
 using Twilio.Jwt.AccessToken;
 using Token = Twilio.Jwt.AccessToken.Token;
 
@@ -47,7 +48,7 @@ public class TwilioService
 
     public VoiceResponse ReturnInstructions(string message)
     {
-        var routingSetting = _services.GetRequiredService<RoutingSettings>();
+        var twilioSetting = _services.GetRequiredService<TwilioSetting>();
 
         var response = new VoiceResponse();
         var gather = new Gather()
@@ -56,7 +57,7 @@ public class TwilioService
             {
                 Gather.InputEnum.Speech
             },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.AgentId}")
+            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}")
         };
         gather.Say(message);
         response.Append(gather);
@@ -76,13 +77,13 @@ public class TwilioService
 
     public VoiceResponse HoldOn(int interval, string message = null)
     {
-        var routingSetting = _services.GetRequiredService<RoutingSettings>();
+        var twilioSetting = _services.GetRequiredService<TwilioSetting>();
 
         var response = new VoiceResponse();
         var gather = new Gather()
         {
             Input = new List<Gather.InputEnum>() { Gather.InputEnum.Speech },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{routingSetting.AgentId}"),
+            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
             ActionOnEmptyResult = true
         };
         if (!string.IsNullOrEmpty(message))

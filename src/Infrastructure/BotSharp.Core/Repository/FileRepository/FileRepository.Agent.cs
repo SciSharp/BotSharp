@@ -349,8 +349,8 @@ namespace BotSharp.Core.Repository
             {
                 var route = _services.GetRequiredService<RoutingSettings>();
                 query = filter.IsRouter.Value ?
-                    query.Where(x => x.Id == route.AgentId) :
-                    query.Where(x => x.Id != route.AgentId);
+                    query.Where(x => route.AgentIds.Contains(x.Id)) :
+                    query.Where(x => !route.AgentIds.Contains(x.Id));
             }
 
             if (filter.IsEvaluator.HasValue)

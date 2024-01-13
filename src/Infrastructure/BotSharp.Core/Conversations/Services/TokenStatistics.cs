@@ -59,6 +59,14 @@ public class TokenStatistics : ITokenStatistics
 
     public void PrintStatistics()
     {
+        if (_timer == null)
+        {
+            _timer = Stopwatch.StartNew();
+        }
+        else
+        {
+            _timer.Start();
+        }
         var stats = $"Token Usage: {_promptTokenCount} prompt + {_completionTokenCount} completion = {Total} total tokens ({_timer.ElapsedMilliseconds / 1000f:f2}s). One-Way cost: {Cost:C4}, accumulated cost: {AccumulatedCost:C4}. [{_model}]";
 #if DEBUG
         Console.WriteLine(stats, Color.DarkGray);

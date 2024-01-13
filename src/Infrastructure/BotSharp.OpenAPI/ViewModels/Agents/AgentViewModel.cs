@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Routing.Models;
 using System.Text.Json.Serialization;
 
@@ -18,6 +19,9 @@ public class AgentViewModel
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
 
+    [JsonPropertyName("is_router")]
+    public bool IsRouter { get; set; }
+
     [JsonPropertyName("allow_routing")]
     public bool AllowRouting { get; set; }
     public bool Disabled { get; set; }
@@ -32,6 +36,8 @@ public class AgentViewModel
     [JsonPropertyName("llm_config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentLlmConfig? LlmConfig { get; set; }
+
+    public PluginDef Plugin { get; set; }
 
     [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }
@@ -52,12 +58,14 @@ public class AgentViewModel
             Responses = agent.Responses,
             Samples = agent.Samples,
             IsPublic= agent.IsPublic,
+            IsRouter = agent.IsRouter,
             Disabled = agent.Disabled,
             IconUrl = agent.IconUrl,
             AllowRouting = agent.AllowRouting,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,
+            Plugin = agent.Plugin,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime
         };

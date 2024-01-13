@@ -9,4 +9,5 @@ public class TwilioSetting
     public string ApiKeySID { get; set; }
     public string ApiSecret { get; set; }
     public string CallbackHost { get; set; }
+    public string AgentId { get; set; }
 }
