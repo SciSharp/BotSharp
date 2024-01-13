@@ -51,4 +51,7 @@ public class MongoDbContext
 
     public IMongoCollection<LlmCompletionLogDocument> LlmCompletionLogs
         => Database.GetCollection<LlmCompletionLogDocument>($"{_collectionPrefix}_Llm_Completion_Logs");
+
+    public IMongoCollection<PluginDocument> Plugins
+        => Database.GetCollection<PluginDocument>($"{_collectionPrefix}_Plugins");
 }

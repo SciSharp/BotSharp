@@ -34,5 +34,6 @@ public partial class FileRepository
     {
         var configFile = Path.Combine(_dbSettings.FileRepository, "plugins", "config.json");
         File.WriteAllText(configFile, JsonSerializer.Serialize(config, _options));
+        _pluginConfig = null;
     }
 }
