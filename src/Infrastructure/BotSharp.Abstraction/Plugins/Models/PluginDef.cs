@@ -7,7 +7,7 @@ public class PluginDef
     public string Description { get; set; }
     public string Assembly { get; set; }
     [JsonPropertyName("icon_url")]
-    public string IconUrl { get; set; }
+    public string? IconUrl { get; set; }
 
     [JsonPropertyName("agent_ids")]
     public string[] AgentIds { get; set; }

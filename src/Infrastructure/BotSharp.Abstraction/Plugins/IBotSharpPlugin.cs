@@ -12,7 +12,7 @@ public interface IBotSharpPlugin
     string Id { get; }
     string Name => "";
     string Description => "";
-    string IconUrl => "https://avatars.githubusercontent.com/u/44989469?s=200&v=4";
+    string? IconUrl => null;
 
     /// <summary>
     /// Has build-in agent profile with this plugin
