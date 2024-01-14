@@ -27,7 +27,7 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
         }
 
         [Fact]
-        public void GetChatCompletions_Returns_RoleDialogModel()
+        public async void GetChatCompletions_Returns_RoleDialogModel()
         {
             // Arrange
             var agent = new Agent();
@@ -53,7 +53,7 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
 
 
             // Act
-            var result = _provider.GetChatCompletions(agent, conversations);
+            var result = await _provider.GetChatCompletions(agent, conversations);
 
             // Assert
             Assert.IsType<RoleDialogModel>(result);
