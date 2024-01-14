@@ -60,12 +60,13 @@ public class InstructModeController : ControllerBase
             .SetState("model", input.Model);
 
         var textCompletion = CompletionProvider.GetChatCompletion(_services);
-        return textCompletion.GetChatCompletions(new Agent()
+        var message = await textCompletion.GetChatCompletions(new Agent()
         {
             Id = Guid.Empty.ToString(),
         }, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, input.Text)
-        }).Content;
+        });
+        return message.Content;
     }
 }

@@ -50,8 +50,8 @@ public class AgentUpdateModel
     [JsonPropertyName("routing_rules")]
 
     public List<RoutingRuleUpdateModel>? RoutingRules { get; set; }
-    [JsonPropertyName("llm_config")]
 
+    [JsonPropertyName("llm_config")]
     public AgentLlmConfig? LlmConfig { get; set; }
 
     public Agent ToAgent()

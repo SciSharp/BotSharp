@@ -71,7 +71,7 @@ public partial class InstructService : IInstructService
         }
         else if (completer is IChatCompletion chatCompleter)
         {
-            var result = chatCompleter.GetChatCompletions(new Agent
+            var result = await chatCompleter.GetChatCompletions(new Agent
             {
                 Id = agentId,
                 Name = agent.Name,

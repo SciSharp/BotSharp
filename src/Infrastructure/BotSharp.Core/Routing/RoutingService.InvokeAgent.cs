@@ -25,7 +25,7 @@ public partial class RoutingService
             agentConfig: agent.LlmConfig);
 
         var message = dialogs.Last();
-        var response = chatCompletion.GetChatCompletions(agent, dialogs);
+        var response = await chatCompletion.GetChatCompletions(agent, dialogs);
 
         if (response.Role == AgentRole.Function)
         {

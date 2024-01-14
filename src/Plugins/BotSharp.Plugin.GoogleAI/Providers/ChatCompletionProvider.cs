@@ -27,7 +27,7 @@ public class ChatCompletionProvider : IChatCompletion
         _logger = logger;
     }
 
-    public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
@@ -45,12 +45,12 @@ public class ChatCompletionProvider : IChatCompletion
         {
             // use text completion
             // var response = client.GenerateTextAsync(prompt, null).Result;
-            var response = client.ChatAsync(new PalmChatCompletionRequest
+            var response = await client.ChatAsync(new PalmChatCompletionRequest
             {
                 Context = prompt,
                 Messages = messages,
                 Temperature = 0.1f
-            }).Result;
+            });
 
             var message = response.Candidates.First();
 
@@ -66,7 +66,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
         else
         {
-            var response = client.ChatAsync(messages, context: prompt, examples: null, options: null).Result;
+            var response = await client.ChatAsync(messages, context: prompt, examples: null, options: null);
 
             var message = response.Candidates.First();
 

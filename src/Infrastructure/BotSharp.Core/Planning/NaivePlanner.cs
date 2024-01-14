@@ -52,7 +52,7 @@ public class NaivePlanner : IPlaner
                         MessageId = messageId
                     }
                 };
-                var response = completion.GetChatCompletions(router, dialogs);
+                var response = await completion.GetChatCompletions(router, dialogs);
 
                 inst = response.Content.JsonContent<FunctionCallFromLlm>();
                 break;

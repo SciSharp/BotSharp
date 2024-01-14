@@ -46,7 +46,7 @@ public class HFPlanner : IPlaner
                         MessageId = messageId
                     }
                 };
-                response = completion.GetChatCompletions(router, dialogs);
+                response = await completion.GetChatCompletions(router, dialogs);
 
                 inst = response.Content.JsonContent<FunctionCallFromLlm>();
                 break;

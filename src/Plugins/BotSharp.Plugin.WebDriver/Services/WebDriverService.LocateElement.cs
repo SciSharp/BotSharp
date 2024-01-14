@@ -35,7 +35,7 @@ public partial class WebDriverService
                     MessageId = messageId
                 }
             };
-            var result = chatCompleter.GetChatCompletions(new Agent
+            var result = await chatCompleter.GetChatCompletions(new Agent
             {
                 Id = agent.Id,
                 Name = agent.Name,

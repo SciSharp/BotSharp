@@ -35,14 +35,14 @@ public class ChatCompletionProvider : IChatCompletion
         _services = services;
     }
 
-    public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
         // Before chat completion hook
         foreach (var hook in contentHooks)
         {
-            hook.BeforeGenerating(agent, conversations).Wait();
+            await hook.BeforeGenerating(agent, conversations);
         }
 
         var client = ProviderHelper.GetClient(_model, _services);
@@ -78,14 +78,14 @@ public class ChatCompletionProvider : IChatCompletion
         // After chat completion hook
         foreach(var hook in contentHooks)
         {
-            hook.AfterGenerated(responseMessage, new TokenStatsModel
+            await hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
                 PromptCount = response.Value.Usage.PromptTokens,
                 CompletionCount = response.Value.Usage.CompletionTokens
-            }).Wait();
+            });
         }
 
         return responseMessage;

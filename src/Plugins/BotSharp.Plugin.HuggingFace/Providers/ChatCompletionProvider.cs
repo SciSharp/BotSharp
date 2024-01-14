@@ -88,7 +88,7 @@ public class ChatCompletionProvider : IChatCompletion
         _model = model;
     }
 
-    public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
         var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
 

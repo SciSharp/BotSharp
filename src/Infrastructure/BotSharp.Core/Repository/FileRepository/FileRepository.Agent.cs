@@ -263,6 +263,7 @@ namespace BotSharp.Core.Repository
             agent.AllowRouting = inputAgent.AllowRouting;
             agent.Profiles = inputAgent.Profiles;
             agent.RoutingRules = inputAgent.RoutingRules;
+            agent.LlmConfig = inputAgent.LlmConfig;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);

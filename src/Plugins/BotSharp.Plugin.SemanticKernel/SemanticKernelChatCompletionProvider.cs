@@ -42,7 +42,7 @@ namespace BotSharp.Plugin.SemanticKernel
             this._tokenStatistics = tokenStatistics;
         }
         /// <inheritdoc/>
-        public RoleDialogModel GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
+        public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
         {
             var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
@@ -69,14 +69,13 @@ namespace BotSharp.Plugin.SemanticKernel
                 }
             }
 
-            var response = completion.GetChatCompletionsAsync(chatHistory)
+            var response = await completion.GetChatCompletionsAsync(chatHistory)
                 .ContinueWith(async t =>
                 {
                     var result = await t;
                     var message = await result.First().GetChatMessageAsync();
                     return message.Content;
-                }).ConfigureAwait(false).GetAwaiter().GetResult()
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+                }).ConfigureAwait(false).GetAwaiter().GetResult();
 
             var msg = new RoleDialogModel(AgentRole.Assistant, response)
             {
