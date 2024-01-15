@@ -27,12 +27,10 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
     }
 
-    public PluginMenuDef[] GetMenus()
+    public bool AttachMenu(List<PluginMenuDef> menu)
     {
-        return new PluginMenuDef[]
-        {
-            new PluginMenuDef("RAG", isHeader: true, weight: 20),
-            new PluginMenuDef("Knowledge Base", link: "/page/knowledge-base", icon: "bx bx-book-open", weight: 21),
-        };
+        var section = menu.First(x => x.Label == "Apps");
+        menu.Add(new PluginMenuDef("Knowledge Base", link: "/page/knowledge-base", icon: "bx bx-book-open", weight: section.Weight + 1));
+        return true;
     }
 }

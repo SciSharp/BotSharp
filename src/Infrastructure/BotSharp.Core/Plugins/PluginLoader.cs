@@ -57,8 +57,7 @@ public class PluginLoader
                         Description = module.Description,
                         Assembly = assemblyName,
                         IconUrl = module.IconUrl,
-                        AgentIds = module.AgentIds,
-                        Menus = module.GetMenus(),
+                        AgentIds = module.AgentIds
                     });
                     Console.Write($"Loaded plugin ");
                     Console.Write(name, Color.Green);
@@ -85,7 +84,7 @@ public class PluginLoader
         var config = db.GetPluginConfig();
         foreach (var plugin in _plugins)
         {
-            plugin.Enabled = config.EnabledPlugins.Contains(plugin.Id);
+            plugin.Enabled = plugin.IsCore || config.EnabledPlugins.Contains(plugin.Id);
         }
         return _plugins;
     }

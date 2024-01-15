@@ -25,5 +25,5 @@ public interface IBotSharpPlugin
 
     void RegisterDI(IServiceCollection services, IConfiguration config);
 
-    PluginMenuDef[] GetMenus() => new PluginMenuDef[0];
+    bool AttachMenu(List<PluginMenuDef> menu) => true;
 }

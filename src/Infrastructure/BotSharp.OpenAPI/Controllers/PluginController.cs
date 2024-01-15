@@ -26,19 +26,21 @@ public class PluginController : ControllerBase
     [HttpGet("/plugin/menu")]
     public List<PluginMenuDef> GetPluginMenu()
     {
-        var menus = new List<PluginMenuDef>
+        var menu = new List<PluginMenuDef>
         {
             new PluginMenuDef("Dashboard", link: "/page/dashboard", icon: "bx bx-home-circle", weight: 1),
-            new PluginMenuDef("Agent", isHeader: true, weight: 5),
-            new PluginMenuDef("Router", link: "/page/agent/router", icon: "bx bx-map-pin", weight: 6),
-            // new PluginMenuDef("Evaluator", link: "/page/agent/evaluator", icon: "bx bx-task", weight: 7),
-            new PluginMenuDef("Agents", link: "/page/agent", icon: "bx bx-bot", weight: 8),
-            new PluginMenuDef("Conversation", isHeader: true, weight: 15),
-            new PluginMenuDef("Conversations", link: "/page/conversation", icon: "bx bx-conversation", weight: 16),
-            new PluginMenuDef("System", isHeader: true, weight: 30),
+            new PluginMenuDef("Apps", weight: 5)
+            {
+                IsHeader = true,
+            },
+            new PluginMenuDef("System", weight: 30)
+            {
+                IsHeader = true
+            },
             new PluginMenuDef("Plugins", link: "/page/plugin", icon: "bx bx-plug", weight: 31),
             new PluginMenuDef("Settings", link: "/page/setting", icon: "bx bx-cog", weight: 32),
         };
+
         var loader = _services.GetRequiredService<PluginLoader>();
         foreach (var plugin in loader.GetPlugins(_services))
         {
@@ -46,10 +48,10 @@ public class PluginController : ControllerBase
             {
                 continue;
             }
-            menus.AddRange(plugin.Menus);
+            plugin.Module.AttachMenu(menu);
         }
-        menus = menus.OrderBy(x => x.Weight).ToList();
-        return menus;
+        menu = menu.OrderBy(x => x.Weight).ToList();
+        return menu;
     }
 
     [HttpPost("/plugin/{id}/enable")]

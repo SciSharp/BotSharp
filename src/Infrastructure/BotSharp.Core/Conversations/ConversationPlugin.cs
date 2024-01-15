@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Planning;
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
@@ -44,5 +45,12 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<IExecutor, InstructExecutor>();
         services.AddScoped<IInstructService, InstructService>();
         services.AddScoped<ITokenStatistics, TokenStatistics>();
+    }
+
+    public bool AttachMenu(List<PluginMenuDef> menu)
+    {
+        var section = menu.First(x => x.Label == "Apps");
+        menu.Add(new PluginMenuDef("Conversation", link: "/page/conversation", icon: "bx bx-conversation", weight: section.Weight + 5));
+        return true;
     }
 }

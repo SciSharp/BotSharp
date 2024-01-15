@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 
@@ -25,5 +26,21 @@ public class AgentPlugin : IBotSharpPlugin
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<AgentSettings>("Agent");
         });
+    }
+
+    public bool AttachMenu(List<PluginMenuDef> menu)
+    {
+        var section = menu.First(x => x.Label == "Apps");
+        menu.Add(new PluginMenuDef("Agent", icon: "bx bx-bot", weight: section.Weight + 1)
+        {
+            SubMenu = new List<PluginMenuDef>
+            {
+                new PluginMenuDef("Router", link: "/page/agent/router"), // icon: "bx bx-map-pin"
+                new PluginMenuDef("Evaluator", link: "/page/agent/evaluator"), // icon: "bx bx-task"
+                new PluginMenuDef("Agents", link: "/page/agent"), // icon: "bx bx-bot"
+            }
+        });
+
+        return true;
     }
 }

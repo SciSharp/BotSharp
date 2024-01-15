@@ -6,6 +6,9 @@ public class PluginDef
     public string Name { get; set; }
     public string Description { get; set; }
     public string Assembly { get; set; }
+    [JsonPropertyName("is_core")]
+    public bool IsCore => Assembly == "BotSharp.Core";
+
     [JsonPropertyName("icon_url")]
     public string? IconUrl { get; set; }
 
@@ -17,6 +20,4 @@ public class PluginDef
     public IBotSharpPlugin Module { get; set; }
 
     public bool Enabled { get; set; }
-
-    public PluginMenuDef[] Menus { get; set; }
 }
