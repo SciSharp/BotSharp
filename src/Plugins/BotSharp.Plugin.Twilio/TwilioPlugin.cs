@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.Twilio.Services;
 
 namespace BotSharp.Plugin.Twilio;
@@ -10,9 +11,11 @@ public class TwilioPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var setting = new TwilioSetting();
-        config.Bind("Twilio", setting);
-        services.AddSingleton(setting);
+        services.AddSingleton(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<TwilioSetting>("Twilio");
+        });
 
         services.AddScoped<TwilioService>();
     }

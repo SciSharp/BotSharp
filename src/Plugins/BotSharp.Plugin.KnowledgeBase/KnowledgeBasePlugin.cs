@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.KnowledgeBase;
@@ -13,9 +14,11 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var settings = new KnowledgeBaseSettings();
-        config.Bind("KnowledgeBase", settings);
-        services.AddSingleton(x => settings);
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<KnowledgeBaseSettings>("KnowledgeBase");
+        });
 
         var a = config["KnowledgeBase"];
 

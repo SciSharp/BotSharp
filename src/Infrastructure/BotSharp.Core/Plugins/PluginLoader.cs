@@ -53,6 +53,7 @@ public class PluginLoader
                     {
                         Id = module.Id,
                         Name = name,
+                        Module = module,
                         Description = module.Description,
                         Assembly = assemblyName,
                         IconUrl = module.IconUrl,

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Plugins;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.GoogleAI.Providers;
 using BotSharp.Plugin.GoogleAI.Settings;
 
@@ -12,12 +13,10 @@ public class GoogleAiPlugin : IBotSharpPlugin
     public string IconUrl => "https://vectorseek.com/wp-content/uploads/2021/12/Google-AI-Logo-Vector.png";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var settings = new GoogleAiSettings();
-        config.Bind("GoogleAi", settings);
-        services.AddSingleton(x =>
+        services.AddScoped(provider =>
         {
-            Console.WriteLine($"Loaded Google AI settings: {settings.PaLM.Endpoint} {settings.PaLM.ApiKey.SubstringMax(4)}");
-            return settings;
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<GoogleAiSettings>("GoogleAi");
         });
 
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();

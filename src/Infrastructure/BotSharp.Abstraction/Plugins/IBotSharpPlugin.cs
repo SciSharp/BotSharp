@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,9 @@ public interface IBotSharpPlugin
     string Id { get; }
     string Name => "";
     string Description => "";
+    SettingsMeta Settings => new SettingsMeta("");
+    object GetNewSettingsInstance() => new object();
+    bool MaskSettings(object settings) => true;
     string? IconUrl => null;
 
     /// <summary>

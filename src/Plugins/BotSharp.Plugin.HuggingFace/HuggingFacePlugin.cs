@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Plugins;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.HuggingFace.Providers;
 using BotSharp.Plugin.HuggingFace.Services;
 using BotSharp.Plugin.HuggingFace.Settings;
@@ -16,10 +17,10 @@ public class HuggingFacePlugin : IBotSharpPlugin
     {
         var settings = new HuggingFaceSettings();
         config.Bind("HuggingFace", settings);
-        services.AddSingleton(x =>
+        services.AddScoped(provider =>
         {
-            Console.WriteLine($"Loaded HuggingFace settings: {settings.EndPoint} ({settings.Model}) {settings.Token.SubstringMax(4)}");
-            return settings;
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<HuggingFaceSettings>("HuggingFace");
         });
 
         services

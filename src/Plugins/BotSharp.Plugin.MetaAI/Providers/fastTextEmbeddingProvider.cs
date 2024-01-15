@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Plugin.MetaAI.Settings;
 using FastText.NetWrapper;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -10,7 +12,7 @@ namespace BotSharp.Plugin.MetaAI.Providers;
 public class fastTextEmbeddingProvider : ITextEmbedding
 {
     private FastTextWrapper _fastText;
-    private readonly fastTextSetting _settings;
+    private readonly IServiceProvider _services;
 
     public int Dimension
     {
@@ -21,10 +23,9 @@ public class fastTextEmbeddingProvider : ITextEmbedding
         }
     }
 
-    public fastTextEmbeddingProvider(fastTextSetting settings)
+    public fastTextEmbeddingProvider(IServiceProvider services)
     {
-        _settings = settings;
-
+        _services = services;
     }
 
     public Task<float[]> GetVectorAsync(string text)
@@ -48,16 +49,18 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     {
         if (_fastText == null)
         {
-            if (!File.Exists(_settings.ModelPath))
+            var settings = _services.CreateScope().ServiceProvider
+                .GetRequiredService<fastTextSetting>();
+            if (!File.Exists(settings.ModelPath))
             {
-                throw new FileNotFoundException($"Can't load pre-trained word vectors from {_settings.ModelPath}.\n Try to download from https://fasttext.cc/docs/en/english-vectors.html.");
+                throw new FileNotFoundException($"Can't load pre-trained word vectors from {settings.ModelPath}.\n Try to download from https://fasttext.cc/docs/en/english-vectors.html.");
             }
 
             _fastText = new FastTextWrapper();
 
             if (!_fastText.IsModelReady())
             {
-                _fastText.LoadModel(_settings.ModelPath);
+                _fastText.LoadModel(settings.ModelPath);
             }
         }
     }

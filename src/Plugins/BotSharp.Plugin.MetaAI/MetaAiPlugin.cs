@@ -1,5 +1,7 @@
+using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.VectorStorage;
 using BotSharp.Plugin.MetaAI.Providers;
 using BotSharp.Plugin.MetaAI.Settings;
@@ -17,10 +19,17 @@ public class MetaAiPlugin : IBotSharpPlugin
     public string IconUrl => "https://static.xx.fbcdn.net/rsrc.php/yJ/r/C1E_YZIckM5.svg";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var settings = new MetaAiSettings();
-        config.Bind("MetaAi", settings);
-        services.AddSingleton(x => settings);
-        services.AddSingleton(x => settings.fastText);
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<MetaAiSettings>("MetaAi");
+        });
+
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<MetaAiSettings>("MetaAi").fastText;
+        });
 
         services.AddSingleton<ITextEmbedding, fastTextEmbeddingProvider>();
         services.AddSingleton<IVectorDb, FaissDb>();

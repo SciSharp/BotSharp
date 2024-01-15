@@ -1,5 +1,7 @@
+using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.AzureOpenAI.Providers;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using Microsoft.Extensions.Configuration;
@@ -20,12 +22,10 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var settings = new AzureOpenAiSettings();
-        config.Bind("AzureOpenAi", settings);
-        services.AddSingleton(x =>
+        services.AddScoped(provider =>
         {
-            Console.WriteLine($"Loaded AzureOpenAi settings");
-            return settings;
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<AzureOpenAiSettings>("AzureOpenAi");
         });
 
         services.AddScoped<ITextCompletion, TextCompletionProvider>();

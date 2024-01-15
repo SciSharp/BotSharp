@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Use Serilog
 Log.Logger = new LoggerConfiguration()
 #if DEBUG
-    .MinimumLevel.Debug()
+    .MinimumLevel.Information()
 #else
     .MinimumLevel.Warning()
 #endif
