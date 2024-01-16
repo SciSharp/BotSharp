@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
@@ -12,10 +14,15 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("/token")]
-    public async Task<ActionResult<Token>> GetToken()
+    public async Task<ActionResult<Token>> GetToken([FromHeader(Name = "Authorization")][Required] string authcode)
     {
-        var authcode = Request.Headers["Authorization"].ToString();
-        var token = await _userService.GetToken(authcode.Split(' ')[1]);
+        if (authcode.Contains(' '))
+        {
+            authcode = authcode.Split(' ')[1];
+        }
+
+        var token = await _userService.GetToken(authcode);
+
         if (token == null)
         {
             return Unauthorized();

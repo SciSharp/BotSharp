@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace BotSharp.OpenAPI;
@@ -18,8 +20,8 @@ public static class BotSharpOpenApiExtensions
     /// <param name="services"></param>
     /// <param name="config"></param>
     /// <returns></returns>
-    public static IServiceCollection AddBotSharpOpenAPI(this IServiceCollection services, 
-        IConfiguration config, 
+    public static IServiceCollection AddBotSharpOpenAPI(this IServiceCollection services,
+        IConfiguration config,
         string[] origins,
         IHostEnvironment env,
         bool enableValidation)
@@ -62,7 +64,31 @@ public static class BotSharpOpenApiExtensions
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(
+            c =>
+            {
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please insert JWT with Bearer into field",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+               {
+                 new OpenApiSecurityScheme
+                 {
+                   Reference = new OpenApiReference
+                   {
+                     Type = ReferenceType.SecurityScheme,
+                     Id = "Bearer"
+                   }
+                  },
+                  Array.Empty<string>()
+                }
+              });
+            }
+        );
 
         services.AddHttpContextAccessor();
 
@@ -94,6 +120,7 @@ public static class BotSharpOpenApiExtensions
         app.UseCors(policy);
 
         app.UseSwagger();
+
         if (env.IsDevelopment())
         {
             app.UseSwaggerUI();
@@ -103,7 +130,7 @@ public static class BotSharpOpenApiExtensions
         app.UseAuthentication();
 
         app.UseRouting();
-        
+
         app.UseAuthorization();
 
         app.UseEndpoints(
@@ -150,3 +177,4 @@ public static class BotSharpOpenApiExtensions
         return app;
     }
 }
+
