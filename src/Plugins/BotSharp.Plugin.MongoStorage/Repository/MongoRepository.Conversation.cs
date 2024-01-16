@@ -206,21 +206,21 @@ public partial class MongoRepository
 
     public List<Conversation> GetConversations(ConversationFilter filter)
     {
-        var records = new List<Conversation>();
+        var conversations = new List<Conversation>();
         var builder = Builders<ConversationDocument>.Filter;
-        var filters = new List<FilterDefinition<ConversationDocument>>();
+        var filters = new List<FilterDefinition<ConversationDocument>>() { builder.Empty };
 
         if (!string.IsNullOrEmpty(filter.AgentId)) filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
         if (!string.IsNullOrEmpty(filter.Status)) filters.Add(builder.Eq(x => x.Status, filter.Status));
         if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));
         if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
 
-        var conversations = _dc.Conversations.Find(builder.And(filters)).ToList();
+        var conversationDocs = _dc.Conversations.Find(builder.And(filters)).ToList();
 
-        foreach (var conv in conversations)
+        foreach (var conv in conversationDocs)
         {
             var convId = conv.Id.ToString();
-            records.Add(new Conversation
+            conversations.Add(new Conversation
             {
                 Id = convId,
                 AgentId = conv.AgentId.ToString(),
@@ -233,7 +233,7 @@ public partial class MongoRepository
             });
         }
 
-        return records;
+        return conversations;
     }
 
     public List<Conversation> GetLastConversations()

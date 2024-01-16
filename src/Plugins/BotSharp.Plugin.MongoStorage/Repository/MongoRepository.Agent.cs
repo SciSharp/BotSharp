@@ -278,50 +278,63 @@ public partial class MongoRepository
     public List<Agent> GetAgents(AgentFilter filter)
     {
         var agents = new List<Agent>();
-        IQueryable<AgentDocument> query = _dc.Agents.AsQueryable();
+        var builder = Builders<AgentDocument>.Filter;
+        var filters = new List<FilterDefinition<AgentDocument>>() { builder.Empty };
 
         if (!string.IsNullOrEmpty(filter.AgentName))
         {
-            query = query.Where(x => x.Name.ToLower() == filter.AgentName.ToLower());
+            filters.Add(builder.Eq(x => x.Name, filter.AgentName));
         }
 
         if (filter.Disabled.HasValue)
         {
-            query = query.Where(x => x.Disabled == filter.Disabled);
+            filters.Add(builder.Eq(x => x.Disabled, filter.Disabled.Value));
         }
 
         if (filter.AllowRouting.HasValue)
         {
-            query = query.Where(x => x.AllowRouting == filter.AllowRouting);
+            filters.Add(builder.Eq(x => x.AllowRouting, filter.AllowRouting.Value));
         }
 
         if (filter.IsPublic.HasValue)
         {
-            query = query.Where(x => x.IsPublic == filter.IsPublic);
+            filters.Add(builder.Eq(x => x.IsPublic, filter.IsPublic.Value));
         }
 
         if (filter.IsRouter.HasValue)
         {
             var route = _services.GetRequiredService<RoutingSettings>();
-            query = filter.IsRouter.Value ?
-                query.Where(x => route.AgentIds.Contains(x.Id)) :
-                query.Where(x => !route.AgentIds.Contains(x.Id));
+            if (filter.IsRouter.Value)
+            {
+                filters.Add(builder.In(x => x.Id, route.AgentIds));
+            }
+            else
+            {
+                filters.Add(builder.Nin(x => x.Id, route.AgentIds));
+            }
         }
 
         if (filter.IsEvaluator.HasValue)
         {
             var evaluate = _services.GetRequiredService<EvaluatorSetting>();
-            query = filter.IsEvaluator.Value ?
-                query.Where(x => x.Id == evaluate.AgentId) :
-                query.Where(x => x.Id != evaluate.AgentId);
+            if (filter.IsEvaluator.Value)
+            {
+                filters.Add(builder.Eq(x => x.Id, evaluate.AgentId));
+            }
+            else
+            {
+                filters.Add(builder.Ne(x => x.Id, evaluate.AgentId));
+            }
         }
 
         if (filter.AgentIds != null)
         {
-            query = query.Where(x => filter.AgentIds.Contains(x.Id));
+            filters.Add(builder.In(x => x.Id, filter.AgentIds));
         }
 
-        return query.ToList().Select(x => new Agent
+        var agentDocs = _dc.Agents.Find(builder.And(filters)).ToList();
+
+        return agentDocs.Select(x => new Agent
         {
             Id = x.Id,
             Name = x.Name,
