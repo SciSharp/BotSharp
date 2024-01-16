@@ -252,6 +252,7 @@ public partial class MongoRepository
         {
             Id = agent.Id,
             Name = agent.Name,
+            IconUrl = agent.IconUrl,
             Description = agent.Description,
             Instruction = agent.Instruction,
             Templates = !agent.Templates.IsNullOrEmpty() ? agent.Templates
@@ -338,6 +339,7 @@ public partial class MongoRepository
         {
             Id = x.Id,
             Name = x.Name,
+            IconUrl = x.IconUrl,
             Description = x.Description,
             Instruction = x.Instruction,
             Templates = !x.Templates.IsNullOrEmpty() ? x.Templates
@@ -402,6 +404,7 @@ public partial class MongoRepository
         {
             Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
             Name = x.Name,
+            IconUrl = x.IconUrl,
             Description = x.Description,
             Instruction = x.Instruction,
             Templates = x.Templates?

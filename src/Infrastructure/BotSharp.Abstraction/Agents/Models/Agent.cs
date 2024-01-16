@@ -75,7 +75,7 @@ public class Agent
     /// Default is True, user will enable this by installing appropriate plugin.
     /// </summary>
     public bool Disabled { get; set; } = true;
-    public string IconUrl { get; set; }
+    public string? IconUrl { get; set; }
 
     /// <summary>
     /// Profile by channel

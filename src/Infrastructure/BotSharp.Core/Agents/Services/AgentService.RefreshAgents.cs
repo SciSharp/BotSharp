@@ -13,7 +13,10 @@ public partial class AgentService
         if (!isDeleted) return;
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var agentDir = Path.Combine(dbSettings.FileRepository, _agentSettings.DataDir);
+        var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                    dbSettings.FileRepository,
+                                    _agentSettings.DataDir);
+
         var user = _db.GetUserById(_user.Id);
         var agents = new List<Agent>();
         var userAgents = new List<UserAgent>();
