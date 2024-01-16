@@ -42,6 +42,7 @@ public partial class MongoRepository
                     Name = x.Name,
                     Description = x.Description,
                     Instruction = x.Instruction,
+                    IconUrl = x.IconUrl,
                     Templates = x.Templates?
                                  .Select(t => AgentTemplateMongoElement.ToMongoElement(t))?
                                  .ToList() ?? new List<AgentTemplateMongoElement>(),

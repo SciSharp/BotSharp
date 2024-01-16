@@ -27,7 +27,7 @@ public partial class AgentService
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
         record.Samples = agent.Samples ?? new List<string>();
-        if (!agent.LlmConfig.IsInherit)
+        if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)
         {
             record.LlmConfig = agent.LlmConfig;
         }
@@ -47,7 +47,9 @@ public partial class AgentService
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir);
+        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                    dbSettings.FileRepository,
+                                    agentSettings.DataDir);
 
         var clonedAgent = Agent.Clone(agent);
         var foundAgent = FetchAgentFileById(agent.Id, filePath);
