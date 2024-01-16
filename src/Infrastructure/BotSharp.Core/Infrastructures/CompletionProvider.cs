@@ -26,7 +26,7 @@ public class CompletionProvider
             model = state.GetState("model", model ?? "gpt-35-turbo-4k");
         }
 
-        var settingsService = services.GetRequiredService<ILlmProviderSettingService>();
+        var settingsService = services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(provider, model);
 
         if (settings.Type == LlmModelType.Text)

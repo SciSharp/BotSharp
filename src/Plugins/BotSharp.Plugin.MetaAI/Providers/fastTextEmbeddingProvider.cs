@@ -23,6 +23,8 @@ public class fastTextEmbeddingProvider : ITextEmbedding
         }
     }
 
+    public string Provider => "meta-ai";
+
     public fastTextEmbeddingProvider(IServiceProvider services)
     {
         _services = services;

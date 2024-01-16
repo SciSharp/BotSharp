@@ -8,5 +8,5 @@ namespace BotSharp.Plugin.HuggingFace.Services;
 public interface IInferenceApi
 {
     [Post("/models/{space}/{model}")]
-    Task<JsonDocument> Post(string space, string model, [Body] InferenceInput input);
+    Task<List<TextGenResponse>> TextGenerate(string space, string model, [Body] InferenceInput input);
 }

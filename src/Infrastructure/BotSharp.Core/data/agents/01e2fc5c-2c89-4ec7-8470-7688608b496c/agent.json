@@ -1,0 +1,10 @@
+{
+  "name": "Chatbot",
+  "description": "AI chatbot that can do variaty of tasks",
+  "createdDateTime": "2024-01-15T10:39:32Z",
+  "updatedDateTime": "2024-01-15T14:39:32Z",
+  "id": "01e2fc5c-2c89-4ec7-8470-7688608b496c",
+  "iconUrl": "/images/users/bot.png",
+  "disabled": false,
+  "isPublic": true
+}

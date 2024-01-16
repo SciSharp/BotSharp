@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.HuggingFace.DataModels;
 
-public class FalconLlmResponse
+public class TextGenResponse
 {
     [JsonPropertyName("generated_text")]
     public string GeneratedText {  get; set; }

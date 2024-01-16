@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -45,6 +45,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\agent.json" />
+    <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\instruction.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\instruction.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\next_step_prompt.hf_planner.liquid" />
@@ -55,6 +57,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -1,13 +1,8 @@
 using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.Embeddings;
-using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticKernel.Plugins.Memory;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.SemanticKernel
@@ -32,6 +27,8 @@ namespace BotSharp.Plugin.SemanticKernel
 
         /// <inheritdoc/>
         public int Dimension { get; set; }
+
+        public string Provider => "semantic-kernel";
 
         /// <inheritdoc/>
         public async Task<float[]> GetVectorAsync(string text)

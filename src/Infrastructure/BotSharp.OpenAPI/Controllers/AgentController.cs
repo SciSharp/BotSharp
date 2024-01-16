@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Routing.Settings;
-
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]

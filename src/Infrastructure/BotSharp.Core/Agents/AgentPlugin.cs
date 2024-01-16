@@ -18,7 +18,7 @@ public class AgentPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<ILlmProviderSettingService, LlmProviderSettingService>();
+        services.AddScoped<ILlmProviderService, LlmProviderService>();
         services.AddScoped<IAgentService, AgentService>();
 
         services.AddScoped(provider =>

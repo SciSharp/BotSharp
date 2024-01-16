@@ -38,7 +38,7 @@ public class TokenStatistics : ITokenStatistics
         _promptTokenCount += stats.PromptCount;
         _completionTokenCount += stats.CompletionCount;
 
-        var settingsService = _services.GetRequiredService<ILlmProviderSettingService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(stats.Provider, _model);
 
         _promptCost += stats.PromptCount / 1000f * settings.PromptCost;

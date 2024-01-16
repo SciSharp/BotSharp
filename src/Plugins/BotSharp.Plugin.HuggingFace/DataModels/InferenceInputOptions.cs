@@ -6,5 +6,5 @@ public class InferenceInputOptions
     public bool UseCache { get; set; } = true;
 
     [JsonPropertyName("wait_for_model")]
-    public bool WaitForModel { get; set; } = false;
+    public bool WaitForModel { get; set; } = true;
 }

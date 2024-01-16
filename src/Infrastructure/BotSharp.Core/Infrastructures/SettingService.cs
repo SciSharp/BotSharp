@@ -41,9 +41,9 @@ public class SettingService : ISettingService
 
     public static string Mask(string value)
     {
-        if (value == null)
+        if (string.IsNullOrEmpty(value))
         {
-            return null;
+            return string.Empty;
         }
         value = value.Substring(0, value.Length / 2 - 1) 
             + string.Join("", Enumerable.Repeat("*", value.Length / 2));

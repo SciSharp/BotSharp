@@ -12,7 +12,7 @@ public class ProviderHelper
 {
     public static OpenAIClient GetClient(string model, IServiceProvider services)
     {
-        var settingsService = services.GetRequiredService<ILlmProviderSettingService>();
+        var settingsService = services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting("azure-openai", model);
         var client = new OpenAIClient(new Uri(settings.Endpoint), new AzureKeyCredential(settings.ApiKey));
         return client;

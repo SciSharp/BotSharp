@@ -9,6 +9,8 @@ public class TextEmbeddingProvider : ITextEmbedding
     private readonly IServiceProvider _services;
     public int Dimension => 4096;
 
+    public string Provider => "llama-sharp";
+
     public TextEmbeddingProvider(IServiceProvider services, LlamaSharpSettings settings)
     {
         _services = services;
