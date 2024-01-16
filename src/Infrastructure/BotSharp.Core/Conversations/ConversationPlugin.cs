@@ -16,6 +16,7 @@ public class ConversationPlugin : IBotSharpPlugin
 {
     public string Id => "99e9b971-a9f1-4273-84da-876d2873d192";
     public string Name => "Conversation";
+    public string Description => "Provides conversations/ states management, saves dialogue logs, undo dialogs and channel access.";
 
     public SettingsMeta Settings =>
         new SettingsMeta("Conversation");

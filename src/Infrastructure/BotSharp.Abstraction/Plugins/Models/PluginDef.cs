@@ -16,7 +16,9 @@ public class PluginDef
     public string[] AgentIds { get; set; } = new string[0];
 
     [JsonPropertyName("settings_name")]
-    public string SettingsName => Module?.Settings?.Name;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SettingsName => Module?.Settings?.Name;
+
     public IBotSharpPlugin Module { get; set; }
 
     public bool Enabled { get; set; }

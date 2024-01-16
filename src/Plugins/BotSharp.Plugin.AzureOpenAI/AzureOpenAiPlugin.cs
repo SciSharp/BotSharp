@@ -17,7 +17,7 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
 {
     public string Id => "65185362-392c-44fd-a023-95a198824436";
     public string Name => "Azure OpenAI";
-    public string Description => "Azure OpenAI Service (ChatGPT 3.5 Turbo / 4.0)";
+    public string Description => "Azure OpenAI Service including text generation, text to image and other AI services.";
     public string IconUrl => "https://nanfor.com/cdn/shop/files/cursos-propios-Azure-openAI.jpg?v=1692877741";
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)

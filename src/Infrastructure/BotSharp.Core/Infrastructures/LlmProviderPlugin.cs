@@ -8,6 +8,7 @@ public class LlmProviderPlugin : IBotSharpPlugin
 {
     public string Id => "0c52c0e3-cbb9-48ab-9381-260b80f018b8";
     public string Name => "LLM Provider";
+    public string Description => "This plugin allows you to configure multiple different model providers and switch to different models as needed.";
 
     public SettingsMeta Settings => 
         new SettingsMeta("LlmProviders");

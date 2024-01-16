@@ -9,6 +9,7 @@ public class AgentPlugin : IBotSharpPlugin
 {
     public string Id => "f4b367f8-4945-476a-90a7-c3bb8e6d6e49";
     public string Name => "Agent";
+    public string Description => "A container of agent profile includes instruction, functions, examples and templates/ response templates.";
 
     public SettingsMeta Settings =>
         new SettingsMeta("Agent");
