@@ -37,6 +37,7 @@ public partial class InstructService
             catch (Exception ex)
             {
                 msg.Content = ex.Message;
+                msg.StopCompletion = true;
                 _logger.LogError(msg.Content);
             }
 

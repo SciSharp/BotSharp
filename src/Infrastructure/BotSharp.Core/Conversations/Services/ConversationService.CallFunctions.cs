@@ -43,6 +43,7 @@ public partial class ConversationService
             catch (Exception ex)
             {
                 msg.Content = ex.Message;
+                msg.StopCompletion = true;
                 _logger.LogError(msg.Content);
             }
             
