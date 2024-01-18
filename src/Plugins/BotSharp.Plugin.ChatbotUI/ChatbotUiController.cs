@@ -16,6 +16,8 @@ using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using Microsoft.AspNetCore.Authorization;
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.MLTasks.Settings;
 
 namespace BotSharp.Plugin.ChatbotUI.Controllers;
 
@@ -35,27 +37,18 @@ public class ChatbotUiController : ControllerBase
     [HttpGet("/v1/models")]
     public OpenAiModels GetOpenAiModels()
     {
+        var llm = _services.GetRequiredService<ILlmProviderService>();
+        var models = llm.GetProviderModels("azure-openai").Where(x => x.Type == LlmModelType.Chat)
+            .Select(x => new AiModel
+            {
+                Id = x.Id,
+                Model = x.Name,
+                Name = x.Name
+            }).ToList();
+
         return new OpenAiModels
         {
-            Data = new List<AiModel>
-            {
-                new AiModel
-                {
-                    Id = "gpt-3.5-turbo",
-                    Model = "gpt-3.5-turbo",
-                    Name = "GPT-3.5 Turbo",
-                    MaxLength = 4 * 1024,
-                    TokenLimit = 4 * 1024
-                },
-                new AiModel
-                {
-                    Id = "gpt-4",
-                    Model = "gpt-4",
-                    Name = "GPT-4",
-                    MaxLength = 8 * 1024,
-                    TokenLimit = 8 * 1024
-                }
-            }
+            Data = models,
         };
     }
 
@@ -73,11 +66,16 @@ public class ChatbotUiController : ControllerBase
             .Select(x => new RoleDialogModel(x.Role, x.Content))
             .Last();
 
+        var llm = _services.GetRequiredService<ILlmProviderService>();
+        var model = llm.GetProviderModels("azure-openai")
+            .First(x => x.Type == LlmModelType.Chat && x.Id == input.Model)
+            .Name;
+
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(input.ConversationId, input.States);
         conv.States.SetState("channel", input.Channel)
-                   .SetState("provider", input.Provider)
-                   .SetState("model", input.Model)
+                   .SetState("provider", "azure-openai")
+                   .SetState("model", model)
                    .SetState("temperature", input.Temperature)
                    .SetState("sampling_factor", input.SamplingFactor);
 
