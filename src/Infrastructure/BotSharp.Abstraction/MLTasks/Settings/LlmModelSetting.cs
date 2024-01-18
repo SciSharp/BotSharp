@@ -2,6 +2,7 @@ namespace BotSharp.Abstraction.MLTasks.Settings;
 
 public class LlmModelSetting
 {
+    public string Id { get; set; }
     public string Name { get; set; }
     public string ApiKey { get; set; }
     public string Endpoint { get; set; }
