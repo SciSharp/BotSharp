@@ -1,21 +1,21 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
-using BotSharp.Plugin.SqlHero.Models;
+using BotSharp.Plugin.SqlDriver.Models;
 using BotSharp.Plugin.SqlHero.Settings;
 using Dapper;
 using MySqlConnector;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.SqlHero.Actions;
+namespace BotSharp.Plugin.SqlDriver.Actions;
 
 public class ExecuteQueryAction : IFunctionCallback
 {
     public string Name => "execute_sql";
 
-    private readonly SqlHeroSetting _setting;
+    private readonly SqlDriverSetting _setting;
 
-    public ExecuteQueryAction(SqlHeroSetting setting)
+    public ExecuteQueryAction(SqlDriverSetting setting)
     {
         _setting = setting;
     }

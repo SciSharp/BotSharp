@@ -6,10 +6,14 @@ In order to allow developers to experience the convenience of BotSharp as quickl
 
 ### Run in command line
 
-```console
+```shell
 git clone https://github.com/SciSharp/BotSharp
 cd BotSharp
+# Run PizzzaBot showcase with package reference
 dotnet run --project .\src\WebStarter\WebStarter.csproj -p SolutionName=PizzaBot
+
+# Use BotSharp to include all dependent projects with latest source code
+dotnet run --project .\src\WebStarter
 ```
 
 Here you go, you will see this running screen.
@@ -27,7 +31,7 @@ BotSharp has an official front-end project to be used in conjunction with the ba
 ```console
 git clone https://github.com/SciSharp/BotSharp-UI
 cd BotSharp-UI
-npm install --force
+npm install
 npm run dev
 ```
 

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Plugin.SqlHero.Models;
+namespace BotSharp.Plugin.SqlDriver.Models;
 
 public class LlmInputArgs
 {

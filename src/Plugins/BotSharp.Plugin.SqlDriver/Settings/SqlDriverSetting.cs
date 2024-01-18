@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.SqlHero.Settings;
 
-public class SqlHeroSetting
+public class SqlDriverSetting
 {
     public string MySqlConnectionString { get; set; }
 }
