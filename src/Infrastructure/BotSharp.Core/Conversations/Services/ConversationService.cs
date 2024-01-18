@@ -57,14 +57,8 @@ public partial class ConversationService : IConversationService
     public async Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserById(_user.Id);
         var conversations = db.GetConversations(filter);
-        var result = new PagedItems<Conversation>
-        {
-            Count = conversations.Count(),
-            Items = conversations.OrderByDescending(x => x.CreatedTime)
-        };
-        return result;
+        return conversations;
     }
 
     public async Task<List<Conversation>> GetLastConversations()
