@@ -30,8 +30,8 @@ public class ConversationController : ControllerBase
         return ConversationViewModel.FromSession(conv);
     }
 
-    [HttpGet("/conversations")]
-    public async Task<PagedItems<ConversationViewModel>> GetConversations([FromQuery] ConversationFilter filter)
+    [HttpPost("/conversations")]
+    public async Task<PagedItems<ConversationViewModel>> GetConversations([FromBody] ConversationFilter filter)
     {
         var service = _services.GetRequiredService<IConversationService>();
         var conversations = await service.GetConversations(filter);

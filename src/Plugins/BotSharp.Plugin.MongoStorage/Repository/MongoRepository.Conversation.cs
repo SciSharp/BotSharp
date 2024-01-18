@@ -204,7 +204,7 @@ public partial class MongoRepository
         };
     }
 
-    public List<Conversation> GetConversations(ConversationFilter filter)
+    public PagedItems<Conversation> GetConversations(ConversationFilter filter)
     {
         var conversations = new List<Conversation>();
         var builder = Builders<ConversationDocument>.Filter;
@@ -215,7 +215,10 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));
         if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
 
-        var conversationDocs = _dc.Conversations.Find(builder.And(filters)).ToList();
+        var filterDef = builder.And(filters);
+        var sortDefinition = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
+        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDefinition).Skip(filter.Pager.Offset).Limit(filter.Pager.Size).ToList();
+        var count = _dc.Conversations.CountDocuments(filterDef);
 
         foreach (var conv in conversationDocs)
         {
@@ -233,7 +236,11 @@ public partial class MongoRepository
             });
         }
 
-        return conversations;
+        return new PagedItems<Conversation>
+        {
+            Items = conversations,
+            Count = (int)count
+        };
     }
 
     public List<Conversation> GetLastConversations()

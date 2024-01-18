@@ -200,12 +200,14 @@ namespace BotSharp.Core.Repository
             return record;
         }
 
-        public List<Conversation> GetConversations(ConversationFilter filter)
+        public PagedItems<Conversation> GetConversations(ConversationFilter filter)
         {
             var records = new List<Conversation>();
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+            var totalDirs = Directory.GetDirectories(dir);
+            var dirs = totalDirs.Skip(filter.Pager.Offset).Take(filter.Pager.Size).ToList();
 
-            foreach (var d in Directory.GetDirectories(dir))
+            foreach (var d in dirs)
             {
                 var path = Path.Combine(d, CONVERSATION_FILE);
                 if (!File.Exists(path)) continue;
@@ -225,7 +227,11 @@ namespace BotSharp.Core.Repository
                 records.Add(record);
             }
 
-            return records;
+            return new PagedItems<Conversation>
+            {
+                Items = records.OrderByDescending(x => x.CreatedTime),
+                Count = totalDirs.Count(),
+            };
         }
 
         public List<Conversation> GetLastConversations()

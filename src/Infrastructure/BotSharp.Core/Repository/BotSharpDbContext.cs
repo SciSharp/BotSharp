@@ -136,7 +136,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public List<Conversation> GetConversations(ConversationFilter filter)
+    public PagedItems<Conversation> GetConversations(ConversationFilter filter)
     {
         throw new NotImplementedException();
     }

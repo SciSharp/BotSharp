@@ -43,7 +43,7 @@ public interface IBotSharpRepository
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
     void UpdateConversationStatus(string conversationId, string status);
     Conversation GetConversation(string conversationId);
-    List<Conversation> GetConversations(ConversationFilter filter);
+    PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
     List<Conversation> GetLastConversations();
     #endregion
