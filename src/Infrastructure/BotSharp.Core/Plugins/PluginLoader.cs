@@ -89,6 +89,18 @@ public class PluginLoader
         return _plugins;
     }
 
+    public PagedItems<PluginDef> GetPagedPlugins(IServiceProvider services, PluginFilter filter)
+    {
+        var plugins = GetPlugins(services);
+        var pager = filter?.Pager ?? new Pagination();
+
+        return new PagedItems<PluginDef>
+        {
+            Items = plugins.Skip(pager.Offset).Take(pager.Size),
+            Count = plugins.Count()
+        };
+    }
+
     public PluginDef UpdatePluginStatus(IServiceProvider services, string id, bool enable)
     {
         var plugin = _plugins.First(x => x.Id == id);
