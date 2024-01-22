@@ -2,8 +2,22 @@ namespace BotSharp.Abstraction.MLTasks.Settings;
 
 public class LlmModelSetting
 {
-    public string Id { get; set; }
+    /// <summary>
+    /// Model Id, like "gpt-3.5" and "gpt-4".
+    /// </summary>
+    public string? Id { get; set; }
+
+    /// <summary>
+    /// Deployment model name
+    /// </summary>
     public string Name { get; set; }
+
+    /// <summary>
+    /// Deployment same functional model in a group.
+    /// It can be used to deploy same model in different regions.
+    /// </summary>
+    public string? Group { get; set; }
+
     public string ApiKey { get; set; }
     public string Endpoint { get; set; }
     public LlmModelType Type { get; set; } = LlmModelType.Chat;
