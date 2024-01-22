@@ -16,11 +16,11 @@ public class PluginController : ControllerBase
         _settings = settings;
     }
 
-    [HttpGet("/plugins")]
-    public List<PluginDef> GetPlugins()
+    [HttpPost("/plugins")]
+    public PagedItems<PluginDef> GetPlugins([FromBody] PluginFilter filter)
     {
         var loader = _services.GetRequiredService<PluginLoader>();
-        return loader.GetPlugins(_services);
+        return loader.GetPagedPlugins(_services, filter);
     }
 
     [HttpGet("/plugin/menu")]
