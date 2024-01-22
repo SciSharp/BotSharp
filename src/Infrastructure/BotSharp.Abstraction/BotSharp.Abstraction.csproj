@@ -7,6 +7,7 @@
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <PackageIcon>Icon.png</PackageIcon>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
