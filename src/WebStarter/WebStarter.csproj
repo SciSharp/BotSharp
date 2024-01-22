@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
     <UserSecretsId>4fb8c9df-7975-4926-ba73-46c8ca440691</UserSecretsId>
   </PropertyGroup>
 
@@ -16,11 +16,8 @@
     <PackageReference Include="BotSharp.Plugin.HuggingFace" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.KnowledgeBase" Version="$(BotSharpVersion)" />
     <PackageReference Include="BotSharp.Plugin.MetaAI" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.MetaMessenger" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.MongoStorage" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.RoutingSpeeder" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.Qdrant" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.WeChat" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Plugin.ChatHub" Version="$(BotSharpVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,17 +27,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
-    <ProjectReference Include="..\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
-    <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.LLamaSharp\BotSharp.Plugin.LLamaSharp.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.SqlDriver\BotSharp.Plugin.SqlDriver.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
   </ItemGroup>
   
   <ItemGroup Condition="$(SolutionName)==BotSharp">
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.GoogleAI\BotSharp.Plugin.GoogleAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MongoStorage\BotSharp.Plugin.MongoStorage.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AzureOpenAI\BotSharp.Plugin.AzureOpenAI.csproj" />
@@ -55,6 +47,11 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SemanticKernel\BotSharp.Plugin.SemanticKernel.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.LLamaSharp\BotSharp.Plugin.LLamaSharp.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.SqlDriver\BotSharp.Plugin.SqlDriver.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
   </ItemGroup>
   
   <ItemGroup>
