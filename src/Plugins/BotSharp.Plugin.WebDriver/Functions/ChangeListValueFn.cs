@@ -23,9 +23,10 @@ public class ChangeListValueFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        await _driver.Instance.Page.WaitForLoadStateAsync(LoadState.Load);
         await _driver.ChangeListValue(agent, args, message.MessageId);
 
-        message.Content = "Update successfully.";
+        message.Content = $"Updat the value of \"${args.ElementName}\" to \"{args.UpdateValue}\" successfully.";
         return true;
     }
 }

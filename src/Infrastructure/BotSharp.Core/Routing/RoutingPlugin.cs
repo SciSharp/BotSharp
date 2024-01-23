@@ -37,12 +37,16 @@ public class RoutingPlugin : IBotSharpPlugin
 
         services.AddScoped<NaivePlanner>();
         services.AddScoped<HFPlanner>();
+        services.AddScoped<SequentialPlanner>();
+
         services.AddScoped<IPlaner>(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
             var routingSettings = settingService.Bind<RoutingSettings>("Router");
             if (routingSettings.Planner == nameof(HFPlanner))
                 return provider.GetRequiredService<HFPlanner>();
+            else if (routingSettings.Planner == nameof(SequentialPlanner))
+                return provider.GetRequiredService<SequentialPlanner>();
             else
                 return provider.GetRequiredService<NaivePlanner>();
         });

@@ -1,9 +1,9 @@
 {
-    "name": "Web Driver",
-    "description": "Perform a specific action on a web browser",
-    "createdDateTime": "2024-01-02T00:00:00Z",
-    "updatedDateTime": "2024-01-02T00:00:00Z",
-    "id": "f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b",
-    "allowRouting": true,
-    "isPublic": true
-  }
+  "name": "Web Driver",
+  "description": "Perform a specific action on a web browser",
+  "createdDateTime": "2024-01-02T00:00:00Z",
+  "updatedDateTime": "2024-01-02T00:00:00Z",
+  "id": "f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b",
+  "allowRouting": true,
+  "isPublic": true
+}

@@ -108,7 +108,7 @@ public class NaivePlanner : IPlaner
 
     private string GetNextStepPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "next_step_prompt").Content;
+        var template = router.Templates.First(x => x.Name == "planner_prompt.naive").Content;
 
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>
