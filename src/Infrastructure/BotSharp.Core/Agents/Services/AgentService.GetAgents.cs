@@ -9,7 +9,7 @@ public partial class AgentService
 #if !DEBUG
     [MemoryCache(10 * 60)]
 #endif
-    public async Task<List<Agent>> GetAgents(AgentFilter filter)
+    public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
         var agents = _db.GetAgents(filter);
 
@@ -22,8 +22,12 @@ public partial class AgentService
         }
 
         agents = agents.Where(x => x.Installed).ToList();
-
-        return agents;
+        var pager = filter?.Pager ?? new Pagination();
+        return new PagedItems<Agent>
+        {
+            Items = agents.Skip(pager.Offset).Take(pager.Size),
+            Count = agents.Count()
+        };
     }
 
 #if !DEBUG

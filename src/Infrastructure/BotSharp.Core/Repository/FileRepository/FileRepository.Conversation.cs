@@ -204,10 +204,10 @@ namespace BotSharp.Core.Repository
         {
             var records = new List<Conversation>();
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+            var pager = filter?.Pager ?? new Pagination();
             var totalDirs = Directory.GetDirectories(dir);
-            var dirs = totalDirs.Skip(filter.Pager.Offset).Take(filter.Pager.Size).ToList();
 
-            foreach (var d in dirs)
+            foreach (var d in totalDirs)
             {
                 var path = Path.Combine(d, CONVERSATION_FILE);
                 if (!File.Exists(path)) continue;
@@ -217,20 +217,20 @@ namespace BotSharp.Core.Repository
                 if (record == null) continue;
 
                 var matched = true;
-                if (filter.Id != null) matched = matched && record.Id == filter.Id;
-                if (filter.AgentId != null) matched = matched && record.AgentId == filter.AgentId;
-                if (filter.Status != null) matched = matched && record.Status == filter.Status;
-                if (filter.Channel != null) matched = matched && record.Channel == filter.Channel;
-                if (filter.UserId != null) matched = matched && record.UserId == filter.UserId;
+                if (filter?.Id != null) matched = matched && record.Id == filter.Id;
+                if (filter?.AgentId != null) matched = matched && record.AgentId == filter.AgentId;
+                if (filter?.Status != null) matched = matched && record.Status == filter.Status;
+                if (filter?.Channel != null) matched = matched && record.Channel == filter.Channel;
+                if (filter?.UserId != null) matched = matched && record.UserId == filter.UserId;
 
                 if (!matched) continue;
                 records.Add(record);
             }
-
+ 
             return new PagedItems<Conversation>
             {
-                Items = records.OrderByDescending(x => x.CreatedTime),
-                Count = totalDirs.Count(),
+                Items = records.OrderByDescending(x => x.CreatedTime).Skip(pager.Offset).Take(pager.Size),
+                Count = records.Count(),
             };
         }
 

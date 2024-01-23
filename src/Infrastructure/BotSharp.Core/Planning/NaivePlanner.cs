@@ -126,7 +126,7 @@ public class NaivePlanner : IPlaner
         var agents = agentService.GetAgents(new AgentFilter 
         { 
             AllowRouting = true
-        }).Result;
+        }).Result.Items.ToList();
         var malformed = false;
 
         // Sometimes it populate malformed Function in Agent name
