@@ -29,8 +29,8 @@ public class AgentController : ControllerBase
         return AgentViewModel.FromAgent(agent);
     }
 
-    [HttpPost("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromBody] AgentFilter filter)
+    [HttpGet("/agents")]
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
     {
         var pagedAgents = await _agentService.GetAgents(filter);
         return new PagedItems<AgentViewModel>
