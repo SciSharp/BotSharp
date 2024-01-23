@@ -10,7 +10,7 @@ public interface IAgentService
 {
     Task<Agent> CreateAgent(Agent agent);
     Task RefreshAgents();
-    Task<List<Agent>> GetAgents(AgentFilter filter);
+    Task<PagedItems<Agent>> GetAgents(AgentFilter filter);
 
     /// <summary>
     /// Load agent configurations and trigger hooks
@@ -29,7 +29,7 @@ public interface IAgentService
     /// <param name="id"></param>
     /// <returns>Original agent information</returns>
     Task<Agent> GetAgent(string id);
-
+    
     Task<bool> DeleteAgent(string id);
     Task UpdateAgent(Agent agent, AgentField updateField);
     Task UpdateAgentFromFile(string id);

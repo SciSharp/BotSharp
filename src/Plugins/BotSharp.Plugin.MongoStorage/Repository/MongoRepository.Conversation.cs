@@ -217,7 +217,8 @@ public partial class MongoRepository
 
         var filterDef = builder.And(filters);
         var sortDefinition = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
-        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDefinition).Skip(filter.Pager.Offset).Limit(filter.Pager.Size).ToList();
+        var pager = filter?.Pager ?? new Pagination();
+        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDefinition).Skip(pager.Offset).Limit(pager.Size).ToList();
         var count = _dc.Conversations.CountDocuments(filterDef);
 
         foreach (var conv in conversationDocs)
