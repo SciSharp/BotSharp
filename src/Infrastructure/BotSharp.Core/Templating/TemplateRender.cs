@@ -25,7 +25,7 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<ParameterPropertyDef>();
         _options.MemberAccessStrategy.Register<RoleDialogModel>();
         _options.MemberAccessStrategy.Register<Agent>();
-        _options.MemberAccessStrategy.Register<RoutingItem>();
+        _options.MemberAccessStrategy.Register<RoutableAgent>();
         _options.MemberAccessStrategy.Register<RoutingHandlerDef>();
     }
 

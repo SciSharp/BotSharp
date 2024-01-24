@@ -93,7 +93,7 @@ public class NaivePlanner : IPlaner
             var unmatchedAgentId = context.GetCurrentAgentId();
             
             // Exclude the wrong routed agent
-            var agents = router.TemplateDict["routing_agents"] as RoutingItem[];
+            var agents = router.TemplateDict["routing_agents"] as RoutableAgent[];
             router.TemplateDict["routing_agents"] = agents.Where(x => x.AgentId != unmatchedAgentId).ToArray();
 
             // Handover to Router;

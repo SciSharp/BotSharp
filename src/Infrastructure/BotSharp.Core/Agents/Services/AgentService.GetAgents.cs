@@ -21,6 +21,13 @@ public partial class AgentService
             agent.Plugin = GetPlugin(agent.Id);
         }
 
+        // Set IsHost
+        var agentSetting = _services.GetRequiredService<AgentSettings>();
+        foreach (var agent in agents)
+        {
+            agent.IsHost = agentSetting.HostAgentId == agent.Id;
+        }
+
         agents = agents.Where(x => x.Installed).ToList();
         var pager = filter?.Pager ?? new Pagination();
         return new PagedItems<Agent>

@@ -210,6 +210,7 @@ public partial class MongoRepository
         var builder = Builders<ConversationDocument>.Filter;
         var filters = new List<FilterDefinition<ConversationDocument>>() { builder.Empty };
 
+        if (!string.IsNullOrEmpty(filter.Id)) filters.Add(builder.Eq(x => x.Id, filter.Id));
         if (!string.IsNullOrEmpty(filter.AgentId)) filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
         if (!string.IsNullOrEmpty(filter.Status)) filters.Add(builder.Eq(x => x.Status, filter.Status));
         if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));

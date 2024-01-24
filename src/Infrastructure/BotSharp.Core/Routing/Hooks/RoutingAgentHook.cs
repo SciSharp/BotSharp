@@ -24,7 +24,8 @@ public class RoutingAgentHook : AgentHookBase
         dict["router"] = _agent;
 
         var routing = _services.GetRequiredService<IRoutingService>();
-        dict["routing_agents"] = routing.GetRoutingItems();
+        var agents = routing.GetRoutableAgents(_agent.Profiles);
+        dict["routing_agents"] = agents;
         dict["routing_handlers"] = routing.GetHandlers();
 
         return base.OnInstructionLoaded(template, dict);

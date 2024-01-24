@@ -5,7 +5,7 @@ namespace BotSharp.Abstraction.Routing;
 public interface IRoutingService
 {
     Agent Router { get; }
-    RoutingItem[] GetRoutingItems();
+    RoutableAgent[] GetRoutableAgents(List<string> profiles);
     RoutingRule[] GetRulesByName(string name);
     RoutingRule[] GetRulesByAgentId(string id);
     List<RoutingHandlerDef> GetHandlers();
@@ -20,5 +20,5 @@ public interface IRoutingService
     /// <param name="agent"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    Task<RoleDialogModel> ExecuteDirectly(Agent agent, RoleDialogModel message);
+    Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message);
 }

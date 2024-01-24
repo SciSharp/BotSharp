@@ -15,3 +15,7 @@ For simple questions raised by users, the ordinary routing function can already 
 ![routing with reasoning](./assets/routing-reasoner.png)
 
 For more **Routing** related information, please go to [Agent Routing](../agent/router.md).
+
+## Profile
+
+There is an array field called `Profile` in the Agent data model, which is used to store the current profiles. When this attribute is set in the `Router`, only matching Task Agents can be included in the routing candidate Agents list, which means that the Task Agent also To set the same profile name. Profiles allows you to enter multiple profiles, and the system will automatically combine them for processing.

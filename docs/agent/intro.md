@@ -2,7 +2,7 @@
 
 An agent helps you process user sentences (unstructure data) into structure data that you can use to return an appropriate response.
 
-Agent is a collection that contains prompt words and function Json Schema definitions, few-shot examples and knowledge base data. You can create multiple different Agents to perform specific operations in specific domains. BotSharp has built-in maintenance for Agents, including creating, updating and deleting, importing and exporting.
+Agent is a collection that contains prompt words and function Json Schema definitions, few-shot examples and knowledge base data. You can create multiple different Agents to perform specific operations in specific domains. BotSharp has built-in maintenance for Agents, including creating, updating and deleting, importing and exporting. Agents are divided into task agents and routing (non-task) agents. Business domain agents belong to task agents, and routers belong to non-task agents.
 
 ## My Agent
 After creating the platform account, you can start to enter the steps of creating the Agent.

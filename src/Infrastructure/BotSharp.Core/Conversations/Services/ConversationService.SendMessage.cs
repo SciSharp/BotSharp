@@ -61,7 +61,7 @@ public partial class ConversationService
 
             response = settings.AgentIds.Contains(agentId) ?
                 await routing.InstructLoop(message) :
-                await routing.ExecuteDirectly(agent, message);
+                await routing.InstructDirect(agent, message);
 
             routing.ResetRecursiveCounter();
         }

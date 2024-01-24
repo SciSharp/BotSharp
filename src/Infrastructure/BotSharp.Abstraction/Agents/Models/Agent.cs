@@ -61,6 +61,9 @@ public class Agent
     public bool IsRouter { get; set; }
 
     [JsonIgnore]
+    public bool IsHost { get; set; }
+
+    [JsonIgnore]
     public PluginDef Plugin {  get; set; }
 
     [JsonIgnore]

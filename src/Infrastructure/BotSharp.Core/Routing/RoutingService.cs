@@ -32,7 +32,7 @@ public partial class RoutingService : IRoutingService
         _logger = logger;
     }
 
-    public async Task<RoleDialogModel> ExecuteDirectly(Agent agent, RoleDialogModel message)
+    public async Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message)
     {
         var handlers = _services.GetServices<IRoutingHandler>();
 
@@ -147,22 +147,13 @@ public partial class RoutingService : IRoutingService
             return x.RoutingRules;
         }).ToArray();
 
-        // Filter agents by profile
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var channel = state.GetState("channel");
-        var specifiedProfile = agents.FirstOrDefault(x => x.Profiles.Contains(channel));
-        if (specifiedProfile != null)
-        {
-            records = records.Where(x => specifiedProfile.Profiles.Contains(channel)).ToArray();
-        }
-
         return records;
     }
 
 #if !DEBUG
     [MemoryCache(10 * 60)]
 #endif
-    public RoutingItem[] GetRoutingItems()
+    public RoutableAgent[] GetRoutableAgents(List<string> profiles)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -171,12 +162,14 @@ public partial class RoutingService : IRoutingService
             Disabled = false,
             AllowRouting = true
         };
+
         var agents = db.GetAgents(filter);
-        return agents.Select(x => new RoutingItem
+        var routableAgents = agents.Select(x => new RoutableAgent
         {
             AgentId = x.Id,
             Description = x.Description,
             Name = x.Name,
+            Profiles = x.Profiles,
             RequiredFields = x.RoutingRules
                 .Where(p => p.Required)
                 .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
@@ -190,6 +183,17 @@ public partial class RoutingService : IRoutingService
                     Required = p.Required
                 }).ToList()
         }).ToArray();
+
+        // Handle profile.
+        // Router profile must match the agent profile
+        if (routableAgents.Length > 0 && profiles.Count > 0)
+        {
+            routableAgents = routableAgents.Where(x => x.Profiles != null &&
+                    x.Profiles.Exists(x1 => profiles.Exists(y => x1 == y)))
+                .ToArray();
+        }
+
+        return routableAgents;
     }
 
     public RoutingRule[] GetRulesByName(string name)
