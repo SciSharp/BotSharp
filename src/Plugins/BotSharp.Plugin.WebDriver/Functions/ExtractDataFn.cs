@@ -23,6 +23,7 @@ public class ExtractDataFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        await _driver.Instance.Page.WaitForLoadStateAsync(LoadState.Load);
         message.Content = await _driver.ExtractData(agent, args, message.MessageId);
         return true;
     }

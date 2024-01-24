@@ -7,7 +7,7 @@
             "properties": {
                 "url": {
                   "type": "string",
-                  "description": "website url."
+                  "description": "website url starts with https://"
                 }
             },
             "required": ["url"]
@@ -67,7 +67,7 @@
             "properties": {
                 "element_name": {
                   "type": "string",
-                  "description": "the html input box element name."
+                  "description": "the html selection element name."
                 },
                 "update_value": {
                     "type": "string",
