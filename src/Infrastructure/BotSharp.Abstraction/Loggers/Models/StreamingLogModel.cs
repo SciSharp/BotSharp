@@ -4,6 +4,8 @@ public class StreamingLogModel
 {
     [JsonPropertyName("conversation_id")]
     public string ConversationId { get; set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
 
     [JsonPropertyName("content")]
     public string Content { get; set; }
