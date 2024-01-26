@@ -5,5 +5,8 @@
   "updatedDateTime": "2024-01-02T00:00:00Z",
   "id": "f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b",
   "allowRouting": true,
-  "isPublic": true
+  "isPublic": true,
+  "llmConfig": {
+    "max_recursion_depth": 10
+  }
 }
