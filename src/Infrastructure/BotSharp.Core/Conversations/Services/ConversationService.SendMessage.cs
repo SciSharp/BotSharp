@@ -59,7 +59,7 @@ public partial class ConversationService
             var routing = _services.GetRequiredService<IRoutingService>();
             var settings = _services.GetRequiredService<RoutingSettings>();
 
-            response = settings.AgentIds.Contains(agentId) ?
+            response = agent.Type == AgentType.Routing ?
                 await routing.InstructLoop(message) :
                 await routing.InstructDirect(agent, message);
 

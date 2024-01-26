@@ -8,6 +8,7 @@ public class AgentCreationModel
 {
     public string Name { get; set; }
     public string Description { get; set; }
+    public string Type { get; set; } = AgentType.Task;
 
     /// <summary>
     /// LLM default system instructions
@@ -57,7 +58,7 @@ public class AgentCreationModel
             Responses = Responses,
             Samples = Samples,
             IsPublic = IsPublic,
-            AllowRouting = AllowRouting,
+            Type = Type,
             Disabled = Disabled,
             Profiles = Profiles,
             RoutingRules = RoutingRules?

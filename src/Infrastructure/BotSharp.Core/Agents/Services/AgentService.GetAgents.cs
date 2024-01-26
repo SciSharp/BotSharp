@@ -17,7 +17,6 @@ public partial class AgentService
         var routeSetting = _services.GetRequiredService<RoutingSettings>();
         foreach (var agent in agents)
         {
-            agent.IsRouter = routeSetting.AgentIds.Contains(agent.Id);
             agent.Plugin = GetPlugin(agent.Id);
         }
 
@@ -58,9 +57,6 @@ public partial class AgentService
             profile.LlmConfig.IsInherit = true;
         }
 
-        // Set IsRouter
-        var routeSetting = _services.GetRequiredService<RoutingSettings>();
-        profile.IsRouter = routeSetting.AgentIds.Contains(profile.Id);
         profile.Plugin = GetPlugin(profile.Id);
 
         return profile;

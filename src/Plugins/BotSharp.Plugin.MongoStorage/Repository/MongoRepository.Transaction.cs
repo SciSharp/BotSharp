@@ -54,7 +54,7 @@ public partial class MongoRepository
                                  .ToList() ?? new List<AgentResponseMongoElement>(),
                     Samples = x.Samples ?? new List<string>(),
                     IsPublic = x.IsPublic,
-                    AllowRouting = x.AllowRouting,
+                    Type = x.Type,
                     Disabled = x.Disabled,
                     Profiles = x.Profiles,
                     RoutingRules = x.RoutingRules?
@@ -77,7 +77,7 @@ public partial class MongoRepository
                         .Set(x => x.Responses, agent.Responses)
                         .Set(x => x.Samples, agent.Samples)
                         .Set(x => x.IsPublic, agent.IsPublic)
-                        .Set(x => x.AllowRouting, agent.AllowRouting)
+                        .Set(x => x.Type, agent.Type)
                         .Set(x => x.Disabled, agent.Disabled)
                         .Set(x => x.Profiles, agent.Profiles)
                         .Set(x => x.RoutingRules, agent.RoutingRules)

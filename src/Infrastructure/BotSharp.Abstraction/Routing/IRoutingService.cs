@@ -5,7 +5,14 @@ namespace BotSharp.Abstraction.Routing;
 public interface IRoutingService
 {
     Agent Router { get; }
+
+    /// <summary>
+    /// Get routable agents
+    /// </summary>
+    /// <param name="profiles">router's profile</param>
+    /// <returns></returns>
     RoutableAgent[] GetRoutableAgents(List<string> profiles);
+
     RoutingRule[] GetRulesByName(string name);
     RoutingRule[] GetRulesByAgentId(string id);
     List<RoutingHandlerDef> GetHandlers();

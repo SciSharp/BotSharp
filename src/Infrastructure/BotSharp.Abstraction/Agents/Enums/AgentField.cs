@@ -7,7 +7,7 @@ public enum AgentField
     Description,
     IsPublic,
     Disabled,
-    AllowRouting,
+    Type,
     Profiles,
     RoutingRule,
     Instruction,
