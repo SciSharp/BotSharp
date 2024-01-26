@@ -27,6 +27,7 @@ public class InputUserTextFn : IFunctionCallback
         await _driver.InputUserText(agent, args, message.MessageId);
 
         message.Content = $"Input text \"{args.InputText}\" successfully.";
+
         return true;
     }
 }

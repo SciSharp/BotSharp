@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing.Enums;
+
 namespace BotSharp.Abstraction.Routing.Models;
 
 public class RoutingRule
@@ -8,12 +10,15 @@ public class RoutingRule
     [JsonIgnore]
     public string AgentName { get; set; }
 
+    public string Type { get; set; } = RuleType.DataValidation;
+
     public string Field { get; set; }
     public string Description { get; set; }
+
     /// <summary>
     /// Field type: string, number, object
     /// </summary>
-    public string Type { get; set; } = "string";
+    public string FieldType { get; set; } = "string";
 
     public bool Required { get; set; }
 

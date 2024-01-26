@@ -172,13 +172,13 @@ public partial class RoutingService : IRoutingService
             Profiles = x.Profiles,
             RequiredFields = x.RoutingRules
                 .Where(p => p.Required)
-                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
+                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.FieldType)
                 {
                     Required = p.Required
                 }).ToList(),
             OptionalFields = x.RoutingRules
                 .Where(p => !p.Required)
-                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.Type)
+                .Select(p => new ParameterPropertyDef(p.Field, p.Description, type: p.FieldType)
                 {
                     Required = p.Required
                 }).ToList()
@@ -202,7 +202,7 @@ public partial class RoutingService : IRoutingService
         return routableAgents;
     }
 
-    public RoutingRule[] GetRulesByName(string name)
+    public RoutingRule[] GetRulesByAgentName(string name)
     {
         return GetRoutingRecords()
             .Where(x => x.AgentName.ToLower() == name.ToLower())
