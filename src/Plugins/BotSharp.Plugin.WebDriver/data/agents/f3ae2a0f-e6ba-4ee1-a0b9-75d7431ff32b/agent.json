@@ -5,5 +5,8 @@
   "type": "task",
   "createdDateTime": "2024-01-02T00:00:00Z",
   "updatedDateTime": "2024-01-02T00:00:00Z",
-  "isPublic": true
+  "isPublic": true,
+  "llmConfig": {
+    "max_recursion_depth": 10
+  }
 }

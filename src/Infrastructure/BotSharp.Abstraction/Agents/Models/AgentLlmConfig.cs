@@ -21,4 +21,7 @@ public class AgentLlmConfig
     [JsonPropertyName("model")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Model { get; set; }
+
+    [JsonPropertyName("max_recursion_depth")]
+    public int MaxRecursionDepth { get; set; } = 3;
 }

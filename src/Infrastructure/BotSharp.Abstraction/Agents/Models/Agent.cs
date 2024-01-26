@@ -20,7 +20,8 @@ public class Agent
     /// Default LLM settings
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AgentLlmConfig? LlmConfig { get; set; }
+    public AgentLlmConfig LlmConfig { get; set; }
+        = new AgentLlmConfig();
 
     /// <summary>
     /// Instruction

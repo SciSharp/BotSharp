@@ -96,9 +96,20 @@ public partial class PlaywrightWebDriver
             {
                 Label = context.UpdateValue
             });
-            
+
             // Click on the blank area to activate posting
-            await body.ClickAsync();
+            // await body.ClickAsync();
+            if (!isVisible)
+            {
+                // Select the element you want to make visible (replace with your own selector)
+                var control = await _instance.Page.QuerySelectorAsync($"#{htmlElementContextOut.ElementId}");
+
+                // Show the element by modifying its CSS styles
+                await _instance.Page.EvaluateAsync(@"(element) => {
+                    element.style.display = 'none';
+                    element.style.visibility = 'hidden';
+                }", control);
+            }
         }
         catch (Exception ex)
         {
