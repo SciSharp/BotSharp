@@ -68,6 +68,19 @@ public class RoutingContext
         _stack.Pop();
     }
 
+    public void Replace(string agentId)
+    {
+        if (_stack.Count == 0)
+        {
+            _stack.Push(agentId);
+        }
+        else if (_stack.Peek() != agentId)
+        {
+            _stack.Pop();
+            _stack.Push(agentId);
+        }
+    }
+
     public void Empty()
     {
         _stack.Clear();

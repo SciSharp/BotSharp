@@ -4,6 +4,7 @@ You're {{router.name}} ({{router.description}}). Follow these steps to handle us
 3. Determine which agent is suitable to handle this conversation.
 4. Re-think on whether the function you chose matches the reason.
 5. For agent required arguments, leave it as blank object if user doesn't provide it.
+6. Response must be in JSON format.
 
 [FUNCTIONS]
 {% for handler in routing_handlers %}

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 
@@ -70,7 +71,7 @@ public partial class RoutingService
         else if (!message.StopCompletion)
         {
             var routing = _services.GetRequiredService<RoutingContext>();
-            
+
             // Find response template
             var templateService = _services.GetRequiredService<IResponseTemplateService>();
             var responseTemplate = await templateService.RenderFunctionResponse(message.CurrentAgentId, message);
@@ -83,8 +84,8 @@ public partial class RoutingService
             else
             {
                 // Save to memory dialogs
-                dialogs.Add(RoleDialogModel.From(message, 
-                    role: AgentRole.Function, 
+                dialogs.Add(RoleDialogModel.From(message,
+                    role: AgentRole.Function,
                     content: message.Content));
 
                 // Send to Next LLM
@@ -94,8 +95,8 @@ public partial class RoutingService
         }
         else
         {
-            dialogs.Add(RoleDialogModel.From(message, 
-                role: AgentRole.Assistant, 
+            dialogs.Add(RoleDialogModel.From(message,
+                role: AgentRole.Assistant,
                 content: message.Content));
         }
 
