@@ -11,6 +11,7 @@ public class AgentViewModel
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
+    public string Type { get; set; } = AgentType.Task;
     public string Instruction { get; set; }
     public List<AgentTemplate> Templates { get; set; }
     public List<FunctionDef> Functions { get; set; }
@@ -59,17 +60,16 @@ public class AgentViewModel
             Id = agent.Id,
             Name = agent.Name,
             Description = agent.Description,
+            Type = agent.Type,
             Instruction = agent.Instruction,
             Templates = agent.Templates,
             Functions = agent.Functions,
             Responses = agent.Responses,
             Samples = agent.Samples,
             IsPublic= agent.IsPublic,
-            IsRouter = agent.IsRouter,
             IsHost = agent.IsHost,
             Disabled = agent.Disabled,
             IconUrl = agent.IconUrl,
-            AllowRouting = agent.AllowRouting,
             Profiles = agent.Profiles ?? new List<string>(),
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,

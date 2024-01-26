@@ -17,7 +17,7 @@ public class RoutingAgentHook : AgentHookBase
 
     public override bool OnInstructionLoaded(string template, Dictionary<string, object> dict)
     {
-        if (!_routingSetting.AgentIds.Contains(_agent.Id))
+        if (_agent.Type != AgentType.Routing)
         {
             return base.OnInstructionLoaded(template, dict);
         }

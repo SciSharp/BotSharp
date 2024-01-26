@@ -9,7 +9,7 @@ public class AgentUpdateModel
 {
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-
+    public string Type { get; set; } = AgentType.Task;
     /// <summary>
     /// Instruction
     /// </summary>
@@ -62,7 +62,7 @@ public class AgentUpdateModel
             Description = Description ?? string.Empty,
             IsPublic = IsPublic,
             Disabled = Disabled,
-            AllowRouting = AllowRouting,
+            Type = Type,
             Profiles = Profiles ?? new List<string>(),
             RoutingRules = RoutingRules?
                             .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?

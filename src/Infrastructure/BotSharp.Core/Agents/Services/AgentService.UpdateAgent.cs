@@ -19,7 +19,7 @@ public partial class AgentService
         record.Description = agent.Description ?? string.Empty;
         record.IsPublic = agent.IsPublic;
         record.Disabled = agent.Disabled;
-        record.AllowRouting = agent.AllowRouting;
+        record.Type = agent.Type;
         record.Profiles = agent.Profiles ?? new List<string>();
         record.RoutingRules = agent.RoutingRules ?? new List<RoutingRule>();
         record.Instruction = agent.Instruction ?? string.Empty;
@@ -60,7 +60,7 @@ public partial class AgentService
                        .SetDescription(foundAgent.Description)
                        .SetIsPublic(foundAgent.IsPublic)
                        .SetDisabled(foundAgent.Disabled)
-                       .SetAllowRouting(foundAgent.AllowRouting)
+                       .SetAgentType(foundAgent.Type)
                        .SetProfiles(foundAgent.Profiles)
                        .SetRoutingRules(foundAgent.RoutingRules)
                        .SetInstruction(foundAgent.Instruction)

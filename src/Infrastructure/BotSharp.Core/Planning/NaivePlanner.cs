@@ -126,7 +126,7 @@ public class NaivePlanner : IPlaner
         var agentService = _services.GetRequiredService<IAgentService>();
         var agents = agentService.GetAgents(new AgentFilter 
         { 
-            AllowRouting = true
+            Type = AgentType.Task
         }).Result.Items.ToList();
         var malformed = false;
 
