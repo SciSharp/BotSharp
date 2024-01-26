@@ -28,8 +28,8 @@ namespace BotSharp.Core.Repository
                 case AgentField.Disabled:
                     UpdateAgentDisabled(agent.Id, agent.Disabled);
                     break;
-                case AgentField.AllowRouting:
-                    UpdateAgentAllowRouting(agent.Id, agent.AllowRouting);
+                case AgentField.Type:
+                    UpdateAgentType(agent.Id, agent.Type);
                     break;
                 case AgentField.Profiles:
                     UpdateAgentProfiles(agent.Id, agent.Profiles);
@@ -112,12 +112,12 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentAllowRouting(string agentId, bool allowRouting)
+        private void UpdateAgentType(string agentId, string type)
         {
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            agent.AllowRouting = allowRouting;
+            agent.Type = type;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
@@ -260,7 +260,7 @@ namespace BotSharp.Core.Repository
             agent.Description = inputAgent.Description;
             agent.IsPublic = inputAgent.IsPublic;
             agent.Disabled = inputAgent.Disabled;
-            agent.AllowRouting = inputAgent.AllowRouting;
+            agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
             agent.RoutingRules = inputAgent.RoutingRules;
             agent.LlmConfig = inputAgent.LlmConfig;
@@ -336,30 +336,14 @@ namespace BotSharp.Core.Repository
                 query = query.Where(x => x.Disabled == filter.Disabled);
             }
 
-            if (filter.AllowRouting.HasValue)
+            if (filter.Type != null)
             {
-                query = query.Where(x => x.AllowRouting == filter.AllowRouting);
+                query = query.Where(x => x.Type == filter.Type);
             }
 
             if (filter.IsPublic.HasValue)
             {
                 query = query.Where(x => x.IsPublic == filter.IsPublic);
-            }
-
-            if (filter.IsRouter.HasValue)
-            {
-                var route = _services.GetRequiredService<RoutingSettings>();
-                query = filter.IsRouter.Value ?
-                    query.Where(x => route.AgentIds.Contains(x.Id)) :
-                    query.Where(x => !route.AgentIds.Contains(x.Id));
-            }
-
-            if (filter.IsEvaluator.HasValue)
-            {
-                var evaluate = _services.GetRequiredService<EvaluatorSetting>();
-                query = filter.IsEvaluator.Value ?
-                    query.Where(x => x.Id == evaluate.AgentId) :
-                    query.Where(x => x.Id != evaluate.AgentId);
             }
 
             if (filter.AgentIds != null)

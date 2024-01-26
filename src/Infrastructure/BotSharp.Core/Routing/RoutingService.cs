@@ -134,7 +134,7 @@ public partial class RoutingService : IRoutingService
         var filter = new AgentFilter
         {
             Disabled = false,
-            AllowRouting = true
+            Type = AgentType.Task
         };
         var agents = db.GetAgents(filter);
         var records = agents.SelectMany(x =>
@@ -160,7 +160,7 @@ public partial class RoutingService : IRoutingService
         var filter = new AgentFilter
         {
             Disabled = false,
-            AllowRouting = true
+            Type = AgentType.Task
         };
 
         var agents = db.GetAgents(filter);
@@ -191,6 +191,12 @@ public partial class RoutingService : IRoutingService
             routableAgents = routableAgents.Where(x => x.Profiles != null &&
                     x.Profiles.Exists(x1 => profiles.Exists(y => x1 == y)))
                 .ToArray();
+        }
+        else if (profiles == null || profiles.Count == 0)
+        {
+            routableAgents = routableAgents.Where(x => x.Profiles == null ||
+                x.Profiles.Count == 0)
+            .ToArray();
         }
 
         return routableAgents;
