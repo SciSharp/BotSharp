@@ -42,7 +42,10 @@ public partial class PlaywrightWebDriver
             }));
         }
         
-        var htmlElementContextOut = await driverService.LocateElement(agent, string.Join("", str), context.ElementName, messageId);
+        var htmlElementContextOut = await driverService.LocateElement(agent, 
+            string.Join("", str), 
+            context.ElementName, 
+            messageId);
         ILocator element = Locator(htmlElementContextOut);
 
         try

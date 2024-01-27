@@ -57,7 +57,10 @@ public partial class PlaywrightWebDriver
         }
 
         var driverService = _services.GetRequiredService<WebDriverService>();
-        var htmlElementContextOut = await driverService.LocateElement(agent, string.Join("", str), context.ElementName, messageId);
+        var htmlElementContextOut = await driverService.LocateElement(agent, 
+            string.Join("", str), 
+            context.ElementName, 
+            messageId);
         ILocator element = Locator(htmlElementContextOut);
         
         try
