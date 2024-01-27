@@ -17,17 +17,12 @@ public class AgentViewModel
     public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public List<string> Samples { get; set; }
+
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
 
-    [JsonPropertyName("is_router")]
-    public bool IsRouter { get; set; }
-
     [JsonPropertyName("is_host")]
     public bool IsHost { get; set; }
-
-    [JsonPropertyName("allow_routing")]
-    public bool AllowRouting { get; set; }
 
     public bool Disabled { get; set; }
 
