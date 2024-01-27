@@ -73,8 +73,9 @@ public partial class RoutingService : IRoutingService
         var dialogs = conv.GetDialogHistory();
 
         var context = _services.GetRequiredService<RoutingContext>();
-        var planner = _services.GetRequiredService<IPlaner>();
         var executor = _services.GetRequiredService<IExecutor>();
+
+        var planner = GetPlanner(_router);
 
         context.Push(_router.Id);
 
@@ -85,7 +86,6 @@ public partial class RoutingService : IRoutingService
 
             var conversation = await GetConversationContent(dialogs);
             _router.TemplateDict["conversation"] = conversation;
-            _router.TemplateDict["planner"] = _settings.Planner;
 
             // Get instruction from Planner
             var inst = await planner.GetNextInstruction(_router, message.MessageId);
@@ -109,9 +109,9 @@ public partial class RoutingService : IRoutingService
         return response;
     }
 
-    public List<RoutingHandlerDef> GetHandlers()
+    public List<RoutingHandlerDef> GetHandlers(Agent router)
     {
-        var planer = _services.GetRequiredService<IPlaner>();
+        var planer = GetPlanner(router);
 
         return _services.GetServices<IRoutingHandler>()
             .Where(x => x.Planers == null || x.Planers.Contains(planer.GetType().Name))

@@ -11,4 +11,9 @@ public class RuleType
     /// Redirect to other agent if data validation failed
     /// </summary>
     public const string DataValidation = "data-validation";
+
+    /// <summary>
+    /// The planning approach name for next step
+    /// </summary>
+    public const string Planner = "planner";
 }
