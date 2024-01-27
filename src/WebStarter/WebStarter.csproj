@@ -27,9 +27,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
   </ItemGroup>
 
-  <!--<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
-  </ItemGroup>-->
+  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />

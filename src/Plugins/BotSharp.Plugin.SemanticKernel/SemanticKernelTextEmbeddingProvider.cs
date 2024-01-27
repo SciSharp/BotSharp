@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticKernel.AI.Embeddings;
+using Microsoft.SemanticKernel.Embeddings;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,13 +12,17 @@ namespace BotSharp.Plugin.SemanticKernel
     /// </summary>
     public class SemanticKernelTextEmbeddingProvider : ITextEmbedding
     {
-        private readonly ITextEmbeddingGeneration _embedding;
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        private readonly ITextEmbeddingGenerationService _embedding;
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         private readonly IConfiguration _configuration;
 
         /// <summary>
         /// Constructor of <see cref="SemanticKernelTextEmbeddingProvider"/>
         /// </summary>
-        public SemanticKernelTextEmbeddingProvider(ITextEmbeddingGeneration embedding, IConfiguration configuration)
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        public SemanticKernelTextEmbeddingProvider(ITextEmbeddingGenerationService embedding, IConfiguration configuration)
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         {
             this._embedding = embedding;
             this._configuration = configuration;
@@ -33,7 +37,9 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <inheritdoc/>
         public async Task<float[]> GetVectorAsync(string text)
         {
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             return (await this._embedding.GenerateEmbeddingAsync(text)).ToArray();
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
 
         /// <inheritdoc/>
