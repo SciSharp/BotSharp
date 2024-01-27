@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.MLTasks.Settings;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 
@@ -7,19 +6,18 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    const int MAXIMUM_RECURSION_DEPTH = 3;
     private int _currentRecursionDepth = 0;
     public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
     {
-        _currentRecursionDepth++;
-        if (_currentRecursionDepth > MAXIMUM_RECURSION_DEPTH)
-        {
-            _logger.LogWarning($"Current recursive call depth greater than {MAXIMUM_RECURSION_DEPTH}, which will cause unexpected result.");
-            return false;
-        }
-
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
+
+        _currentRecursionDepth++;
+        if (_currentRecursionDepth > agent.LlmConfig.MaxRecursionDepth)
+        {
+            _logger.LogWarning($"Current recursive call depth greater than {agent.LlmConfig.MaxRecursionDepth}, which will cause unexpected result.");
+            return false;
+        }
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, 
             agentConfig: agent.LlmConfig);
@@ -59,21 +57,11 @@ public partial class RoutingService
         // Call functions
         await conversationService.CallFunctions(message);
 
-        // Router selected the wrong agent, handle this excluding the agent
-        if (message.UnmatchedAgent)
-        {
-            // Save to memory dialogs
-            var msg = RoleDialogModel.From(message,
-                role: AgentRole.Function,
-                content: message.Content);
-            msg.UnmatchedAgent = true;
-            dialogs.Add(msg);
-        }
         // Pass execution result to LLM to get response
-        else if (!message.StopCompletion)
+        if (!message.StopCompletion)
         {
             var routing = _services.GetRequiredService<RoutingContext>();
-            
+
             // Find response template
             var templateService = _services.GetRequiredService<IResponseTemplateService>();
             var responseTemplate = await templateService.RenderFunctionResponse(message.CurrentAgentId, message);
@@ -86,8 +74,8 @@ public partial class RoutingService
             else
             {
                 // Save to memory dialogs
-                dialogs.Add(RoleDialogModel.From(message, 
-                    role: AgentRole.Function, 
+                dialogs.Add(RoleDialogModel.From(message,
+                    role: AgentRole.Function,
                     content: message.Content));
 
                 // Send to Next LLM
@@ -97,8 +85,8 @@ public partial class RoutingService
         }
         else
         {
-            dialogs.Add(RoleDialogModel.From(message, 
-                role: AgentRole.Assistant, 
+            dialogs.Add(RoleDialogModel.From(message,
+                role: AgentRole.Assistant,
                 content: message.Content));
         }
 

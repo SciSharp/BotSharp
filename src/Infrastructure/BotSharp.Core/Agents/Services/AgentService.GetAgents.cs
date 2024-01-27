@@ -9,7 +9,7 @@ public partial class AgentService
 #if !DEBUG
     [MemoryCache(10 * 60)]
 #endif
-    public async Task<List<Agent>> GetAgents(AgentFilter filter)
+    public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
         var agents = _db.GetAgents(filter);
 
@@ -17,13 +17,23 @@ public partial class AgentService
         var routeSetting = _services.GetRequiredService<RoutingSettings>();
         foreach (var agent in agents)
         {
-            agent.IsRouter = routeSetting.AgentIds.Contains(agent.Id);
             agent.Plugin = GetPlugin(agent.Id);
         }
 
-        agents = agents.Where(x => x.Installed).ToList();
+        // Set IsHost
+        var agentSetting = _services.GetRequiredService<AgentSettings>();
+        foreach (var agent in agents)
+        {
+            agent.IsHost = agentSetting.HostAgentId == agent.Id;
+        }
 
-        return agents;
+        agents = agents.Where(x => x.Installed).ToList();
+        var pager = filter?.Pager ?? new Pagination();
+        return new PagedItems<Agent>
+        {
+            Items = agents.Skip(pager.Offset).Take(pager.Size),
+            Count = agents.Count()
+        };
     }
 
 #if !DEBUG
@@ -47,9 +57,6 @@ public partial class AgentService
             profile.LlmConfig.IsInherit = true;
         }
 
-        // Set IsRouter
-        var routeSetting = _services.GetRequiredService<RoutingSettings>();
-        profile.IsRouter = routeSetting.AgentIds.Contains(profile.Id);
         profile.Plugin = GetPlugin(profile.Id);
 
         return profile;

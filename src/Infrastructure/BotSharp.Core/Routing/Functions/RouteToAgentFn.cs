@@ -91,7 +91,7 @@ public class RouteToAgentFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var routing = _services.GetRequiredService<IRoutingService>();
 
-        var routingRules = routing.GetRulesByName(args.AgentName);
+        var routingRules = routing.GetRulesByAgentName(args.AgentName);
 
         if (routingRules == null || !routingRules.Any())
         {

@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Functions.Models;
 
 namespace BotSharp.Abstraction.Routing.Models;
 
-public class RoutingItem
+public class RoutableAgent
 {
     [JsonPropertyName("agent_id")]
     public string AgentId { get; set; } = string.Empty;
@@ -12,6 +12,10 @@ public class RoutingItem
 
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
+
+    [JsonPropertyName("profiles")]
+    public List<string> Profiles { get; set; }
+        = new List<string>();
 
     [JsonPropertyName("required_fields")]
     public List<ParameterPropertyDef> RequiredFields { get; set; } = new List<ParameterPropertyDef>();

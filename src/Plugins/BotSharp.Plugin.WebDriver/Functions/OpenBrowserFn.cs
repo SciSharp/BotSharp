@@ -20,9 +20,7 @@ public class OpenBrowserFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
         var browser = await _driver.LaunchBrowser(args.Url);
-        message.Content = string.IsNullOrEmpty(args.Url) ? "Launch browser successfully." : $"Open website successfully.";
-        message.Content += "\r\nWhat would you like to do next?";
-        message.StopCompletion = true;
+        message.Content = string.IsNullOrEmpty(args.Url) ? $"Launch browser with blank page successfully." : $"Open website {args.Url} successfully.";
         return true;
     }
 }

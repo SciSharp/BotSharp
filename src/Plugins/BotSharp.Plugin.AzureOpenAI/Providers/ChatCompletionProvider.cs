@@ -235,7 +235,11 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == ChatRole.User)
             {
-                chatCompletionsOptions.Messages.Add(new ChatRequestUserMessage(message.Content));
+                chatCompletionsOptions.Messages.Add(new ChatRequestUserMessage(message.Content)
+                {
+                    // To display Planner name in log
+                    Name = message.FunctionName
+                });
             }
             else if (message.Role == ChatRole.Assistant)
             {
@@ -268,6 +272,11 @@ public class ChatCompletionProvider : IChatCompletion
                 .Where(x => x.Role == AgentRole.System)
                 .Select(x => x as ChatRequestSystemMessage).Select(x =>
                 {
+                    if (!string.IsNullOrEmpty(x.Name))
+                    {
+                        // To display Agent name in log
+                        return $"[{x.Name}]: {x.Content}";
+                    }
                     return $"{x.Role}: {x.Content}";
                 }));
             prompt += $"{verbose}\r\n";

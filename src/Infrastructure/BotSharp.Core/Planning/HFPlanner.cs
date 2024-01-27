@@ -4,7 +4,6 @@ using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Planning;
@@ -43,6 +42,7 @@ public class HFPlanner : IPlaner
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
+                        FunctionName = nameof(NaivePlanner),
                         MessageId = messageId
                     }
                 };
@@ -91,7 +91,7 @@ public class HFPlanner : IPlaner
 
     private string GetNextStepPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "next_step_prompt.hf_planner").Content;
+        var template = router.Templates.First(x => x.Name == "planner_prompt.hf").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
         var prompt = render.Render(template, router.TemplateDict);
         return prompt.Trim();

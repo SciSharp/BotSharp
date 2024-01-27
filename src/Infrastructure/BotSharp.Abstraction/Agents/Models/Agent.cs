@@ -9,6 +9,10 @@ public class Agent
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    /// <summary>
+    /// Agent Type
+    /// </summary>
+    public string Type { get; set; } = AgentType.Task;
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 
@@ -16,7 +20,8 @@ public class Agent
     /// Default LLM settings
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AgentLlmConfig? LlmConfig { get; set; }
+    public AgentLlmConfig LlmConfig { get; set; }
+        = new AgentLlmConfig();
 
     /// <summary>
     /// Instruction
@@ -58,18 +63,13 @@ public class Agent
     public bool IsPublic { get; set; }
 
     [JsonIgnore]
-    public bool IsRouter { get; set; }
+    public bool IsHost { get; set; }
 
     [JsonIgnore]
     public PluginDef Plugin {  get; set; }
 
     [JsonIgnore]
     public bool Installed => Plugin.Enabled;
-
-    /// <summary>
-    /// Allow to be routed
-    /// </summary>
-    public bool AllowRouting {  get; set; }
 
     /// <summary>
     /// Default is True, user will enable this by installing appropriate plugin.
@@ -104,6 +104,7 @@ public class Agent
             Id = agent.Id,
             Name = agent.Name,
             Description = agent.Description,
+            Type = agent.Type,
             Instruction = agent.Instruction,
             Functions = agent.Functions,
             Responses = agent.Responses,
@@ -111,7 +112,6 @@ public class Agent
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
-            AllowRouting = agent.AllowRouting,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,
@@ -180,9 +180,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetAllowRouting(bool allowRouting)
+    public Agent SetAgentType(string type)
     {
-        AllowRouting = allowRouting;
+        Type = type;
         return this;
     }
 

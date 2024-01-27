@@ -6,6 +6,7 @@
   "id": "b284db86-e9c2-4c25-a59e-4649797dd130",
   "allowRouting": true,
   "isPublic": true,
+  "profiles": [ "pizza" ],
   "routingRules": [
     {
       "field": "order_number",

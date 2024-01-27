@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -35,13 +35,9 @@
     <None Remove="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\agent.json" />
     <None Remove="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\functions.json" />
     <None Remove="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\instruction.liquid" />
-    <None Remove="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\agents.json" />
     <None Remove="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\user.json" />
-    <None Remove="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\agents.json" />
     <None Remove="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\user.json" />
-    <None Remove="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\agents.json" />
     <None Remove="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\user.json" />
-    <None Remove="data\users\e465af5f-044f-414b-b670-92834929b96c\agents.json" />
     <None Remove="data\users\e465af5f-044f-414b-b670-92834929b96c\user.json" />
   </ItemGroup>
 
@@ -91,25 +87,13 @@
     <Content Include="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\agents.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="data\users\10d12798-08fb-4aa6-977b-5dd94d82dbfe\user.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\agents.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\users\456e35c5-caf0-4d45-9084-b44a8ca717e4\user.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\agents.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="data\users\d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc\user.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\users\e465af5f-044f-414b-b670-92834929b96c\agents.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\users\e465af5f-044f-414b-b670-92834929b96c\user.json">

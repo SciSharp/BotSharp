@@ -29,8 +29,8 @@ public partial class MongoRepository
             case AgentField.Disabled:
                 UpdateAgentDisabled(agent.Id, agent.Disabled);
                 break;
-            case AgentField.AllowRouting:
-                UpdateAgentAllowRouting(agent.Id, agent.AllowRouting);
+            case AgentField.Type:
+                UpdateAgentType(agent.Id, agent.Type);
                 break;
             case AgentField.Profiles:
                 UpdateAgentProfiles(agent.Id, agent.Profiles);
@@ -109,11 +109,11 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentAllowRouting(string agentId, bool allowRouting)
+    private void UpdateAgentType(string agentId, string type)
     {
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
-            .Set(x => x.AllowRouting, allowRouting)
+            .Set(x => x.Type, type)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -225,7 +225,7 @@ public partial class MongoRepository
             .Set(x => x.Name, agent.Name)
             .Set(x => x.Description, agent.Description)
             .Set(x => x.Disabled, agent.Disabled)
-            .Set(x => x.AllowRouting, agent.AllowRouting)
+            .Set(x => x.Type, agent.Type)
             .Set(x => x.Profiles, agent.Profiles)
             .Set(x => x.RoutingRules, agent.RoutingRules.Select(r => RoutingRuleMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Instruction, agent.Instruction)
@@ -267,7 +267,7 @@ public partial class MongoRepository
             Samples = agent.Samples ?? new List<string>(),
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
-            AllowRouting = agent.AllowRouting,
+            Type = agent.Type,
             Profiles = agent.Profiles,
             RoutingRules = !agent.RoutingRules.IsNullOrEmpty() ? agent.RoutingRules
                                 .Select(r => RoutingRuleMongoElement.ToDomainElement(agent.Id, agent.Name, r))
@@ -292,40 +292,14 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.Disabled, filter.Disabled.Value));
         }
 
-        if (filter.AllowRouting.HasValue)
+        if (filter.Type != null)
         {
-            filters.Add(builder.Eq(x => x.AllowRouting, filter.AllowRouting.Value));
+            filters.Add(builder.Eq(x => x.Type, filter.Type));
         }
 
         if (filter.IsPublic.HasValue)
         {
             filters.Add(builder.Eq(x => x.IsPublic, filter.IsPublic.Value));
-        }
-
-        if (filter.IsRouter.HasValue)
-        {
-            var route = _services.GetRequiredService<RoutingSettings>();
-            if (filter.IsRouter.Value)
-            {
-                filters.Add(builder.In(x => x.Id, route.AgentIds));
-            }
-            else
-            {
-                filters.Add(builder.Nin(x => x.Id, route.AgentIds));
-            }
-        }
-
-        if (filter.IsEvaluator.HasValue)
-        {
-            var evaluate = _services.GetRequiredService<EvaluatorSetting>();
-            if (filter.IsEvaluator.Value)
-            {
-                filters.Add(builder.Eq(x => x.Id, evaluate.AgentId));
-            }
-            else
-            {
-                filters.Add(builder.Ne(x => x.Id, evaluate.AgentId));
-            }
         }
 
         if (filter.AgentIds != null)
@@ -354,7 +328,7 @@ public partial class MongoRepository
             Samples = x.Samples ?? new List<string>(),
             IsPublic = x.IsPublic,
             Disabled = x.Disabled,
-            AllowRouting = x.AllowRouting,
+            Type = x.Type,
             Profiles = x.Profiles,
             RoutingRules = !x.RoutingRules.IsNullOrEmpty() ? x.RoutingRules
                                 .Select(r => RoutingRuleMongoElement.ToDomainElement(x.Id, x.Name, r))
@@ -418,7 +392,7 @@ public partial class MongoRepository
                             .ToList() ?? new List<AgentResponseMongoElement>(),
             Samples = x.Samples ?? new List<string>(),
             IsPublic = x.IsPublic,
-            AllowRouting = x.AllowRouting,
+            Type = x.Type,
             Disabled = x.Disabled,
             Profiles = x.Profiles,
             RoutingRules = x.RoutingRules?

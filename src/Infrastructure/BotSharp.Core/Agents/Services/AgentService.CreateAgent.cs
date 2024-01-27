@@ -33,7 +33,7 @@ public partial class AgentService
                        .SetDescription(foundAgent.Description)
                        .SetIsPublic(foundAgent.IsPublic)
                        .SetDisabled(foundAgent.Disabled)
-                       .SetAllowRouting(foundAgent.AllowRouting)
+                       .SetAgentType(foundAgent.Type)
                        .SetProfiles(foundAgent.Profiles)
                        .SetRoutingRules(foundAgent.RoutingRules)
                        .SetInstruction(foundAgent.Instruction)

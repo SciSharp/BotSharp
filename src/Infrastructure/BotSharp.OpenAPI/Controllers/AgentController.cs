@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
@@ -28,10 +30,20 @@ public class AgentController : ControllerBase
     }
 
     [HttpGet("/agents")]
-    public async Task<List<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
     {
-        var agents = await _agentService.GetAgents(filter);
-         return agents.Select(x => AgentViewModel.FromAgent(x)).ToList();
+        var pagedAgents = await _agentService.GetAgents(filter);
+        var items = new List<Agent>();
+        foreach (var agent in pagedAgents.Items)
+        {
+            var renderedAgent = await _agentService.LoadAgent(agent.Id);
+            items.Add(renderedAgent);
+        }
+        return new PagedItems<AgentViewModel>
+        {
+            Items = items.Select(x => AgentViewModel.FromAgent(x)).ToList(),
+            Count = pagedAgents.Count
+        };
     }
 
     [HttpPost("/agent")]

@@ -23,9 +23,11 @@ public class InputUserTextFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        await _driver.Instance.Page.WaitForLoadStateAsync(LoadState.Load);
         await _driver.InputUserText(agent, args, message.MessageId);
 
-        message.Content = "Input text successfully.";
+        message.Content = $"Input text \"{args.InputText}\" successfully.";
+
         return true;
     }
 }

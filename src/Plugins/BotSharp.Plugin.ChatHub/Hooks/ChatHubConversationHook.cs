@@ -100,6 +100,7 @@ public class ChatHubConversationHook : ConversationHookBase
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
 
         var json = JsonSerializer.Serialize(new ChatResponseModel()
         {
@@ -115,7 +116,20 @@ public class ChatHubConversationHook : ConversationHookBase
             }
         }, _serializerOptions);
         await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStatesGenerated", BuildConversationStates(conv.ConversationId, state.GetStates()));
 
         await base.OnResponseGenerated(message);
+    }
+
+    private string BuildConversationStates(string conversationId, Dictionary<string, string> states)
+    {
+        var model = new ConversationStateLogModel
+        {
+            ConvsersationId = conversationId,
+            States = JsonSerializer.Serialize(states, _serializerOptions),
+            CreateTime = DateTime.UtcNow
+        };
+
+        return JsonSerializer.Serialize(model, _serializerOptions);
     }
 }

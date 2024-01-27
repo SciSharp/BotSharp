@@ -210,6 +210,7 @@ public partial class MongoRepository
         var builder = Builders<ConversationDocument>.Filter;
         var filters = new List<FilterDefinition<ConversationDocument>>() { builder.Empty };
 
+        if (!string.IsNullOrEmpty(filter.Id)) filters.Add(builder.Eq(x => x.Id, filter.Id));
         if (!string.IsNullOrEmpty(filter.AgentId)) filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
         if (!string.IsNullOrEmpty(filter.Status)) filters.Add(builder.Eq(x => x.Status, filter.Status));
         if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));
@@ -217,7 +218,8 @@ public partial class MongoRepository
 
         var filterDef = builder.And(filters);
         var sortDefinition = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
-        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDefinition).Skip(filter.Pager.Offset).Limit(filter.Pager.Size).ToList();
+        var pager = filter?.Pager ?? new Pagination();
+        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDefinition).Skip(pager.Offset).Limit(pager.Size).ToList();
         var count = _dc.Conversations.CountDocuments(filterDef);
 
         foreach (var conv in conversationDocs)

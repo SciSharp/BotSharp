@@ -16,8 +16,8 @@ public class PluginController : ControllerBase
         _settings = settings;
     }
 
-    [HttpPost("/plugins")]
-    public PagedItems<PluginDef> GetPlugins([FromBody] PluginFilter filter)
+    [HttpGet("/plugins")]
+    public PagedItems<PluginDef> GetPlugins([FromQuery] PluginFilter filter)
     {
         var loader = _services.GetRequiredService<PluginLoader>();
         return loader.GetPagedPlugins(_services, filter);
