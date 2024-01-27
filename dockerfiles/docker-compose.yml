@@ -2,7 +2,7 @@ version: '3.0'
 
 services:     
   botsharp:
-    image: botsharpdocker/botsharp-core:0.23
+    image: botsharpdocker/botsharp-core:latest
     build: 
       context: ../
       dockerfile: dockerfiles/WebStarter.Dockerfile
