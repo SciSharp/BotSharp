@@ -1,0 +1,17 @@
+version: '3.0'
+
+services:     
+  botsharp:
+    image: botsharpdocker/botsharp-core:0.23
+    build: 
+      context: ../
+      dockerfile: dockerfiles/WebStarter.Dockerfile
+    ports:
+      - 5015:5015
+    env_file:
+      - ./.env
+    volumes:
+      - ./appsettings.json:/app/appsettings.json
+    networks: ['botsharp-network']
+
+networks: {botsharp-network: {}}
