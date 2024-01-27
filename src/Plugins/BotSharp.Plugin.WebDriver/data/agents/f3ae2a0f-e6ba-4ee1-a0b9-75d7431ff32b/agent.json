@@ -6,6 +6,7 @@
   "createdDateTime": "2024-01-02T00:00:00Z",
   "updatedDateTime": "2024-01-02T00:00:00Z",
   "isPublic": true,
+  "profiles": [ "default" ],
   "llmConfig": {
     "max_recursion_depth": 10
   }

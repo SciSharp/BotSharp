@@ -16,6 +16,11 @@ public class PlaywrightInstance : IDisposable
         {
             _playwright = await Playwright.CreateAsync();
 
+            /*_browser = await _playwright.Chromium.LaunchPersistentContextAsync(@"C:\Users\haipi\AppData\Local\Google\Chrome\User Data", new BrowserTypeLaunchPersistentContextOptions
+            {
+                Headless = false,
+                Channel = "chrome",
+            });*/
             _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
                 Headless = false,

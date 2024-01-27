@@ -286,6 +286,10 @@ __pycache__/
 
 /docs/_build
 *.bin
-/src/WebStarter/data/conversations
+src/WebStarter/Properties/PublishProfiles
+src/WebStarter/Properties/ServiceDependencies
 XMLs
 logs
+wwwroot
+appsettings.Production.json
+*.csproj.user

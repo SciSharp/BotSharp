@@ -58,22 +58,7 @@ public partial class PlaywrightWebDriver
 
         var driverService = _services.GetRequiredService<WebDriverService>();
         var htmlElementContextOut = await driverService.LocateElement(agent, string.Join("", str), context.ElementName, messageId);
-
-        if (htmlElementContextOut.Index < 0)
-        {
-            throw new Exception($"Can't locate the web element {context.ElementName}.");
-        }
-
-        ILocator element = default;
-        if (!string.IsNullOrEmpty(htmlElementContextOut.ElementId))
-        {
-            // await _instance.Page.WaitForSelectorAsync($"#{htmlElementContextOut.ElementId}", new PageWaitForSelectorOptions { Timeout = 3 });
-            element = _instance.Page.Locator($"#{htmlElementContextOut.ElementId}");
-        }
-        else
-        {
-            element = _instance.Page.Locator(htmlElementContextOut.TagName).Nth(htmlElementContextOut.Index);
-        }
+        ILocator element = Locator(htmlElementContextOut);
         
         try
         {

@@ -15,3 +15,5 @@ global using BotSharp.Plugin.WebDriver.LlmContexts;
 global using Microsoft.Extensions.DependencyInjection;
 global using System.Linq;
 global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Plugin.WebDriver.Models;
+global using BotSharp.Plugin.WebDriver.Services;

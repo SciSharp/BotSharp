@@ -27,8 +27,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Senparc.Weixin.MP.Middleware" Version="0.8.6" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
+    <PackageReference Include="Senparc.Weixin.MP.Middleware" Version="1.1.1" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

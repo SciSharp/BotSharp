@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PdfPig" Version="0.1.9-alpha-20231119-4537e" />
+    <PackageReference Include="PdfPig" Version="0.1.9-alpha-20240121-04fc8" />
     <PackageReference Include="TensorFlow.Keras" Version="0.15.0" />
   </ItemGroup>
 
