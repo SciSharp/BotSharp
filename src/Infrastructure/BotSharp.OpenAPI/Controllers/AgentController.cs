@@ -25,23 +25,37 @@ public class AgentController : ControllerBase
     [HttpGet("/agent/{id}")]
     public async Task<AgentViewModel> GetAgent([FromRoute] string id)
     {
-        var agent = await _agentService.GetAgent(id);
-        return AgentViewModel.FromAgent(agent);
+        var agents = await GetAgents(new AgentFilter
+        {
+            AgentIds = new List<string> { id }
+        });
+        return agents.Items.First();
     }
-
+             
     [HttpGet("/agents")]
     public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
     {
+        var agentSetting = _services.GetRequiredService<AgentSettings>();
         var pagedAgents = await _agentService.GetAgents(filter);
+
+        // prerender agent
         var items = new List<Agent>();
         foreach (var agent in pagedAgents.Items)
         {
             var renderedAgent = await _agentService.LoadAgent(agent.Id);
             items.Add(renderedAgent);
         }
+
+        // Set IsHost
+        var agents = items.Select(x => AgentViewModel.FromAgent(x)).ToList();
+        foreach(var agent in agents)
+        {
+            agent.IsHost = agentSetting.HostAgentId == agent.Id;
+        }
+
         return new PagedItems<AgentViewModel>
         {
-            Items = items.Select(x => AgentViewModel.FromAgent(x)).ToList(),
+            Items = agents,
             Count = pagedAgents.Count
         };
     }

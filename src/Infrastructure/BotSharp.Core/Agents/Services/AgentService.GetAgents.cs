@@ -13,18 +13,10 @@ public partial class AgentService
     {
         var agents = _db.GetAgents(filter);
 
-        // Set IsRouter
         var routeSetting = _services.GetRequiredService<RoutingSettings>();
         foreach (var agent in agents)
         {
             agent.Plugin = GetPlugin(agent.Id);
-        }
-
-        // Set IsHost
-        var agentSetting = _services.GetRequiredService<AgentSettings>();
-        foreach (var agent in agents)
-        {
-            agent.IsHost = agentSetting.HostAgentId == agent.Id;
         }
 
         agents = agents.Where(x => x.Installed).ToList();

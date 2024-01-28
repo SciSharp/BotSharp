@@ -9,5 +9,11 @@
   "profiles": [ "default" ],
   "llmConfig": {
     "max_recursion_depth": 10
-  }
+  },
+  "routingRules": [
+    {
+      "type": "fallback",
+      "redirectTo": "01e2fc5c-2c89-4ec7-8470-7688608b496c"
+    }
+  ]
 }

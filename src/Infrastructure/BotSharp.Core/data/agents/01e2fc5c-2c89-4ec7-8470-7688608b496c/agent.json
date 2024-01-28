@@ -5,8 +5,7 @@
   "type": "task",
   "createdDateTime": "2024-01-15T10:39:32Z",
   "updatedDateTime": "2024-01-15T14:39:32Z",
-  "iconUrl": "/images/users/bot.png",
+  "iconUrl": "/images/logo.png",
   "disabled": false,
-  "isPublic": true,
-  "profiles": [ "standalone" ]
+  "isPublic": true
 }

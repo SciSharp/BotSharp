@@ -37,6 +37,7 @@ public class ConversationController : ControllerBase
         var conversations = await service.GetConversations(filter);
 
         var userService = _services.GetRequiredService<IUserService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
         var list = conversations.Items
             .Select(x => ConversationViewModel.FromSession(x))
             .ToList();
@@ -45,6 +46,9 @@ public class ConversationController : ControllerBase
         {
             var user = await userService.GetUser(item.User.Id);
             item.User = UserViewModel.FromUser(user);
+
+            var agent = await agentService.GetAgent(item.AgentId);
+            item.AgentName = agent.Name;
         }
 
         return new PagedItems<ConversationViewModel>

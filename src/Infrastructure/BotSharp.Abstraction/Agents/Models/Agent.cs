@@ -63,9 +63,6 @@ public class Agent
     public bool IsPublic { get; set; }
 
     [JsonIgnore]
-    public bool IsHost { get; set; }
-
-    [JsonIgnore]
     public PluginDef Plugin {  get; set; }
 
     [JsonIgnore]
