@@ -9,6 +9,7 @@ public class RoutingRuleMongoElement
     public string Description { get; set; }
     public bool Required { get; set; }
     public string? RedirectTo { get; set; }
+    public string Type { get; set; }
 
     public RoutingRuleMongoElement()
     {
@@ -22,7 +23,8 @@ public class RoutingRuleMongoElement
             Field = routingRule.Field,
             Description = routingRule.Description,
             Required = routingRule.Required,
-            RedirectTo = routingRule.RedirectTo
+            RedirectTo = routingRule.RedirectTo,
+            Type = routingRule.Type,
         };
     }
 
@@ -35,7 +37,8 @@ public class RoutingRuleMongoElement
             Field = rule.Field,
             Description = rule.Description,
             Required = rule.Required,
-            RedirectTo = rule.RedirectTo
+            RedirectTo = rule.RedirectTo,
+            Type = rule.Type,
         };
     }
 }
