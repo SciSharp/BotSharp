@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
+using System.Globalization;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -256,6 +257,35 @@ namespace BotSharp.Core.Repository
         }
 
 
+        public bool TruncateConversation(string conversationId, string messageId)
+        {
+            if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId)) return false;
+
+            var dialogs = new List<DialogElement>();
+            var convDir = FindConversationDirectory(conversationId);
+            if (string.IsNullOrEmpty(convDir)) return false;
+
+            var dialogDir = Path.Combine(convDir, DIALOG_FILE);
+            dialogs = CollectDialogElements(dialogDir);
+            if (dialogs.IsNullOrEmpty()) return false;
+
+            var foundIdx = dialogs.FindIndex(x => x.MetaData?.MessageId == messageId);
+            if (foundIdx < 0) return false;
+
+            // Handle truncated dialogs
+            var isSaved = HandleTruncatedDialogs(dialogDir, dialogs, foundIdx);
+            if (!isSaved) return false;
+
+            // Handle truncated states
+            var refTime = dialogs.ElementAt(foundIdx).MetaData.CreateTime;
+            var stateDir = Path.Combine(convDir, STATE_FILE);
+            var states = CollectConversationStates(stateDir);
+            isSaved = HandleTruncatedStates(stateDir, states, refTime);
+
+            return isSaved;
+        }
+
+
         #region Private methods
         private string? FindConversationDirectory(string conversationId)
         {
@@ -304,8 +334,9 @@ namespace BotSharp.Core.Repository
             foreach (var element in dialogs)
             {
                 var meta = element.MetaData;
+                var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt", CultureInfo.InvariantCulture);
                 var source = meta.FunctionName ?? meta.SenderId;
-                var metaStr = $"{meta.CreateTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{source}";
+                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{source}";
                 dialogTexts.Add(metaStr);
                 var content = $"  - {element.Content}";
                 dialogTexts.Add(content);
@@ -324,6 +355,49 @@ namespace BotSharp.Core.Repository
 
             states = JsonSerializer.Deserialize<List<StateKeyValue>>(stateStr, _options);
             return states ?? new List<StateKeyValue>();
+        }
+
+        private bool HandleTruncatedDialogs(string dialogDir, List<DialogElement> dialogs, int foundIdx)
+        {
+            var truncatedDialogs = dialogs.Where((x, idx) => idx < foundIdx).ToList();
+            var isSaved = SaveTruncatedDialogs(dialogDir, truncatedDialogs);
+            return isSaved;
+        }
+
+        private bool HandleTruncatedStates(string stateDir, List<StateKeyValue> states, DateTime refTime)
+        {
+            var truncatedStates = new List<StateKeyValue>();
+            foreach (var state in states)
+            {
+                var values = state.Values.Where(x => x.UpdateTime < refTime).ToList();
+                if (values.Count == 0) continue;
+
+                state.Values = values;
+                truncatedStates.Add(state);
+            }
+
+            var isSaved = SaveTruncatedStates(stateDir, truncatedStates);
+            return isSaved;
+        }
+
+        private bool SaveTruncatedDialogs(string dialogDir, List<DialogElement> dialogs)
+        {
+            if (string.IsNullOrEmpty(dialogDir) || dialogs == null) return false;
+            if (!File.Exists(dialogDir)) File.Create(dialogDir);
+
+            var texts = ParseDialogElements(dialogs);
+            File.WriteAllLines(dialogDir, texts);
+            return true;
+        }
+
+        private bool SaveTruncatedStates(string stateDir, List<StateKeyValue> states)
+        {
+            if (string.IsNullOrEmpty(stateDir) || states == null) return false;
+            if (!File.Exists(stateDir)) File.Create(stateDir);
+
+            var stateStr = JsonSerializer.Serialize(states, _options);
+            File.WriteAllText(stateDir, stateStr);
+            return true;
         }
         #endregion
     }

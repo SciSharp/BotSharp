@@ -178,6 +178,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
+
+    public bool TruncateConversation(string conversationId, string messageId)
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 
 
