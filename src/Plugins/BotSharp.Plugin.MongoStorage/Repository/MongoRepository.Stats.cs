@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository
         #region Statistics
         public void IncrementConversationCount()
         {
-            throw new NotImplementedException();
+            
         }
         #endregion
     }
