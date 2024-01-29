@@ -36,7 +36,7 @@ public class ChatHubConversationHook : ConversationHookBase
         var agent = await agentService.LoadAgent(conversation.AgentId);
 
         // Check if the Welcome template exists.
-        var welcomeTemplate = agent.Templates?.FirstOrDefault(x => x.Name == "welcome");
+        var welcomeTemplate = agent.Templates?.FirstOrDefault(x => x.Name == ".welcome");
         if (welcomeTemplate != null)
         {
             var richContentService = _services.GetRequiredService<IRichContentService>();

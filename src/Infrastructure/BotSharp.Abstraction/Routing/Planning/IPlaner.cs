@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
 
-namespace BotSharp.Abstraction.Planning;
+namespace BotSharp.Abstraction.Routing.Planning;
 
 /// <summary>
 /// Task breakdown and execution plan 

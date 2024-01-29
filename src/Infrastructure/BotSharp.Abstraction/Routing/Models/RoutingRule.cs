@@ -26,7 +26,7 @@ public class RoutingRule
 
     public override string ToString()
     {
-        return $"{AgentName} {Field}";
+        return $"{Type} {AgentName} {Field}";
     }
 
     public RoutingRule()

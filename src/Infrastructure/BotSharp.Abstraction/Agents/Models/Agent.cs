@@ -33,7 +33,8 @@ public class Agent
     /// Templates
     /// </summary>
     [JsonIgnore]
-    public List<AgentTemplate>? Templates { get; set; }
+    public List<AgentTemplate> Templates { get; set; }
+        = new List<AgentTemplate>();
 
     /// <summary>
     /// Samples
@@ -46,7 +47,8 @@ public class Agent
     /// Functions
     /// </summary>
     [JsonIgnore]
-    public List<FunctionDef> Functions { get; set; } = new List<FunctionDef>();
+    public List<FunctionDef> Functions { get; set; } 
+        = new List<FunctionDef>();
 
     /// <summary>
     /// Responses
@@ -79,6 +81,11 @@ public class Agent
     /// </summary>
     public List<string> Profiles { get; set; }
         = new List<string>();
+
+    /// <summary>
+    /// Inherit from agent
+    /// </summary>
+    public string? InheritAgentId { get; set; }
 
     public List<RoutingRule> RoutingRules { get; set; }
         = new List<RoutingRule>();

@@ -1,11 +1,10 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
 
-namespace BotSharp.Abstraction.Planning;
+namespace BotSharp.Abstraction.Routing.Planning;
 
 public interface IExecutor
 {
-    Task<RoleDialogModel> Execute(IRoutingService routing, 
+    Task<RoleDialogModel> Execute(IRoutingService routing,
         FunctionCallFromLlm inst,
         RoleDialogModel message,
         List<RoleDialogModel> dialogs);
