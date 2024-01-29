@@ -8,6 +8,7 @@ public enum AgentField
     IsPublic,
     Disabled,
     Type,
+    InheritAgentId,
     Profiles,
     RoutingRule,
     Instruction,
