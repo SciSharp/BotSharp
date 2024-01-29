@@ -217,9 +217,9 @@ public partial class FileRepository : IBotSharpRepository
         foreach (var file in Directory.GetFiles(templateDir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splits = fileName.ToLower().Split('.');
-            var name = string.Join('.', splits.Take(splits.Length - 1));
-            var extension = splits.Last();
+            var splitIdx = fileName.LastIndexOf(".");
+            var name = fileName.Substring(0, splitIdx);
+            var extension = fileName.Substring(splitIdx + 1);
             if (extension.Equals(_agentSettings.TemplateFormat, StringComparison.OrdinalIgnoreCase))
             {
                 var content = File.ReadAllText(file);

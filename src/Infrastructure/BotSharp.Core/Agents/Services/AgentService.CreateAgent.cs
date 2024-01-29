@@ -107,9 +107,9 @@ public partial class AgentService
         foreach (var file in Directory.GetFiles(templateDir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splits = fileName.ToLower().Split('.');
-            var name = splits[0];
-            var extension = splits[1];
+            var splitIdx = fileName.LastIndexOf(".");
+            var name = fileName.Substring(0, splitIdx);
+            var extension = fileName.Substring(splitIdx + 1);
             if (extension.IsEqualTo(_agentSettings.TemplateFormat))
             {
                 var content = File.ReadAllText(file);
