@@ -1,12 +1,12 @@
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Messaging;
-using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Core.Messaging;
-using BotSharp.Core.Planning;
+using BotSharp.Core.Routing.Planning;
 using BotSharp.Core.Templating;
 using Microsoft.Extensions.Configuration;
 

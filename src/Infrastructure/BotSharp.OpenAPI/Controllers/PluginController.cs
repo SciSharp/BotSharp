@@ -53,15 +53,15 @@ public class PluginController : ControllerBase
         return menu;
     }
 
-    [HttpPost("/plugin/{id}/enable")]
-    public PluginDef EnablePlugin([FromRoute] string id)
+    [HttpPost("/plugin/{id}/install")]
+    public PluginDef InstallPlugin([FromRoute] string id)
     {
         var loader = _services.GetRequiredService<PluginLoader>();
         return loader.UpdatePluginStatus(_services, id, true);
     }
 
-    [HttpPost("/plugin/{id}/disable")]
-    public PluginDef DisablePluginStats([FromRoute] string id)
+    [HttpPost("/plugin/{id}/remove")]
+    public PluginDef RemovePluginStats([FromRoute] string id)
     {
         var loader = _services.GetRequiredService<PluginLoader>();
         return loader.UpdatePluginStatus(_services, id, false);

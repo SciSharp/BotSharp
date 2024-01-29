@@ -181,10 +181,10 @@ public partial class FileRepository : IBotSharpRepository
         return (agent, agentFile);
     }
 
-    private string FetchInstruction(string fileDir)
+    private string? FetchInstruction(string fileDir)
     {
         var file = Path.Combine(fileDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
-        if (!File.Exists(file)) return string.Empty;
+        if (!File.Exists(file)) return null;
 
         var instruction = File.ReadAllText(file);
         return instruction;

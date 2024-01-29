@@ -292,7 +292,9 @@ public class ChatCompletionProvider : IChatCompletion
                     else if (x.Role == ChatRole.User)
                     {
                         var m = x as ChatRequestUserMessage;
-                        return $"{m.Role}: {m.Content}";
+                        return !string.IsNullOrEmpty(m.Name) ?
+                            $"{m.Name}: {m.Content}" :
+                            $"{m.Role}: {m.Content}";
                     }
                     else if (x.Role == ChatRole.Assistant)
                     {

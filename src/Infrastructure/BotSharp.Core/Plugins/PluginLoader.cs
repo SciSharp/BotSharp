@@ -27,12 +27,17 @@ public class PluginLoader
         _settings = settings;
     }
 
-    public void Load(Action<Assembly> loaded)
+    public void Load(Action<Assembly> loaded, string? plugin = null)
     {
         _executingDir = Directory.GetParent(Assembly.GetEntryAssembly().Location).FullName;
 
         _settings.Assemblies.ToList().ForEach(assemblyName =>
         {
+            if (plugin != null && plugin != assemblyName)
+            {
+                return;
+            }
+
             var assemblyPath = Path.Combine(_executingDir, assemblyName + ".dll");
             if (File.Exists(assemblyPath))
             {
@@ -45,36 +50,64 @@ public class PluginLoader
 
                 foreach (var module in modules)
                 {
-                    module.RegisterDI(_services, _config);
-                    // string classSummary = GetSummaryComment(module.GetType());
-                    var name = string.IsNullOrEmpty(module.Name) ? module.GetType().Name : module.Name;
-                    _modules.Add(module);
-                    _plugins.Add(new PluginDef
+                    if (_plugins.Exists(x => x.Id == module.Id))
                     {
-                        Id = module.Id,
-                        Name = name,
-                        Module = module,
-                        Description = module.Description,
-                        Assembly = assemblyName,
-                        IconUrl = module.IconUrl,
-                        AgentIds = module.AgentIds
-                    });
-                    Console.Write($"Loaded plugin ");
-                    Console.Write(name, Color.Green);
-                    Console.WriteLine($" from {assemblyName}.");
-                    if (!string.IsNullOrEmpty(module.Description))
-                    {
-                        Console.WriteLine(module.Description);
+                        continue;
                     }
+
+                    // Solve plugin dependency
+                    var attr = module.GetType().GetCustomAttribute<PluginDependencyAttribute>();
+                    if (attr != null)
+                    {
+                        foreach (var plugin in attr.PluginNames)
+                        {
+                            if (!_plugins.Any(x => x.Assembly == plugin))
+                            {
+                                Load(loaded, plugin);
+                            }
+
+                            if (!_plugins.Any(x => x.Assembly == plugin))
+                            {
+                                Console.WriteLine($"Load dependent plugin {plugin} failed by {module.Name}.", Color.Red);
+                            }
+                        }
+                    }
+
+                    InitModule(assemblyName, module);
                 }
 
                 loaded(assembly);
             }
             else
             {
-                Console.WriteLine($"Can't find assemble {assemblyPath}.");
+                Console.WriteLine($"Can't find assemble {assemblyPath}.", Color.Red);
             }
         });
+    }
+
+    private void InitModule(string assembly, IBotSharpPlugin module)
+    {
+        module.RegisterDI(_services, _config);
+        // string classSummary = GetSummaryComment(module.GetType());
+        var name = string.IsNullOrEmpty(module.Name) ? module.GetType().Name : module.Name;
+        _modules.Add(module);
+        _plugins.Add(new PluginDef
+        {
+            Id = module.Id,
+            Name = name,
+            Module = module,
+            Description = module.Description,
+            Assembly = assembly,
+            IconUrl = module.IconUrl,
+            AgentIds = module.AgentIds
+        });
+        Console.Write($"Loaded plugin ");
+        Console.Write(name, Color.Green);
+        Console.WriteLine($" from {assembly}.");
+        if (!string.IsNullOrEmpty(module.Description))
+        {
+            Console.WriteLine(module.Description);
+        }
     }
 
     public List<PluginDef> GetPlugins(IServiceProvider services)
@@ -124,6 +157,13 @@ public class PluginLoader
                 var agent = agentService.LoadAgent(agentId).Result;
                 agent.Disabled = false;
                 agentService.UpdateAgent(agent, AgentField.Disabled);
+
+                if (agent.InheritAgentId != null)
+                {
+                    agent = agentService.LoadAgent(agent.InheritAgentId).Result;
+                    agent.Disabled = false;
+                    agentService.UpdateAgent(agent, AgentField.Disabled);
+                }
             } 
         }
         else
