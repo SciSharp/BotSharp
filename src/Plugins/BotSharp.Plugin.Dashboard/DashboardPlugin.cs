@@ -11,7 +11,7 @@ public class DashboardPlugin : IBotSharpPlugin
 {
     public string Id => "d42a0c21-b461-44f6-ada2-499510d260af";
     public string Name => "Dashboard";
-    public string Description => "Dashboard that offering real-time statistics on model performance, usage trends, and user feedback";
+    public string Description => "Dashboard that offers real-time statistics on model performance, usage trends, and user feedback";
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
