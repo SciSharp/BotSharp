@@ -393,9 +393,9 @@ namespace BotSharp.Core.Repository
             foreach (var file in Directory.GetFiles(dir))
             {
                 var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-                var splits = ParseFileNameByPath(fileName.ToLower());
-                var name = splits[0];
-                var extension = splits[1];
+                var splitIdx = fileName.LastIndexOf(".");
+                var name = fileName.Substring(0, splitIdx);
+                var extension = fileName.Substring(splitIdx + 1);
                 if (name.IsEqualTo(templateName) && extension.IsEqualTo(_agentSettings.TemplateFormat))
                 {
                     return File.ReadAllText(file);
