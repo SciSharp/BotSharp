@@ -31,6 +31,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.Type:
                     UpdateAgentType(agent.Id, agent.Type);
                     break;
+                case AgentField.InheritAgentId:
+                    UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
+                    break;
                 case AgentField.Profiles:
                     UpdateAgentProfiles(agent.Id, agent.Profiles);
                     break;
@@ -118,6 +121,17 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Type = type;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
+        private void UpdateAgentInheritAgentId(string agentId, string? inheritAgentId)
+        {
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            agent.InheritAgentId = inheritAgentId;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);

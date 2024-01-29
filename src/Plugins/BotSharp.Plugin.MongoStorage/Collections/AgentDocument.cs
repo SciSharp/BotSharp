@@ -7,6 +7,7 @@ public class AgentDocument : MongoBase
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; }
+    public string? InheritAgentId { get; set; }
     public string? IconUrl { get; set; }
     public string Instruction { get; set; }
     public List<AgentTemplateMongoElement> Templates { get; set; }

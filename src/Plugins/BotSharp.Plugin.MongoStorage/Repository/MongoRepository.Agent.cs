@@ -32,6 +32,9 @@ public partial class MongoRepository
             case AgentField.Type:
                 UpdateAgentType(agent.Id, agent.Type);
                 break;
+            case AgentField.InheritAgentId:
+                UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
+                break;
             case AgentField.Profiles:
                 UpdateAgentProfiles(agent.Id, agent.Profiles);
                 break;
@@ -114,6 +117,16 @@ public partial class MongoRepository
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.Type, type)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentInheritAgentId(string agentId, string? inheritAgentId)
+    {
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.InheritAgentId, inheritAgentId)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -268,6 +281,7 @@ public partial class MongoRepository
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
             Type = agent.Type,
+            InheritAgentId = agent.InheritAgentId,
             Profiles = agent.Profiles,
             RoutingRules = !agent.RoutingRules.IsNullOrEmpty() ? agent.RoutingRules
                                 .Select(r => RoutingRuleMongoElement.ToDomainElement(agent.Id, agent.Name, r))
@@ -329,6 +343,7 @@ public partial class MongoRepository
             IsPublic = x.IsPublic,
             Disabled = x.Disabled,
             Type = x.Type,
+            InheritAgentId = x.InheritAgentId,
             Profiles = x.Profiles,
             RoutingRules = !x.RoutingRules.IsNullOrEmpty() ? x.RoutingRules
                                 .Select(r => RoutingRuleMongoElement.ToDomainElement(x.Id, x.Name, r))
@@ -393,6 +408,7 @@ public partial class MongoRepository
             Samples = x.Samples ?? new List<string>(),
             IsPublic = x.IsPublic,
             Type = x.Type,
+            InheritAgentId = x.InheritAgentId,
             Disabled = x.Disabled,
             Profiles = x.Profiles,
             RoutingRules = x.RoutingRules?
