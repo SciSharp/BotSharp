@@ -13,6 +13,7 @@ public interface IConversationService
     Task<Conversation> UpdateConversationTitle(string id, string title);
     Task<List<Conversation>> GetLastConversations();
     Task<bool> DeleteConversation(string id);
+    Task<bool> TruncateConversation(string conversationId, string messageId);
 
     /// <summary>
     /// Send message to LLM
