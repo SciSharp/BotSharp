@@ -28,7 +28,6 @@ public class PluginController : ControllerBase
     {
         var menu = new List<PluginMenuDef>
         {
-            new PluginMenuDef("Dashboard", link: "/page/dashboard", icon: "bx bx-home-circle", weight: 1),
             new PluginMenuDef("Apps", weight: 5)
             {
                 IsHeader = true,

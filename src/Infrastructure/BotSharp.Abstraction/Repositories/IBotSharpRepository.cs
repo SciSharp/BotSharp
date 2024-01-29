@@ -48,7 +48,9 @@ public interface IBotSharpRepository
     List<Conversation> GetLastConversations();
     bool TruncateConversation(string conversationId, string messageId);
     #endregion
-
+    #region Statistics
+    void IncrementConversationCount();
+    #endregion
     #region Execution Log
     void AddExecutionLogs(string conversationId, List<string> logs);
     List<string> GetExecutionLogs(string conversationId);
