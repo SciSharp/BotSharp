@@ -184,7 +184,12 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
     #endregion
-
+    #region Stats
+    public void IncrementConversationCount()
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
 
     #region User
     public User? GetUserByEmail(string email)
