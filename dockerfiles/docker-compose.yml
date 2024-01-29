@@ -7,7 +7,7 @@ services:
       context: ../
       dockerfile: dockerfiles/WebStarter.Dockerfile
     ports:
-      - 5015:5015
+      - 8080:8080
     env_file:
       - ./.env
     volumes:
