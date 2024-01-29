@@ -46,7 +46,7 @@ namespace BotSharp.Core.Repository
         }
         private string GenerateStatsDirectoryName()
         {
-            return Path.Combine(_dbSettings.FileRepository, "stats", DateTime.UtcNow.Year.ToString(), DateTime.UtcNow.ToString("MM"));
+            return Path.Combine(_dbSettings.FileRepository, _statisticsSetting.DataDir, DateTime.UtcNow.Year.ToString(), DateTime.UtcNow.ToString("MM"));
         }
         private string GenerateStatsFileName()
         {

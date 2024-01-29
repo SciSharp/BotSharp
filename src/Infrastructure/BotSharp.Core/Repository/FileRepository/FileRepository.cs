@@ -11,6 +11,7 @@ using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Evaluations.Settings;
 using System.Text.Encodings.Web;
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Statistics.Settings;
 
 namespace BotSharp.Core.Repository;
 
@@ -20,6 +21,7 @@ public partial class FileRepository : IBotSharpRepository
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly AgentSettings _agentSettings;
     private readonly ConversationSetting _conversationSettings;
+    private readonly StatisticsSettings _statisticsSetting;
     private JsonSerializerOptions _options;
 
     private const string AGENT_FILE = "agent.json";
@@ -39,12 +41,14 @@ public partial class FileRepository : IBotSharpRepository
         IServiceProvider services,
         BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
-        ConversationSetting conversationSettings)
+        ConversationSetting conversationSettings,
+        StatisticsSettings statisticsSettings)
     {
         _services = services;
         _dbSettings = dbSettings;
         _agentSettings = agentSettings;
         _conversationSettings = conversationSettings;
+        _statisticsSetting = statisticsSettings;
 
         _options = new JsonSerializerOptions
         {
