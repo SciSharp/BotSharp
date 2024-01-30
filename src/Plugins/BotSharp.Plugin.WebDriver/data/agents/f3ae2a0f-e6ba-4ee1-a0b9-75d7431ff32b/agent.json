@@ -1,12 +1,13 @@
 {
   "id": "f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b",
   "name": "Web Driver",
-  "description": "Perform a specific action on a web browser",
+  "description": "Perform the web page related task in browser by using automation tools.",
   "type": "task",
   "createdDateTime": "2024-01-02T00:00:00Z",
   "updatedDateTime": "2024-01-02T00:00:00Z",
   "isPublic": true,
+  "profiles": [ "web-driver" ],
   "llmConfig": {
-    "max_recursion_depth": 10
+    "max_recursion_depth": 5
   }
 }

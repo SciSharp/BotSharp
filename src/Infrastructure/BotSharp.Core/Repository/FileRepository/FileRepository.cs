@@ -11,6 +11,7 @@ using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Evaluations.Settings;
 using System.Text.Encodings.Web;
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Statistics.Settings;
 
 namespace BotSharp.Core.Repository;
 
@@ -20,6 +21,7 @@ public partial class FileRepository : IBotSharpRepository
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly AgentSettings _agentSettings;
     private readonly ConversationSetting _conversationSettings;
+    private readonly StatisticsSettings _statisticsSetting;
     private JsonSerializerOptions _options;
 
     private const string AGENT_FILE = "agent.json";
@@ -29,6 +31,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string USER_FILE = "user.json";
     private const string USER_AGENT_FILE = "agents.json";
     private const string CONVERSATION_FILE = "conversation.json";
+    private const string STATS_FILE = "stats.json";
     private const string DIALOG_FILE = "dialogs.txt";
     private const string STATE_FILE = "state.json";
     private const string EXECUTION_LOG_FILE = "execution.log";
@@ -38,12 +41,14 @@ public partial class FileRepository : IBotSharpRepository
         IServiceProvider services,
         BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
-        ConversationSetting conversationSettings)
+        ConversationSetting conversationSettings,
+        StatisticsSettings statisticsSettings)
     {
         _services = services;
         _dbSettings = dbSettings;
         _agentSettings = agentSettings;
         _conversationSettings = conversationSettings;
+        _statisticsSetting = statisticsSettings;
 
         _options = new JsonSerializerOptions
         {
@@ -176,10 +181,10 @@ public partial class FileRepository : IBotSharpRepository
         return (agent, agentFile);
     }
 
-    private string FetchInstruction(string fileDir)
+    private string? FetchInstruction(string fileDir)
     {
         var file = Path.Combine(fileDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
-        if (!File.Exists(file)) return string.Empty;
+        if (!File.Exists(file)) return null;
 
         var instruction = File.ReadAllText(file);
         return instruction;
@@ -212,9 +217,9 @@ public partial class FileRepository : IBotSharpRepository
         foreach (var file in Directory.GetFiles(templateDir))
         {
             var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splits = fileName.ToLower().Split('.');
-            var name = string.Join('.', splits.Take(splits.Length - 1));
-            var extension = splits.Last();
+            var splitIdx = fileName.LastIndexOf(".");
+            var name = fileName.Substring(0, splitIdx);
+            var extension = fileName.Substring(splitIdx + 1);
             if (extension.Equals(_agentSettings.TemplateFormat, StringComparison.OrdinalIgnoreCase))
             {
                 var content = File.ReadAllText(file);

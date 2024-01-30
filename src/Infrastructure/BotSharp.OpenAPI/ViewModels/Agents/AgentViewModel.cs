@@ -62,7 +62,6 @@ public class AgentViewModel
             Responses = agent.Responses,
             Samples = agent.Samples,
             IsPublic= agent.IsPublic,
-            IsHost = agent.IsHost,
             Disabled = agent.Disabled,
             IconUrl = agent.IconUrl,
             Profiles = agent.Profiles ?? new List<string>(),

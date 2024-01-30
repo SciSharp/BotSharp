@@ -9,12 +9,12 @@ public class ConversationViewModel
     [JsonPropertyName("agent_id")]
     public string AgentId { get; set; }
 
+    [JsonPropertyName("agent_name")]
+    public string AgentName { get; set; }
+
     public string Title { get; set; } = string.Empty;
 
     public UserViewModel User {  get; set; } = new UserViewModel();
-
-    [JsonPropertyName("unread_msg_count")]
-    public int UnreadMsgCount { get; set; }
 
     public string Event { get; set; }
 

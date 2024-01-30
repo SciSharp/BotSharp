@@ -1,11 +1,11 @@
-using BotSharp.Plugin.WebDriver.Services;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
     public async Task ClickElement(Agent agent, BrowsingContextIn context, string messageId)
     {
+        var driverService = _services.GetRequiredService<WebDriverService>();
+
         // Retrieve the page raw html and infer the element path
         var body = await _instance.Page.QuerySelectorAsync("body");
 
@@ -23,18 +23,19 @@ public partial class PlaywrightWebDriver
             var text = await btn.TextContentAsync();
             var name = await btn.GetAttributeAsync("name");
             var id = await btn.GetAttributeAsync("id");
-            str.Add($"<button name='{name}' id='{id}'>{text}</button>");
+            str.Add(driverService.AssembleMarkup("button", new MarkupProperties
+            {
+                Id = id,
+                Name = name,
+                Text = text
+            }));
         }
 
-        var driverService = _services.GetRequiredService<WebDriverService>();
-        var htmlElementContextOut = await driverService.LocateElement(agent, string.Join("", str), context.ElementName, messageId);
-
-        var tags = await _instance.Page.QuerySelectorAllAsync(htmlElementContextOut.TagName);
-        var button = tags[htmlElementContextOut.Index];
-        if (button.AsElement() == null)
-        {
-            throw new Exception($"Can't find web element {context.ElementName}");
-        }
-        await button.ClickAsync();
+        var htmlElementContextOut = await driverService.LocateElement(agent, 
+            string.Join("", str), 
+            context.ElementName, 
+            messageId);
+        ILocator element = Locator(htmlElementContextOut);
+        await element.ClickAsync();
     }
 }

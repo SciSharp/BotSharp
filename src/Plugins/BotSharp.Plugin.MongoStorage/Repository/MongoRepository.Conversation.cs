@@ -263,4 +263,42 @@ public partial class MongoRepository
             UpdatedTime = c.UpdatedTime
         }).ToList();
     }
+
+    public bool TruncateConversation(string conversationId, string messageId)
+    {
+        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId)) return false;
+
+        var dialogFilter = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundDialog = _dc.ConversationDialogs.Find(dialogFilter).FirstOrDefault();
+        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty()) return false;
+
+        var foundIdx = foundDialog.Dialogs.FindIndex(x => x.MetaData?.MessageId == messageId);
+        if (foundIdx < 0) return false;
+
+        // Handle truncated dialogs
+        var truncatedDialogs = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
+        
+        // Handle truncated states
+        var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreateTime;
+        var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundStates = _dc.ConversationStates.Find(stateFilter).FirstOrDefault();
+        if (foundStates == null || foundStates.States.IsNullOrEmpty()) return false;
+
+        var truncatedStates = new List<StateMongoElement>();
+        foreach (var state in foundStates.States)
+        {
+            var values = state.Values.Where(x => x.UpdateTime < refTime).ToList();
+            if (values.Count == 0) continue;
+
+            state.Values = values;
+            truncatedStates.Add(state);
+        }
+
+        // Save
+        foundDialog.Dialogs = truncatedDialogs;
+        foundStates.States = truncatedStates;
+        _dc.ConversationDialogs.ReplaceOne(dialogFilter, foundDialog);
+        _dc.ConversationStates.ReplaceOne(stateFilter, foundStates);
+        return true;
+    }
 }

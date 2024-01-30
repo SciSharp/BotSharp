@@ -21,10 +21,11 @@ public class LlmProviderPlugin : IBotSharpPlugin
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
+            var loger = provider.GetRequiredService<ILogger<LlmProviderPlugin>>();
             var llmProviders = settingService.Bind<List<LlmProviderSetting>>("LlmProviders");
             foreach (var llmProvider in llmProviders)
             {
-                Console.WriteLine($"Loaded LlmProvider {llmProvider.Provider} settings with {llmProvider.Models.Count} models.");
+                loger.LogInformation($"Loaded LlmProvider {llmProvider.Provider} settings with {llmProvider.Models.Count} models.");
             }
             return llmProviders;
         });

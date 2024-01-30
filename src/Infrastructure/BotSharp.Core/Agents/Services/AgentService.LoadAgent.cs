@@ -32,6 +32,27 @@ public partial class AgentService
             throw new Exception($"Can't load agent by id: {id}");
         }
 
+        if (agent.InheritAgentId != null)
+        {
+            var inheritedAgent = await GetAgent(agent.InheritAgentId);
+            agent.Templates.AddRange(inheritedAgent.Templates
+                // exclude private template
+                .Where(x => !x.Name.StartsWith("."))
+                // exclude duplicate name
+                .Where(x => !agent.Templates.Exists(t => t.Name == x.Name)));
+
+            agent.Functions.AddRange(inheritedAgent.Functions
+                // exclude private template
+                .Where(x => !x.Name.StartsWith("."))
+                // exclude duplicate name
+                .Where(x => !agent.Functions.Exists(t => t.Name == x.Name)));
+
+            if (agent.Instruction == null)
+            {
+                agent.Instruction = inheritedAgent.Instruction;
+            }
+        }
+
         agent.TemplateDict = new Dictionary<string, object>();
 
         // Populate state into dictionary

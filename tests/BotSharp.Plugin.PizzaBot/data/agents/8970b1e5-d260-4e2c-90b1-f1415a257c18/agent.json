@@ -1,0 +1,18 @@
+{
+  "id": "8970b1e5-d260-4e2c-90b1-f1415a257c18",
+  "name": "Pizza Bot",
+  "description": "AI assistant that can help customer place pizza order.",
+  "type": "routing",
+  "createdDateTime": "2023-08-18T10:39:32.2349685Z",
+  "updatedDateTime": "2023-08-18T14:39:32.2349686Z",
+  "iconUrl": "https://cdn-icons-png.flaticon.com/512/6978/6978255.png",
+  "disabled": true,
+  "isPublic": true,
+  "profiles": [ "pizza" ],
+  "routingRules": [
+    {
+      "type": "planner",
+      "field": "NaviePlanner"
+    }
+  ]
+}

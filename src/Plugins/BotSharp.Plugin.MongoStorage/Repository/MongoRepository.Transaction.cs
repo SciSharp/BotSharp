@@ -55,6 +55,7 @@ public partial class MongoRepository
                     Samples = x.Samples ?? new List<string>(),
                     IsPublic = x.IsPublic,
                     Type = x.Type,
+                    InheritAgentId = x.InheritAgentId,
                     Disabled = x.Disabled,
                     Profiles = x.Profiles,
                     RoutingRules = x.RoutingRules?
@@ -78,6 +79,7 @@ public partial class MongoRepository
                         .Set(x => x.Samples, agent.Samples)
                         .Set(x => x.IsPublic, agent.IsPublic)
                         .Set(x => x.Type, agent.Type)
+                        .Set(x => x.InheritAgentId, agent.InheritAgentId)
                         .Set(x => x.Disabled, agent.Disabled)
                         .Set(x => x.Profiles, agent.Profiles)
                         .Set(x => x.RoutingRules, agent.RoutingRules)

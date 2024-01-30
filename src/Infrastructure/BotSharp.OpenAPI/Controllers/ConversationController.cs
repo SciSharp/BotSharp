@@ -37,6 +37,7 @@ public class ConversationController : ControllerBase
         var conversations = await service.GetConversations(filter);
 
         var userService = _services.GetRequiredService<IUserService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
         var list = conversations.Items
             .Select(x => ConversationViewModel.FromSession(x))
             .ToList();
@@ -45,6 +46,9 @@ public class ConversationController : ControllerBase
         {
             var user = await userService.GetUser(item.User.Id);
             item.User = UserViewModel.FromUser(user);
+
+            var agent = await agentService.GetAgent(item.AgentId);
+            item.AgentName = agent.Name;
         }
 
         return new PagedItems<ConversationViewModel>
@@ -110,14 +114,26 @@ public class ConversationController : ControllerBase
         return response;
     }
 
+    [HttpDelete("/conversation/{conversationId}/message/{messageId}")]
+    public async Task<bool> DeleteConversationMessage([FromRoute] string conversationId, [FromRoute] string messageId)
+    {
+        var conversationService = _services.GetRequiredService<IConversationService>();
+        var response = await conversationService.TruncateConversation(conversationId, messageId);
+        return response;
+    }
+
     [HttpPost("/conversation/{agentId}/{conversationId}")]
     public async Task<ChatResponseModel> SendMessage([FromRoute] string agentId,
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
-        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
-
         var conv = _services.GetRequiredService<IConversationService>();
+        if (!string.IsNullOrEmpty(input.TruncateMessageId))
+        {
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId);
+        }
+
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
         conv.SetConversationId(conversationId, input.States);
         conv.States.SetState("channel", input.Channel)
                    .SetState("provider", input.Provider)
