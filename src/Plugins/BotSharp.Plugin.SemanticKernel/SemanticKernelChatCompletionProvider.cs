@@ -6,7 +6,7 @@ using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +19,7 @@ namespace BotSharp.Plugin.SemanticKernel
     /// </summary>
     public class SemanticKernelChatCompletionProvider : IChatCompletion
     {
-        private Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion _kernelChatCompletion;
+        private Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService _kernelChatCompletion;
         private IServiceProvider _services;
         private ITokenStatistics _tokenStatistics;
         private string? _model = null;
@@ -33,7 +33,7 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <param name="chatCompletion"></param>
         /// <param name="services"></param>
         /// <param name="tokenStatistics"></param>
-        public SemanticKernelChatCompletionProvider(Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion chatCompletion,
+        public SemanticKernelChatCompletionProvider(IChatCompletionService chatCompletion,
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
         {
@@ -55,7 +55,7 @@ namespace BotSharp.Plugin.SemanticKernel
             var agentService = _services.GetRequiredService<IAgentService>();
             var instruction = agentService.RenderedInstruction(agent);
 
-            var chatHistory = completion.CreateNewChat(instruction);
+            ChatHistory chatHistory = new ChatHistory(instruction);
 
             foreach (var message in conversations)
             {
@@ -69,14 +69,9 @@ namespace BotSharp.Plugin.SemanticKernel
                 }
             }
 
-            var response = await completion.GetChatCompletionsAsync(chatHistory)
-                .ContinueWith(async t =>
-                {
-                    var result = await t;
-                    var message = await result.First().GetChatMessageAsync();
-                    return message.Content;
-                }).ConfigureAwait(false).GetAwaiter().GetResult();
-
+            var ChatMessage = await completion.GetChatMessageContentsAsync(chatHistory);
+            var chatMessageContent =  ChatMessage?.FirstOrDefault();
+            var response = chatMessageContent != null ? chatMessageContent.Content :string.Empty;
             var msg = new RoleDialogModel(AgentRole.Assistant, response)
             {
                 CurrentAgentId = agent.Id
