@@ -9,9 +9,13 @@ namespace BotSharp.Plugin.SemanticKernel
 {
     internal class SemanticKernelMemoryStoreProvider : IVectorDb
     {
+#pragma warning disable SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         private readonly IMemoryStore _memoryStore;
+#pragma warning restore SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
+#pragma warning disable SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         public SemanticKernelMemoryStoreProvider(IMemoryStore memoryStore)
+#pragma warning restore SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         {
             this._memoryStore = memoryStore;
         }
@@ -46,7 +50,9 @@ namespace BotSharp.Plugin.SemanticKernel
 
         public async Task Upsert(string collectionName, int id, float[] vector, string text)
         {
+#pragma warning disable SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             await _memoryStore.UpsertAsync(collectionName, MemoryRecord.LocalRecord(id.ToString(), text, null, vector));
+#pragma warning restore SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
     }
 }

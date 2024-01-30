@@ -1,20 +1,7 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Plugin.SemanticKernel;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.TextCompletion;
-using Moq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
-using System;
-using System.Linq;
-using Microsoft;
-using Microsoft.SemanticKernel.AI;
 using BotSharp.Plugin.SemanticKernel.UnitTests.Helpers;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace BotSharp.Plugin.SemanticKernel.Tests
 {

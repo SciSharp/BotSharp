@@ -3,10 +3,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Loggers;
-using Microsoft;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.TextCompletion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +16,7 @@ namespace BotSharp.Plugin.SemanticKernel
     /// </summary>
     public class SemanticKernelTextCompletionProvider : Abstraction.MLTasks.ITextCompletion
     {
-        private readonly Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion _kernelTextCompletion;
+        private readonly Microsoft.SemanticKernel.TextGeneration.ITextGenerationService _kernelTextCompletion;
         private readonly IServiceProvider _services;
         private readonly ITokenStatistics _tokenStatistics;
         private string? _model = null;
@@ -33,7 +30,7 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <param name="textCompletion"></param>
         /// <param name="services"></param>
         /// <param name="tokenStatistics"></param>
-        public SemanticKernelTextCompletionProvider(Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion textCompletion,
+        public SemanticKernelTextCompletionProvider(Microsoft.SemanticKernel.TextGeneration.ITextGenerationService textCompletion,
             IServiceProvider services,
             ITokenStatistics tokenStatistics)
         {
@@ -61,9 +58,11 @@ namespace BotSharp.Plugin.SemanticKernel
 
             var completion = this._kernelTextCompletion;
             _tokenStatistics.StartTimer();
-            var result = await completion.CompleteAsync(text);
+            var textContent = await completion.GetTextContentsAsync(text);
+            var result = textContent.FirstOrDefault().Text;
             _tokenStatistics.StopTimer();
 
+           
             // After chat completion hook
             Task.WaitAll(hooks.Select(hook =>
                 hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, result), new TokenStatsModel

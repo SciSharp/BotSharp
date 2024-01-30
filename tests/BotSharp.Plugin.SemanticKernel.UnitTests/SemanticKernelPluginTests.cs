@@ -20,10 +20,14 @@ namespace BotSharp.Plugin.SemanticKernel.Tests
             services.AddSingleton<IConfiguration>(config);
 
             var plugin = new SemanticKernelPlugin();
-            services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.AI.TextCompletion.ITextCompletion>());
-            services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion>());
+            services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.TextGeneration.ITextGenerationService>());
+            services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>());
+#pragma warning disable SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.Memory.IMemoryStore>());
-            services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.AI.Embeddings.ITextEmbeddingGeneration>());
+#pragma warning restore SKEXP0003 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            services.AddScoped(x => Mock.Of<Microsoft.SemanticKernel.Embeddings.ITextEmbeddingGenerationService>());
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             services.AddScoped(x => Mock.Of<ITokenStatistics>());
 
 
