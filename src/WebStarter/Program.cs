@@ -24,7 +24,7 @@ builder.Host.UseSerilog();
 builder.Services.AddBotSharpCore(builder.Configuration)
     .AddBotSharpOpenAPI(builder.Configuration, new[]
     {
-        "http://localhost:5015",
+        "http://0.0.0.0:5015",
         "https://botsharp.scisharpstack.org",
         "https://chat.scisharpstack.org"
     }, builder.Environment, true)

@@ -1,6 +1,6 @@
 <Project>
  <PropertyGroup>
-   <TargetFramework>net6.0</TargetFramework>
+   <TargetFramework>net8.0</TargetFramework>
    <LangVersion>10.0</LangVersion>
    <BotSharpVersion>0.22.0</BotSharpVersion>
    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>

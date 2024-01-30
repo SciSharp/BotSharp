@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>$(LangVersion)</LangVersion>
@@ -16,12 +16,9 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
-  </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrongGrid" Version="0.102.0" />
+    <PackageReference Include="StrongGrid" Version="0.104.0" />
     <PackageReference Include="Twilio.AspNet.Common" Version="8.0.2" />
     <PackageReference Include="Twilio.AspNet.Core" Version="8.0.2" />
   </ItemGroup>

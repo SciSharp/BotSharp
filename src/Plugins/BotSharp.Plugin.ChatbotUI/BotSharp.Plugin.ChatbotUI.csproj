@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
     <ProjectReference Include="..\..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
   </ItemGroup>
