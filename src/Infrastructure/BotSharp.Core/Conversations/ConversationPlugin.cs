@@ -51,7 +51,7 @@ public class ConversationPlugin : IBotSharpPlugin
     public bool AttachMenu(List<PluginMenuDef> menu)
     {
         var section = menu.First(x => x.Label == "Apps");
-        menu.Add(new PluginMenuDef("Conversation", link: "/page/conversation", icon: "bx bx-conversation", weight: section.Weight + 5));
+        menu.Add(new PluginMenuDef("Conversation", link: "page/conversation", icon: "bx bx-conversation", weight: section.Weight + 5));
         return true;
     }
 }

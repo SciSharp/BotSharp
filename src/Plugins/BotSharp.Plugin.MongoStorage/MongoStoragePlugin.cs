@@ -33,7 +33,7 @@ public class MongoStoragePlugin : IBotSharpPlugin
     public bool AttachMenu(List<PluginMenuDef> menu)
     {
         var section = menu.First(x => x.Label == "Apps");
-        menu.Add(new PluginMenuDef("MongoDB", icon: "bx bx-data", link: "/page/mongodb", weight: section.Weight + 10));
+        menu.Add(new PluginMenuDef("MongoDB", icon: "bx bx-data", link: "page/mongodb", weight: section.Weight + 10));
         return true;
     }
 }
