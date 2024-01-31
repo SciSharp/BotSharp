@@ -192,20 +192,17 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     #endregion
 
     #region User
-    public User? GetUserByEmail(string email)
-    {
-        throw new NotImplementedException();
-    }
+    public User? GetUserByEmail(string email) 
+        => throw new NotImplementedException();
 
-    public User? GetUserById(string id)
-    {
-        throw new NotImplementedException();
-    }
+    public User? GetUserById(string id) 
+        => throw new NotImplementedException();
 
-    public void CreateUser(User user)
-    {
-        throw new NotImplementedException();
-    }
+    public User? GetUserByUserName(string userName) 
+        => throw new NotImplementedException();
+
+    public void CreateUser(User user) 
+        => throw new NotImplementedException();
     #endregion
 
 

@@ -29,7 +29,7 @@ public class AgentController : ControllerBase
         {
             AgentIds = new List<string> { id }
         });
-        return agents.Items.First();
+        return agents.Items.FirstOrDefault();
     }
              
     [HttpGet("/agents")]

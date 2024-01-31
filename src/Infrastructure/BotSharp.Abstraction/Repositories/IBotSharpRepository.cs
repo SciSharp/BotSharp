@@ -18,6 +18,7 @@ public interface IBotSharpRepository
     #region User
     User? GetUserByEmail(string email);
     User? GetUserById(string id);
+    User? GetUserByUserName(string userName);
     void CreateUser(User user);
     #endregion
 
