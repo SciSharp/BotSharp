@@ -7,4 +7,5 @@ public interface IUserIdentity
     string UserName { get; }
     string FirstName { get; }
     string LastName { get; }
+    string FullName { get; }
 }

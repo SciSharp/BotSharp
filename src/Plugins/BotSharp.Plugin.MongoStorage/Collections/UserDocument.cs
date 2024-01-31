@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Users.Models;
+
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class UserDocument : MongoBase
@@ -14,4 +16,21 @@ public class UserDocument : MongoBase
 
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
+
+    public User ToUser()
+    {
+        return new User
+        {
+            Id = Id,
+            UserName = UserName,
+            FirstName = FirstName,
+            LastName = LastName,
+            Email = Email,
+            Password = Password,
+            Salt = Salt,
+            Source = Source,
+            ExternalId = ExternalId,
+            Role = Role
+        };
+    }
 }
