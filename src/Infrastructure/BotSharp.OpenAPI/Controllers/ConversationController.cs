@@ -68,6 +68,7 @@ public class ConversationController : ControllerBase
         var history = conv.GetDialogHistory();
 
         var userService = _services.GetRequiredService<IUserService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
 
         var dialogs = new List<ChatResponseModel>();
         foreach (var message in history)
@@ -87,12 +88,18 @@ public class ConversationController : ControllerBase
             }
             else
             {
+                var agent = await agentService.GetAgent(message.CurrentAgentId);
                 dialogs.Add(new ChatResponseModel
                 {
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
-                    Text = message.Content
+                    Text = message.Content,
+                    Sender = new UserViewModel
+                    {
+                        FirstName = agent.Name,
+                        Role = message.Role,
+                    }
                 });
             }
         }
