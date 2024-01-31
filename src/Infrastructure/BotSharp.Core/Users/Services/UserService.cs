@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -28,8 +29,17 @@ public class UserService : IUserService
         }
 
         record = user;
-        record.UserName = user.UserName.ToLower();
+        
         record.Email = user.Email.ToLower();
+        if (string.IsNullOrEmpty(user.UserName))
+        {
+            var name = record.Email.Split("@").First() + "-" + Nanoid.Generate("123456789botsharp", 6);
+            record.UserName = name;
+        }
+        else
+        {
+            record.UserName = user.UserName.ToLower();
+        }
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
 
@@ -47,6 +57,31 @@ public class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserByEmail(userEmail);
+        if (record == null)
+        {
+            // check 3rd party user
+            var validators = _services.GetServices<IAuthenticationHook>();
+            foreach (var validator in validators)
+            {
+                var user = await validator.Authenticate(userEmail, password);
+                if (user != null)
+                {
+                    // create a local user record
+                    record = new User
+                    {
+                        UserName = user.UserName,
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Source = user.Source,
+                        ExternalId = user.ExternalId
+                    };
+                    await CreateUser(record);
+                    break;
+                }
+            }
+        }
+
         if (record == null)
         {
             return default;
@@ -96,7 +131,7 @@ public class UserService : IUserService
         return tokenHandler.WriteToken(token);
     }
 
-    [MemoryCache(10 * 60)]
+    [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<User> GetMyProfile()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();

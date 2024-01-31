@@ -17,6 +17,7 @@ public partial class MongoRepository
             Email = user.Email,
             Password = user.Password,
             Salt = user.Salt,
+            Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role
         } : null;
@@ -34,6 +35,7 @@ public partial class MongoRepository
             Email = user.Email,
             Password = user.Password,
             Salt = user.Salt,
+            Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role
         } : null;
@@ -52,6 +54,7 @@ public partial class MongoRepository
             Salt = user.Salt,
             Password = user.Password,
             Email = user.Email,
+            Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role,
             CreatedTime = DateTime.UtcNow,

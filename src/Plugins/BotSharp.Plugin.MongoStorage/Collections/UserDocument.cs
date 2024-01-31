@@ -8,6 +8,7 @@ public class UserDocument : MongoBase
     public string Email { get; set; }
     public string Salt { get; set; }
     public string Password { get; set; }
+    public string Source { get; set; } = "internal";
     public string? ExternalId { get; set; }
     public string Role { get; set; }
 

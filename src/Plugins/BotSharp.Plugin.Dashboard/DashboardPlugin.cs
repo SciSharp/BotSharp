@@ -12,7 +12,7 @@ public class DashboardPlugin : IBotSharpPlugin
     public string Id => "d42a0c21-b461-44f6-ada2-499510d260af";
     public string Name => "Dashboard";
     public string Description => "Dashboard that offers real-time statistics on model performance, usage trends, and user feedback";
-
+    public string IconUrl => "https://cdn0.iconfinder.com/data/icons/octicons/1024/dashboard-512.png";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IConversationHook, StatsConversationHook>();
