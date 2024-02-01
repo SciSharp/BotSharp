@@ -1,11 +1,11 @@
-using Microsoft.Extensions.Configuration;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
     public async Task InputUserPassword(Agent agent, BrowsingContextIn context, string messageId)
     {
+        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+
         // Retrieve the page raw html and infer the element path
         var body = await _instance.Page.QuerySelectorAsync("body");
 

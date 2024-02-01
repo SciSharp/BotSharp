@@ -4,6 +4,7 @@ public partial class PlaywrightWebDriver
 {
     public async Task ClickElement(Agent agent, BrowsingContextIn context, string messageId)
     {
+        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         var driverService = _services.GetRequiredService<WebDriverService>();
 
         // Retrieve the page raw html and infer the element path
@@ -37,5 +38,6 @@ public partial class PlaywrightWebDriver
             messageId);
         ILocator element = Locator(htmlElementContextOut);
         await element.ClickAsync();
+        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
 }
