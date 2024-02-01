@@ -22,6 +22,11 @@ public partial class WebDriverService
             html += $" type=\"{properties.Type}\"";
         }
 
+        if (!string.IsNullOrEmpty(properties.Placeholder))
+        {
+            html += $" placeholder=\"{properties.Placeholder}\"";
+        }
+
         if (!string.IsNullOrEmpty(properties.Text))
         {
             html += $">{properties.Text}</{tagName}>";

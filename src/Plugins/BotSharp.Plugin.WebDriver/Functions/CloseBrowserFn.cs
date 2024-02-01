@@ -2,14 +2,14 @@ using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class ExtractDataFn : IFunctionCallback
+public class CloseBrowserFn : IFunctionCallback
 {
-    public string Name => "extract_data_from_page";
+    public string Name => "close_browser";
 
     private readonly IServiceProvider _services;
     private readonly PlaywrightWebDriver _driver;
 
-    public ExtractDataFn(IServiceProvider services,
+    public CloseBrowserFn(IServiceProvider services,
         PlaywrightWebDriver driver)
     {
         _services = services;
@@ -21,7 +21,8 @@ public class ExtractDataFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        message.Content = await _driver.ExtractData(agent, args, message.MessageId);
+        await _driver.CloseBrowser(agent, args, message.MessageId);
+        message.Content = $"Browser is closed";
         return true;
     }
 }

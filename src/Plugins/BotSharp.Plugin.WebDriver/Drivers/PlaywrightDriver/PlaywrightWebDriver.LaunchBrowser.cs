@@ -14,6 +14,7 @@ public partial class PlaywrightWebDriver
             });
             _instance.SetPage(page);
             var response = await page.GotoAsync(url);
+            await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
 
         return _instance.Browser;
