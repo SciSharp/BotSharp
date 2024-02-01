@@ -78,10 +78,6 @@
         "input_text": {
           "type": "string",
           "description": "non-sensitive text user provided."
-        },
-        "press_enter": {
-          "type": "boolean",
-          "description": "whether to press ENTER"
         }
       },
       "required": [ "element_name", "input_text" ]

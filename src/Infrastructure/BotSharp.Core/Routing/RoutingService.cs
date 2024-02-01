@@ -80,7 +80,7 @@ public partial class RoutingService : IRoutingService
         context.Push(_router.Id);
 
         int loopCount = 0;
-        while (loopCount < 5 && !context.IsEmpty)
+        while (loopCount < planner.MaxLoopCount && !context.IsEmpty)
         {
             loopCount++;
 
@@ -101,7 +101,25 @@ public partial class RoutingService : IRoutingService
             await planner.AgentExecuting(_router, inst, message);
 
             // Handle instruction by Executor
-            response = await executor.Execute(this, inst, message, dialogs);
+            if (planner.HideDialogContext)
+            {
+                /*var args = JsonSerializer.Serialize(inst.Arguments);
+                if (args.Length > 3)
+                {
+                    inst.Question += $"\r\nargs: {args}";
+                }*/
+                var step = await planner.GetDecomposedStepAsync(_router, message.MessageId, dialogs);
+                var maskDialogs = new List<RoleDialogModel>
+                {
+                    new RoleDialogModel(AgentRole.User, step.Description)
+                };
+                response = await executor.Execute(this, inst, message, maskDialogs);
+                dialogs.AddRange(maskDialogs.Skip(1));
+            }
+            else
+            {
+                response = await executor.Execute(this, inst, message, dialogs);
+            }
 
             await planner.AgentExecuted(_router, inst, response);
         }

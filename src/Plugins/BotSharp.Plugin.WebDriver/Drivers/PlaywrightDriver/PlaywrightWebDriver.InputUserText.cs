@@ -58,10 +58,6 @@ public partial class PlaywrightWebDriver
         try
         {
             await element.FillAsync(context.InputText);
-            if (context.PressEnter)
-            {
-                await element.PressAsync("Enter");
-            }
         }
         catch (Exception ex)
         {

@@ -13,9 +13,6 @@ public class BrowsingContextIn
     [JsonPropertyName("input_text")]
     public string? InputText { get; set; }
 
-    [JsonPropertyName("press_enter")]
-    public bool PressEnter { get; set; }
-
     [JsonPropertyName("update_value")]
     public string? UpdateValue { get; set; }
 

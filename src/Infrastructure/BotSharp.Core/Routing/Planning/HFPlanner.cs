@@ -42,7 +42,7 @@ public class HFPlanner : IPlaner
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
-                        FunctionName = nameof(NaivePlanner),
+                        FunctionName = nameof(HFPlanner),
                         MessageId = messageId
                     }
                 };
