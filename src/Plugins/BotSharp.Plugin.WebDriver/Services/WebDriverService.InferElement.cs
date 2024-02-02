@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.WebDriver.Services;
 
 public partial class WebDriverService
 {
-    public async Task<HtmlElementContextOut> LocateElement(Agent agent, string html, string elementName, string messageId)
+    public async Task<HtmlElementContextOut> InferElement(Agent agent, string html, string elementName, string messageId)
     {
         var parserInstruction = agent.Templates.First(x => x.Name == "html_parser").Content;
 

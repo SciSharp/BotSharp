@@ -22,7 +22,7 @@ public class HFPlanner : IPlaner
         _logger = logger;
     }
 
-    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
+    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs)
     {
         var next = GetNextStepPrompt(router);
 
@@ -38,11 +38,11 @@ public class HFPlanner : IPlaner
         {
             try
             {
-                var dialogs = new List<RoleDialogModel>
+                dialogs = new List<RoleDialogModel>
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
-                        FunctionName = nameof(NaivePlanner),
+                        FunctionName = nameof(HFPlanner),
                         MessageId = messageId
                     }
                 };

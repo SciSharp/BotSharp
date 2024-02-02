@@ -80,7 +80,7 @@ public partial class RoutingService : IRoutingService
         context.Push(_router.Id);
 
         int loopCount = 0;
-        while (loopCount < 5 && !context.IsEmpty)
+        while (loopCount < planner.MaxLoopCount && !context.IsEmpty)
         {
             loopCount++;
 
@@ -88,7 +88,7 @@ public partial class RoutingService : IRoutingService
             _router.TemplateDict["conversation"] = conversation;
 
             // Get instruction from Planner
-            var inst = await planner.GetNextInstruction(_router, message.MessageId);
+            var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
 
             // Save states
             states.SaveStateByArgs(inst.Arguments);
@@ -100,8 +100,20 @@ public partial class RoutingService : IRoutingService
 #endif
             await planner.AgentExecuting(_router, inst, message);
 
-            // Handle instruction by Executor
-            response = await executor.Execute(this, inst, message, dialogs);
+            // Handover to Task Agent
+            if (inst.HideDialogContext)
+            {
+                var dialogWithoutContext = new List<RoleDialogModel>
+                {
+                    new RoleDialogModel(AgentRole.User, inst.Response)
+                };
+                response = await executor.Execute(this, inst, message, dialogWithoutContext);
+                dialogs.AddRange(dialogWithoutContext.Skip(1));
+            }
+            else
+            {
+                response = await executor.Execute(this, inst, message, dialogs);
+            }
 
             await planner.AgentExecuted(_router, inst, response);
         }

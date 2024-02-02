@@ -180,16 +180,6 @@ public class UserService : IUserService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(id);
-        if (user == null)
-        {
-            user = new User
-            {
-                Id = id,
-                FirstName = "Unknown",
-                LastName = "Anonymous",
-                Role = AgentRole.User
-            };
-        }
         return user;
     }
 }

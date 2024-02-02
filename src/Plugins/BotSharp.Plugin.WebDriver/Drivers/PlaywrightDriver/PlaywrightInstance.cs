@@ -4,10 +4,12 @@ public class PlaywrightInstance : IDisposable
 {
     IPlaywright _playwright;
     IBrowser _browser;
+    IBrowserContext _context;
     IPage _page;
 
     // public IPlaywright Playwright => _playwright;
     public IBrowser Browser => _browser;
+    public IBrowserContext Context => _context;
     public IPage Page => _page;
 
     public async Task InitInstance()
@@ -27,9 +29,11 @@ public class PlaywrightInstance : IDisposable
                 Channel = "chrome",
                 Args = new[] 
                 { 
-                    "--start-maximized" 
+                    "--start-maximized"
                 }
             });
+
+            _context = await _browser.NewContextAsync();
         }
     }
 

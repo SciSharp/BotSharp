@@ -21,7 +21,6 @@ public partial class PlaywrightWebDriver
         ILocator element = default;
         if (!string.IsNullOrEmpty(context.ElementId))
         {
-            // await _instance.Page.WaitForSelectorAsync($"#{htmlElementContextOut.ElementId}", new PageWaitForSelectorOptions { Timeout = 3 });
             element = _instance.Page.Locator($"#{context.ElementId}");
         }
         else if (!string.IsNullOrEmpty(context.ElementName))
@@ -33,7 +32,6 @@ public partial class PlaywrightWebDriver
                 "button" => AriaRole.Button,
                 _ => AriaRole.Generic
             };
-            // await _instance.Page.WaitForSelectorAsync($"#{htmlElementContextOut.ElementId}", new PageWaitForSelectorOptions { Timeout = 3 });
             element = _instance.Page.Locator($"[name='{context.ElementName}']");
 
             if (element.CountAsync().Result == 0)
