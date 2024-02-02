@@ -8,10 +8,11 @@ public partial class PlaywrightWebDriver
 
         if (!string.IsNullOrEmpty(url))
         {
-            var page = await _instance.Browser.NewPageAsync(new BrowserNewPageOptions
+            /*var page = await _instance.Browser.NewPageAsync(new BrowserNewPageOptions
             {
                 ViewportSize = ViewportSize.NoViewport
-            });
+            });*/
+            var page = await _instance.Context.NewPageAsync();
             _instance.SetPage(page);
             var response = await page.GotoAsync(url);
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);

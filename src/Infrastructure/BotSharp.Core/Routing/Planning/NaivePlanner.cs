@@ -18,7 +18,7 @@ public class NaivePlanner : IPlaner
         _logger = logger;
     }
 
-    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
+    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs)
     {
         var next = GetNextStepPrompt(router);
 
@@ -44,7 +44,7 @@ public class NaivePlanner : IPlaner
             {
                 // text completion
                 // text = await completion.GetCompletion(content, router.Id, messageId);
-                var dialogs = new List<RoleDialogModel>
+                dialogs = new List<RoleDialogModel>
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {

@@ -88,7 +88,7 @@ public partial class RoutingService : IRoutingService
             _router.TemplateDict["conversation"] = conversation;
 
             // Get instruction from Planner
-            var inst = await planner.GetNextInstruction(_router, message.MessageId);
+            var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
 
             // Save states
             states.SaveStateByArgs(inst.Arguments);
@@ -100,21 +100,15 @@ public partial class RoutingService : IRoutingService
 #endif
             await planner.AgentExecuting(_router, inst, message);
 
-            // Handle instruction by Executor
-            if (planner.HideDialogContext)
+            // Handover to Task Agent
+            if (inst.HideDialogContext)
             {
-                /*var args = JsonSerializer.Serialize(inst.Arguments);
-                if (args.Length > 3)
+                var dialogWithoutContext = new List<RoleDialogModel>
                 {
-                    inst.Question += $"\r\nargs: {args}";
-                }*/
-                var step = await planner.GetDecomposedStepAsync(_router, message.MessageId, dialogs);
-                var maskDialogs = new List<RoleDialogModel>
-                {
-                    new RoleDialogModel(AgentRole.User, step.Description)
+                    new RoleDialogModel(AgentRole.User, inst.Response)
                 };
-                response = await executor.Execute(this, inst, message, maskDialogs);
-                dialogs.AddRange(maskDialogs.Skip(1));
+                response = await executor.Execute(this, inst, message, dialogWithoutContext);
+                dialogs.AddRange(dialogWithoutContext.Skip(1));
             }
             else
             {

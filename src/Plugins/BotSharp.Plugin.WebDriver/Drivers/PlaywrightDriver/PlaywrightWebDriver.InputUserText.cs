@@ -5,7 +5,36 @@ public partial class PlaywrightWebDriver
     public async Task InputUserText(Agent agent, BrowsingContextIn context, string messageId)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-        // await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        // Find by text exactly match
+        var elements = _instance.Page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
+        {
+            Name = context.ElementName
+        });
+        var count = await elements.CountAsync();
+        if (count == 0)
+        {
+            var driverService = _services.GetRequiredService<WebDriverService>();
+            var html = await FilteredInputHtml();
+            var htmlElementContextOut = await driverService.InferElement(agent,
+                html,
+                context.ElementName,
+                messageId);
+            elements = Locator(htmlElementContextOut);
+        }
+
+        try
+        {
+            await elements.FillAsync(context.InputText);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    private async Task<string> FilteredInputHtml()
+    {
         var driverService = _services.GetRequiredService<WebDriverService>();
 
         // Retrieve the page raw html and infer the element path
@@ -48,20 +77,7 @@ public partial class PlaywrightWebDriver
                 Placeholder = placeholder
             }));
         }
-        
-        var htmlElementContextOut = await driverService.LocateElement(agent, 
-            string.Join("", str), 
-            context.ElementName, 
-            messageId);
-        ILocator element = Locator(htmlElementContextOut);
 
-        try
-        {
-            await element.FillAsync(context.InputText);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message);
-        }
+        return string.Join("", str);
     }
 }

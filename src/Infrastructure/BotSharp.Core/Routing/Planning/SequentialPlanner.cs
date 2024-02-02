@@ -14,7 +14,8 @@ public class SequentialPlanner : IPlaner
     private readonly ILogger _logger;
 
     public bool HideDialogContext => true;
-    public int MaxLoopCount => 10;
+    public int MaxLoopCount => 100;
+    private FunctionCallFromLlm _lastInst;
 
     public SequentialPlanner(IServiceProvider services, ILogger<NaivePlanner> logger)
     {
@@ -22,8 +23,16 @@ public class SequentialPlanner : IPlaner
         _logger = logger;
     }
 
-    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
+    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs)
     {
+        var decomposation = await GetDecomposedStepAsync(router, messageId, dialogs);
+        if (decomposation.TotalRemainingSteps > 0 && _lastInst != null)
+        {
+            _lastInst.Response = decomposation.Description;
+            _lastInst.Reason = $"{decomposation.TotalRemainingSteps} left.";
+            return _lastInst;
+        }
+
         var next = GetNextStepPrompt(router);
 
         var inst = new FunctionCallFromLlm();
@@ -48,7 +57,7 @@ public class SequentialPlanner : IPlaner
             {
                 // text completion
                 // text = await completion.GetCompletion(content, router.Id, messageId);
-                var dialogs = new List<RoleDialogModel>
+                dialogs = new List<RoleDialogModel>
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
@@ -74,6 +83,14 @@ public class SequentialPlanner : IPlaner
             }
         }
 
+        if (decomposation.TotalRemainingSteps > 0)
+        {
+            inst.Response = decomposation.Description;
+            inst.Reason = $"{decomposation.TotalRemainingSteps} steps left.";
+            inst.HideDialogContext = true;
+        }
+
+        _lastInst = inst;
         return inst;
     }
 
@@ -139,7 +156,7 @@ public class SequentialPlanner : IPlaner
                 }, dialogs);
 
                 text = response.Content;
-                Console.WriteLine(text, Color.Red);
+                Console.WriteLine(text, Color.OrangeRed);
                 inst = response.Content.JsonContent<DecomposedStep>();
                 break;
             }

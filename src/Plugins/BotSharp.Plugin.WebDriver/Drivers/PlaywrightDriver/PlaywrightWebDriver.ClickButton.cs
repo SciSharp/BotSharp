@@ -2,9 +2,34 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task ClickElement(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task ClickButton(Agent agent, BrowsingContextIn context, string messageId)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+
+        // Find by text exactly match
+        var elements = _instance.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
+        {
+            Name = context.ElementName
+        });
+
+        if (await elements.CountAsync() == 0)
+        {
+            // Infer element if not found
+            var driverService = _services.GetRequiredService<WebDriverService>();
+            var html = await FilteredButtonHtml();
+            var htmlElementContextOut = await driverService.InferElement(agent,
+                html,
+                context.ElementName,
+                messageId);
+            elements = Locator(htmlElementContextOut);
+        }
+
+        await elements.ClickAsync();
+        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+    }
+
+    private async Task<string> FilteredButtonHtml()
+    {
         var driverService = _services.GetRequiredService<WebDriverService>();
 
         // Retrieve the page raw html and infer the element path
@@ -32,12 +57,6 @@ public partial class PlaywrightWebDriver
             }));
         }
 
-        var htmlElementContextOut = await driverService.LocateElement(agent, 
-            string.Join("", str), 
-            context.ElementName, 
-            messageId);
-        ILocator element = Locator(htmlElementContextOut);
-        await element.ClickAsync();
-        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        return string.Join("", str);
     }
 }

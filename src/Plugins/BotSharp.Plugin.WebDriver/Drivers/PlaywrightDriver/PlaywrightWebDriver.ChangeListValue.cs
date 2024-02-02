@@ -55,7 +55,7 @@ public partial class PlaywrightWebDriver
         }
 
         var driverService = _services.GetRequiredService<WebDriverService>();
-        var htmlElementContextOut = await driverService.LocateElement(agent, 
+        var htmlElementContextOut = await driverService.InferElement(agent, 
             string.Join("", str), 
             context.ElementName, 
             messageId);
