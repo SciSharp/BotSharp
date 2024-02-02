@@ -1,12 +1,10 @@
-using BotSharp.Plugin.WebDriver.Services;
-using System.Threading;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
     public async Task ChangeListValue(Agent agent, BrowsingContextIn context, string messageId)
     {
+        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         // Retrieve the page raw html and infer the element path
         var body = await _instance.Page.QuerySelectorAsync("body");
 

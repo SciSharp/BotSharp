@@ -36,8 +36,8 @@ public class PluginController : ControllerBase
             {
                 IsHeader = true
             },
-            new PluginMenuDef("Plugins", link: "/page/plugin", icon: "bx bx-plug", weight: 31),
-            new PluginMenuDef("Settings", link: "/page/setting", icon: "bx bx-cog", weight: 32),
+            new PluginMenuDef("Plugins", link: "page/plugin", icon: "bx bx-plug", weight: 31),
+            new PluginMenuDef("Settings", link: "page/setting", icon: "bx bx-cog", weight: 32),
         };
 
         var loader = _services.GetRequiredService<PluginLoader>();

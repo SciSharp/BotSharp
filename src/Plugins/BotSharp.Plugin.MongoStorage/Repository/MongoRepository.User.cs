@@ -7,36 +7,21 @@ public partial class MongoRepository
 {
     public User? GetUserByEmail(string email)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Email == email);
-        return user != null ? new User
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Password = user.Password,
-            Salt = user.Salt,
-            ExternalId = user.ExternalId,
-            Role = user.Role
-        } : null;
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Email == email.ToLower());
+        return user != null ? user.ToUser() : null;
     }
 
     public User? GetUserById(string id)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == id || x.ExternalId == id);
-        return user != null ? new User
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Password = user.Password,
-            Salt = user.Salt,
-            ExternalId = user.ExternalId,
-            Role = user.Role
-        } : null;
+        var user = _dc.Users.AsQueryable()
+            .FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        return user != null ? user.ToUser() : null;
+    }
+
+    public User? GetUserByUserName(string userName)
+    {
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.UserName == userName.ToLower());
+        return user != null ? user.ToUser() : null;
     }
 
     public void CreateUser(User user)
@@ -45,13 +30,14 @@ public partial class MongoRepository
 
         var userCollection = new UserDocument
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = user.Id ?? Guid.NewGuid().ToString(),
             UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Salt = user.Salt,
             Password = user.Password,
             Email = user.Email,
+            Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role,
             CreatedTime = DateTime.UtcNow,

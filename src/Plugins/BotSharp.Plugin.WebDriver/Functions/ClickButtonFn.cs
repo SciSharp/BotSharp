@@ -23,7 +23,6 @@ public class ClickButtonFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _driver.Instance.Page.WaitForLoadStateAsync(LoadState.Load);
         await _driver.ClickElement(agent, args, message.MessageId);
 
         message.Content = $"Click button {args.ElementName} successfully.";

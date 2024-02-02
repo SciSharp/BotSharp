@@ -23,7 +23,6 @@ public class InputUserPasswordFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _driver.Instance.Page.WaitForLoadStateAsync(LoadState.Load);
         await _driver.InputUserPassword(agent, args, message.MessageId);
 
         message.Content = "Input password successfully";

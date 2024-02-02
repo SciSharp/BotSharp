@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Users.Models;
+
 namespace BotSharp.OpenAPI.Controllers;
 
 [Authorize]
@@ -66,20 +68,40 @@ public class ConversationController : ControllerBase
         var history = conv.GetDialogHistory();
 
         var userService = _services.GetRequiredService<IUserService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
 
         var dialogs = new List<ChatResponseModel>();
         foreach (var message in history)
         {
-            var user = await userService.GetUser(message.SenderId);
-
-            dialogs.Add(new ChatResponseModel
+            if (message.Role == AgentRole.User)
             {
-                ConversationId = conversationId,
-                MessageId = message.MessageId,
-                CreatedAt = message.CreatedAt,
-                Text = message.Content,
-                Sender = UserViewModel.FromUser(user)
-            });
+                var user = await userService.GetUser(message.SenderId);
+
+                dialogs.Add(new ChatResponseModel
+                {
+                    ConversationId = conversationId,
+                    MessageId = message.MessageId,
+                    CreatedAt = message.CreatedAt,
+                    Text = message.Content,
+                    Sender = UserViewModel.FromUser(user)
+                });
+            }
+            else
+            {
+                var agent = await agentService.GetAgent(message.CurrentAgentId);
+                dialogs.Add(new ChatResponseModel
+                {
+                    ConversationId = conversationId,
+                    MessageId = message.MessageId,
+                    CreatedAt = message.CreatedAt,
+                    Text = message.Content,
+                    Sender = new UserViewModel
+                    {
+                        FirstName = agent.Name,
+                        Role = message.Role,
+                    }
+                });
+            }
         }
 
         return dialogs;

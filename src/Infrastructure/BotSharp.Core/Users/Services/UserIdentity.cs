@@ -28,4 +28,7 @@ public class UserIdentity : IUserIdentity
 
     public string LastName 
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value!;
+
+    public string FullName
+        => $"{FirstName} {LastName}".Trim();
 }

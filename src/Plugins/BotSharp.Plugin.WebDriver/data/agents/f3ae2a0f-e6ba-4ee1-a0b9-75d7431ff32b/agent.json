@@ -8,6 +8,6 @@
   "isPublic": true,
   "profiles": [ "web-driver" ],
   "llmConfig": {
-    "max_recursion_depth": 5
+    "max_recursion_depth": 10
   }
 }

@@ -29,9 +29,9 @@ public class UserViewModel
         {
             return new UserViewModel
             {
-                FirstName = "AI",
-                LastName = "Assistant",
-                Role = AgentRole.Assistant
+                FirstName = "Unknown",
+                LastName = "Anonymous",
+                Role = AgentRole.User
             };
         }
 
