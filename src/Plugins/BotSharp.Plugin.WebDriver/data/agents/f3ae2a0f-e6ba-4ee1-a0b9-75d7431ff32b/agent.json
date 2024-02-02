@@ -7,7 +7,7 @@
   "updatedDateTime": "2024-01-02T00:00:00Z",
   "disabled": false,
   "isPublic": true,
-  "profiles": [ "web-driver" ],
+  "profiles": [ "tool", "browser" ],
   "llmConfig": {
     "max_recursion_depth": 1
   }

@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Tasks.Models;
 
 namespace BotSharp.Abstraction.Agents.Models;
 
@@ -35,6 +36,13 @@ public class Agent
     [JsonIgnore]
     public List<AgentTemplate> Templates { get; set; }
         = new List<AgentTemplate>();
+
+    /// <summary>
+    /// Agent tasks
+    /// </summary>
+    [JsonIgnore]
+    public List<AgentTask> Tasks { get; set; }
+        = new List<AgentTask>();
 
     /// <summary>
     /// Samples
@@ -133,6 +141,12 @@ public class Agent
     public Agent SetTemplates(List<AgentTemplate> templates)
     {
         Templates = templates ?? new List<AgentTemplate>();
+        return this;
+    }
+
+    public Agent SetTasks(List<AgentTask> tasks)
+    {
+        Tasks = tasks ?? new List<AgentTask>();
         return this;
     }
 

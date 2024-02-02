@@ -102,6 +102,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 - BotSharp.Plugin.PaddleSharp
 
 #### Tools
+- BotSharp.Plugin.Dashboard
 - BotSharp.Plugin.RoutingSpeeder
 - BotSharp.Plugin.WebDriver
 - BotSharp.Plugin.PizzaBot

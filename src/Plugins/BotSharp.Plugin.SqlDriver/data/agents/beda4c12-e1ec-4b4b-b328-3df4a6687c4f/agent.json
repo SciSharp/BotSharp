@@ -2,8 +2,13 @@
   "id": "beda4c12-e1ec-4b4b-b328-3df4a6687c4f",
   "name": "SQL Driver",
   "description": "Convert the requirements into corresponding SQL statements according to the table structure and execute them if needed.",
+  "type": "task",
   "createdDateTime": "2023-11-15T13:49:00Z",
   "updatedDateTime": "2023-11-15T13:49:00Z",
+  "disabled": false,
   "isPublic": false,
-  "allowRouting": true
+  "profiles": [ "tool", "sql" ],
+  "llmConfig": {
+    "max_recursion_depth": 1
+  }
 }

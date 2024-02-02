@@ -7,6 +7,8 @@ using MongoDB.Driver;
 using System.Text.Encodings.Web;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Statistics.Settings;
+using BotSharp.Abstraction.Tasks.Models;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Repository;
 
@@ -115,6 +117,7 @@ public partial class FileRepository : IBotSharpRepository
                     {
                         agent = agent.SetInstruction(FetchInstruction(d))
                                      .SetTemplates(FetchTemplates(d))
+                                     .SetTasks(FetchTasks(d))
                                      .SetFunctions(FetchFunctions(d))
                                      .SetResponses(FetchResponses(d))
                                      .SetSamples(FetchSamples(d));
@@ -223,6 +226,32 @@ public partial class FileRepository : IBotSharpRepository
         }
 
         return templates;
+    }
+
+    private List<AgentTask> FetchTasks(string fileDir)
+    {
+        var tasks = new List<AgentTask>();
+        var taskDir = Path.Combine(fileDir, "tasks");
+        if (!Directory.Exists(taskDir)) return tasks;
+
+        foreach (var file in Directory.GetFiles(taskDir))
+        {
+            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var id = fileName.Split('.').First();
+            var data = File.ReadAllText(file);
+            var metadata = Regex.Match(data, @"#metadata.+/metadata", RegexOptions.Singleline);
+
+            if (metadata.Success)
+            {
+                var task = metadata.Value.JsonContent<AgentTask>();
+                task.Id = id;
+                var content = Regex.Match(data, @"/metadata.+", RegexOptions.Singleline).Value;
+                task.Content = content.Substring(9).Trim();
+                tasks.Add(task);
+            }
+        }
+
+        return tasks;
     }
 
     private List<AgentResponse> FetchResponses(string fileDir)

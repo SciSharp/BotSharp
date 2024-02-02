@@ -326,6 +326,7 @@ namespace BotSharp.Core.Repository
                 var functions = FetchFunctions(dir);
                 var samples = FetchSamples(dir);
                 var templates = FetchTemplates(dir);
+                var tasks = FetchTasks(dir);
                 var responses = FetchResponses(dir);
                 return record.SetInstruction(instruction)
                              .SetFunctions(functions)

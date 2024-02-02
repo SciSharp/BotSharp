@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
@@ -138,9 +139,13 @@ public class SequentialPlanner : IPlaner
 
         var inst = new DecomposedStep();
 
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var model = llmProviderService.GetProviderModel("azure-openai", "gpt-4");
+
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,
-            model: "llm-gpt4");
+            provider: "azure-openai",
+            model: model.Name);
 
         int retryCount = 0;
         while (retryCount < 2)
@@ -181,5 +186,10 @@ public class SequentialPlanner : IPlaner
         return render.Render(template, new Dictionary<string, object>
         {
         });
+    }
+
+    public Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
+    {
+        throw new NotImplementedException();
     }
 }
