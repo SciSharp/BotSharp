@@ -139,7 +139,7 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
             new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
             new Claim("source", user.Source),
-            new Claim("external_id", user.ExternalId),
+            new Claim("external_id", user.ExternalId??string.Empty),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
