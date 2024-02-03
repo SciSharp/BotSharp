@@ -116,11 +116,11 @@ public partial class FileRepository : IBotSharpRepository
                     if (agent != null)
                     {
                         agent = agent.SetInstruction(FetchInstruction(d))
-                                     .SetTemplates(FetchTemplates(d))
-                                     .SetTasks(FetchTasks(d))
                                      .SetFunctions(FetchFunctions(d))
+                                     .SetTemplates(FetchTemplates(d))
                                      .SetResponses(FetchResponses(d))
-                                     .SetSamples(FetchSamples(d));
+                                     .SetSamples(FetchSamples(d))
+                                     .SetTasks(FetchTasks(d));
                         _agents.Add(agent);
                     }
                 }

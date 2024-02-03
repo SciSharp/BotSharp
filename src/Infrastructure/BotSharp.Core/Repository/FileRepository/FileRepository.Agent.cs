@@ -330,9 +330,10 @@ namespace BotSharp.Core.Repository
                 var responses = FetchResponses(dir);
                 return record.SetInstruction(instruction)
                              .SetFunctions(functions)
-                             .SetSamples(samples)
                              .SetTemplates(templates)
-                             .SetResponses(responses);
+                             .SetSamples(samples)
+                             .SetResponses(responses)
+                             .SetTasks(tasks);
             }
 
             return null;
