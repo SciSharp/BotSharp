@@ -1,9 +1,9 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Tasks.Models;
+using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -326,12 +326,11 @@ namespace BotSharp.Core.Repository
                 var functions = FetchFunctions(dir);
                 var samples = FetchSamples(dir);
                 var templates = FetchTemplates(dir);
-                var tasks = FetchTasks(dir);
                 var responses = FetchResponses(dir);
                 return record.SetInstruction(instruction)
                              .SetFunctions(functions)
-                             .SetSamples(samples)
                              .SetTemplates(templates)
+                             .SetSamples(samples)
                              .SetResponses(responses);
             }
 
@@ -405,6 +404,7 @@ namespace BotSharp.Core.Repository
 
             return string.Empty;
         }
+
 
         public void BulkInsertAgents(List<Agent> agents)
         {

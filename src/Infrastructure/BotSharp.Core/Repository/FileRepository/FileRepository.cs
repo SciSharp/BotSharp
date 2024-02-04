@@ -33,6 +33,8 @@ public partial class FileRepository : IBotSharpRepository
     private const string STATE_FILE = "state.json";
     private const string EXECUTION_LOG_FILE = "execution.log";
     private const string PLUGIN_CONFIG_FILE = "config.json";
+    private const string AGENT_TASK_PREFIX = "#metadata";
+    private const string AGENT_TASK_SUFFIX = "/metadata";
 
     public FileRepository(
         IServiceProvider services,
@@ -116,9 +118,8 @@ public partial class FileRepository : IBotSharpRepository
                     if (agent != null)
                     {
                         agent = agent.SetInstruction(FetchInstruction(d))
-                                     .SetTemplates(FetchTemplates(d))
-                                     .SetTasks(FetchTasks(d))
                                      .SetFunctions(FetchFunctions(d))
+                                     .SetTemplates(FetchTemplates(d))
                                      .SetResponses(FetchResponses(d))
                                      .SetSamples(FetchSamples(d));
                         _agents.Add(agent);
@@ -236,19 +237,10 @@ public partial class FileRepository : IBotSharpRepository
 
         foreach (var file in Directory.GetFiles(taskDir))
         {
-            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var id = fileName.Split('.').First();
-            var data = File.ReadAllText(file);
-            var metadata = Regex.Match(data, @"#metadata.+/metadata", RegexOptions.Singleline);
+            var task = ParseAgentTask(file);
+            if (task == null) continue;
 
-            if (metadata.Success)
-            {
-                var task = metadata.Value.JsonContent<AgentTask>();
-                task.Id = id;
-                var content = Regex.Match(data, @"/metadata.+", RegexOptions.Singleline).Value;
-                task.Content = content.Substring(9).Trim();
-                tasks.Add(task);
-            }
+            tasks.Add(task);
         }
 
         return tasks;
@@ -271,6 +263,51 @@ public partial class FileRepository : IBotSharpRepository
         }
 
         return responses;
+    }
+
+    private Agent? ParseAgent(string agentDir)
+    {
+        if (string.IsNullOrEmpty(agentDir)) return null;
+
+        var agentJson = File.ReadAllText(Path.Combine(agentDir, AGENT_FILE));
+        if (string.IsNullOrEmpty(agentJson)) return null;
+
+        var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
+        if (agent == null) return null;
+
+        var instruction = FetchInstruction(agentDir);
+        var functions = FetchFunctions(agentDir);
+        var samples = FetchSamples(agentDir);
+        var templates = FetchTemplates(agentDir);
+        var responses = FetchResponses(agentDir);
+
+        return agent.SetInstruction(instruction)
+                    .SetFunctions(functions)
+                    .SetTemplates(templates)
+                    .SetSamples(samples)
+                    .SetResponses(responses);
+    }
+
+    private AgentTask? ParseAgentTask(string taskFile)
+    {
+        if (string.IsNullOrWhiteSpace(taskFile)) return null;
+
+        var fileName = taskFile.Split(Path.DirectorySeparatorChar).Last();
+        var id = fileName.Split('.').First();
+        var data = File.ReadAllText(taskFile);
+        var pattern = $@"{AGENT_TASK_PREFIX}.+{AGENT_TASK_SUFFIX}";
+        var metaData = Regex.Match(data, pattern, RegexOptions.Singleline);
+
+        if (!metaData.Success) return null;
+
+        var task = metaData.Value.JsonContent<AgentTask>();
+        if (task == null) return null;
+
+        task.Id = id;
+        pattern = $@"{AGENT_TASK_SUFFIX}.+";
+        var content = Regex.Match(data, pattern, RegexOptions.Singleline).Value;
+        task.Content = content.Substring(AGENT_TASK_SUFFIX.Length).Trim();
+        return task;
     }
 
     private string[] ParseFileNameByPath(string path, string separator = ".")

@@ -13,5 +13,5 @@ public class Pagination
 public class PagedItems<T>
 {
     public int Count { get; set; }
-    public IEnumerable<T> Items { get; set; }
+    public IEnumerable<T> Items { get; set; } = new List<T>();
 }

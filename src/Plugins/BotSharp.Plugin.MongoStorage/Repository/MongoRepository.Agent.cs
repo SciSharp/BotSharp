@@ -1,9 +1,11 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
 
@@ -261,33 +263,7 @@ public partial class MongoRepository
         var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
         if (agent == null) return null;
 
-        return new Agent
-        {
-            Id = agent.Id,
-            Name = agent.Name,
-            IconUrl = agent.IconUrl,
-            Description = agent.Description,
-            Instruction = agent.Instruction,
-            Templates = !agent.Templates.IsNullOrEmpty() ? agent.Templates
-                             .Select(t => AgentTemplateMongoElement.ToDomainElement(t))
-                             .ToList() : new List<AgentTemplate>(),
-            Functions = !agent.Functions.IsNullOrEmpty() ? agent.Functions
-                             .Select(f => FunctionDefMongoElement.ToDomainElement(f))
-                             .ToList() : new List<FunctionDef>(),
-            Responses = !agent.Responses.IsNullOrEmpty() ? agent.Responses
-                             .Select(r => AgentResponseMongoElement.ToDomainElement(r))
-                             .ToList() : new List<AgentResponse>(),
-            Samples = agent.Samples ?? new List<string>(),
-            IsPublic = agent.IsPublic,
-            Disabled = agent.Disabled,
-            Type = agent.Type,
-            InheritAgentId = agent.InheritAgentId,
-            Profiles = agent.Profiles,
-            RoutingRules = !agent.RoutingRules.IsNullOrEmpty() ? agent.RoutingRules
-                                .Select(r => RoutingRuleMongoElement.ToDomainElement(agent.Id, agent.Name, r))
-                                .ToList() : new List<RoutingRule>(),
-            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agent.LlmConfig)
-        };
+        return TransformAgentDocument(agent);
     }
 
     public List<Agent> GetAgents(AgentFilter filter)
@@ -323,33 +299,7 @@ public partial class MongoRepository
 
         var agentDocs = _dc.Agents.Find(builder.And(filters)).ToList();
 
-        return agentDocs.Select(x => new Agent
-        {
-            Id = x.Id,
-            Name = x.Name,
-            IconUrl = x.IconUrl,
-            Description = x.Description,
-            Instruction = x.Instruction,
-            Templates = !x.Templates.IsNullOrEmpty() ? x.Templates
-                             .Select(t => AgentTemplateMongoElement.ToDomainElement(t))
-                             .ToList() : new List<AgentTemplate>(),
-            Functions = !x.Functions.IsNullOrEmpty() ? x.Functions
-                             .Select(f => FunctionDefMongoElement.ToDomainElement(f))
-                             .ToList() : new List<FunctionDef>(),
-            Responses = !x.Responses.IsNullOrEmpty() ? x.Responses
-                             .Select(r => AgentResponseMongoElement.ToDomainElement(r))
-                             .ToList() : new List<AgentResponse>(),
-            Samples = x.Samples ?? new List<string>(),
-            IsPublic = x.IsPublic,
-            Disabled = x.Disabled,
-            Type = x.Type,
-            InheritAgentId = x.InheritAgentId,
-            Profiles = x.Profiles,
-            RoutingRules = !x.RoutingRules.IsNullOrEmpty() ? x.RoutingRules
-                                .Select(r => RoutingRuleMongoElement.ToDomainElement(x.Id, x.Name, r))
-                                .ToList() : new List<RoutingRule>(),
-            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(x.LlmConfig)
-        }).ToList();
+        return agentDocs.Select(x => TransformAgentDocument(x)).ToList();
     }
 
     public List<Agent> GetAgentsByUser(string userId)
@@ -452,5 +402,38 @@ public partial class MongoRepository
             return false;
         }
 
+    }
+
+    private Agent TransformAgentDocument(AgentDocument? agentDoc)
+    {
+        if (agentDoc == null) return new Agent();
+
+        return new Agent
+        {
+            Id = agentDoc.Id,
+            Name = agentDoc.Name,
+            IconUrl = agentDoc.IconUrl,
+            Description = agentDoc.Description,
+            Instruction = agentDoc.Instruction,
+            Templates = !agentDoc.Templates.IsNullOrEmpty() ? agentDoc.Templates
+                             .Select(t => AgentTemplateMongoElement.ToDomainElement(t))
+                             .ToList() : new List<AgentTemplate>(),
+            Functions = !agentDoc.Functions.IsNullOrEmpty() ? agentDoc.Functions
+                             .Select(f => FunctionDefMongoElement.ToDomainElement(f))
+                             .ToList() : new List<FunctionDef>(),
+            Responses = !agentDoc.Responses.IsNullOrEmpty() ? agentDoc.Responses
+                             .Select(r => AgentResponseMongoElement.ToDomainElement(r))
+                             .ToList() : new List<AgentResponse>(),
+            Samples = agentDoc.Samples ?? new List<string>(),
+            IsPublic = agentDoc.IsPublic,
+            Disabled = agentDoc.Disabled,
+            Type = agentDoc.Type,
+            InheritAgentId = agentDoc.InheritAgentId,
+            Profiles = agentDoc.Profiles,
+            RoutingRules = !agentDoc.RoutingRules.IsNullOrEmpty() ? agentDoc.RoutingRules
+                                .Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))
+                                .ToList() : new List<RoutingRule>(),
+            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig)
+        };
     }
 }
