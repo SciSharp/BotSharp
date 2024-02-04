@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -5,6 +7,7 @@ public partial class PlaywrightWebDriver
     public async Task InputUserText(Agent agent, BrowsingContextIn context, string messageId)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         // Find by text exactly match
         var elements = _instance.Page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
@@ -12,6 +15,10 @@ public partial class PlaywrightWebDriver
             Name = context.ElementName
         });
         var count = await elements.CountAsync();
+
+        elements = _instance.Page.GetByPlaceholder(context.ElementName);
+        count = await elements.CountAsync();
+
         if (count == 0)
         {
             var driverService = _services.GetRequiredService<WebDriverService>();
@@ -26,10 +33,14 @@ public partial class PlaywrightWebDriver
         try
         {
             await elements.FillAsync(context.InputText);
+            if (context.PressEnter.HasValue && context.PressEnter.Value)
+            {
+                await elements.PressAsync("Enter");
+            }
         }
         catch (Exception ex)
         {
-            throw new Exception(ex.Message);
+            _logger.LogError(ex.Message);
         }
     }
 

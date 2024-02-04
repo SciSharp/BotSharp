@@ -29,6 +29,10 @@ public partial class RoutingService
         {
             message = RoleDialogModel.From(message,
                     role: AgentRole.Function);
+            if (response.FunctionName != null && response.FunctionName.Contains("/"))
+            {
+                response.FunctionName = response.FunctionName.Split("/").Last();
+            }
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
             message.CurrentAgentId = agent.Id;

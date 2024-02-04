@@ -5,6 +5,7 @@ public partial class PlaywrightWebDriver
     public async Task ClickButton(Agent agent, BrowsingContextIn context, string messageId)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         // Find by text exactly match
         var elements = _instance.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
@@ -25,7 +26,6 @@ public partial class PlaywrightWebDriver
         }
 
         await elements.ClickAsync();
-        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
     }
 
     private async Task<string> FilteredButtonHtml()

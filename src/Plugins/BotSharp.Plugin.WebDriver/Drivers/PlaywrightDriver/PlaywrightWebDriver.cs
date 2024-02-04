@@ -2,18 +2,26 @@ using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
-public partial class PlaywrightWebDriver
+public partial class PlaywrightWebDriver : IWebBrowser
 {
     private readonly IServiceProvider _services;
     private readonly PlaywrightInstance _instance;
     private readonly ILogger _logger;
     public PlaywrightInstance Instance => _instance;
 
+    public Agent Agent => _agent;
+    private Agent _agent;
+
     public PlaywrightWebDriver(IServiceProvider services, PlaywrightInstance instance, ILogger<PlaywrightWebDriver> logger)
     {
         _services = services;
         _instance = instance;
         _logger = logger;
+    }
+
+    public void SetAgent(Agent agent)
+    {
+        _agent = agent;
     }
 
     private ILocator Locator(HtmlElementContextOut context)

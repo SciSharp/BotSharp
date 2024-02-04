@@ -19,7 +19,7 @@ public class OpenBrowserFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
-        var browser = await _driver.LaunchBrowser(args.Url);
+        await _driver.LaunchBrowser(args.Url);
         message.Content = string.IsNullOrEmpty(args.Url) ? $"Launch browser with blank page successfully." : $"Open website {args.Url} successfully.";
         return true;
     }

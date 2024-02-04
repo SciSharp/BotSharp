@@ -2,14 +2,14 @@ using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class SwitchToNewTab : IFunctionCallback
+public class EvaluateScriptFn : IFunctionCallback
 {
-    public string Name => "switch_to_new_tab";
+    public string Name => "evaluate_script";
 
     private readonly IServiceProvider _services;
     private readonly PlaywrightWebDriver _driver;
 
-    public SwitchToNewTab(IServiceProvider services,
+    public EvaluateScriptFn(IServiceProvider services,
         PlaywrightWebDriver driver)
     {
         _services = services;
@@ -18,9 +18,7 @@ public class SwitchToNewTab : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
-        await _driver.SwitchToNewTab();
-        message.Content = "Switched to new tab page";
+        message.Data = await _driver.EvaluateScript<object>(message.Content);
         return true;
     }
 }

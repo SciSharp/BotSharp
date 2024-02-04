@@ -21,17 +21,11 @@ public class ClickElementFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
 
-        /*if (args.ElementType == "button")
-        {
-            var fn = _services.GetRequiredService<IRoutingService>();
-            return await fn.InvokeFunction("click_button", message);
-        }*/
-
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         await _driver.ClickElement(agent, args, message.MessageId);
 
-        message.Content = $"Element with text \"{args.InputText}\" is clicked successfully.";
+        message.Content = $"Element {args.MatchRule} text \"{args.ElementText}\" is clicked successfully.";
         return true;
     }
 }

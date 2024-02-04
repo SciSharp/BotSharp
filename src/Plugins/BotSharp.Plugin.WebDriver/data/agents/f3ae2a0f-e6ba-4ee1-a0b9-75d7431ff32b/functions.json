@@ -78,6 +78,10 @@
         "input_text": {
           "type": "string",
           "description": "non-sensitive text user provided."
+        },
+        "press_enter": {
+          "type": "boolean",
+          "description": "whether to press Enter key"
         }
       },
       "required": [ "element_name", "input_text" ]
@@ -121,15 +125,11 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "element_name": {
-          "type": "string",
-          "description": "the html input box element name."
-        },
         "element_type": {
           "type": "string",
           "description": "the html tag name."
         },
-        "input_text": {
+        "element_text": {
           "type": "string",
           "description": "text shown in the element."
         },
@@ -138,17 +138,7 @@
           "description": "text matching rule: EndWith, StartWith, Contains, Match"
         }
       },
-      "required": [ "element_name", "element_type", "input_text", "match_rule" ]
-    }
-  },
-  {
-    "name": "switch_to_new_tab",
-    "description": "bring the new page tab to front.",
-    "parameters": {
-      "type": "object",
-      "properties": {
-      },
-      "required": []
+      "required": [ "element_type", "element_text", "match_rule" ]
     }
   }
 ]
