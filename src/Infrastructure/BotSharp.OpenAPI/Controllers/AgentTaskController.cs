@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Tasks;
-using BotSharp.Abstraction.Tasks.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -8,30 +6,52 @@ namespace BotSharp.OpenAPI.Controllers;
 [ApiController]
 public class AgentTaskController : ControllerBase
 {
-    private readonly IAgentService _agentService;
+    private readonly IAgentTaskService _agentTaskService;
     private readonly IServiceProvider _services;
 
-    public AgentTaskController(IAgentService agentService, IServiceProvider services)
+    public AgentTaskController(IAgentTaskService agentTaskService, IServiceProvider services)
     {
-        _agentService = agentService;
+        _agentTaskService = agentTaskService;
         _services = services;
     }
 
-    [HttpGet("/agent/task/{id}")]
-    public async Task<AgentViewModel> GetAgentTask([FromRoute] string id)
+    [HttpGet("/agent/{agentId}/task/{taskId}")]
+    public async Task<AgentTaskViewModel?> GetAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
     {
-        throw new NotImplementedException("");
+        var task = await _agentTaskService.GetTask(agentId, taskId);
+        if (task == null) return null;
+
+        return AgentTaskViewModel.From(task);
     }
              
     [HttpGet("/agent/tasks")]
     public async Task<PagedItems<AgentTaskViewModel>> GetAgents([FromQuery] AgentTaskFilter filter)
     {
-        var taskService = _services.GetRequiredService<IAgentTaskService>();
-        var tasks = await taskService.GetTasks(filter);
+        var tasks = await _agentTaskService.GetTasks(filter);
         return new PagedItems<AgentTaskViewModel>
         {
             Items = tasks.Items.Select(x => AgentTaskViewModel.From(x)),
             Count = tasks.Count
         };
+    }
+
+    [HttpPost("/agent/{agentId}/task")]
+    public async Task CreateAgentTask([FromRoute] string agentId, [FromBody] AgentTaskCreateModel task)
+    {
+        var agentTask = task.ToAgentTask();
+        agentTask.AgentId = agentId;
+        await _agentTaskService.CreateTask(agentTask);
+    }
+
+    [HttpPut("/agent/{agentId}/task/{taskId}")]
+    public async Task UpdateAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
+    {
+        throw new NotImplementedException("");
+    }
+
+    [HttpDelete("/agent/{agentId}/task/{taskId}")]
+    public async Task<bool> DeleteAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
+    {
+        return await _agentTaskService.DeleteTask(agentId, taskId);
     }
 }

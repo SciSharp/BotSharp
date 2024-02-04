@@ -11,7 +11,15 @@ public class AgentTask
     public DateTime UpdatedDateTime { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public string AgentId { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public Agent Agent { get; set; }
+
+    public AgentTask()
+    {
+
+    }
 
     public AgentTask(string id, string name, string? description = null)
     {

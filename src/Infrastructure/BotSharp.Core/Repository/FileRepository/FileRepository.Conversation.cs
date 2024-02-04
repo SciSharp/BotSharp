@@ -35,9 +35,9 @@ namespace BotSharp.Core.Repository
                 {
                     Key = x.Key,
                     Values = new List<StateValue>
-                {
-                    new StateValue { Data = x.Value, UpdateTime = DateTime.UtcNow }
-                }
+                    {
+                        new StateValue { Data = x.Value, UpdateTime = DateTime.UtcNow }
+                    }
                 }).ToList();
                 File.WriteAllText(stateFile, JsonSerializer.Serialize(initialStates, _options));
             }

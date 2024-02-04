@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
+using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Abstraction.Repositories;
@@ -34,6 +35,14 @@ public interface IBotSharpRepository
     string GetAgentTemplate(string agentId, string templateName);
     #endregion
 
+    #region Agent Task
+    PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter);
+    AgentTask? GetAgentTask(string agentId, string taskId);
+    void InsertAgentTask(AgentTask task);
+
+    bool DeleteAgentTask(string agentId, string taskId);
+    #endregion
+
     #region Conversation
     void CreateNewConversation(Conversation conversation);
     bool DeleteConversation(string conversationId);
@@ -49,9 +58,7 @@ public interface IBotSharpRepository
     List<Conversation> GetLastConversations();
     bool TruncateConversation(string conversationId, string messageId);
     #endregion
-    #region Statistics
-    void IncrementConversationCount();
-    #endregion
+    
     #region Execution Log
     void AddExecutionLogs(string conversationId, List<string> logs);
     List<string> GetExecutionLogs(string conversationId);
@@ -59,5 +66,9 @@ public interface IBotSharpRepository
 
     #region LLM Completion Log
     void SaveLlmCompletionLog(LlmCompletionLog log);
+    #endregion
+
+    #region Statistics
+    void IncrementConversationCount();
     #endregion
 }
