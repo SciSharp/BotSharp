@@ -12,6 +12,10 @@ public partial class FileRepository
     {
         var tasks = new List<AgentTask>();
         var pager = filter.Pager ?? new Pagination();
+        var skipCount = 0;
+        var takeCount = 0;
+        var totalCount = 0;
+        var matched = true;
 
         var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
         if (!Directory.Exists(dir)) return new PagedItems<AgentTask>();
@@ -22,11 +26,11 @@ public partial class FileRepository
             if (!Directory.Exists(taskDir)) continue;
 
             var agentId = agentDir.Split(Path.DirectorySeparatorChar).Last();
-            var matched = true;
-
+            
+            matched = true;
             if (filter?.AgentId != null)
             {
-                matched = matched && agentId == filter.AgentId;
+                matched = agentId == filter.AgentId;
             }
 
             if (!matched) continue;
@@ -37,14 +41,26 @@ public partial class FileRepository
                 var task = ParseAgentTask(taskFile);
                 if (task == null) continue;
 
+                matched = true;
                 if (filter?.Enabled != null)
                 {
                     matched = matched && task.Enabled == filter.Enabled;
                 }
 
                 if (!matched) continue;
+                
+                totalCount++;
+                if (takeCount >= pager.Size) continue;
 
-                curTasks.Add(task);
+                if (skipCount < pager.Offset)
+                {
+                    skipCount++;
+                }
+                else
+                {
+                    curTasks.Add(task);
+                    takeCount++;
+                }
             }
 
             if (curTasks.IsNullOrEmpty()) continue;
@@ -60,8 +76,8 @@ public partial class FileRepository
 
         return new PagedItems<AgentTask>
         {
-            Items = tasks.Skip(pager.Offset).Take(pager.Size),
-            Count = tasks.Count
+            Items = tasks,
+            Count = totalCount
         };
     }
 
