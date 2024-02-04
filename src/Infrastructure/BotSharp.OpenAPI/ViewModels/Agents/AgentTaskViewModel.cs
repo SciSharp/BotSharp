@@ -28,8 +28,8 @@ public class AgentTaskViewModel
             Description = task.Description,
             Content = task.Content,
             Enabled = task.Enabled,
-            AgentId = task.Agent.Id,
-            AgentName = task.Agent.Name,
+            AgentId = task.AgentId,
+            AgentName = task.Agent?.Name,
             CreatedDateTime = task.CreatedDateTime,
             UpdatedDateTime = task.UpdatedDateTime
         };

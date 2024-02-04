@@ -18,3 +18,12 @@ public enum AgentField
     Sample,
     LlmConfig
 }
+
+public enum AgentTaskField
+{
+    All = 1,
+    Name,
+    Description,
+    Enabled,
+    Content
+}

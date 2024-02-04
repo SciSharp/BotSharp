@@ -44,9 +44,21 @@ public class AgentTaskController : ControllerBase
     }
 
     [HttpPut("/agent/{agentId}/task/{taskId}")]
-    public async Task UpdateAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
+    public async Task UpdateAgentTask([FromRoute] string agentId, [FromRoute] string taskId, [FromBody] AgentTaskUpdateModel task)
     {
-        throw new NotImplementedException("");
+        var agentTask = task.ToAgentTask();
+        agentTask.AgentId = agentId;
+        agentTask.Id = taskId;
+        await _agentTaskService.UpdateTask(agentTask, AgentTaskField.All);
+    }
+
+    [HttpPatch("/agent/{agentId}/task/{taskId}/{field}")]
+    public async Task PatchAgentTaskByField([FromRoute] string agentId, [FromRoute] string taskId, [FromRoute] AgentTaskField field, [FromBody] AgentTaskUpdateModel task)
+    {
+        var agentTask = task.ToAgentTask();
+        agentTask.AgentId = agentId;
+        agentTask.Id = taskId;
+        await _agentTaskService.UpdateTask(agentTask, field);
     }
 
     [HttpDelete("/agent/{agentId}/task/{taskId}")]

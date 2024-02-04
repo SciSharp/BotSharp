@@ -11,5 +11,7 @@ public interface IAgentTaskService
 
     Task CreateTask(AgentTask task);
 
+    Task UpdateTask(AgentTask task, AgentTaskField field);
+
     Task<bool> DeleteTask(string agentId, string taskId);
 }

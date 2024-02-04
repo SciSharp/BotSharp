@@ -34,6 +34,13 @@ public class AgentTaskService : IAgentTaskService
         await Task.CompletedTask;
     }
 
+    public async Task UpdateTask(AgentTask task, AgentTaskField field)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.UpdateAgentTask(task, field);
+        await Task.CompletedTask;
+    }
+
     public async Task<bool> DeleteTask(string agentId, string taskId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();

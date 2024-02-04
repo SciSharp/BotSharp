@@ -18,6 +18,11 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
         }
 
+        if (filter.Enabled.HasValue)
+        {
+            filters.Add(builder.Eq(x => x.Enabled, filter.Enabled.Value));
+        }
+
         var filterDef = builder.And(filters);
         var sortDef = Builders<AgentTaskDocument>.Sort.Descending(x => x.CreatedTime);
         var totalTasks = _dc.AgentTasks.CountDocuments(filterDef);
@@ -87,6 +92,40 @@ public partial class MongoRepository
         };
 
         _dc.AgentTasks.InsertOne(taskDoc);
+    }
+
+    public void UpdateAgentTask(AgentTask task, AgentTaskField field)
+    {
+        if (task == null || string.IsNullOrEmpty(task.Id)) return;
+
+        var filter = Builders<AgentTaskDocument>.Filter.Eq(x => x.Id, task.Id);
+        var taskDoc = _dc.AgentTasks.Find(filter).FirstOrDefault();
+        if (taskDoc == null) return;
+
+        switch (field)
+        {
+            case AgentTaskField.Name:
+                taskDoc.Name = task.Name;
+                break;
+            case AgentTaskField.Description:
+                taskDoc.Description = task.Description;
+                break;
+            case AgentTaskField.Enabled:
+                taskDoc.Enabled = task.Enabled;
+                break;
+            case AgentTaskField.Content:
+                taskDoc.Content = task.Content;
+                break;
+            case AgentTaskField.All:
+                taskDoc.Name = task.Name;
+                taskDoc.Description = task.Description;
+                taskDoc.Enabled = task.Enabled;
+                taskDoc.Content = task.Content;
+                break;
+        }
+
+        taskDoc.UpdatedTime = DateTime.UtcNow;
+        _dc.AgentTasks.ReplaceOne(filter, taskDoc);
     }
 
     public bool DeleteAgentTask(string agentId, string taskId)
