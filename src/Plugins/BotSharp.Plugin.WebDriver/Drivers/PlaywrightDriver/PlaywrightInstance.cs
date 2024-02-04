@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using System.IO;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
@@ -7,7 +6,6 @@ public class PlaywrightInstance : IDisposable
 {
     IPlaywright _playwright;
     IBrowserContext _context;
-    IPage _page;
 
     public IBrowserContext Context => _context;
     public IPage Page => _context.Pages.LastOrDefault();
@@ -31,8 +29,6 @@ public class PlaywrightInstance : IDisposable
                     // "--start-maximized"
                 }
             });
-
-            // _page = _context.Pages.Last();
 
             _context.Page += async (sender, e) =>
             {

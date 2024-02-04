@@ -16,16 +16,16 @@ public class AgentTaskController : ControllerBase
     }
 
     [HttpGet("/agent/{agentId}/task/{taskId}")]
-    public async Task<AgentTaskViewModel?> GetAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
+    public async Task<AgentTaskViewModel> GetAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
     {
         var task = await _agentTaskService.GetTask(agentId, taskId);
         if (task == null) return null;
 
         return AgentTaskViewModel.From(task);
     }
-             
+
     [HttpGet("/agent/tasks")]
-    public async Task<PagedItems<AgentTaskViewModel>> GetAgents([FromQuery] AgentTaskFilter filter)
+    public async Task<PagedItems<AgentTaskViewModel>> GetAgentTasks([FromQuery] AgentTaskFilter filter)
     {
         var tasks = await _agentTaskService.GetTasks(filter);
         return new PagedItems<AgentTaskViewModel>

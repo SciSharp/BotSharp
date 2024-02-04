@@ -7,6 +7,7 @@ public class AgentTask
     public string? Description { get; set; }
     public string Content { get; set; }
     public bool Enabled { get; set; }
+    public string? DirectAgentId { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime UpdatedDateTime { get; set; }
 

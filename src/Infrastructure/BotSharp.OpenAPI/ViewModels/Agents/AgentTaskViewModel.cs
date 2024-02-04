@@ -18,6 +18,8 @@ public class AgentTaskViewModel
     public string AgentId { get; set; }
     [JsonPropertyName("agent_name")]
     public string AgentName { get; set; }
+    [JsonPropertyName("direct_agent_id")]
+    public string? DirectAgentId { get; set; }
 
     public static AgentTaskViewModel From(AgentTask task)
     {
@@ -31,7 +33,8 @@ public class AgentTaskViewModel
             AgentId = task.AgentId,
             AgentName = task.Agent?.Name,
             CreatedDateTime = task.CreatedDateTime,
-            UpdatedDateTime = task.UpdatedDateTime
+            UpdatedDateTime = task.UpdatedDateTime,
+            DirectAgentId = task?.DirectAgentId
         };
     }
 }
