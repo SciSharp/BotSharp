@@ -95,9 +95,7 @@ public partial class FileRepository
             UpdatedDateTime = DateTime.UtcNow
         };
 
-        var prefix = "#metadata";
-        var postfix = "/metadata";
-        var fileContent = $"{prefix}\n{JsonSerializer.Serialize(model, _options)}\n{postfix}\n\n{task.Content}";
+        var fileContent = $"{AGENT_TASK_PREFIX}\n{JsonSerializer.Serialize(model, _options)}\n{AGENT_TASK_SUFFIX}\n\n{task.Content}";
         File.WriteAllText(taskFile, fileContent);
     }
 
