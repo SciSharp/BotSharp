@@ -180,7 +180,9 @@ public partial class AgentService
                 Enabled = parsedTask.Enabled,
                 DirectAgentId = parsedTask.DirectAgentId,
                 Content = parsedTask.Content,
-                AgentId = agentId
+                AgentId = agentId,
+                CreatedDateTime = parsedTask.CreatedDateTime,
+                UpdatedDateTime = parsedTask.UpdatedDateTime
             };
             tasks.Add(task);
         }

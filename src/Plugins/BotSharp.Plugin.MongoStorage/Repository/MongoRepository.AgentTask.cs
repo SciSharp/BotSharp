@@ -110,8 +110,8 @@ public partial class MongoRepository
             AgentId = x.AgentId,
             DirectAgentId = x.DirectAgentId,
             Content = x.Content,
-            CreatedTime = DateTime.UtcNow,
-            UpdatedTime = DateTime.UtcNow
+            CreatedTime = x.CreatedDateTime,
+            UpdatedTime = x.UpdatedDateTime
         }).ToList();
 
         _dc.AgentTasks.InsertMany(taskDocs);
