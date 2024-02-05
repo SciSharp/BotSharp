@@ -116,17 +116,17 @@ public partial class FileRepository
 
         var fileName = $"{Guid.NewGuid()}.liquid";
         var taskFile = Path.Combine(taskDir, fileName);
-
-        var model = new AgentTaskFileModel
+        var metaData = new AgentTaskMetaData
         {
             Name = task.Name,
             Description = task.Description,
             Enabled = task.Enabled,
+            DirectAgentId = task.DirectAgentId,
             CreatedDateTime = DateTime.UtcNow,
             UpdatedDateTime = DateTime.UtcNow
         };
 
-        var fileContent = BuildAgentTaskFileContent(model, task.Content);
+        var fileContent = BuildAgentTaskFileContent(metaData, task.Content);
         File.WriteAllText(taskFile, fileContent);
     }
 
@@ -146,11 +146,12 @@ public partial class FileRepository
         var parsedTask = ParseAgentTask(taskFile);
         if (parsedTask == null) return;
 
-        var model = new AgentTaskFileModel
+        var metaData = new AgentTaskMetaData
         {
             Name = parsedTask.Name,
             Description = parsedTask.Description,
             Enabled = parsedTask.Enabled,
+            DirectAgentId = parsedTask.DirectAgentId,
             CreatedDateTime = parsedTask.CreatedDateTime,
             UpdatedDateTime = DateTime.UtcNow
         };
@@ -159,26 +160,30 @@ public partial class FileRepository
         switch (field)
         {
             case AgentTaskField.Name:
-                model.Name = task.Name;
+                metaData.Name = task.Name;
                 break;
             case AgentTaskField.Description:
-                model.Description = task.Description;
+                metaData.Description = task.Description;
                 break;
             case AgentTaskField.Enabled:
-                model.Enabled = task.Enabled;
+                metaData.Enabled = task.Enabled;
+                break;
+            case AgentTaskField.DirectAgentId:
+                metaData.DirectAgentId = task.DirectAgentId;
                 break;
             case AgentTaskField.Content:
                 content = task.Content;
                 break;
             case AgentTaskField.All:
-                model.Name = task.Name;
-                model.Description = task.Description;
-                model.Enabled = task.Enabled;
+                metaData.Name = task.Name;
+                metaData.Description = task.Description;
+                metaData.Enabled = task.Enabled;
+                metaData.DirectAgentId = task.DirectAgentId;
                 content = task.Content;
                 break;
         }
 
-        var fileContent = BuildAgentTaskFileContent(model, content);
+        var fileContent = BuildAgentTaskFileContent(metaData, content);
         File.WriteAllText(taskFile, fileContent);
     }
 
@@ -211,18 +216,9 @@ public partial class FileRepository
         return taskFile;
     }
 
-    private string BuildAgentTaskFileContent(AgentTaskFileModel fileModel, string taskContent)
+    private string BuildAgentTaskFileContent(AgentTaskMetaData metaData, string taskContent)
     {
-        return $"{AGENT_TASK_PREFIX}\n{JsonSerializer.Serialize(fileModel, _options)}\n{AGENT_TASK_SUFFIX}\n\n{taskContent}";
+        return $"{AGENT_TASK_PREFIX}\n{JsonSerializer.Serialize(metaData, _options)}\n{AGENT_TASK_SUFFIX}\n\n{taskContent}";
     }
     #endregion
-}
-
-internal class AgentTaskFileModel
-{
-    public string Name { get; set; }
-    public string? Description { get; set; }
-    public bool Enabled { get; set; }
-    public DateTime CreatedDateTime { get; set; }
-    public DateTime UpdatedDateTime { get; set; }
 }

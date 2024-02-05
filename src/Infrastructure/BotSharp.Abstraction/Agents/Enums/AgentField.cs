@@ -25,5 +25,6 @@ public enum AgentTaskField
     Name,
     Description,
     Enabled,
-    Content
+    Content,
+    DirectAgentId
 }

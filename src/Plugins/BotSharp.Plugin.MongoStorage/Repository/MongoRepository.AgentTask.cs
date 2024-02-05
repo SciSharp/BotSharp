@@ -38,6 +38,7 @@ public partial class MongoRepository
             Description = x.Description,
             Enabled = x.Enabled,
             AgentId = x.AgentId,
+            DirectAgentId = x.DirectAgentId,
             Content = x.Content,
             CreatedDateTime = x.CreatedTime,
             UpdatedDateTime = x.UpdatedTime,
@@ -68,6 +69,7 @@ public partial class MongoRepository
             Description = taskDoc.Description,
             Enabled = taskDoc.Enabled,
             AgentId = taskDoc.AgentId,
+            DirectAgentId = taskDoc.DirectAgentId,
             Content = taskDoc.Content,
             CreatedDateTime = taskDoc.CreatedTime,
             UpdatedDateTime = taskDoc.UpdatedTime,
@@ -86,6 +88,7 @@ public partial class MongoRepository
             Description = task.Description,
             Enabled = task.Enabled,
             AgentId = task.AgentId,
+            DirectAgentId = task.DirectAgentId,
             Content = task.Content,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
@@ -116,11 +119,15 @@ public partial class MongoRepository
             case AgentTaskField.Content:
                 taskDoc.Content = task.Content;
                 break;
+            case AgentTaskField.DirectAgentId:
+                taskDoc.DirectAgentId = task.DirectAgentId;
+                break;
             case AgentTaskField.All:
                 taskDoc.Name = task.Name;
                 taskDoc.Description = task.Description;
                 taskDoc.Enabled = task.Enabled;
                 taskDoc.Content = task.Content;
+                taskDoc.DirectAgentId = task.DirectAgentId;
                 break;
         }
 
