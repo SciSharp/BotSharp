@@ -24,7 +24,12 @@ public class InputUserTextFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         await _driver.InputUserText(agent, args, message.MessageId);
 
-        message.Content = $"Input text \"{args.InputText}\" successfully.";
+        message.Content = $"Input text \"{args.InputText}\"";
+        if (args.PressEnter.HasValue && args.PressEnter.Value)
+        {
+            message.Content += " and pressed Enter";
+        }
+        message.Content += " successfully.\"";
 
         return true;
     }

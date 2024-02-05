@@ -6,4 +6,7 @@ public class DecomposedStep
 
     [JsonPropertyName("total_remaining_steps")]
     public int TotalRemainingSteps { get; set; }
+
+    [JsonPropertyName("stop_reason")]
+    public string? StopReason { get; set; }
 }

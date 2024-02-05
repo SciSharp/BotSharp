@@ -12,12 +12,14 @@ public partial class PlaywrightWebDriver
         // Find by text exactly match
         var elements = _instance.Page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
         {
-            Name = context.ElementName
+            Name = context.ElementText
         });
         var count = await elements.CountAsync();
-
-        elements = _instance.Page.GetByPlaceholder(context.ElementName);
-        count = await elements.CountAsync();
+        if (count == 0)
+        {
+            elements = _instance.Page.GetByPlaceholder(context.ElementText);
+            count = await elements.CountAsync();
+        }
 
         if (count == 0)
         {
@@ -25,7 +27,7 @@ public partial class PlaywrightWebDriver
             var html = await FilteredInputHtml();
             var htmlElementContextOut = await driverService.InferElement(agent,
                 html,
-                context.ElementName,
+                context.ElementText,
                 messageId);
             elements = Locator(htmlElementContextOut);
         }

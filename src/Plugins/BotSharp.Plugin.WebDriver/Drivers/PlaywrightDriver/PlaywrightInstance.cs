@@ -24,8 +24,13 @@ public class PlaywrightInstance : IDisposable
             {
                 Headless = false,
                 Channel = "chrome",
-                Args = new string[]
+                IgnoreDefaultArgs = new[]
                 {
+                    "enable-automation"
+                },
+                Args = new[]
+                {
+                    "--disable-infobars"
                     // "--start-maximized"
                 }
             });

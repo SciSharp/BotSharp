@@ -71,9 +71,9 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "element_name": {
+        "element_text": {
           "type": "string",
-          "description": "the html input box element name."
+          "description": "text or placeholder shown in the element."
         },
         "input_text": {
           "type": "string",
@@ -84,7 +84,7 @@
           "description": "whether to press Enter key"
         }
       },
-      "required": [ "element_name", "input_text" ]
+      "required": [ "element_text", "input_text" ]
     }
   },
   {
@@ -131,7 +131,7 @@
         },
         "element_text": {
           "type": "string",
-          "description": "text shown in the element."
+          "description": "text or placeholder shown in the element."
         },
         "match_rule": {
           "type": "string",
