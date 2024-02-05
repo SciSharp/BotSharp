@@ -97,6 +97,26 @@ public partial class MongoRepository
         _dc.AgentTasks.InsertOne(taskDoc);
     }
 
+    public void BulkInsertAgentTasks(List<AgentTask> tasks)
+    {
+        if (tasks.IsNullOrEmpty()) return;
+
+        var taskDocs = tasks.Select(x => new AgentTaskDocument
+        {
+            Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid().ToString() : x.Id,
+            Name = x.Name,
+            Description = x.Description,
+            Enabled = x.Enabled,
+            AgentId = x.AgentId,
+            DirectAgentId = x.DirectAgentId,
+            Content = x.Content,
+            CreatedTime = x.CreatedDateTime,
+            UpdatedTime = x.UpdatedDateTime
+        }).ToList();
+
+        _dc.AgentTasks.InsertMany(taskDocs);
+    }
+
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
     {
         if (task == null || string.IsNullOrEmpty(task.Id)) return;
@@ -142,6 +162,19 @@ public partial class MongoRepository
         var filter = Builders<AgentTaskDocument>.Filter.Eq(x => x.Id, taskId);
         var taskDeleted = _dc.AgentTasks.DeleteOne(filter);
         return taskDeleted.DeletedCount > 0;
+    }
+
+    public bool DeleteAgentTasks()
+    {
+        try
+        {
+            _dc.AgentTasks.DeleteMany(Builders<AgentTaskDocument>.Filter.Empty);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
     #endregion
 }

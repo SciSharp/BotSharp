@@ -1,7 +1,10 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Users.Models;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -155,5 +158,72 @@ public partial class AgentService
 
         var samples = File.ReadAllLines(file);
         return samples?.ToList() ?? new List<string>();
+    }
+
+    private List<AgentTask> FetchTasksFromFile(string fileDir)
+    {
+        var tasks = new List<AgentTask>();
+        var taskDir = Path.Combine(fileDir, "tasks");
+        if (!Directory.Exists(taskDir)) return tasks;
+
+        var agentId = fileDir.Split(Path.DirectorySeparatorChar).Last();
+        foreach (var file in Directory.GetFiles(taskDir))
+        {
+            var parsedTask = ParseAgentTask(file);
+            if (parsedTask == null) continue;
+
+            var task = new AgentTask
+            {
+                Id = parsedTask.Id,
+                Name = parsedTask.Name,
+                Description = parsedTask.Description,
+                Enabled = parsedTask.Enabled,
+                DirectAgentId = parsedTask.DirectAgentId,
+                Content = parsedTask.Content,
+                AgentId = agentId,
+                CreatedDateTime = parsedTask.CreatedDateTime,
+                UpdatedDateTime = parsedTask.UpdatedDateTime
+            };
+            tasks.Add(task);
+        }
+
+        return tasks;
+    }
+
+    private AgentTask? ParseAgentTask(string taskFile)
+    {
+        if (string.IsNullOrWhiteSpace(taskFile)) return null;
+
+        var prefix = @"#metadata";
+        var suffix = @"/metadata";
+        var fileName = taskFile.Split(Path.DirectorySeparatorChar).Last();
+        var id = fileName.Split('.').First();
+        var data = File.ReadAllText(taskFile);
+        var pattern = $@"{prefix}.+{suffix}";
+        var metaData = Regex.Match(data, pattern, RegexOptions.Singleline);
+
+        if (!metaData.Success) return null;
+
+        var task = metaData.Value.JsonContent<AgentTask>();
+        if (task == null) return null;
+
+        task.Id = id;
+        pattern = $@"{suffix}.+";
+        var content = Regex.Match(data, pattern, RegexOptions.Singleline).Value;
+        task.Content = content.Substring(suffix.Length).Trim();
+        return task;
+    }
+
+    private UserAgent BuildUserAgent(string agentId, string userId, bool editable = false)
+    {
+        return new UserAgent
+        {
+            Id = Guid.NewGuid().ToString(),
+            UserId = userId,
+            AgentId = agentId,
+            Editable = editable,
+            CreatedTime = DateTime.UtcNow,
+            UpdatedTime = DateTime.UtcNow
+        };
     }
 }

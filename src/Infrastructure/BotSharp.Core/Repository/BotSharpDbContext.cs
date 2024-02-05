@@ -136,12 +136,22 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
+    public void BulkInsertAgentTasks(List<AgentTask> tasks)
+    {
+        throw new NotImplementedException();
+    }
+
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
     {
         throw new NotImplementedException();
     }
 
     public bool DeleteAgentTask(string agentId, string taskId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool DeleteAgentTasks()
     {
         throw new NotImplementedException();
     }
