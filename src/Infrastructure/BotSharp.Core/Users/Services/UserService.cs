@@ -71,13 +71,13 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        var hooks = _services.GetServices<IAuthenticationHook>();
         if (record == null  || record.Source != "internal")
         {
             // check 3rd party user
-            var validators = _services.GetServices<IAuthenticationHook>();
-            foreach (var validator in validators)
+            foreach (var hook in hooks)
             {
-                var user = await validator.Authenticate(id, password);
+                var user = await hook.Authenticate(id, password);
                 if (user == null)
                 {
                     continue;
@@ -120,13 +120,20 @@ public class UserService : IUserService
 
         var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-        return new Token
+        var token = new Token
         {
             AccessToken = accessToken,
             ExpireTime = jwt.Payload.Exp.Value,
             TokenType = "Bearer",
             Scope = "api"
         };
+
+        foreach (var hook in hooks)
+        {
+            hook.BeforeSending(token);
+        }
+
+        return token;
     }
 
     private string GenerateJwtToken(User user)
