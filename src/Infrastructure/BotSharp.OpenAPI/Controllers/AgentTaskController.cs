@@ -15,6 +15,12 @@ public class AgentTaskController : ControllerBase
         _services = services;
     }
 
+    /// <summary>
+    /// Get an agent task
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="taskId"></param>
+    /// <returns></returns>
     [HttpGet("/agent/{agentId}/task/{taskId}")]
     public async Task<AgentTaskViewModel> GetAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
     {
@@ -24,6 +30,11 @@ public class AgentTaskController : ControllerBase
         return AgentTaskViewModel.From(task);
     }
 
+    /// <summary>
+    /// Get agent tasks by pagination
+    /// </summary>
+    /// <param name="filter"></param>
+    /// <returns></returns>
     [HttpGet("/agent/tasks")]
     public async Task<PagedItems<AgentTaskViewModel>> GetAgentTasks([FromQuery] AgentTaskFilter filter)
     {
@@ -35,6 +46,12 @@ public class AgentTaskController : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Create a new agent task
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="task"></param>
+    /// <returns></returns>
     [HttpPost("/agent/{agentId}/task")]
     public async Task CreateAgentTask([FromRoute] string agentId, [FromBody] AgentTaskCreateModel task)
     {
@@ -43,6 +60,13 @@ public class AgentTaskController : ControllerBase
         await _agentTaskService.CreateTask(agentTask);
     }
 
+    /// <summary>
+    /// Update an agent task
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="taskId"></param>
+    /// <param name="task"></param>
+    /// <returns></returns>
     [HttpPut("/agent/{agentId}/task/{taskId}")]
     public async Task UpdateAgentTask([FromRoute] string agentId, [FromRoute] string taskId, [FromBody] AgentTaskUpdateModel task)
     {
@@ -52,6 +76,14 @@ public class AgentTaskController : ControllerBase
         await _agentTaskService.UpdateTask(agentTask, AgentTaskField.All);
     }
 
+    /// <summary>
+    /// Update an agent task by a single field
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="taskId"></param>
+    /// <param name="field"></param>
+    /// <param name="task"></param>
+    /// <returns></returns>
     [HttpPatch("/agent/{agentId}/task/{taskId}/{field}")]
     public async Task PatchAgentTaskByField([FromRoute] string agentId, [FromRoute] string taskId, [FromRoute] AgentTaskField field, [FromBody] AgentTaskUpdateModel task)
     {
@@ -61,6 +93,12 @@ public class AgentTaskController : ControllerBase
         await _agentTaskService.UpdateTask(agentTask, field);
     }
 
+    /// <summary>
+    /// Delete an agent task
+    /// </summary>
+    /// <param name="agentId"></param>
+    /// <param name="taskId"></param>
+    /// <returns></returns>
     [HttpDelete("/agent/{agentId}/task/{taskId}")]
     public async Task<bool> DeleteAgentTask([FromRoute] string agentId, [FromRoute] string taskId)
     {

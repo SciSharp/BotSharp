@@ -32,9 +32,9 @@ public class AgentTaskViewModel
             Enabled = task.Enabled,
             AgentId = task.AgentId,
             AgentName = task.Agent?.Name,
+            DirectAgentId = task?.DirectAgentId,
             CreatedDateTime = task.CreatedDateTime,
-            UpdatedDateTime = task.UpdatedDateTime,
-            DirectAgentId = task?.DirectAgentId
+            UpdatedDateTime = task.UpdatedDateTime
         };
     }
 }

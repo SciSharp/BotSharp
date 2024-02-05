@@ -8,6 +8,7 @@ public class AgentTaskUpdateModel
     public string? Description { get; set; }
     public string? Content { get; set; }
     public bool Enabled { get; set; }
+    public string? DirectAgentId { get; set; }
 
     public AgentTask ToAgentTask()
     {
@@ -16,7 +17,8 @@ public class AgentTaskUpdateModel
             Name = Name,
             Description = Description,
             Content = Content,
-            Enabled = Enabled
+            Enabled = Enabled,
+            DirectAgentId = DirectAgentId
         };
     }
 }

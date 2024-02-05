@@ -2,12 +2,34 @@ namespace BotSharp.Abstraction.Utilities;
 
 public class Pagination
 {
-    public int Page { get; set; } = 1;
-    /// <summary>
-    /// Use -1 for all records
-    /// </summary>
-    public int Size { get; set; } = 20;
-    public int Offset => (Page - 1) * Size;
+    private int _page;
+    private int _size;
+
+    public int Page
+    { 
+        get { return _page > 0 ? _page : 1; }
+        set { _page = value; } 
+    }
+
+    public int Size
+    {
+        get 
+        {
+            if (_size <= 0) return 20;
+            if (_size > 100) return 100;
+
+            return _size;
+        } 
+        set 
+        {
+            _size = value;
+        } 
+    }
+
+    public int Offset
+    {
+        get { return (Page - 1) * Size; }
+    }
 }
 
 public class PagedItems<T>
