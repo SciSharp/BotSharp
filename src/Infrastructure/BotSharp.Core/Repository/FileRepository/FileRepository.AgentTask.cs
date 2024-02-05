@@ -130,6 +130,11 @@ public partial class FileRepository
         File.WriteAllText(taskFile, fileContent);
     }
 
+    public void BulkInsertAgentTasks(List<AgentTask> tasks)
+    {
+        
+    }
+
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
     {
         if (task == null || string.IsNullOrEmpty(task.Id)) return;
@@ -200,6 +205,11 @@ public partial class FileRepository
 
         File.Delete(taskFile);
         return true;
+    }
+
+    public bool DeleteAgentTasks()
+    {
+        return false;
     }
 
     private string? FindTaskFileById(string taskDir, string taskId)

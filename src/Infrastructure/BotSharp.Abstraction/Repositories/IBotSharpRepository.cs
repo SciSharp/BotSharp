@@ -39,8 +39,10 @@ public interface IBotSharpRepository
     PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter);
     AgentTask? GetAgentTask(string agentId, string taskId);
     void InsertAgentTask(AgentTask task);
+    void BulkInsertAgentTasks(List<AgentTask> tasks);
     void UpdateAgentTask(AgentTask task, AgentTaskField field);
     bool DeleteAgentTask(string agentId, string taskId);
+    bool DeleteAgentTasks();
     #endregion
 
     #region Conversation
