@@ -3,8 +3,16 @@ namespace BotSharp.Plugin.WebDriver.Drivers;
 public interface IWebBrowser
 {
     Task LaunchBrowser(string? url);
-    Task InputUserText(Agent agent, BrowsingContextIn context, string messageId);
-    Task InputUserPassword(Agent agent, BrowsingContextIn context, string messageId);
-    Task ClickElement(Agent agent, BrowsingContextIn context, string messageId);
-    Task GoToPage(Agent agent, BrowsingContextIn context, string messageId);
+    Task<string> ScreenshotAsync(string path);
+    Task<bool> InputUserText(BrowserActionParams actionParams);
+    Task<bool> InputUserPassword(BrowserActionParams actionParams);
+    Task<bool> ClickButton(BrowserActionParams actionParams);
+    Task<bool> ClickElement(BrowserActionParams actionParams);
+    Task<bool> ChangeListValue(BrowserActionParams actionParams);
+    Task<bool> CheckRadioButton(BrowserActionParams actionParams);
+    Task<bool> ChangeCheckbox(BrowserActionParams actionParams);
+    Task<bool> GoToPage(BrowserActionParams actionParams);
+    Task<string> ExtractData(BrowserActionParams actionParams);
+    Task<T> EvaluateScript<T>(string script);
+    Task CloseBrowser();
 }

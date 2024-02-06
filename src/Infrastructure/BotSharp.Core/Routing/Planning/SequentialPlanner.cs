@@ -31,15 +31,19 @@ public class SequentialPlanner : IPlaner
         {
             _lastInst.Response = decomposation.Description;
             _lastInst.Reason = $"{decomposation.TotalRemainingSteps} left.";
+            dialogs.Add(new RoleDialogModel(AgentRole.User, decomposation.Description)
+            {
+                CurrentAgentId = router.Id,
+                MessageId = messageId
+            });
             return _lastInst;
         }
-        else if (decomposation.TotalRemainingSteps == 0)
+        else if (decomposation.TotalRemainingSteps == 0 || decomposation.ShouldStop)
         {
             // Tell router all steps are done
             dialogs.Add(new RoleDialogModel(AgentRole.Assistant,  decomposation.StopReason)
             {
                 CurrentAgentId = router.Id,
-                FunctionName = nameof(SequentialPlanner),
                 MessageId = messageId
             });
             router.TemplateDict["conversation"] = router.TemplateDict["conversation"].ToString().TrimEnd() + 

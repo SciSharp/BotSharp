@@ -39,7 +39,15 @@ public partial class RoutingService : IRoutingService
         var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
 
         var conv = _services.GetRequiredService<IConversationService>();
-        var dialogs = conv.GetDialogHistory();
+        var dialogs = new List<RoleDialogModel>();
+        if (conv.States.GetState("hide_context", "false") == "true")
+        {
+            dialogs.Add(message);
+        }
+        else
+        {
+            dialogs = conv.GetDialogHistory();
+        }
         handler.SetDialogs(dialogs);
 
         var inst = new FunctionCallFromLlm

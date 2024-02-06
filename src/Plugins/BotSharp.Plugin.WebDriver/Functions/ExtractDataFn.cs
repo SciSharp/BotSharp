@@ -1,5 +1,3 @@
-using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
-
 namespace BotSharp.Plugin.WebDriver.Functions;
 
 public class ExtractDataFn : IFunctionCallback
@@ -7,13 +5,13 @@ public class ExtractDataFn : IFunctionCallback
     public string Name => "extract_data_from_page";
 
     private readonly IServiceProvider _services;
-    private readonly PlaywrightWebDriver _driver;
+    private readonly IWebBrowser _browser;
 
     public ExtractDataFn(IServiceProvider services,
-        PlaywrightWebDriver driver)
+        IWebBrowser browser)
     {
         _services = services;
-        _driver = driver;
+        _browser = browser;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -21,7 +19,13 @@ public class ExtractDataFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        message.Content = await _driver.ExtractData(agent, args, message.MessageId);
+        message.Content = await _browser.ExtractData(new BrowserActionParams(agent, args, message.MessageId));
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+
+        message.Data = await _browser.ScreenshotAsync(path);
+
         return true;
     }
 }

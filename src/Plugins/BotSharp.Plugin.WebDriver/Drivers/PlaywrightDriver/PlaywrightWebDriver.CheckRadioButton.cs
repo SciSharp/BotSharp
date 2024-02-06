@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> ClickElement(BrowserActionParams actionParams)
+    public async Task<bool> CheckRadioButton(BrowserActionParams actionParams)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
@@ -21,33 +21,38 @@ public partial class PlaywrightWebDriver
         var regex = new Regex(regexExpression, RegexOptions.IgnoreCase);
         var elements = _instance.Page.GetByText(regex);
         var count = await elements.CountAsync();
-
-        // try placeholder
+        
         if (count == 0)
         {
-            elements = _instance.Page.GetByPlaceholder(regex);
-            count = await elements.CountAsync();
+            return false;
         }
+
+        var parentElement = elements.Locator("..");
+        count = await parentElement.CountAsync();
+        if (count == 0)
+        {
+            return false;
+        }
+
+        elements = parentElement.GetByText(new Regex($"{actionParams.Context.UpdateValue}", RegexOptions.IgnoreCase));
+
+        count = await elements.CountAsync();
 
         if (count == 0)
         {
-            _logger.LogError($"Can't locate element by keyword {actionParams.Context.ElementText}");
+            return false;
         }
-        else if (count == 1)
+
+        try
         {
-            // var tagName = await elements.EvaluateAsync<string>("el => el.tagName");
-
-            await elements.HoverAsync();
-            await elements.ClickAsync();
-
-            // Triggered ajax
-            await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            // var label = await elements.GetAttributeAsync("for");
+            await elements.SetCheckedAsync(true);
 
             return true;
         }
-        else if (count > 1)
+        catch (Exception ex)
         {
-            _logger.LogWarning($"Multiple elements are found by keyword {actionParams.Context.ElementText}");
+            _logger.LogError(ex.Message);
         }
 
         return false;

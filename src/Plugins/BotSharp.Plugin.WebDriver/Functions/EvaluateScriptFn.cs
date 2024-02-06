@@ -1,5 +1,3 @@
-using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
-
 namespace BotSharp.Plugin.WebDriver.Functions;
 
 public class EvaluateScriptFn : IFunctionCallback
@@ -7,18 +5,18 @@ public class EvaluateScriptFn : IFunctionCallback
     public string Name => "evaluate_script";
 
     private readonly IServiceProvider _services;
-    private readonly PlaywrightWebDriver _driver;
+    private readonly IWebBrowser _browser;
 
     public EvaluateScriptFn(IServiceProvider services,
-        PlaywrightWebDriver driver)
+        IWebBrowser browser)
     {
         _services = services;
-        _driver = driver;
+        _browser = browser;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        message.Data = await _driver.EvaluateScript<object>(message.Content);
+        message.Data = await _browser.EvaluateScript<object>(message.Content);
         return true;
     }
 }

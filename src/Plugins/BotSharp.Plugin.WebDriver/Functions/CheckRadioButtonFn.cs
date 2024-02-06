@@ -1,13 +1,13 @@
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class OpenBrowserFn : IFunctionCallback
+public class CheckRadioButtonFn : IFunctionCallback
 {
-    public string Name => "open_browser";
+    public string Name => "check_radio_button";
 
     private readonly IServiceProvider _services;
     private readonly IWebBrowser _browser;
 
-    public OpenBrowserFn(IServiceProvider services,
+    public CheckRadioButtonFn(IServiceProvider services,
         IWebBrowser browser)
     {
         _services = services;
@@ -17,8 +17,12 @@ public class OpenBrowserFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
-        await _browser.LaunchBrowser(args.Url);
-        message.Content = string.IsNullOrEmpty(args.Url) ? $"Launch browser with blank page successfully." : $"Open website {args.Url} successfully.";
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        var result = await _browser.CheckRadioButton(new BrowserActionParams(agent, args, message.MessageId));
+
+        message.Content = result ? "Success" : "Failed";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.NewScreenshotFilePath(message.MessageId);
