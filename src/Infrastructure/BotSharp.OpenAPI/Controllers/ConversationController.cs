@@ -83,6 +83,7 @@ public class ConversationController : ControllerBase
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
                     Text = message.Content,
+                    Data = message.Data,
                     Sender = UserViewModel.FromUser(user)
                 });
             }
@@ -95,6 +96,7 @@ public class ConversationController : ControllerBase
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
                     Text = message.Content,
+                    Data = message.Data,
                     Sender = new UserViewModel
                     {
                         FirstName = agent.Name,

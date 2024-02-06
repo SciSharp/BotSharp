@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.WebDriver.Services;
 
 public partial class WebDriverService
 {
-    public string NewScreenshotFilePath(string messageId)
+    public string GetScreenshotDir()
     {
         var conversation = _services.GetRequiredService<IConversationService>();
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -13,6 +13,26 @@ public partial class WebDriverService
         {
             Directory.CreateDirectory(dir);
         }
+        return dir;
+    }
+
+    public string GetScreenshotFilePath(string messageId)
+    {
+        var dir = GetScreenshotDir();
         return $"{dir}/{messageId}.png";
+    }
+
+    public string? GetScreenshotBase64(string messageId)
+    {
+        var filePath = GetScreenshotFilePath(messageId);
+        if (File.Exists(filePath))
+        {
+            var bytes = File.ReadAllBytes(filePath);
+            return Convert.ToBase64String(bytes);
+        }
+        else
+        {
+            return null;
+        }
     }
 }

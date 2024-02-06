@@ -67,6 +67,7 @@ public class ConversationStorage : IConversationStorage
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var dialogs = db.GetConversationDialogs(conversationId);
+        var hooks = _services.GetServices<IConversationHook>();
 
         var results = new List<RoleDialogModel>();
         foreach (var dialog in dialogs)
@@ -79,16 +80,28 @@ public class ConversationStorage : IConversationStorage
             var function = role == AgentRole.Function ? meta.FunctionName : null;
             var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
             var createdAt = meta.CreateTime;
-            
-            results.Add(new RoleDialogModel(role, content)
+
+            var record = new RoleDialogModel(role, content)
             {
                 CurrentAgentId = currentAgentId,
                 MessageId = messageId,
                 CreatedAt = createdAt,
                 SenderId = senderId,
                 FunctionName = function
-            });
+            };
+            results.Add(record);
+
+            foreach(var hook in hooks)
+            {
+                hook.OnDialogRecordLoaded(record).Wait();
+            }
         }
+
+        foreach (var hook in hooks)
+        {
+            hook.OnDialogsLoaded(results).Wait();
+        }
+
         return results;
     }
 

@@ -131,7 +131,7 @@
         },
         "update_value": {
           "type": "string",
-          "description": "checked or unchecked"
+          "description": "check or uncheck"
         },
         "match_rule": {
           "type": "string",

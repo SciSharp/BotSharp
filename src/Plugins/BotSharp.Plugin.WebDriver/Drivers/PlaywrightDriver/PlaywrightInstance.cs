@@ -36,11 +36,11 @@ public class PlaywrightInstance : IDisposable
                 Channel = "chrome",
                 IgnoreDefaultArgs = new[]
                 {
-                    "enable-automation"
+                    "--disable-infobars"
                 },
                 Args = new[]
                 {
-                    "--disable-infobars"
+                    "--disable-infobars",
                     // "--start-maximized"
                 }
             });

@@ -23,7 +23,7 @@ public class GoToPageFn : IFunctionCallback
         message.Content = $"Page {args.Url} is open.";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
-        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(path);
 
