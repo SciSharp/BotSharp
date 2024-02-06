@@ -21,6 +21,12 @@ public class GoToPageFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         await _browser.GoToPage(new BrowserActionParams(agent, args, message.MessageId));
         message.Content = $"Page {args.Url} is open.";
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+
+        message.Data = await _browser.ScreenshotAsync(path);
+
         return true;
     }
 }

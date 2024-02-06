@@ -3,6 +3,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers;
 public interface IWebBrowser
 {
     Task LaunchBrowser(string? url);
+    Task<string> ScreenshotAsync(string path);
     Task<bool> InputUserText(BrowserActionParams actionParams);
     Task<bool> InputUserPassword(BrowserActionParams actionParams);
     Task<bool> ClickButton(BrowserActionParams actionParams);

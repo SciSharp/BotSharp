@@ -20,6 +20,12 @@ public class ExtractDataFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         message.Content = await _browser.ExtractData(new BrowserActionParams(agent, args, message.MessageId));
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+
+        message.Data = await _browser.ScreenshotAsync(path);
+
         return true;
     }
 }

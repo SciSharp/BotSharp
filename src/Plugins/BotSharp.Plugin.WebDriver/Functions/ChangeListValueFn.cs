@@ -23,7 +23,12 @@ public class ChangeListValueFn : IFunctionCallback
         var result = await _browser.ChangeListValue(new BrowserActionParams(agent, args, message.MessageId));
 
         message.Content = result ? "Success" : "Failed";
-        
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+
+        message.Data = await _browser.ScreenshotAsync(path);
+
         return true;
     }
 }

@@ -24,6 +24,11 @@ public class ClickButtonFn : IFunctionCallback
 
         message.Content = result ? "Success" : "Failed";
 
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+
+        message.Data = await _browser.ScreenshotAsync(path);
+
         return true;
     }
 }
