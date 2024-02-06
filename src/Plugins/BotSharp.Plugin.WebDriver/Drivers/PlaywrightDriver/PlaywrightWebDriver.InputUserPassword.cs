@@ -1,8 +1,10 @@
+using Microsoft.Extensions.Logging;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task InputUserPassword(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task<bool> InputUserPassword(BrowserActionParams actionParams)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
 
@@ -14,19 +16,21 @@ public partial class PlaywrightWebDriver
 
         if (password == null)
         {
-            throw new Exception($"Can't locate the web element {context.ElementName}.");
+            throw new Exception($"Can't locate the web element {actionParams.Context.ElementName}.");
         }
 
         var config = _services.GetRequiredService<IConfiguration>();
         try
         {
-            var key = context.Password.Replace("@", "").Replace(".", ":");
+            var key = actionParams.Context.Password.Replace("@", "").Replace(".", ":");
             var value = config.GetValue<string>(key);
             await password.FillAsync(value);
+            return true;
         }
         catch (Exception ex)
         {
-            throw new Exception(ex.Message);
+            _logger.LogError(ex.Message);
         }
+        return false;
     }
 }

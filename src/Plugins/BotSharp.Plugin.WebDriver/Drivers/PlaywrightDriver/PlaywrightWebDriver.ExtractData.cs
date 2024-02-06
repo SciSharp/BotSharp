@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<string> ExtractData(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task<string> ExtractData(BrowserActionParams actionParams)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
 
@@ -11,7 +11,7 @@ public partial class PlaywrightWebDriver
         var content = await body.InnerTextAsync();
 
         var driverService = _services.GetRequiredService<WebDriverService>();
-        var answer = await driverService.ExtraData(agent, content, context.Question, messageId);
+        var answer = await driverService.ExtraData(actionParams.Agent, content, actionParams.Context.Question, actionParams.MessageId);
 
         return answer;
     }

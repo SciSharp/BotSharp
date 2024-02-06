@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task InputUserText(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task<bool> InputUserText(BrowserActionParams actionParams)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
@@ -12,12 +12,12 @@ public partial class PlaywrightWebDriver
         // Find by text exactly match
         var elements = _instance.Page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
         {
-            Name = context.ElementText
+            Name = actionParams.Context.ElementText
         });
         var count = await elements.CountAsync();
         if (count == 0)
         {
-            elements = _instance.Page.GetByPlaceholder(context.ElementText);
+            elements = _instance.Page.GetByPlaceholder(actionParams.Context.ElementText);
             count = await elements.CountAsync();
         }
 
@@ -25,25 +25,39 @@ public partial class PlaywrightWebDriver
         {
             var driverService = _services.GetRequiredService<WebDriverService>();
             var html = await FilteredInputHtml();
-            var htmlElementContextOut = await driverService.InferElement(agent,
+            var htmlElementContextOut = await driverService.InferElement(actionParams.Agent,
                 html,
-                context.ElementText,
-                messageId);
+                actionParams.Context.ElementText,
+                actionParams.MessageId);
             elements = Locator(htmlElementContextOut);
+            count = await elements.CountAsync();
         }
 
-        try
+        if (count == 0)
         {
-            await elements.FillAsync(context.InputText);
-            if (context.PressEnter.HasValue && context.PressEnter.Value)
+
+        }
+        else if (count == 1)
+        {
+            try
             {
-                await elements.PressAsync("Enter");
+                await elements.FillAsync(actionParams.Context.InputText);
+                if (actionParams.Context.PressEnter.HasValue && actionParams.Context.PressEnter.Value)
+                {
+                    await elements.PressAsync("Enter");
+                }
+
+                // Triggered ajax
+                await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
             }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message);
-        }
+
+        return false;
     }
 
     private async Task<string> FilteredInputHtml()

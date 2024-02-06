@@ -4,9 +4,9 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task CloseBrowser(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task CloseBrowser()
     {
         // await _instance.Browser.CloseAsync();
-        _logger.LogInformation($"{agent.Name} closed browser with page {_instance.Page.Url}");
+        _logger.LogInformation($"Closed browser with page {_instance.Page.Url}");
     }
 }

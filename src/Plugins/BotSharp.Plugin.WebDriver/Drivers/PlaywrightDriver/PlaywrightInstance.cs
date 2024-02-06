@@ -8,7 +8,17 @@ public class PlaywrightInstance : IDisposable
     IBrowserContext _context;
 
     public IBrowserContext Context => _context;
-    public IPage Page => _context.Pages.LastOrDefault();
+    public IPage Page
+    {
+        get
+        {
+            if (_context == null)
+            {
+                InitInstance().Wait();
+            }
+            return _context.Pages.LastOrDefault();
+        }
+    }
 
     public async Task InitInstance()
     {
@@ -19,7 +29,7 @@ public class PlaywrightInstance : IDisposable
 
         if (_context == null)
         {
-            string tempFolderPath = $"{Path.GetTempPath()}\\playwright";
+            string tempFolderPath = $"{Path.GetTempPath()}\\playwright\\{Guid.NewGuid()}";
             _context = await _playwright.Chromium.LaunchPersistentContextAsync(tempFolderPath, new BrowserTypeLaunchPersistentContextOptions
             {
                 Headless = false,

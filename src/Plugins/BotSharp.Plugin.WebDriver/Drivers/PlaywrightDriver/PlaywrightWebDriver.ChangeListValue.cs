@@ -1,10 +1,14 @@
+using Microsoft.Extensions.Logging;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task ChangeListValue(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task<bool> ChangeListValue(BrowserActionParams actionParams)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
         // Retrieve the page raw html and infer the element path
         var body = await _instance.Page.QuerySelectorAsync("body");
 
@@ -55,10 +59,10 @@ public partial class PlaywrightWebDriver
         }
 
         var driverService = _services.GetRequiredService<WebDriverService>();
-        var htmlElementContextOut = await driverService.InferElement(agent, 
-            string.Join("", str), 
-            context.ElementName, 
-            messageId);
+        var htmlElementContextOut = await driverService.InferElement(actionParams.Agent, 
+            string.Join("", str),
+            actionParams.Context.ElementName,
+            actionParams.MessageId);
         ILocator element = Locator(htmlElementContextOut);
         
         try
@@ -80,7 +84,7 @@ public partial class PlaywrightWebDriver
             await element.FocusAsync();
             await element.SelectOptionAsync(new SelectOptionValue
             {
-                Label = context.UpdateValue
+                Label = actionParams.Context.UpdateValue
             });
 
             // Click on the blank area to activate posting
@@ -96,10 +100,13 @@ public partial class PlaywrightWebDriver
                     element.style.visibility = 'hidden';
                 }", control);
             }
+            return true;
         }
         catch (Exception ex)
         {
-            throw new Exception(ex.Message);
+            _logger.LogError(ex.Message);
         }
+
+        return false;
     }
 }

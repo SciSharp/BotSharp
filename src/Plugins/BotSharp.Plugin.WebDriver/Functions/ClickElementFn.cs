@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Routing;
-using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
-
 namespace BotSharp.Plugin.WebDriver.Functions;
 
 public class ClickElementFn : IFunctionCallback
@@ -8,13 +5,13 @@ public class ClickElementFn : IFunctionCallback
     public string Name => "click_element";
 
     private readonly IServiceProvider _services;
-    private readonly PlaywrightWebDriver _driver;
+    private readonly IWebBrowser _browser;
 
     public ClickElementFn(IServiceProvider services,
-        PlaywrightWebDriver driver)
+        IWebBrowser browser)
     {
         _services = services;
-        _driver = driver;
+        _browser = browser;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -23,9 +20,10 @@ public class ClickElementFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _driver.ClickElement(agent, args, message.MessageId);
+        var result = await _browser.ClickElement(new BrowserActionParams(agent, args, message.MessageId));
 
-        message.Content = $"Element {args.MatchRule} text \"{args.ElementText}\" is clicked successfully.";
+        message.Content = result ? "Success" : "Failed";
+
         return true;
     }
 }

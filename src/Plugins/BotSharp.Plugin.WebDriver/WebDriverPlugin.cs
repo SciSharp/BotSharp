@@ -1,6 +1,4 @@
 using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
-using BotSharp.Plugin.WebDriver.Services;
-using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.Playwrights;
 
@@ -14,7 +12,7 @@ public class WebDriverPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<PlaywrightWebDriver>();
+        services.AddScoped<IWebBrowser, PlaywrightWebDriver>();
         services.AddSingleton<PlaywrightInstance>();
         services.AddScoped<WebDriverService>();
     }

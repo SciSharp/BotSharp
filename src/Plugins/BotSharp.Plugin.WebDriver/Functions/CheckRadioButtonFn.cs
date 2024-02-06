@@ -1,13 +1,13 @@
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class ExtractDataFn : IFunctionCallback
+public class CheckRadioButtonFn : IFunctionCallback
 {
-    public string Name => "extract_data_from_page";
+    public string Name => "check_radio_button";
 
     private readonly IServiceProvider _services;
     private readonly IWebBrowser _browser;
 
-    public ExtractDataFn(IServiceProvider services,
+    public CheckRadioButtonFn(IServiceProvider services,
         IWebBrowser browser)
     {
         _services = services;
@@ -17,9 +17,13 @@ public class ExtractDataFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
+
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        message.Content = await _browser.ExtractData(new BrowserActionParams(agent, args, message.MessageId));
+        var result = await _browser.CheckRadioButton(new BrowserActionParams(agent, args, message.MessageId));
+
+        message.Content = result ? "Success" : "Failed";
+
         return true;
     }
 }
