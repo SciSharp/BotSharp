@@ -22,7 +22,7 @@ public class ExtractDataFn : IFunctionCallback
         message.Content = await _browser.ExtractData(new BrowserActionParams(agent, args, message.MessageId));
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
-        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(path);
 

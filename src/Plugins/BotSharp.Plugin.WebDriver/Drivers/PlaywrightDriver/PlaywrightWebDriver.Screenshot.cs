@@ -10,6 +10,6 @@ public partial class PlaywrightWebDriver
             Path = path,
         });
 
-        return Convert.ToBase64String(bytes);
+        return "data:image/png;base64," + Convert.ToBase64String(bytes);
     }
 }

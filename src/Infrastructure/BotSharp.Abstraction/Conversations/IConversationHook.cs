@@ -32,6 +32,14 @@ public interface IConversationHook
     /// <returns></returns>
     Task OnDialogsLoaded(List<RoleDialogModel> dialogs);
 
+    /// <summary>
+    /// Triggered when every dialog record is loaded
+    /// It can be used to populate extra data point before presenting to user.
+    /// </summary>
+    /// <param name="dialog"></param>
+    /// <returns></returns>
+    Task OnDialogRecordLoaded(RoleDialogModel dialog);
+
     Task OnStateLoaded(ConversationState state);
     Task OnStateChanged(string name, string preValue, string currentValue);
 

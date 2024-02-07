@@ -1,4 +1,5 @@
 using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
+using BotSharp.Plugin.WebDriver.Hooks;
 
 namespace BotSharp.Plugin.Playwrights;
 
@@ -15,5 +16,6 @@ public class WebDriverPlugin : IBotSharpPlugin
         services.AddScoped<IWebBrowser, PlaywrightWebDriver>();
         services.AddSingleton<PlaywrightInstance>();
         services.AddScoped<WebDriverService>();
+        services.AddScoped<IConversationHook, WebDriverConversationHook>();
     }
 }

@@ -21,7 +21,7 @@ public class OpenBrowserFn : IFunctionCallback
         message.Content = string.IsNullOrEmpty(args.Url) ? $"Launch browser with blank page successfully." : $"Open website {args.Url} successfully.";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
-        var path = webDriverService.NewScreenshotFilePath(message.MessageId);
+        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(path);
 

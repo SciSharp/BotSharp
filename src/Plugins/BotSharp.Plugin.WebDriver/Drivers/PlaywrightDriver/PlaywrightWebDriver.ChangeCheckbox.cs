@@ -68,11 +68,11 @@ public partial class PlaywrightWebDriver
         try
         {
             var isChecked = await elements.IsCheckedAsync();
-            if (actionParams.Context.UpdateValue == "checked" && !isChecked)
+            if (actionParams.Context.UpdateValue == "check" && !isChecked)
             {
                 await elements.ClickAsync();
             }
-            else if (actionParams.Context.UpdateValue == "unchecked" && isChecked)
+            else if (actionParams.Context.UpdateValue == "uncheck" && isChecked)
             {
                 await elements.ClickAsync();
             }

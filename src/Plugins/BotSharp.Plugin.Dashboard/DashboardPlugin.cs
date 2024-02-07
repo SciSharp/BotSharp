@@ -25,8 +25,7 @@ public class DashboardPlugin : IBotSharpPlugin
 
     public bool AttachMenu(List<PluginMenuDef> menu)
     {
-        var section = menu.First(x => x.Label == "Apps");
-        menu.Add(new PluginMenuDef("Dashboard", link: "page/dashboard", icon: "bx bx-home-circle", weight: section.Weight - 1));
+        menu.Add(new PluginMenuDef("Dashboard", link: "page/dashboard", icon: "bx bx-home-circle", weight: 1));
         return true;
     }
 }
