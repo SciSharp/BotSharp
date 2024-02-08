@@ -22,9 +22,10 @@ public class CheckRadioButtonFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         var result = await _browser.CheckRadioButton(new BrowserActionParams(agent, args, message.MessageId));
 
-        message.Content = result ? 
-            $"Checked value of '{args.UpdateValue}' for radio button '{args.ElementName}' successfully" : 
-            "Failed";
+        var content = $"Check value of '{args.UpdateValue}' for radio button '{args.ElementName}'";
+        message.Content = result ?
+            $"{content} successfully" :
+            $"{content} failed";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

@@ -22,7 +22,7 @@ public class InputUserPasswordFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         var result = await _browser.InputUserPassword(new BrowserActionParams(agent, args, message.MessageId));
 
-        message.Content = result ? "Input password successfully" : "Failed";
+        message.Content = result ? "Input password successfully" : "Input password failed";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

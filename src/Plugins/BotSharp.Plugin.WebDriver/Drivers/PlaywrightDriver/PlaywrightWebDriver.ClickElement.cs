@@ -48,6 +48,12 @@ public partial class PlaywrightWebDriver
         else if (count > 1)
         {
             _logger.LogWarning($"Multiple elements are found by keyword {actionParams.Context.ElementText}");
+            var all = await elements.AllAsync();
+            foreach (var element in all)
+            {
+                var content = await element.TextContentAsync();
+                _logger.LogWarning(content);
+            }
         }
 
         return false;
