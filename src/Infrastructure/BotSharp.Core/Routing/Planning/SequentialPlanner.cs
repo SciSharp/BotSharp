@@ -30,24 +30,22 @@ public class SequentialPlanner : IPlaner
         if (decomposation.TotalRemainingSteps > 0 && _lastInst != null)
         {
             _lastInst.Response = decomposation.Description;
-            _lastInst.Reason = $"{decomposation.TotalRemainingSteps} left.";
-            dialogs.Add(new RoleDialogModel(AgentRole.User, decomposation.Description)
-            {
-                CurrentAgentId = router.Id,
-                MessageId = messageId
-            });
+            _lastInst.Reason = $"Having {decomposation.TotalRemainingSteps} steps left.";
             return _lastInst;
         }
         else if (decomposation.TotalRemainingSteps == 0 || decomposation.ShouldStop)
         {
-            // Tell router all steps are done
-            dialogs.Add(new RoleDialogModel(AgentRole.Assistant,  decomposation.StopReason)
+            if (!string.IsNullOrEmpty(decomposation.StopReason))
             {
-                CurrentAgentId = router.Id,
-                MessageId = messageId
-            });
-            router.TemplateDict["conversation"] = router.TemplateDict["conversation"].ToString().TrimEnd() + 
-                $"\r\n{router.Name}: {decomposation.StopReason}";
+                // Tell router all steps are done
+                dialogs.Add(new RoleDialogModel(AgentRole.Assistant, decomposation.StopReason)
+                {
+                    CurrentAgentId = router.Id,
+                    MessageId = messageId
+                });
+                router.TemplateDict["conversation"] = router.TemplateDict["conversation"].ToString().TrimEnd() +
+                    $"\r\n{router.Name}: {decomposation.StopReason}";
+            }
         }
 
         var next = GetNextStepPrompt(router);
@@ -177,7 +175,6 @@ public class SequentialPlanner : IPlaner
                 }, dialogs);
 
                 text = response.Content;
-                Console.WriteLine(text, Color.OrangeRed);
                 inst = response.Content.JsonContent<DecomposedStep>();
                 break;
             }

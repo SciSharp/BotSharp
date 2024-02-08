@@ -22,9 +22,10 @@ public class ChangeCheckboxFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         var result = await _browser.ChangeCheckbox(new BrowserActionParams(agent, args, message.MessageId));
 
+        var content = $"{(args.UpdateValue == "check" ? "Check" : "Uncheck")} checkbox of '{args.ElementText}'";
         message.Content = result ? 
-            $"{(args.UpdateValue == "check" ? "Checked" : "Unchecked")} checkbox of '{args.ElementText}' successfully" : 
-            "Failed";
+            $"{content} successfully" : 
+            $"{content} failed";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

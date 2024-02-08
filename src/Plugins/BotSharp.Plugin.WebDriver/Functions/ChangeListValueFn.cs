@@ -22,9 +22,10 @@ public class ChangeListValueFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         var result = await _browser.ChangeListValue(new BrowserActionParams(agent, args, message.MessageId));
 
+        var content = $"Change value to '{args.UpdateValue}' for {args.ElementName}";
         message.Content = result ? 
-            $"Changed value to '{args.UpdateValue}' for {args.ElementName} successfully" : 
-            "Failed";
+            $"{content} successfully" : 
+            $"{content} failed";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

@@ -22,9 +22,10 @@ public class ClickButtonFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         var result = await _browser.ClickButton(new BrowserActionParams(agent, args, message.MessageId));
 
+        var content = $"Click button of '{args.ElementName}'";
         message.Content = result ? 
-            $"Clicked button of '{args.ElementName}' successfully" : 
-            "Failed";
+            $"{content} successfully" : 
+            $"{content} failed";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

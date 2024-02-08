@@ -29,6 +29,12 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
+            elements = _instance.Page.GetByText(actionParams.Context.ElementName);
+            count = await elements.CountAsync();
+        }
+
+        if (count == 0)
+        {
             // Infer element if not found
             var driverService = _services.GetRequiredService<WebDriverService>();
             var html = await FilteredButtonHtml();

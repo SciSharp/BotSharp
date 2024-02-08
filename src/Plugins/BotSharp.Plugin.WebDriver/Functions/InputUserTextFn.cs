@@ -29,8 +29,8 @@ public class InputUserTextFn : IFunctionCallback
         }
 
         message.Content = result ?
-            content + " successfully" : 
-            "Failed";
+            content + " successfully" :
+            content + " failed";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
