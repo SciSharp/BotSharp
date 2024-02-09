@@ -52,7 +52,6 @@ public partial class PlaywrightWebDriver
 
         try
         {
-            await elements.HoverAsync();
             await elements.ClickAsync();
 
             await Task.Delay(300);

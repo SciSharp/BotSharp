@@ -38,7 +38,6 @@ public partial class PlaywrightWebDriver
         {
             // var tagName = await elements.EvaluateAsync<string>("el => el.tagName");
 
-            await elements.HoverAsync();
             await elements.ClickAsync();
 
             // Triggered ajax
