@@ -9,6 +9,7 @@ public partial class PlaywrightWebDriver
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Task.Delay(300);
 
         // Retrieve the page raw html and infer the element path
         var regexExpression = actionParams.Context.MatchRule.ToLower() switch
@@ -42,6 +43,7 @@ public partial class PlaywrightWebDriver
 
             // Triggered ajax
             await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Task.Delay(300);
 
             return true;
         }

@@ -9,7 +9,7 @@ public partial class PlaywrightWebDriver
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Task.Delay(100);
+        await Task.Delay(300);
 
         // Find by text exactly match
         var elements = _instance.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
