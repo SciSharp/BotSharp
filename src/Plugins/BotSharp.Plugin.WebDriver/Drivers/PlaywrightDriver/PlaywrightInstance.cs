@@ -32,7 +32,7 @@ public class PlaywrightInstance : IDisposable
             string tempFolderPath = $"{Path.GetTempPath()}\\playwright\\{Guid.NewGuid()}";
             _context = await _playwright.Chromium.LaunchPersistentContextAsync(tempFolderPath, new BrowserTypeLaunchPersistentContextOptions
             {
-                Headless = false,
+                Headless = true,
                 Channel = "chrome",
                 IgnoreDefaultArgs = new[]
                 {
