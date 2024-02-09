@@ -1,10 +1,72 @@
+using Microsoft.Extensions.Logging;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task ClickElement(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task<bool> ClickButton(BrowserActionParams actionParams)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        await Task.Delay(100);
+
+        // Find by text exactly match
+        var elements = _instance.Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
+        {
+            Name = actionParams.Context.ElementName
+        });
+        var count = await elements.CountAsync();
+
+        if (count == 0)
+        {
+            elements = _instance.Page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
+            {
+                Name = actionParams.Context.ElementName
+            });
+            count = await elements.CountAsync();
+        }
+
+        if (count == 0)
+        {
+            elements = _instance.Page.GetByText(actionParams.Context.ElementName);
+            count = await elements.CountAsync();
+        }
+
+        if (count == 0)
+        {
+            // Infer element if not found
+            var driverService = _services.GetRequiredService<WebDriverService>();
+            var html = await FilteredButtonHtml();
+            var htmlElementContextOut = await driverService.InferElement(actionParams.Agent,
+                html,
+                actionParams.Context.ElementName,
+                actionParams.MessageId);
+            elements = Locator(htmlElementContextOut);
+
+            if (elements == null)
+            {
+                return false;
+            }
+        }
+
+        try
+        {
+            await elements.HoverAsync();
+            await elements.ClickAsync();
+
+            await Task.Delay(300);
+            return true;
+        }
+        catch (Exception ex) 
+        {
+            _logger.LogError(ex.Message);
+        }
+        return false;
+    }
+
+    private async Task<string> FilteredButtonHtml()
+    {
         var driverService = _services.GetRequiredService<WebDriverService>();
 
         // Retrieve the page raw html and infer the element path
@@ -32,12 +94,6 @@ public partial class PlaywrightWebDriver
             }));
         }
 
-        var htmlElementContextOut = await driverService.LocateElement(agent, 
-            string.Join("", str), 
-            context.ElementName, 
-            messageId);
-        ILocator element = Locator(htmlElementContextOut);
-        await element.ClickAsync();
-        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        return string.Join("", str);
     }
 }

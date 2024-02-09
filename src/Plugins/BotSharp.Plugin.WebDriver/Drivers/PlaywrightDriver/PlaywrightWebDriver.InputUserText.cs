@@ -1,11 +1,67 @@
+using Microsoft.Extensions.Logging;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task InputUserText(Agent agent, BrowsingContextIn context, string messageId)
+    public async Task<bool> InputUserText(BrowserActionParams actionParams)
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-        // await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        // Find by text exactly match
+        var elements = _instance.Page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
+        {
+            Name = actionParams.Context.ElementText
+        });
+        var count = await elements.CountAsync();
+        if (count == 0)
+        {
+            elements = _instance.Page.GetByPlaceholder(actionParams.Context.ElementText);
+            count = await elements.CountAsync();
+        }
+
+        if (count == 0)
+        {
+            var driverService = _services.GetRequiredService<WebDriverService>();
+            var html = await FilteredInputHtml();
+            var htmlElementContextOut = await driverService.InferElement(actionParams.Agent,
+                html,
+                actionParams.Context.ElementText,
+                actionParams.MessageId);
+            elements = Locator(htmlElementContextOut);
+            count = await elements.CountAsync();
+        }
+
+        if (count == 0)
+        {
+
+        }
+        else if (count == 1)
+        {
+            try
+            {
+                await elements.FillAsync(actionParams.Context.InputText);
+                if (actionParams.Context.PressEnter.HasValue && actionParams.Context.PressEnter.Value)
+                {
+                    await elements.PressAsync("Enter");
+                }
+
+                // Triggered ajax
+                await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+        }
+
+        return false;
+    }
+
+    private async Task<string> FilteredInputHtml()
+    {
         var driverService = _services.GetRequiredService<WebDriverService>();
 
         // Retrieve the page raw html and infer the element path
@@ -48,24 +104,7 @@ public partial class PlaywrightWebDriver
                 Placeholder = placeholder
             }));
         }
-        
-        var htmlElementContextOut = await driverService.LocateElement(agent, 
-            string.Join("", str), 
-            context.ElementName, 
-            messageId);
-        ILocator element = Locator(htmlElementContextOut);
 
-        try
-        {
-            await element.FillAsync(context.InputText);
-            if (context.PressEnter)
-            {
-                await element.PressAsync("Enter");
-            }
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message);
-        }
+        return string.Join("", str);
     }
 }

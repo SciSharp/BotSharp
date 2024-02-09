@@ -217,9 +217,9 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
 
         var filterDef = builder.And(filters);
-        var sortDefinition = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
+        var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
         var pager = filter?.Pager ?? new Pagination();
-        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDefinition).Skip(pager.Offset).Limit(pager.Size).ToList();
+        var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDef).Skip(pager.Offset).Limit(pager.Size).ToList();
         var count = _dc.Conversations.CountDocuments(filterDef);
 
         foreach (var conv in conversationDocs)

@@ -36,6 +36,11 @@ public abstract class ConversationHookBase : IConversationHook
         return Task.CompletedTask;
     }
 
+    public virtual Task OnDialogRecordLoaded(RoleDialogModel dialog)
+    {
+        return Task.CompletedTask;
+    }
+
     public virtual Task OnDialogsLoaded(List<RoleDialogModel> dialogs)
     {
         _dialogs = dialogs;

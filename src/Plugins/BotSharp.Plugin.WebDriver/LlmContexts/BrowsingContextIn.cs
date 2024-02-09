@@ -10,11 +10,20 @@ public class BrowsingContextIn
     [JsonPropertyName("element_name")]
     public string? ElementName { get; set; }
 
+    [JsonPropertyName("element_type")]
+    public string? ElementType { get; set; }
+
     [JsonPropertyName("input_text")]
     public string? InputText { get; set; }
 
+    [JsonPropertyName("element_text")]
+    public string? ElementText { get; set; }
+
     [JsonPropertyName("press_enter")]
-    public bool PressEnter { get; set; }
+    public bool? PressEnter { get; set; }
+
+    [JsonPropertyName("match_rule")]
+    public string MatchRule { get; set; } = string.Empty;
 
     [JsonPropertyName("update_value")]
     public string? UpdateValue { get; set; }

@@ -40,4 +40,6 @@ public interface IRoutingService
     /// <param name="message"></param>
     /// <returns></returns>
     Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message);
+
+    Task<string> GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 50);
 }

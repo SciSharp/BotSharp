@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Agents;
-using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
-
 namespace BotSharp.Plugin.WebDriver.Functions;
 
 public class InputUserTextFn : IFunctionCallback
@@ -8,13 +5,13 @@ public class InputUserTextFn : IFunctionCallback
     public string Name => "input_user_text";
 
     private readonly IServiceProvider _services;
-    private readonly PlaywrightWebDriver _driver;
+    private readonly IWebBrowser _browser;
 
     public InputUserTextFn(IServiceProvider services,
-        PlaywrightWebDriver driver)
+        IWebBrowser browser)
     {
         _services = services;
-        _driver = driver;
+        _browser = browser;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -23,9 +20,22 @@ public class InputUserTextFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _driver.InputUserText(agent, args, message.MessageId);
+        var result = await _browser.InputUserText(new BrowserActionParams(agent, args, message.MessageId));
 
-        message.Content = $"Input text \"{args.InputText}\" successfully.";
+        var content = $"Input '{args.InputText}' in element '{args.ElementText}'";
+        if (args.PressEnter != null && args.PressEnter == true)
+        {
+            content += " and pressed Enter";
+        }
+
+        message.Content = result ?
+            content + " successfully" :
+            content + " failed";
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
+
+        message.Data = await _browser.ScreenshotAsync(path);
 
         return true;
     }

@@ -31,6 +31,9 @@ public class MongoDbContext
     public IMongoCollection<AgentDocument> Agents
         => Database.GetCollection<AgentDocument>($"{_collectionPrefix}_Agents");
 
+    public IMongoCollection<AgentTaskDocument> AgentTasks
+        => Database.GetCollection<AgentTaskDocument>($"{_collectionPrefix}_AgentTasks");
+
     public IMongoCollection<ConversationDocument> Conversations
         => Database.GetCollection<ConversationDocument>($"{_collectionPrefix}_Conversations");
 

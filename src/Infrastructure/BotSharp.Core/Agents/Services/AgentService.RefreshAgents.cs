@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Tasks.Models;
 using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Generic;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -9,8 +11,9 @@ public partial class AgentService
 {
     public async Task RefreshAgents()
     {
-        var isDeleted = _db.DeleteAgents();
-        if (!isDeleted) return;
+        var isAgentDeleted = _db.DeleteAgents();
+        var isTaskDeleted = _db.DeleteAgentTasks();
+        if (!isAgentDeleted) return;
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -20,6 +23,7 @@ public partial class AgentService
         var user = _db.GetUserById(_user.Id);
         var agents = new List<Agent>();
         var userAgents = new List<UserAgent>();
+        var agentTasks = new List<AgentTask>();
 
         foreach (var dir in Directory.GetDirectories(agentDir))
         {
@@ -37,23 +41,18 @@ public partial class AgentService
                  .SetFunctions(functions)
                  .SetResponses(responses)
                  .SetSamples(samples);
-
-            var userAgent = new UserAgent
-            {
-                Id = Guid.NewGuid().ToString(),
-                UserId = user.Id,
-                AgentId = agent.Id,
-                Editable = false,
-                CreatedTime = DateTime.UtcNow,
-                UpdatedTime = DateTime.UtcNow
-            };
-
             agents.Add(agent);
+
+            var userAgent = BuildUserAgent(agent.Id, user.Id);
             userAgents.Add(userAgent);
+
+            var tasks = FetchTasksFromFile(dir);
+            agentTasks.AddRange(tasks);
         }
 
         _db.BulkInsertAgents(agents);
         _db.BulkInsertUserAgents(userAgents);
+        _db.BulkInsertAgentTasks(agentTasks);
 
         Utilities.ClearCache();
     }

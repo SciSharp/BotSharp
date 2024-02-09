@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
+using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -119,6 +120,42 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
     #endregion
 
+    #region Agent Task
+    public PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
+    {
+        throw new NotImplementedException();
+    }
+
+    public AgentTask? GetAgentTask(string agentId, string taskId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void InsertAgentTask(AgentTask task)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void BulkInsertAgentTasks(List<AgentTask> tasks)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateAgentTask(AgentTask task, AgentTaskField field)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool DeleteAgentTask(string agentId, string taskId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool DeleteAgentTasks()
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
 
     #region Conversation
     public void CreateNewConversation(Conversation conversation)
@@ -184,13 +221,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
     #endregion
-    #region Stats
-    public void IncrementConversationCount()
-    {
-        throw new NotImplementedException();
-    }
-    #endregion
-
+    
     #region User
     public User? GetUserByEmail(string email) 
         => throw new NotImplementedException();
@@ -204,7 +235,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public void CreateUser(User user) 
         => throw new NotImplementedException();
     #endregion
-
 
     #region Execution Log
     public void AddExecutionLogs(string conversationId, List<string> logs)
@@ -220,6 +250,13 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    #region Stats
+    public void IncrementConversationCount()
     {
         throw new NotImplementedException();
     }

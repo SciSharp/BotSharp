@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Agents;
-using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
-
 namespace BotSharp.Plugin.WebDriver.Functions;
 
 public class ClickButtonFn : IFunctionCallback
@@ -8,13 +5,13 @@ public class ClickButtonFn : IFunctionCallback
     public string Name => "click_button";
 
     private readonly IServiceProvider _services;
-    private readonly PlaywrightWebDriver _driver;
+    private readonly IWebBrowser _browser;
 
     public ClickButtonFn(IServiceProvider services,
-        PlaywrightWebDriver driver)
+        IWebBrowser browser)
     {
         _services = services;
-        _driver = driver;
+        _browser = browser;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -23,9 +20,17 @@ public class ClickButtonFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _driver.ClickElement(agent, args, message.MessageId);
+        var result = await _browser.ClickButton(new BrowserActionParams(agent, args, message.MessageId));
 
-        message.Content = $"Click button {args.ElementName} successfully.";
+        var content = $"Click button of '{args.ElementName}'";
+        message.Content = result ? 
+            $"{content} successfully" : 
+            $"{content} failed";
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
+
+        message.Data = await _browser.ScreenshotAsync(path);
 
         return true;
     }

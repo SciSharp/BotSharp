@@ -71,9 +71,9 @@
     "parameters": {
       "type": "object",
       "properties": {
-        "element_name": {
+        "element_text": {
           "type": "string",
-          "description": "the html input box element name."
+          "description": "text or placeholder shown in the element."
         },
         "input_text": {
           "type": "string",
@@ -81,10 +81,10 @@
         },
         "press_enter": {
           "type": "boolean",
-          "description": "whether to press ENTER"
+          "description": "whether to press Enter key"
         }
       },
-      "required": [ "element_name", "input_text" ]
+      "required": [ "element_text", "input_text" ]
     }
   },
   {
@@ -117,6 +117,72 @@
         }
       },
       "required": [ "password" ]
+    }
+  },
+  {
+    "name": "change_checkbox",
+    "description": "Check or uncheck checkbox",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "element_text": {
+          "type": "string",
+          "description": "the element title"
+        },
+        "update_value": {
+          "type": "string",
+          "description": "check or uncheck"
+        },
+        "match_rule": {
+          "type": "string",
+          "description": "text matching rule: EndWith, StartWith, Contains, Match"
+        }
+      },
+      "required": [ "element_text", "update_value", "match_rule" ]
+    }
+  },
+  {
+    "name": "click_element",
+    "description": "Click or check an element contains some text",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "element_type": {
+          "type": "string",
+          "description": "the element tag name"
+        },
+        "element_text": {
+          "type": "string",
+          "description": "text or placeholder shown in the element."
+        },
+        "match_rule": {
+          "type": "string",
+          "description": "text matching rule: EndWith, StartWith, Contains, Match"
+        }
+      },
+      "required": [ "element_type", "element_text", "match_rule" ]
+    }
+  },
+  {
+    "name": "check_radio_button",
+    "description": "Check value in a radio button",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "element_text": {
+          "type": "string",
+          "description": "the element title"
+        },
+        "update_value": {
+          "type": "string",
+          "description": "the value in the radio button."
+        },
+        "match_rule": {
+          "type": "string",
+          "description": "text matching rule: EndWith, StartWith, Contains, Match"
+        }
+      },
+      "required": [ "update_value", "element_text", "match_rule" ]
     }
   }
 ]

@@ -38,6 +38,18 @@ public class LlmProviderService : ILlmProviderService
             ?.Models ?? new List<LlmModelSetting>();
     }
 
+    public LlmModelSetting GetProviderModel(string provider, string id)
+    {
+        var models = GetProviderModels(provider)
+            .Where(x => x.Id == id)
+            .ToList();
+
+        var random = new Random();
+        var index = random.Next(0, models.Count());
+        var modelSetting = models.ElementAt(index);
+        return modelSetting;
+    }
+
     public LlmModelSetting? GetSetting(string provider, string model)
     {
         var settings = _services.GetRequiredService<List<LlmProviderSetting>>();

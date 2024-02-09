@@ -1,9 +1,11 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Templating;
+using System.Drawing;
 
 namespace BotSharp.Core.Routing.Planning;
 
@@ -12,14 +14,40 @@ public class SequentialPlanner : IPlaner
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
+    public bool HideDialogContext => true;
+    public int MaxLoopCount => 100;
+    private FunctionCallFromLlm _lastInst;
+
     public SequentialPlanner(IServiceProvider services, ILogger<NaivePlanner> logger)
     {
         _services = services;
         _logger = logger;
     }
 
-    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
+    public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs)
     {
+        var decomposation = await GetDecomposedStepAsync(router, messageId, dialogs);
+        if (decomposation.TotalRemainingSteps > 0 && _lastInst != null)
+        {
+            _lastInst.Response = decomposation.Description;
+            _lastInst.Reason = $"Having {decomposation.TotalRemainingSteps} steps left.";
+            return _lastInst;
+        }
+        else if (decomposation.TotalRemainingSteps == 0 || decomposation.ShouldStop)
+        {
+            if (!string.IsNullOrEmpty(decomposation.StopReason))
+            {
+                // Tell router all steps are done
+                dialogs.Add(new RoleDialogModel(AgentRole.Assistant, decomposation.StopReason)
+                {
+                    CurrentAgentId = router.Id,
+                    MessageId = messageId
+                });
+                router.TemplateDict["conversation"] = router.TemplateDict["conversation"].ToString().TrimEnd() +
+                    $"\r\n{router.Name}: {decomposation.StopReason}";
+            }
+        }
+
         var next = GetNextStepPrompt(router);
 
         var inst = new FunctionCallFromLlm();
@@ -44,11 +72,11 @@ public class SequentialPlanner : IPlaner
             {
                 // text completion
                 // text = await completion.GetCompletion(content, router.Id, messageId);
-                var dialogs = new List<RoleDialogModel>
+                dialogs = new List<RoleDialogModel>
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
-                        FunctionName = nameof(NaivePlanner),
+                        FunctionName = nameof(SequentialPlanner),
                         MessageId = messageId
                     }
                 };
@@ -70,6 +98,14 @@ public class SequentialPlanner : IPlaner
             }
         }
 
+        if (decomposation.TotalRemainingSteps > 0)
+        {
+            inst.Response = decomposation.Description;
+            inst.Reason = $"{decomposation.TotalRemainingSteps} steps left.";
+            inst.HideDialogContext = true;
+        }
+
+        _lastInst = inst;
         return inst;
     }
 
@@ -109,5 +145,64 @@ public class SequentialPlanner : IPlaner
         return render.Render(template, new Dictionary<string, object>
         {
         });
+    }
+
+    public async Task<DecomposedStep> GetDecomposedStepAsync(Agent router, string messageId, List<RoleDialogModel> dialogs)
+    {
+        var systemPrompt = GetDecomposeTaskPrompt(router);
+
+        var inst = new DecomposedStep();
+
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var model = llmProviderService.GetProviderModel("azure-openai", "gpt-4");
+
+        // chat completion
+        var completion = CompletionProvider.GetChatCompletion(_services,
+            provider: "azure-openai",
+            model: model.Name);
+
+        int retryCount = 0;
+        while (retryCount < 2)
+        {
+            string text = string.Empty;
+            try
+            {
+                var response = await completion.GetChatCompletions(new Agent
+                {
+                    Id = router.Id,
+                    Name = nameof(SequentialPlanner),
+                    Instruction = systemPrompt
+                }, dialogs);
+
+                text = response.Content;
+                inst = response.Content.JsonContent<DecomposedStep>();
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"{ex.Message}: {text}");
+            }
+            finally
+            {
+                retryCount++;
+            }
+        }
+
+        return inst;
+    }
+
+    private string GetDecomposeTaskPrompt(Agent router)
+    {
+        var template = router.Templates.First(x => x.Name == "planner_prompt.sequential.get_remaining_task").Content;
+
+        var render = _services.GetRequiredService<ITemplateRender>();
+        return render.Render(template, new Dictionary<string, object>
+        {
+        });
+    }
+
+    public Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
+    {
+        throw new NotImplementedException();
     }
 }
