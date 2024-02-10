@@ -16,6 +16,9 @@ public partial class PlaywrightWebDriver
             
             if (!string.IsNullOrEmpty(url))
             {
+                var webDriverService = _services.GetRequiredService<WebDriverService>();
+                url = webDriverService.ReplaceToken(url);
+
                 var response = await page.GotoAsync(url, new PageGotoOptions
                 {
                     Timeout = 15 * 1000
