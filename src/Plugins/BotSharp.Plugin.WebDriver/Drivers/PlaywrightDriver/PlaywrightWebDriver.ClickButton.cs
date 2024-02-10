@@ -8,7 +8,6 @@ public partial class PlaywrightWebDriver
     {
         await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
         await Task.Delay(100);
 
         // Find by text exactly match
@@ -52,10 +51,11 @@ public partial class PlaywrightWebDriver
 
         try
         {
-            await elements.HoverAsync();
             await elements.ClickAsync();
 
-            await Task.Delay(300);
+            await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Task.Delay(100);
+
             return true;
         }
         catch (Exception ex) 
