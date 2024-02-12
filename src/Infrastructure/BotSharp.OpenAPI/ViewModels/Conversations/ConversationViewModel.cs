@@ -19,6 +19,13 @@ public class ConversationViewModel
     public string Event { get; set; }
 
     public string Channel { get; set; } = ConversationChannel.OpenAPI;
+
+    /// <summary>
+    /// Agent task id
+    /// </summary>
+    [JsonPropertyName("task_id")]
+    public string? TaskId { get; set; }
+
     public string Status { get; set; }
     public Dictionary<string, string> States { get; set; }
 
@@ -40,6 +47,7 @@ public class ConversationViewModel
             Title = sess.Title,
             Channel = sess.Channel,
             Status = sess.Status,
+            TaskId = sess.TaskId,
             CreatedTime = sess.CreatedTime,
             UpdatedTime = sess.UpdatedTime
         };

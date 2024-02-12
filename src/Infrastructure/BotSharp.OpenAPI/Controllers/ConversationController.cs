@@ -24,7 +24,8 @@ public class ConversationController : ControllerBase
         {
             AgentId = agentId,
             Channel = ConversationChannel.OpenAPI,
-            UserId = _user.Id
+            UserId = _user.Id,
+            TaskId = config.TaskId
         };
         conv = await service.NewConversation(conv);
         service.SetConversationId(conv.Id, config.States);
@@ -50,7 +51,7 @@ public class ConversationController : ControllerBase
             item.User = UserViewModel.FromUser(user);
 
             var agent = await agentService.GetAgent(item.AgentId);
-            item.AgentName = agent.Name;
+            item.AgentName = agent?.Name;
         }
 
         return new PagedItems<ConversationViewModel>
