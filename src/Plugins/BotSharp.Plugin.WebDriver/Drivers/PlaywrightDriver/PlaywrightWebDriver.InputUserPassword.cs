@@ -6,10 +6,11 @@ public partial class PlaywrightWebDriver
 {
     public async Task<bool> InputUserPassword(BrowserActionParams actionParams)
     {
-        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        await _instance.Wait(actionParams.ConversationId);
 
         // Retrieve the page raw html and infer the element path
-        var body = await _instance.Page.QuerySelectorAsync("body");
+        var body = await _instance.GetPage(actionParams.ConversationId)
+            .QuerySelectorAsync("body");
 
         var inputs = await body.QuerySelectorAllAsync("input");
         var password = inputs.FirstOrDefault(x => x.GetAttributeAsync("type").Result == "password");

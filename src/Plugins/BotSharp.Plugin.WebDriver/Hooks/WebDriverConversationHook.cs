@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Enums;
+
 namespace BotSharp.Plugin.WebDriver.Hooks;
 
 public class WebDriverConversationHook : ConversationHookBase
@@ -13,7 +15,11 @@ public class WebDriverConversationHook : ConversationHookBase
         var webDriverService = _services.GetRequiredService<WebDriverService>();
 
         // load screenshot
-        dialog.Data = "data:image/png;base64," + webDriverService.GetScreenshotBase64(dialog.MessageId);
+        if (dialog.Role == AgentRole.Assistant)
+        {
+            dialog.Data = "data:image/png;base64," + webDriverService.GetScreenshotBase64(dialog.MessageId);
+        }
+        
         await base.OnDialogRecordLoaded(dialog);
     }
 }

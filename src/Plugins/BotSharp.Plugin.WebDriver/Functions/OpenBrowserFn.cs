@@ -16,13 +16,14 @@ public class OpenBrowserFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var convService = _services.GetRequiredService<IConversationService>();
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var url = webDriverService.ReplaceToken(args.Url);
 
         url = url.Replace("https://https://", "https://");
-        var result = await _browser.LaunchBrowser(url);
+        var result = await _browser.LaunchBrowser(convService.ConversationId, url);
 
         if (result)
         {
@@ -35,7 +36,7 @@ public class OpenBrowserFn : IFunctionCallback
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
-        message.Data = await _browser.ScreenshotAsync(path);
+        message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
 
         return result;
     }
