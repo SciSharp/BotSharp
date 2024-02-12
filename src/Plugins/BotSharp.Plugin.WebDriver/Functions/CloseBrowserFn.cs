@@ -16,11 +16,12 @@ public class CloseBrowserFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var convService = _services.GetRequiredService<IConversationService>();
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _browser.CloseBrowser();
-        message.Content = $"Browser is closed";
+        await _browser.CloseBrowser(convService.ConversationId);
+        message.Content = $"Browser is closed {convService.ConversationId}";
         return true;
     }
 }
