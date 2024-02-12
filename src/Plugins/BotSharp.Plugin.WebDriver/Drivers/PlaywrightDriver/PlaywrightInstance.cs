@@ -73,6 +73,7 @@ public class PlaywrightInstance : IDisposable
             await _contexts[id].Pages.Last().WaitForLoadStateAsync(LoadState.DOMContentLoaded);
             await _contexts[id].Pages.Last().WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
+        await Task.Delay(100);
     }
 
     public async Task Close(string id)
