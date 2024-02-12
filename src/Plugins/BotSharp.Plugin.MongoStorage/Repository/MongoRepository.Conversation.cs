@@ -19,6 +19,7 @@ public partial class MongoRepository
             UserId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty,
             Title = conversation.Title,
             Channel = conversation.Channel,
+            TaskId = conversation.TaskId,
             Status = conversation.Status,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow,
@@ -215,6 +216,7 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter.Status)) filters.Add(builder.Eq(x => x.Status, filter.Status));
         if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));
         if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
+        if (!string.IsNullOrEmpty(filter.TaskId)) filters.Add(builder.Eq(x => x.TaskId, filter.TaskId));
 
         var filterDef = builder.And(filters);
         var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
@@ -230,6 +232,7 @@ public partial class MongoRepository
                 Id = convId,
                 AgentId = conv.AgentId.ToString(),
                 UserId = conv.UserId.ToString(),
+                TaskId = conv.TaskId,
                 Title = conv.Title,
                 Channel = conv.Channel,
                 Status = conv.Status,
