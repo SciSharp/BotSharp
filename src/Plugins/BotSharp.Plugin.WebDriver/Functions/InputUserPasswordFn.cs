@@ -21,11 +21,13 @@ public class InputUserPasswordFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        args.Password = webDriverService.ReplaceToken(args.Password);
         var result = await _browser.InputUserPassword(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
 
         message.Content = result ? "Input password successfully" : "Input password failed";
 
-        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);

@@ -9,6 +9,7 @@ public partial class PlaywrightWebDriver
             .ScreenshotAsync(new PageScreenshotOptions
             {
                 Path = path,
+                Animations = ScreenshotAnimations.Disabled
             });
 
         return "data:image/png;base64," + Convert.ToBase64String(bytes);

@@ -38,6 +38,16 @@
     }
   },
   {
+    "name": "take_screenshot",
+    "description": "Tak screenshot to show current page screen",
+    "parameters": {
+      "type": "object",
+      "properties": {
+      },
+      "required": []
+    }
+  },
+  {
     "name": "click_button",
     "description": "Click a button in a web page.",
     "parameters": {
