@@ -16,17 +16,23 @@ public class GoToPageFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var convService = _services.GetRequiredService<IConversationService>();
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        await _browser.GoToPage(new BrowserActionParams(agent, args, message.MessageId));
-        message.Content = $"Page {args.Url} is open.";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var url = webDriverService.ReplaceToken(args.Url);
+
+        url = url.Replace("https://https://", "https://");
+
+        var result = await _browser.GoToPage(convService.ConversationId, url);
+        message.Content = result ? $"Page {url} is open." : $"Page {url} open failed.";
+
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
-        message.Data = await _browser.ScreenshotAsync(path);
+        message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
 
-        return true;
+        return result;
     }
 }

@@ -7,8 +7,7 @@ public partial class PlaywrightWebDriver
 {
     public async Task<bool> CheckRadioButton(BrowserActionParams actionParams)
     {
-        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await _instance.Wait(actionParams.ConversationId);
 
         // Retrieve the page raw html and infer the element path
         var regexExpression = actionParams.Context.MatchRule.ToLower() switch
@@ -19,7 +18,7 @@ public partial class PlaywrightWebDriver
             _ => $"^{actionParams.Context.ElementText}$"
         };
         var regex = new Regex(regexExpression, RegexOptions.IgnoreCase);
-        var elements = _instance.Page.GetByText(regex);
+        var elements = _instance.GetPage(actionParams.ConversationId).GetByText(regex);
         var count = await elements.CountAsync();
         
         if (count == 0)

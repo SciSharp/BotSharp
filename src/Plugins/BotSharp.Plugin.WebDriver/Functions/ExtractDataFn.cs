@@ -16,15 +16,16 @@ public class ExtractDataFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var convService = _services.GetRequiredService<IConversationService>();
         var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        message.Content = await _browser.ExtractData(new BrowserActionParams(agent, args, message.MessageId));
+        message.Content = await _browser.ExtractData(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
-        message.Data = await _browser.ScreenshotAsync(path);
+        message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
 
         return true;
     }
