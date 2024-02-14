@@ -19,6 +19,12 @@ public class BrowsingContextIn
     [JsonPropertyName("element_text")]
     public string? ElementText { get; set; }
 
+    [JsonPropertyName("attribute_name")]
+    public string? AttributeName { get; set; }
+
+    [JsonPropertyName("attribute_value")]
+    public string? AttributeValue { get; set; }
+
     [JsonPropertyName("press_enter")]
     public bool? PressEnter { get; set; }
 
