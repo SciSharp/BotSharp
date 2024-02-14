@@ -92,6 +92,14 @@
         "press_enter": {
           "type": "boolean",
           "description": "whether to press Enter key"
+        },
+        "attribute_name": {
+          "type": "string",
+          "description": "attribute name in the element"
+        },
+        "attribute_value": {
+          "type": "string",
+          "description": "attribute value in the element"
         }
       },
       "required": [ "element_text", "input_text" ]
