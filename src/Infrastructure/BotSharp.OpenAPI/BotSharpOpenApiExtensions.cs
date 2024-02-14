@@ -1,12 +1,14 @@
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Core.Users.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace BotSharp.OpenAPI;
@@ -29,11 +31,14 @@ public static class BotSharpOpenApiExtensions
         services.AddScoped<IUserIdentity, UserIdentity>();
 
         // Add bearer authentication
+        var schema = "MIXED_SCHEME";
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            // custom scheme defined in .AddPolicyScheme() below
+            // inspired from https://weblog.west-wind.com/posts/2022/Mar/29/Combining-Bearer-Token-and-Cookie-Auth-in-ASPNET
+            options.DefaultScheme = schema;
+            options.DefaultChallengeScheme = schema;
+            options.DefaultAuthenticateScheme = schema;
         }).AddJwtBearer(o =>
         {
             o.TokenValidationParameters = new TokenValidationParameters
@@ -52,6 +57,32 @@ public static class BotSharpOpenApiExtensions
                 o.TokenValidationParameters.SignatureValidator = (string token, TokenValidationParameters parameters) =>
                     new JwtSecurityToken(token);
             }
+        }).AddCookie(options =>
+        {
+        }).AddGitHub(options =>
+        {
+            options.ClientId = config["OAuth:GitHub:ClientId"];
+            options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
+            options.Scope.Add("user:email");
+        }).AddPolicyScheme(schema, "Mixed authentication", options =>
+        {
+            // runs on each request
+            options.ForwardDefaultSelector = context =>
+            {
+                // filter by auth type
+                string authorization = context.Request.Headers[HeaderNames.Authorization];
+                if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
+                    return JwtBearerDefaults.AuthenticationScheme;
+                else if (context.Request.Cookies.ContainsKey(".AspNetCore.Cookies"))
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+                else if (context.Request.Path.StartsWithSegments("/sso") && context.Request.Method == "GET")
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+                else if (context.Request.Path.ToString().StartsWith("/signin-") && context.Request.Method == "GET")
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+
+                // otherwise always check for cookie auth
+                return JwtBearerDefaults.AuthenticationScheme;
+            };
         });
 
         // Add services to the container.
@@ -123,6 +154,7 @@ public static class BotSharpOpenApiExtensions
 
         if (env.IsDevelopment())
         {
+            IdentityModelEventSource.ShowPII = true;
             app.UseSwaggerUI();
             app.UseDeveloperExceptionPage();
         }
