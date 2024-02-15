@@ -9,4 +9,6 @@ public class ConversationSetting
     public int MaxRecursiveDepth { get; set; } = 3;
     public bool EnableLlmCompletionLog { get; set; }
     public bool EnableExecutionLog { get; set; }
+    public bool EnableContentLog { get; set; }
+    public bool EnableStateLog { get; set; }
 }

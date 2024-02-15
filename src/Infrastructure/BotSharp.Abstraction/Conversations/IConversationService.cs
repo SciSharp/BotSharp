@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 
 namespace BotSharp.Abstraction.Conversations;
@@ -14,6 +15,8 @@ public interface IConversationService
     Task<List<Conversation>> GetLastConversations();
     Task<bool> DeleteConversation(string id);
     Task<bool> TruncateConversation(string conversationId, string messageId);
+    Task<List<ConversationContentLogModel>> GetConversationContentLogs(string conversationId);
+    Task<List<ConversationStateLogModel>> GetConversationStateLogs(string conversationId);
 
     /// <summary>
     /// Send message to LLM

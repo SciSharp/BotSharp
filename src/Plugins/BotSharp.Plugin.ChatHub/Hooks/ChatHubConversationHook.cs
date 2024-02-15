@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
+using BotSharp.Abstraction.Repositories;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -117,20 +119,28 @@ public class ChatHubConversationHook : ConversationHookBase
             }
         }, _serializerOptions);
         await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStatesGenerated", BuildConversationStates(conv.ConversationId, state.GetStates()));
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStatesGenerated", BuildConversationStates(conv.ConversationId, state.GetStates(), message));
 
         await base.OnResponseGenerated(message);
     }
 
-    private string BuildConversationStates(string conversationId, Dictionary<string, string> states)
+    private string BuildConversationStates(string conversationId, Dictionary<string, string> states, RoleDialogModel message)
     {
-        var model = new ConversationStateLogModel
+        var log = new ConversationStateLogModel
         {
-            ConvsersationId = conversationId,
-            States = JsonSerializer.Serialize(states, _serializerOptions),
+            ConversationId = conversationId,
+            MessageId = message.MessageId,
+            States = states,
             CreateTime = DateTime.UtcNow
         };
 
-        return JsonSerializer.Serialize(model, _serializerOptions);
+        var convSettings = _services.GetRequiredService<ConversationSetting>();
+        if (convSettings.EnableStateLog)
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            db.SaveConversationStateLog(log);
+        }
+
+        return JsonSerializer.Serialize(log, _serializerOptions);
     }
 }
