@@ -206,8 +206,13 @@ namespace BotSharp.Core.Repository
             var records = new List<Conversation>();
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
             var pager = filter?.Pager ?? new Pagination();
-            var totalDirs = Directory.GetDirectories(dir);
 
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            var totalDirs = Directory.GetDirectories(dir);
             foreach (var d in totalDirs)
             {
                 var path = Path.Combine(d, CONVERSATION_FILE);

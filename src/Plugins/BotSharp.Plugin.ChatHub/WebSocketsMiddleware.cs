@@ -20,7 +20,7 @@ public class WebSocketsMiddleware
         if (request.Path.StartsWithSegments("/chatHub", StringComparison.OrdinalIgnoreCase) &&
             request.Query.TryGetValue("access_token", out var accessToken))
         {
-            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            request.Headers["Authorization"] = $"Bearer {accessToken}";
         }
 
         await _next(httpContext);

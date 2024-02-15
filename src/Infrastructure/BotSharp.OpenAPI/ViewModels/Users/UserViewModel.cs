@@ -15,7 +15,8 @@ public class UserViewModel
     public string Email { get; set; }
     public string Role { get; set; } = UserRole.Client;
     [JsonPropertyName("full_name")]
-    public string FullName => $"{FirstName} {LastName}";
+    public string FullName => $"{FirstName} {LastName}".Trim();
+    public string Source { get; set; }
     [JsonPropertyName("external_id")]
     public string? ExternalId { get; set; }
     [JsonPropertyName("create_date")]
@@ -43,6 +44,7 @@ public class UserViewModel
             LastName = user.LastName,
             Email = user.Email,
             Role = user.Role,
+            Source = user.Source,
             ExternalId = user.ExternalId,
             CreateDate = user.CreatedTime,
             UpdateDate = user.UpdatedTime
