@@ -178,7 +178,15 @@ public class UserService : IUserService
     public async Task<User> GetMyProfile()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserByUserName(_user.UserName);
+        User user = default;
+        if (_user.UserName != null)
+        {
+            user = db.GetUserByUserName(_user.UserName);
+        }
+        else if (_user.Email != null)
+        {
+            user = db.GetUserByEmail(_user.Email);
+        }
         return user;
     }
 

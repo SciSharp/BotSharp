@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace BotSharp.OpenAPI;
 
@@ -55,7 +55,7 @@ public static class BotSharpOpenApiExtensions
             if (!enableValidation)
             {
                 o.TokenValidationParameters.SignatureValidator = (string token, TokenValidationParameters parameters) =>
-                    new JwtSecurityToken(token);
+                    new JsonWebToken(token);
             }
         }).AddCookie(options =>
         {
