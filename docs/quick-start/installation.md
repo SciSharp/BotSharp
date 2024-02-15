@@ -10,7 +10,7 @@ Building solution using dotnet CLI (preferred).
 
 ### Clone the source code and build
 ```powershell
-PS D:\> git clone https://github.com/Oceania2018/BotSharp
+PS D:\> git clone https://github.com/SciSharp/BotSharp
 PS D:\> cd BotSharp
 PS D:\> dotnet build
 ```
