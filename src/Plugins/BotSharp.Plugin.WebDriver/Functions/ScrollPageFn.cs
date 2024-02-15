@@ -23,7 +23,7 @@ public class ScrollPageFn : IFunctionCallback
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
         message.Data = await _browser.ScrollPageAsync(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
-        message.Content = "Scrolled";
+        message.Content = "Scrolled. You can scroll more if needed.";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

@@ -70,8 +70,9 @@ public class PlaywrightInstance : IDisposable
     {
         if (_contexts.ContainsKey(id))
         {
-            await _contexts[id].Pages.Last().WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-            await _contexts[id].Pages.Last().WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var page = _contexts[id].Pages.Last();
+            await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
         await Task.Delay(100);
     }

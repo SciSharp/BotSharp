@@ -22,7 +22,7 @@ public class ScreenshotFn : IFunctionCallback
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
-        message.Content = "Took screenshot completed";
+        message.Content = "Took screenshot completed. You can take another screenshot if needed.";
 
         return true;
     }
