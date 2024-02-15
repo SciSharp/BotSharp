@@ -48,7 +48,7 @@ public class UserService : IUserService
         }
 
         record = user;
-        record.Email = user.Email.ToLower();
+        record.Email = user.Email?.ToLower();
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
 
@@ -167,7 +167,7 @@ public class UserService : IUserService
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha512Signature)
+                SecurityAlgorithms.HmacSha256Signature)
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -178,7 +178,7 @@ public class UserService : IUserService
     public async Task<User> GetMyProfile()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserById(_user.Id);
+        var user = db.GetUserByUserName(_user.UserName);
         return user;
     }
 
