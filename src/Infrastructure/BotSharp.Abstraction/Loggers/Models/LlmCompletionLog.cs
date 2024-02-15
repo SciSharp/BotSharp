@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Conversations.Models;
+namespace BotSharp.Abstraction.Loggers.Models;
 
 public class LlmCompletionLog
 {

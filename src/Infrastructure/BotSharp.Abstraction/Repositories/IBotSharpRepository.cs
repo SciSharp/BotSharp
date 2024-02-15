@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
@@ -68,6 +69,16 @@ public interface IBotSharpRepository
 
     #region LLM Completion Log
     void SaveLlmCompletionLog(LlmCompletionLog log);
+    #endregion
+
+    #region Conversation Content Log
+    void SaveConversationContentLog(ConversationContentLogModel log);
+    List<ConversationContentLogModel> GetConversationContentLogs(string conversationId);
+    #endregion
+
+    #region Conversation State Log
+    void SaveConversationStateLog(ConversationStateLogModel log);
+    List<ConversationStateLogModel> GetConversationStateLogs(string conversationId);
     #endregion
 
     #region Statistics

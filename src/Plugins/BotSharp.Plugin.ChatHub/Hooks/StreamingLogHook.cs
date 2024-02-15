@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Repositories;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -37,7 +38,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
     {
         var conversationId = _state.GetConversationId();
         var log = $"MessageId: {message.MessageId} ==>\r\n{message.Role}: {message.Content}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnContentLogGenerated", BuildLog(conversationId, _user.UserName, message.Role, log));
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnContentLogGenerated", BuildLog(conversationId, _user.UserName, log, message));
     }
 
     public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
@@ -64,25 +65,34 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
         var conversationId = _state.GetConversationId();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnContentLogGenerated", BuildLog(conversationId, agent?.Name, message.Role, tokenStats.Prompt));
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnContentLogGenerated", BuildLog(conversationId, agent?.Name, tokenStats.Prompt, message));
 
         var log = message.Role == AgentRole.Function ?
                 $"[{agent?.Name}]: {message.FunctionName}({message.FunctionArgs})" :
                 $"[{agent?.Name}]: {message.Content}";
         log += $"\r\n<== MessageId: {message.MessageId}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnContentLogGenerated", BuildLog(conversationId, agent?.Name, message.Role, log));
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnContentLogGenerated", BuildLog(conversationId, agent?.Name, log, message));
     }
 
-    private string BuildLog(string conversationId, string? name, string role, string content)
+    private string BuildLog(string conversationId, string? name, string content, RoleDialogModel message)
     {
-        var log = new StreamingLogModel
+        var log = new ConversationContentLogModel
         {
             ConversationId = conversationId,
+            MessageId = message.MessageId,
             Name = name,
-            Role = role,
+            Role = message.Role,
             Content = content,
             CreateTime = DateTime.UtcNow
         };
+
+        var convSettings = _services.GetRequiredService<ConversationSetting>();
+        if (convSettings.EnableContentLog)
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            db.SaveConversationContentLog(log);
+        }
+
         return JsonSerializer.Serialize(log, _serializerOptions);
     }
 }
