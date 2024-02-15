@@ -32,7 +32,7 @@ public static class BotSharpOpenApiExtensions
 
         // Add bearer authentication
         var schema = "MIXED_SCHEME";
-        services.AddAuthentication(options =>
+        var builder = services.AddAuthentication(options =>
         {
             // custom scheme defined in .AddPolicyScheme() below
             // inspired from https://weblog.west-wind.com/posts/2022/Mar/29/Combining-Bearer-Token-and-Cookie-Auth-in-ASPNET
@@ -59,11 +59,6 @@ public static class BotSharpOpenApiExtensions
             }
         }).AddCookie(options =>
         {
-        }).AddGitHub(options =>
-        {
-            options.ClientId = config["OAuth:GitHub:ClientId"];
-            options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
-            options.Scope.Add("user:email");
         }).AddPolicyScheme(schema, "Mixed authentication", options =>
         {
             // runs on each request
@@ -84,6 +79,16 @@ public static class BotSharpOpenApiExtensions
                 return JwtBearerDefaults.AuthenticationScheme;
             };
         });
+
+        if (!string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientSecret"]))
+        {
+            builder = builder.AddGitHub(options =>
+             {
+                 options.ClientId = config["OAuth:GitHub:ClientId"];
+                 options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
+                 options.Scope.Add("user:email");
+             });
+        }
 
         // Add services to the container.
         services.AddControllers()
@@ -106,18 +111,18 @@ public static class BotSharpOpenApiExtensions
                     Type = SecuritySchemeType.ApiKey
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-               {
-                 new OpenApiSecurityScheme
-                 {
-                   Reference = new OpenApiReference
                    {
-                     Type = ReferenceType.SecurityScheme,
-                     Id = "Bearer"
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "Bearer"
+                       }
+                      },
+                      Array.Empty<string>()
                    }
-                  },
-                  Array.Empty<string>()
-                }
-              });
+                });
             }
         );
 
