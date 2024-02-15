@@ -4,6 +4,7 @@ public interface IWebBrowser
 {
     Task<bool> LaunchBrowser(string conversationId, string? url);
     Task<string> ScreenshotAsync(string conversationId, string path);
+    Task<bool> ScrollPageAsync(BrowserActionParams actionParams);
     Task<bool> InputUserText(BrowserActionParams actionParams);
     Task<bool> InputUserPassword(BrowserActionParams actionParams);
     Task<bool> ClickButton(BrowserActionParams actionParams);

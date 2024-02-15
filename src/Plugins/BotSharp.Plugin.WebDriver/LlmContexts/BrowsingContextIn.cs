@@ -39,4 +39,7 @@ public class BrowsingContextIn
 
     [JsonPropertyName("question")]
     public string? Question { get; set; }
+
+    [JsonPropertyName("direction")]
+    public string? Direction { get; set; }
 }

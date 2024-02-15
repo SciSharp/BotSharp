@@ -48,8 +48,7 @@ public partial class PlaywrightWebDriver
         }
         else if (count == 1)
         {
-            // var tagName = await elements.EvaluateAsync<string>("el => el.tagName");
-
+            // var tagName = await locator.EvaluateAsync<string>("el => el.tagName");
             await locator.ClickAsync();
 
             // Triggered ajax

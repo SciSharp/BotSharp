@@ -38,6 +38,20 @@
     }
   },
   {
+    "name": "scroll_page",
+    "description": "Scroll page down or up",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "description": "down, up, left, right"
+        }
+      },
+      "required": [ "direction" ]
+    }
+  },
+  {
     "name": "take_screenshot",
     "description": "Tak screenshot to show current page screen",
     "parameters": {
