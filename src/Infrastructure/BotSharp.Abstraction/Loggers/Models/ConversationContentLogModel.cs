@@ -1,9 +1,11 @@
 namespace BotSharp.Abstraction.Loggers.Models;
 
-public class StreamingLogModel
+public class ConversationContentLogModel
 {
     [JsonPropertyName("conversation_id")]
     public string ConversationId { get; set; }
+    [JsonPropertyName("message_id")]
+    public string MessageId { get; set; }
     [JsonPropertyName("name")]
     public string? Name { get; set; }
     [JsonPropertyName("role")]
@@ -13,5 +15,5 @@ public class StreamingLogModel
     public string Content { get; set; }
 
     [JsonPropertyName("created_at")]
-    public DateTime CreateTime { get; set; }
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 }

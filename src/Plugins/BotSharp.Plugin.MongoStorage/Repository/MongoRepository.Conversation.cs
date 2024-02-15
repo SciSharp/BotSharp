@@ -63,14 +63,20 @@ public partial class MongoRepository
         var filterSates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var filterExeLog = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterContentLog = Builders<ConversationContentLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterStateLog = Builders<ConversationStateLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
 
         var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
+        var contentLogDeleted = _dc.ContentLogs.DeleteMany(filterContentLog);
+        var stateLogDeleted = _dc.StateLogs.DeleteMany(filterStateLog);
         var statesDeleted = _dc.ConversationStates.DeleteMany(filterSates);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
+        
         return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
-            || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0;
+            || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
+            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0;
     }
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
