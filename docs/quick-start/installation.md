@@ -71,7 +71,7 @@ PS D:\> npm install
 PS D:\> npm run dev
 ```
 
-Update API url in `.env.local` to your localhost BotSharp backend service.
+Update API url in `.env` to your localhost BotSharp backend service.
 ```config
 PUBLIC_SERVICE_URL=http://localhost:5500
 PUBLIC_LIVECHAT_HOST=http://localhost:5015
