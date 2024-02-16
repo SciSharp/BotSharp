@@ -17,15 +17,14 @@ public partial class PlaywrightWebDriver
 
         if (password == null)
         {
-            throw new Exception($"Can't locate the web element {actionParams.Context.ElementName}.");
+            _logger.LogError($"Can't locate the password element by '{actionParams.Context.ElementName}'");
+            return false;
         }
 
         var config = _services.GetRequiredService<IConfiguration>();
         try
         {
-            var key = actionParams.Context.Password.Replace("@", "").Replace(".", ":");
-            var value = config.GetValue<string>(key);
-            await password.FillAsync(value);
+            await password.FillAsync(actionParams.Context.Password);
             return true;
         }
         catch (Exception ex)

@@ -8,18 +8,31 @@ public partial class PlaywrightWebDriver
     {
         await _instance.Wait(actionParams.ConversationId);
 
+        var page = _instance.GetPage(actionParams.ConversationId);
+        ILocator locator = default;
+        int count = 0;
+
+        // try attribute
+        if (count == 0 && !string.IsNullOrEmpty(actionParams.Context.AttributeName))
+        {
+            locator = page.Locator($"[{actionParams.Context.AttributeName}='{actionParams.Context.AttributeValue}']");
+            count = await locator.CountAsync();
+        }
+
         // Find by text exactly match
-        var elements = _instance.GetPage(actionParams.ConversationId)
-            .GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
+        if (count == 0)
+        {
+            locator = page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
             {
                 Name = actionParams.Context.ElementText
             });
-        var count = await elements.CountAsync();
+            count = await locator.CountAsync();
+        }
+
         if (count == 0)
         {
-            elements = _instance.GetPage(actionParams.ConversationId)
-                .GetByPlaceholder(actionParams.Context.ElementText);
-            count = await elements.CountAsync();
+            locator = page.GetByPlaceholder(actionParams.Context.ElementText);
+            count = await locator.CountAsync();
         }
 
         if (count == 0)
@@ -30,22 +43,18 @@ public partial class PlaywrightWebDriver
                 html,
                 actionParams.Context.ElementText,
                 actionParams.MessageId);
-            elements = Locator(actionParams.ConversationId, htmlElementContextOut);
-            count = await elements.CountAsync();
+            locator = Locator(actionParams.ConversationId, htmlElementContextOut);
+            count = await locator.CountAsync();
         }
-
-        if (count == 0)
-        {
-
-        }
-        else if (count == 1)
+        
+        if (count == 1)
         {
             try
             {
-                await elements.FillAsync(actionParams.Context.InputText);
+                await locator.FillAsync(actionParams.Context.InputText);
                 if (actionParams.Context.PressEnter.HasValue && actionParams.Context.PressEnter.Value)
                 {
-                    await elements.PressAsync("Enter");
+                    await locator.PressAsync("Enter");
                 }
 
                 // Triggered ajax

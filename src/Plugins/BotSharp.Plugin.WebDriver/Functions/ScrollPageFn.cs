@@ -1,13 +1,13 @@
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class InputUserPasswordFn : IFunctionCallback
+public class ScrollPageFn : IFunctionCallback
 {
-    public string Name => "input_user_password";
+    public string Name => "scroll_page";
 
     private readonly IServiceProvider _services;
     private readonly IWebBrowser _browser;
 
-    public InputUserPasswordFn(IServiceProvider services,
+    public ScrollPageFn(IServiceProvider services,
         IWebBrowser browser)
     {
         _services = services;
@@ -22,12 +22,10 @@ public class InputUserPasswordFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
+        message.Data = await _browser.ScrollPageAsync(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
+        message.Content = "Scrolled. You can scroll more if needed.";
+
         var webDriverService = _services.GetRequiredService<WebDriverService>();
-        args.Password = webDriverService.ReplaceToken(args.Password);
-        var result = await _browser.InputUserPassword(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
-
-        message.Content = result ? "Input password successfully" : "Input password failed";
-
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
