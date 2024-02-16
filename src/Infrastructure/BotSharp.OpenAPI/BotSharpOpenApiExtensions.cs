@@ -80,6 +80,7 @@ public static class BotSharpOpenApiExtensions
             };
         });
 
+        // GitHub OAuth
         if (!string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientSecret"]))
         {
             builder = builder.AddGitHub(options =>
@@ -88,6 +89,16 @@ public static class BotSharpOpenApiExtensions
                  options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
                  options.Scope.Add("user:email");
              });
+        }
+
+        // Google Identiy OAuth
+        if (!string.IsNullOrWhiteSpace(config["OAuth:Google:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:Google:ClientSecret"]))
+        {
+            builder = builder.AddGoogle(options =>
+            {
+                options.ClientId = config["OAuth:Google:ClientId"];
+                options.ClientSecret = config["OAuth:Google:ClientSecret"];
+            });
         }
 
         // Add services to the container.

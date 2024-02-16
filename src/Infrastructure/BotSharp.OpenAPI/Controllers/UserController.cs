@@ -1,4 +1,3 @@
-using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
@@ -71,18 +70,15 @@ public class UserController : ControllerBase
             var identiy = _services.GetRequiredService<IUserIdentity>();
             var accessor = _services.GetRequiredService<IHttpContextAccessor>();
             var claims = accessor.HttpContext.User.Claims;
-            if (claims.Any(x => x.Type == GitHubAuthenticationConstants.Claims.Name))
+            user = await _userService.CreateUser(new User
             {
-                user = await _userService.CreateUser(new User
-                {
-                    Email = identiy.Email,
-                    UserName = identiy.UserName,
-                    FirstName = identiy.FirstName,
-                    LastName = identiy.LastName,
-                    Source = "GitHub",
-                    ExternalId = identiy.Id,
-                });
-            }
+                Email = identiy.Email,
+                UserName = identiy.UserName,
+                FirstName = identiy.FirstName,
+                LastName = identiy.LastName,
+                Source = claims.First().Issuer,
+                ExternalId = identiy.Id,
+            });
         }
         return UserViewModel.FromUser(user);
     }
