@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Repositories;
@@ -96,14 +97,19 @@ public class ChatHubConversationHook : ConversationHookBase
             Sender = UserViewModel.FromUser(sender)
         });
 
+        // Send typing-on to client
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        {
+            ConversationId = conv.ConversationId,
+            SenderAction = SenderActionEnum.TypingOn
+        });
+
         await base.OnMessageReceived(message);
     }
 
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var state = _services.GetRequiredService<IConversationStateService>();
-
         var json = JsonSerializer.Serialize(new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
@@ -118,29 +124,15 @@ public class ChatHubConversationHook : ConversationHookBase
                 Role = AgentRole.Assistant
             }
         }, _serializerOptions);
+
+        // Send typing-off to client
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        {
+            ConversationId = conv.ConversationId,
+            SenderAction = SenderActionEnum.TypingOff
+        });
         await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStatesGenerated", BuildConversationStates(conv.ConversationId, state.GetStates(), message));
 
         await base.OnResponseGenerated(message);
-    }
-
-    private string BuildConversationStates(string conversationId, Dictionary<string, string> states, RoleDialogModel message)
-    {
-        var log = new ConversationStateLogModel
-        {
-            ConversationId = conversationId,
-            MessageId = message.MessageId,
-            States = states,
-            CreateTime = DateTime.UtcNow
-        };
-
-        var convSettings = _services.GetRequiredService<ConversationSetting>();
-        if (convSettings.EnableStateLog)
-        {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            db.SaveConversationStateLog(log);
-        }
-
-        return JsonSerializer.Serialize(log, _serializerOptions);
     }
 }
