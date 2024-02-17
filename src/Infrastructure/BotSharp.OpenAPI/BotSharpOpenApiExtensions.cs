@@ -101,6 +101,21 @@ public static class BotSharpOpenApiExtensions
             });
         }
 
+        // Keycloak Identiy OAuth
+        if (!string.IsNullOrWhiteSpace(config["OAuth:Keycloak:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:Keycloak:ClientSecret"]))
+        {
+            builder = builder.AddKeycloak(options =>
+            {
+                options.BaseAddress = new Uri(config["OAuth:Keycloak:BaseAddress"]);
+                options.Realm = config["OAuth:Keycloak:Realm"];
+                options.ClientId = config["OAuth:Keycloak:ClientId"];
+                options.ClientSecret = config["OAuth:Keycloak:ClientSecret"];
+                options.AccessType = AspNet.Security.OAuth.Keycloak.KeycloakAuthenticationAccessType.Confidential;
+                int version = Convert.ToInt32(config["OAuth:Keycloak:Version"]??"22") ;
+                options.Version = new Version(version,0);
+            });
+        }
+
         // Add services to the container.
         services.AddControllers()
             .AddJsonOptions(options =>
