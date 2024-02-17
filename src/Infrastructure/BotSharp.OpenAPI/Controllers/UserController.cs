@@ -36,9 +36,9 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("/sso/{provider}")]
-    public async Task<IActionResult> Authorize([FromRoute] string provider,string redirecturl)
+    public async Task<IActionResult> Authorize([FromRoute] string provider,string redirectUrl)
     {
-        return Challenge(new AuthenticationProperties { RedirectUri = redirecturl }, provider);
+        return Challenge(new AuthenticationProperties { RedirectUri = redirectUrl }, provider);
     }
 
     [AllowAnonymous]
