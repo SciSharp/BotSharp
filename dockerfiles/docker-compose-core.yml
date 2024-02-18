@@ -1,9 +1,0 @@
-version: '3.0'
-
-services:     
-  botsharp:
-    image: botsharpdocker/botsharp-core:0.2.0
-    ports: ['0.0.0.0:3112:3112']
-    networks: ['botsharp-network']
-
-networks: {botsharp-network: {}}
