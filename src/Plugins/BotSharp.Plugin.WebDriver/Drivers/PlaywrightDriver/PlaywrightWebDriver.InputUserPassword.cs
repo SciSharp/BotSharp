@@ -6,25 +6,25 @@ public partial class PlaywrightWebDriver
 {
     public async Task<bool> InputUserPassword(BrowserActionParams actionParams)
     {
-        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        await _instance.Wait(actionParams.ConversationId);
 
         // Retrieve the page raw html and infer the element path
-        var body = await _instance.Page.QuerySelectorAsync("body");
+        var body = await _instance.GetPage(actionParams.ConversationId)
+            .QuerySelectorAsync("body");
 
         var inputs = await body.QuerySelectorAllAsync("input");
         var password = inputs.FirstOrDefault(x => x.GetAttributeAsync("type").Result == "password");
 
         if (password == null)
         {
-            throw new Exception($"Can't locate the web element {actionParams.Context.ElementName}.");
+            _logger.LogError($"Can't locate the password element by '{actionParams.Context.ElementName}'");
+            return false;
         }
 
         var config = _services.GetRequiredService<IConfiguration>();
         try
         {
-            var key = actionParams.Context.Password.Replace("@", "").Replace(".", ":");
-            var value = config.GetValue<string>(key);
-            await password.FillAsync(value);
+            await password.FillAsync(actionParams.Context.Password);
             return true;
         }
         catch (Exception ex)

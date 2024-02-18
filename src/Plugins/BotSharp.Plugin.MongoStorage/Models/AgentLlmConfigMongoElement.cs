@@ -7,6 +7,7 @@ public class AgentLlmConfigMongoElement
     public string? Provider { get; set; }
     public string? Model { get; set; }
     public bool IsInherit { get; set; }
+    public int MaxRecursionDepth { get; set; }
 
     public static AgentLlmConfigMongoElement? ToMongoElement(AgentLlmConfig? config)
     {
@@ -17,6 +18,7 @@ public class AgentLlmConfigMongoElement
             Provider = config.Provider,
             Model = config.Model,
             IsInherit = config.IsInherit,
+            MaxRecursionDepth = config.MaxRecursionDepth,
         };
     }
 
@@ -29,6 +31,7 @@ public class AgentLlmConfigMongoElement
             Provider = config.Provider,
             Model = config.Model,
             IsInherit = config.IsInherit,
+            MaxRecursionDepth = config.MaxRecursionDepth,
         };
     }
 }

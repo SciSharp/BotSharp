@@ -20,3 +20,4 @@ global using BotSharp.Abstraction.Messaging;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+global using BotSharp.Abstraction.Messaging.Enums;

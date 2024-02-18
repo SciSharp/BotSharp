@@ -6,49 +6,59 @@ public partial class PlaywrightWebDriver
 {
     public async Task<bool> InputUserText(BrowserActionParams actionParams)
     {
-        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await _instance.Wait(actionParams.ConversationId);
+
+        var page = _instance.GetPage(actionParams.ConversationId);
+        ILocator locator = default;
+        int count = 0;
+
+        // try attribute
+        if (count == 0 && !string.IsNullOrEmpty(actionParams.Context.AttributeName))
+        {
+            locator = page.Locator($"[{actionParams.Context.AttributeName}='{actionParams.Context.AttributeValue}']");
+            count = await locator.CountAsync();
+        }
 
         // Find by text exactly match
-        var elements = _instance.Page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
-        {
-            Name = actionParams.Context.ElementText
-        });
-        var count = await elements.CountAsync();
         if (count == 0)
         {
-            elements = _instance.Page.GetByPlaceholder(actionParams.Context.ElementText);
-            count = await elements.CountAsync();
+            locator = page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions
+            {
+                Name = actionParams.Context.ElementText
+            });
+            count = await locator.CountAsync();
+        }
+
+        if (count == 0)
+        {
+            locator = page.GetByPlaceholder(actionParams.Context.ElementText);
+            count = await locator.CountAsync();
         }
 
         if (count == 0)
         {
             var driverService = _services.GetRequiredService<WebDriverService>();
-            var html = await FilteredInputHtml();
+            var html = await FilteredInputHtml(actionParams.ConversationId);
             var htmlElementContextOut = await driverService.InferElement(actionParams.Agent,
                 html,
                 actionParams.Context.ElementText,
                 actionParams.MessageId);
-            elements = Locator(htmlElementContextOut);
-            count = await elements.CountAsync();
+            locator = Locator(actionParams.ConversationId, htmlElementContextOut);
+            count = await locator.CountAsync();
         }
-
-        if (count == 0)
-        {
-
-        }
-        else if (count == 1)
+        
+        if (count == 1)
         {
             try
             {
-                await elements.FillAsync(actionParams.Context.InputText);
+                await locator.FillAsync(actionParams.Context.InputText);
                 if (actionParams.Context.PressEnter.HasValue && actionParams.Context.PressEnter.Value)
                 {
-                    await elements.PressAsync("Enter");
+                    await locator.PressAsync("Enter");
                 }
 
                 // Triggered ajax
-                await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                await _instance.Wait(actionParams.ConversationId);
                 return true;
             }
             catch (Exception ex)
@@ -60,12 +70,12 @@ public partial class PlaywrightWebDriver
         return false;
     }
 
-    private async Task<string> FilteredInputHtml()
+    private async Task<string> FilteredInputHtml(string conversationId)
     {
         var driverService = _services.GetRequiredService<WebDriverService>();
 
         // Retrieve the page raw html and infer the element path
-        var body = await _instance.Page.QuerySelectorAsync("body");
+        var body = await _instance.GetPage(conversationId).QuerySelectorAsync("body");
 
         var str = new List<string>();
         var inputs = await body.QuerySelectorAllAsync("input");

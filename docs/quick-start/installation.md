@@ -10,7 +10,7 @@ Building solution using dotnet CLI (preferred).
 
 ### Clone the source code and build
 ```powershell
-PS D:\> git clone https://github.com/Oceania2018/BotSharp
+PS D:\> git clone https://github.com/SciSharp/BotSharp
 PS D:\> cd BotSharp
 PS D:\> dotnet build
 ```
@@ -62,24 +62,24 @@ So far, you have set up the Bot's running and development environment, but you c
 
 **Ignore below section if you're going to just use REST API to interact with your bot.**
 
-### Launch a chatbot UI (Optional)
-You can use a third-party open source UI for debugging and development, or you can directly use the REST API to integrate with your system.
-If you want to use the [Chatbot UI](https://github.com/mckaywrigley/chatbot-ui) as a front end.
+### Launch a BotSharp UI (Optional)
+BotSharp has an official front-end project to be used in conjunction with the backend. The main function of this project is to allow developers to visualize various configurations of the backend.
 ```powershell
-PS D:\> git clone https://github.com/mckaywrigley/chatbot-ui
-PS D:\> cd chatbot-ui
-PS D:\> cd npm i
-PS D:\> cd npm run dev
+PS D:\> git clone https://github.com/SciSharp/BotSharp-UI
+PS D:\> cd BotSharp-UI
+PS D:\> npm install
+PS D:\> npm run dev
 ```
 
-Update API url in `.env.local` to your localhost BotSharp backend service.
+Update API url in `.env` to your localhost BotSharp backend service.
 ```config
-OPENAI_API_HOST=http://localhost:5500
+PUBLIC_SERVICE_URL=http://localhost:5500
+PUBLIC_LIVECHAT_HOST=http://localhost:5015
 ```
 
-Point your web browser at http://localhost:3000 and enjoy Chatbot with BotSharp.
+Point your web browser at http://localhost:5015 and enjoy Chatbot with BotSharp.
 
-![alt text](assets/ChatbotUIHome.png "Title")
+![BotSharp UI Router](assets/BotSharp-UI-Router.png)
 
 ## Install in NuGet
 If you don't want to use the source code to experience this framework, you can also directly install the [NuGet packages](https://www.nuget.org/packages?q=BotSharp) released by BotSharp, and install different function packages according to the needs of your project. Before installing, please read the documentation carefully to understand the functions that different modules can provide.

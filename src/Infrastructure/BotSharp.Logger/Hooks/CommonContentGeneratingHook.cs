@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Loggers.Models;
+
 public class CommonContentGeneratingHook : IContentGeneratingHook
 {
     private readonly IServiceProvider _services;

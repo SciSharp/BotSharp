@@ -7,26 +7,39 @@ public partial class PlaywrightWebDriver
 {
     public async Task<bool> ClickElement(BrowserActionParams actionParams)
     {
-        await _instance.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-        await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await _instance.Wait(actionParams.ConversationId);
+
+        var page = _instance.GetPage(actionParams.ConversationId);
+        ILocator locator = default;
+        int count = 0;
 
         // Retrieve the page raw html and infer the element path
-        var regexExpression = actionParams.Context.MatchRule.ToLower() switch
+        if (!string.IsNullOrEmpty(actionParams.Context.ElementText))
         {
-            "startwith" => $"^{actionParams.Context.ElementText}",
-            "endwith" => $"{actionParams.Context.ElementText}$",
-            "contains" => $"{actionParams.Context.ElementText}",
-            _ => $"^{actionParams.Context.ElementText}$"
-        };
-        var regex = new Regex(regexExpression, RegexOptions.IgnoreCase);
-        var elements = _instance.Page.GetByText(regex);
-        var count = await elements.CountAsync();
+            var regexExpression = actionParams.Context.MatchRule.ToLower() switch
+            {
+                "startwith" => $"^{actionParams.Context.ElementText}",
+                "endwith" => $"{actionParams.Context.ElementText}$",
+                "contains" => $"{actionParams.Context.ElementText}",
+                _ => $"^{actionParams.Context.ElementText}$"
+            };
+            var regex = new Regex(regexExpression, RegexOptions.IgnoreCase);
+            locator = page.GetByText(regex);
+            count = await locator.CountAsync();
 
-        // try placeholder
-        if (count == 0)
+            // try placeholder
+            if (count == 0)
+            {
+                locator = page.GetByPlaceholder(regex);
+                count = await locator.CountAsync();
+            }
+        }
+
+        // try attribute
+        if (count == 0 && !string.IsNullOrEmpty(actionParams.Context.AttributeName))
         {
-            elements = _instance.Page.GetByPlaceholder(regex);
-            count = await elements.CountAsync();
+            locator = page.Locator($"[{actionParams.Context.AttributeName}='{actionParams.Context.AttributeValue}']");
+            count = await locator.CountAsync();
         }
 
         if (count == 0)
@@ -35,20 +48,18 @@ public partial class PlaywrightWebDriver
         }
         else if (count == 1)
         {
-            // var tagName = await elements.EvaluateAsync<string>("el => el.tagName");
-
-            await elements.HoverAsync();
-            await elements.ClickAsync();
+            // var tagName = await locator.EvaluateAsync<string>("el => el.tagName");
+            await locator.ClickAsync();
 
             // Triggered ajax
-            await _instance.Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await _instance.Wait(actionParams.ConversationId);
 
             return true;
         }
         else if (count > 1)
         {
             _logger.LogWarning($"Multiple elements are found by keyword {actionParams.Context.ElementText}");
-            var all = await elements.AllAsync();
+            var all = await locator.AllAsync();
             foreach (var element in all)
             {
                 var content = await element.TextContentAsync();

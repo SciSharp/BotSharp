@@ -38,6 +38,30 @@
     }
   },
   {
+    "name": "scroll_page",
+    "description": "Scroll page down or up",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "description": "down, up, left, right"
+        }
+      },
+      "required": [ "direction" ]
+    }
+  },
+  {
+    "name": "take_screenshot",
+    "description": "Tak screenshot to show current page screen",
+    "parameters": {
+      "type": "object",
+      "properties": {
+      },
+      "required": []
+    }
+  },
+  {
     "name": "click_button",
     "description": "Click a button in a web page.",
     "parameters": {
@@ -82,6 +106,14 @@
         "press_enter": {
           "type": "boolean",
           "description": "whether to press Enter key"
+        },
+        "attribute_name": {
+          "type": "string",
+          "description": "attribute name in the element"
+        },
+        "attribute_value": {
+          "type": "string",
+          "description": "attribute value in the element"
         }
       },
       "required": [ "element_text", "input_text" ]
@@ -154,6 +186,14 @@
         "element_text": {
           "type": "string",
           "description": "text or placeholder shown in the element."
+        },
+        "attribute_name": {
+          "type": "string",
+          "description": "attribute name in the element"
+        },
+        "attribute_value": {
+          "type": "string",
+          "description": "attribute value in the element"
         },
         "match_rule": {
           "type": "string",

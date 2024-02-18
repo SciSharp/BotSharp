@@ -7,6 +7,11 @@ public class Conversation
     public string Id { get; set; } = string.Empty;
     public string AgentId { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Agent task id
+    /// </summary>
+    public string? TaskId { get; set; }
     public string Title { get; set; } = string.Empty;
 
     [JsonIgnore]
