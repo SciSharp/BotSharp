@@ -12,6 +12,5 @@ services:
       - ./.env
     volumes:
       - ./appsettings.json:/app/appsettings.json
-      - ./data:/app/data
     networks: 
       - botsharp-network

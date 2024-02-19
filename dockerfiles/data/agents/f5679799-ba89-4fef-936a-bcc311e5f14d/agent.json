@@ -1,9 +1,0 @@
-{
-    "name": "Knowledge Base",
-    "description": "Local knowledge base, providing relevant answers or background knowledge to help handle user questions.",
-    "createdDateTime": "2024-01-02T00:00:00Z",
-    "updatedDateTime": "2024-01-02T00:00:00Z",
-    "id": "f5679799-ba89-4fef-936a-bcc311e5f14d",
-    "allowRouting": true,
-    "isPublic": true
-  }
