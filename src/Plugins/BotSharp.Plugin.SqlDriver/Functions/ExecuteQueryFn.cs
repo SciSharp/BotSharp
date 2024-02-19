@@ -7,23 +7,22 @@ using MySqlConnector;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.SqlDriver.Actions;
+namespace BotSharp.Plugin.SqlDriver.Functions;
 
-public class ExecuteQueryAction : IFunctionCallback
+public class ExecuteQueryFn : IFunctionCallback
 {
     public string Name => "execute_sql";
 
     private readonly SqlDriverSetting _setting;
 
-    public ExecuteQueryAction(SqlDriverSetting setting)
+    public ExecuteQueryFn(SqlDriverSetting setting)
     {
         _setting = setting;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<LlmInputArgs>(message.FunctionArgs);
-        message.Content = "executed successully";
+        message.Content = "Executed";
         /*using var connection = new MySqlConnection(_setting.MySqlConnectionString);
         message.Content = JsonSerializer.Serialize(connection.Query(args.SqlStatement), new JsonSerializerOptions
         {

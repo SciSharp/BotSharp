@@ -1,14 +1,106 @@
-[{
-    "name": "execute_sql",
-    "description": "generate sql statement and execute the query.",
+[
+  {
+    "name": "sql_insert",
+    "description": "Insert query is generated if the record doesn't exist.",
     "parameters": {
       "type": "object",
       "properties": {
         "sql_statement": {
-            "type": "string",
-            "description": "SQL statement"
+          "type": "string",
+          "description": "INSERT SQL statement. The value should use the parameter name like @field."
+        },
+        "reason": {
+          "type": "string",
+          "description": "reason"
+        },
+        "parameters": {
+          "type": "array",
+          "description": "parameters for the sql",
+          "items": {
+            "type": "object",
+            "description": "the name and value for the parameter",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "field name"
+              },
+              "value": {
+                "type": "string",
+                "description": "real value inferred by the context"
+              }
+            }
           }
+        },
+        "return_field": {
+          "type": "object",
+          "description": "the name and alias for the return field",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "field name"
+            },
+            "alias": {
+              "type": "string",
+              "description": "meaningful field alias"
+            }
+          }
+        }
       },
-      "required": ["sql_statement"]
+      "required": [ "sql_statement", "reason", "parameters", "return_field" ]
     }
-}]
+  },
+  {
+    "name": "sql_select",
+    "description": "Get the specific value from table",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "sql_statement": {
+          "type": "string",
+          "description": "SQL statement with SELECT"
+        },
+        "reason": {
+          "type": "string",
+          "description": "reason"
+        },
+        "is_check_existence": {
+          "type": "boolean",
+          "description": "check record existence"
+        },
+        "parameters": {
+          "type": "array",
+          "description": "data criteria for the query",
+          "items": {
+            "type": "object",
+            "description": "the name and value for the parameter",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "field name"
+              },
+              "value": {
+                "type": "string",
+                "description": "real value inferred by the context"
+              }
+            }
+          }
+        },
+        "return_field": {
+          "type": "object",
+          "description": "the name and alias for the return field",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "field in the table"
+            },
+            "alias": {
+              "type": "string",
+              "description": "meaningful field alias"
+            }
+          }
+        }
+      },
+      "required": [ "sql_statement", "reason", "is_check_existence", "parameters", "return_field" ]
+    }
+  }
+]

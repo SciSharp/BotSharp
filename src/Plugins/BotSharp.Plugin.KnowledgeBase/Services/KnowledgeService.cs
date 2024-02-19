@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
-public class KnowledgeService : IKnowledgeService
+public partial class KnowledgeService : IKnowledgeService
 {
     private readonly IServiceProvider _services;
     private readonly KnowledgeBaseSettings _settings;

@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Knowledges.Settings;
-using Microsoft.AspNetCore.Http;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -15,6 +14,13 @@ public class KnowledgeBaseController : ControllerBase
     {
         _knowledgeService = knowledgeService;
         _services = services;
+    }
+
+    [HttpPost("/knowledge-base/embed")]
+    public async Task EmbedKnowledge()
+    {
+        var chunks = await _knowledgeService.CollectChunkedKnowledge();
+        await _knowledgeService.EmbedKnowledge(chunks);
     }
 
     [HttpGet("/knowledge/{agentId}")]

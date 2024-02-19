@@ -1,10 +1,4 @@
-using BotSharp.Abstraction.Plugins;
-using BotSharp.Plugin.SqlHero.Settings;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Drawing;
-using System.Text.RegularExpressions;
+using BotSharp.Abstraction.Loggers;
 
 namespace BotSharp.Plugin.SqlDriver;
 
@@ -12,16 +6,19 @@ public class SqlDriverPlugin : IBotSharpPlugin
 {
     public string Id => "da7b6f7a-b1f0-455a-9939-ad2d493e929e";
     public string Name => "SQL Driver";
-    public string Description => "Convert the requirements into corresponding SQL statements and execute if needed";
+    public string Description => "Convert the user requirements into corresponding SQL statements";
+    public string IconUrl => "https://uxwing.com/wp-content/themes/uxwing/download/file-and-folder-type/sql-icon.png";
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var settings = new SqlDriverSetting();
-        config.Bind("SqlDriver", settings);
-        services.AddSingleton(x =>
+        services.AddScoped(provider =>
         {
-            Console.WriteLine($"Loaded SqlHero settings:: {Regex.Replace(settings.MySqlConnectionString, "password=.*?;", "password=******;")}", Color.Yellow);
-            return settings;
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<SqlDriverSetting>("SqlDriver");
         });
+
+        services.AddScoped<SqlDriverService>();
+        services.AddScoped<IKnowledgeHook, SqlDriverKnowledgeHook>();
+        services.AddScoped<IContentGeneratingHook, SqlDriverContentGeneratingHook>();
     }
 }
