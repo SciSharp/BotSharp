@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  mongodb:    
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${ENV_MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${ENV_MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - 27017:27017
+
+  keycloak.localhost:
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=postgresql.localhost
+      - KC_DB_URL_DATABASE=keycloak
+      - KC_DB_PASSWORD=123456
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_SCHEMA=public
+    ports:
+      - 8080:8080
+      
+  postgresql.localhost:     
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - POSTGRES_PASSWORD=123456
+      - POSTGRESQL_USERNAME=keycloak
+      - POSTGRESQL_DATABASE=keycloak
+    ports:
+      - 5432:5432 

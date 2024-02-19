@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo:7.0-jammy
+    container_name: botsharp_mongo     
+    volumes:
+      - mongo7_data_7.0-jammy:/data/db
+    networks:
+      - botsharp-network
+  
+  keycloak.localhost:
+    image: quay.io/keycloak/keycloak:22.0.3 
+    command: start-dev
+    container_name: keycloak.localhost
+    depends_on:
+      - postgresql.localhost 
+    networks:
+      - botsharp-network
+ 
+
+  postgresql.localhost:
+    image: docker.io/bitnami/postgresql:16
+    container_name: postgresql.localhost
+    volumes:
+      - postgres_data_16:/var/lib/postgresql/data     
+    networks:
+      - botsharp-network
+      
+ 
+volumes:
+  mongo7_data_7.0-jammy:
+  postgres_data_16: 
+
+networks:
+  botsharp-network:
+    external: true
