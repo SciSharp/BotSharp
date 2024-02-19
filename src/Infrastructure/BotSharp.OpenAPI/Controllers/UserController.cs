@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -6,9 +8,11 @@ namespace BotSharp.OpenAPI.Controllers;
 [ApiController]
 public class UserController : ControllerBase
 {
+    private readonly IServiceProvider _services;
     private readonly IUserService _userService;
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IServiceProvider services)
     {
+        _services = services;
         _userService = userService;
     }
 
@@ -31,6 +35,25 @@ public class UserController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet("/sso/{provider}")]
+    public async Task<IActionResult> Authorize([FromRoute] string provider,string redirectUrl)
+    {
+        return Challenge(new AuthenticationProperties { RedirectUri = redirectUrl }, provider);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("/signout")]
+    [HttpPost("/signout")]
+    public IActionResult SignOutCurrentUser()
+    {
+        // Instruct the cookies middleware to delete the local cookie created
+        // when the user agent is redirected from the external identity provider
+        // after a successful authentication flow (e.g Google or Facebook).
+        return SignOut(new AuthenticationProperties { RedirectUri = "/" },
+            CookieAuthenticationDefaults.AuthenticationScheme);
+    }
+
+    [AllowAnonymous]
     [HttpPost("/user")]
     public async Task<UserViewModel> CreateUser(UserCreationModel user)
     {
@@ -38,10 +61,25 @@ public class UserController : ControllerBase
         return UserViewModel.FromUser(createdUser);
     }
 
-    [HttpGet("/user/my")]
+    [HttpGet("/user/me")]
     public async Task<UserViewModel> GetMyUserProfile()
     {
         var user = await _userService.GetMyProfile();
+        if (user == null)
+        {
+            var identiy = _services.GetRequiredService<IUserIdentity>();
+            var accessor = _services.GetRequiredService<IHttpContextAccessor>();
+            var claims = accessor.HttpContext.User.Claims;
+            user = await _userService.CreateUser(new User
+            {
+                Email = identiy.Email,
+                UserName = identiy.UserName,
+                FirstName = identiy.FirstName,
+                LastName = identiy.LastName,
+                Source = claims.First().Issuer,
+                ExternalId = identiy.Id,
+            });
+        }
         return UserViewModel.FromUser(user);
     }
 }

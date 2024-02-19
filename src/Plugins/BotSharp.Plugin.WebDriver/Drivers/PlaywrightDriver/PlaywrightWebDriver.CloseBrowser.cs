@@ -1,13 +1,9 @@
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task CloseBrowser()
+    public async Task CloseBrowser(string conversationId)
     {
-        if (_instance.Context != null)
-        {
-            await _instance.Context.CloseAsync();
-        }
+        await _instance.Close(conversationId);
     }
 }

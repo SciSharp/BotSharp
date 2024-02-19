@@ -11,4 +11,9 @@ public class ConversationFilter
     public string? Status { get; set; }
     public string? Channel { get; set; }
     public string? UserId { get; set; }
+
+    /// <summary>
+    /// Agent task id
+    /// </summary>
+    public string? TaskId { get; set; }
 }

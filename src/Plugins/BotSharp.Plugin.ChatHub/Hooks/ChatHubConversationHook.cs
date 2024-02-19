@@ -1,6 +1,9 @@
+using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
+using BotSharp.Abstraction.Repositories;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -94,20 +97,26 @@ public class ChatHubConversationHook : ConversationHookBase
             Sender = UserViewModel.FromUser(sender)
         });
 
+        // Send typing-on to client
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        {
+            ConversationId = conv.ConversationId,
+            SenderAction = SenderActionEnum.TypingOn
+        });
+
         await base.OnMessageReceived(message);
     }
 
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var state = _services.GetRequiredService<IConversationStateService>();
-
         var json = JsonSerializer.Serialize(new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
             Text = message.Content,
             RichContent = message.RichContent,
+            Data = message.Data,
             Sender = new UserViewModel()
             {
                 FirstName = "AI",
@@ -115,21 +124,15 @@ public class ChatHubConversationHook : ConversationHookBase
                 Role = AgentRole.Assistant
             }
         }, _serializerOptions);
+
+        // Send typing-off to client
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        {
+            ConversationId = conv.ConversationId,
+            SenderAction = SenderActionEnum.TypingOff
+        });
         await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStatesGenerated", BuildConversationStates(conv.ConversationId, state.GetStates()));
 
         await base.OnResponseGenerated(message);
-    }
-
-    private string BuildConversationStates(string conversationId, Dictionary<string, string> states)
-    {
-        var model = new ConversationStateLogModel
-        {
-            ConvsersationId = conversationId,
-            States = JsonSerializer.Serialize(states, _serializerOptions),
-            CreateTime = DateTime.UtcNow
-        };
-
-        return JsonSerializer.Serialize(model, _serializerOptions);
     }
 }

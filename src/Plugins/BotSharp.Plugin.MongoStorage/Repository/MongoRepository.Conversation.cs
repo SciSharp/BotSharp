@@ -19,6 +19,7 @@ public partial class MongoRepository
             UserId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty,
             Title = conversation.Title,
             Channel = conversation.Channel,
+            TaskId = conversation.TaskId,
             Status = conversation.Status,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow,
@@ -62,14 +63,20 @@ public partial class MongoRepository
         var filterSates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var filterExeLog = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterContentLog = Builders<ConversationContentLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterStateLog = Builders<ConversationStateLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
 
         var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
+        var contentLogDeleted = _dc.ContentLogs.DeleteMany(filterContentLog);
+        var stateLogDeleted = _dc.StateLogs.DeleteMany(filterStateLog);
         var statesDeleted = _dc.ConversationStates.DeleteMany(filterSates);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
+        
         return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
-            || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0;
+            || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
+            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0;
     }
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
@@ -215,6 +222,7 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter.Status)) filters.Add(builder.Eq(x => x.Status, filter.Status));
         if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));
         if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
+        if (!string.IsNullOrEmpty(filter.TaskId)) filters.Add(builder.Eq(x => x.TaskId, filter.TaskId));
 
         var filterDef = builder.And(filters);
         var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
@@ -230,6 +238,7 @@ public partial class MongoRepository
                 Id = convId,
                 AgentId = conv.AgentId.ToString(),
                 UserId = conv.UserId.ToString(),
+                TaskId = conv.TaskId,
                 Title = conv.Title,
                 Channel = conv.Channel,
                 Status = conv.Status,

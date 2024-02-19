@@ -1,13 +1,15 @@
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Core.Users.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace BotSharp.OpenAPI;
 
@@ -29,11 +31,14 @@ public static class BotSharpOpenApiExtensions
         services.AddScoped<IUserIdentity, UserIdentity>();
 
         // Add bearer authentication
-        services.AddAuthentication(options =>
+        var schema = "MIXED_SCHEME";
+        var builder = services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            // custom scheme defined in .AddPolicyScheme() below
+            // inspired from https://weblog.west-wind.com/posts/2022/Mar/29/Combining-Bearer-Token-and-Cookie-Auth-in-ASPNET
+            options.DefaultScheme = schema;
+            options.DefaultChallengeScheme = schema;
+            options.DefaultAuthenticateScheme = schema;
         }).AddJwtBearer(o =>
         {
             o.TokenValidationParameters = new TokenValidationParameters
@@ -50,9 +55,66 @@ public static class BotSharpOpenApiExtensions
             if (!enableValidation)
             {
                 o.TokenValidationParameters.SignatureValidator = (string token, TokenValidationParameters parameters) =>
-                    new JwtSecurityToken(token);
+                    new JsonWebToken(token);
             }
+        }).AddCookie(options =>
+        {
+        }).AddPolicyScheme(schema, "Mixed authentication", options =>
+        {
+            // runs on each request
+            options.ForwardDefaultSelector = context =>
+            {
+                // filter by auth type
+                string authorization = context.Request.Headers[HeaderNames.Authorization];
+                if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
+                    return JwtBearerDefaults.AuthenticationScheme;
+                else if (context.Request.Cookies.ContainsKey(".AspNetCore.Cookies"))
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+                else if (context.Request.Path.StartsWithSegments("/sso") && context.Request.Method == "GET")
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+                else if (context.Request.Path.ToString().StartsWith("/signin-") && context.Request.Method == "GET")
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+
+                // otherwise always check for cookie auth
+                return JwtBearerDefaults.AuthenticationScheme;
+            };
         });
+
+        // GitHub OAuth
+        if (!string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:GitHub:ClientSecret"]))
+        {
+            builder = builder.AddGitHub(options =>
+             {
+                 options.ClientId = config["OAuth:GitHub:ClientId"];
+                 options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
+                 options.Scope.Add("user:email");
+             });
+        }
+
+        // Google Identiy OAuth
+        if (!string.IsNullOrWhiteSpace(config["OAuth:Google:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:Google:ClientSecret"]))
+        {
+            builder = builder.AddGoogle(options =>
+            {
+                options.ClientId = config["OAuth:Google:ClientId"];
+                options.ClientSecret = config["OAuth:Google:ClientSecret"];
+            });
+        }
+
+        // Keycloak Identiy OAuth
+        if (!string.IsNullOrWhiteSpace(config["OAuth:Keycloak:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:Keycloak:ClientSecret"]))
+        {
+            builder = builder.AddKeycloak(options =>
+            {
+                options.BaseAddress = new Uri(config["OAuth:Keycloak:BaseAddress"]);
+                options.Realm = config["OAuth:Keycloak:Realm"];
+                options.ClientId = config["OAuth:Keycloak:ClientId"];
+                options.ClientSecret = config["OAuth:Keycloak:ClientSecret"];
+                options.AccessType = AspNet.Security.OAuth.Keycloak.KeycloakAuthenticationAccessType.Confidential;
+                int version = Convert.ToInt32(config["OAuth:Keycloak:Version"]??"22") ;
+                options.Version = new Version(version,0);
+            });
+        }
 
         // Add services to the container.
         services.AddControllers()
@@ -75,18 +137,18 @@ public static class BotSharpOpenApiExtensions
                     Type = SecuritySchemeType.ApiKey
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-               {
-                 new OpenApiSecurityScheme
-                 {
-                   Reference = new OpenApiReference
                    {
-                     Type = ReferenceType.SecurityScheme,
-                     Id = "Bearer"
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "Bearer"
+                       }
+                      },
+                      Array.Empty<string>()
                    }
-                  },
-                  Array.Empty<string>()
-                }
-              });
+                });
             }
         );
 
@@ -123,6 +185,7 @@ public static class BotSharpOpenApiExtensions
 
         if (env.IsDevelopment())
         {
+            IdentityModelEventSource.ShowPII = true;
             app.UseSwaggerUI();
             app.UseDeveloperExceptionPage();
         }

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Loggers.Models;
 using Microsoft.AspNetCore.Hosting;
 using SharpCompress.Compressors.Xz;
 using System;
@@ -33,5 +34,19 @@ public class LoggerController : ControllerBase
         {
             return NotFound();
         }
+    }
+
+    [HttpGet("/logger/conversation/{conversationId}/content-log")]
+    public async Task<List<ConversationContentLogModel>> GetConversationContentLogs([FromRoute] string conversationId)
+    {
+        var conversationService = _services.GetRequiredService<IConversationService>();
+        return await conversationService.GetConversationContentLogs(conversationId);
+    }
+
+    [HttpGet("/logger/conversation/{conversationId}/state-log")]
+    public async Task<List<ConversationStateLogModel>> GetConversationStateLogs([FromRoute] string conversationId)
+    {
+        var conversationService = _services.GetRequiredService<IConversationService>();
+        return await conversationService.GetConversationStateLogs(conversationId);
     }
 }

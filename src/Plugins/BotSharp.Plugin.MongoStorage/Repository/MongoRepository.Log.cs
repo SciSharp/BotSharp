@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
 
@@ -57,5 +57,83 @@ public partial class MongoRepository
         _dc.LlmCompletionLogs.UpdateOne(filter, update, _options);
     }
 
+    #endregion
+
+    #region Conversation Content Log
+    public void SaveConversationContentLog(ConversationContentLogModel log)
+    {
+        if (log == null) return;
+
+        var conversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        var messageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+
+        var logDoc = new ConversationContentLogDocument
+        {
+            ConversationId = conversationId,
+            MessageId = messageId,
+            Name = log.Name,
+            Role = log.Role,
+            Content = log.Content,
+            CreateTime = log.CreateTime
+        };
+
+        _dc.ContentLogs.InsertOne(logDoc);
+    }
+
+    public List<ConversationContentLogModel> GetConversationContentLogs(string conversationId)
+    {
+        var logs = _dc.ContentLogs
+                      .AsQueryable()
+                      .Where(x => x.ConversationId == conversationId)
+                      .Select(x => new ConversationContentLogModel
+                      {
+                          ConversationId = x.ConversationId,
+                          MessageId = x.MessageId,
+                          Name = x.Name,
+                          Role = x.Role,
+                          Content = x.Content,
+                          CreateTime = x.CreateTime
+                      })
+                      .OrderBy(x => x.CreateTime)
+                      .ToList();
+        return logs;
+    }
+    #endregion
+
+    #region Conversation State Log
+    public void SaveConversationStateLog(ConversationStateLogModel log)
+    {
+        if (log == null) return;
+
+        var conversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        var messageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+
+        var logDoc = new ConversationStateLogDocument
+        {
+            ConversationId = conversationId,
+            MessageId = messageId,
+            States = log.States,
+            CreateTime = log.CreateTime
+        };
+
+        _dc.StateLogs.InsertOne(logDoc);
+    }
+
+    public List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+    {
+        var logs = _dc.StateLogs
+                      .AsQueryable()
+                      .Where(x => x.ConversationId == conversationId)
+                      .Select(x => new ConversationStateLogModel
+                      {
+                          ConversationId = x.ConversationId,
+                          MessageId = x.MessageId,
+                          States = x.States,
+                          CreateTime = x.CreateTime
+                      })
+                      .OrderBy(x => x.CreateTime)
+                      .ToList();
+        return logs;
+    }
     #endregion
 }

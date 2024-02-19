@@ -29,4 +29,9 @@ public class MessageConfig : TruncateMessageRequest
     /// Conversation states from input
     /// </summary>
     public List<string> States { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Agent task id
+    /// </summary>
+    public string? TaskId { get; set; }
 }

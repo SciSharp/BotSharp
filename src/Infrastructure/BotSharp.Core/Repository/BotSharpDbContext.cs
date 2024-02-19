@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -250,6 +251,30 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    #region Conversation Content Log
+    public void SaveConversationContentLog(ConversationContentLogModel log)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<ConversationContentLogModel> GetConversationContentLogs(string conversationId)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    #region Conversation State Log
+    public void SaveConversationStateLog(ConversationStateLogModel log)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
     {
         throw new NotImplementedException();
     }
