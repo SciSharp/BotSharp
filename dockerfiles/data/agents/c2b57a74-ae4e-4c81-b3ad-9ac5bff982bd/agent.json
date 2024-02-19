@@ -1,0 +1,10 @@
+{
+  "name": "Ordering",
+  "description": "Provide types of pizza available, unit price and total cost. Place the order and returned the order number.",
+  "createdDateTime": "2023-07-26T02:29:25.123224Z",
+  "updatedDateTime": "2023-07-26T02:29:25.123274Z",
+  "id": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd",
+  "disabled": true,
+  "isPublic": true,
+  "profiles": [ "pizza" ]
+}

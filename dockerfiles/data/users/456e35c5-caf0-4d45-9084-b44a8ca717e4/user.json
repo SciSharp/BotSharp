@@ -1,0 +1,13 @@
+{ 
+  "userName": "admin",
+  "firstName": "Administrator",
+  "lastName": "",
+  "email": "admin@gmail.com",
+  "salt": "55f8fafcf829479ca97e635937440fee",
+  "password": "3b459ae9988628d41f0362c499a768dd",
+  "role": "admin",
+  "updatedTime": "2023-08-14T18:14:03.4602072Z",
+  "createdTime": "2023-08-14T18:14:03.4602075Z",
+  "id": "456e35c5-caf0-4d45-9084-b44a8ca717e4",
+  "externalId":""
+}

@@ -1,0 +1,9 @@
+[Output Requirements]
+1. Read the [Functions] definition, you can utilize the function to retrieve data or execute actions.
+2. Think step by step, check if specific function will provider data to help complete user request based on the conversation.
+3. If you need to call a function to decide how to response user, 
+  response in format: {"role": "function", "reason":"why choose this function", "function_name": "", "args": {}}, 
+  otherwise response in format: {"role": "assistant", "reason":"why response to user", "content":"next step question"}. 
+4. If the conversation already contains the function execution result, don't need to call it again.
+5. If user mentioned some specific requirment, don't ask this question in your response.
+6. Don't repeat the same question in your response.

@@ -7,11 +7,11 @@ services:
       context: ../
       dockerfile: dockerfiles/WebStarter.Dockerfile
     ports:
-      - 8080:8080
+      - 5500:5500
     env_file:
       - ./.env
     volumes:
       - ./appsettings.json:/app/appsettings.json
-    networks: ['botsharp-network']
-
-networks: {botsharp-network: {}}
+      - ./data:/app/data
+    networks: 
+      - botsharp-network

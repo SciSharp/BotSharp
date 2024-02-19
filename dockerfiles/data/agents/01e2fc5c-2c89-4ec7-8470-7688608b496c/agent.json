@@ -1,0 +1,11 @@
+{
+  "id": "01e2fc5c-2c89-4ec7-8470-7688608b496c",
+  "name": "Chatbot",
+  "description": "Chatbot is used to test the performance of different large models and does not interact with external APIs.",
+  "type": "task",
+  "createdDateTime": "2024-01-15T10:39:32Z",
+  "updatedDateTime": "2024-01-15T14:39:32Z",
+  "iconUrl": "/images/logo.png",
+  "disabled": false,
+  "isPublic": true
+}

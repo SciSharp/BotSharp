@@ -20,14 +20,16 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
-// Add BotSharp
-builder.Services.AddBotSharpCore(builder.Configuration)
-    .AddBotSharpOpenAPI(builder.Configuration, new[]
+string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[]
     {
         "http://0.0.0.0:5015",
         "https://botsharp.scisharpstack.org",
         "https://chat.scisharpstack.org"
-    }, builder.Environment, true)
+    };
+ 
+ // Add BotSharp
+ builder.Services.AddBotSharpCore(builder.Configuration)
+    .AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
     .AddBotSharpLogger(builder.Configuration);
 
 // Add SignalR for WebSocket

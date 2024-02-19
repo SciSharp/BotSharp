@@ -1,0 +1,19 @@
+{
+  "name": "Payment",
+  "description": "Make payment when user wants to pay for the order",
+  "createdDateTime": "2023-07-26T02:29:25.123224Z",
+  "updatedDateTime": "2023-07-26T02:29:25.123274Z",
+  "id": "fe8c60aa-b114-4ef3-93cb-a8efeac80f75",
+  "disabled": true,
+  "isPublic": true,
+  "profiles": [ "pizza" ],
+  "routingRules": [
+    {
+      "field": "order_number",
+      "description": "order number",
+      "type": "string",
+      "required": true,
+      "redirectTo": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd"
+    }
+  ]
+}

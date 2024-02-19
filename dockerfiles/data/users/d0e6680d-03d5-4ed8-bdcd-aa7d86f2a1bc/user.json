@@ -1,0 +1,12 @@
+{
+  "userName": "nancy",
+  "firstName": "Nancy",
+  "lastName": "Luna",
+  "email": "user1@gmail.com",
+  "salt": "55f8fafcf829479ca97e635937440fee",
+  "password": "3b459ae9988628d41f0362c499a768dd",
+  "role": "client",
+  "updatedTime": "2023-11-13T18:00:00Z",
+  "createdTime": "2023-11-13T18:00:00Z",
+  "id": "d0e6680d-03d5-4ed8-bdcd-aa7d86f2a1bc"
+}
