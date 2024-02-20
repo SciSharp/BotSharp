@@ -3,9 +3,12 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Messaging.Models.RichContent;
+using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Agents.Services;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.VisualBasic;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -99,9 +102,10 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
             var agentService = _services.GetRequiredService<IAgentService>();
             var agent = await agentService.LoadAgent(message.CurrentAgentId);
             var log = $"[{agent?.Name}]: {message.Content}";
-            if (message.RichContent != null)
+            if (message.RichContent != null && message.RichContent.Message.RichType != "text")
             {
-                log += $"\r\n{message.RichContent}";
+                var richContent = JsonSerializer.Serialize(message.RichContent, _serializerOptions);
+                log += $"\r\n{richContent}";
             }
             log += $"\r\n<== MessageId: {message.MessageId}";
             await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conv.ConversationId, agent?.Name, log, message));
