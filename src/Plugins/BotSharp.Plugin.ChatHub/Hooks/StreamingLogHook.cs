@@ -1,7 +1,10 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Core.Agents.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -54,9 +57,20 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
 
     public override async Task OnFunctionExecuted(RoleDialogModel message)
     {
-        
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var conversationId = _state.GetConversationId();
+        var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        var log = $"[{agent?.Name}]: {message.FunctionName}({message.FunctionArgs}) => {message.Content}";
+        log += $"\r\n<== MessageId: {message.MessageId}";
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, log, message));
     }
 
+    /// <summary>
+    /// Used to log prompt
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="tokenStats"></param>
+    /// <returns></returns>
     public async Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
     {
         if (!_convSettings.ShowVerboseLog) return;
@@ -66,20 +80,32 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, tokenStats.Prompt, message));
-
-        var log = message.Role == AgentRole.Function ?
-                $"[{agent?.Name}]: {message.FunctionName}({message.FunctionArgs})" :
-                $"[{agent?.Name}]: {message.Content}";
-        log += $"\r\n<== MessageId: {message.MessageId}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, log, message));
     }
 
+    /// <summary>
+    /// Used to log final response
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var state = _services.GetRequiredService<IConversationStateService>();
 
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStateLogGenerated", BuildStateLog(conv.ConversationId, state.GetStates(), message));
+
+        if (message.Role == AgentRole.Assistant)
+        {
+            var agentService = _services.GetRequiredService<IAgentService>();
+            var agent = await agentService.LoadAgent(message.CurrentAgentId);
+            var log = $"[{agent?.Name}]: {message.Content}";
+            if (message.RichContent != null)
+            {
+                log += $"\r\n{message.RichContent}";
+            }
+            log += $"\r\n<== MessageId: {message.MessageId}";
+            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conv.ConversationId, agent?.Name, log, message));
+        }
     }
 
     private string BuildContentLog(string conversationId, string? name, string content, RoleDialogModel message)
