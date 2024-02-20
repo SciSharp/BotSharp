@@ -106,24 +106,21 @@ public partial class RoutingService : IRoutingService
 #else
             _logger.LogInformation($"*** Next Instruction *** {inst}");
 #endif
-            await planner.AgentExecuting(_router, inst, message);
+            await planner.AgentExecuting(_router, inst, message, dialogs);
 
             // Handover to Task Agent
-            if (inst.HideDialogContext)
+            if (inst.HandleDialogsByPlanner)
             {
-                var dialogWithoutContext = new List<RoleDialogModel>
-                {
-                    new RoleDialogModel(AgentRole.User, inst.Response)
-                };
+                var dialogWithoutContext = planner.BeforeHandleContext(inst, message, dialogs);
                 response = await executor.Execute(this, inst, message, dialogWithoutContext);
-                dialogs.AddRange(dialogWithoutContext.Skip(1));
+                planner.AfterHandleContext(dialogs, dialogWithoutContext);
             }
             else
             {
                 response = await executor.Execute(this, inst, message, dialogs);
             }
 
-            await planner.AgentExecuted(_router, inst, response);
+            await planner.AgentExecuted(_router, inst, response, dialogs);
         }
 
         return response;

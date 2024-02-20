@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Abstraction.Routing.Planning;
 
@@ -10,7 +9,11 @@ namespace BotSharp.Abstraction.Routing.Planning;
 public interface IPlaner
 {
     Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs);
-    Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message);
-    Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message);
+    Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs);
+    Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs);
+    List<RoleDialogModel> BeforeHandleContext(FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+        => dialogs;
+    bool AfterHandleContext(List<RoleDialogModel> dialogs, List<RoleDialogModel> taskAgentDialogs)
+        => true;
     int MaxLoopCount => 5;
 }

@@ -1,3 +1,4 @@
+using Amazon.SecurityToken.Model.Internal.MarshallTransformations;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.MLTasks;
@@ -102,14 +103,33 @@ public class SequentialPlanner : IPlaner
         {
             inst.Response = decomposation.Description;
             inst.Reason = $"{decomposation.TotalRemainingSteps} steps left.";
-            inst.HideDialogContext = true;
+            inst.HandleDialogsByPlanner = true;
         }
 
         _lastInst = inst;
         return inst;
     }
 
-    public async Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message)
+    public List<RoleDialogModel> BeforeHandleContext(FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
+    {
+        var taskAgentDialogs = new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, inst.Response)
+            {
+                MessageId = message.MessageId,
+            }
+        };
+
+        return taskAgentDialogs;
+    }
+
+    public bool AfterHandleContext(List<RoleDialogModel> dialogs, List<RoleDialogModel> taskAgentDialogs)
+    {
+        dialogs.AddRange(taskAgentDialogs.Skip(1));
+        return true;
+    }
+
+    public async Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         // Set user content as Planner's question
         message.FunctionName = inst.Function;
@@ -118,7 +138,7 @@ public class SequentialPlanner : IPlaner
         return true;
     }
 
-    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<RoutingContext>();
 

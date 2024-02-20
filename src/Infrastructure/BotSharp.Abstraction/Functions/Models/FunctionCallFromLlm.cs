@@ -16,7 +16,7 @@ public class FunctionCallFromLlm : RoutingArgs
     public bool ExecutingDirectly { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-    public bool HideDialogContext { get; set; }
+    public bool HandleDialogsByPlanner { get; set; }
 
     /// <summary>
     /// Router routed to a wrong agent.

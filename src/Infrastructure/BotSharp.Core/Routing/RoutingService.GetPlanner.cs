@@ -9,13 +9,17 @@ public partial class RoutingService
 {
     public IPlaner GetPlanner(Agent router)
     {
-        var planner = router.RoutingRules.FirstOrDefault(x => x.Type == RuleType.Planner);
+        var rule = router.RoutingRules.FirstOrDefault(x => x.Type == RuleType.Planner);
 
-        if (planner?.Field == nameof(HFPlanner))
-            return _services.GetRequiredService<HFPlanner>();
-        else if (planner?.Field == nameof(SequentialPlanner))
-            return _services.GetRequiredService<SequentialPlanner>();
-        else
+        var planner = _services.GetServices<IPlaner>().
+            FirstOrDefault(x => x.GetType().Name.EndsWith(rule.Field));
+
+        if (planner == null)
+        {
+            _logger.LogError($"Can't find specific planner named {rule.Field}");
             return _services.GetRequiredService<NaivePlanner>();
+        }
+
+        return planner;
     }
 }
