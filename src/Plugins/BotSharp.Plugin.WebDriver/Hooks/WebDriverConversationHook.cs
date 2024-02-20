@@ -17,7 +17,11 @@ public class WebDriverConversationHook : ConversationHookBase
         // load screenshot
         if (dialog.Role == AgentRole.Assistant)
         {
-            dialog.Data = "data:image/png;base64," + webDriverService.GetScreenshotBase64(dialog.MessageId);
+            var image64 = webDriverService.GetScreenshotBase64(dialog.MessageId);
+            if (image64 != null)
+            {
+                dialog.Data = $"data:image/png;base64,{image64}";
+            }
         }
         
         await base.OnDialogRecordLoaded(dialog);
