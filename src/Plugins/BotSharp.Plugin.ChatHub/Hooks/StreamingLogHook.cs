@@ -1,14 +1,11 @@
-using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Core.Agents.Services;
+using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Routing.Settings;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.VisualBasic;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -81,6 +78,17 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
         var agentService = _services.GetRequiredService<IAgentService>();
         var conversationId = _state.GetConversationId();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
+
+        // Log routing output
+        try
+        {
+            var inst = message.Content.JsonContent<FunctionCallFromLlm>();
+            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, message.Content, message));
+        }
+        catch
+        {
+            // ignore
+        }
 
         string log;
         if (message.Role == AgentRole.Function)

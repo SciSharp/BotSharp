@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.Plugin.SqlDriver.Models;
 
-public class SqlParamater
+public class SqlParameter
 {
     [JsonPropertyName("name")]
     public string Name { get; set; }

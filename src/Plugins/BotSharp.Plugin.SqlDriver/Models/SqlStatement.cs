@@ -13,11 +13,8 @@ public class SqlStatement
     [JsonPropertyName("table")]
     public string Table { get; set; }
 
-    [JsonPropertyName("is_check_existence")]
-    public bool IsCheckExistence { get; set; }
-
     [JsonPropertyName("parameters")]
-    public SqlParamater[] Parameters { get; set; } = new SqlParamater[0];
+    public SqlParameter[] Parameters { get; set; } = new SqlParameter[0];
 
     [JsonPropertyName("return_field")]
     public SqlReturn Return { get; set; }

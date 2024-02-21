@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Loggers;
-
 namespace BotSharp.Plugin.SqlDriver;
 
 public class SqlDriverPlugin : IBotSharpPlugin
@@ -19,6 +17,5 @@ public class SqlDriverPlugin : IBotSharpPlugin
 
         services.AddScoped<SqlDriverService>();
         services.AddScoped<IKnowledgeHook, SqlDriverKnowledgeHook>();
-        services.AddScoped<IContentGeneratingHook, SqlDriverContentGeneratingHook>();
     }
 }

@@ -10,6 +10,8 @@ public class SqlReturn
     [JsonPropertyName("alias")]
     public string Alias { get; set; }
 
+    public string? Value { get; set; }
+
     public override string ToString()
     {
         return $"{Alias} - {Name}";

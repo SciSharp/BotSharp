@@ -231,6 +231,10 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == ChatRole.Function)
             {
+                chatCompletionsOptions.Messages.Add(new ChatRequestAssistantMessage(string.Empty)
+                {
+                    FunctionCall = new FunctionCall(message.FunctionName, message.FunctionArgs),
+                });
                 chatCompletionsOptions.Messages.Add(new ChatRequestFunctionMessage(message.FunctionName, message.Content));
             }
             else if (message.Role == ChatRole.User)
@@ -287,7 +291,7 @@ public class ChatCompletionProvider : IChatCompletion
                     if (x.Role == ChatRole.Function)
                     {
                         var m = x as ChatRequestFunctionMessage;
-                        return $"{m.Role}: {m.Name} => {m.Content}";
+                        return $"{m.Role}: {m.Content}";
                     }
                     else if (x.Role == ChatRole.User)
                     {
@@ -299,7 +303,9 @@ public class ChatCompletionProvider : IChatCompletion
                     else if (x.Role == ChatRole.Assistant)
                     {
                         var m = x as ChatRequestAssistantMessage;
-                        return $"{m.Role}: {m.Content}";
+                        return m.FunctionCall != null ?
+                            $"{m.Role}: Call function {m.FunctionCall.Name}({m.FunctionCall.Arguments})" :
+                            $"{m.Role}: {m.Content}";
                     }
                     else
                     {
