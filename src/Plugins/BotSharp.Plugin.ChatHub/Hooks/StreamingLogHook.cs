@@ -79,6 +79,17 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
         var conversationId = _state.GetConversationId();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
 
+        // Log routing output
+        try
+        {
+            var inst = message.Content.JsonContent<FunctionCallFromLlm>();
+            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, message.Content, message));
+        }
+        catch
+        {
+            // ignore
+        }
+
         string log;
         if (message.Role == AgentRole.Function)
         {
