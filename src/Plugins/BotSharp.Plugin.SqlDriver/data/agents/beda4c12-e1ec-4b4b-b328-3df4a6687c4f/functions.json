@@ -1,5 +1,19 @@
 [
   {
+    "name": "get_table_columns",
+    "description": "Get related table columns and foreign key informations",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "type": "string",
+          "description": "table name"
+        }
+      },
+      "required": [ "table" ]
+    }
+  },
+  {
     "name": "sql_insert",
     "description": "Insert query is generated if the record doesn't exist.",
     "parameters": {
@@ -19,10 +33,10 @@
         },
         "parameters": {
           "type": "array",
-          "description": "parameters for the sql",
+          "description": "a list of parameters in the statement match with the variables",
           "items": {
             "type": "object",
-            "description": "the name and value for the parameter",
+            "description": "{name:'', value:''}",
             "properties": {
               "name": {
                 "type": "string",
@@ -32,7 +46,8 @@
                 "type": "string",
                 "description": "real value inferred by the context"
               }
-            }
+            },
+            "required": [ "name", "value" ]
           }
         },
         "return_field": {
@@ -47,7 +62,8 @@
               "type": "string",
               "description": "meaningful field alias"
             }
-          }
+          },
+          "required": [ "name", "alias" ]
         }
       },
       "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]
@@ -86,7 +102,8 @@
                 "type": "string",
                 "description": "real value inferred by the context"
               }
-            }
+            },
+            "required": [ "name", "value" ]
           }
         },
         "return_field": {
@@ -101,7 +118,8 @@
               "type": "string",
               "description": "meaningful field alias"
             }
-          }
+          },
+          "required": [ "name", "value" ]
         }
       },
       "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]

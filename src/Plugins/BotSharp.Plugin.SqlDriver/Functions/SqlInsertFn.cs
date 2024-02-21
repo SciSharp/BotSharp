@@ -16,16 +16,6 @@ public class SqlInsertFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
         var sqlDriver = _services.GetRequiredService<SqlDriverService>();
-        if (sqlDriver.Statements.Exists(x => x.Statement == args.Statement))
-        {
-            var p1 = string.Join(", ", sqlDriver.Statements.Last().Parameters.OrderBy(x => x.Name).Select(x => x.Value));
-            var p2 = string.Join(", ", args.Parameters.OrderBy(x => x.Name).Select(x => x.Value));
-            if (p1 == p2)
-            {
-                message.Content = "Skipped duplicated statement.";
-                return false;
-            }
-        }
         sqlDriver.Enqueue(args);
         message.Content = $"Inserted new record successfully.";
         if (args.Return != null)

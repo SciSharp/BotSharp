@@ -30,15 +30,24 @@ public class SqlSelect : IFunctionCallback
             {
                 dictionary["@" + p.Name] = p.Value;
             }
-            var result = connection.QueryFirst<string>(args.Statement, dictionary);
+            var result = connection.QueryFirstOrDefault(args.Statement, dictionary);
 
+            if (result == null)
+            {
+                message.Content = "Record not found";
+            }
+            else
+            {
+                message.Content = JsonSerializer.Serialize(result);
+                args.Return.Value = message.Content;
+            }
+            
             sqlDriver.Enqueue(args);
-            message.Content = $"Retrieved data is: {result}";
         }
         else
         {
             sqlDriver.Enqueue(args);
-            message.Content = $"Success.";
+            message.Content = $"The {args.Return.Name} is saved to @{args.Return.Alias}";
         }
         
         return true;

@@ -14,7 +14,7 @@ public class SqlStatement
     public string Table { get; set; }
 
     [JsonPropertyName("parameters")]
-    public SqlParamater[] Parameters { get; set; } = new SqlParamater[0];
+    public SqlParameter[] Parameters { get; set; } = new SqlParameter[0];
 
     [JsonPropertyName("return_field")]
     public SqlReturn Return { get; set; }

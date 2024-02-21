@@ -17,10 +17,10 @@ public class GetTableColumnsFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<GetTableColumnsArgs>(message.FunctionArgs);
-        message.Content = $"Success. Columns of table '{args.Table}':\r\n\r\n";
+        message.Content = "";
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var dir = Path.Combine(dbSettings.FileRepository, "agents", "ec46f15b-8790-400f-a37f-1e7995b7d6e2", "schemas");
+        var dir = Path.Combine(dbSettings.FileRepository, "agents", "beda4c12-e1ec-4b4b-b328-3df4a6687c4f", "schemas");
 
         // Search related document by message.Content + args.Description
         var files = Directory.GetFiles(dir);

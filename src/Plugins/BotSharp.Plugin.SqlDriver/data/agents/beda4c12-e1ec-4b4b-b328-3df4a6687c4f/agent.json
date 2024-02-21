@@ -10,6 +10,6 @@
   "profiles": [ "tool", "sql" ],
   "llmConfig": {
     "model": "gpt-4-0125",
-    "max_recursion_depth": 5
+    "max_recursion_depth": 10
   }
 }
