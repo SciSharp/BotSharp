@@ -9,13 +9,3 @@ Your response must meet below requirements:
 * Make sure the SELECT and WHERE fields are in corresponding table schema definition;
 * Use "Unique Index" to help check record existence;
 * For INSERT statement with mutliple records, should return in different meaningful alias;
-
-==========
-Domain Knowledge:
-
-user: How to add client response window (priority)?
-assistant: 1. Get client Id by name;
-	2. Get ClientServiceCodeId from client_ServiceCode by ClientId and ServiceCodeId
-	3. Convert priority to standard value by match the list [2H, 4H, 1D , 2D, 7D], 1D = 24H, 2D = 48H. 
-	4. Get the Id as PriorityId from data_Priority by standard value;
-	5. Insert PriorityId and ClientServiceCodeId into Client_ServiceCodePriority
