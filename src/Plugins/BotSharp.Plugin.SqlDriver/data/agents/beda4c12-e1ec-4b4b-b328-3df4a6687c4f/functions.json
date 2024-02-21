@@ -13,6 +13,10 @@
           "type": "string",
           "description": "reason"
         },
+        "table": {
+          "type": "string",
+          "description": "related table"
+        },
         "parameters": {
           "type": "array",
           "description": "parameters for the sql",
@@ -46,7 +50,7 @@
           }
         }
       },
-      "required": [ "sql_statement", "reason", "parameters", "return_field" ]
+      "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]
     }
   },
   {
@@ -63,9 +67,9 @@
           "type": "string",
           "description": "reason"
         },
-        "is_check_existence": {
-          "type": "boolean",
-          "description": "check record existence"
+        "table": {
+          "type": "string",
+          "description": "related table"
         },
         "parameters": {
           "type": "array",
@@ -100,7 +104,7 @@
           }
         }
       },
-      "required": [ "sql_statement", "reason", "is_check_existence", "parameters", "return_field" ]
+      "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]
     }
   }
 ]

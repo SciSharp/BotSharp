@@ -17,6 +17,8 @@ public class SqlSelect : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
+        var sqlDriver = _services.GetRequiredService<SqlDriverService>();
+
         // check if need to instantely
         var execNow = !args.Parameters.Any(x => x.Value.StartsWith("@"));
         if (execNow)
@@ -30,20 +32,11 @@ public class SqlSelect : IFunctionCallback
             }
             var result = connection.QueryFirst<string>(args.Statement, dictionary);
 
-            if (args.IsCheckExistence)
-            {
-                message.Content = result == null ?
-                    $"The record does not exist" :
-                    $"The record already exists";
-            }
-            else
-            {
-                message.Content = $"Retrieved result is {result} ({args.Reason})";
-            }
+            sqlDriver.Enqueue(args);
+            message.Content = $"Retrieved data is: {result}";
         }
         else
         {
-            var sqlDriver = _services.GetRequiredService<SqlDriverService>();
             sqlDriver.Enqueue(args);
             message.Content = $"Success.";
         }
