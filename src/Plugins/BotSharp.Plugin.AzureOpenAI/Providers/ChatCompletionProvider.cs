@@ -22,7 +22,7 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
     
-    private string _model, _version;
+    private string _model;
 
     public string Provider => "azure-openai";
 
@@ -231,13 +231,10 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == ChatRole.Function)
             {
-                if (_version == "0125-Preview")
+                chatCompletionsOptions.Messages.Add(new ChatRequestAssistantMessage(string.Empty)
                 {
-                    chatCompletionsOptions.Messages.Add(new ChatRequestAssistantMessage(string.Empty)
-                    {
-                        FunctionCall = new FunctionCall(message.FunctionName, message.FunctionArgs),
-                    });
-                }
+                    FunctionCall = new FunctionCall(message.FunctionName, message.FunctionArgs ?? String.Empty),
+                });
 
                 chatCompletionsOptions.Messages.Add(new ChatRequestFunctionMessage(message.FunctionName, message.Content));
             }
@@ -334,9 +331,5 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
-
-        var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, model);
-        _version = settings.Version;
     }
 }
