@@ -124,5 +124,31 @@
       },
       "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]
     }
+  },
+  {
+    "name": "lookup_dictionary",
+    "description": "Get id from dictionary table by keyword if tool or solution mentioned this approach",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "type": "string",
+          "description": "table name"
+        },
+        "keyword": {
+          "type": "string",
+          "description": "table name"
+        },
+        "columns": {
+          "type": "array",
+          "description": "columns",
+          "items": {
+            "type": "string",
+            "description": "column"
+          }
+        }
+      },
+      "required": [ "table", "columns", "keyword" ]
+    }
   }
 ]

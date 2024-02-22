@@ -91,4 +91,9 @@ public abstract class ConversationHookBase : IConversationHook
     {
         return Task.CompletedTask;
     }
+
+    public virtual Task OnConversationRedirected(string toAgentId, RoleDialogModel message)
+    {
+        return Task.CompletedTask;
+    }
 }
