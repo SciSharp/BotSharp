@@ -73,6 +73,7 @@ public partial class MongoRepository
             MessageId = messageId,
             Name = log.Name,
             Role = log.Role,
+            Source = log.Source,
             Content = log.Content,
             CreateTime = log.CreateTime
         };
@@ -91,6 +92,7 @@ public partial class MongoRepository
                           MessageId = x.MessageId,
                           Name = x.Name,
                           Role = x.Role,
+                          Source = x.Source,
                           Content = x.Content,
                           CreateTime = x.CreateTime
                       })

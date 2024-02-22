@@ -1,11 +1,11 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Loggers;
+using BotSharp.Abstraction.Loggers.Enums;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Routing.Settings;
 using Microsoft.AspNetCore.SignalR;
+using Serilog;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -37,11 +37,13 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
             AllowTrailingCommas = true
         };
     }
+
     public override async Task OnMessageReceived(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
         var log = $"MessageId: {message.MessageId} ==>\r\n{message.Role}: {message.Content}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, _user.UserName, log, message));
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
+            BuildContentLog(conversationId, _user.UserName, log, ContentLogSource.UserInput, message));
     }
 
     public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
@@ -62,7 +64,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         var log = $"[{agent?.Name}]: {message.FunctionName}({message.FunctionArgs}) => {message.Content}";
         log += $"\r\n<== MessageId: {message.MessageId}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, log, message));
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
+            BuildContentLog(conversationId, agent?.Name, log, ContentLogSource.FunctionCall, message));
     }
 
     /// <summary>
@@ -78,30 +81,25 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
         var agentService = _services.GetRequiredService<IAgentService>();
         var conversationId = _state.GetConversationId();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        var logSource = string.Empty;
 
         // Log routing output
         try
         {
             var inst = message.Content.JsonContent<FunctionCallFromLlm>();
-            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, message.Content, message));
+            logSource = ContentLogSource.AgentResponse;
+            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
+                BuildContentLog(conversationId, agent?.Name, message.Content, logSource, message));
         }
         catch
         {
             // ignore
         }
 
-        string log;
-        if (message.Role == AgentRole.Function)
-        {
-            log = $"[{agent?.Name}]: {message.FunctionName}({message.FunctionArgs}) => {message.Content}";
-            log += $"\r\n<== MessageId: {message.MessageId}";
-        }
-        else
-        {
-            log = tokenStats.Prompt;
-        }
-
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conversationId, agent?.Name, log, message));
+        var log = tokenStats.Prompt;
+        logSource = ContentLogSource.Prompt;
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
+            BuildContentLog(conversationId, agent?.Name, log, logSource, message));
     }
 
     /// <summary>
@@ -127,11 +125,12 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
                 log += $"\r\n{richContent}";
             }
             log += $"\r\n<== MessageId: {message.MessageId}";
-            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(conv.ConversationId, agent?.Name, log, message));
+            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
+                BuildContentLog(conv.ConversationId, agent?.Name, log, ContentLogSource.AgentResponse, message));
         }
     }
 
-    private string BuildContentLog(string conversationId, string? name, string content, RoleDialogModel message)
+    private string BuildContentLog(string conversationId, string? name, string logContent, string logSource, RoleDialogModel message)
     {
         var log = new ConversationContentLogModel
         {
@@ -139,7 +138,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
             MessageId = message.MessageId,
             Name = name,
             Role = message.Role,
-            Content = content,
+            Content = logContent,
+            Source = logSource,
             CreateTime = DateTime.UtcNow
         };
 
