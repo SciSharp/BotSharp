@@ -153,6 +153,11 @@ public class RouteToAgentFn : IFunctionCallback
 #else
                 logger.LogInformation($"*** Routing redirect to {record.Name.ToUpper()} ***");
 #endif
+                var hooks = _services.GetServices<IConversationHook>();
+                foreach (var hook in hooks)
+                {
+                    hook.OnConversationRedirected(routingRule.RedirectTo, message);
+                }
             }
             else
             {
