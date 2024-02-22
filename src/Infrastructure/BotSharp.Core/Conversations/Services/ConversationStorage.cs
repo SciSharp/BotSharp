@@ -1,3 +1,6 @@
+using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Messaging.JsonConverters;
+using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Repositories;
 using System;
 using System.IO;
@@ -8,12 +11,25 @@ public class ConversationStorage : IConversationStorage
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly IServiceProvider _services;
+    private readonly JsonSerializerOptions _options;
+
     public ConversationStorage(
         BotSharpDatabaseSettings dbSettings,
         IServiceProvider services)
     {
         _dbSettings = dbSettings;
         _services = services;
+        _options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            AllowTrailingCommas = true,
+            Converters =
+            {
+                new RichContentJsonConverter(),
+                new TemplateMessageJsonConverter(),
+            }
+        };
     }
 
     public void Append(string conversationId, RoleDialogModel dialog)
@@ -24,7 +40,7 @@ public class ConversationStorage : IConversationStorage
 
         if (dialog.Role == AgentRole.Function)
         {
-            var meta = new DialogMeta 
+            var meta = new DialogMetaData
             {
                 Role = dialog.Role,
                 AgentId = agentId,
@@ -42,7 +58,7 @@ public class ConversationStorage : IConversationStorage
         }
         else
         {
-            var meta = new DialogMeta
+            var meta = new DialogMetaData
             {
                 Role = dialog.Role,
                 AgentId = agentId,
@@ -56,8 +72,8 @@ public class ConversationStorage : IConversationStorage
             {
                 return;
             }
-
-            dialogElements.Add(new DialogElement(meta, content));
+            var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options) : null;
+            dialogElements.Add(new DialogElement(meta, content, richContent));
         }
 
         db.AppendConversationDialogs(conversationId, dialogElements);
@@ -80,6 +96,8 @@ public class ConversationStorage : IConversationStorage
             var function = role == AgentRole.Function ? meta.FunctionName : null;
             var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
             var createdAt = meta.CreateTime;
+            var richContent = !string.IsNullOrEmpty(dialog.RichContent) ? 
+                                JsonSerializer.Deserialize<RichContent<IRichMessage>>(dialog.RichContent, _options) : null;
 
             var record = new RoleDialogModel(role, content)
             {
@@ -87,7 +105,8 @@ public class ConversationStorage : IConversationStorage
                 MessageId = messageId,
                 CreatedAt = createdAt,
                 SenderId = senderId,
-                FunctionName = function
+                FunctionName = function,
+                RichContent = richContent
             };
             results.Add(record);
 

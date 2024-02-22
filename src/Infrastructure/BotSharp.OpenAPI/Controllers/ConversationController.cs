@@ -102,7 +102,8 @@ public class ConversationController : ControllerBase
                     {
                         FirstName = agent.Name,
                         Role = message.Role,
-                    }
+                    },
+                    RichContent = message.RichContent
                 });
             }
         }

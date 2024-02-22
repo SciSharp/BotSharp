@@ -4,8 +4,9 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 
 public class DialogMongoElement
 {
-    public DialogMetaMongoElement MetaData { get; set; }
+    public DialogMetaDataMongoElement MetaData { get; set; }
     public string Content { get; set; }
+    public string? RichContent { get; set; }
 
     public DialogMongoElement()
     {
@@ -16,8 +17,9 @@ public class DialogMongoElement
     {
         return new DialogMongoElement
         {
-            MetaData = DialogMetaMongoElement.ToMongoElement(dialog.MetaData),
-            Content = dialog.Content
+            MetaData = DialogMetaDataMongoElement.ToMongoElement(dialog.MetaData),
+            Content = dialog.Content,
+            RichContent = dialog.RichContent
         };
     }
 
@@ -25,13 +27,14 @@ public class DialogMongoElement
     {
         return new DialogElement
         {
-            MetaData = DialogMetaMongoElement.ToDomainElement(dialog.MetaData),
-            Content = dialog.Content
+            MetaData = DialogMetaDataMongoElement.ToDomainElement(dialog.MetaData),
+            Content = dialog.Content,
+            RichContent = dialog.RichContent
         };
     }
 }
 
-public class DialogMetaMongoElement
+public class DialogMetaDataMongoElement
 {
     public string Role { get; set; }
     public string AgentId { get; set; }
@@ -40,14 +43,14 @@ public class DialogMetaMongoElement
     public string? SenderId { get; set; }
     public DateTime CreateTime { get; set; }
 
-    public DialogMetaMongoElement()
+    public DialogMetaDataMongoElement()
     {
 
     }
 
-    public static DialogMeta ToDomainElement(DialogMetaMongoElement meta)
+    public static DialogMetaData ToDomainElement(DialogMetaDataMongoElement meta)
     {
-        return new DialogMeta
+        return new DialogMetaData
         {
             Role = meta.Role,
             AgentId = meta.AgentId,
@@ -58,9 +61,9 @@ public class DialogMetaMongoElement
         };
     }
 
-    public static DialogMetaMongoElement ToMongoElement(DialogMeta meta)
+    public static DialogMetaDataMongoElement ToMongoElement(DialogMetaData meta)
     {
-        return new DialogMetaMongoElement
+        return new DialogMetaDataMongoElement
         { 
             Role = meta.Role,
             AgentId = meta.AgentId,
