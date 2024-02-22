@@ -22,7 +22,7 @@ namespace BotSharp.Plugin.SemanticKernel
         private Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService _kernelChatCompletion;
         private IServiceProvider _services;
         private ITokenStatistics _tokenStatistics;
-        private string? _model = null;
+        private string _model;
 
         /// <inheritdoc/>
         public string Provider => "semantic-kernel";
@@ -100,8 +100,7 @@ namespace BotSharp.Plugin.SemanticKernel
         /// <inheritdoc/>
         public void SetModelName(string model)
         {
-            if (!string.IsNullOrWhiteSpace(model))
-                this._model = model;
+            _model = model;
         }
     }
 }

@@ -13,6 +13,11 @@ public class LlmModelSetting
     public string Name { get; set; }
 
     /// <summary>
+    /// Model version
+    /// </summary>
+    public string Version { get; set; } = "1106-Preview";
+
+    /// <summary>
     /// Deployment same functional model in a group.
     /// It can be used to deploy same model in different regions.
     /// </summary>
