@@ -317,7 +317,7 @@ namespace BotSharp.Core.Repository
                     var blocks = rawDialogs[i].Split("|");
                     var content = rawDialogs[i + 1];
                     var trimmed = content.Substring(4);
-                    var meta = new DialogMeta
+                    var meta = new DialogMetaData
                     {
                         Role = blocks[1],
                         AgentId = blocks[2],
@@ -326,7 +326,13 @@ namespace BotSharp.Core.Repository
                         SenderId = blocks[1] == AgentRole.Function ? null : blocks[4],
                         CreateTime = DateTime.Parse(blocks[0])
                     };
-                    dialogs.Add(new DialogElement(meta, trimmed));
+
+                    string? richContent = null;
+                    if (blocks.Count() > 5)
+                    {
+                        richContent = blocks[5];
+                    }
+                    dialogs.Add(new DialogElement(meta, trimmed, richContent));
                 }
             }
             return dialogs;
@@ -342,7 +348,7 @@ namespace BotSharp.Core.Repository
                 var meta = element.MetaData;
                 var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt", CultureInfo.InvariantCulture);
                 var source = meta.FunctionName ?? meta.SenderId;
-                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{source}";
+                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{source}|{element.RichContent}";
                 dialogTexts.Add(metaStr);
                 var content = $"  - {element.Content}";
                 dialogTexts.Add(content);

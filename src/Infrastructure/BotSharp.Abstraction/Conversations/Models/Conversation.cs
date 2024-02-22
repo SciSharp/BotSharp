@@ -30,22 +30,24 @@ public class Conversation
 
 public class DialogElement
 {
-    public DialogMeta MetaData { get; set; }
+    public DialogMetaData MetaData { get; set; }
     public string Content { get; set; }
+    public string? RichContent { get; set; }
 
     public DialogElement()
     {
 
     }
 
-    public DialogElement(DialogMeta meta, string content)
+    public DialogElement(DialogMetaData meta, string content, string? richContent = null)
     {
         MetaData = meta;
         Content = content;
+        RichContent = richContent;
     }
 }
 
-public class DialogMeta
+public class DialogMetaData
 {
     public string Role { get; set; }
     public string AgentId { get; set; }
