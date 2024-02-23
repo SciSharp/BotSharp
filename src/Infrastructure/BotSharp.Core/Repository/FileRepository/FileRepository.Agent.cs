@@ -352,7 +352,8 @@ namespace BotSharp.Core.Repository
 
             if (filter.Type != null)
             {
-                query = query.Where(x => x.Type == filter.Type);
+                var types = filter.Type.Split(",");
+                query = query.Where(x => types.Contains(x.Type));
             }
 
             if (filter.IsPublic.HasValue)

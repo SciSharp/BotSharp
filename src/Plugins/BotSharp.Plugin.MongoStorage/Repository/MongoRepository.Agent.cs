@@ -284,7 +284,8 @@ public partial class MongoRepository
 
         if (filter.Type != null)
         {
-            filters.Add(builder.Eq(x => x.Type, filter.Type));
+            var types = filter.Type.Split(",");
+            filters.Add(builder.In(x => x.Type, types));
         }
 
         if (filter.IsPublic.HasValue)
