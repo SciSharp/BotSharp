@@ -72,7 +72,7 @@ public class MessageHandleService
                         replies.Add(new TextMessage(msg.RichContent.Message.Text));
                     }
 
-                    if (msg.RichContent.Message is GenericTemplateMessage genericTemplate)
+                    if (msg.RichContent.Message is GenericTemplateMessage<GenericElement> genericTemplate)
                     {
                         replies.Add(new AttachmentMessage
                         {

@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 
-public class GenericTemplateMessage : IRichMessage, ITemplateMessage
+public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
 {
     [JsonPropertyName("rich_type")]
     public string RichType => "generic_template";
@@ -10,6 +10,9 @@ public class GenericTemplateMessage : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("template_type")]
     public string TemplateType => "generic";
+
+    [JsonPropertyName("elements")]
+    public List<T> Elements { get; set; } = new List<T>();
 }
 
 public class GenericElement
