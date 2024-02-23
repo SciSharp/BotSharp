@@ -36,8 +36,8 @@ public class AgentPlugin : IBotSharpPlugin
         {
             SubMenu = new List<PluginMenuDef>
             {
-                new PluginMenuDef("Router", link: "page/agent/router"), // icon: "bx bx-map-pin"
-                new PluginMenuDef("Evaluator", link: "page/agent/evaluator"), // icon: "bx bx-task"
+                new PluginMenuDef("Routing", link: "page/agent/router"), // icon: "bx bx-map-pin"
+                new PluginMenuDef("Evaluating", link: "page/agent/evaluator"), // icon: "bx bx-task"
                 new PluginMenuDef("Agents", link: "page/agent"), // icon: "bx bx-bot"
             }
         });
