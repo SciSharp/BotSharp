@@ -98,6 +98,12 @@ public partial class RoutingService : IRoutingService
             // Get instruction from Planner
             var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
 
+            var hooks = _services.GetServices<IConversationHook>();
+            foreach (var hook in hooks)
+            {
+                await hook.OnConversationRouting(inst, message);
+            }
+
             // Save states
             states.SaveStateByArgs(inst.Arguments);
 

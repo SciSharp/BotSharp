@@ -156,7 +156,7 @@ public class RouteToAgentFn : IFunctionCallback
                 var hooks = _services.GetServices<IConversationHook>();
                 foreach (var hook in hooks)
                 {
-                    hook.OnConversationRedirected(routingRule.RedirectTo, message);
+                    hook.OnConversationRedirected(routingRule.RedirectTo, message).Wait();
                 }
             }
             else

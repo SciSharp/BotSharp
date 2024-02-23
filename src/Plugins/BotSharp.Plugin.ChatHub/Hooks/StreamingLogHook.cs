@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Loggers.Enums;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories;
 using Microsoft.AspNetCore.SignalR;
-using Serilog;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -17,24 +16,28 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IConversationStateService _state;
     private readonly IUserIdentity _user;
+    private readonly IAgentService _agentService;
 
     public StreamingLogHook(
         ConversationSetting convSettings,
         IServiceProvider serivces,
         IHubContext<SignalRHub> chatHub,
         IConversationStateService state,
-        IUserIdentity user)
+        IUserIdentity user,
+        IAgentService agentService)
     {
         _convSettings = convSettings;
         _services = serivces;
         _chatHub = chatHub;
         _state = state;
         _user = user;
+        _agentService = agentService;
         _serializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            AllowTrailingCommas = true
+            AllowTrailingCommas = true,
+            WriteIndented = true
         };
     }
 
@@ -46,12 +49,20 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
             BuildContentLog(conversationId, _user.UserName, log, ContentLogSource.UserInput, message));
     }
 
+    public override async Task OnConversationRouting(FunctionCallFromLlm instruct, RoleDialogModel message)
+    {
+        var conversationId = _state.GetConversationId();
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
+        var log = JsonSerializer.Serialize(instruct, _serializerOptions);
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
+                BuildContentLog(conversationId, agent?.Name, log, ContentLogSource.AgentResponse, message));
+    }
+
     public override async Task OnConversationRedirected(string toAgentId, RoleDialogModel message)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
         var conversationId = _state.GetConversationId();
-        var fromAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var toAgent = await agentService.LoadAgent(toAgentId);
+        var fromAgent = await _agentService.LoadAgent(message.CurrentAgentId);
+        var toAgent = await _agentService.LoadAgent(toAgentId);
 
         var log = $"{message.Content}\r\n=====\r\nREDIRECTED TO {toAgent.Name}";
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
@@ -71,10 +82,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
 
     public override async Task OnFunctionExecuted(RoleDialogModel message)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
         var conversationId = _state.GetConversationId();
-        var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        var log = $"[{agent?.Name}]: {message.FunctionName}({message.FunctionArgs}) => {message.Content}";
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
+        var log = $"{message.FunctionName}({message.FunctionArgs})\r\n    => {message.Content}";
         log += $"\r\n<== MessageId: {message.MessageId}";
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
             BuildContentLog(conversationId, agent?.Name, log, ContentLogSource.FunctionCall, message));
@@ -90,31 +100,14 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
     {
         if (!_convSettings.ShowVerboseLog) return;
 
-        var agentService = _services.GetRequiredService<IAgentService>();
         var conversationId = _state.GetConversationId();
-        var agent = await agentService.LoadAgent(message.CurrentAgentId);
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var logSource = string.Empty;
 
         var log = tokenStats.Prompt;
         logSource = ContentLogSource.Prompt;
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
             BuildContentLog(conversationId, agent?.Name, log, logSource, message));
-
-        // Log routing output
-        try
-        {
-            var inst = message.Content.JsonContent<FunctionCallFromLlm>();
-            if (!string.IsNullOrEmpty(inst.Function))
-            {
-                logSource = ContentLogSource.AgentResponse;
-                await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-                    BuildContentLog(conversationId, agent?.Name, message.Content, logSource, message));
-            }
-        }
-        catch
-        {
-            // ignore
-        }
     }
 
     /// <summary>
@@ -125,14 +118,12 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        var state = _services.GetRequiredService<IConversationStateService>();
 
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStateLogGenerated", BuildStateLog(conv.ConversationId, state.GetStates(), message));
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStateLogGenerated", BuildStateLog(conv.ConversationId, _state.GetStates(), message));
 
         if (message.Role == AgentRole.Assistant)
         {
-            var agentService = _services.GetRequiredService<IAgentService>();
-            var agent = await agentService.LoadAgent(message.CurrentAgentId);
+            var agent = await _agentService.LoadAgent(message.CurrentAgentId);
             var log = $"{message.Content}";
             if (message.RichContent != null && message.RichContent.Message.RichType != "text")
             {
