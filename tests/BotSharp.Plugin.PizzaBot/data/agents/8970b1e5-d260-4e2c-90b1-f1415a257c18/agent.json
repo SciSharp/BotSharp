@@ -13,7 +13,7 @@
   "routingRules": [
     {
       "type": "planner",
-      "field": "NaviePlanner"
+      "field": "NaivePlanner"
     }
   ]
 }
