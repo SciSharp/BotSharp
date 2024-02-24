@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <LangVersion>10.0</LangVersion>
-        <BotSharpVersion>0.22.0</BotSharpVersion>
+        <BotSharpVersion>1.0.1</BotSharpVersion>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
     </PropertyGroup>
