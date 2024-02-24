@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.MetaMessenger.MessagingModels;
 public class AttachmentMessage : IRichMessage
 {
     [JsonPropertyName("rich_type")]
-    public string RichType => "attachment";
+    public string RichType => RichTypeEnum.Attachment;
 
     [JsonIgnore]
     public string Text { get; set; }

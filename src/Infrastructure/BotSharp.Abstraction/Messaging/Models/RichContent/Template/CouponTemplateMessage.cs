@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Messaging.Enums;
+
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 
 /// <summary>
@@ -7,14 +9,14 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 public class CouponTemplateMessage : IRichMessage, ITemplateMessage
 {
     [JsonPropertyName("rich_type")]
-    public string RichType => "coupon_template";
+    public string RichType => RichTypeEnum.CouponTemplate;
     [JsonIgnore]
     public string Text { get; set; }
     public string Title { get; set; }
     public string Subtitle { get; set; }
 
     [JsonPropertyName("template_type")]
-    public string TemplateType => "coupon";
+    public string TemplateType => TemplateTypeEnum.Coupon;
 
     [JsonPropertyName("coupon_code")]
     public string CouponCode { get; set; }
