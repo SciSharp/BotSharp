@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Messaging.Enums;
+using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using System.Text.Json;
 
@@ -13,13 +15,29 @@ public class RichContentJsonConverter : JsonConverter<IRichMessage>
         JsonElement element;
         object? res = null;
 
-        if (root.TryGetProperty("buttons", out element))
+        if (root.TryGetProperty("rich_type", out element))
         {
-            res = JsonSerializer.Deserialize<ButtonTemplateMessage>(jsonText, options);
-        }
-        else if (root.TryGetProperty("options", out element))
-        {
-            res = JsonSerializer.Deserialize<MultiSelectTemplateMessage>(jsonText, options);
+            var richType = element.GetString();
+            if (richType == RichTypeEnum.ButtonTemplate)
+            {
+                res = JsonSerializer.Deserialize<ButtonTemplateMessage>(jsonText, options);
+            }
+            else if (richType == RichTypeEnum.MultiSelectTemplate)
+            {
+                res = JsonSerializer.Deserialize<MultiSelectTemplateMessage>(jsonText, options);
+            }
+            else if (richType == RichTypeEnum.QuickReply)
+            {
+                res = JsonSerializer.Deserialize<QuickReplyMessage>(jsonText, options);
+            }
+            else if (richType == RichTypeEnum.CouponTemplate)
+            {
+                res = JsonSerializer.Deserialize<CouponTemplateMessage>(jsonText, options);
+            }
+            else if (richType == RichTypeEnum.Text)
+            {
+                res = JsonSerializer.Deserialize<TextMessage>(jsonText, options);
+            }
         }
 
         return res as IRichMessage;

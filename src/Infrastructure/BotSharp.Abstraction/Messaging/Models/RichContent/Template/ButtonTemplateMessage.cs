@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Messaging.Enums;
+
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 
 /// <summary>
@@ -6,13 +8,13 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 public class ButtonTemplateMessage : IRichMessage, ITemplateMessage
 {
     [JsonPropertyName("rich_type")]
-    public string RichType => "button_template";
+    public string RichType => RichTypeEnum.ButtonTemplate;
 
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]
-    public string TemplateType => "button";
+    public string TemplateType => TemplateTypeEnum.Button;
 
     [JsonPropertyName("buttons")]
     public ButtonElement[] Buttons { get; set; } = new ButtonElement[0];

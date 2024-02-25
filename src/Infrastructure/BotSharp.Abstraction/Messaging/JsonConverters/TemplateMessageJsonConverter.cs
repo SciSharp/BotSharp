@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using System.Text.Json;
 
@@ -13,13 +14,25 @@ public class TemplateMessageJsonConverter : JsonConverter<ITemplateMessage>
         JsonElement element;
         object? res = null;
 
-        if (root.TryGetProperty("buttons", out element))
+        if (root.TryGetProperty("template_type", out element))
         {
-            res = JsonSerializer.Deserialize<ButtonTemplateMessage>(jsonText, options);
-        }
-        else if (root.TryGetProperty("options", out element))
-        {
-            res = JsonSerializer.Deserialize<MultiSelectTemplateMessage>(jsonText, options);
+            var templateType = element.GetString();
+            if (templateType == TemplateTypeEnum.Button)
+            {
+                res = JsonSerializer.Deserialize<ButtonTemplateMessage>(jsonText, options);
+            }
+            else if (templateType == TemplateTypeEnum.MultiSelect)
+            {
+                res = JsonSerializer.Deserialize<MultiSelectTemplateMessage>(jsonText, options);
+            }
+            else if (templateType == TemplateTypeEnum.Coupon)
+            {
+                res = JsonSerializer.Deserialize<CouponTemplateMessage>(jsonText, options);
+            }
+            else if (templateType == TemplateTypeEnum.Product)
+            {
+                res = JsonSerializer.Deserialize<ProductTemplateMessage>(jsonText, options);
+            }
         }
 
         return res as ITemplateMessage;
