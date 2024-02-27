@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Knowledges.Settings;
+using Microsoft.AspNetCore.Http;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -14,13 +15,6 @@ public class KnowledgeBaseController : ControllerBase
     {
         _knowledgeService = knowledgeService;
         _services = services;
-    }
-
-    [HttpPost("/knowledge-base/embed")]
-    public async Task EmbedKnowledge()
-    {
-        var chunks = await _knowledgeService.CollectChunkedKnowledge();
-        await _knowledgeService.EmbedKnowledge(chunks);
     }
 
     [HttpGet("/knowledge/{agentId}")]
@@ -70,8 +64,13 @@ public class KnowledgeBaseController : ControllerBase
         foreach (var formFile in files)
         {
             var filePath = Path.GetTempFileName();
-            using var stream = System.IO.File.Create(filePath);
-            await formFile.CopyToAsync(stream);
+
+
+            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await formFile.CopyToAsync(stream);
+                await stream.FlushAsync(); // Ensure all data is written to the file
+            }
 
             var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
 
@@ -84,6 +83,9 @@ public class KnowledgeBaseController : ControllerBase
                 AgentId = agentId,
                 Content = content
             });
+
+            // Delete the temp file after processing to clean up
+            System.IO.File.Delete(filePath);
         }
 
         return Ok(new { count = files.Count, size });
