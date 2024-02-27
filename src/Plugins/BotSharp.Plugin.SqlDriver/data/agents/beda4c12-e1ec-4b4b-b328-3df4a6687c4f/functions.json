@@ -139,6 +139,10 @@
           "type": "string",
           "description": "table name"
         },
+        "reason": {
+          "type": "string",
+          "description": "the reason why you need to call lookup_dictionary"
+        },
         "columns": {
           "type": "array",
           "description": "columns",
@@ -148,7 +152,7 @@
           }
         }
       },
-      "required": [ "table", "columns", "keyword" ]
+      "required": [ "table", "keyword", "reason", "columns" ]
     }
   }
 ]

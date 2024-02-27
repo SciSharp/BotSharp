@@ -44,7 +44,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
     public override async Task OnMessageReceived(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
-        var log = $"MessageId: {message.MessageId} ==>\r\n{message.Role}: {message.Content}";
+        var log = $"{message.Role}: {message.Content}";
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
             BuildContentLog(conversationId, _user.UserName, log, ContentLogSource.UserInput, message));
     }
@@ -85,7 +85,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var log = $"{message.FunctionName}({message.FunctionArgs})\r\n    => {message.Content}";
-        log += $"\r\n<== MessageId: {message.MessageId}";
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
             BuildContentLog(conversationId, agent?.Name, log, ContentLogSource.FunctionCall, message));
     }
@@ -130,7 +129,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook
                 var richContent = JsonSerializer.Serialize(message.RichContent, _serializerOptions);
                 log += $"\r\n{richContent}";
             }
-            log += $"\r\n<== MessageId: {message.MessageId}";
             await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
                 BuildContentLog(conv.ConversationId, agent?.Name, log, ContentLogSource.AgentResponse, message));
         }
