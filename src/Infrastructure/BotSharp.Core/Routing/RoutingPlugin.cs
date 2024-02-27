@@ -38,5 +38,6 @@ public class RoutingPlugin : IBotSharpPlugin
         services.AddScoped<IPlaner, NaivePlanner>();
         services.AddScoped<IPlaner, HFPlanner>();
         services.AddScoped<IPlaner, SequentialPlanner>();
+        services.AddScoped<IPlaner, TwoStagePlanner>();
     }
 }

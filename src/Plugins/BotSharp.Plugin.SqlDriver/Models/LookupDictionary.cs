@@ -10,6 +10,9 @@ public class LookupDictionary
     [JsonPropertyName("keyword")]
     public string Keyword { get; set; }
 
+    [JsonPropertyName("reason")]
+    public string Reason { get; set; }
+
     [JsonPropertyName("columns")]
     public string[] Columns { get; set; }
 }
