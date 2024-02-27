@@ -5,28 +5,24 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public class PigPdf2TextConverter : IPdf2TextConverter
 {
-    public async Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
+    public Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
     {
-        return await OpenPdfDocumentAsync(filePath, startPageNum, endPageNum);
+        // since PdfDocument.Open is not async, we dont need to make this method async
+        // if you need this method to be async, consider wrapping the call in Task.Run for CPU-bound work
+        return Task.FromResult(OpenPdfDocument(filePath, startPageNum, endPageNum));
     }
 
-    private async Task<string> OpenPdfDocumentAsync(string filePath, int? startPageNum, int? endPageNum)
+    private string OpenPdfDocument(string filePath, int? startPageNum, int? endPageNum)
     {
-        var document = PdfDocument.Open(filePath);
-        var content = "";
+        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var document = PdfDocument.Open(fileStream);
+        var content = new StringBuilder();
         foreach (Page page in document.GetPages())
         {
-            if (startPageNum.HasValue && page.Number < startPageNum.Value)
-            {
-                continue;
-            }
-
-            if (endPageNum.HasValue && page.Number > endPageNum.Value)
-            {
-                continue;
-            }
-            content += page.Text;
+            if (startPageNum.HasValue && page.Number < startPageNum.Value) continue;
+            if (endPageNum.HasValue && page.Number > endPageNum.Value) continue;
+            content.Append(page.Text);
         }
-        return content;
+        return content.ToString();
     }
 }
