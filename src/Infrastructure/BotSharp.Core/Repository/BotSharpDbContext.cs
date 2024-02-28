@@ -217,7 +217,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public bool TruncateConversation(string conversationId, string messageId)
+    public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
     {
         throw new NotImplementedException();
     }
