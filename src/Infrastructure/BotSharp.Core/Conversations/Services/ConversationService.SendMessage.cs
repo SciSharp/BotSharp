@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 using System.Drawing;
 
@@ -38,6 +37,11 @@ public partial class ConversationService
         RoleDialogModel response = message;
         bool stopCompletion = false;
 
+        // Enqueue receiving agent first in case it stop completion by OnMessageReceived
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.SetMessageId(_conversationId, message.MessageId);
+        routing.Context.Push(agent.Id);
+
         // Before chat completion hook
         foreach (var hook in hooks)
         {
@@ -50,13 +54,14 @@ public partial class ConversationService
             if (message.StopCompletion)
             {
                 stopCompletion = true;
+                routing.Context.Pop();
+                break;
             }
         }
 
         if (!stopCompletion)
         {
             // Routing with reasoning
-            var routing = _services.GetRequiredService<IRoutingService>();
             var settings = _services.GetRequiredService<RoutingSettings>();
 
             response = agent.Type == AgentType.Routing ?
@@ -93,7 +98,7 @@ public partial class ConversationService
         return converation;
     }
 
-    private async Task HandleAssistantMessage(RoleDialogModel response, Func<RoleDialogModel, Task> onMessageReceived)
+    private async Task HandleAssistantMessage(RoleDialogModel response, Func<RoleDialogModel, Task> onResponseReceived)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(response.CurrentAgentId);
@@ -130,7 +135,7 @@ public partial class ConversationService
             await hook.OnResponseGenerated(response);
         }
 
-        await onMessageReceived(response);
+        await onResponseReceived(response);
 
         // Add to dialog history
         _storage.Append(_conversationId, response);

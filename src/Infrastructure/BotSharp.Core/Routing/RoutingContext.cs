@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing;
@@ -8,12 +7,18 @@ public class RoutingContext : IRoutingContext
     private readonly IServiceProvider _services;
     private readonly RoutingSettings _setting;
     private string[] _routerAgentIds;
+    private string _conversationId;
+    private string _messageId;
 
     public RoutingContext(IServiceProvider services, RoutingSettings setting)
     {
         _services = services;
         _setting = setting;
     }
+
+    public int AgentCount => _stack.Count;
+    public string ConversationId => _conversationId;
+    public string MessageId => _messageId;
 
     private Stack<string> _stack { get; set; }
         = new Stack<string>();
@@ -45,12 +50,13 @@ public class RoutingContext : IRoutingContext
     }
 
     public bool IsEmpty => !_stack.Any();
+
     public string GetCurrentAgentId()
     {
         return _stack.Peek();
     }
 
-    public void Push(string agentId)
+    public void Push(string agentId, string? reason = null)
     {
         if (_stack.Count == 0 || _stack.Peek() != agentId)
         {
@@ -58,7 +64,7 @@ public class RoutingContext : IRoutingContext
             _stack.Push(agentId);
 
             HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-                await hook.OnAgentEnqueued(agentId, preAgentId)
+                await hook.OnAgentEnqueued(agentId, preAgentId, reason: reason)
             ).Wait();
         }
     }
@@ -66,7 +72,7 @@ public class RoutingContext : IRoutingContext
     /// <summary>
     /// Pop current agent
     /// </summary>
-    public void Pop()
+    public void Pop(string? reason = null)
     {
         if (_stack.Count == 0)
         {
@@ -76,11 +82,25 @@ public class RoutingContext : IRoutingContext
         var agentId = _stack.Pop();
 
         HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-            await hook.OnAgentDequeued(agentId, _stack.Peek())
+            await hook.OnAgentDequeued(agentId, _stack.Peek(), reason: reason)
         ).Wait();
     }
 
-    public void Replace(string agentId)
+    public string PreviousAgentId()
+    {
+        if (_stack.Count == 1)
+        {
+            return GetCurrentAgentId();
+        }
+        else if (_stack.Count > 1)
+        {
+            return _stack.ToArray()[1];
+        }
+
+        return string.Empty;
+    }
+
+    public void Replace(string agentId, string? reason = null)
     {
         var fromAgent = agentId;
         var toAgent = agentId;
@@ -96,12 +116,12 @@ public class RoutingContext : IRoutingContext
             _stack.Push(agentId);
 
             HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-                await hook.OnAgentReplaced(fromAgent, toAgent)
+                await hook.OnAgentReplaced(fromAgent, toAgent, reason: reason)
             ).Wait();
         }
     }
 
-    public void Empty()
+    public void Empty(string? reason = null)
     {
         if (_stack.Count == 0)
         {
@@ -111,7 +131,13 @@ public class RoutingContext : IRoutingContext
         var agentId = GetCurrentAgentId();
         _stack.Clear();
         HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-            await hook.OnAgentQueueEmptied(agentId)
+            await hook.OnAgentQueueEmptied(agentId, reason: reason)
         ).Wait();
+    }
+
+    public void SetMessageId(string conversationId, string messageId)
+    {
+        _conversationId = conversationId;
+        _messageId = messageId;
     }
 }

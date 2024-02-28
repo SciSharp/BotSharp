@@ -5,26 +5,18 @@ namespace BotSharp.Abstraction.Routing;
 public interface IRoutingHook
 {
     /// <summary>
-    /// Conversation is redirected to another agent
-    /// </summary>
-    /// <param name="toAgentId"></param>
-    /// <param name="message"></param>
-    /// <returns></returns>
-    Task OnConversationRedirected(string toAgentId, RoleDialogModel message);
-
-    /// <summary>
     /// Routing instruction is received from Router
     /// </summary>
     /// <param name="instruct">routing instruction</param>
     /// <param name="message">message</param>
     /// <returns></returns>
-    Task OnConversationRouting(FunctionCallFromLlm instruct, RoleDialogModel message);
+    Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message);
 
-    Task OnAgentEnqueued(string agentId, string preAgentId);
+    Task OnAgentEnqueued(string agentId, string preAgentId, string? reason = null);
 
-    Task OnAgentDequeued(string agentId, string currentAgentId);
+    Task OnAgentDequeued(string agentId, string currentAgentId, string? reason = null);
 
-    Task OnAgentReplaced(string fromAgentId, string toAgentId);
+    Task OnAgentReplaced(string fromAgentId, string toAgentId, string? reason = null);
 
-    Task OnAgentQueueEmptied(string agentId);
+    Task OnAgentQueueEmptied(string agentId, string? reason = null);
 }

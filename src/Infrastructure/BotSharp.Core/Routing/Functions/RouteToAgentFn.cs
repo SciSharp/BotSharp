@@ -25,22 +25,49 @@ public class RouteToAgentFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
+        var states = _services.GetRequiredService<IConversationStateService>();
 
         // Push original task agent
         if (!string.IsNullOrEmpty(args.OriginalAgent) && args.OriginalAgent.Length < 32)
         {
+            // Correct user goal agent to keep orignal task
+            var goalAgentInState = states.GetState("user_goal_agent", string.Empty);
+            if (goalAgentInState == string.Empty)
+            {
+                states.SetState("user_goal_agent", args.OriginalAgent, isNeedVersion: true);
+            }
+            else if (args.OriginalAgent == args.AgentName && args.OriginalAgent != goalAgentInState)
+            {
+                // Correct to original agent
+                args.OriginalAgent = goalAgentInState;
+            }
+            else if (args.OriginalAgent != args.AgentName && args.OriginalAgent != goalAgentInState)
+            {
+                // Correct to original agent
+                states.SetState("user_goal_agent", args.OriginalAgent, isNeedVersion: true);
+            }
+
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var filter = new AgentFilter { AgentName = args.OriginalAgent };
             var originalAgent = db.GetAgents(filter).FirstOrDefault();
             if (originalAgent != null)
             {
-                _context.Push(originalAgent.Id);
+                _context.Push(originalAgent.Id, $"user goal agent");
             }
         }
-        else
+
+        // Push next action agent
+        if (!string.IsNullOrEmpty(args.AgentName) && args.AgentName.Length < 32)
         {
-            // Push current agent to routing stack
-            _context.Push(message.CurrentAgentId);
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var filter = new AgentFilter { AgentName = args.AgentName };
+            var actionAgent = db.GetAgents(filter).FirstOrDefault();
+            if (actionAgent != null)
+            {
+                _context.Push(actionAgent.Id, args.Reason);
+            }
+
+            states.SetState("last_action_agent", args.AgentName, isNeedVersion: true);
         }
 
         if (string.IsNullOrEmpty(args.AgentName))
@@ -67,17 +94,11 @@ public class RouteToAgentFn : IFunctionCallback
             if (missingfield && message.CurrentAgentId != agentId)
             {
                 // Stack original Agent
-                _context.Push(targetAgent.Id);
-
-                message.CurrentAgentId = agentId;
-            }
-            else
-            {
-                message.CurrentAgentId = targetAgent.Id;
+                _context.Push(agentId, reason: "redirection rule");
             }
         }
 
-        _context.Push(message.CurrentAgentId);
+        message.CurrentAgentId = _context.GetCurrentAgentId();
 
         return true;
     }
@@ -153,9 +174,6 @@ public class RouteToAgentFn : IFunctionCallback
 #else
                 logger.LogInformation($"*** Routing redirect to {record.Name.ToUpper()} ***");
 #endif
-                HookEmitter.Emit<IRoutingHook>(_services, async hook => 
-                    await hook.OnConversationRedirected(routingRule.RedirectTo, message)
-                ).Wait();
             }
             else
             {

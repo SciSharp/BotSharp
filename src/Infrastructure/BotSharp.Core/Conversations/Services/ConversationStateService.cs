@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Repositories;
-using System.Linq;
-
 namespace BotSharp.Core.Conversations.Services;
 
 /// <summary>
@@ -25,7 +22,6 @@ public class ConversationStateService : IConversationStateService, IDisposable
     }
 
     public string GetConversationId() => _conversationId;
-
 
     /// <summary>
     /// Set conversation state

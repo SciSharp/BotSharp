@@ -159,7 +159,7 @@ public partial class TwoStagePlanner : IPlaner
 
         if (message.StopCompletion || _isTaskCompleted)
         {
-            context.Empty();
+            context.Empty(reason: $"Agent queue is cleared by {nameof(TwoStagePlanner)}");
             return false;
         }
 
