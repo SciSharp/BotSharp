@@ -144,7 +144,7 @@ public class SequentialPlanner : IPlaner
 
         if (message.StopCompletion)
         {
-            context.Empty();
+            context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
             return false;
         }
 

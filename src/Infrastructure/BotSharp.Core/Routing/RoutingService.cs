@@ -1,8 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Routing.Settings;
@@ -14,8 +9,11 @@ public partial class RoutingService : IRoutingService
 {
     private readonly IServiceProvider _services;
     private readonly RoutingSettings _settings;
+    private readonly IRoutingContext _context;
     private readonly ILogger _logger;
     private Agent _router;
+
+    public IRoutingContext Context => _context;
     public Agent Router => _router;
 
     public void ResetRecursiveCounter()
@@ -25,10 +23,12 @@ public partial class RoutingService : IRoutingService
 
     public RoutingService(IServiceProvider services,
         RoutingSettings settings,
+        IRoutingContext context,
         ILogger<RoutingService> logger)
     {
         _services = services;
         _settings = settings;
+        _context = context;
         _logger = logger;
     }
 
@@ -80,15 +80,14 @@ public partial class RoutingService : IRoutingService
         var conv = _services.GetRequiredService<IConversationService>();
         var dialogs = conv.GetDialogHistory();
 
-        var context = _services.GetRequiredService<IRoutingContext>();
         var executor = _services.GetRequiredService<IExecutor>();
 
         var planner = GetPlanner(_router);
 
-        context.Push(_router.Id);
+        _context.Push(_router.Id);
 
         int loopCount = 0;
-        while (loopCount < planner.MaxLoopCount && !context.IsEmpty)
+        while (loopCount < planner.MaxLoopCount && !_context.IsEmpty)
         {
             loopCount++;
 
@@ -99,7 +98,7 @@ public partial class RoutingService : IRoutingService
             var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
 
             await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-                await hook.OnConversationRouting(inst, message)
+                await hook.OnRoutingInstructionReceived(inst, message)
             );
 
             // Save states

@@ -5,6 +5,7 @@ namespace BotSharp.Abstraction.Routing;
 public interface IRoutingService
 {
     Agent Router { get; }
+    IRoutingContext Context { get; }
 
     /// <summary>
     /// Get routable agents

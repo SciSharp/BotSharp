@@ -23,13 +23,13 @@ public interface IConversationService
     /// </summary>
     /// <param name="agentId"></param>
     /// <param name="lastDalog"></param>
-    /// <param name="onMessageReceived"></param>
+    /// <param name="onResponseReceived">Received the response from AI Agent</param>
     /// <param name="onFunctionExecuting">This delegate is useful when you want to report progress on UI</param>
     /// <param name="onFunctionExecuted">This delegate is useful when you want to report progress on UI</param>
     /// <returns></returns>
     Task<bool> SendMessage(string agentId,
         RoleDialogModel lastDalog, 
-        Func<RoleDialogModel, Task> onMessageReceived, 
+        Func<RoleDialogModel, Task> onResponseReceived, 
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted);
 

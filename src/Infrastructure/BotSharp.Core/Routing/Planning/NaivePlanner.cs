@@ -101,7 +101,7 @@ public class NaivePlanner : IPlaner
         }
         else
         {
-            context.Empty();
+            context.Empty(reason: $"Agent queue is cleared by {nameof(NaivePlanner)}");
         }
         return true;
     }

@@ -85,7 +85,7 @@ public class HFPlanner : IPlaner
     public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
-        context.Empty();
+        context.Empty(reason: $"Agent queue is cleared by {nameof(HFPlanner)}");
         return true;
     }
 
