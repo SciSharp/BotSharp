@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
+using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -273,7 +274,7 @@ public partial class MongoRepository
         }).ToList();
     }
 
-    public bool TruncateConversation(string conversationId, string messageId)
+    public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
     {
         if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId)) return false;
 
@@ -308,6 +309,28 @@ public partial class MongoRepository
         foundStates.States = truncatedStates;
         _dc.ConversationDialogs.ReplaceOne(dialogFilter, foundDialog);
         _dc.ConversationStates.ReplaceOne(stateFilter, foundStates);
+
+        // Remove logs
+        if (cleanLog)
+        {
+            var contentLogBuilder = Builders<ConversationContentLogDocument>.Filter;
+            var stateLogBuilder = Builders<ConversationStateLogDocument>.Filter;
+
+            var contentLogFilters = new List<FilterDefinition<ConversationContentLogDocument>>()
+            {
+                contentLogBuilder.Eq(x => x.ConversationId, conversationId),
+                contentLogBuilder.Gte(x => x.CreateTime, refTime)
+            };
+            var stateLogFilters = new List<FilterDefinition<ConversationStateLogDocument>>()
+            {
+                stateLogBuilder.Eq(x => x.ConversationId, conversationId),
+                stateLogBuilder.Gte(x => x.CreateTime, refTime)
+            };
+
+            _dc.ContentLogs.DeleteMany(contentLogBuilder.And(contentLogFilters));
+            _dc.StateLogs.DeleteMany(stateLogBuilder.And(stateLogFilters));
+        }
+        
         return true;
     }
 }

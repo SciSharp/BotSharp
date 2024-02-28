@@ -59,7 +59,7 @@ public interface IBotSharpRepository
     PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
     List<Conversation> GetLastConversations();
-    bool TruncateConversation(string conversationId, string messageId);
+    bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
     #endregion
     
     #region Execution Log
