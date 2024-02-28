@@ -12,6 +12,7 @@ public partial class RoutingService
         var originalFunctionName = message.FunctionName;
         message.FunctionName = name;
         message.Role = AgentRole.Function;
+        message.FunctionArgs = message.FunctionArgs;
         var result = await function.Execute(message);
 
         // restore original function name

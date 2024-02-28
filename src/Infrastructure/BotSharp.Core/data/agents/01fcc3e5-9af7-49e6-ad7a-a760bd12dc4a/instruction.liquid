@@ -13,7 +13,7 @@ You're {{router.name}} ({{router.description}}). Follow these steps to handle us
 Parameters: 
     - function: {{ handler.name }}
     {% for p in handler.parameters -%}
-    - {{ p.name }}: {{ p.description }}{{ "\r\n    " }}
+    - {{ p.name }} {% if p.required -%}(required){%- endif %}: {{ p.description }}{{ "\r\n    " }}
     {%- endfor %}
 {%- endif %}
 {% endfor %}
