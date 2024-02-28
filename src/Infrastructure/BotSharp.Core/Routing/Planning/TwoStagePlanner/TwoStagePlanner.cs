@@ -155,7 +155,7 @@ public partial class TwoStagePlanner : IPlaner
 
     public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
-        var context = _services.GetRequiredService<RoutingContext>();
+        var context = _services.GetRequiredService<IRoutingContext>();
 
         if (message.StopCompletion || _isTaskCompleted)
         {

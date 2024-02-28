@@ -68,8 +68,8 @@ public class ResponseTemplateService : IResponseTemplateService
         //    .ToList();
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var context = _services.GetRequiredService<RoutingContext>();
-        var responses = db.GetAgentResponses(agentId, "intent", context.IntentName);
+        var routing = _services.GetRequiredService<IRoutingContext>();
+        var responses = db.GetAgentResponses(agentId, "intent", routing.IntentName);
 
         if (responses.Count == 0)
         {

@@ -29,7 +29,7 @@ public class FallbackToRouterFn : IFunctionCallback
             return false;
         }
 
-        var routing = _services.GetRequiredService<RoutingContext>();
+        var routing = _services.GetRequiredService<IRoutingContext>();
         routing.Replace(targetAgent.Id);
 
         var router = _services.GetRequiredService<IRoutingService>();

@@ -80,7 +80,7 @@ public partial class RoutingService : IRoutingService
         var conv = _services.GetRequiredService<IConversationService>();
         var dialogs = conv.GetDialogHistory();
 
-        var context = _services.GetRequiredService<RoutingContext>();
+        var context = _services.GetRequiredService<IRoutingContext>();
         var executor = _services.GetRequiredService<IExecutor>();
 
         var planner = GetPlanner(_router);
@@ -98,11 +98,9 @@ public partial class RoutingService : IRoutingService
             // Get instruction from Planner
             var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
 
-            var hooks = _services.GetServices<IConversationHook>();
-            foreach (var hook in hooks)
-            {
-                await hook.OnConversationRouting(inst, message);
-            }
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+                await hook.OnConversationRouting(inst, message)
+            );
 
             // Save states
             states.SaveStateByArgs(inst.Arguments);

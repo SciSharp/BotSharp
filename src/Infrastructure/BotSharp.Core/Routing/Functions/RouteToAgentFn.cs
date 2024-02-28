@@ -14,9 +14,9 @@ public class RouteToAgentFn : IFunctionCallback
 {
     public string Name => "route_to_agent";
     private readonly IServiceProvider _services;
-    private readonly RoutingContext _context;
+    private readonly IRoutingContext _context;
 
-    public RouteToAgentFn(IServiceProvider services, RoutingContext context)
+    public RouteToAgentFn(IServiceProvider services, IRoutingContext context)
     {
         _services = services;
         _context = context;
@@ -153,11 +153,9 @@ public class RouteToAgentFn : IFunctionCallback
 #else
                 logger.LogInformation($"*** Routing redirect to {record.Name.ToUpper()} ***");
 #endif
-                var hooks = _services.GetServices<IConversationHook>();
-                foreach (var hook in hooks)
-                {
-                    hook.OnConversationRedirected(routingRule.RedirectTo, message).Wait();
-                }
+                HookEmitter.Emit<IRoutingHook>(_services, async hook => 
+                    await hook.OnConversationRedirected(routingRule.RedirectTo, message)
+                ).Wait();
             }
             else
             {

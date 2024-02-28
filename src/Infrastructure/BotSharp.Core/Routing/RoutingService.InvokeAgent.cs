@@ -64,7 +64,7 @@ public partial class RoutingService
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
         {
-            var routing = _services.GetRequiredService<RoutingContext>();
+            var routing = _services.GetRequiredService<IRoutingContext>();
 
             // Find response template
             var templateService = _services.GetRequiredService<IResponseTemplateService>();

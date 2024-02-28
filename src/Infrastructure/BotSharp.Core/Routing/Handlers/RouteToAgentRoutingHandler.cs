@@ -39,7 +39,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var context = _services.GetRequiredService<RoutingContext>();
+        var context = _services.GetRequiredService<IRoutingContext>();
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
         message.FunctionArgs = JsonSerializer.Serialize(inst);
         var ret = await function.Execute(message);

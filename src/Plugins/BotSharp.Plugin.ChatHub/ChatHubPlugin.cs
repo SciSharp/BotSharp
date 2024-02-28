@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Loggers;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.ChatHub.Hooks;
 using Microsoft.Extensions.Configuration;
 
@@ -20,5 +21,6 @@ public class ChatHubPlugin : IBotSharpPlugin
         services.AddScoped<IConversationHook, ChatHubConversationHook>();
         services.AddScoped<IContentGeneratingHook, StreamingLogHook>();
         services.AddScoped<IConversationHook, StreamingLogHook>();
+        services.AddScoped<IRoutingHook, StreamingLogHook>();
     }
 }
