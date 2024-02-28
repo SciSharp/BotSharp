@@ -185,7 +185,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var log = $"{agent.Name} is dequeued";
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, currentAgent.Name, log, ContentLogSource.HardRule, new RoleDialogModel(AgentRole.System, log)
+            BuildContentLog(conversationId, agent.Name, log, ContentLogSource.HardRule, new RoleDialogModel(AgentRole.System, log)
             {
                 MessageId = _messageId
             }));
