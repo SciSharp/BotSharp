@@ -12,6 +12,7 @@ using BotSharp.Abstraction.Agents;
 using System.IO;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.Plugin.RoutingSpeeder;
 
@@ -31,7 +32,7 @@ public class RoutingConversationHook: ConversationHookBase
 
         // intentClassifier.Train();
         // Utilize local discriminative model to predict intent
-        var context = _services.GetRequiredService<RoutingContext>();
+        var context = _services.GetRequiredService<IRoutingContext>();
         context.IntentName = intentClassifier.Predict(vector);
 
         if (string.IsNullOrEmpty(context.IntentName))

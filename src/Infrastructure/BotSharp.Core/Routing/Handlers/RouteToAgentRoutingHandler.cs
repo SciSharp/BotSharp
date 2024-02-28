@@ -14,9 +14,18 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("reason", "why route to agent"),
-        new ParameterPropertyDef("next_action_agent", "agent for next action based on user latest response"),
-        new ParameterPropertyDef("user_goal_agent", "agent who can achieve user original goal"),
+        new ParameterPropertyDef("reason", "why route to agent") 
+        { 
+            Required = true 
+        },
+        new ParameterPropertyDef("next_action_agent", "agent for next action based on user latest response")
+        {
+            Required = true
+        },
+        new ParameterPropertyDef("user_goal_agent", "agent who can achieve user original goal")
+        {
+            Required = true
+        },
         new ParameterPropertyDef("args", "useful parameters of next action agent, format: { }")
         {
             Type = "object"
@@ -30,7 +39,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var context = _services.GetRequiredService<RoutingContext>();
+        var context = _services.GetRequiredService<IRoutingContext>();
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
         message.FunctionArgs = JsonSerializer.Serialize(inst);
         var ret = await function.Execute(message);

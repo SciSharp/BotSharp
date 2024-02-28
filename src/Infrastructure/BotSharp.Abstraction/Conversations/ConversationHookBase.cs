@@ -69,10 +69,4 @@ public abstract class ConversationHookBase : IConversationHook
 
     public virtual Task OnUserAgentConnectedInitially(Conversation conversation)
         => Task.CompletedTask;
-
-    public virtual Task OnConversationRedirected(string toAgentId, RoleDialogModel message)
-        => Task.CompletedTask;
-
-    public virtual Task OnConversationRouting(FunctionCallFromLlm instruct, RoleDialogModel message)
-        => Task.CompletedTask;
 }

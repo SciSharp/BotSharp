@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Templating;
 
@@ -75,7 +75,7 @@ public class HFPlanner : IPlaner
             var filter = new AgentFilter { AgentName = inst.AgentName };
             var agent = db.GetAgents(filter).FirstOrDefault();
 
-            var context = _services.GetRequiredService<RoutingContext>();
+            var context = _services.GetRequiredService<IRoutingContext>();
             context.Push(agent.Id);
         }
 
@@ -84,7 +84,7 @@ public class HFPlanner : IPlaner
 
     public async Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
-        var context = _services.GetRequiredService<RoutingContext>();
+        var context = _services.GetRequiredService<IRoutingContext>();
         context.Empty();
         return true;
     }

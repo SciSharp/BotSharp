@@ -88,7 +88,7 @@ public class ConversationController : ControllerBase
                     Sender = UserViewModel.FromUser(user)
                 });
             }
-            else
+            else if (message.Role == AgentRole.Assistant)
             {
                 var agent = await agentService.GetAgent(message.CurrentAgentId);
                 dialogs.Add(new ChatResponseModel

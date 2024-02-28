@@ -39,7 +39,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingH
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var context = _services.GetRequiredService<RoutingContext>();
+        var context = _services.GetRequiredService<IRoutingContext>();
         var agentId = context.GetCurrentAgentId();
         var dialogs = new List<RoleDialogModel>
         {

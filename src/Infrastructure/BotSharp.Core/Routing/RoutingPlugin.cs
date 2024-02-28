@@ -23,7 +23,7 @@ public class RoutingPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<RoutingContext>();
+        services.AddScoped<IRoutingContext, RoutingContext>();
 
         // Register router
         services.AddScoped(provider =>

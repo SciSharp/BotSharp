@@ -1,11 +1,9 @@
-using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Settings;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace BotSharp.Abstraction.Routing.Models;
+namespace BotSharp.Core.Routing;
 
-public class RoutingContext
+public class RoutingContext : IRoutingContext
 {
     private readonly IServiceProvider _services;
     private readonly RoutingSettings _setting;
@@ -56,7 +54,12 @@ public class RoutingContext
     {
         if (_stack.Count == 0 || _stack.Peek() != agentId)
         {
+            var preAgentId = _stack.Count == 0 ? agentId : _stack.Peek();
             _stack.Push(agentId);
+
+            HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+                await hook.OnAgentEnqueued(agentId, preAgentId)
+            ).Wait();
         }
     }
 
@@ -65,24 +68,50 @@ public class RoutingContext
     /// </summary>
     public void Pop()
     {
-        _stack.Pop();
+        if (_stack.Count == 0)
+        {
+            return;
+        }
+
+        var agentId = _stack.Pop();
+
+        HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+            await hook.OnAgentDequeued(agentId, _stack.Peek())
+        ).Wait();
     }
 
     public void Replace(string agentId)
     {
+        var fromAgent = agentId;
+        var toAgent = agentId;
+
         if (_stack.Count == 0)
         {
             _stack.Push(agentId);
         }
         else if (_stack.Peek() != agentId)
         {
+            fromAgent = _stack.Peek();
             _stack.Pop();
             _stack.Push(agentId);
+
+            HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+                await hook.OnAgentReplaced(fromAgent, toAgent)
+            ).Wait();
         }
     }
 
     public void Empty()
     {
+        if (_stack.Count == 0)
+        {
+            return;
+        }
+
+        var agentId = GetCurrentAgentId();
         _stack.Clear();
+        HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+            await hook.OnAgentQueueEmptied(agentId)
+        ).Wait();
     }
 }
