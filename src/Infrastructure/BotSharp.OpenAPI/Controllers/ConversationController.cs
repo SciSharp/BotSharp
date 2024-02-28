@@ -97,6 +97,7 @@ public class ConversationController : ControllerBase
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
                     Text = message.Content,
+                    Function = message.FunctionName,
                     Data = message.Data,
                     Sender = new UserViewModel
                     {

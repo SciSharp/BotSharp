@@ -113,6 +113,7 @@ public class ChatHubConversationHook : ConversationHookBase
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
             Text = message.Content,
+            Function = message.FunctionName,
             RichContent = message.RichContent,
             Data = message.Data,
             Sender = new UserViewModel()
