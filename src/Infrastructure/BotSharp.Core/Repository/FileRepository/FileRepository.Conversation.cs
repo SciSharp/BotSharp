@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using System.Globalization;
@@ -263,7 +264,7 @@ namespace BotSharp.Core.Repository
         }
 
 
-        public bool TruncateConversation(string conversationId, string messageId)
+        public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
         {
             if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId)) return false;
 
@@ -287,6 +288,12 @@ namespace BotSharp.Core.Repository
             var stateDir = Path.Combine(convDir, STATE_FILE);
             var states = CollectConversationStates(stateDir);
             isSaved = HandleTruncatedStates(stateDir, states, refTime);
+
+            // Remove logs
+            if (cleanLog)
+            {
+                HandleTruncatedLogs(convDir, refTime);
+            }
 
             return isSaved;
         }
@@ -390,6 +397,44 @@ namespace BotSharp.Core.Repository
 
             var isSaved = SaveTruncatedStates(stateDir, truncatedStates);
             return isSaved;
+        }
+
+        private bool HandleTruncatedLogs(string convDir, DateTime refTime)
+        {
+            var contentLogDir = Path.Combine(convDir, "content_log");
+            var stateLogDir = Path.Combine(convDir, "state_log");
+
+            if (Directory.Exists(contentLogDir))
+            {
+                foreach (var file in Directory.GetFiles(contentLogDir))
+                {
+                    var text = File.ReadAllText(file);
+                    var log = JsonSerializer.Deserialize<ConversationContentLogModel>(text);
+                    if (log == null) continue;
+
+                    if (log.CreateTime >= refTime)
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+
+            if (Directory.Exists(stateLogDir))
+            {
+                foreach (var file in Directory.GetFiles(stateLogDir))
+                {
+                    var text = File.ReadAllText(file);
+                    var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
+                    if (log == null) continue;
+
+                    if (log.CreateTime >= refTime)
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+
+            return true;
         }
 
         private bool SaveTruncatedDialogs(string dialogDir, List<DialogElement> dialogs)
