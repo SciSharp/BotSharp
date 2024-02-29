@@ -53,6 +53,11 @@ public class RoutingContext : IRoutingContext
 
     public string GetCurrentAgentId()
     {
+        if (_stack.Count == 0)
+        {
+            return string.Empty;
+        }
+
         return _stack.Peek();
     }
 
@@ -80,9 +85,10 @@ public class RoutingContext : IRoutingContext
         }
 
         var agentId = _stack.Pop();
+        var currentAgentId = GetCurrentAgentId();
 
         HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-            await hook.OnAgentDequeued(agentId, _stack.Peek(), reason: reason)
+            await hook.OnAgentDequeued(agentId, currentAgentId, reason: reason)
         ).Wait();
     }
 

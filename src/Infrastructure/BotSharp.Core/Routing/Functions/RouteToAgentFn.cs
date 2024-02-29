@@ -1,7 +1,4 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Models;
 using System.Drawing;
 
