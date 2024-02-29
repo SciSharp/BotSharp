@@ -53,6 +53,11 @@ public class RoutingContext : IRoutingContext
 
     public string GetCurrentAgentId()
     {
+        if (_stack.Count == 0)
+        {
+            return string.Empty;
+        }
+
         return _stack.Peek();
     }
 
