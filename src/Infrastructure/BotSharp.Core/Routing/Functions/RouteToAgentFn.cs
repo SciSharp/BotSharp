@@ -29,6 +29,7 @@ public class RouteToAgentFn : IFunctionCallback
         {
             // Correct user goal agent to keep orignal task
             var goalAgentInState = states.GetState("user_goal_agent", string.Empty);
+            bool correctToOriginalAgent = false;
             if (goalAgentInState == string.Empty)
             {
                 states.SetState("user_goal_agent", args.OriginalAgent, isNeedVersion: true);
@@ -37,6 +38,7 @@ public class RouteToAgentFn : IFunctionCallback
             {
                 // Correct to original agent
                 args.OriginalAgent = goalAgentInState;
+                correctToOriginalAgent = true;
             }
             else if (args.OriginalAgent != args.AgentName && args.OriginalAgent != goalAgentInState)
             {
@@ -49,7 +51,7 @@ public class RouteToAgentFn : IFunctionCallback
             var originalAgent = db.GetAgents(filter).FirstOrDefault();
             if (originalAgent != null)
             {
-                _context.Push(originalAgent.Id, $"user goal agent");
+                _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " & is corrected" : "")}");
             }
         }
 
@@ -90,8 +92,8 @@ public class RouteToAgentFn : IFunctionCallback
             var missingfield = HasMissingRequiredField(message, out var agentId);
             if (missingfield && message.CurrentAgentId != agentId)
             {
-                // Stack original Agent
-                _context.Push(agentId, reason: "redirection rule");
+                // Stack redirection agent
+                _context.Push(agentId, reason: $"redirection: {message.Content}");
             }
         }
 

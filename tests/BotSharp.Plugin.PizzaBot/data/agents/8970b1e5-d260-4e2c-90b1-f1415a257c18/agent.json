@@ -7,7 +7,7 @@
   "createdDateTime": "2023-08-18T10:39:32.2349685Z",
   "updatedDateTime": "2023-08-18T14:39:32.2349686Z",
   "iconUrl": "https://cdn-icons-png.flaticon.com/512/6978/6978255.png",
-  "disabled": true,
+  "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
   "routingRules": [

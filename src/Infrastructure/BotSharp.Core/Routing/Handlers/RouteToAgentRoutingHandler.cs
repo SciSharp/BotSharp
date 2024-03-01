@@ -1,7 +1,3 @@
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Handlers;
@@ -39,12 +35,10 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var context = _services.GetRequiredService<IRoutingContext>();
-        var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == inst.Function);
         message.FunctionArgs = JsonSerializer.Serialize(inst);
-        var ret = await function.Execute(message);
+        var ret = await routing.InvokeFunction(message.FunctionName, message);
 
-        var agentId = context.GetCurrentAgentId();
+        var agentId = routing.Context.GetCurrentAgentId();
 
         // Update next action agent's name
         var agentService = _services.GetRequiredService<IAgentService>();

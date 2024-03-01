@@ -35,6 +35,4 @@ public interface IConversationService
 
     List<RoleDialogModel> GetDialogHistory(int lastCount = 50);
     Task CleanHistory(string agentId);
-
-    Task CallFunctions(RoleDialogModel msg);
 }

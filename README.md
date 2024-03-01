@@ -49,7 +49,7 @@ PS D:\> npm run dev
 
 Access http://localhost:5015/ 
 
-[Online Demo with UI](https://botsharp.azurewebsites.net/)
+[Online Demo with UI](https://botsharp.azurewebsites.net/?wt.mc_id=AI-MVP-5005183)
 
 <img src="./docs/static/screenshots/agent-builder-agents.png" height="450px"/>
 
@@ -112,7 +112,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 
 ### Documents
 
-Read the docs: https://botsharp.readthedocs.io
+Read the docs: https://botsharp.readthedocs.io?wt.mc_id=AI-MVP-5005183
 
 If you feel that this project is helpful to you, please Star the project, we would be very grateful.
 

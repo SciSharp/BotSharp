@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing;
@@ -57,15 +55,13 @@ public partial class RoutingService
         var states = _services.GetRequiredService<IConversationStateService>();
         states.SaveStateByArgs(message.FunctionArgs?.JsonContent<JsonDocument>());
 
-        var conversationService = _services.GetRequiredService<IConversationService>();
+        var routing = _services.GetRequiredService<IRoutingService>();
         // Call functions
-        await conversationService.CallFunctions(message);
+        await routing.InvokeFunction(message.FunctionName, message);
 
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
         {
-            var routing = _services.GetRequiredService<IRoutingContext>();
-
             // Find response template
             var templateService = _services.GetRequiredService<IResponseTemplateService>();
             var responseTemplate = await templateService.RenderFunctionResponse(message.CurrentAgentId, message);
@@ -83,7 +79,7 @@ public partial class RoutingService
                     content: message.Content));
 
                 // Send to Next LLM
-                var agentId = routing.GetCurrentAgentId();
+                var agentId = routing.Context.GetCurrentAgentId();
                 await InvokeAgent(agentId, dialogs);
             }
         }

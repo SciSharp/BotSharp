@@ -1,7 +1,3 @@
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Users.Enums;
-
 namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
