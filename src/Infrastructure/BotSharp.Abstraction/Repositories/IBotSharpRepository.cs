@@ -72,8 +72,8 @@ public interface IBotSharpRepository
     #endregion
 
     #region Conversation Content Log
-    void SaveConversationContentLog(ConversationContentLogModel log);
-    List<ConversationContentLogModel> GetConversationContentLogs(string conversationId);
+    void SaveConversationContentLog(ContentLogOutputModel log);
+    List<ContentLogOutputModel> GetConversationContentLogs(string conversationId);
     #endregion
 
     #region Conversation State Log

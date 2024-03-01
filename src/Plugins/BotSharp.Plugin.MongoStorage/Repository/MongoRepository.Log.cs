@@ -60,7 +60,7 @@ public partial class MongoRepository
     #endregion
 
     #region Conversation Content Log
-    public void SaveConversationContentLog(ConversationContentLogModel log)
+    public void SaveConversationContentLog(ContentLogOutputModel log)
     {
         if (log == null) return;
 
@@ -72,6 +72,7 @@ public partial class MongoRepository
             ConversationId = conversationId,
             MessageId = messageId,
             Name = log.Name,
+            AgentId = log.AgentId,
             Role = log.Role,
             Source = log.Source,
             Content = log.Content,
@@ -81,16 +82,17 @@ public partial class MongoRepository
         _dc.ContentLogs.InsertOne(logDoc);
     }
 
-    public List<ConversationContentLogModel> GetConversationContentLogs(string conversationId)
+    public List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
     {
         var logs = _dc.ContentLogs
                       .AsQueryable()
                       .Where(x => x.ConversationId == conversationId)
-                      .Select(x => new ConversationContentLogModel
+                      .Select(x => new ContentLogOutputModel
                       {
                           ConversationId = x.ConversationId,
                           MessageId = x.MessageId,
                           Name = x.Name,
+                          AgentId = x.AgentId,
                           Role = x.Role,
                           Source = x.Source,
                           Content = x.Content,

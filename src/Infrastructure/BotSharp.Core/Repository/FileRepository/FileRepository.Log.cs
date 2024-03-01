@@ -63,7 +63,7 @@ namespace BotSharp.Core.Repository
         #endregion
 
         #region Conversation Content Log
-        public void SaveConversationContentLog(ConversationContentLogModel log)
+        public void SaveConversationContentLog(ContentLogOutputModel log)
         {
             if (log == null) return;
 
@@ -88,9 +88,9 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
         }
 
-        public List<ConversationContentLogModel> GetConversationContentLogs(string conversationId)
+        public List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
         {
-            var logs = new List<ConversationContentLogModel>();
+            var logs = new List<ContentLogOutputModel>();
             if (string.IsNullOrEmpty(conversationId)) return logs;
 
             var convDir = FindConversationDirectory(conversationId);
@@ -102,7 +102,7 @@ namespace BotSharp.Core.Repository
             foreach (var file in Directory.GetFiles(logDir))
             {
                 var text = File.ReadAllText(file);
-                var log = JsonSerializer.Deserialize<ConversationContentLogModel>(text);
+                var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
                 if (log == null) continue;
 
                 logs.Add(log);

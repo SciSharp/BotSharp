@@ -37,7 +37,7 @@ public class LoggerController : ControllerBase
     }
 
     [HttpGet("/logger/conversation/{conversationId}/content-log")]
-    public async Task<List<ConversationContentLogModel>> GetConversationContentLogs([FromRoute] string conversationId)
+    public async Task<List<ContentLogOutputModel>> GetConversationContentLogs([FromRoute] string conversationId)
     {
         var conversationService = _services.GetRequiredService<IConversationService>();
         return await conversationService.GetConversationContentLogs(conversationId);

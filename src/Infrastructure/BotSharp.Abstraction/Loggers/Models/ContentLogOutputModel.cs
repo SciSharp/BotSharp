@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Loggers.Models;
 
-public class ConversationContentLogModel
+public class ContentLogOutputModel
 {
     [JsonPropertyName("conversation_id")]
     public string ConversationId { get; set; }
@@ -10,6 +10,9 @@ public class ConversationContentLogModel
 
     [JsonPropertyName("name")]
     public string? Name { get; set; }
+
+    [JsonPropertyName("agent_id")]
+    public string? AgentId { get; set; }
 
     [JsonPropertyName("role")]
     public string Role { get; set; }

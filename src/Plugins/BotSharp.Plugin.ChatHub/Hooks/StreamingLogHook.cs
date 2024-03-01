@@ -49,19 +49,19 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     {
         var conversationId = _state.GetConversationId();
         var log = $"{message.Content}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, _user.UserName, log, ContentLogSource.UserInput, message));
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = _user.UserName,
+            Source = ContentLogSource.UserInput,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
     public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
     {
         if (!_convSettings.ShowVerboseLog) return;
-
-        /*var _state = _services.GetRequiredService<IConversationStateService>();
-        var conversationId = _state.GetConversationId();
-        var dialog = conversations.Last();
-        var log = $"{dialog.Role}: {dialog.Content} [msg_id: {dialog.MessageId}] ==>";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnContentLogGenerated", BuildLog(conversationId, log));*/
     }
 
     public override async Task OnFunctionExecuted(RoleDialogModel message)
@@ -69,8 +69,15 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var log = $"{message.FunctionName}({message.FunctionArgs})\r\n    => {message.Content}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, agent?.Name, log, ContentLogSource.FunctionCall, message));
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent?.Name,
+            AgentId = agent?.Id,
+            Source = ContentLogSource.FunctionCall,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
     /// <summary>
@@ -87,8 +94,15 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
 
         var log = tokenStats.Prompt;
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, agent?.Name, log, ContentLogSource.Prompt, message));
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent?.Name,
+            AgentId = agent?.Id,
+            Source = ContentLogSource.Prompt,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
     /// <summary>
@@ -111,31 +125,141 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
                 var richContent = JsonSerializer.Serialize(message.RichContent, _serializerOptions);
                 log += $"\r\n{richContent}";
             }
-            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-                BuildContentLog(conv.ConversationId, agent?.Name, log, ContentLogSource.AgentResponse, message));
+
+            var input = new ContentLogInputModel(conv.ConversationId, message)
+            {
+                Name = agent?.Name,
+                AgentId = agent?.Id,
+                Source = ContentLogSource.AgentResponse,
+                Log = log
+            };
+            await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
         }
     }
 
-    private string BuildContentLog(string conversationId, string? name, string logContent, string logSource, RoleDialogModel message)
+    #region IRoutingHook
+    public async Task OnAgentEnqueued(string agentId, string preAgentId, string? reason = null)
     {
-        var log = new ConversationContentLogModel
+        var conversationId = _state.GetConversationId();
+        var agent = await _agentService.LoadAgent(agentId);
+        var preAgent = await _agentService.LoadAgent(preAgentId);
+
+        var log = $"{agent.Name} is enqueued{(reason != null ? $" ({reason})" : "")}";
+        var message = new RoleDialogModel(AgentRole.System, log)
         {
-            ConversationId = conversationId,
-            MessageId = message.MessageId,
-            Name = name,
-            Role = message.Role,
-            Content = logContent,
-            Source = logSource,
+            MessageId = _routingCtx.MessageId
+        };
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = "Router",
+            Source = ContentLogSource.HardRule,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    public async Task OnAgentDequeued(string agentId, string currentAgentId, string? reason = null)
+    {
+        var conversationId = _state.GetConversationId();
+        var agent = await _agentService.LoadAgent(agentId);
+        var currentAgent = await _agentService.LoadAgent(currentAgentId);
+
+        var log = $"{agent.Name} is dequeued{(reason != null ? $" ({reason})" : "")}, current agent is {currentAgent?.Name}";
+        var message = new RoleDialogModel(AgentRole.System, log)
+        {
+            MessageId = _routingCtx.MessageId
+        };
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = "Router",
+            Source = ContentLogSource.HardRule,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    public async Task OnAgentReplaced(string fromAgentId, string toAgentId, string? reason = null)
+    {
+        var conversationId = _state.GetConversationId();
+        var fromAgent = await _agentService.LoadAgent(fromAgentId);
+        var toAgent = await _agentService.LoadAgent(toAgentId);
+
+        var log = $"{fromAgent.Name} is replaced to {toAgent.Name}{(reason != null ? $" ({reason})" : "")}";
+        var message = new RoleDialogModel(AgentRole.System, log)
+        {
+            MessageId = _routingCtx.MessageId
+        };
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = "Router",
+            Source = ContentLogSource.HardRule,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    public async Task OnAgentQueueEmptied(string agentId, string? reason = null)
+    {
+        var conversationId = _state.GetConversationId();
+        var agent = await _agentService.LoadAgent(agentId);
+
+        var log = reason ?? "Agent queue is cleared";
+        var message = new RoleDialogModel(AgentRole.System, log)
+        {
+            MessageId = _routingCtx.MessageId
+        };
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = "Router",
+            Source = ContentLogSource.HardRule,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    public async Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
+    {
+        var conversationId = _state.GetConversationId();
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
+        var log = JsonSerializer.Serialize(instruct, _serializerOptions);
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent?.Name,
+            AgentId = agent?.Id,
+            Source = ContentLogSource.AgentResponse,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+    #endregion
+
+
+    private string BuildContentLog(ContentLogInputModel input)
+    {
+        var output = new ContentLogOutputModel
+        {
+            ConversationId = input.ConversationId,
+            MessageId = input.Message.MessageId,
+            Name = input.Name,
+            AgentId = input.AgentId,
+            Role = input.Message.Role,
+            Content = input.Log,
+            Source = input.Source,
             CreateTime = DateTime.UtcNow
         };
 
-        var json = JsonSerializer.Serialize(log, _serializerOptions);
+        var json = JsonSerializer.Serialize(output, _serializerOptions);
 
         var convSettings = _services.GetRequiredService<ConversationSetting>();
         if (convSettings.EnableContentLog)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            db.SaveConversationContentLog(log);
+            db.SaveConversationContentLog(output);
         }
 
         return json;
@@ -160,70 +284,4 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         return JsonSerializer.Serialize(log, _serializerOptions);
     }
-
-    #region IRoutingHook
-    public async Task OnAgentEnqueued(string agentId, string preAgentId, string? reason = null)
-    {
-        var conversationId = _state.GetConversationId();
-        var agent = await _agentService.LoadAgent(agentId);
-        var preAgent = await _agentService.LoadAgent(preAgentId);
-
-        var log = $"{agent.Name} is enqueued{(reason != null ? $" ({reason})" : "")}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, "Router", log, ContentLogSource.HardRule, new RoleDialogModel(AgentRole.System, log)
-            {
-                MessageId = _routingCtx.MessageId
-            }));
-    }
-
-    public async Task OnAgentDequeued(string agentId, string currentAgentId, string? reason = null)
-    {
-        var conversationId = _state.GetConversationId();
-        var agent = await _agentService.LoadAgent(agentId);
-        var currentAgent = await _agentService.LoadAgent(currentAgentId);
-
-        var log = $"{agent.Name} is dequeued{(reason != null ? $" ({reason})" : "")}, current agent is {currentAgent?.Name}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, "Router", log, ContentLogSource.HardRule, new RoleDialogModel(AgentRole.System, log)
-            {
-                MessageId = _routingCtx.MessageId
-            }));
-    }
-
-    public async Task OnAgentReplaced(string fromAgentId, string toAgentId, string? reason = null)
-    {
-        var conversationId = _state.GetConversationId();
-        var fromAgent = await _agentService.LoadAgent(fromAgentId);
-        var toAgent = await _agentService.LoadAgent(toAgentId);
-
-        var log = $"{fromAgent.Name} is replaced to {toAgent.Name}{(reason != null ? $" ({reason})" : "")}";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, "Router", log, ContentLogSource.HardRule, new RoleDialogModel(AgentRole.System, log)
-            {
-                MessageId = _routingCtx.MessageId
-            }));
-    }
-
-    public async Task OnAgentQueueEmptied(string agentId, string? reason = null)
-    {
-        var conversationId = _state.GetConversationId();
-        var agent = await _agentService.LoadAgent(agentId);
-
-        var log = reason ?? "Agent queue is cleared";
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-            BuildContentLog(conversationId, "Router", log, ContentLogSource.HardRule, new RoleDialogModel(AgentRole.System, log)
-            {
-                MessageId = _routingCtx.MessageId
-            }));
-    }
-
-    public async Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
-    {
-        var conversationId = _state.GetConversationId();
-        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
-        var log = JsonSerializer.Serialize(instruct, _serializerOptions);
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated",
-                BuildContentLog(conversationId, agent.Name, log, ContentLogSource.AgentResponse, message));
-    }
-    #endregion
 }
