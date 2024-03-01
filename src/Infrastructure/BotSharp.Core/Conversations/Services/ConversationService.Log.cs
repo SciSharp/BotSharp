@@ -5,7 +5,7 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    public async Task<List<ConversationContentLogModel>> GetConversationContentLogs(string conversationId)
+    public async Task<List<ContentLogOutputModel>> GetConversationContentLogs(string conversationId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var logs = db.GetConversationContentLogs(conversationId);

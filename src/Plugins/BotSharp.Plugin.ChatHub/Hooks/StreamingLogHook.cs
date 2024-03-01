@@ -50,7 +50,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var conversationId = _state.GetConversationId();
         var log = $"{message.Content}";
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = _user.UserName,
             Source = ContentLogSource.UserInput,
@@ -70,7 +70,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var log = $"{message.FunctionName}({message.FunctionArgs})\r\n    => {message.Content}";
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = agent?.Name,
             AgentId = agent?.Id,
@@ -95,7 +95,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var log = tokenStats.Prompt;
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = agent?.Name,
             AgentId = agent?.Id,
@@ -126,7 +126,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
                 log += $"\r\n{richContent}";
             }
 
-            var input = new ContentLogInput(conv.ConversationId, message)
+            var input = new ContentLogInputModel(conv.ConversationId, message)
             {
                 Name = agent?.Name,
                 AgentId = agent?.Id,
@@ -150,7 +150,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             MessageId = _routingCtx.MessageId
         };
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = "Router",
             Source = ContentLogSource.HardRule,
@@ -171,7 +171,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             MessageId = _routingCtx.MessageId
         };
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = "Router",
             Source = ContentLogSource.HardRule,
@@ -192,7 +192,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             MessageId = _routingCtx.MessageId
         };
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = "Router",
             Source = ContentLogSource.HardRule,
@@ -212,7 +212,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             MessageId = _routingCtx.MessageId
         };
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = "Router",
             Source = ContentLogSource.HardRule,
@@ -227,7 +227,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var log = JsonSerializer.Serialize(instruct, _serializerOptions);
 
-        var input = new ContentLogInput(conversationId, message)
+        var input = new ContentLogInputModel(conversationId, message)
         {
             Name = agent?.Name,
             AgentId = agent?.Id,
@@ -239,26 +239,27 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     #endregion
 
 
-    private string BuildContentLog(ContentLogInput input)
+    private string BuildContentLog(ContentLogInputModel input)
     {
-        var log = new ConversationContentLogModel
+        var output = new ContentLogOutputModel
         {
             ConversationId = input.ConversationId,
             MessageId = input.Message.MessageId,
             Name = input.Name,
+            AgentId = input.AgentId,
             Role = input.Message.Role,
             Content = input.Log,
             Source = input.Source,
             CreateTime = DateTime.UtcNow
         };
 
-        var json = JsonSerializer.Serialize(log, _serializerOptions);
+        var json = JsonSerializer.Serialize(output, _serializerOptions);
 
         var convSettings = _services.GetRequiredService<ConversationSetting>();
         if (convSettings.EnableContentLog)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            db.SaveConversationContentLog(log);
+            db.SaveConversationContentLog(output);
         }
 
         return json;
@@ -282,26 +283,5 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
 
         return JsonSerializer.Serialize(log, _serializerOptions);
-    }
-}
-
-internal class ContentLogInput
-{
-    public string ConversationId { get; set; }
-    public string? Name { get; set; }
-    public string? AgentId { get; set; }
-    public string Log { get; set; }
-    public string Source { get; set; }
-    public RoleDialogModel Message { get; set; }
-
-    public ContentLogInput()
-    {
-        
-    }
-
-    public ContentLogInput(string conversationId, RoleDialogModel message)
-    {
-        ConversationId = conversationId;
-        Message = message;
     }
 }

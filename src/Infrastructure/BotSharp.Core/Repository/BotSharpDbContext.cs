@@ -257,12 +257,12 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     #endregion
 
     #region Conversation Content Log
-    public void SaveConversationContentLog(ConversationContentLogModel log)
+    public void SaveConversationContentLog(ContentLogOutputModel log)
     {
         throw new NotImplementedException();
     }
 
-    public List<ConversationContentLogModel> GetConversationContentLogs(string conversationId)
+    public List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
     {
         throw new NotImplementedException();
     }

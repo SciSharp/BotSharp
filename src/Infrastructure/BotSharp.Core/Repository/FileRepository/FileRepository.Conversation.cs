@@ -409,7 +409,7 @@ namespace BotSharp.Core.Repository
                 foreach (var file in Directory.GetFiles(contentLogDir))
                 {
                     var text = File.ReadAllText(file);
-                    var log = JsonSerializer.Deserialize<ConversationContentLogModel>(text);
+                    var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
                     if (log == null) continue;
 
                     if (log.CreateTime >= refTime)
