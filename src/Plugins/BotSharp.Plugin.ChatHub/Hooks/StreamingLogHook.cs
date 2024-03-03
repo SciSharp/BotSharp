@@ -68,7 +68,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     {
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
-        var log = $"{message.FunctionName}({message.FunctionArgs})\r\n    => {message.Content}";
+        message.FunctionArgs = message.FunctionArgs ?? "{}";
+        var args = JsonSerializer.Serialize(JsonDocument.Parse(message.FunctionArgs), _serializerOptions);
+        var log = $"*{message.FunctionName}*\r\n```json\r\n{args}\r\n```\r\n=> {message.Content?.Trim()}";
 
         var input = new ContentLogInputModel(conversationId, message)
         {
@@ -123,7 +125,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             if (message.RichContent != null && message.RichContent.Message.RichType != "text")
             {
                 var richContent = JsonSerializer.Serialize(message.RichContent, _serializerOptions);
-                log += $"\r\n{richContent}";
+                log += $"\r\n```json\r\n{richContent}\r\n```";
             }
 
             var input = new ContentLogInputModel(conv.ConversationId, message)
@@ -226,6 +228,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var log = JsonSerializer.Serialize(instruct, _serializerOptions);
+        log = $"```json\r\n{log}\r\n```";
 
         var input = new ContentLogInputModel(conversationId, message)
         {

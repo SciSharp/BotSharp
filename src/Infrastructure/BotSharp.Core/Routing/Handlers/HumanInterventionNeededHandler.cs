@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Handlers;
@@ -13,6 +11,7 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
         new ParameterPropertyDef("reason", "why need customer service"),
+        new ParameterPropertyDef("summary", "the whole conversation summary with important information"),
         new ParameterPropertyDef("response", "response content to user")
     };
 

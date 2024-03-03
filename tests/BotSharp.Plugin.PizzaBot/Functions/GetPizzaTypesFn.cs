@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using System.Linq;
+using System.Text.Json;
 
 namespace BotSharp.Plugin.PizzaBot.Functions;
 
@@ -26,7 +27,7 @@ public class GetPizzaTypesFn : IFunctionCallback
             "Cheese Pizza",
             "Margherita Pizza"
         };
-        message.Data = pizzaTypes;
+        message.Content = JsonSerializer.Serialize(pizzaTypes);
         message.RichContent = new RichContent<IRichMessage>
         {
             Recipient = new Recipient

@@ -25,6 +25,12 @@ public class FunctionCallFromLlm : RoutingArgs
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public bool UnmatchedAgent { get; set; }
 
+    /// <summary>
+    /// Conversation summary
+    /// </summary>
+    [JsonPropertyName("summary")]
+    public string? Summary { get; set; }
+
     public override string ToString()
     {
         var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {Reason}>";
