@@ -72,7 +72,7 @@ public partial class MongoRepository
     #region Update Agent Fields
     private void UpdateAgentName(string agentId, string name)
     {
-        if (string.IsNullOrEmpty(name)) return;
+        if (string.IsNullOrWhiteSpace(name)) return;
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -84,7 +84,7 @@ public partial class MongoRepository
 
     private void UpdateAgentDescription(string agentId, string description)
     {
-        if (string.IsNullOrEmpty(description)) return;
+        if (string.IsNullOrWhiteSpace(description)) return;
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -136,7 +136,7 @@ public partial class MongoRepository
 
     private void UpdateAgentProfiles(string agentId, List<string> profiles)
     {
-        if (profiles.IsNullOrEmpty()) return;
+        if (profiles == null) return;
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -148,7 +148,7 @@ public partial class MongoRepository
 
     private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
     {
-        if (rules.IsNullOrEmpty()) return;
+        if (rules == null) return;
 
         var ruleElements = rules.Select(x => RoutingRuleMongoElement.ToMongoElement(x)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -161,7 +161,7 @@ public partial class MongoRepository
 
     private void UpdateAgentInstruction(string agentId, string instruction)
     {
-        if (string.IsNullOrEmpty(instruction)) return;
+        if (string.IsNullOrWhiteSpace(instruction)) return;
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -173,7 +173,7 @@ public partial class MongoRepository
 
     private void UpdateAgentFunctions(string agentId, List<FunctionDef> functions)
     {
-        if (functions.IsNullOrEmpty()) return;
+        if (functions == null) return;
 
         var functionsToUpdate = functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -186,7 +186,7 @@ public partial class MongoRepository
 
     private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
     {
-        if (templates.IsNullOrEmpty()) return;
+        if (templates == null) return;
 
         var templatesToUpdate = templates.Select(t => AgentTemplateMongoElement.ToMongoElement(t)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -199,7 +199,7 @@ public partial class MongoRepository
 
     private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
     {
-        if (responses.IsNullOrEmpty()) return;
+        if (responses == null) return;
 
         var responsesToUpdate = responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -212,7 +212,7 @@ public partial class MongoRepository
 
     private void UpdateAgentSamples(string agentId, List<string> samples)
     {
-        if (samples.IsNullOrEmpty()) return;
+        if (samples == null) return;
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
