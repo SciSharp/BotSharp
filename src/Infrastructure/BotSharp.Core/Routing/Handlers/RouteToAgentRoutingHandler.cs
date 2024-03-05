@@ -10,11 +10,15 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("reason", "why route to agent") 
+        new ParameterPropertyDef("next_action_reason", "the reason why route to this agent") 
         { 
             Required = true 
         },
         new ParameterPropertyDef("next_action_agent", "agent for next action based on user latest response")
+        {
+            Required = true
+        },
+        new ParameterPropertyDef("user_goal_description", "user original goal")
         {
             Required = true
         },
@@ -37,6 +41,16 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
         message.FunctionArgs = JsonSerializer.Serialize(inst);
         var ret = await routing.InvokeFunction(message.FunctionName, message);
+
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var goalAgent = states.GetState("user_goal_agent");
+        if (!string.IsNullOrEmpty(goalAgent))
+        {
+            inst.OriginalAgent = goalAgent;
+        }
+        await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+            await hook.OnRoutingInstructionRevised(inst, message)
+        );
 
         var agentId = routing.Context.GetCurrentAgentId();
 

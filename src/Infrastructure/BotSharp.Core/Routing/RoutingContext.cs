@@ -61,8 +61,23 @@ public class RoutingContext : IRoutingContext
         return _stack.Peek();
     }
 
+    /// <summary>
+    /// Push agent
+    /// </summary>
+    /// <param name="agentId">Id or Name</param>
+    /// <param name="reason"></param>
     public void Push(string agentId, string? reason = null)
     {
+        // Convert id to name
+        if (!Guid.TryParse(agentId, out _))
+        {
+            var agentService = _services.GetRequiredService<IAgentService>();
+            agentId = agentService.GetAgents(new AgentFilter
+            {
+                AgentName = agentId
+            }).Result.Items.First().Id;
+        }
+
         if (_stack.Count == 0 || _stack.Peek() != agentId)
         {
             var preAgentId = _stack.Count == 0 ? agentId : _stack.Peek();

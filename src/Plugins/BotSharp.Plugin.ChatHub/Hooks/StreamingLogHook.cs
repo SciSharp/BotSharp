@@ -41,7 +41,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             AllowTrailingCommas = true,
-            WriteIndented = true
+            WriteIndented = true,
         };
     }
 
@@ -66,6 +66,11 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
     public override async Task OnFunctionExecuted(RoleDialogModel message)
     {
+        if (message.FunctionName == "route_to_agent")
+        {
+            return;
+        }
+
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
@@ -126,6 +131,11 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             {
                 var richContent = JsonSerializer.Serialize(message.RichContent, _serializerOptions);
                 log += $"\r\n```json\r\n{richContent}\r\n```";
+            }
+
+            if (!string.IsNullOrEmpty(message.FunctionName))
+            {
+                log += $"\r\n\r\n**{message.FunctionName}**";
             }
 
             var input = new ContentLogInputModel(conv.ConversationId, message)
@@ -223,7 +233,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
-    public async Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
+    public async Task OnRoutingInstructionRevised(FunctionCallFromLlm instruct, RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);

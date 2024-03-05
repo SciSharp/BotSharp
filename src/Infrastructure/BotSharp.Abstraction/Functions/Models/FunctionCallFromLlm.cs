@@ -6,6 +6,7 @@ namespace BotSharp.Abstraction.Functions.Models;
 public class FunctionCallFromLlm : RoutingArgs
 {
     [JsonPropertyName("question")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Question { get; set; }
 
     [JsonPropertyName("args")]
@@ -29,6 +30,7 @@ public class FunctionCallFromLlm : RoutingArgs
     /// Conversation summary
     /// </summary>
     [JsonPropertyName("summary")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Summary { get; set; }
 
     public override string ToString()
