@@ -10,13 +10,21 @@ public interface IRoutingHook
     /// <param name="instruct">routing instruction</param>
     /// <param name="message">message</param>
     /// <returns></returns>
-    Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message);
+    Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
+        => Task.CompletedTask;
 
-    Task OnAgentEnqueued(string agentId, string preAgentId, string? reason = null);
+    Task OnRoutingInstructionRevised(FunctionCallFromLlm instruct, RoleDialogModel message)
+        => Task.CompletedTask;
 
-    Task OnAgentDequeued(string agentId, string currentAgentId, string? reason = null);
+    Task OnAgentEnqueued(string agentId, string preAgentId, string? reason = null)
+        => Task.CompletedTask;
 
-    Task OnAgentReplaced(string fromAgentId, string toAgentId, string? reason = null);
+    Task OnAgentDequeued(string agentId, string currentAgentId, string? reason = null)
+        => Task.CompletedTask;
 
-    Task OnAgentQueueEmptied(string agentId, string? reason = null);
+    Task OnAgentReplaced(string fromAgentId, string toAgentId, string? reason = null)
+        => Task.CompletedTask;
+
+    Task OnAgentQueueEmptied(string agentId, string? reason = null)
+        => Task.CompletedTask;
 }

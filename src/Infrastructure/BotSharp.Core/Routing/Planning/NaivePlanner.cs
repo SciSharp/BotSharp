@@ -102,6 +102,7 @@ public class NaivePlanner : IPlaner
         else
         {
             context.Empty(reason: $"Agent queue is cleared by {nameof(NaivePlanner)}");
+            // context.Push(inst.OriginalAgent, "Push user goal agent");
         }
         return true;
     }

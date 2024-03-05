@@ -58,15 +58,8 @@ public class RouteToAgentFn : IFunctionCallback
         // Push next action agent
         if (!string.IsNullOrEmpty(args.AgentName) && args.AgentName.Length < 32)
         {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            var filter = new AgentFilter { AgentName = args.AgentName };
-            var actionAgent = db.GetAgents(filter).FirstOrDefault();
-            if (actionAgent != null)
-            {
-                _context.Push(actionAgent.Id, args.Reason);
-            }
-
-            states.SetState("last_action_agent", args.AgentName, isNeedVersion: true);
+            _context.Push(args.AgentName, args.Reason);
+            states.SetState("next_action_agent", args.AgentName, isNeedVersion: true);
         }
 
         if (string.IsNullOrEmpty(args.AgentName))
@@ -93,7 +86,7 @@ public class RouteToAgentFn : IFunctionCallback
             if (missingfield && message.CurrentAgentId != agentId)
             {
                 // Stack redirection agent
-                _context.Push(agentId, reason: $"redirection: {message.Content}");
+                _context.Push(agentId, reason: $"REDIRECTION {message.Content}");
             }
         }
 
@@ -155,7 +148,7 @@ public class RouteToAgentFn : IFunctionCallback
         {
             // Add field to args
             message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "missing_fields", missingFields);
-            message.Content = $"missing some information: {string.Join(',', missingFields)}";
+            message.Content = $"missing some information: {string.Join(", ", missingFields)}";
 
             // Handle redirect
             var routingRule = routingRules.FirstOrDefault(x => missingFields.Contains(x.Field));
