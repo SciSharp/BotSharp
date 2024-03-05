@@ -69,7 +69,7 @@ namespace BotSharp.Core.Repository
         #region Update Agent Fields
         private void UpdateAgentName(string agentId, string name)
         {
-            if (string.IsNullOrEmpty(name)) return;
+            if (string.IsNullOrWhiteSpace(name)) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -82,7 +82,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentDescription(string agentId, string description)
         {
-            if (string.IsNullOrEmpty(description)) return;
+            if (string.IsNullOrWhiteSpace(description)) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -139,7 +139,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentProfiles(string agentId, List<string> profiles)
         {
-            if (profiles.IsNullOrEmpty()) return;
+            if (profiles == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -152,7 +152,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
         {
-            if (rules.IsNullOrEmpty()) return;
+            if (rules == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -165,7 +165,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentInstruction(string agentId, string instruction)
         {
-            if (string.IsNullOrEmpty(instruction)) return;
+            if (string.IsNullOrWhiteSpace(instruction)) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -178,7 +178,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentFunctions(string agentId, List<FunctionDef> inputFunctions)
         {
-            if (inputFunctions.IsNullOrEmpty()) return;
+            if (inputFunctions == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -192,7 +192,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
         {
-            if (templates.IsNullOrEmpty()) return;
+            if (templates == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -218,7 +218,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
         {
-            if (responses.IsNullOrEmpty()) return;
+            if (responses == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
@@ -245,7 +245,7 @@ namespace BotSharp.Core.Repository
 
         private void UpdateAgentSamples(string agentId, List<string> samples)
         {
-            if (samples.IsNullOrEmpty()) return;
+            if (samples == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
