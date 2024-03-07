@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations.Models;
 using Microsoft.Extensions.Hosting;
 
 namespace BotSharp.OpenAPI.BackgroundServices
