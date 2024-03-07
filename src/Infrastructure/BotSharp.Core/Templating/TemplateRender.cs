@@ -27,6 +27,7 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<Agent>();
         _options.MemberAccessStrategy.Register<RoutableAgent>();
         _options.MemberAccessStrategy.Register<RoutingHandlerDef>();
+        _options.MemberAccessStrategy.Register<UserIdentity>();
     }
 
     public string Render(string template, Dictionary<string, object> dict)

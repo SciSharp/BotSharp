@@ -63,8 +63,8 @@ public class TextCompletionProvider : ITextCompletion
         completionsOptions.StopSequences.Add($"{AgentRole.Assistant}:");
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = float.Parse(state.GetState("temperature", "0.5"));
-        var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
+        var temperature = float.Parse(state.GetState("temperature", "0.0"));
+        var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.0"));
         completionsOptions.Temperature = temperature;
         completionsOptions.NucleusSamplingFactor = samplingFactor;
         completionsOptions.DeploymentName = _model;
