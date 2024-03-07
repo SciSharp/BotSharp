@@ -21,11 +21,11 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 while (true)
                 {
                     stoppingToken.ThrowIfCancellationRequested();
-                    var delay = Task.Delay(TimeSpan.FromMinutes(1));
+                    var delay = Task.Delay(TimeSpan.FromHours(1));
                     try
                     {
-                        await CleanIdleConversationsAsync();
                         await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
+                        await CleanIdleConversationsAsync();
 
                     }
                     catch (Exception ex)

@@ -276,6 +276,7 @@ public partial class MongoRepository
     public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
     {
         var page = 1;
+        var pageLimit = 10;
         var batchLimit = 50;
         var utcNow = DateTime.UtcNow;
         var conversationIds = new List<string>();
@@ -285,7 +286,7 @@ public partial class MongoRepository
             batchSize = batchLimit;
         }
 
-        while (true)
+        while (true && page < pageLimit)
         {
             var skip = (page - 1) * batchSize;
             var candidates = _dc.Conversations.AsQueryable()
