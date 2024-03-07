@@ -164,7 +164,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public bool DeleteConversation(string conversationId)
+    public bool DeleteConversations(IEnumerable<string> conversationIds)
     {
         throw new NotImplementedException();
     }
@@ -180,6 +180,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
     public List<Conversation> GetLastConversations()
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<string> GetIdleConversations(int batchSize, int messageLimit)
     {
         throw new NotImplementedException();
     }

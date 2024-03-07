@@ -48,7 +48,7 @@ public interface IBotSharpRepository
 
     #region Conversation
     void CreateNewConversation(Conversation conversation);
-    bool DeleteConversation(string conversationId);
+    bool DeleteConversations(IEnumerable<string> conversationIds);
     List<DialogElement> GetConversationDialogs(string conversationId);
     void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements);
     void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
@@ -59,6 +59,7 @@ public interface IBotSharpRepository
     PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
     List<Conversation> GetLastConversations();
+    List<string> GetIdleConversations(int batchSize, int messageLimit);
     bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
     #endregion
     

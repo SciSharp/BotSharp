@@ -44,14 +44,17 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        public bool DeleteConversation(string conversationId)
+        public bool DeleteConversations(IEnumerable<string> conversationIds)
         {
-            if (string.IsNullOrEmpty(conversationId)) return false;
+            if (conversationIds.IsNullOrEmpty()) return false;
 
-            var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return false;
+            foreach (var conversationId in conversationIds)
+            {
+                var convDir = FindConversationDirectory(conversationId);
+                if (string.IsNullOrEmpty(convDir)) continue;
 
-            Directory.Delete(convDir, true);
+                Directory.Delete(convDir, true);
+            }
             return true;
         }
 
@@ -261,6 +264,29 @@ namespace BotSharp.Core.Repository
             return records.GroupBy(r => r.UserId)
                           .Select(g => g.OrderByDescending(x => x.CreatedTime).First())
                           .ToList();
+        }
+
+        public List<string> GetIdleConversations(int batchSize, int messageLimit)
+        {
+            var ids = new List<string>();
+            var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+            var count = 0;
+
+            foreach (var d in Directory.GetDirectories(dir))
+            {
+                var conversationId = d.Split(Path.DirectorySeparatorChar).Last(); ;
+                var dialogs = GetConversationDialogs(conversationId);
+                if (dialogs.Count <= messageLimit)
+                {
+                    ids.Add(conversationId);
+                    count++;
+                    if (count >= batchSize)
+                    {
+                        return ids;
+                    }
+                }
+            }
+            return ids;
         }
 
 

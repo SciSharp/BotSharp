@@ -23,10 +23,12 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 while (true)
                 {
                     stoppingToken.ThrowIfCancellationRequested();
-                    var delay = Task.Delay(TimeSpan.FromMinutes(1));
+                    var delay = Task.Delay(TimeSpan.FromSeconds(10));
                     try
                     {
-                        await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
+                        //await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
+                        await CleanIdleConversationsAsync();
+
                     }
                     catch (Exception ex)
                     {
@@ -74,6 +76,18 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 {
                     _logger.LogError(ex, $"Error occurred closing conversation #{conversation.Id}.");
                 }
+            }
+        }
+
+        private async Task CleanIdleConversationsAsync(int batchSize = 50, int messageLimit = 2)
+        {
+            using var scope = _services.CreateScope();
+            var conversationService = scope.ServiceProvider.GetRequiredService<IConversationService>();
+            var conversationIds = await conversationService.GetIdleConversations(batchSize, messageLimit);
+
+            if (!conversationIds.IsNullOrEmpty())
+            {
+                await conversationService.DeleteConversations(conversationIds);
             }
         }
     }
