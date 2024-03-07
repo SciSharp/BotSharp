@@ -17,13 +17,13 @@ public class MessageConfig : TruncateMessageRequest
     /// <summary>
     /// The sampling temperature to use that controls the apparent creativity of generated completions.
     /// </summary>
-    public float Temperature { get; set; } = 0.5f;
+    public float Temperature { get; set; } = 0f;
 
     /// <summary>
     /// An alternative value to Temperature, called nucleus sampling, that causes
     /// the model to consider the results of the tokens with probability mass.
     /// </summary>
-    public float SamplingFactor { get; set; } = 0.5f;
+    public float SamplingFactor { get; set; } = 0f;
 
     /// <summary>
     /// Conversation states from input

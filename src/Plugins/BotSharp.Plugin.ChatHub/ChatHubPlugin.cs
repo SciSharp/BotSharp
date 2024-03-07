@@ -19,8 +19,9 @@ public class ChatHubPlugin : IBotSharpPlugin
     {
         // Register hooks
         services.AddScoped<IConversationHook, ChatHubConversationHook>();
-        services.AddScoped<IContentGeneratingHook, StreamingLogHook>();
         services.AddScoped<IConversationHook, StreamingLogHook>();
+        services.AddScoped<IConversationHook, WelcomeHook>();
         services.AddScoped<IRoutingHook, StreamingLogHook>();
+        services.AddScoped<IContentGeneratingHook, StreamingLogHook>();
     }
 }

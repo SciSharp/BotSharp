@@ -254,8 +254,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         // https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api-a-few-tips-and-tricks-on-controlling-the-creativity-deterministic-output-of-prompt-responses/172683
         var state = _services.GetRequiredService<IConversationStateService>();
-        var temperature = float.Parse(state.GetState("temperature", "0.5"));
-        var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.5"));
+        var temperature = float.Parse(state.GetState("temperature", "0.0"));
+        var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.0"));
         chatCompletionsOptions.Temperature = temperature;
         chatCompletionsOptions.NucleusSamplingFactor = samplingFactor;
         // chatCompletionsOptions.FrequencyPenalty = 0;

@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Functions.Models;
-
 namespace BotSharp.Abstraction.Conversations;
 
 public abstract class ConversationHookBase : IConversationHook

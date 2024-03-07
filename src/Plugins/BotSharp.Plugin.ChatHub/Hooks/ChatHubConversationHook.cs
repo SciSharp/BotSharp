@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.JsonConverters;
-using BotSharp.Abstraction.Messaging.Models.RichContent;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -29,42 +27,6 @@ public class ChatHubConversationHook : ConversationHookBase
                 new TemplateMessageJsonConverter(),
             }
         };
-    }
-
-    public override async Task OnUserAgentConnectedInitially(Conversation conversation)
-    {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(conversation.AgentId);
-
-        // Check if the Welcome template exists.
-        var welcomeTemplate = agent.Templates?.FirstOrDefault(x => x.Name == ".welcome");
-        if (welcomeTemplate != null)
-        {
-            var richContentService = _services.GetRequiredService<IRichContentService>();
-            var messages = richContentService.ConvertToMessages(welcomeTemplate.Content);
-
-            foreach (var message in messages)
-            {
-                var json = JsonSerializer.Serialize(new ChatResponseModel()
-                {
-                    ConversationId = conversation.Id,
-                    Text = message.Text,
-                    RichContent = new RichContent<IRichMessage>(message),
-                    Sender = new UserViewModel()
-                    {
-                        FirstName = "AI",
-                        LastName = "Assistant",
-                        Role = AgentRole.Assistant
-                    }
-                }, _serializerOptions);
-
-                await Task.Delay(300);
-
-                await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
-            }
-        }
-
-        await base.OnUserAgentConnectedInitially(conversation);
     }
 
     public override async Task OnConversationInitialized(Conversation conversation)

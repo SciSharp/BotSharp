@@ -233,7 +233,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
-    public async Task OnRoutingInstructionRevised(FunctionCallFromLlm instruct, RoleDialogModel message)
+    public async Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
@@ -245,6 +245,22 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Name = agent?.Name,
             AgentId = agent?.Id,
             Source = ContentLogSource.AgentResponse,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    public async Task OnRoutingInstructionRevised(FunctionCallFromLlm instruct, RoleDialogModel message)
+    {
+        var conversationId = _state.GetConversationId();
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
+        var log = $"Revised user goal agent to: {agent?.Name}";
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent?.Name,
+            AgentId = agent?.Id,
+            Source = ContentLogSource.HardRule,
             Log = log
         };
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));

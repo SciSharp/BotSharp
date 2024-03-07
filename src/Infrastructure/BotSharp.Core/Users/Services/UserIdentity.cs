@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -17,12 +18,14 @@ public class UserIdentity : IUserIdentity
     public string Id
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value!;
 
+    [JsonPropertyName("user_name")]
     public string UserName
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value!;
 
     public string Email
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value!;
 
+    [JsonPropertyName("first_name")]
     public string FirstName
     {
         get
@@ -36,9 +39,21 @@ public class UserIdentity : IUserIdentity
         }
     }
 
+    [JsonPropertyName("last_name")]
     public string LastName 
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value!;
 
+    [JsonPropertyName("full_name")]
     public string FullName
-        => $"{FirstName} {LastName}".Trim();
+    {
+        get
+        {
+            var fullName = _claims?.FirstOrDefault(x => x.Type == "full_name")?.Value;
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                return fullName;
+            }
+            return $"{FirstName} {LastName}".Trim();
+        }
+    }
 }
