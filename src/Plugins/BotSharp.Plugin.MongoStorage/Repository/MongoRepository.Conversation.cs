@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
-using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -274,13 +273,47 @@ public partial class MongoRepository
         }).ToList();
     }
 
-    public List<string> GetIdleConversations(int batchSize, int messageLimit)
+    public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
     {
-        return _dc.ConversationDialogs.AsQueryable()
-                                      .Where(x => x.Dialogs != null && x.Dialogs.Count <= messageLimit)
-                                      .Take(batchSize)
-                                      .Select(x => x.ConversationId)
-                                      .ToList();
+        var page = 1;
+        var batchLimit = 50;
+        var conversationIds = new List<string>();
+
+        if (batchSize <= 0 || batchSize > batchLimit)
+        {
+            batchSize = batchLimit;
+        }
+
+        while (true)
+        {
+            var skip = (page - 1) * batchSize;
+            var candidates = _dc.Conversations.AsQueryable()
+                                              .Where(x => x.CreatedTime <= DateTime.UtcNow.AddHours(-bufferHours))
+                                              .Skip(skip)
+                                              .Take(batchSize)
+                                              .Select(x => x.Id)
+                                              .ToList();
+
+            if (candidates.IsNullOrEmpty())
+            {
+                break;
+            }
+
+            var targets = _dc.ConversationDialogs.AsQueryable()
+                                                 .Where(x => candidates.Contains(x.ConversationId) && x.Dialogs != null && x.Dialogs.Count <= messageLimit)
+                                                 .Select(x => x.ConversationId)
+                                                 .ToList();
+
+            conversationIds = conversationIds.Concat(targets).ToList();
+            if (conversationIds.Count >= batchSize)
+            {
+                break;
+            }
+
+            page++;
+        }
+
+        return conversationIds.Take(batchSize).ToList();
     }
 
     public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)

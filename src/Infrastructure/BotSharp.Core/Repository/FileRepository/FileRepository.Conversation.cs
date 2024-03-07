@@ -266,21 +266,37 @@ namespace BotSharp.Core.Repository
                           .ToList();
         }
 
-        public List<string> GetIdleConversations(int batchSize, int messageLimit)
+        public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
         {
             var ids = new List<string>();
+            var batchLimit = 50;
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
-            var count = 0;
+
+            if (batchSize <= 0 || batchSize > batchLimit)
+            {
+                batchSize = batchLimit;
+            }
 
             foreach (var d in Directory.GetDirectories(dir))
             {
-                var conversationId = d.Split(Path.DirectorySeparatorChar).Last(); ;
-                var dialogs = GetConversationDialogs(conversationId);
+                var convFile = Path.Combine(d, CONVERSATION_FILE);
+                if (!File.Exists(convFile))
+                {
+                    continue;
+                }
+
+                var json = File.ReadAllText(convFile);
+                var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+                if (conv == null || conv.CreatedTime > DateTime.UtcNow.AddHours(-bufferHours))
+                {
+                    continue;
+                }
+
+                var dialogs = GetConversationDialogs(conv.Id);
                 if (dialogs.Count <= messageLimit)
                 {
-                    ids.Add(conversationId);
-                    count++;
-                    if (count >= batchSize)
+                    ids.Add(conv.Id);
+                    if (ids.Count >= batchSize)
                     {
                         return ids;
                     }

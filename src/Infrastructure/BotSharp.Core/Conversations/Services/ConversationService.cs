@@ -63,10 +63,10 @@ public partial class ConversationService : IConversationService
         return db.GetLastConversations();
     }
 
-    public async Task<List<string>> GetIdleConversations(int batchSize, int messageLimit)
+    public async Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetIdleConversations(batchSize, messageLimit);
+        return db.GetIdleConversations(batchSize, messageLimit, bufferHours);
     }
 
     public async Task<Conversation> NewConversation(Conversation sess)
