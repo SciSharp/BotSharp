@@ -44,14 +44,17 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        public bool DeleteConversation(string conversationId)
+        public bool DeleteConversations(IEnumerable<string> conversationIds)
         {
-            if (string.IsNullOrEmpty(conversationId)) return false;
+            if (conversationIds.IsNullOrEmpty()) return false;
 
-            var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return false;
+            foreach (var conversationId in conversationIds)
+            {
+                var convDir = FindConversationDirectory(conversationId);
+                if (string.IsNullOrEmpty(convDir)) continue;
 
-            Directory.Delete(convDir, true);
+                Directory.Delete(convDir, true);
+            }
             return true;
         }
 
@@ -261,6 +264,46 @@ namespace BotSharp.Core.Repository
             return records.GroupBy(r => r.UserId)
                           .Select(g => g.OrderByDescending(x => x.CreatedTime).First())
                           .ToList();
+        }
+
+        public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
+        {
+            var ids = new List<string>();
+            var batchLimit = 50;
+            var utcNow = DateTime.UtcNow;
+            var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+
+            if (batchSize <= 0 || batchSize > batchLimit)
+            {
+                batchSize = batchLimit;
+            }
+
+            foreach (var d in Directory.GetDirectories(dir))
+            {
+                var convFile = Path.Combine(d, CONVERSATION_FILE);
+                if (!File.Exists(convFile))
+                {
+                    continue;
+                }
+
+                var json = File.ReadAllText(convFile);
+                var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+                if (conv == null || conv.CreatedTime > utcNow.AddHours(-bufferHours))
+                {
+                    continue;
+                }
+
+                var dialogs = GetConversationDialogs(conv.Id);
+                if (dialogs.Count <= messageLimit)
+                {
+                    ids.Add(conv.Id);
+                    if (ids.Count >= batchSize)
+                    {
+                        return ids;
+                    }
+                }
+            }
+            return ids;
         }
 
 

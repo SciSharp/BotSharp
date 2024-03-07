@@ -29,10 +29,10 @@ public partial class ConversationService : IConversationService
         _logger = logger;
     }
 
-    public async Task<bool> DeleteConversation(string id)
+    public async Task<bool> DeleteConversations(IEnumerable<string> ids)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var isDeleted = db.DeleteConversation(id);
+        var isDeleted = db.DeleteConversations(ids);
         return await Task.FromResult(isDeleted);
     }
 
@@ -61,6 +61,12 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         return db.GetLastConversations();
+    }
+
+    public async Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.GetIdleConversations(batchSize, messageLimit, bufferHours);
     }
 
     public async Task<Conversation> NewConversation(Conversation sess)

@@ -137,7 +137,7 @@ public class ConversationController : ControllerBase
     public async Task<bool> DeleteConversation([FromRoute] string conversationId)
     {
         var conversationService = _services.GetRequiredService<IConversationService>();
-        var response = await conversationService.DeleteConversation(conversationId);
+        var response = await conversationService.DeleteConversations(new List<string> { conversationId });
         return response;
     }
 

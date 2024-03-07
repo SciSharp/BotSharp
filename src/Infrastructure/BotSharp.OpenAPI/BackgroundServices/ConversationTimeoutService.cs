@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Conversations.Models;
 using Microsoft.Extensions.Hosting;
 
 namespace BotSharp.OpenAPI.BackgroundServices
@@ -23,10 +21,12 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 while (true)
                 {
                     stoppingToken.ThrowIfCancellationRequested();
-                    var delay = Task.Delay(TimeSpan.FromMinutes(1));
+                    var delay = Task.Delay(TimeSpan.FromHours(1));
                     try
                     {
                         await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
+                        await CleanIdleConversationsAsync();
+
                     }
                     catch (Exception ex)
                     {
@@ -74,6 +74,23 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 {
                     _logger.LogError(ex, $"Error occurred closing conversation #{conversation.Id}.");
                 }
+            }
+        }
+
+        private async Task CleanIdleConversationsAsync()
+        {
+            using var scope = _services.CreateScope();
+            var settings = scope.ServiceProvider.GetRequiredService<ConversationSetting>();
+            var cleanSetting = settings.CleanSetting;
+
+            if (cleanSetting == null || !cleanSetting.Enable) return;
+
+            var conversationService = scope.ServiceProvider.GetRequiredService<IConversationService>();
+            var conversationIds = await conversationService.GetIdleConversations(cleanSetting.BatchSize, cleanSetting.MessageLimit, cleanSetting.BufferHours);
+
+            if (!conversationIds.IsNullOrEmpty())
+            {
+                await conversationService.DeleteConversations(conversationIds);
             }
         }
     }

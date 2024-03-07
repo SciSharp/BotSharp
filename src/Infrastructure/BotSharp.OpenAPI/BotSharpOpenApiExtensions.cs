@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.JsonWebTokens;
+using BotSharp.OpenAPI.BackgroundServices;
 
 namespace BotSharp.OpenAPI;
 
@@ -29,6 +30,7 @@ public static class BotSharpOpenApiExtensions
         bool enableValidation)
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
+        services.AddHostedService<ConversationTimeoutService>();
 
         // Add bearer authentication
         var schema = "MIXED_SCHEME";

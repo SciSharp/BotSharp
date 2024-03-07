@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
-using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -55,17 +54,17 @@ public partial class MongoRepository
         _dc.ConversationStates.InsertOne(stateDoc);
     }
 
-    public bool DeleteConversation(string conversationId)
+    public bool DeleteConversations(IEnumerable<string> conversationIds)
     {
-        if (string.IsNullOrEmpty(conversationId)) return false;
+        if (conversationIds.IsNullOrEmpty()) return false;
 
-        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
-        var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var filterSates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var filterExeLog = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var filterContentLog = Builders<ConversationContentLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var filterStateLog = Builders<ConversationStateLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var filterConv = Builders<ConversationDocument>.Filter.In(x => x.Id, conversationIds);
+        var filterDialog = Builders<ConversationDialogDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        var filterSates = Builders<ConversationStateDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        var filterExeLog = Builders<ExecutionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        var filterContentLog = Builders<ConversationContentLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        var filterStateLog = Builders<ConversationStateLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
 
         var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
@@ -272,6 +271,51 @@ public partial class MongoRepository
             CreatedTime = c.CreatedTime,
             UpdatedTime = c.UpdatedTime
         }).ToList();
+    }
+
+    public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
+    {
+        var page = 1;
+        var pageLimit = 10;
+        var batchLimit = 50;
+        var utcNow = DateTime.UtcNow;
+        var conversationIds = new List<string>();
+
+        if (batchSize <= 0 || batchSize > batchLimit)
+        {
+            batchSize = batchLimit;
+        }
+
+        while (true && page < pageLimit)
+        {
+            var skip = (page - 1) * batchSize;
+            var candidates = _dc.Conversations.AsQueryable()
+                                              .Where(x => x.CreatedTime <= utcNow.AddHours(-bufferHours))
+                                              .Skip(skip)
+                                              .Take(batchSize)
+                                              .Select(x => x.Id)
+                                              .ToList();
+
+            if (candidates.IsNullOrEmpty())
+            {
+                break;
+            }
+
+            var targets = _dc.ConversationDialogs.AsQueryable()
+                                                 .Where(x => candidates.Contains(x.ConversationId) && x.Dialogs != null && x.Dialogs.Count <= messageLimit)
+                                                 .Select(x => x.ConversationId)
+                                                 .ToList();
+
+            conversationIds = conversationIds.Concat(targets).ToList();
+            if (conversationIds.Count >= batchSize)
+            {
+                break;
+            }
+
+            page++;
+        }
+
+        return conversationIds.Take(batchSize).ToList();
     }
 
     public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)

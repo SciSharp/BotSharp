@@ -1,8 +1,5 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
@@ -164,7 +161,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     }
 
-    public bool DeleteConversation(string conversationId)
+    public bool DeleteConversations(IEnumerable<string> conversationIds)
     {
         throw new NotImplementedException();
     }
@@ -180,6 +177,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     }
 
     public List<Conversation> GetLastConversations()
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
     {
         throw new NotImplementedException();
     }
