@@ -277,6 +277,7 @@ public partial class MongoRepository
     {
         var page = 1;
         var batchLimit = 50;
+        var utcNow = DateTime.UtcNow;
         var conversationIds = new List<string>();
 
         if (batchSize <= 0 || batchSize > batchLimit)
@@ -288,7 +289,7 @@ public partial class MongoRepository
         {
             var skip = (page - 1) * batchSize;
             var candidates = _dc.Conversations.AsQueryable()
-                                              .Where(x => x.CreatedTime <= DateTime.UtcNow.AddHours(-bufferHours))
+                                              .Where(x => x.CreatedTime <= utcNow.AddHours(-bufferHours))
                                               .Skip(skip)
                                               .Take(batchSize)
                                               .Select(x => x.Id)

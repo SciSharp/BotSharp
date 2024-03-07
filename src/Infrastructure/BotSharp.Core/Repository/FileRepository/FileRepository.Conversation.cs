@@ -270,6 +270,7 @@ namespace BotSharp.Core.Repository
         {
             var ids = new List<string>();
             var batchLimit = 50;
+            var utcNow = DateTime.UtcNow;
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
 
             if (batchSize <= 0 || batchSize > batchLimit)
@@ -287,7 +288,7 @@ namespace BotSharp.Core.Repository
 
                 var json = File.ReadAllText(convFile);
                 var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-                if (conv == null || conv.CreatedTime > DateTime.UtcNow.AddHours(-bufferHours))
+                if (conv == null || conv.CreatedTime > utcNow.AddHours(-bufferHours))
                 {
                     continue;
                 }
