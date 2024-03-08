@@ -24,9 +24,8 @@ namespace BotSharp.OpenAPI.BackgroundServices
                     var delay = Task.Delay(TimeSpan.FromHours(1));
                     try
                     {
-                        await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
                         await CleanIdleConversationsAsync();
-
+                        await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
                     }
                     catch (Exception ex)
                     {

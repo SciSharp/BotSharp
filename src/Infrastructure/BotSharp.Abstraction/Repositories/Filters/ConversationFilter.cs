@@ -16,4 +16,15 @@ public class ConversationFilter
     /// Agent task id
     /// </summary>
     public string? TaskId { get; set; }
+
+    /// <summary>
+    /// Check whether each key in the list is in the conversation states and its value equals to target value if not empty 
+    /// </summary>
+    public IEnumerable<KeyValue> States { get; set; } = new List<KeyValue>();
+}
+
+public class KeyValue
+{
+    public string Key { get; set; }
+    public string? Value { get; set; }
 }
