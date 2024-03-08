@@ -51,9 +51,7 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 .OrderBy(x => x.Priority)
                 .ToList();
             var moment = DateTime.UtcNow.Add(-conversationIdleTimeout);
-            var conversations =
-                (await conversationService.GetLastConversations())
-                .Where(c => c.CreatedTime <= moment);
+            var conversations = (await conversationService.GetLastConversations()).Where(c => c.CreatedTime <= moment);
             foreach (var conversation in conversations)
             {
                 try
