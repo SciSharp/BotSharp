@@ -1,10 +1,10 @@
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> ScrollPageAsync(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> ScrollPageAsync(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
         await _instance.Wait(actionParams.ConversationId);
 
         var page = _instance.GetPage(actionParams.ConversationId);
@@ -18,6 +18,7 @@ public partial class PlaywrightWebDriver
         else if (actionParams.Context.Direction == "right")
             await page.EvaluateAsync("window.scrollBy(400, 0)");
 
-        return true;
+        result.IsSuccess = true;
+        return result;
     }
 }

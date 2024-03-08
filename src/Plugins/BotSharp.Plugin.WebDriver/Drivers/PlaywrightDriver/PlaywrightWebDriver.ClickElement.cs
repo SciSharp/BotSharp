@@ -1,12 +1,10 @@
-using Microsoft.Extensions.Logging;
-using System.Text.RegularExpressions;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> ClickElement(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> ClickElement(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
         await _instance.Wait(actionParams.ConversationId);
 
         var page = _instance.GetPage(actionParams.ConversationId);
@@ -44,7 +42,8 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            _logger.LogError($"Can't locate element by keyword {actionParams.Context.ElementText}");
+            result.ErrorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";
+            _logger.LogError(result.ErrorMessage);
         }
         else if (count == 1)
         {
@@ -54,19 +53,20 @@ public partial class PlaywrightWebDriver
             // Triggered ajax
             await _instance.Wait(actionParams.ConversationId);
 
-            return true;
+            result.IsSuccess = true;
         }
         else if (count > 1)
         {
-            _logger.LogWarning($"Multiple elements are found by keyword {actionParams.Context.ElementText}");
+            result.ErrorMessage = $"Multiple elements are found by keyword {actionParams.Context.ElementText}";
+            _logger.LogWarning(result.ErrorMessage);
             var all = await locator.AllAsync();
             foreach (var element in all)
             {
-                var content = await element.TextContentAsync();
+                var content = await element.InnerHTMLAsync();
                 _logger.LogWarning(content);
             }
         }
 
-        return false;
+        return result;
     }
 }

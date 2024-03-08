@@ -1,11 +1,10 @@
-using Microsoft.Extensions.Logging;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> InputUserText(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> InputUserText(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
         await _instance.Wait(actionParams.ConversationId);
 
         var page = _instance.GetPage(actionParams.ConversationId);
@@ -46,8 +45,7 @@ public partial class PlaywrightWebDriver
             locator = Locator(actionParams.ConversationId, htmlElementContextOut);
             count = await locator.CountAsync();
         }
-        
-        if (count == 1)
+        else if (count > 0)
         {
             try
             {
@@ -59,15 +57,17 @@ public partial class PlaywrightWebDriver
 
                 // Triggered ajax
                 await _instance.Wait(actionParams.ConversationId);
-                return true;
+                result.IsSuccess = true;
             }
             catch (Exception ex)
             {
+                result.ErrorMessage = ex.Message;
+                result.StackTrace = ex.StackTrace;
                 _logger.LogError(ex.Message);
             }
         }
 
-        return false;
+        return result;
     }
 
     private async Task<string> FilteredInputHtml(string conversationId)

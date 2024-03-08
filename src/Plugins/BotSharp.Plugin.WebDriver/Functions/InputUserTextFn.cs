@@ -29,9 +29,9 @@ public class InputUserTextFn : IFunctionCallback
             content += " and pressed Enter";
         }
 
-        message.Content = result ?
+        message.Content = result.IsSuccess ?
             content + " successfully" :
-            content + " failed";
+            content + $" failed. {result.ErrorMessage}";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

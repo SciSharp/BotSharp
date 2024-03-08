@@ -25,19 +25,19 @@ public class OpenBrowserFn : IFunctionCallback
         url = url.Replace("https://https://", "https://");
         var result = await _browser.LaunchBrowser(convService.ConversationId, url);
 
-        if (result)
+        if (result.IsSuccess)
         {
             message.Content = string.IsNullOrEmpty(url) ? $"Launch browser with blank page successfully." : $"Open website {url} successfully.";
         }
         else
         {
-            message.Content = "Launch browser failed.";
+            message.Content = $"Launch browser failed. {result.ErrorMessage}";
         }
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
 
-        return result;
+        return result.IsSuccess;
     }
 }

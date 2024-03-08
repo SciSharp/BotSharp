@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver : IWebBrowser

@@ -1,12 +1,10 @@
-using Microsoft.Extensions.Logging;
-using System.Text.RegularExpressions;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> CheckRadioButton(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> CheckRadioButton(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
         await _instance.Wait(actionParams.ConversationId);
 
         // Retrieve the page raw html and infer the element path
@@ -20,17 +18,20 @@ public partial class PlaywrightWebDriver
         var regex = new Regex(regexExpression, RegexOptions.IgnoreCase);
         var elements = _instance.GetPage(actionParams.ConversationId).GetByText(regex);
         var count = await elements.CountAsync();
-        
+
+        var errorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";
         if (count == 0)
         {
-            return false;
+            result.ErrorMessage = errorMessage;
+            return result;
         }
 
         var parentElement = elements.Locator("..");
         count = await parentElement.CountAsync();
         if (count == 0)
         {
-            return false;
+            result.ErrorMessage = errorMessage;
+            return result;
         }
 
         elements = parentElement.GetByText(new Regex($"{actionParams.Context.UpdateValue}", RegexOptions.IgnoreCase));
@@ -39,7 +40,8 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            return false;
+            result.ErrorMessage = errorMessage;
+            return result;
         }
 
         try
@@ -47,13 +49,15 @@ public partial class PlaywrightWebDriver
             // var label = await elements.GetAttributeAsync("for");
             await elements.SetCheckedAsync(true);
 
-            return true;
+            result.IsSuccess = true;
         }
         catch (Exception ex)
         {
+            result.ErrorMessage = ex.Message;
+            result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }
 
-        return false;
+        return result;
     }
 }

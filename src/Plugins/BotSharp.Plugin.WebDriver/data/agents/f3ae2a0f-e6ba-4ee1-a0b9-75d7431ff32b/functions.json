@@ -224,5 +224,23 @@
       },
       "required": [ "update_value", "element_text", "match_rule" ]
     }
+  },
+  {
+    "name": "send_http_request",
+    "description": "Send http request to remote server",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "page url start with https://"
+        },
+        "payload": {
+          "type": "string",
+          "description": "request body"
+        }
+      },
+      "required": [ "url", "payload" ]
+    }
   }
 ]

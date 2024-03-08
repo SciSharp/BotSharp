@@ -24,9 +24,9 @@ public class ClickElementFn : IFunctionCallback
         var result = await _browser.ClickElement(new BrowserActionParams(agent, args, convService.ConversationId,  message.MessageId));
 
         var content = $"Click element {args.MatchRule} text '{args.ElementText}'";
-        message.Content = result ? 
+        message.Content = result.IsSuccess ? 
             $"{content} successfully" : 
-            $"{content} failed";
+            $"{content} failed. {result.ErrorMessage}";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

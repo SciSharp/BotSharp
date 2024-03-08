@@ -1,12 +1,13 @@
-using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> ChangeCheckbox(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> ChangeCheckbox(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
+
         await _instance.Wait(actionParams.ConversationId);
 
         // Retrieve the page raw html and infer the element path
@@ -21,26 +22,30 @@ public partial class PlaywrightWebDriver
         var elements = _instance.GetPage(actionParams.ConversationId).GetByText(regex);
         var count = await elements.CountAsync();
 
+        var errorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";
         if (count == 0)
         {
-            return false;
+            result.ErrorMessage = errorMessage;
+            return result;
         }
         else if (count > 1)
         {
-            _logger.LogError($"Located multiple elements by {actionParams.Context.ElementText}");
+            result.ErrorMessage = $"Located multiple elements by {actionParams.Context.ElementText}";
+            _logger.LogError(result.ErrorMessage);
             var allElements = await elements.AllAsync();
             foreach (var element in allElements)
             {
 
             }
-            return false;
+            return result;
         }
 
         var parentElement = elements.Locator("..");
         count = await parentElement.CountAsync();
         if (count == 0)
         {
-            return false;
+            result.ErrorMessage = errorMessage;
+            return result;
         }
 
         var id = await elements.GetAttributeAsync("for");
@@ -56,12 +61,14 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            return false;
+            result.ErrorMessage = errorMessage;
+            return result;
         }
         else if (count > 1)
         {
-            _logger.LogError($"Located multiple elements by {actionParams.Context.ElementText}");
-            return false;
+            result.ErrorMessage = $"Located multiple elements by {actionParams.Context.ElementText}";
+            _logger.LogError(result.ErrorMessage);
+            return result;
         }
 
         try
@@ -76,13 +83,15 @@ public partial class PlaywrightWebDriver
                 await elements.ClickAsync();
             }
 
-            return true;
+            result.IsSuccess = true;
         }
         catch (Exception ex)
         {
+            result.ErrorMessage = ex.Message;
+            result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }
 
-        return false;
+        return result;
     }
 }

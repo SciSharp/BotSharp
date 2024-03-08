@@ -1,11 +1,10 @@
-using Microsoft.Extensions.Logging;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> ClickButton(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> ClickButton(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
         await _instance.Wait(actionParams.ConversationId);
 
         // Find by text exactly match
@@ -46,7 +45,9 @@ public partial class PlaywrightWebDriver
 
             if (elements == null)
             {
-                return false;
+                var errorMessage = $"Can't locate element by keyword {actionParams.Context.ElementName}";
+                result.ErrorMessage = errorMessage;
+                return result;
             }
         }
 
@@ -55,13 +56,15 @@ public partial class PlaywrightWebDriver
             await elements.ClickAsync();
             await _instance.Wait(actionParams.ConversationId);
 
-            return true;
+            result.IsSuccess = true;
         }
         catch (Exception ex) 
         {
+            result.ErrorMessage = ex.Message;
+            result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }
-        return false;
+        return result;
     }
 
     private async Task<string> FilteredButtonHtml(string conversationId)

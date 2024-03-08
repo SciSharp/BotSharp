@@ -1,11 +1,10 @@
-using Microsoft.Extensions.Logging;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> InputUserPassword(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> InputUserPassword(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
         await _instance.Wait(actionParams.ConversationId);
 
         // Retrieve the page raw html and infer the element path
@@ -17,20 +16,24 @@ public partial class PlaywrightWebDriver
 
         if (password == null)
         {
-            _logger.LogError($"Can't locate the password element by '{actionParams.Context.ElementName}'");
-            return false;
+            result.ErrorMessage = $"Can't locate the password element by '{actionParams.Context.ElementName}'";
+            _logger.LogError(result.ErrorMessage);
+            return result;
         }
 
         var config = _services.GetRequiredService<IConfiguration>();
         try
         {
             await password.FillAsync(actionParams.Context.Password);
-            return true;
+            result.IsSuccess = true;
         }
         catch (Exception ex)
         {
+            result.ErrorMessage = ex.Message;
+            result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }
-        return false;
+
+        return result;
     }
 }

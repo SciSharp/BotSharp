@@ -1,13 +1,13 @@
 namespace BotSharp.Plugin.WebDriver.Functions;
 
-public class ClickButtonFn : IFunctionCallback
+public class HttpRequestFn : IFunctionCallback
 {
-    public string Name => "click_button";
+    public string Name => "send_http_request";
 
     private readonly IServiceProvider _services;
     private readonly IWebBrowser _browser;
 
-    public ClickButtonFn(IServiceProvider services,
+    public HttpRequestFn(IServiceProvider services,
         IWebBrowser browser)
     {
         _services = services;
@@ -21,17 +21,11 @@ public class ClickButtonFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        var result = await _browser.ClickButton(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
+        var result = await _browser.SendHttpRequest(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
 
-        var content = $"Click button of '{args.ElementName}'";
         message.Content = result.IsSuccess ? 
-            $"{content} successfully" : 
-            $"{content} failed. {result.ErrorMessage}";
-
-        var webDriverService = _services.GetRequiredService<WebDriverService>();
-        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
-
-        message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
+            result.Body :
+            $"Http request failed. {result.ErrorMessage}";
 
         return true;
     }

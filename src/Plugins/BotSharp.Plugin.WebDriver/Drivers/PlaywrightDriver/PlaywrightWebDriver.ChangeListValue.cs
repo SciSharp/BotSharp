@@ -1,11 +1,10 @@
-using Microsoft.Extensions.Logging;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<bool> ChangeListValue(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> ChangeListValue(BrowserActionParams actionParams)
     {
+        var result = new BrowserActionResult();
         await _instance.Wait(actionParams.ConversationId);
 
         // Retrieve the page raw html and infer the element path
@@ -102,13 +101,16 @@ public partial class PlaywrightWebDriver
                     element.style.visibility = 'hidden';
                 }", control);
             }
-            return true;
+
+            result.IsSuccess = true;
         }
         catch (Exception ex)
         {
+            result.ErrorMessage = ex.Message;
+            result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }
 
-        return false;
+        return result;
     }
 }

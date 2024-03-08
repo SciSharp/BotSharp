@@ -27,12 +27,12 @@ public class GoToPageFn : IFunctionCallback
         url = url.Replace("https://https://", "https://");
 
         var result = await _browser.GoToPage(convService.ConversationId, url);
-        message.Content = result ? $"Page {url} is open." : $"Page {url} open failed.";
+        message.Content = result.IsSuccess ? $"Page {url} is open." : $"Page {url} open failed. {result.ErrorMessage}";
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await _browser.ScreenshotAsync(convService.ConversationId, path);
 
-        return result;
+        return result.IsSuccess;
     }
 }
