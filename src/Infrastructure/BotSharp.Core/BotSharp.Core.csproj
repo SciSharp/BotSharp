@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -131,14 +131,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspectInjector" Version="2.8.2" />
     <PackageReference Include="Aspects.Cache" Version="2.0.4" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
-    <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.2.1" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.3.0" />
     <PackageReference Include="Fluid.Core" Version="2.5.0" />
     <PackageReference Include="Nanoid" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\EntityFrameworkCore.BootKit\EntityFrameworkCore.BootKit\EntityFrameworkCore.BootKit.csproj" />
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 

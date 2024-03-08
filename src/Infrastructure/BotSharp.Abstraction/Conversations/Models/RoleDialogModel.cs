@@ -44,6 +44,10 @@ public class RoleDialogModel : ITrackableMessage
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object Data { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public string ImageUrl { get; set; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RichContent<IRichMessage>? RichContent { get; set; }
 

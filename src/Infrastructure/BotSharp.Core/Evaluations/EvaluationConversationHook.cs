@@ -15,7 +15,7 @@ public class EvaluationConversationHook : ConversationHookBase
 
     public override Task OnMessageReceived(RoleDialogModel message)
     {
-        if (_convSettings.EnableExecutionLog)
+        if (_conversation != null && _convSettings.EnableExecutionLog)
         {
             _logger.Append(_conversation.Id, $"[{DateTime.Now}] {message.Role}: {message.Content}");
         }
@@ -24,7 +24,7 @@ public class EvaluationConversationHook : ConversationHookBase
 
     public override Task OnFunctionExecuted(RoleDialogModel message)
     {
-        if (_convSettings.EnableExecutionLog)
+        if (_conversation != null && _convSettings.EnableExecutionLog)
         {
             _logger.Append(_conversation.Id, $"[{DateTime.Now}] {message.Role}: {message.FunctionName}({message.FunctionArgs}) => {message.Content}");
         } 
@@ -33,7 +33,7 @@ public class EvaluationConversationHook : ConversationHookBase
 
     public override Task OnResponseGenerated(RoleDialogModel message)
     {
-        if (_convSettings.EnableExecutionLog)
+        if (_conversation != null && _convSettings.EnableExecutionLog)
         {
             _logger.Append(_conversation.Id, $"[{DateTime.Now}] {message.Role}: {message.Content}");
         } 
@@ -42,7 +42,7 @@ public class EvaluationConversationHook : ConversationHookBase
 
     public override Task OnHumanInterventionNeeded(RoleDialogModel message)
     {
-        if (_convSettings.EnableExecutionLog)
+        if (_conversation != null && _convSettings.EnableExecutionLog)
         {
             _logger.Append(_conversation.Id, $"[{DateTime.Now}] {AgentRole.Function}: trigger_event({{\"event\": \"{message.FunctionName}\"}})");
         }
@@ -51,7 +51,7 @@ public class EvaluationConversationHook : ConversationHookBase
 
     public override Task OnConversationEnding(RoleDialogModel message)
     {
-        if (_convSettings.EnableExecutionLog)
+        if (_conversation != null && _convSettings.EnableExecutionLog)
         {
             _logger.Append(_conversation.Id, $"[{DateTime.Now}] {AgentRole.Function}: trigger_event({{\"event\": \"{message.FunctionName}\"}})");
         }

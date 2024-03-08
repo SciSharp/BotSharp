@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 
@@ -12,6 +11,13 @@ public class RepositoryPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        // In order to use EntityFramework.BootKit in other plugin
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<DatabaseSettings>("Database");
+        });
+
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();

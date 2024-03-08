@@ -240,11 +240,21 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == ChatRole.User)
             {
-                chatCompletionsOptions.Messages.Add(new ChatRequestUserMessage(message.Content)
+                var userMessage = new ChatRequestUserMessage(
+                    new ChatMessageTextContentItem(message.Content))
                 {
                     // To display Planner name in log
-                    Name = message.FunctionName
-                });
+                    Name = message.FunctionName,
+                };
+
+                if (!string.IsNullOrEmpty(message.ImageUrl))
+                {
+                    var uri = new Uri(message.ImageUrl);
+                    userMessage.MultimodalContentItems.Add(
+                        new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                }
+
+                chatCompletionsOptions.Messages.Add(userMessage);
             }
             else if (message.Role == ChatRole.Assistant)
             {
@@ -258,6 +268,7 @@ public class ChatCompletionProvider : IChatCompletion
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.0"));
         chatCompletionsOptions.Temperature = temperature;
         chatCompletionsOptions.NucleusSamplingFactor = samplingFactor;
+        chatCompletionsOptions.MaxTokens = int.Parse(state.GetState("max_tokens", "256"));
         // chatCompletionsOptions.FrequencyPenalty = 0;
         // chatCompletionsOptions.PresencePenalty = 0;
 
