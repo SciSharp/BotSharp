@@ -140,7 +140,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\EntityFrameworkCore.BootKit\EntityFrameworkCore.BootKit\EntityFrameworkCore.BootKit.csproj" />
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 
