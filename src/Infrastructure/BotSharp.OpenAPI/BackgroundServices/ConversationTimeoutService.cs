@@ -24,9 +24,8 @@ namespace BotSharp.OpenAPI.BackgroundServices
                     var delay = Task.Delay(TimeSpan.FromHours(1));
                     try
                     {
-                        await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
                         await CleanIdleConversationsAsync();
-
+                        await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
                     }
                     catch (Exception ex)
                     {
@@ -52,9 +51,7 @@ namespace BotSharp.OpenAPI.BackgroundServices
                 .OrderBy(x => x.Priority)
                 .ToList();
             var moment = DateTime.UtcNow.Add(-conversationIdleTimeout);
-            var conversations =
-                (await conversationService.GetLastConversations())
-                .Where(c => c.CreatedTime <= moment);
+            var conversations = (await conversationService.GetLastConversations()).Where(c => c.CreatedTime <= moment);
             foreach (var conversation in conversations)
             {
                 try

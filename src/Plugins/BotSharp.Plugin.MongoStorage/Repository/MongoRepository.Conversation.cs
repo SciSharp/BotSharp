@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -224,6 +225,35 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
         if (!string.IsNullOrEmpty(filter.TaskId)) filters.Add(builder.Eq(x => x.TaskId, filter.TaskId));
 
+        // Check states
+        if (!filter.States.IsNullOrEmpty())
+        {
+            var targetConvIds = new List<string>();
+
+            foreach (var pair in filter.States)
+            {
+                if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
+
+                var query = _dc.ConversationStates.AsQueryable();
+                var convIds = query.AsEnumerable().Where(x => 
+                {
+                    var foundState = x.States.FirstOrDefault(s => s.Key.IsEqualTo(pair.Key));
+                    if (foundState == null) return false;
+
+                    if (!string.IsNullOrWhiteSpace(pair.Value))
+                    {
+                        return pair.Value.IsEqualTo(foundState.Values.LastOrDefault()?.Data);
+                    }
+
+                    return true;
+                }).Select(x => x.ConversationId).ToList();
+
+                targetConvIds = targetConvIds.Concat(convIds).Distinct().ToList();
+            }
+
+            filters.Add(builder.In(x => x.Id, targetConvIds));
+        }
+
         var filterDef = builder.And(filters);
         var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
         var pager = filter?.Pager ?? new Pagination();
@@ -258,7 +288,7 @@ public partial class MongoRepository
     {
         var records = new List<Conversation>();
         var conversations = _dc.Conversations.Aggregate()
-                                             .Group(c => c.UserId, g => g.OrderByDescending(x => x.CreatedTime).First())
+                                             .Group(c => c.UserId, g => g.First(x => x.CreatedTime == g.Select(y => y.CreatedTime).Max()))
                                              .ToList();
         return conversations.Select(c => new Conversation()
         {
@@ -276,7 +306,6 @@ public partial class MongoRepository
     public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
     {
         var page = 1;
-        var pageLimit = 10;
         var batchLimit = 50;
         var utcNow = DateTime.UtcNow;
         var conversationIds = new List<string>();
@@ -286,11 +315,11 @@ public partial class MongoRepository
             batchSize = batchLimit;
         }
 
-        while (true && page < pageLimit)
+        while (true)
         {
             var skip = (page - 1) * batchSize;
             var candidates = _dc.Conversations.AsQueryable()
-                                              .Where(x => x.CreatedTime <= utcNow.AddHours(-bufferHours))
+                                              .Where(x => x.UpdatedTime <= utcNow.AddHours(-bufferHours))
                                               .Skip(skip)
                                               .Take(batchSize)
                                               .Select(x => x.Id)

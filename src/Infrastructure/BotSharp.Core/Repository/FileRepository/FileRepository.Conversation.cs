@@ -103,11 +103,23 @@ namespace BotSharp.Core.Repository
             var convDir = FindConversationDirectory(conversationId);
             if (!string.IsNullOrEmpty(convDir))
             {
-                var dialogDir = Path.Combine(convDir, DIALOG_FILE);
-                if (File.Exists(dialogDir))
+                var dialogFile = Path.Combine(convDir, DIALOG_FILE);
+                if (File.Exists(dialogFile))
                 {
                     var texts = ParseDialogElements(dialogs);
-                    File.AppendAllLines(dialogDir, texts);
+                    File.AppendAllLines(dialogFile, texts);
+                }
+
+                var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+                if (File.Exists(convFile))
+                {
+                    var json = File.ReadAllText(convFile);
+                    var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+                    if (conv != null)
+                    {
+                        conv.UpdatedTime = DateTime.UtcNow;
+                        File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+                    }
                 }
             }
         }
@@ -219,10 +231,10 @@ namespace BotSharp.Core.Repository
             var totalDirs = Directory.GetDirectories(dir);
             foreach (var d in totalDirs)
             {
-                var path = Path.Combine(d, CONVERSATION_FILE);
-                if (!File.Exists(path)) continue;
+                var convFile = Path.Combine(d, CONVERSATION_FILE);
+                if (!File.Exists(convFile)) continue;
 
-                var json = File.ReadAllText(path);
+                var json = File.ReadAllText(convFile);
                 var record = JsonSerializer.Deserialize<Conversation>(json, _options);
                 if (record == null) continue;
 
@@ -233,6 +245,30 @@ namespace BotSharp.Core.Repository
                 if (filter?.Channel != null) matched = matched && record.Channel == filter.Channel;
                 if (filter?.UserId != null) matched = matched && record.UserId == filter.UserId;
                 if (filter?.TaskId != null) matched = matched && record.TaskId == filter.TaskId;
+
+                // Check states
+                if (filter != null && !filter.States.IsNullOrEmpty())
+                {
+                    var stateFile = Path.Combine(d, STATE_FILE);
+                    var convStates = CollectConversationStates(stateFile);
+                    foreach (var pair in filter.States)
+                    {
+                        if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
+
+                        var foundState = convStates.FirstOrDefault(x => x.Key.IsEqualTo(pair.Key));
+                        if (foundState == null)
+                        {
+                            matched = false;
+                            break;
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(pair.Value))
+                        {
+                            var curValue = foundState.Values.LastOrDefault()?.Data;
+                            matched = matched && pair.Value.IsEqualTo(curValue);
+                        }
+                    }
+                }
 
                 if (!matched) continue;
                 records.Add(record);
@@ -288,7 +324,7 @@ namespace BotSharp.Core.Repository
 
                 var json = File.ReadAllText(convFile);
                 var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-                if (conv == null || conv.CreatedTime > utcNow.AddHours(-bufferHours))
+                if (conv == null || conv.UpdatedTime > utcNow.AddHours(-bufferHours))
                 {
                     continue;
                 }
