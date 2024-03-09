@@ -13,7 +13,7 @@ cd BotSharp
 dotnet run --project .\src\WebStarter\WebStarter.csproj -p SolutionName=PizzaBot
 
 # Use BotSharp to include all dependent projects with latest source code
-dotnet run --project .\src\WebStarter
+dotnet run --project .\src\WebStarter\WebStarter.csproj -p SolutionName=BotSharp
 ```
 
 Here you go, you will see this running screen.

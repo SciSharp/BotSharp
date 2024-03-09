@@ -36,7 +36,10 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 ```sh
  PS D:\> git clone https://github.com/dotnetcore/BotSharp
  PS D:\> cd BotSharp
- PS D:\BotSharp\> dotnet run -p .\src\WebStarter
+ # For Windows
+ PS D:\BotSharp\> dotnet run --project .\src\WebStarter\WebStarter.csproj -p SolutionName=BotSharp
+ # For Linux
+ $ dotnet run --project ./src/WebStarter/WebStarter.csproj -p SolutionName=BotSharp
 ```
 
 2. Run Admin UI project, reference to [BotSharp UI](https://github.com/SciSharp/BotSharp-UI).
