@@ -293,3 +293,4 @@ logs
 wwwroot
 appsettings.Production.json
 *.csproj.user
+env/
