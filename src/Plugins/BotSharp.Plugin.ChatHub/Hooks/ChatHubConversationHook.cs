@@ -96,4 +96,14 @@ public class ChatHubConversationHook : ConversationHookBase
 
         await base.OnResponseGenerated(message);
     }
+
+    public override async Task OnMessageDeleted(string conversationId, string messageId)
+    {
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageDeleted", new ChatResponseModel
+        {
+            ConversationId = conversationId,
+            MessageId = messageId
+        });
+        await base.OnMessageDeleted(conversationId, messageId);
+    }
 }

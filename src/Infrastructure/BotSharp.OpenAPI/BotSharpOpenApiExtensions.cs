@@ -30,7 +30,7 @@ public static class BotSharpOpenApiExtensions
         bool enableValidation)
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
-        services.AddHostedService<ConversationTimeoutService>();
+        //services.AddHostedService<ConversationTimeoutService>();
 
         // Add bearer authentication
         var schema = "MIXED_SCHEME";

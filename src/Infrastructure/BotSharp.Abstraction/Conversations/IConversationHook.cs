@@ -84,4 +84,12 @@ public interface IConversationHook
     /// <param name="conversation"></param>
     /// <returns></returns>
     Task OnHumanInterventionNeeded(RoleDialogModel message);
+
+    /// <summary>
+    /// Delete message in a conversation
+    /// </summary>
+    /// <param name="conversationId"></param>
+    /// <param name="messageId"></param>
+    /// <returns></returns>
+    Task OnMessageDeleted(string conversationId, string messageId);
 }
