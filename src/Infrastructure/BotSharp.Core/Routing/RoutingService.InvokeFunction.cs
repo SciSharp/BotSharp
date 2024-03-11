@@ -4,7 +4,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
+    public async Task<bool> InvokeFunction(string name, RoleDialogModel message, bool restoreOriginalFunctionName = true)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
         if (function == null)
@@ -56,7 +56,9 @@ public partial class RoutingService
         }
 
         // restore original function name
-        if (!message.StopCompletion && message.FunctionName != originalFunctionName)
+        if (!message.StopCompletion && 
+            message.FunctionName != originalFunctionName &&
+            restoreOriginalFunctionName)
         {
             message.FunctionName = originalFunctionName;
         }
