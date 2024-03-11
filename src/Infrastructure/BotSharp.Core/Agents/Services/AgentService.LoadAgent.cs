@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Agents.Services;

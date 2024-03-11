@@ -133,11 +133,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
                 log += $"\r\n```json\r\n{richContent}\r\n```";
             }
 
-            if (!string.IsNullOrEmpty(message.FunctionName))
-            {
-                log += $"\r\n\r\n**{message.FunctionName}**";
-            }
-
             var input = new ContentLogInputModel(conv.ConversationId, message)
             {
                 Name = agent?.Name,
