@@ -131,7 +131,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspectInjector" Version="2.8.2" />
     <PackageReference Include="Aspects.Cache" Version="2.0.4" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.3.0" />
