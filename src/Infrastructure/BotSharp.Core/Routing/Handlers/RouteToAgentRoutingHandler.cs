@@ -47,10 +47,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         if (!string.IsNullOrEmpty(goalAgent))
         {
             inst.OriginalAgent = goalAgent;
+            // Emit hook
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+                await hook.OnRoutingInstructionRevised(inst, message)
+            );
         }
-        await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-            await hook.OnRoutingInstructionRevised(inst, message)
-        );
 
         var agentId = routing.Context.GetCurrentAgentId();
 
