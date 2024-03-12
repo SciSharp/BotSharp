@@ -8,6 +8,11 @@ public partial class ConversationService : IConversationService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var isSaved = db.TruncateConversation(conversationId, messageId, true);
+        var hooks = _services.GetServices<IConversationHook>().ToList();
+        foreach (var hook in hooks)
+        {
+            await hook.OnMessageDeleted(conversationId, messageId);
+        }
         return await Task.FromResult(isSaved);
     }
 }

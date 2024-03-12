@@ -306,7 +306,7 @@ public partial class MongoRepository
     public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
     {
         var page = 1;
-        var batchLimit = 50;
+        var batchLimit = 100;
         var utcNow = DateTime.UtcNow;
         var conversationIds = new List<string>();
 
