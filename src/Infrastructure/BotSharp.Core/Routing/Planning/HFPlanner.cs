@@ -1,8 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Templating;
 
@@ -93,6 +88,12 @@ public class HFPlanner : IPlaner
     {
         var template = router.Templates.First(x => x.Name == "planner_prompt.hf").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
+        // update states
+        var conv = _services.GetRequiredService<IConversationService>();
+        foreach (var t in conv.States.GetStates())
+        {
+            router.TemplateDict[t.Key] = t.Value;
+        }
         var prompt = render.Render(template, router.TemplateDict);
         return prompt.Trim();
     }
