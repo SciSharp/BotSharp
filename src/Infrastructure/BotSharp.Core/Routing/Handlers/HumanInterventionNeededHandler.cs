@@ -12,7 +12,7 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
     {
         new ParameterPropertyDef("reason", "why need customer service"),
         new ParameterPropertyDef("summary", "the whole conversation summary with important information"),
-        new ParameterPropertyDef("response", "response content to user")
+        new ParameterPropertyDef("response", "tell the user that you are being transferred to customer service")
     };
 
     public HumanInterventionNeededHandler(IServiceProvider services, ILogger<HumanInterventionNeededHandler> logger, RoutingSettings settings)
@@ -23,13 +23,9 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        var response = new RoleDialogModel(AgentRole.Assistant, inst.Response)
-        {
-            CurrentAgentId = message.CurrentAgentId,
-            MessageId = message.MessageId,
-            StopCompletion = true,
-            FunctionName = inst.Function
-        };
+        var response = RoleDialogModel.From(message, 
+            role: AgentRole.Assistant, 
+            content: inst.Response);
 
         _dialogs.Add(response);
 

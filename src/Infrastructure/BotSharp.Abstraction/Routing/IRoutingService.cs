@@ -31,7 +31,7 @@ public interface IRoutingService
     List<RoutingHandlerDef> GetHandlers(Agent router);
     void ResetRecursiveCounter();
     Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs);
-    Task<bool> InvokeFunction(string name, RoleDialogModel message);
+    Task<bool> InvokeFunction(string name, RoleDialogModel message, bool restoreOriginalFunctionName = true);
     Task<RoleDialogModel> InstructLoop(RoleDialogModel message);
 
     /// <summary>

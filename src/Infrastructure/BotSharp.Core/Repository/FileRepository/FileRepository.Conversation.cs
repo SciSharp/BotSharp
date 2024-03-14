@@ -305,7 +305,7 @@ namespace BotSharp.Core.Repository
         public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
         {
             var ids = new List<string>();
-            var batchLimit = 50;
+            var batchLimit = 100;
             var utcNow = DateTime.UtcNow;
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
 

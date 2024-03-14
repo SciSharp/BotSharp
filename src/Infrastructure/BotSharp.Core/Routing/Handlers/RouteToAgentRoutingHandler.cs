@@ -44,13 +44,14 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var goalAgent = states.GetState("user_goal_agent");
-        if (!string.IsNullOrEmpty(goalAgent))
+        if (!string.IsNullOrEmpty(goalAgent) && inst.OriginalAgent != goalAgent)
         {
             inst.OriginalAgent = goalAgent;
+            // Emit hook
+            await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
+                await hook.OnRoutingInstructionRevised(inst, message)
+            );
         }
-        await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
-            await hook.OnRoutingInstructionRevised(inst, message)
-        );
 
         var agentId = routing.Context.GetCurrentAgentId();
 

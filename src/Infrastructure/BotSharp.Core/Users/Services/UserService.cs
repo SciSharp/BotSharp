@@ -54,6 +54,7 @@ public class UserService : IUserService
 
         db.CreateUser(record);
 
+        _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}");
         Utilities.ClearCache();
 
         return record;

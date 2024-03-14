@@ -67,4 +67,7 @@ public abstract class ConversationHookBase : IConversationHook
 
     public virtual Task OnUserAgentConnectedInitially(Conversation conversation)
         => Task.CompletedTask;
+
+    public virtual Task OnMessageDeleted(string conversationId, string messageId)
+        => Task.CompletedTask;
 }
