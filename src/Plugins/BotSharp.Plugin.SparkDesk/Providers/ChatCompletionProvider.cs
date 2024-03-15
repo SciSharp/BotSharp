@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Routing;
+using Sdcb.SparkDesk.ResponseInternals;
 
 namespace BotSharp.Plugin.SparkDesk.Providers;
 
@@ -38,7 +39,7 @@ public class ChatCompletionProvider : IChatCompletion
         var client = new SparkDeskClient(appId: _settings.AppId, apiKey: _settings.ApiKey, apiSecret: _settings.ApiSecret); 
         var (prompt, messages, funcall) = PrepareOptions(agent, conversations);
         
-        var response = await client.ChatAsync(modelVersion:_settings.ModelVersion, messages,functions:funcall);
+        var response = await client.ChatAsync(modelVersion:_settings.ModelVersion, messages,functions: funcall.Length == 0 ? null : funcall);
 
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, response.Text)
         {
@@ -55,12 +56,7 @@ public class ChatCompletionProvider : IChatCompletion
                 FunctionName = response.FunctionCall.Name,
                 FunctionArgs = response.FunctionCall.Arguments
             };
-
-            // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(responseMessage.FunctionName))
-            {
-                responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
-            }
+           
         }
 
         // After chat completion hook
@@ -94,7 +90,7 @@ public class ChatCompletionProvider : IChatCompletion
         var client = new SparkDeskClient(appId: _settings.AppId, apiKey: _settings.ApiKey, apiSecret: _settings.ApiSecret);
         var (prompt, messages, funcall) = PrepareOptions(agent, conversations);
 
-        var response = await client.ChatAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall);
+        var response = await client.ChatAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall.Length == 0 ?null: funcall);
 
         var msg = new RoleDialogModel(AgentRole.Assistant, response.Text)
         {
@@ -148,12 +144,10 @@ public class ChatCompletionProvider : IChatCompletion
         var client = new SparkDeskClient(appId: _settings.AppId, apiKey: _settings.ApiKey, apiSecret: _settings.ApiSecret);
         var (prompt, messages, funcall) = PrepareOptions(agent, conversations);
 
-        await foreach (StreamedChatResponse response in client.ChatAsStreamAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall))
+        await foreach (StreamedChatResponse response in client.ChatAsStreamAsync(modelVersion: _settings.ModelVersion, messages, functions: funcall.Length == 0 ? null : funcall))
         {
             if (response.FunctionCall !=null)
             {
-                //Console.Write(choice.FunctionArgumentsUpdate);
-
                 await onMessageReceived(new RoleDialogModel(AgentRole.Function, response.Text) 
                 { 
                     CurrentAgentId = agent.Id,
@@ -180,44 +174,79 @@ public class ChatCompletionProvider : IChatCompletion
 
     private (string, ChatMessage[], FunctionDef[]?) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var prompt = "";
         var functions = new List<FunctionDef>();
         var agentService = _services.GetRequiredService<IAgentService>();
+        var messages = new List<ChatMessage>();
 
         if (!string.IsNullOrEmpty(agent.Instruction))
         {
-            prompt += agentService.RenderedInstruction(agent);
+            var instruction = agentService.RenderedInstruction(agent);
+            messages.Add(ChatMessage.FromSystem(instruction));
         }
-
-        var routing = _services.GetRequiredService<IRoutingService>();
-        var router = routing.Router;
-
-        var messages = conversations.Select(c => new ChatMessage(c.Role == AgentRole.User ? "user" : "AI", c.Content))
-            .ToList();
-
-        if (agent.Functions != null && agent.Functions.Count > 0)
+        if (!string.IsNullOrEmpty(agent.Knowledges))
         {
-            foreach (var function in agent.Functions)
-            {
-                functions.Add(ConvertToFunctionDef(function));
-            }
-            prompt += "\r\n\r\n[Conversations]\r\n";
-            foreach (var dialog in conversations)
-            {
-                prompt += dialog.Role == AgentRole.Function ?
-                    $"{dialog.Role}: {dialog.FunctionName} => {dialog.Content}\r\n" :
-                    $"{dialog.Role}: {dialog.Content}\r\n";
-            }
-
-            prompt += "\r\n\r\n" + router.Templates.FirstOrDefault(x => x.Name == "response_with_function").Content;
-
-            return (prompt, new List<ChatMessage>
-            {
-                new ChatMessage("Which function should be used for the next step based on latest user or function response, output your response in JSON:", AgentRole.User),
-            }.ToArray(), functions.ToArray());
+            messages.Add(ChatMessage.FromSystem(agent.Knowledges));
+        }
+        var samples = ProviderHelper.GetChatSamples(agent.Samples);
+        foreach (var message in samples)
+        {
+            messages.Add(message.Role == AgentRole.User ?
+                ChatMessage.FromUser(message.Content) :
+                ChatMessage.FromAssistant(message.Content));
         }
 
-        return (prompt, messages.ToArray(), null);
+        foreach (var function in agent.Functions)
+        {
+            functions.Add(ConvertToFunctionDef(function));
+        }
+
+        foreach (var message in conversations)
+        {
+            if (message.Role == "function")
+            {
+                messages.Add(ChatMessage.FromUser($"function call result: {message.Content}"));
+            }
+            else if (message.Role == "user")
+            {
+                var userMessage = ChatMessage.FromUser(message.Content);
+
+                messages.Add(userMessage);
+            }
+            else if (message.Role == "assistant")
+            {
+                messages.Add(ChatMessage.FromAssistant(message.Content));
+            }
+        }
+
+        var prompt = GetPrompt(messages, functions);
+        return  (prompt, messages.ToArray(), functions.ToArray());       
+    }
+
+    private string GetPrompt(List<ChatMessage> messages,List<FunctionDef> functions)
+    {
+        var prompt = string.Empty;
+
+        if (messages.Count > 0)
+        {
+            // System instruction
+            var verbose = string.Join("\r\n", messages
+                .Where(x => x.Role == AgentRole.System)
+                .Select(x =>
+                {
+                    return $"{x.Role}: {x.Content}";
+                }));
+            prompt += $"{verbose}\r\n";
+
+            verbose = string.Join("\r\n", messages
+                .Where(x => x.Role != AgentRole.System).Select(x =>
+                {
+                        return  
+                            $"{x.Role}: {x.Content}";
+                    
+                }));
+            prompt += $"\r\n{verbose}\r\n";
+        }
+        return prompt;
     }
 
     private FunctionDef ConvertToFunctionDef(BotSharp.Abstraction.Functions.Models.FunctionDef def)
