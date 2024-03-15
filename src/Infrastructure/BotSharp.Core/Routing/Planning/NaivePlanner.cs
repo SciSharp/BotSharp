@@ -1,3 +1,4 @@
+using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -111,9 +112,11 @@ public class NaivePlanner : IPlaner
     {
         var template = router.Templates.First(x => x.Name == "planner_prompt.naive").Content;
 
+        var states = _services.GetRequiredService<IConversationStateService>();
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>
         {
+            { "next_action_agent",  states.GetState("next_action_agent")}
         });
     }
 
