@@ -116,7 +116,7 @@ public class NaivePlanner : IPlaner
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>
         {
-            { "next_action_agent",  states.GetState("next_action_agent")}
+            { "expected_next_action_agent",  states.GetState("expected_next_action_agent")}
         });
     }
 
