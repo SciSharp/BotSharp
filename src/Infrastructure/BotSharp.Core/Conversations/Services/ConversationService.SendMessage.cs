@@ -10,6 +10,7 @@ public partial class ConversationService
 {
     public async Task<bool> SendMessage(string agentId,
         RoleDialogModel message,
+        PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
@@ -51,7 +52,14 @@ public partial class ConversationService
             hook.SetAgent(agent)
                 .SetConversation(conversation);
 
-            await hook.OnMessageReceived(message);
+            if (replyMessage == null)
+            {
+                await hook.OnMessageReceived(message);
+            }
+            else
+            {
+                await hook.OnPostbackMessageReceived(message, replyMessage);
+            }
 
             // Interrupted by hook
             if (message.StopCompletion)

@@ -59,6 +59,22 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
+    public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
+    {
+        var conversationId = _state.GetConversationId();
+        var log = $"{message.Content}";
+        var replyContent = JsonSerializer.Serialize(replyMsg, _serializerOptions);
+        log += $"\r\n```json\r\n{replyContent}\r\n```";
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = _user.UserName,
+            Source = ContentLogSource.UserInput,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
     public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
     {
         if (!_convSettings.ShowVerboseLog) return;

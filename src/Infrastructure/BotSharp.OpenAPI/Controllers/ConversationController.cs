@@ -171,6 +171,7 @@ public class ConversationController : ControllerBase
         var response = new ChatResponseModel();
         
         await conv.SendMessage(agentId, inputMsg,
+            replyMessage: input.Postback,
             async msg =>
             {
                 response.Text = msg.Content;
@@ -179,14 +180,8 @@ public class ConversationController : ControllerBase
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
             },
-            async fnExecuting =>
-            {
-
-            },
-            async fnExecuted =>
-            {
-
-            });
+            _ => Task.CompletedTask,
+            _ => Task.CompletedTask);
 
         var state = _services.GetRequiredService<IConversationStateService>();
         response.States = state.GetStates();

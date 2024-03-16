@@ -46,6 +46,7 @@ public interface IConversationHook
     Task OnStateChanged(string name, string preValue, string currentValue);
 
     Task OnMessageReceived(RoleDialogModel message);
+    Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg);
 
     /// <summary>
     /// Triggered before LLM calls function.
