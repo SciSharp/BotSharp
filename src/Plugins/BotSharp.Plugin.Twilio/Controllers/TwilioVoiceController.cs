@@ -59,6 +59,7 @@ public class TwilioVoiceController : TwilioController
 
         var result = await conv.SendMessage(agentId,
             new RoleDialogModel(AgentRole.User, input.SpeechResult),
+            replyMessage: null,
             async msg =>
             {
                 response = twilio.ReturnInstructions(msg.Content);

@@ -10,11 +10,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("next_action_reason", "the reason why route to this agent") 
+        new ParameterPropertyDef("next_action_reason", "the reason why route to this agent, if user is replying last agent's question, you must route to this agent") 
         { 
             Required = true 
         },
-        new ParameterPropertyDef("next_action_agent", "agent for next action based on user latest response")
+        new ParameterPropertyDef("next_action_agent", "agent for next action based on user latest response, if user is replying last agent's question, you must route to this agent")
         {
             Required = true
         },

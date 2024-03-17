@@ -59,6 +59,9 @@ public abstract class ConversationHookBase : IConversationHook
     public virtual Task OnMessageReceived(RoleDialogModel message)
         => Task.CompletedTask;
 
+    public virtual Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
+        => Task.CompletedTask;
+
     public virtual Task OnResponseGenerated(RoleDialogModel message)
         => Task.CompletedTask;
 

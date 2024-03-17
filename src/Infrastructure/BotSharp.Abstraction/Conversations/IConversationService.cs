@@ -30,6 +30,7 @@ public interface IConversationService
     /// <returns></returns>
     Task<bool> SendMessage(string agentId,
         RoleDialogModel lastDalog, 
+        PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onResponseReceived, 
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted);

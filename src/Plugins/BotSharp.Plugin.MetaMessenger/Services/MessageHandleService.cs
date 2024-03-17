@@ -60,7 +60,9 @@ public class MessageHandleService
 
         var replies = new List<IRichMessage>();
         var result = await conv.SendMessage(agentId,
-            new RoleDialogModel(AgentRole.User, message), async msg =>
+            new RoleDialogModel(AgentRole.User, message),
+            replyMessage: null, 
+            async msg =>
             {
                 if (msg.RichContent != null)
                 {

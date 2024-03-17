@@ -80,13 +80,12 @@ public class ChatbotUiController : ControllerBase
                    .SetState("sampling_factor", input.SamplingFactor);
 
         var result = await conv.SendMessage(input.AgentId,
-            message, 
+            message,
+            replyMessage: null,
             async msg => 
                 await OnChunkReceived(outputStream, msg),
-            async fn 
-                => await Task.CompletedTask,
-            async fn
-                => await Task.CompletedTask);
+            _ => Task.CompletedTask,
+            _ => Task.CompletedTask);
 
         await OnEventCompleted(outputStream);
     }

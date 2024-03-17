@@ -97,9 +97,10 @@ public class EvaluatingService : IEvaluatingService
 
         await conv.SendMessage(agentId,
             new RoleDialogModel(AgentRole.User, text),
+            replyMessage: null,
             async msg => response = msg,
-            fnExecuting => Task.CompletedTask,
-            fnExecuted => Task.CompletedTask);
+            _ => Task.CompletedTask,
+            _ => Task.CompletedTask);
 
         return response;
     }
