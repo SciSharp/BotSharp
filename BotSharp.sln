@@ -81,7 +81,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.HttpHandler
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.SqlDriver", "src\Plugins\BotSharp.Plugin.SqlDriver\BotSharp.Plugin.SqlDriver.csproj", "{D775DB67-A4B4-44E5-9144-522689590057}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.Dashboard", "src\Plugins\BotSharp.Plugin.Dashboard\BotSharp.Plugin.Dashboard.csproj", "{267998C1-55C2-4ADC-8361-2CDFA5EA6D6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.Dashboard", "src\Plugins\BotSharp.Plugin.Dashboard\BotSharp.Plugin.Dashboard.csproj", "{267998C1-55C2-4ADC-8361-2CDFA5EA6D6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.SparkDesk", "src\Plugins\BotSharp.Plugin.SparkDesk\BotSharp.Plugin.SparkDesk.csproj", "{289E25C8-63F1-4D52-9909-207724DB40CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -323,6 +325,14 @@ Global
 		{267998C1-55C2-4ADC-8361-2CDFA5EA6D6C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{267998C1-55C2-4ADC-8361-2CDFA5EA6D6C}.Release|x64.ActiveCfg = Release|Any CPU
 		{267998C1-55C2-4ADC-8361-2CDFA5EA6D6C}.Release|x64.Build.0 = Release|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Debug|x64.Build.0 = Debug|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Release|x64.ActiveCfg = Release|Any CPU
+		{289E25C8-63F1-4D52-9909-207724DB40CB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -364,6 +374,7 @@ Global
 		{32D9E720-6FE6-4F29-94B1-B10B05BFAD75} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{D775DB67-A4B4-44E5-9144-522689590057} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{267998C1-55C2-4ADC-8361-2CDFA5EA6D6C} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
+		{289E25C8-63F1-4D52-9909-207724DB40CB} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}
