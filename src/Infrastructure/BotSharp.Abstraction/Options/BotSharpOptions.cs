@@ -10,12 +10,7 @@ public class BotSharpOptions
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         AllowTrailingCommas = true,
-        WriteIndented = true,
-        Converters =
-        {
-            new RichContentJsonConverter(),
-            new TemplateMessageJsonConverter()
-        }
+        WriteIndented = true
     };
 
     private JsonSerializerOptions _jsonSerializerOptions;

@@ -7,6 +7,7 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Messaging;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
+using BotSharp.Abstraction.Messaging.JsonConverters;
 
 namespace BotSharp.Core;
 
@@ -64,28 +65,14 @@ public static class BotSharpCoreExtensions
             configure(options);
         }
 
-        ValidateJsonConverters(options);
+        AddDefaultJsonConverters(options);
         services.AddSingleton(options);
     }
 
-    private static void ValidateJsonConverters(BotSharpOptions options)
+    private static void AddDefaultJsonConverters(BotSharpOptions options)
     {
-        var jsonConverters = options.JsonSerializerOptions.Converters;
-        if (jsonConverters != null)
-        {
-            // Remove the default rich message/template message converters if there are user-defined converters
-            if (jsonConverters.Count(x => x.Type?.Name == nameof(IRichMessage)) > 1)
-            {
-                var defaultRichMessageConverter = jsonConverters.First(x => x.Type?.Name == nameof(IRichMessage));
-                jsonConverters.Remove(defaultRichMessageConverter);
-            }
-
-            if (jsonConverters.Count(x => x.Type?.Name == nameof(ITemplateMessage)) > 1)
-            {
-                var defaultTemplateMessageConverter = jsonConverters.First(x => x.Type?.Name == nameof(ITemplateMessage));
-                jsonConverters.Remove(defaultTemplateMessageConverter);
-            }
-        }
+        options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
     }
 
     public static void RegisterPlugins(IServiceCollection services, IConfiguration config)
