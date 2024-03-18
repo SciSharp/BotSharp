@@ -15,6 +15,9 @@ public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("elements")]
     public List<T> Elements { get; set; } = new List<T>();
+
+    [JsonPropertyName("element_type")]
+    public string ElementType => typeof(T).Name;
 }
 
 public class GenericElement
