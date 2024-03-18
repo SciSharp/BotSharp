@@ -34,6 +34,7 @@ public class GetPizzaTypesFn : IFunctionCallback
             {
                 Id = states.GetConversationId()
             },
+            FillPostback = true,
             Message = new ButtonTemplateMessage
             {
                 Text = "Please select a pizza type",

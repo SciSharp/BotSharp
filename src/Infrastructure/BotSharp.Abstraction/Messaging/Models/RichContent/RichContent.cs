@@ -10,6 +10,12 @@ public class RichContent<T> where T : IRichMessage
     public string MessagingType => "RESPONSE";
     public T Message { get; set; }
 
+    /// <summary>
+    /// If true, UI component will populate the replyMessage when sending back user message.
+    /// </summary>
+    [JsonPropertyName("fill_postback")]
+    public bool FillPostback { get; set; }
+
     public RichContent()
     {
         
