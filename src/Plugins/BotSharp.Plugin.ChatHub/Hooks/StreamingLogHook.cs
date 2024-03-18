@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Loggers.Enums;
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using Microsoft.AspNetCore.SignalR;
@@ -12,7 +13,7 @@ namespace BotSharp.Plugin.ChatHub.Hooks;
 public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IRoutingHook
 {
     private readonly ConversationSetting _convSettings;
-    private readonly JsonSerializerOptions _serializerOptions;
+    private readonly BotSharpOptions _options;
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IConversationStateService _state;
@@ -22,6 +23,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
     public StreamingLogHook(
         ConversationSetting convSettings,
+        BotSharpOptions options,
         IServiceProvider serivces,
         IHubContext<SignalRHub> chatHub,
         IConversationStateService state,
@@ -30,19 +32,13 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         IRoutingContext routingCtx)
     {
         _convSettings = convSettings;
+        _options = options;
         _services = serivces;
         _chatHub = chatHub;
         _state = state;
         _user = user;
         _agentService = agentService;
         _routingCtx = routingCtx;
-        _serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            AllowTrailingCommas = true,
-            WriteIndented = true,
-        };
     }
 
     public override async Task OnMessageReceived(RoleDialogModel message)
@@ -63,7 +59,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     {
         var conversationId = _state.GetConversationId();
         var log = $"{message.Content}";
-        var replyContent = JsonSerializer.Serialize(replyMsg, _serializerOptions);
+        var replyContent = JsonSerializer.Serialize(replyMsg, _options.JsonSerializerOptions);
         log += $"\r\n```json\r\n{replyContent}\r\n```";
 
         var input = new ContentLogInputModel(conversationId, message)
@@ -90,7 +86,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
-        var args = JsonSerializer.Serialize(JsonDocument.Parse(message.FunctionArgs), _serializerOptions);
+        var args = JsonSerializer.Serialize(JsonDocument.Parse(message.FunctionArgs), _options.JsonSerializerOptions);
         var log = $"*{message.FunctionName}*\r\n```json\r\n{args}\r\n```\r\n=> {message.Content?.Trim()}";
 
         var input = new ContentLogInputModel(conversationId, message)
@@ -145,7 +141,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             var log = $"{message.Content}";
             if (message.RichContent != null && message.RichContent.Message.RichType != "text")
             {
-                var richContent = JsonSerializer.Serialize(message.RichContent, _serializerOptions);
+                var richContent = JsonSerializer.Serialize(message.RichContent, _options.JsonSerializerOptions);
                 log += $"\r\n```json\r\n{richContent}\r\n```";
             }
 
@@ -248,7 +244,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     {
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
-        var log = JsonSerializer.Serialize(instruct, _serializerOptions);
+        var log = JsonSerializer.Serialize(instruct, _options.JsonSerializerOptions);
         log = $"```json\r\n{log}\r\n```";
 
         var input = new ContentLogInputModel(conversationId, message)
@@ -293,7 +289,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             CreateTime = DateTime.UtcNow
         };
 
-        var json = JsonSerializer.Serialize(output, _serializerOptions);
+        var json = JsonSerializer.Serialize(output, _options.JsonSerializerOptions);
 
         var convSettings = _services.GetRequiredService<ConversationSetting>();
         if (convSettings.EnableContentLog)
@@ -322,6 +318,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             db.SaveConversationStateLog(log);
         }
 
-        return JsonSerializer.Serialize(log, _serializerOptions);
+        return JsonSerializer.Serialize(log, _options.JsonSerializerOptions);
     }
 }

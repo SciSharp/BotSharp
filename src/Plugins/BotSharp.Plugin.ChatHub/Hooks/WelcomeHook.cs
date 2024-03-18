@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Templating;
-using BotSharp.Abstraction.Messaging.JsonConverters;
 using Microsoft.AspNetCore.SignalR;
+using BotSharp.Abstraction.Options;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -12,26 +12,19 @@ public class WelcomeHook : ConversationHookBase
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IUserIdentity _user;
     private readonly IConversationStorage _storage;
-    private readonly JsonSerializerOptions _serializerOptions;
+    private readonly BotSharpOptions _options;
+
     public WelcomeHook(IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         IUserIdentity user,
-        IConversationStorage storage)
+        IConversationStorage storage,
+        BotSharpOptions options)
     {
         _services = services;
         _chatHub = chatHub;
         _user = user;
         _storage = storage;
-
-        _serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Converters =
-            {
-                new RichContentJsonConverter(),
-                new TemplateMessageJsonConverter(),
-            }
-        };
+        _options = options;
     }
 
     public override async Task OnUserAgentConnectedInitially(Conversation conversation)
@@ -66,7 +59,7 @@ public class WelcomeHook : ConversationHookBase
                         LastName = "",
                         Role = AgentRole.Assistant
                     }
-                }, _serializerOptions);
+                }, _options.JsonSerializerOptions);
 
                 await Task.Delay(300);
 

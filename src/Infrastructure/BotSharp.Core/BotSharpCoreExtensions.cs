@@ -1,21 +1,25 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Plugins;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Messaging;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
+using BotSharp.Abstraction.Messaging.JsonConverters;
 
 namespace BotSharp.Core;
 
 public static class BotSharpCoreExtensions
 {
-    public static IServiceCollection AddBotSharpCore(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddBotSharpCore(this IServiceCollection services, IConfiguration config, Action<BotSharpOptions>? configOptions = null)
     {
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IUserService, UserService>();
 
         RegisterPlugins(services, config);
+        ConfigureBotSharpOptions(services, configOptions);
         return services;
     }
 
@@ -51,6 +55,24 @@ public static class BotSharpCoreExtensions
         app.ApplicationServices.GetRequiredService<PluginLoader>().Configure(app);
 
         return app;
+    }
+
+    private static void ConfigureBotSharpOptions(IServiceCollection services, Action<BotSharpOptions>? configure)
+    {
+        var options = new BotSharpOptions();
+        if (configure != null)
+        {
+            configure(options);
+        }
+
+        AddDefaultJsonConverters(options);
+        services.AddSingleton(options);
+    }
+
+    private static void AddDefaultJsonConverters(BotSharpOptions options)
+    {
+        options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
     }
 
     public static void RegisterPlugins(IServiceCollection services, IConfiguration config)
