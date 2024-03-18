@@ -204,7 +204,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == "function")
             {
-                messages.Add(ChatMessage.FromUser($"function call result: {message.Content}"));
+                //messages.Add(ChatMessage.FromUser($"function call result: {message.Content}"));
             }
             else if (message.Role == "user")
             {
