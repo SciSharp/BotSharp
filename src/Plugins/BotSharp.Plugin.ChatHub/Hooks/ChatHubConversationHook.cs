@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.Messaging.Enums;
-using BotSharp.Abstraction.Messaging.JsonConverters;
+using BotSharp.Abstraction.Options;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -9,24 +9,16 @@ public class ChatHubConversationHook : ConversationHookBase
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IUserIdentity _user;
-    private readonly JsonSerializerOptions _serializerOptions;
+    private readonly BotSharpOptions _options; 
     public ChatHubConversationHook(IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
+        BotSharpOptions options,
         IUserIdentity user)
     {
         _services = services;
         _chatHub = chatHub;
         _user = user;
-
-        _serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Converters =
-            {
-                new RichContentJsonConverter(),
-                new TemplateMessageJsonConverter(),
-            }
-        };
+        _options = options;
     }
 
     public override async Task OnConversationInitialized(Conversation conversation)
@@ -67,6 +59,11 @@ public class ChatHubConversationHook : ConversationHookBase
         await base.OnMessageReceived(message);
     }
 
+    public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
+    {
+        await this.OnMessageReceived(message);
+    }
+
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
@@ -84,7 +81,7 @@ public class ChatHubConversationHook : ConversationHookBase
                 LastName = "Assistant",
                 Role = AgentRole.Assistant
             }
-        }, _serializerOptions);
+        }, _options.JsonSerializerOptions);
 
         // Send typing-off to client
         await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel

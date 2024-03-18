@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories;
 using System;
 using System.IO;
@@ -15,6 +16,7 @@ public class ConversationStorage : IConversationStorage
 
     public ConversationStorage(
         BotSharpDatabaseSettings dbSettings,
+        BotSharpOptions options,
         IServiceProvider services)
     {
         _dbSettings = dbSettings;
@@ -64,6 +66,7 @@ public class ConversationStorage : IConversationStorage
                 AgentId = agentId,
                 MessageId = dialog.MessageId,
                 SenderId = dialog.SenderId,
+                FunctionName = dialog.FunctionName,
                 CreateTime = dialog.CreatedAt
             };
             
@@ -93,7 +96,7 @@ public class ConversationStorage : IConversationStorage
             var role = meta.Role;
             var currentAgentId = meta.AgentId;
             var messageId = meta.MessageId;
-            var function = role == AgentRole.Function ? meta.FunctionName : null;
+            var function = meta.FunctionName;
             var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
             var createdAt = meta.CreateTime;
             var richContent = !string.IsNullOrEmpty(dialog.RichContent) ? 

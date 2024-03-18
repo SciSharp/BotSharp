@@ -3,6 +3,7 @@ using BotSharp.OpenAPI;
 using BotSharp.Logger;
 using BotSharp.Plugin.ChatHub;
 using Serilog;
+using BotSharp.Abstraction.Messaging.JsonConverters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,9 +29,12 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
     };
  
  // Add BotSharp
- builder.Services.AddBotSharpCore(builder.Configuration)
-    .AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
-    .AddBotSharpLogger(builder.Configuration);
+ builder.Services.AddBotSharpCore(builder.Configuration, options =>
+ {
+     options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
+     options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
+ }).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
+   .AddBotSharpLogger(builder.Configuration);
 
 // Add SignalR for WebSocket
 builder.Services.AddSignalR();

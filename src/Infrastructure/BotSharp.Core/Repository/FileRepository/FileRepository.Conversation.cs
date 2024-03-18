@@ -408,16 +408,12 @@ namespace BotSharp.Core.Repository
                         Role = blocks[1],
                         AgentId = blocks[2],
                         MessageId = blocks[3],
-                        FunctionName = blocks[1] == AgentRole.Function ? blocks[4] : null,
-                        SenderId = blocks[1] == AgentRole.Function ? null : blocks[4],
+                        SenderId = !string.IsNullOrWhiteSpace(blocks[4]) ? blocks[4] : null,
+                        FunctionName = !string.IsNullOrWhiteSpace(blocks[5]) ? blocks[5] : null,
                         CreateTime = DateTime.Parse(blocks[0])
                     };
 
-                    string? richContent = null;
-                    if (blocks.Count() > 5)
-                    {
-                        richContent = blocks[5];
-                    }
+                    var richContent = blocks.Count() > 6 ? blocks[6] : null;
                     dialogs.Add(new DialogElement(meta, trimmed, richContent));
                 }
             }
@@ -433,8 +429,7 @@ namespace BotSharp.Core.Repository
             {
                 var meta = element.MetaData;
                 var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt", CultureInfo.InvariantCulture);
-                var source = meta.FunctionName ?? meta.SenderId;
-                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{source}|{element.RichContent}";
+                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}|{element.RichContent}";
                 dialogTexts.Add(metaStr);
                 var content = $"  - {element.Content}";
                 dialogTexts.Add(content);
