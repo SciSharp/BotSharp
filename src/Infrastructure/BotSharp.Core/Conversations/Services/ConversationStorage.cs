@@ -2,8 +2,6 @@ using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Options;
-using BotSharp.Abstraction.Repositories;
-using System;
 using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;

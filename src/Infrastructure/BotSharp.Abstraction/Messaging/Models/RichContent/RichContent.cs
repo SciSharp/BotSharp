@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Messaging.Enums;
+
 namespace BotSharp.Abstraction.Messaging.Models.RichContent;
 
 public class RichContent<T> where T : IRichMessage
@@ -16,6 +18,14 @@ public class RichContent<T> where T : IRichMessage
     [JsonPropertyName("fill_postback")]
     public bool FillPostback { get; set; }
 
+    [JsonPropertyName("editor")]
+    public string Editor { get; set; } = EditorTypeEnum.Text;
+
+    [JsonPropertyName("editor_attributes")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? EditorAttributes { get; set; }
+
+
     public RichContent()
     {
         
@@ -24,5 +34,10 @@ public class RichContent<T> where T : IRichMessage
     public RichContent(T message)
     {
         Message = message;
+    }
+
+    public override string ToString()
+    {
+        return $"{MessagingType} {typeof(T).Name}";
     }
 }

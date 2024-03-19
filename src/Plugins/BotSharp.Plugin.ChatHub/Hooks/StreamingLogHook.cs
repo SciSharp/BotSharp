@@ -139,7 +139,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         {
             var agent = await _agentService.LoadAgent(message.CurrentAgentId);
             var log = $"{message.Content}";
-            if (message.RichContent != null && message.RichContent.Message.RichType != "text")
+            if (message.RichContent != null)
             {
                 var richContent = JsonSerializer.Serialize(message.RichContent, _options.JsonSerializerOptions);
                 log += $"\r\n```json\r\n{richContent}\r\n```";
