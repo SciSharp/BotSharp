@@ -1,5 +1,4 @@
-using BotSharp.Abstraction.Messaging.Enums;
-using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
+using BotSharp.Core.Messaging;
 using System.Text.Json;
 
 namespace BotSharp.Abstraction.Messaging.JsonConverters;
@@ -11,31 +10,16 @@ public class TemplateMessageJsonConverter : JsonConverter<ITemplateMessage>
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;
         var jsonText = root.GetRawText();
-        JsonElement element;
-        object? res = null;
+        ITemplateMessage? res = null;
 
-        if (root.TryGetProperty("template_type", out element))
+        var parser = new MessageParser();
+        if (root.TryGetProperty("template_type", out JsonElement element))
         {
             var templateType = element.GetString();
-            if (templateType == TemplateTypeEnum.Button)
-            {
-                res = JsonSerializer.Deserialize<ButtonTemplateMessage>(jsonText, options);
-            }
-            else if (templateType == TemplateTypeEnum.MultiSelect)
-            {
-                res = JsonSerializer.Deserialize<MultiSelectTemplateMessage>(jsonText, options);
-            }
-            else if (templateType == TemplateTypeEnum.Coupon)
-            {
-                res = JsonSerializer.Deserialize<CouponTemplateMessage>(jsonText, options);
-            }
-            else if (templateType == TemplateTypeEnum.Product)
-            {
-                res = JsonSerializer.Deserialize<ProductTemplateMessage>(jsonText, options);
-            }
+            res = parser.ParseTemplateMessage(templateType, jsonText, options);
         }
 
-        return res as ITemplateMessage;
+        return res;
     }
 
     public override void Write(Utf8JsonWriter writer, ITemplateMessage value, JsonSerializerOptions options)
