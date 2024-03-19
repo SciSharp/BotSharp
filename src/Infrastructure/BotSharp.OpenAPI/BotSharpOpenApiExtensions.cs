@@ -11,6 +11,8 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.JsonWebTokens;
 using BotSharp.OpenAPI.BackgroundServices;
+using BotSharp.Abstraction.Settings;
+using BotSharp.Abstraction.Google.Settings;
 
 namespace BotSharp.OpenAPI;
 
@@ -31,6 +33,12 @@ public static class BotSharpOpenApiExtensions
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
         services.AddHostedService<ConversationTimeoutService>();
+
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<GoogleApiSettings>("GoogleApi");
+        });
 
         // Add bearer authentication
         var schema = "MIXED_SCHEME";
