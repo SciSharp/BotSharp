@@ -11,6 +11,7 @@ public class AddressController : ControllerBase
     private readonly IServiceProvider _services;
     private readonly BotSharpOptions _options;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger _logger;
 
     public AddressController(IServiceProvider services,
         IHttpClientFactory httpClientFactory,
@@ -24,16 +25,26 @@ public class AddressController : ControllerBase
     [HttpGet("/address/options")]
     public async Task<GoogleAddressResult> GetAddressOptions([FromQuery] string address)
     {
-        var settings = _services.GetRequiredService<GoogleApiSettings>();
-        using var client = _httpClientFactory.CreateClient();
-        var url = $"{settings.Endpoint}?key={settings.ApiKey}&" +
-            $"components={settings.Components}&" +
-            $"language={settings.Language}&" +
-            $"address={address}";
+        var result = new GoogleAddressResult();
 
-        var response = await client.GetAsync(url);
-        var responseStr = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<GoogleAddressResult>(responseStr, _options.JsonSerializerOptions);
+        try
+        {
+            var settings = _services.GetRequiredService<GoogleApiSettings>();
+            using var client = _httpClientFactory.CreateClient();
+            var url = $"{settings.Endpoint}?key={settings.ApiKey}&" +
+                $"components={settings.Components}&" +
+                $"language={settings.Language}&" +
+                $"address={address}";
+
+            var response = await client.GetAsync(url);
+            var responseStr = await response.Content.ReadAsStringAsync();
+            result = JsonSerializer.Deserialize<GoogleAddressResult>(responseStr, _options.JsonSerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error when calling google geocoding api... ${ex.Message}");
+        }
+
         return result;
     }
 }

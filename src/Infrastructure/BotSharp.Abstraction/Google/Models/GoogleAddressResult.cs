@@ -2,7 +2,7 @@ namespace BotSharp.Abstraction.Google.Models;
 
 public class GoogleAddressResult
 {
-    public IList<GoogleAddress> Results { get; set; }
+    public IList<GoogleAddress> Results { get; set; } = new List<GoogleAddress>();
     public string Status { get; set; }
 }
 
