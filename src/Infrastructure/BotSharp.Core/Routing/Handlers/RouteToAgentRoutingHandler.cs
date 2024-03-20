@@ -10,7 +10,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("next_action_reason", "the reason why route to this agent, if user is replying last agent's question, you must route to this agent") 
+        new ParameterPropertyDef("next_action_reason", "the reason why route to this agent") 
         { 
             Required = true 
         },
@@ -22,7 +22,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             Required = true
         },
-        new ParameterPropertyDef("user_goal_agent", "agent who can achieve user original goal")
+        new ParameterPropertyDef("user_goal_agent", "user original goal")
         {
             Required = true
         },
