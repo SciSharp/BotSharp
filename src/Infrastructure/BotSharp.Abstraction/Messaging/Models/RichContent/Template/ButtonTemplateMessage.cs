@@ -18,6 +18,9 @@ public class ButtonTemplateMessage : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("buttons")]
     public ButtonElement[] Buttons { get; set; } = new ButtonElement[0];
+
+    [JsonPropertyName("is_horizontal")]
+    public bool IsHorizontal { get; set; }
 }
 
 public class ButtonElement
@@ -34,4 +37,7 @@ public class ButtonElement
     public string? Payload { get; set; }
 
     public string Title { get; set; } = string.Empty;
+
+    [JsonPropertyName("is_primary")]
+    public bool IsPrimary { get; set; }
 }
