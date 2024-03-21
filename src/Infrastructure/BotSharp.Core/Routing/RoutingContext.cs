@@ -105,6 +105,31 @@ public class RoutingContext : IRoutingContext
         HookEmitter.Emit<IRoutingHook>(_services, async hook =>
             await hook.OnAgentDequeued(agentId, currentAgentId, reason: reason)
         ).Wait();
+
+        // Run the routing rule
+        var agency = _services.GetRequiredService<IAgentService>();
+        var agent = agency.LoadAgent(currentAgentId).Result;
+
+        var message = new RoleDialogModel(AgentRole.User, $"Try to route to agent {agent.Name}")
+        {
+            FunctionName = "route_to_agent",
+            FunctionArgs = JsonSerializer.Serialize(new FunctionCallFromLlm
+            {
+                Function = "route_to_agent",
+                AgentName = agent.Name,
+                Reason = $"User manually route to agent {agent.Name}"
+            })
+        };
+
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var missingfield = routing.HasMissingRequiredField(message, out agentId);
+        if (missingfield)
+        {
+            if (currentAgentId != agentId)
+            {
+                _stack.Push(agentId);
+            }
+        }
     }
 
     public string PreviousAgentId()
@@ -115,7 +140,7 @@ public class RoutingContext : IRoutingContext
         }
         else if (_stack.Count > 1)
         {
-            return _stack.ToArray()[1];
+            return _stack.ToArray()[_stack.Count - 2];
         }
 
         return string.Empty;
