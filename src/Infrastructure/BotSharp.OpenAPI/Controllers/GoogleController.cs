@@ -49,7 +49,7 @@ public class GoogleController : ControllerBase
     }
 
     [HttpGet("/video/options")]
-    public async Task<GoogleVideoResult> GetVideoOptions([FromQuery] string query, [FromQuery] int? maxNumOfResults)
+    public async Task<GoogleVideoResult> GetVideoOptions([FromQuery] string query, [FromQuery] int? maxResults)
     {
         var result = new GoogleVideoResult();
 
@@ -63,9 +63,9 @@ public class GoogleController : ControllerBase
                 $"regionCode={settings.Youtube.RegionCode}&" +
                 $"q={query}";
 
-            if (maxNumOfResults.HasValue && maxNumOfResults > 0)
+            if (maxResults.HasValue && maxResults > 0)
             {
-                url += $"&maxResults={maxNumOfResults}";
+                url += $"&maxResults={maxResults}";
             }
 
             var response = await client.GetAsync(url);
