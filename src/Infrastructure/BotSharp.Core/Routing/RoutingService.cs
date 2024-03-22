@@ -54,7 +54,7 @@ public partial class RoutingService : IRoutingService
         {
             Function = "route_to_agent",
             Question = message.Content,
-            Reason = message.Content,
+            NextActionReason = message.Content,
             AgentName = agent.Name,
             OriginalAgent = agent.Name,
             ExecutingDirectly = true

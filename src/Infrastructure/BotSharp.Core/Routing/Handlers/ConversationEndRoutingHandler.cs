@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Handlers;
@@ -16,11 +14,14 @@ public class ConversationEndRoutingHandler : RoutingHandlerBase, IRoutingHandler
         new ParameterPropertyDef("response", "response content to user")
     };
 
+    public List<string> Planers => new List<string>
+    {
+    };
+
     public ConversationEndRoutingHandler(IServiceProvider services, ILogger<ConversationEndRoutingHandler> logger, RoutingSettings settings) 
         : base(services, logger, settings)
     {
     }
-
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {

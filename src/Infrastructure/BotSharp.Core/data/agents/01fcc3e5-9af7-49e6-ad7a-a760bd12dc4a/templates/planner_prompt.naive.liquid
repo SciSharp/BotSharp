@@ -3,5 +3,5 @@ Route to the appropriate agent last handled agent based on the context.
 {% if expected_next_action_agent != empty  -%}
 Expected next action agent is {{ expected_next_action_agent }}.
 {%- endif %}
-Try to keep the User Goal Agent be consistent as previous goal agent.
+If user completes the task, use function task_completed.
 If user wants to speak to customer service, use function human_intervention_needed.

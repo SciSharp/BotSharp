@@ -122,7 +122,7 @@ public class RoutingContext : IRoutingContext
             {
                 Function = "route_to_agent",
                 AgentName = agent.Name,
-                Reason = $"User manually route to agent {agent.Name}"
+                NextActionReason = $"User manually route to agent {agent.Name}"
             })
         };
 

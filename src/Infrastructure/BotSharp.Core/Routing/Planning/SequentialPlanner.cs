@@ -31,7 +31,7 @@ public class SequentialPlanner : IPlaner
         if (decomposation.TotalRemainingSteps > 0 && _lastInst != null)
         {
             _lastInst.Response = decomposation.Description;
-            _lastInst.Reason = $"Having {decomposation.TotalRemainingSteps} steps left.";
+            _lastInst.NextActionReason = $"Having {decomposation.TotalRemainingSteps} steps left.";
             return _lastInst;
         }
         else if (decomposation.TotalRemainingSteps == 0 || decomposation.ShouldStop)
@@ -102,7 +102,7 @@ public class SequentialPlanner : IPlaner
         if (decomposation.TotalRemainingSteps > 0)
         {
             inst.Response = decomposation.Description;
-            inst.Reason = $"{decomposation.TotalRemainingSteps} steps left.";
+            inst.NextActionReason = $"{decomposation.TotalRemainingSteps} steps left.";
             inst.HandleDialogsByPlanner = true;
         }
 

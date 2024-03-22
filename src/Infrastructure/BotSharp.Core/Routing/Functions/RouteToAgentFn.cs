@@ -57,7 +57,7 @@ public partial class RouteToAgentFn : IFunctionCallback
         // Push next action agent
         if (!string.IsNullOrEmpty(args.AgentName) && args.AgentName.Length < 32)
         {
-            _context.Push(args.AgentName, args.Reason);
+            _context.Push(args.AgentName, args.NextActionReason);
             states.SetState("next_action_agent", args.AgentName, isNeedVersion: true);
         }
 

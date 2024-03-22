@@ -26,8 +26,11 @@ public class PlaywrightInstance : IDisposable
     {
         if (_contexts.ContainsKey(id))
             return;
-
+#if DEBUG
         string tempFolderPath = $"{Path.GetTempPath()}\\playwright";
+#else
+        string tempFolderPath = $"{Path.GetTempPath()}\\playwright\\{id}";
+#endif
         _contexts[id] = await _playwright.Chromium.LaunchPersistentContextAsync(tempFolderPath, new BrowserTypeLaunchPersistentContextOptions
         {
 #if DEBUG
