@@ -6,7 +6,7 @@ public class MultiSelectTemplateMessage : IRichMessage, ITemplateMessage
 {
     [JsonPropertyName("rich_type")]
     public string RichType => RichTypeEnum.MultiSelectTemplate;
-
+    [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]
