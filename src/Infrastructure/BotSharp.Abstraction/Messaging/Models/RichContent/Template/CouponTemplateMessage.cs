@@ -10,7 +10,7 @@ public class CouponTemplateMessage : IRichMessage, ITemplateMessage
 {
     [JsonPropertyName("rich_type")]
     public string RichType => RichTypeEnum.CouponTemplate;
-    [JsonIgnore]
+    [JsonPropertyName("text")]
     public string Text { get; set; }
     public string Title { get; set; }
     public string Subtitle { get; set; }
