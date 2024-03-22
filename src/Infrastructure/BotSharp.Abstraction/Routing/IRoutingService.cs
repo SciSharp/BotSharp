@@ -43,4 +43,6 @@ public interface IRoutingService
     Task<RoleDialogModel> InstructDirect(Agent agent, RoleDialogModel message);
 
     Task<string> GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 50);
+
+    bool HasMissingRequiredField(RoleDialogModel message, out string agentId);
 }

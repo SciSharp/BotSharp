@@ -16,6 +16,9 @@ public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
     [JsonPropertyName("elements")]
     public List<T> Elements { get; set; } = new List<T>();
 
+    [JsonPropertyName("is_horizontal")]
+    public bool IsHorizontal { get; set; }
+
     [JsonPropertyName("element_type")]
     public string ElementType => typeof(T).Name;
 }

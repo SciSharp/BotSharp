@@ -267,7 +267,7 @@ public class ChatCompletionProvider : IChatCompletion
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.0"));
         chatCompletionsOptions.Temperature = temperature;
         chatCompletionsOptions.NucleusSamplingFactor = samplingFactor;
-        chatCompletionsOptions.MaxTokens = int.Parse(state.GetState("max_tokens", "256"));
+        chatCompletionsOptions.MaxTokens = int.Parse(state.GetState("max_tokens", "1024"));
         // chatCompletionsOptions.FrequencyPenalty = 0;
         // chatCompletionsOptions.PresencePenalty = 0;
 
