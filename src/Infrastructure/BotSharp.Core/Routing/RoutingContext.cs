@@ -106,6 +106,11 @@ public class RoutingContext : IRoutingContext
             await hook.OnAgentDequeued(agentId, currentAgentId, reason: reason)
         ).Wait();
 
+        if (string.IsNullOrEmpty(currentAgentId))
+        {
+            return;
+        }
+
         // Run the routing rule
         var agency = _services.GetRequiredService<IAgentService>();
         var agent = agency.LoadAgent(currentAgentId).Result;
