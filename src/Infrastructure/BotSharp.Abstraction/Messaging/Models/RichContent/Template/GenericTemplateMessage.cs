@@ -7,11 +7,11 @@ public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
     [JsonPropertyName("rich_type")]
     public string RichType => RichTypeEnum.GenericTemplate;
 
-    [JsonIgnore]
+    [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]
-    public string TemplateType => TemplateTypeEnum.Generic;
+    public virtual string TemplateType { get; set; } = TemplateTypeEnum.Generic;
 
     [JsonPropertyName("elements")]
     public List<T> Elements { get; set; } = new List<T>();
