@@ -7,7 +7,7 @@ public class ProductTemplateMessage : IRichMessage, ITemplateMessage
     [JsonPropertyName("rich_type")]
     public string RichType => RichTypeEnum.GenericTemplate;
 
-    [JsonIgnore]
+    [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]

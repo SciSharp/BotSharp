@@ -36,6 +36,12 @@ public partial class RoutingService
         {
             result = await function.Execute(message);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError($"The input does not contain any JSON tokens:\r\n{message.Content}");
+            message.StopCompletion = true;
+            message.Content = ex.Message;
+        }
         catch (Exception ex)
         {
             message.StopCompletion = true;
