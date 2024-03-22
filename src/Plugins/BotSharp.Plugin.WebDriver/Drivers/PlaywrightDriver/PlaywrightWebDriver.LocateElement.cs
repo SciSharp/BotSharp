@@ -45,7 +45,7 @@ public partial class PlaywrightWebDriver
             }
         }
 
-        if (location.Index > 0)
+        if (location.Index >= 0)
         {
             locator = locator.Nth(location.Index);
             count = await locator.CountAsync();
