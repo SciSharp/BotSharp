@@ -26,4 +26,19 @@ public class VideoSnippet
     public string Title { get; set; }
     public string Description { get; set; }
     public string ChannelTitle { get; set; }
+    public VideoThumbnails Thumbnails { get; set; }
+}
+
+public class VideoThumbnails
+{
+    public ThumbnailData Default { get; set; }
+    public ThumbnailData Medium { get; set; }
+    public ThumbnailData High { get; set; }
+}
+
+public class ThumbnailData
+{
+    public string Url { get; set; }
+    public decimal Width { get; set; }
+    public decimal Height { get; set; }
 }
