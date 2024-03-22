@@ -11,7 +11,6 @@ public class GoogleApiSettings
 public class MapSettings
 {
     public string Endpoint { get; set; }
-    public string Language { get; set; }
     public string Components { get; set; }
 }
 
@@ -20,5 +19,4 @@ public class YoutubeSettings
     public string Endpoint { get; set; }
     public string Part { get; set; }
     public string RegionCode { get; set; }
-    public string Language { get; set; }
 }

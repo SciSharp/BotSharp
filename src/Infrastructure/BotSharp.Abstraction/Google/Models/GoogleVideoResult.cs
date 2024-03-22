@@ -12,10 +12,18 @@ public class VideoItem
     [JsonPropertyName("etag")]
     public string Etag { get; set; }
     public VideoItemId Id { get; set; }
+    public VideoSnippet Snippet { get; set; }
 }
 
 public class VideoItemId
 {
     public string Kind { get; set; }
     public string VideoId { get; set; }
+}
+
+public class VideoSnippet
+{
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public string ChannelTitle { get; set; }
 }

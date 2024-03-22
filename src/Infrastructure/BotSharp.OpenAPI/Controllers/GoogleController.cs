@@ -23,7 +23,7 @@ public class GoogleController : ControllerBase
     }
 
     [HttpGet("/address/options")]
-    public async Task<GoogleAddressResult> GetAddressOptions([FromQuery] string address)
+    public async Task<GoogleAddressResult> GetAddressOptions([FromQuery] string address, [FromQuery] string language = "en")
     {
         var result = new GoogleAddressResult();
 
@@ -33,7 +33,7 @@ public class GoogleController : ControllerBase
             using var client = _httpClientFactory.CreateClient();
             var url = $"{settings.Map.Endpoint}?key={settings.ApiKey}&" +
                 $"components={settings.Map.Components}&" +
-                $"language={settings.Map.Language}&" +
+                $"language={language}&" +
                 $"address={address}";
 
             var response = await client.GetAsync(url);
@@ -49,7 +49,7 @@ public class GoogleController : ControllerBase
     }
 
     [HttpGet("/video/options")]
-    public async Task<GoogleVideoResult> GetVideoOptions([FromQuery] string query, [FromQuery] int? maxResults)
+    public async Task<GoogleVideoResult> GetVideoOptions([FromQuery] string query, [FromQuery] int? maxResults, [FromQuery] string language = "en")
     {
         var result = new GoogleVideoResult();
 
@@ -59,7 +59,7 @@ public class GoogleController : ControllerBase
             using var client = _httpClientFactory.CreateClient();
             var url = $"{settings.Youtube.Endpoint}?key={settings.ApiKey}&" +
                 $"part={settings.Youtube.Part}&" +
-                $"relevanceLanguage={settings.Youtube.Language}&" +
+                $"relevanceLanguage={language}&" +
                 $"regionCode={settings.Youtube.RegionCode}&" +
                 $"q={query}";
 
