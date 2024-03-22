@@ -7,10 +7,12 @@ You're {{router.name}} ({{router.description}}). Follow these steps to handle us
 6. Please do not make up any parameters when there is no exact information available, leave it blank.
 7. Response must be in JSON format.
 
+{% if routing_requirements and routing_requirements != empty %}
 [REQUIREMENTS]
 {% for requirement in routing_requirements %}
 # {{ requirement }}
 {% endfor %}
+{% endif %}
 
 [FUNCTIONS]
 {% for handler in routing_handlers %}

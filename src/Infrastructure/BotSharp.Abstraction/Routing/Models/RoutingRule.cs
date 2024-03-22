@@ -23,6 +23,7 @@ public class RoutingRule
     public bool Required { get; set; }
 
     public string? RedirectTo { get; set; }
+    public string? RedirectToAgentName { get; set; }
 
     public override string ToString()
     {

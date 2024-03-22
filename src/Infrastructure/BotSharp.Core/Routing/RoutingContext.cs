@@ -106,6 +106,11 @@ public class RoutingContext : IRoutingContext
             await hook.OnAgentDequeued(agentId, currentAgentId, reason: reason)
         ).Wait();
 
+        if (string.IsNullOrEmpty(currentAgentId))
+        {
+            return;
+        }
+
         // Run the routing rule
         var agency = _services.GetRequiredService<IAgentService>();
         var agent = agency.LoadAgent(currentAgentId).Result;
@@ -117,7 +122,7 @@ public class RoutingContext : IRoutingContext
             {
                 Function = "route_to_agent",
                 AgentName = agent.Name,
-                Reason = $"User manually route to agent {agent.Name}"
+                NextActionReason = $"User manually route to agent {agent.Name}"
             })
         };
 

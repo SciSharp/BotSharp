@@ -35,7 +35,7 @@ public class FunctionCallFromLlm : RoutingArgs
 
     public override string ToString()
     {
-        var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {Reason}>";
+        var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {NextActionReason}>";
 
         if (string.IsNullOrEmpty(Response))
         {

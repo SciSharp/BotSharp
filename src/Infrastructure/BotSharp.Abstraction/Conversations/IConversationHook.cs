@@ -70,7 +70,7 @@ public interface IConversationHook
     /// </summary>
     /// <param name="conversation"></param>
     /// <returns></returns>
-    Task OnCurrentTaskEnding(RoleDialogModel message);
+    Task OnTaskCompleted(RoleDialogModel message);
 
     /// <summary>
     /// LLM detected the whole conversation is going to be end.
