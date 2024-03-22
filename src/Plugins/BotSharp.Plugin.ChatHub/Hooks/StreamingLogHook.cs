@@ -41,6 +41,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         _routingCtx = routingCtx;
     }
 
+    #region IConversationHook
     public override async Task OnMessageReceived(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
@@ -155,6 +156,38 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
         }
     }
+
+    public override async Task OnTaskCompleted(RoleDialogModel message)
+    {
+        var conversationId = _state.GetConversationId();
+        var log = $"{message.Content}";
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent.Name,
+            Source = ContentLogSource.FunctionCall,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    public override async Task OnConversationEnding(RoleDialogModel message)
+    {
+        var conversationId = _state.GetConversationId();
+        var log = $"Conversation ended";
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent?.Name ?? "System",
+            Source = ContentLogSource.FunctionCall,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    #endregion
 
     #region IRoutingHook
     public async Task OnAgentEnqueued(string agentId, string preAgentId, string? reason = null)

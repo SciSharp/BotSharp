@@ -10,7 +10,14 @@ public class RoutingArgs
     /// </summary>
     [JsonPropertyName("next_action_reason")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string Reason { get; set; } = string.Empty;
+    public string? NextActionReason { get; set; }
+
+    [JsonPropertyName("reason")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Reason { get; set; }
+
+    [JsonPropertyName("conversation_end")]
+    public bool ConversationEnd { get; set; }
 
     /// <summary>
     /// The content of replying to user
@@ -39,7 +46,7 @@ public class RoutingArgs
 
     public override string ToString()
     {
-        var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {Reason}>";
+        var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {NextActionReason}>";
 
         if (string.IsNullOrEmpty(Response))
         {

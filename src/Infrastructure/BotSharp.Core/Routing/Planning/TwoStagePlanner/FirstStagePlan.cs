@@ -19,6 +19,9 @@ public class FirstStagePlan
     [JsonPropertyName("related_tables")]
     public string[] Tables { get; set; } = new string[0];
 
+    [JsonPropertyName("related_urls")]
+    public string[] Urls { get; set; } = new string[0];
+
     [JsonPropertyName("input_args")]
     public JsonDocument[] Parameters { get; set; } = new JsonDocument[0];
 

@@ -29,7 +29,23 @@ public class AgentController : ControllerBase
         {
             AgentIds = new List<string> { id }
         });
-        return agents.Items.FirstOrDefault();
+
+        var targetAgent = agents.Items.FirstOrDefault();
+        var redirectAgentIds = targetAgent.RoutingRules
+                                          .Where(x => !string.IsNullOrEmpty(x.RedirectTo))
+                                          .Select(x => x.RedirectTo).ToList();
+        var redirectAgents = await _agentService.GetAgents(new AgentFilter
+        {
+            AgentIds = redirectAgentIds
+        });
+        foreach (var rule in targetAgent.RoutingRules)
+        {
+            var found = redirectAgents.Items.FirstOrDefault(x => x.Id == rule.RedirectTo);
+            if (found == null) continue;
+            
+            rule.RedirectToAgentName = found.Name;
+        }
+        return targetAgent;
     }
              
     [HttpGet("/agents")]

@@ -153,7 +153,16 @@ public partial class ConversationService
         if (response.Instruction != null)
         {
             var conversation = _services.GetRequiredService<IConversationService>();
-            var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.Reason);
+            var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.NextActionReason);
+
+            // Emit conversation ending hook
+            if (response.Instruction.ConversationEnd)
+            {
+                foreach (var hook in hooks)
+                {
+                    await hook.OnConversationEnding(response);
+                }
+            }
         }
     }
 }

@@ -13,4 +13,9 @@ public class PizzaTypeConversationHook : ConversationHookBase
         }
         return;
     }
+
+    public override Task OnTaskCompleted(RoleDialogModel message)
+    {
+        return base.OnTaskCompleted(message);
+    }
 }
