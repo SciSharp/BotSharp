@@ -79,6 +79,12 @@ public partial class InstructService : IInstructService
         }
         else if (completer is IChatCompletion chatCompleter)
         {
+            if (instruction == "#TEMPLATE#")
+            {
+                instruction = prompt;
+                prompt = message.Content;
+            }
+
             var result = await chatCompleter.GetChatCompletions(new Agent
             {
                 Id = agentId,
