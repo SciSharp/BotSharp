@@ -157,74 +157,51 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     #region Conversation
     public void CreateNewConversation(Conversation conversation)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public bool DeleteConversations(IEnumerable<string> conversationIds)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public Conversation GetConversation(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public PagedItems<Conversation> GetConversations(ConversationFilter filter)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<Conversation> GetLastConversations()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
-    {
-        throw new NotImplementedException();
-    }
+        => new NotImplementedException();
 
     public ConversationState GetConversationStates(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
-    {
-        throw new NotImplementedException();
-    }
+        => new NotImplementedException();
+
     public void UpdateConversationTitle(string conversationId, string title)
-    {
-        throw new NotImplementedException();
-    }
+        => new NotImplementedException();
+
+    public void UpdateConversationBreakpoint(string conversationId, DateTime breakpoint)
+        => new NotImplementedException();
+    
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
-    {
-        throw new NotImplementedException();
-    }
+        => new NotImplementedException();
 
     public void UpdateConversationStatus(string conversationId, string status)
-    {
-        throw new NotImplementedException();
-    }
+        => new NotImplementedException();
 
     public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
     #endregion
-    
+
     #region User
     public User? GetUserByEmail(string email) 
         => throw new NotImplementedException();

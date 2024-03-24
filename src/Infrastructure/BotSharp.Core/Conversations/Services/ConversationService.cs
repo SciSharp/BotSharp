@@ -99,7 +99,7 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(int lastCount = 50)
+    public List<RoleDialogModel> GetDialogHistory(int lastCount = 50, bool fromBreakpoint = true)
     {
         if (string.IsNullOrEmpty(_conversationId))
         {
@@ -107,6 +107,14 @@ public partial class ConversationService : IConversationService
         }
 
         var dialogs = _storage.GetDialogs(_conversationId);
+
+        if (fromBreakpoint)
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var conversation = db.GetConversation(_conversationId);
+            dialogs = dialogs.Where(x => x.CreatedAt >= conversation.Breakpoint).ToList();
+        }
+
         return dialogs
             .TakeLast(lastCount)
             .ToList();

@@ -141,6 +141,23 @@ namespace BotSharp.Core.Repository
             }
         }
 
+        public void UpdateConversationBreakpoint(string conversationId, DateTime breakpoint)
+        {
+            var convDir = FindConversationDirectory(conversationId);
+            if (!string.IsNullOrEmpty(convDir))
+            {
+                var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+                var content = File.ReadAllText(convFile);
+                var record = JsonSerializer.Deserialize<Conversation>(content, _options);
+                if (record != null)
+                {
+                    record.UpdatedTime = DateTime.UtcNow;
+                    record.Breakpoint = breakpoint;
+                    File.WriteAllText(convFile, JsonSerializer.Serialize(record, _options));
+                }
+            }
+        }
+
         public ConversationState GetConversationStates(string conversationId)
         {
             var states = new List<StateKeyValue>();

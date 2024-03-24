@@ -66,7 +66,7 @@ public class ConversationController : ControllerBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(conversationId, new List<string>());
-        var history = conv.GetDialogHistory();
+        var history = conv.GetDialogHistory(fromBreakpoint: false);
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();

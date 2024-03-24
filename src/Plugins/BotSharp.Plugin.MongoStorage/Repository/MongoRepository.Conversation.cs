@@ -22,8 +22,9 @@ public partial class MongoRepository
             Channel = conversation.Channel,
             TaskId = conversation.TaskId,
             Status = conversation.Status,
-            CreatedTime = DateTime.UtcNow,
-            UpdatedTime = DateTime.UtcNow,
+            CreatedTime = conversation.CreatedTime,
+            UpdatedTime = conversation.UpdatedTime,
+            Breakpoint = conversation.Breakpoint,
         };
 
         var dialogDoc = new ConversationDialogDocument
@@ -140,6 +141,18 @@ public partial class MongoRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
+    public void UpdateConversationBreakpoint(string conversationId, DateTime breakpoint)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var updateConv = Builders<ConversationDocument>.Update
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.Breakpoint, breakpoint);
+
+        _dc.Conversations.UpdateOne(filterConv, updateConv);
+    }
+
     public ConversationState GetConversationStates(string conversationId)
     {
         var states = new ConversationState();
@@ -208,7 +221,8 @@ public partial class MongoRepository
             Dialogs = dialogElements,
             States = curStates,
             CreatedTime = conv.CreatedTime,
-            UpdatedTime = conv.UpdatedTime
+            UpdatedTime = conv.UpdatedTime,
+            Breakpoint = conv.Breakpoint
         };
     }
 
@@ -273,7 +287,8 @@ public partial class MongoRepository
                 Channel = conv.Channel,
                 Status = conv.Status,
                 CreatedTime = conv.CreatedTime,
-                UpdatedTime = conv.UpdatedTime
+                UpdatedTime = conv.UpdatedTime,
+                Breakpoint = conv.Breakpoint
             });
         }
 
@@ -299,7 +314,8 @@ public partial class MongoRepository
             Channel = c.Channel,
             Status = c.Status,
             CreatedTime = c.CreatedTime,
-            UpdatedTime = c.UpdatedTime
+            UpdatedTime = c.UpdatedTime,
+            Breakpoint = c.Breakpoint  
         }).ToList();
     }
 
