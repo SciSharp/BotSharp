@@ -34,6 +34,9 @@ public partial class ConversationService
 
         _storage.Append(_conversationId, message);
 
+        var conv = _services.GetRequiredService<IConversationService>();
+        var dialogs = conv.GetDialogHistory();
+
         var statistics = _services.GetRequiredService<ITokenStatistics>();
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
@@ -75,7 +78,7 @@ public partial class ConversationService
             var settings = _services.GetRequiredService<RoutingSettings>();
 
             response = agent.Type == AgentType.Routing ?
-                await routing.InstructLoop(message) :
+                await routing.InstructLoop(message, dialogs) :
                 await routing.InstructDirect(agent, message);
 
             routing.ResetRecursiveCounter();

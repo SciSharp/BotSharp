@@ -69,7 +69,7 @@ public partial class RoutingService : IRoutingService
         return response;
     }
 
-    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message)
+    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         _router = await agentService.LoadAgent(message.CurrentAgentId);
@@ -77,9 +77,6 @@ public partial class RoutingService : IRoutingService
         RoleDialogModel response = default;
 
         var states = _services.GetRequiredService<IConversationStateService>();
-        var conv = _services.GetRequiredService<IConversationService>();
-        var dialogs = conv.GetDialogHistory();
-
         var executor = _services.GetRequiredService<IExecutor>();
 
         var planner = GetPlanner(_router);

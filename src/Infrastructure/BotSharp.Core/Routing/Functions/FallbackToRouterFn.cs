@@ -1,7 +1,5 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.Core.Routing.Functions;
 
@@ -29,12 +27,14 @@ public class FallbackToRouterFn : IFunctionCallback
             return false;
         }
 
-        var routing = _services.GetRequiredService<IRoutingContext>();
-        routing.Replace(targetAgent.Id);
+        var conv = _services.GetRequiredService<IConversationService>();
+        var dialogs = conv.GetDialogHistory();
 
-        var router = _services.GetRequiredService<IRoutingService>();
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.Replace(targetAgent.Id);
         message.CurrentAgentId = targetAgent.Id;
-        var response = await router.InstructLoop(message);
+
+        var response = await routing.InstructLoop(message, dialogs);
 
         message.Content = response.Content;
         message.StopCompletion = true;

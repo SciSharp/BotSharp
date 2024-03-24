@@ -51,6 +51,11 @@ public class DialogElement
         Content = content;
         RichContent = richContent;
     }
+
+    public override string ToString()
+    {
+        return $"{MetaData.Role}: {Content} [{MetaData.CreateTime}]";
+    }
 }
 
 public class DialogMetaData

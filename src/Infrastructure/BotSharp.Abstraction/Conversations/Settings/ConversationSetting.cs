@@ -12,6 +12,7 @@ public class ConversationSetting
     public bool EnableContentLog { get; set; }
     public bool EnableStateLog { get; set; }
     public CleanConversationSetting CleanSetting { get; set; }
+    public RateLimitSetting RateLimit { get; set; }
 }
 
 public class CleanConversationSetting
