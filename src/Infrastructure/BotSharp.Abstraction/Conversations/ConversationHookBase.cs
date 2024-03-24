@@ -73,4 +73,7 @@ public abstract class ConversationHookBase : IConversationHook
 
     public virtual Task OnMessageDeleted(string conversationId, string messageId)
         => Task.CompletedTask;
+
+    public virtual Task OnBreakpointUpdated(string conversationId, bool resetStates)
+        => Task.CompletedTask;
 }

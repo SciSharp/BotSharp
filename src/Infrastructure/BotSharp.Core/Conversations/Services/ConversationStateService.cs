@@ -119,7 +119,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _logger.LogInformation($"Saved states of conversation {_conversationId}");
     }
 
-    public void CleanState()
+    public void CleanStates()
     {
         _states.Clear();
     }

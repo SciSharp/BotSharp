@@ -41,6 +41,7 @@ public interface IConversationService
     /// <summary>
     /// Use this feature when you want to hide some context from LLM.
     /// </summary>
+    /// <param name="resetStates">Whether to reset all states</param>
     /// <returns></returns>
-    Task UpdateBreakpoint();
+    Task UpdateBreakpoint(bool resetStates = false);
 }

@@ -14,6 +14,6 @@ public interface IConversationStateService
     Dictionary<string, string> GetStates();
     IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true);
     void SaveStateByArgs(JsonDocument args);
-    void CleanState();
+    void CleanStates();
     void Save();
 }

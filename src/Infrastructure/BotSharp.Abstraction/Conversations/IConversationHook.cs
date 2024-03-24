@@ -93,4 +93,11 @@ public interface IConversationHook
     /// <param name="messageId"></param>
     /// <returns></returns>
     Task OnMessageDeleted(string conversationId, string messageId);
+
+    /// <summary>
+    /// Brakpoint updated
+    /// </summary>
+    /// <param name="conversationId"></param>
+    /// <returns></returns>
+    Task OnBreakpointUpdated(string conversationId, bool resetStates);
 }
