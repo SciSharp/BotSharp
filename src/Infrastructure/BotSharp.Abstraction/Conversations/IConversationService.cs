@@ -35,6 +35,12 @@ public interface IConversationService
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted);
 
-    List<RoleDialogModel> GetDialogHistory(int lastCount = 50);
+    List<RoleDialogModel> GetDialogHistory(int lastCount = 50, bool fromBreakpoint = true);
     Task CleanHistory(string agentId);
+
+    /// <summary>
+    /// Use this feature when you want to hide some context from LLM.
+    /// </summary>
+    /// <returns></returns>
+    Task UpdateBreakpoint();
 }

@@ -10,4 +10,5 @@ public class ConversationDocument : MongoBase
     public string Status { get; set; }
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
+    public DateTime Breakpoint { get; set; }
 }

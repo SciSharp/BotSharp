@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Repositories;
-
 namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
