@@ -15,7 +15,18 @@ namespace BotSharp.OpenAPI.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Conversation Timeout Service is running.");
+            _logger.LogInformation("Conversation Timeout Service is running...");
+
+            _ = Task.Run(async () =>
+            {
+                await DoWork(stoppingToken);
+            });
+        }
+
+        private async Task DoWork(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("Conversation Timeout Service is doing work...");
+
             try
             {
                 while (true)
