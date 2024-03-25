@@ -195,14 +195,19 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             log += ", states are reset";
         }
         var routing = _services.GetRequiredService<IRoutingService>();
-        var agentId = routing.Context.ConversationId;
+        var agentId = routing.Context.GetCurrentAgentId();
         var agent = await _agentService.LoadAgent(agentId);
 
         var input = new ContentLogInputModel()
         {
             Name = agent.Name,
+            AgentId = agentId,
             ConversationId = conversationId,
             Source = ContentLogSource.FunctionCall,
+            Message = new RoleDialogModel(AgentRole.Assistant, "OnBreakpointUpdated")
+            {
+                MessageId = _routingCtx.MessageId
+            },
             Log = log
         };
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
