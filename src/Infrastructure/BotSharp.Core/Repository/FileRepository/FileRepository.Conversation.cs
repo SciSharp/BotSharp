@@ -256,12 +256,34 @@ namespace BotSharp.Core.Repository
                 if (record == null) continue;
 
                 var matched = true;
-                if (filter?.Id != null) matched = matched && record.Id == filter.Id;
-                if (filter?.AgentId != null) matched = matched && record.AgentId == filter.AgentId;
-                if (filter?.Status != null) matched = matched && record.Status == filter.Status;
-                if (filter?.Channel != null) matched = matched && record.Channel == filter.Channel;
-                if (filter?.UserId != null) matched = matched && record.UserId == filter.UserId;
-                if (filter?.TaskId != null) matched = matched && record.TaskId == filter.TaskId;
+                if (filter?.Id != null)
+                {
+                    matched = matched && record.Id == filter.Id;
+                }
+                if (filter?.AgentId != null)
+                {
+                    matched = matched && record.AgentId == filter.AgentId;
+                }
+                if (filter?.Status != null)
+                {
+                    matched = matched && record.Status == filter.Status;
+                }
+                if (filter?.Channel != null)
+                {
+                    matched = matched && record.Channel == filter.Channel;
+                }
+                if (filter?.UserId != null)
+                {
+                    matched = matched && record.UserId == filter.UserId;
+                }
+                if (filter?.TaskId != null)
+                {
+                    matched = matched && record.TaskId == filter.TaskId;
+                }
+                if (filter?.StartTime != null)
+                {
+                    matched = matched && record.CreatedTime >= filter.StartTime.Value;
+                }
 
                 // Check states
                 if (filter != null && !filter.States.IsNullOrEmpty())
