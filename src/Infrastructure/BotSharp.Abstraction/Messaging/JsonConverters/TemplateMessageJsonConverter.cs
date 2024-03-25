@@ -16,7 +16,7 @@ public class TemplateMessageJsonConverter : JsonConverter<ITemplateMessage>
         if (root.TryGetProperty("template_type", out JsonElement element))
         {
             var templateType = element.GetString();
-            res = parser.ParseTemplateMessage(templateType, jsonText, options);
+            res = parser.ParseTemplateMessage(templateType, jsonText, root, options);
         }
 
         return res;
