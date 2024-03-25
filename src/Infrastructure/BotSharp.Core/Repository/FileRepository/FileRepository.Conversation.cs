@@ -117,6 +117,7 @@ namespace BotSharp.Core.Repository
                     var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
                     if (conv != null)
                     {
+                        conv.DialogCount += dialogs.Count();
                         conv.UpdatedTime = DateTime.UtcNow;
                         File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
                     }
@@ -353,23 +354,40 @@ namespace BotSharp.Core.Repository
                 batchSize = batchLimit;
             }
 
+            if (bufferHours <= 0)
+            {
+                bufferHours = 12;
+            }
+
+            if (messageLimit <= 0)
+            {
+                messageLimit = 2;
+            }
+
             foreach (var d in Directory.GetDirectories(dir))
             {
                 var convFile = Path.Combine(d, CONVERSATION_FILE);
                 if (!File.Exists(convFile))
                 {
+                    Directory.Delete(d, true);
                     continue;
                 }
 
                 var json = File.ReadAllText(convFile);
                 var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-                if (conv == null || conv.UpdatedTime > utcNow.AddHours(-bufferHours))
+
+                if (conv == null)
+                {
+                    Directory.Delete(d, true);
+                    continue;
+                }
+
+                if (conv.UpdatedTime > utcNow.AddHours(-bufferHours))
                 {
                     continue;
                 }
 
-                var dialogs = GetConversationDialogs(conv.Id);
-                if (dialogs.Count <= messageLimit)
+                if (conv.DialogCount <= messageLimit)
                 {
                     ids.Add(conv.Id);
                     if (ids.Count >= batchSize)
@@ -398,7 +416,7 @@ namespace BotSharp.Core.Repository
             if (foundIdx < 0) return false;
 
             // Handle truncated dialogs
-            var isSaved = HandleTruncatedDialogs(dialogDir, dialogs, foundIdx);
+            var isSaved = HandleTruncatedDialogs(convDir, dialogDir, dialogs, foundIdx);
             if (!isSaved) return false;
 
             // Handle truncated states
@@ -489,10 +507,18 @@ namespace BotSharp.Core.Repository
             return states ?? new List<StateKeyValue>();
         }
 
-        private bool HandleTruncatedDialogs(string dialogDir, List<DialogElement> dialogs, int foundIdx)
+        private bool HandleTruncatedDialogs(string convDir, string dialogDir, List<DialogElement> dialogs, int foundIdx)
         {
             var truncatedDialogs = dialogs.Where((x, idx) => idx < foundIdx).ToList();
             var isSaved = SaveTruncatedDialogs(dialogDir, truncatedDialogs);
+            var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+            var convJson = File.ReadAllText(convFile);
+            var conv = JsonSerializer.Deserialize<Conversation>(convJson, _options);
+            if (conv != null)
+            {
+                conv.DialogCount = truncatedDialogs.Count;
+                File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+            }
             return isSaved;
         }
 

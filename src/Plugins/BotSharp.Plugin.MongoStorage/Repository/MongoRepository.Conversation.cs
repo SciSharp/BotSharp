@@ -123,7 +123,8 @@ public partial class MongoRepository
         var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var dialogElements = dialogs.Select(x => DialogMongoElement.ToMongoElement(x)).ToList();
         var updateDialog = Builders<ConversationDialogDocument>.Update.PushEach(x => x.Dialogs, dialogElements);
-        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow);
+        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow)
+                                                              .Inc(x => x.DialogCount, dialogs.Count);
 
         _dc.ConversationDialogs.UpdateOne(filterDialog, updateDialog);
         _dc.Conversations.UpdateOne(filterConv, updateConv);
@@ -168,13 +169,16 @@ public partial class MongoRepository
 
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
     {
-        if (string.IsNullOrEmpty(conversationId) || states.IsNullOrEmpty()) return;
+        if (string.IsNullOrEmpty(conversationId) || states == null) return;
 
+        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var filterStates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var saveStates = states.Select(x => StateMongoElement.ToMongoElement(x)).ToList();
         var updateStates = Builders<ConversationStateDocument>.Update.Set(x => x.States, saveStates);
+        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.ConversationStates.UpdateOne(filterStates, updateStates);
+        _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
     public void UpdateConversationStatus(string conversationId, string status)
@@ -220,6 +224,7 @@ public partial class MongoRepository
             Status = conv.Status,
             Dialogs = dialogElements,
             States = curStates,
+            DialogCount = conv.DialogCount,
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime,
             Breakpoint = conv.Breakpoint
@@ -308,6 +313,7 @@ public partial class MongoRepository
                 Title = conv.Title,
                 Channel = conv.Channel,
                 Status = conv.Status,
+                DialogCount = conv.DialogCount,
                 CreatedTime = conv.CreatedTime,
                 UpdatedTime = conv.UpdatedTime,
                 Breakpoint = conv.Breakpoint
@@ -335,6 +341,7 @@ public partial class MongoRepository
             Title = c.Title,
             Channel = c.Channel,
             Status = c.Status,
+            DialogCount = c.DialogCount,
             CreatedTime = c.CreatedTime,
             UpdatedTime = c.UpdatedTime,
             Breakpoint = c.Breakpoint  
@@ -353,11 +360,21 @@ public partial class MongoRepository
             batchSize = batchLimit;
         }
 
+        if (bufferHours <= 0)
+        {
+            bufferHours = 12;
+        }
+
+        if (messageLimit <= 0)
+        {
+            messageLimit = 2;
+        }
+
         while (true)
         {
             var skip = (page - 1) * batchSize;
             var candidates = _dc.Conversations.AsQueryable()
-                                              .Where(x => x.UpdatedTime <= utcNow.AddHours(-bufferHours))
+                                              .Where(x => (x.DialogCount <= messageLimit) && x.UpdatedTime <= utcNow.AddHours(-bufferHours))
                                               .Skip(skip)
                                               .Take(batchSize)
                                               .Select(x => x.Id)
@@ -367,13 +384,8 @@ public partial class MongoRepository
             {
                 break;
             }
-
-            var targets = _dc.ConversationDialogs.AsQueryable()
-                                                 .Where(x => candidates.Contains(x.ConversationId) && x.Dialogs != null && x.Dialogs.Count <= messageLimit)
-                                                 .Select(x => x.ConversationId)
-                                                 .ToList();
-
-            conversationIds = conversationIds.Concat(targets).ToList();
+            
+            conversationIds = conversationIds.Concat(candidates).Distinct().ToList();
             if (conversationIds.Count >= batchSize)
             {
                 break;
@@ -420,9 +432,15 @@ public partial class MongoRepository
             _dc.ConversationStates.ReplaceOne(stateFilter, foundStates);
         }
 
-        // Save
+        // Save dialogs
         foundDialog.Dialogs = truncatedDialogs;
         _dc.ConversationDialogs.ReplaceOne(dialogFilter, foundDialog);
+
+        // Update conversation
+        var convFilter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow)
+                                                              .Set(x => x.DialogCount, truncatedDialogs.Count);
+        _dc.Conversations.UpdateOne(convFilter, updateConv);
 
         // Remove logs
         if (cleanLog)
