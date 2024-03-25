@@ -22,7 +22,11 @@ public class RoutingRule
 
     public bool Required { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? RedirectTo { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("redirect_to_agent")]
     public string? RedirectToAgentName { get; set; }
 
     public override string ToString()
