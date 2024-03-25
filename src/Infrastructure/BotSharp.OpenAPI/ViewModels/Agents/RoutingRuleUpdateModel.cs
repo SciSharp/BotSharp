@@ -5,7 +5,7 @@ namespace BotSharp.OpenAPI.ViewModels.Agents;
 public class RoutingRuleUpdateModel
 {
     public string Field { get; set; }
-    public string Description { get; set; }
+    public string? Description { get; set; }
     public bool Required { get; set; }
     public string? RedirectTo { get; set; }
 

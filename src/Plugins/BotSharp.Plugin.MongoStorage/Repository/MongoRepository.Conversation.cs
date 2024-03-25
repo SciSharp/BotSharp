@@ -381,23 +381,26 @@ public partial class MongoRepository
         var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreateTime;
         var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundStates = _dc.ConversationStates.Find(stateFilter).FirstOrDefault();
-        if (foundStates == null || foundStates.States.IsNullOrEmpty()) return false;
 
-        var truncatedStates = new List<StateMongoElement>();
-        foreach (var state in foundStates.States)
+        if (foundStates != null && !foundStates.States.IsNullOrEmpty())
         {
-            var values = state.Values.Where(x => x.UpdateTime < refTime).ToList();
-            if (values.Count == 0) continue;
+            var truncatedStates = new List<StateMongoElement>();
+            foreach (var state in foundStates.States)
+            {
+                var values = state.Values.Where(x => x.UpdateTime < refTime).ToList();
+                if (values.Count == 0) continue;
 
-            state.Values = values;
-            truncatedStates.Add(state);
+                state.Values = values;
+                truncatedStates.Add(state);
+            }
+
+            foundStates.States = truncatedStates;
+            _dc.ConversationStates.ReplaceOne(stateFilter, foundStates);
         }
 
         // Save
         foundDialog.Dialogs = truncatedDialogs;
-        foundStates.States = truncatedStates;
         _dc.ConversationDialogs.ReplaceOne(dialogFilter, foundDialog);
-        _dc.ConversationStates.ReplaceOne(stateFilter, foundStates);
 
         // Remove logs
         if (cleanLog)
