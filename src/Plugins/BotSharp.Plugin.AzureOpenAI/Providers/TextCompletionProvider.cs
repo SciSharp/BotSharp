@@ -50,7 +50,7 @@ public class TextCompletionProvider : ITextCompletion
                     message
                 })).ToArray());
 
-        var client = ProviderHelper.GetClient(_model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, _services);
 
         var completionsOptions = new CompletionsOptions()
         {
