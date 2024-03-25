@@ -25,6 +25,7 @@ public class InstructModeController : ControllerBase
         input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
         state.SetState("provider", input.Provider)
             .SetState("model", input.Model)
+            .SetState("model_id", input.ModelId)
             .SetState("instruction", input.Instruction)
             .SetState("input_text", input.Text);
 
@@ -45,7 +46,8 @@ public class InstructModeController : ControllerBase
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
         state.SetState("provider", input.Provider)
-            .SetState("model", input.Model);
+            .SetState("model", input.Model)
+            .SetState("model_id", input.ModelId);
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
         return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.NewGuid().ToString());
@@ -57,7 +59,8 @@ public class InstructModeController : ControllerBase
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
         state.SetState("provider", input.Provider)
-            .SetState("model", input.Model);
+            .SetState("model", input.Model)
+            .SetState("model_id", input.ModelId);
 
         var textCompletion = CompletionProvider.GetChatCompletion(_services);
         var message = await textCompletion.GetChatCompletions(new Agent()

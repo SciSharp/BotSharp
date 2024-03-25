@@ -15,6 +15,12 @@ public class MessageConfig : TruncateMessageRequest
     public virtual string? Model { get; set; } = null;
 
     /// <summary>
+    /// Model name
+    /// </summary>
+    [JsonPropertyName("model_id")]
+    public virtual string? ModelId { get; set; } = null;
+
+    /// <summary>
     /// The sampling temperature to use that controls the apparent creativity of generated completions.
     /// </summary>
     public float Temperature { get; set; } = 0f;
