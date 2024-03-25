@@ -232,15 +232,37 @@ public partial class MongoRepository
         var builder = Builders<ConversationDocument>.Filter;
         var filters = new List<FilterDefinition<ConversationDocument>>() { builder.Empty };
 
-        if (!string.IsNullOrEmpty(filter.Id)) filters.Add(builder.Eq(x => x.Id, filter.Id));
-        if (!string.IsNullOrEmpty(filter.AgentId)) filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
-        if (!string.IsNullOrEmpty(filter.Status)) filters.Add(builder.Eq(x => x.Status, filter.Status));
-        if (!string.IsNullOrEmpty(filter.Channel)) filters.Add(builder.Eq(x => x.Channel, filter.Channel));
-        if (!string.IsNullOrEmpty(filter.UserId)) filters.Add(builder.Eq(x => x.UserId, filter.UserId));
-        if (!string.IsNullOrEmpty(filter.TaskId)) filters.Add(builder.Eq(x => x.TaskId, filter.TaskId));
+        if (!string.IsNullOrEmpty(filter?.Id))
+        {
+            filters.Add(builder.Eq(x => x.Id, filter.Id));
+        }
+        if (!string.IsNullOrEmpty(filter?.AgentId))
+        {
+            filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
+        }
+        if (!string.IsNullOrEmpty(filter?.Status))
+        {
+            filters.Add(builder.Eq(x => x.Status, filter.Status));
+        }
+        if (!string.IsNullOrEmpty(filter?.Channel))
+        {
+            filters.Add(builder.Eq(x => x.Channel, filter.Channel));
+        }
+        if (!string.IsNullOrEmpty(filter?.UserId))
+        {
+            filters.Add(builder.Eq(x => x.UserId, filter.UserId));
+        }
+        if (!string.IsNullOrEmpty(filter?.TaskId))
+        {
+            filters.Add(builder.Eq(x => x.TaskId, filter.TaskId));
+        }
+        if (filter?.StartTime != null)
+        {
+            filters.Add(builder.Gte(x => x.CreatedTime, filter.StartTime.Value));
+        }
 
         // Check states
-        if (!filter.States.IsNullOrEmpty())
+        if (filter != null && !filter.States.IsNullOrEmpty())
         {
             var targetConvIds = new List<string>();
 
