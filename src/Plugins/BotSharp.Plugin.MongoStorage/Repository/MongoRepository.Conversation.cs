@@ -381,7 +381,7 @@ public partial class MongoRepository
         var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreateTime;
         var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundStates = _dc.ConversationStates.Find(stateFilter).FirstOrDefault();
-        if (foundStates == null || foundStates.States.IsNullOrEmpty()) return false;
+        // if (foundStates == null || foundStates.States.IsNullOrEmpty()) return false;
 
         var truncatedStates = new List<StateMongoElement>();
         foreach (var state in foundStates.States)
