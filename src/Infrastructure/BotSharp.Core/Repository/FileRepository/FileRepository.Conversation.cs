@@ -10,6 +10,10 @@ namespace BotSharp.Core.Repository
     {
         public void CreateNewConversation(Conversation conversation)
         {
+            var utcNow = DateTime.UtcNow;
+            conversation.CreatedTime = utcNow;
+            conversation.UpdatedTime = utcNow;
+
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversation.Id);
             if (!Directory.Exists(dir))
             {
@@ -41,6 +45,20 @@ namespace BotSharp.Core.Repository
                     }
                 }).ToList();
                 File.WriteAllText(stateFile, JsonSerializer.Serialize(initialStates, _options));
+            }
+
+            var breakpointFile = Path.Combine(dir, BREAKPOINT_FILE);
+            if (!File.Exists(breakpointFile))
+            {
+                var initialBreakpoints = new List<ConversationBreakpoint>
+                {
+                    new ConversationBreakpoint()
+                    {
+                        Breakpoint = utcNow.AddMilliseconds(-100),
+                        CreatedTime = DateTime.UtcNow
+                    }
+                };
+                File.WriteAllText(breakpointFile, JsonSerializer.Serialize(initialBreakpoints, _options));
             }
         }
 
@@ -142,21 +160,61 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        public void UpdateConversationBreakpoint(string conversationId, DateTime breakpoint)
+        public void UpdateConversationBreakpoint(string conversationId, string messageId, DateTime breakpoint)
         {
             var convDir = FindConversationDirectory(conversationId);
             if (!string.IsNullOrEmpty(convDir))
             {
-                var convFile = Path.Combine(convDir, CONVERSATION_FILE);
-                var content = File.ReadAllText(convFile);
-                var record = JsonSerializer.Deserialize<Conversation>(content, _options);
-                if (record != null)
+                var breakpointFile = Path.Combine(convDir, BREAKPOINT_FILE);
+
+                if (!File.Exists(breakpointFile))
                 {
-                    record.UpdatedTime = DateTime.UtcNow;
-                    record.Breakpoint = breakpoint;
-                    File.WriteAllText(convFile, JsonSerializer.Serialize(record, _options));
+                    File.Create(breakpointFile);
                 }
+
+                var content = File.ReadAllText(breakpointFile);
+                var records = JsonSerializer.Deserialize<List<ConversationBreakpoint>>(content, _options);
+                var newBreakpoint = new List<ConversationBreakpoint>()
+                {
+                    new ConversationBreakpoint
+                    {
+                        MessageId = messageId,
+                        Breakpoint = breakpoint,
+                        CreatedTime = DateTime.UtcNow
+                    }
+                };
+
+                if (records != null && !records.IsNullOrEmpty())
+                {
+                    records = records.Concat(newBreakpoint).ToList();
+                }
+                else
+                {
+                    records = newBreakpoint;
+                }
+
+                File.WriteAllText(breakpointFile, JsonSerializer.Serialize(records, _options));
             }
+        }
+
+        public DateTime GetConversationBreakpoint(string conversationId)
+        {
+            var convDir = FindConversationDirectory(conversationId);
+            if (string.IsNullOrEmpty(convDir))
+            {
+                return default;
+            }
+
+            var breakpointFile = Path.Combine(convDir, BREAKPOINT_FILE);
+            if (!File.Exists(breakpointFile))
+            {
+                File.Create(breakpointFile);
+            }
+
+            var content = File.ReadAllText(breakpointFile);
+            var records = JsonSerializer.Deserialize<List<ConversationBreakpoint>>(content, _options);
+
+            return records?.LastOrDefault()?.Breakpoint ?? default;
         }
 
         public ConversationState GetConversationStates(string conversationId)
@@ -425,6 +483,11 @@ namespace BotSharp.Core.Repository
             var states = CollectConversationStates(stateDir);
             isSaved = HandleTruncatedStates(stateDir, states, refTime);
 
+            // Handle truncated breakpoints
+            var breakpointDir = Path.Combine(convDir, BREAKPOINT_FILE);
+            var breakpoints = CollectConversationBreakpoints(breakpointDir);
+            isSaved = HandleTruncatedBreakpoints(breakpointDir, breakpoints, messageId);
+
             // Remove logs
             if (cleanLog)
             {
@@ -485,7 +548,7 @@ namespace BotSharp.Core.Repository
             foreach (var element in dialogs)
             {
                 var meta = element.MetaData;
-                var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt", CultureInfo.InvariantCulture);
+                var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.ffffff tt", CultureInfo.InvariantCulture);
                 var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}|{element.RichContent}";
                 dialogTexts.Add(metaStr);
                 var content = $"  - {element.Content}";
@@ -505,6 +568,18 @@ namespace BotSharp.Core.Repository
 
             states = JsonSerializer.Deserialize<List<StateKeyValue>>(stateStr, _options);
             return states ?? new List<StateKeyValue>();
+        }
+
+        private List<ConversationBreakpoint> CollectConversationBreakpoints(string breakpointFile)
+        {
+            var breakpoints = new List<ConversationBreakpoint>();
+            if (!File.Exists(breakpointFile)) return breakpoints;
+
+            var content = File.ReadAllText(breakpointFile);
+            if (string.IsNullOrEmpty(content)) return breakpoints;
+
+            breakpoints = JsonSerializer.Deserialize<List<ConversationBreakpoint>>(content, _options);
+            return breakpoints ?? new List<ConversationBreakpoint>();
         }
 
         private bool HandleTruncatedDialogs(string convDir, string dialogDir, List<DialogElement> dialogs, int foundIdx)
@@ -535,6 +610,16 @@ namespace BotSharp.Core.Repository
             }
 
             var isSaved = SaveTruncatedStates(stateDir, truncatedStates);
+            return isSaved;
+        }
+
+        private bool HandleTruncatedBreakpoints(string breakpointDir, List<ConversationBreakpoint> breakpoints, string refMessageId)
+        {
+            var targetIdx = breakpoints.FindIndex(x => x.MessageId == refMessageId);
+            var truncatedBreakpoints = breakpoints?.Where((x, idx) => idx < targetIdx)?
+                                                   .ToList() ?? new List<ConversationBreakpoint>();
+
+            var isSaved = SaveTruncatedBreakpoints(breakpointDir, truncatedBreakpoints);
             return isSaved;
         }
 
@@ -593,6 +678,16 @@ namespace BotSharp.Core.Repository
 
             var stateStr = JsonSerializer.Serialize(states, _options);
             File.WriteAllText(stateDir, stateStr);
+            return true;
+        }
+
+        private bool SaveTruncatedBreakpoints(string breakpointDir, List<ConversationBreakpoint> breakpoints)
+        {
+            if (string.IsNullOrEmpty(breakpointDir) || breakpoints == null) return false;
+            if (!File.Exists(breakpointDir)) File.Create(breakpointDir);
+
+            var breakpointStr = JsonSerializer.Serialize(breakpoints, _options);
+            File.WriteAllText(breakpointDir, breakpointStr);
             return true;
         }
         #endregion
