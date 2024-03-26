@@ -32,8 +32,6 @@ public partial class ConversationService
             message.SenderId = _user.Id;
         }
 
-        _storage.Append(_conversationId, message);
-
         var conv = _services.GetRequiredService<IConversationService>();
         var dialogs = conv.GetDialogHistory();
 
@@ -71,6 +69,12 @@ public partial class ConversationService
                 break;
             }
         }
+
+        // Persist to storage
+        _storage.Append(_conversationId, message);
+
+        // Add to thread
+        dialogs.Add(message);
 
         if (!stopCompletion)
         {
