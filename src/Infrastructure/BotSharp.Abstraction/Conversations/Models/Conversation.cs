@@ -28,12 +28,6 @@ public class Conversation
 
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
-
-    /// <summary>
-    /// The default value will be same as CreatedTime
-    /// It used to insert a breakpoint in the conversation to hide the previous dialogs.
-    /// </summary>
-    public DateTime Breakpoint { get; set; } = DateTime.UtcNow.AddMilliseconds(-100);
 }
 
 public class DialogElement

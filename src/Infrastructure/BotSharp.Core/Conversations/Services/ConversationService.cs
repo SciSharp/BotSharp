@@ -111,8 +111,8 @@ public partial class ConversationService : IConversationService
         if (fromBreakpoint)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var conversation = db.GetConversation(_conversationId);
-            dialogs = dialogs.Where(x => x.CreatedAt >= conversation.Breakpoint).ToList();
+            var breakpoint = db.GetConversationBreakpoint(_conversationId);
+            dialogs = dialogs.Where(x => x.CreatedAt >= breakpoint).ToList();
         }
 
         return dialogs

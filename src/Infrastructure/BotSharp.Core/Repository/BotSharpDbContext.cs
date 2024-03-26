@@ -189,9 +189,12 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public void UpdateConversationTitle(string conversationId, string title)
         => new NotImplementedException();
 
-    public void UpdateConversationBreakpoint(string conversationId, DateTime breakpoint)
+    public void UpdateConversationBreakpoint(string conversationId, string messageId, DateTime breakpoint)
         => new NotImplementedException();
-    
+
+    public DateTime GetConversationBreakpoint(string conversationId)
+        => throw new NotImplementedException();
+
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
         => new NotImplementedException();
 
