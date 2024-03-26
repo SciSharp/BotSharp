@@ -162,11 +162,10 @@ public class ConversationController : ControllerBase
         }
 
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
-        conv.SetConversationId(conversationId, input.States);
-
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
+        conv.SetConversationId(conversationId, input.States);
         conv.States.SetState("channel", input.Channel)
                    .SetState("provider", input.Provider)
                    .SetState("model", input.Model)
