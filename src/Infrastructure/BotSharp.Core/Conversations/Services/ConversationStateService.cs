@@ -145,8 +145,13 @@ public class ConversationStateService : IConversationStateService, IDisposable
             var lastValue = value.Values.LastOrDefault();
             if (lastValue == null || !lastValue.Active) continue;
 
-            lastValue.Active = false;
-            lastValue.UpdateTime = utcNow;
+            value.Values.Add(new StateValue
+            {
+                Data = lastValue.Data,
+                MessageId = lastValue.MessageId,
+                Active = false,
+                UpdateTime = utcNow
+            });
         }
     }
 
