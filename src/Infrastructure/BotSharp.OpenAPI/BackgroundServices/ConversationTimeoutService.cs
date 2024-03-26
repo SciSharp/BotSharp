@@ -36,7 +36,6 @@ namespace BotSharp.OpenAPI.BackgroundServices
                     try
                     {
                         await CleanIdleConversationsAsync();
-                        await CloseIdleConversationsAsync(TimeSpan.FromMinutes(10));
                     }
                     catch (Exception ex)
                     {
@@ -52,37 +51,6 @@ namespace BotSharp.OpenAPI.BackgroundServices
         {
             _logger.LogInformation("Conversation Timeout Service is stopping.");
             await base.StopAsync(stoppingToken);
-        }
-
-        private async Task CloseIdleConversationsAsync(TimeSpan conversationIdleTimeout)
-        {
-            using var scope = _services.CreateScope();
-            var conversationService = scope.ServiceProvider.GetRequiredService<IConversationService>();
-            var hooks = scope.ServiceProvider.GetServices<IConversationHook>()
-                .OrderBy(x => x.Priority)
-                .ToList();
-            var moment = DateTime.UtcNow.Add(-conversationIdleTimeout);
-            var conversations = (await conversationService.GetLastConversations()).Where(c => c.CreatedTime <= moment);
-            foreach (var conversation in conversations)
-            {
-                try
-                {
-                    var response = new RoleDialogModel(AgentRole.Assistant, "End the conversation due to timeout.")
-                    {
-                        StopCompletion = true,
-                        FunctionName = "conversation_end"
-                    };
-
-                    foreach (var hook in hooks)
-                    {
-                        await hook.OnConversationEnding(response);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Error occurred closing conversation #{conversation.Id}.");
-                }
-            }
         }
 
         private async Task CleanIdleConversationsAsync()

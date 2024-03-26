@@ -27,6 +27,7 @@ public partial class ConversationService
 #endif
 
         message.CurrentAgentId = agent.Id;
+        message.CreatedAt = DateTime.UtcNow;
         if (string.IsNullOrEmpty(message.SenderId))
         {
             message.SenderId = _user.Id;

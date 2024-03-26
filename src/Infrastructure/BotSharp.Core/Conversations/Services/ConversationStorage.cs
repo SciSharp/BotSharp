@@ -46,7 +46,7 @@ public class ConversationStorage : IConversationStorage
                 AgentId = agentId,
                 MessageId = dialog.MessageId,
                 FunctionName = dialog.FunctionName,
-                CreateTime = DateTime.UtcNow
+                CreateTime = dialog.CreatedAt
             }; 
             
             var content = dialog.Content.RemoveNewLine();
@@ -65,7 +65,7 @@ public class ConversationStorage : IConversationStorage
                 MessageId = dialog.MessageId,
                 SenderId = dialog.SenderId,
                 FunctionName = dialog.FunctionName,
-                CreateTime = DateTime.UtcNow
+                CreateTime = dialog.CreatedAt
             };
             
             var content = dialog.Content.RemoveNewLine();

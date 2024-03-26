@@ -64,13 +64,13 @@ public partial class MongoRepository
     {
         if (log == null) return;
 
-        var conversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-        var messageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        var found = _dc.Conversations.AsQueryable().FirstOrDefault(x => x.Id == log.ConversationId);
+        if (found == null) return;
 
         var logDoc = new ConversationContentLogDocument
         {
-            ConversationId = conversationId,
-            MessageId = messageId,
+            ConversationId = log.ConversationId,
+            MessageId = log.MessageId,
             Name = log.Name,
             AgentId = log.AgentId,
             Role = log.Role,
@@ -109,13 +109,13 @@ public partial class MongoRepository
     {
         if (log == null) return;
 
-        var conversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
-        var messageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
+        var found = _dc.Conversations.AsQueryable().FirstOrDefault(x => x.Id == log.ConversationId);
+        if (found == null) return;
 
         var logDoc = new ConversationStateLogDocument
         {
-            ConversationId = conversationId,
-            MessageId = messageId,
+            ConversationId = log.ConversationId,
+            MessageId = log.MessageId,
             States = log.States,
             CreateTime = log.CreateTime
         };

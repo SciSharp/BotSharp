@@ -345,7 +345,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Role = input.Message.Role,
             Content = input.Log,
             Source = input.Source,
-            CreateTime = DateTime.UtcNow
+            CreateTime = input.Message.CreatedAt
         };
 
         var json = JsonSerializer.Serialize(output, _options.JsonSerializerOptions);
@@ -367,7 +367,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             ConversationId = conversationId,
             MessageId = message.MessageId,
             States = states,
-            CreateTime = DateTime.UtcNow
+            CreateTime = message.CreatedAt
         };
 
         var convSettings = _services.GetRequiredService<ConversationSetting>();

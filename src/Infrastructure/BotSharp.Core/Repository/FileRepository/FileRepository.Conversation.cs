@@ -481,7 +481,7 @@ namespace BotSharp.Core.Repository
             var refTime = dialogs.ElementAt(foundIdx).MetaData.CreateTime;
             var stateDir = Path.Combine(convDir, STATE_FILE);
             var states = CollectConversationStates(stateDir);
-            isSaved = HandleTruncatedStates(stateDir, states, refTime);
+            isSaved = HandleTruncatedStates(stateDir, states, messageId, refTime);
 
             // Handle truncated breakpoints
             var breakpointDir = Path.Combine(convDir, BREAKPOINT_FILE);
@@ -597,12 +597,20 @@ namespace BotSharp.Core.Repository
             return isSaved;
         }
 
-        private bool HandleTruncatedStates(string stateDir, List<StateKeyValue> states, DateTime refTime)
+        private bool HandleTruncatedStates(string stateDir, List<StateKeyValue> states, string refMsgId, DateTime refTime)
         {
             var truncatedStates = new List<StateKeyValue>();
             foreach (var state in states)
             {
-                var values = state.Values.Where(x => x.UpdateTime < refTime).ToList();
+                if (!state.Versioning)
+                {
+                    truncatedStates.Add(state);
+                    continue;
+                }
+
+                var values = state.Values.Where(x => x.MessageId != refMsgId)
+                                         .Where(x => x.UpdateTime < refTime)
+                                         .ToList();
                 if (values.Count == 0) continue;
 
                 state.Values = values;
