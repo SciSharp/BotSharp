@@ -74,7 +74,7 @@ public partial class ConversationService
         _storage.Append(_conversationId, message);
 
         // Add to thread
-        dialogs.Add(message);
+        dialogs.Add(RoleDialogModel.From(message));
 
         if (!stopCompletion)
         {
