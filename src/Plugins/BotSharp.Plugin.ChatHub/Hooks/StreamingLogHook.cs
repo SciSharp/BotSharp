@@ -203,7 +203,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Name = agent.Name,
             AgentId = agentId,
             ConversationId = conversationId,
-            Source = ContentLogSource.FunctionCall,
+            Source = ContentLogSource.HardRule,
             Message = new RoleDialogModel(AgentRole.Assistant, "OnBreakpointUpdated")
             {
                 MessageId = _routingCtx.MessageId
