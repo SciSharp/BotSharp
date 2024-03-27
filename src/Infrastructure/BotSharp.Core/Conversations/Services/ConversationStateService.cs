@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -33,7 +33,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// <param name="value"></param>
     /// <param name="isNeedVersion">whether the state is related to message or not</param>
     /// <returns></returns>
-    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true)
+    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true, int activeRounds = -1)
     {
         if (value == null)
         {
@@ -69,6 +69,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 Data = currentValue,
                 MessageId = routingCtx.MessageId,
                 Active = true,
+                ActiveRounds = activeRounds > 0 ? activeRounds : -1,
                 UpdateTime = DateTime.UtcNow,
             };
 
@@ -90,7 +91,16 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         _conversationId = conversationId;
 
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+        var curMsgId = routingCtx.MessageId;
         _states = _db.GetConversationStates(_conversationId);
+        var dialogs = _db.GetConversationDialogs(_conversationId);
+        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.Client)
+                                 .OrderBy(x => x.MetaData?.CreateTime)
+                                 .ToList();
+
+        var curMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(curMsgId) && x.MetaData?.MessageId == curMsgId);
+        curMsgIndex = curMsgIndex < 0 ? userDialogs.Count() : curMsgIndex;
         var curStates = new Dictionary<string, string>();
 
         if (!_states.IsNullOrEmpty())
@@ -99,6 +109,23 @@ public class ConversationStateService : IConversationStateService, IDisposable
             {
                 var value = state.Value?.Values?.LastOrDefault();
                 if (value == null || !value.Active) continue;
+
+                if (value.ActiveRounds > 0)
+                {
+                    var stateMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(x.MetaData?.MessageId) && x.MetaData.MessageId == value.MessageId);
+                    if (stateMsgIndex >= 0 && curMsgIndex - stateMsgIndex >= value.ActiveRounds)
+                    {
+                        state.Value.Values.Add(new StateValue
+                        {
+                            Data = value.Data,
+                            MessageId = value.MessageId,
+                            Active = false,
+                            ActiveRounds = value.ActiveRounds,
+                            UpdateTime = DateTime.UtcNow
+                        });
+                        continue;
+                    }
+                }
 
                 var data = value.Data ?? string.Empty;
                 curStates[state.Key] = data;
@@ -150,6 +177,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 Data = lastValue.Data,
                 MessageId = lastValue.MessageId,
                 Active = false,
+                ActiveRounds = lastValue.ActiveRounds,
                 UpdateTime = utcNow
             });
         }

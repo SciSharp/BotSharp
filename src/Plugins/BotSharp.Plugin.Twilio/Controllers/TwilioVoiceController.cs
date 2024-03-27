@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using BotSharp.Plugin.Twilio.Services;
+using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
 
@@ -47,18 +48,22 @@ public class TwilioVoiceController : TwilioController
     {
         string sessionId = $"TwilioVoice_{input.CallSid}";
 
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.SpeechResult);
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(sessionId, new List<string>
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.SetMessageId(sessionId, inputMsg.MessageId);
+
+        conv.SetConversationId(sessionId, new List<MessageState>
         {
-            $"channel={ConversationChannel.Phone}",
-            $"calling_phone={input.DialCallSid}"
+            new MessageState("channel", ConversationChannel.Phone),
+            new MessageState("calling_phone", input.DialCallSid)
         });
 
         var twilio = _services.GetRequiredService<TwilioService>();
         VoiceResponse response = default;
 
         var result = await conv.SendMessage(agentId,
-            new RoleDialogModel(AgentRole.User, input.SpeechResult),
+            inputMsg,
             replyMessage: null,
             async msg =>
             {

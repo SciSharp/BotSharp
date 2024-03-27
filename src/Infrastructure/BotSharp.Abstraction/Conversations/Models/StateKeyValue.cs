@@ -23,9 +23,12 @@ public class StateValue
     public string Data { get; set; }
 
     [JsonPropertyName("message_id")]
-    public string MessageId { get; set; }
+    public string? MessageId { get; set; }
 
     public bool Active { get; set; }
+
+    [JsonPropertyName("active_rounds")]
+    public int ActiveRounds { get; set; }
 
     [JsonPropertyName("update_time")]
     public DateTime UpdateTime { get; set; }

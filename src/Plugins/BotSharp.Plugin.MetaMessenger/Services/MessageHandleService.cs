@@ -1,7 +1,10 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.Routing;
 using System.Text.Json.Serialization.Metadata;
 
 namespace BotSharp.Plugin.MetaMessenger.Services;
@@ -52,15 +55,18 @@ public class MessageHandleService
             });
 
         // Go to LLM
+        var inputMsg = new RoleDialogModel(AgentRole.User, message);
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(sender, new List<string>
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.SetMessageId(sender, inputMsg.MessageId);
+        conv.SetConversationId(sender, new List<MessageState>
         {
-            $"channel={ConversationChannel.Messenger}"
+            new MessageState("channel", ConversationChannel.Messenger)
         });
 
         var replies = new List<IRichMessage>();
         var result = await conv.SendMessage(agentId,
-            new RoleDialogModel(AgentRole.User, message),
+            inputMsg,
             replyMessage: null, 
             async msg =>
             {
