@@ -453,7 +453,15 @@ public partial class MongoRepository
                 var truncatedStates = new List<StateMongoElement>();
                 foreach (var state in foundStates.States)
                 {
-                    var values = state.Values.Where(x => x.UpdateTime < refTime).ToList();
+                    if (!state.Versioning)
+                    {
+                        truncatedStates.Add(state);
+                        continue;
+                    }
+
+                    var values = state.Values.Where(x => x.MessageId != messageId)
+                                             .Where(x => x.UpdateTime < refTime)
+                                             .ToList();
                     if (values.Count == 0) continue;
 
                     state.Values = values;

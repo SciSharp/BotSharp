@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -161,6 +162,9 @@ public class ConversationController : ControllerBase
         }
 
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
+
         conv.SetConversationId(conversationId, input.States);
         conv.States.SetState("channel", input.Channel)
                    .SetState("provider", input.Provider)
