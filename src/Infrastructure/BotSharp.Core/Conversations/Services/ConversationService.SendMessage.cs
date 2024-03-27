@@ -53,7 +53,7 @@ public partial class ConversationService
             hook.SetAgent(agent)
                 .SetConversation(conversation);
 
-            if (replyMessage == null)
+            if (replyMessage == null || string.IsNullOrEmpty(replyMessage.FunctionName))
             {
                 await hook.OnMessageReceived(message);
             }

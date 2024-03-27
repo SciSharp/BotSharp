@@ -48,6 +48,9 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public string ImageUrl { get; set; }
 
+    /// <summary>
+    /// Remember to set Message.Content as well
+    /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RichContent<IRichMessage>? RichContent { get; set; }
 
