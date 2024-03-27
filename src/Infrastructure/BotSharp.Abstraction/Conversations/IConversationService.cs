@@ -8,7 +8,7 @@ public interface IConversationService
     IConversationStateService States { get; }
     string ConversationId { get; }
     Task<Conversation> NewConversation(Conversation conversation);
-    void SetConversationId(string conversationId, List<string> states);
+    void SetConversationId(string conversationId, List<MessageState> states);
     Task<Conversation> GetConversation(string id);
     Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter);
     Task<Conversation> UpdateConversationTitle(string id, string title);

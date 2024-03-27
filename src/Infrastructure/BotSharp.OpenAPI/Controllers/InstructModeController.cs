@@ -22,7 +22,7 @@ public class InstructModeController : ControllerBase
         [FromBody] InstructMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
         state.SetState("provider", input.Provider)
             .SetState("model", input.Model)
             .SetState("model_id", input.ModelId)
@@ -44,7 +44,7 @@ public class InstructModeController : ControllerBase
     public async Task<string> TextCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
         state.SetState("provider", input.Provider)
             .SetState("model", input.Model)
             .SetState("model_id", input.ModelId);
@@ -57,7 +57,7 @@ public class InstructModeController : ControllerBase
     public async Task<string> ChatCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
         state.SetState("provider", input.Provider)
             .SetState("model", input.Model)
             .SetState("model_id", input.ModelId);
