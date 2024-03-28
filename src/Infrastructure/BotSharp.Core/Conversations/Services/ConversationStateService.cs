@@ -118,7 +118,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                         state.Value.Values.Add(new StateValue
                         {
                             Data = value.Data,
-                            MessageId = value.MessageId,
+                            MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : value.MessageId,
                             Active = false,
                             ActiveRounds = value.ActiveRounds,
                             UpdateTime = DateTime.UtcNow
@@ -163,7 +163,10 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void CleanStates()
     {
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+        var curMsgId = routingCtx.MessageId;
         var utcNow = DateTime.UtcNow;
+
         foreach (var key in _states.Keys)
         {
             var value = _states[key];
@@ -175,7 +178,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             value.Values.Add(new StateValue
             {
                 Data = lastValue.Data,
-                MessageId = lastValue.MessageId,
+                MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : lastValue.MessageId,
                 Active = false,
                 ActiveRounds = lastValue.ActiveRounds,
                 UpdateTime = utcNow
