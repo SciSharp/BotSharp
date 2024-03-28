@@ -45,6 +45,10 @@ public class MessageParser
                 {
                     res = JsonSerializer.Deserialize<GenericTemplateMessage<GenericElement>>(jsonText, options);
                 }
+                else if (elementType == typeof(ButtonElement).Name)
+                {
+                    res = JsonSerializer.Deserialize<GenericTemplateMessage<ButtonElement>>(jsonText, options);
+                }
             }
         }
 
@@ -79,6 +83,10 @@ public class MessageParser
                 if (elementType == typeof(GenericElement).Name)
                 {
                     res = JsonSerializer.Deserialize<GenericTemplateMessage<GenericElement>>(jsonText, options);
+                }
+                else if (elementType == typeof(ButtonElement).Name)
+                {
+                    res = JsonSerializer.Deserialize<GenericTemplateMessage<ButtonElement>>(jsonText, options);
                 }
             }
         }
