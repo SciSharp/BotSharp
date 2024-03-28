@@ -10,7 +10,7 @@ public class Embeddings
     public Embeddings(string apiKey, string basicAddress = "https://open.bigmodel.cn/api/paas/v4/")
     {
         this._apiKey = apiKey;
-        this._baseAddress = basicAddress;
+        this._baseAddress = basicAddress.TrimEnd('/');
     }
 
 

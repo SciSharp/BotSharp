@@ -33,7 +33,7 @@ public class Chat
     public Chat(string apiKey, string basicAddress = "https://open.bigmodel.cn/api/paas/v4/")
     {
         this._apiKey = apiKey;
-        this._baseAddress = basicAddress;
+        this._baseAddress = basicAddress.TrimEnd('/');
     }
 
     private async IAsyncEnumerable<string> CompletionBase(TextRequestBase textRequestBody,string apiKey)
