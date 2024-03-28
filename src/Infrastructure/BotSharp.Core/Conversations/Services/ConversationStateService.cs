@@ -52,12 +52,20 @@ public class ConversationStateService : IConversationStateService, IDisposable
         if (!ContainsState(name) || preValue != currentValue)
         {
             _logger.LogInformation($"[STATE] {name} = {value}");
+            var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
             foreach (var hook in hooks)
             {
-                hook.OnStateChanged(name, preValue, currentValue).Wait();
+                hook.OnStateChanged(new StateChangeModel
+                {
+                    ConversationId = _conversationId,
+                    MessageId = routingCtx.MessageId,
+                    Name = name,
+                    BeforeValue = preValue,
+                    AfterValue = currentValue
+                }).Wait();
             }
-
-            var routingCtx = _services.GetRequiredService<IRoutingContext>();
+            
             var newPair = new StateKeyValue
             {
                 Key = name,
@@ -118,7 +126,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                         state.Value.Values.Add(new StateValue
                         {
                             Data = value.Data,
-                            MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : value.MessageId,
+                            MessageId = curMsgId,
                             Active = false,
                             ActiveRounds = value.ActiveRounds,
                             UpdateTime = DateTime.UtcNow
@@ -178,7 +186,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             value.Values.Add(new StateValue
             {
                 Data = lastValue.Data,
-                MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : lastValue.MessageId,
+                MessageId = curMsgId,
                 Active = false,
                 ActiveRounds = lastValue.ActiveRounds,
                 UpdateTime = utcNow

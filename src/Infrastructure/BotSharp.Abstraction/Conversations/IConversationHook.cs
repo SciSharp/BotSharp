@@ -43,7 +43,7 @@ public interface IConversationHook
     Task OnDialogRecordLoaded(RoleDialogModel dialog);
 
     Task OnStateLoaded(ConversationState state);
-    Task OnStateChanged(string name, string preValue, string currentValue);
+    Task OnStateChanged(StateChangeModel stateChange);
 
     Task OnMessageReceived(RoleDialogModel message);
     Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg);
