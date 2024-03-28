@@ -7,6 +7,8 @@ public  class MetaGLMSettings
     /// </summary>
     public string ApiKey { get; set; }
 
+    public string BaseAddress { get; set; } = "https://open.bigmodel.cn/api/paas/v4/";
+
     public string ModelId { get; set; }
 
     public double Temperature { get; set; }

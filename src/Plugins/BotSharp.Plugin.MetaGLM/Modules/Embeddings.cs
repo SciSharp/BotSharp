@@ -3,27 +3,30 @@ namespace BotSharp.Plugin.MetaGLM.Modules;
 public class Embeddings
 {
     private string _apiKey;
+    private string _baseAddress;
     private static readonly int API_TOKEN_TTL_SECONDS = 60 * 5;
     static readonly HttpClient client = new();
 
-    public Embeddings(string apiKey)
+    public Embeddings(string apiKey, string basicAddress = "https://open.bigmodel.cn/api/paas/v4/")
     {
         this._apiKey = apiKey;
+        this._baseAddress = basicAddress;
     }
 
-    private IEnumerable<string> ProcessBase(EmbeddingRequestBase requestBody, string apiKey)
+
+    private IEnumerable<string> ProcessBase(EmbeddingRequestBase requestBody)
     {
         var json = JsonSerializer.Serialize(requestBody);
         // Console.WriteLine(JsonSerializer.Serialize(requestBody));
         // Console.WriteLine("----1----");
         // Console.WriteLine(json);
         var data = new StringContent(json, Encoding.UTF8, "application/json");
-        var api_key = AuthenticationUtils.GenerateToken(apiKey, API_TOKEN_TTL_SECONDS);
+        var api_key = AuthenticationUtils.GenerateToken(_apiKey, API_TOKEN_TTL_SECONDS);
 
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Post,
-            RequestUri = new Uri("https://open.bigmodel.cn/api/paas/v4/embeddings"),
+            RequestUri = new Uri($"{_baseAddress}/embeddings"),
             Content = data,
             Headers =
             {
@@ -43,10 +46,10 @@ public class Embeddings
         }
     }
 
-    public EmbeddingResponseBase Process(EmbeddingRequestBase requestBody, string apiKey)
+    public EmbeddingResponseBase Process(EmbeddingRequestBase requestBody)
     {
         var sb = new StringBuilder();
-        foreach (var str in ProcessBase(requestBody,apiKey))
+        foreach (var str in ProcessBase(requestBody))
         {
             sb.Append(str);
         }

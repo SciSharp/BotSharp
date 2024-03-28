@@ -2,7 +2,7 @@ using BotSharp.Plugin.MetaGLM.Modules;
 
 namespace BotSharp.Plugin.MetaGLM
 {
-    public class MetaGLMClientV4
+    public class MetaGLMClient
     {
         private MetaGLMSettings _settings;
 
@@ -12,12 +12,12 @@ namespace BotSharp.Plugin.MetaGLM
 
         public Embeddings Embeddings { get; private set; } 
 
-        public MetaGLMClientV4(MetaGLMSettings settings)
+        public MetaGLMClient(MetaGLMSettings settings)
         {
             this._settings = settings;
-            this.Chat = new Chat(this._settings.ApiKey);
-            this.Images = new Images(this._settings.ApiKey);
-            this.Embeddings = new Embeddings(this._settings.ApiKey);
+            this.Chat = new Chat(this._settings.ApiKey, _settings.BaseAddress);
+            this.Images = new Images(this._settings.ApiKey, _settings.BaseAddress);
+            this.Embeddings = new Embeddings(this._settings.ApiKey, _settings.BaseAddress);
         }
     }
 }

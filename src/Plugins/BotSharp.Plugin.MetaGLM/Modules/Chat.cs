@@ -1,23 +1,24 @@
 namespace BotSharp.Plugin.MetaGLM.Modules;
 
-public enum ModelPortal
-{
-    Regular,
-    Character,
-}
+//public enum ModelPortal
+//{
+//    Regular,
+//    Character,
+//}
 
 public class Chat
 {
     private string _apiKey;
+    private string _baseAddress;
 
     private static readonly int API_TOKEN_TTL_SECONDS = 60 * 5;
 
     private static readonly HttpClient client = new();
 
-    private static readonly Dictionary<ModelPortal, string> PORTAL_URLS = new()
-    {
-        { ModelPortal.Regular , "https://open.bigmodel.cn/api/paas/v4/chat/completions"},
-    };
+    //private static readonly Dictionary<ModelPortal, string> PORTAL_URLS = new()
+    //{
+    //    { ModelPortal.Regular , "https://open.bigmodel.cn/api/paas/v4/chat/completions"},
+    //};
 
     private static readonly JsonSerializerOptions JsonOptions = new ()
     {
@@ -29,9 +30,10 @@ public class Chat
         WriteIndented = true,
     };
 
-    public Chat(string apiKey)
+    public Chat(string apiKey, string basicAddress = "https://open.bigmodel.cn/api/paas/v4/")
     {
         this._apiKey = apiKey;
+        this._baseAddress = basicAddress;
     }
 
     private async IAsyncEnumerable<string> CompletionBase(TextRequestBase textRequestBody,string apiKey)
@@ -43,7 +45,7 @@ public class Chat
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Post,
-            RequestUri = new Uri("https://open.bigmodel.cn/api/paas/v4/chat/completions"),
+            RequestUri = new Uri($"{_baseAddress}/chat/completions"),
             Content = data,
             Headers =
             {

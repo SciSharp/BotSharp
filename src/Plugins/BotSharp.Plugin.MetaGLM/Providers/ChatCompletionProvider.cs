@@ -7,12 +7,12 @@ public class ChatCompletionProvider : IChatCompletion
     private readonly MetaGLMSettings _settings;
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
-    private readonly MetaGLMClientV4 metaGLMClient;
+    private readonly MetaGLMClient metaGLMClient;
     private string _model;
 
     public ChatCompletionProvider(IServiceProvider services,
       MetaGLMSettings settings,
-      MetaGLMClientV4 client,
+      MetaGLMClient client,
       ILogger<ChatCompletionProvider> logger)
     {
         _services = services;

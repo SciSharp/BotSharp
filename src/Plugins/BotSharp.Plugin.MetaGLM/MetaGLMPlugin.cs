@@ -23,7 +23,7 @@ public class MetaGLMPlugin : IBotSharpPlugin
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<MetaGLMSettings>("MetaGLM");
         });
-        services.AddScoped<MetaGLMClientV4>();
+        services.AddScoped<MetaGLMClient>();
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
     }
 }
