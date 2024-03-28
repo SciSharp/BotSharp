@@ -118,7 +118,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                         state.Value.Values.Add(new StateValue
                         {
                             Data = value.Data,
-                            MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : value.MessageId,
+                            MessageId = curMsgId,
                             Active = false,
                             ActiveRounds = value.ActiveRounds,
                             UpdateTime = DateTime.UtcNow
@@ -178,7 +178,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             value.Values.Add(new StateValue
             {
                 Data = lastValue.Data,
-                MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : lastValue.MessageId,
+                MessageId = curMsgId,
                 Active = false,
                 ActiveRounds = lastValue.ActiveRounds,
                 UpdateTime = utcNow
