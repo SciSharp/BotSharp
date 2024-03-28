@@ -213,6 +213,12 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
+    public override async Task OnStateChanged(StateChangeModel stateChange)
+    {
+        if (stateChange == null) return;
+
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnStateChangeGenerated", BuildStateChangeLog(stateChange));
+    }
     #endregion
 
     #region IRoutingHook
@@ -376,6 +382,21 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             var db = _services.GetRequiredService<IBotSharpRepository>();
             db.SaveConversationStateLog(log);
         }
+
+        return JsonSerializer.Serialize(log, _options.JsonSerializerOptions);
+    }
+
+    private string BuildStateChangeLog(StateChangeModel stateChange)
+    {
+        var log = new StateChangeOutputModel
+        {
+            ConversationId = stateChange.ConversationId,
+            MessageId = stateChange.MessageId,
+            Name = stateChange.Name,
+            BeforeValue = stateChange.BeforeValue,
+            AfterValue = stateChange.AfterValue,
+            CreateTime = DateTime.UtcNow
+        };
 
         return JsonSerializer.Serialize(log, _options.JsonSerializerOptions);
     }

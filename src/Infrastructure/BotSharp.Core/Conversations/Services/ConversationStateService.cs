@@ -52,12 +52,20 @@ public class ConversationStateService : IConversationStateService, IDisposable
         if (!ContainsState(name) || preValue != currentValue)
         {
             _logger.LogInformation($"[STATE] {name} = {value}");
+            var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
             foreach (var hook in hooks)
             {
-                hook.OnStateChanged(name, preValue, currentValue).Wait();
+                hook.OnStateChanged(new StateChangeModel
+                {
+                    ConversationId = _conversationId,
+                    MessageId = routingCtx.MessageId,
+                    Name = name,
+                    BeforeValue = preValue,
+                    AfterValue = currentValue
+                }).Wait();
             }
-
-            var routingCtx = _services.GetRequiredService<IRoutingContext>();
+            
             var newPair = new StateKeyValue
             {
                 Key = name,
