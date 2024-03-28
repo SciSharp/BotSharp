@@ -68,6 +68,10 @@ public partial class RoutingService
             message.FunctionName = originalFunctionName;
         }
 
+        // Save to Storage as well
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        storage.Append(Context.ConversationId, message);
+
         return result;
     }
 }

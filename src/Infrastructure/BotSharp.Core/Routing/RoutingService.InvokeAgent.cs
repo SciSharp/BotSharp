@@ -74,9 +74,11 @@ public partial class RoutingService
             else
             {
                 // Save to memory dialogs
-                dialogs.Add(RoleDialogModel.From(message,
+                var msg = RoleDialogModel.From(message,
                     role: AgentRole.Function,
-                    content: message.Content));
+                    content: message.Content);
+
+                dialogs.Add(msg);
 
                 // Send to Next LLM
                 var agentId = routing.Context.GetCurrentAgentId();
