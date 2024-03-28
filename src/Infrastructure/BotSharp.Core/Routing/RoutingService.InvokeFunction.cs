@@ -69,8 +69,11 @@ public partial class RoutingService
         }
 
         // Save to Storage as well
-        var storage = _services.GetRequiredService<IConversationStorage>();
-        storage.Append(Context.ConversationId, message);
+        if (!message.StopCompletion && message.FunctionName != "route_to_agent")
+        {
+            var storage = _services.GetRequiredService<IConversationStorage>();
+            storage.Append(Context.ConversationId, message);
+        }
 
         return result;
     }
