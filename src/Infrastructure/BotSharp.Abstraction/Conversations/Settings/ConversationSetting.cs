@@ -11,8 +11,8 @@ public class ConversationSetting
     public bool EnableExecutionLog { get; set; }
     public bool EnableContentLog { get; set; }
     public bool EnableStateLog { get; set; }
-    public CleanConversationSetting CleanSetting { get; set; }
-    public RateLimitSetting RateLimit { get; set; }
+    public CleanConversationSetting CleanSetting { get; set; } = new CleanConversationSetting();
+    public RateLimitSetting RateLimit { get; set; } = new RateLimitSetting();
 }
 
 public class CleanConversationSetting

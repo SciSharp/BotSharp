@@ -29,7 +29,6 @@ public class TaskCompletedRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<string> Planers => new List<string>
     {
-        nameof(NaivePlanner),
         nameof(HFPlanner)
     };
 

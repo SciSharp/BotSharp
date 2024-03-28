@@ -71,11 +71,7 @@ namespace BotSharp.Core.Repository
             log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
 
             var convDir = FindConversationDirectory(log.ConversationId);
-            if (string.IsNullOrEmpty(convDir))
-            {
-                convDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, log.ConversationId);
-                Directory.CreateDirectory(convDir);
-            }
+            if (string.IsNullOrEmpty(convDir)) return;
 
             var logDir = Path.Combine(convDir, "content_log");
             if (!Directory.Exists(logDir))
@@ -120,11 +116,7 @@ namespace BotSharp.Core.Repository
             log.MessageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
 
             var convDir = FindConversationDirectory(log.ConversationId);
-            if (string.IsNullOrEmpty(convDir))
-            {
-                convDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, log.ConversationId);
-                Directory.CreateDirectory(convDir);
-            }
+            if (string.IsNullOrEmpty(convDir)) return;
 
             var logDir = Path.Combine(convDir, "state_log");
             if (!Directory.Exists(logDir))

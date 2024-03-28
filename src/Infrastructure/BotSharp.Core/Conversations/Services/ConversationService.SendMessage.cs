@@ -27,12 +27,11 @@ public partial class ConversationService
 #endif
 
         message.CurrentAgentId = agent.Id;
+        message.CreatedAt = DateTime.UtcNow;
         if (string.IsNullOrEmpty(message.SenderId))
         {
             message.SenderId = _user.Id;
         }
-
-        _storage.Append(_conversationId, message);
 
         var conv = _services.GetRequiredService<IConversationService>();
         var dialogs = conv.GetDialogHistory();
@@ -54,7 +53,7 @@ public partial class ConversationService
             hook.SetAgent(agent)
                 .SetConversation(conversation);
 
-            if (replyMessage == null)
+            if (replyMessage == null || string.IsNullOrEmpty(replyMessage.FunctionName))
             {
                 await hook.OnMessageReceived(message);
             }
@@ -71,6 +70,12 @@ public partial class ConversationService
                 break;
             }
         }
+
+        // Persist to storage
+        _storage.Append(_conversationId, message);
+
+        // Add to thread
+        dialogs.Add(RoleDialogModel.From(message));
 
         if (!stopCompletion)
         {

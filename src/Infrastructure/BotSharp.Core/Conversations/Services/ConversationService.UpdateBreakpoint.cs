@@ -5,7 +5,9 @@ public partial class ConversationService : IConversationService
     public async Task UpdateBreakpoint(bool resetStates = false)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.UpdateConversationBreakpoint(_conversationId, DateTime.UtcNow);
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+        var messageId = routingCtx.MessageId;
+        db.UpdateConversationBreakpoint(_conversationId, messageId, DateTime.UtcNow);
 
         // Reset states
         if (resetStates)

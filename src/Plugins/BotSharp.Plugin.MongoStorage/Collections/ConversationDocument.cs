@@ -8,7 +8,7 @@ public class ConversationDocument : MongoBase
     public string Title { get; set; }
     public string Channel { get; set; }
     public string Status { get; set; }
+    public int DialogCount { get; set; }
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
-    public DateTime Breakpoint { get; set; }
 }

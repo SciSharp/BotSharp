@@ -52,7 +52,8 @@ public class RateLimitConversationHook : ConversationHookBase
         var convService = _services.GetRequiredService<IConversationService>();
         var results = await convService.GetConversations(new ConversationFilter
         {
-            UserId = user.Id
+            UserId = user.Id,
+            StartTime = DateTime.UtcNow.AddHours(-24),
         });
 
         if (results.Count > rateLimit.MaxConversationPerDay)

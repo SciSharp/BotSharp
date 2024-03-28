@@ -12,7 +12,7 @@ public class MessageParser
     {
     }
 
-    public IRichMessage? ParseRichMessage(string richType, string jsonText, JsonSerializerOptions options)
+    public IRichMessage? ParseRichMessage(string richType, string jsonText, JsonElement root, JsonSerializerOptions options)
     {
         IRichMessage? res = null;
 
@@ -36,11 +36,22 @@ public class MessageParser
         {
             res = JsonSerializer.Deserialize<TextMessage>(jsonText, options);
         }
+        else if (richType == RichTypeEnum.GenericTemplate)
+        {
+            if (root.TryGetProperty("element_type", out var element))
+            {
+                var elementType = element.GetString();
+                if (elementType == typeof(GenericElement).Name)
+                {
+                    res = JsonSerializer.Deserialize<GenericTemplateMessage<GenericElement>>(jsonText, options);
+                }
+            }
+        }
 
         return res;
     }
 
-    public ITemplateMessage? ParseTemplateMessage(string templateType, string jsonText, JsonSerializerOptions options)
+    public ITemplateMessage? ParseTemplateMessage(string templateType, string jsonText, JsonElement root, JsonSerializerOptions options)
     {
         ITemplateMessage? res = null;
 
@@ -59,6 +70,17 @@ public class MessageParser
         else if (templateType == TemplateTypeEnum.Product)
         {
             res = JsonSerializer.Deserialize<ProductTemplateMessage>(jsonText, options);
+        }
+        else if (templateType == TemplateTypeEnum.Generic)
+        {
+            if (root.TryGetProperty("element_type", out var element))
+            {
+                var elementType = element.GetString();
+                if (elementType == typeof(GenericElement).Name)
+                {
+                    res = JsonSerializer.Deserialize<GenericTemplateMessage<GenericElement>>(jsonText, options);
+                }
+            }
         }
 
         return res;

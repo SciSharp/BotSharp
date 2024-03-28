@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Conversations.Models;
 
-public class ConversationState : Dictionary<string, List<StateValue>>
+public class ConversationState : Dictionary<string, StateKeyValue>
 {
     public ConversationState()
     {
@@ -11,7 +11,7 @@ public class ConversationState : Dictionary<string, List<StateValue>>
     {
         foreach (var pair in pairs)
         {
-            this[pair.Key] = pair.Values;
+            this[pair.Key] = pair;
         }
     }
 }

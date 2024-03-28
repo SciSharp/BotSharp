@@ -68,6 +68,7 @@ public partial class InstructService : IInstructService
 
         var completer = CompletionProvider.GetCompletion(_services,
             agentConfig: agent.LlmConfig);
+
         var response = new InstructResult
         {
             MessageId = message.MessageId

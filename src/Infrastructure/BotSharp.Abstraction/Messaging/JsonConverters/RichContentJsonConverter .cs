@@ -16,7 +16,7 @@ public class RichContentJsonConverter : JsonConverter<IRichMessage>
         if (root.TryGetProperty("rich_type", out JsonElement element))
         {
             var richType = element.GetString();
-            res = parser.ParseRichMessage(richType, jsonText, options);
+            res = parser.ParseRichMessage(richType, jsonText, root, options);
         }
 
         return res;

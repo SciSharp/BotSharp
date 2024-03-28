@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Models;
+
 namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
@@ -111,8 +113,8 @@ public partial class ConversationService : IConversationService
         if (fromBreakpoint)
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var conversation = db.GetConversation(_conversationId);
-            dialogs = dialogs.Where(x => x.CreatedAt >= conversation.Breakpoint).ToList();
+            var breakpoint = db.GetConversationBreakpoint(_conversationId);
+            dialogs = dialogs.Where(x => x.CreatedAt >= breakpoint).ToList();
         }
 
         return dialogs
@@ -120,10 +122,10 @@ public partial class ConversationService : IConversationService
             .ToList();
     }
 
-    public void SetConversationId(string conversationId, List<string> states)
+    public void SetConversationId(string conversationId, List<MessageState> states)
     {
         _conversationId = conversationId;
         _state.Load(_conversationId);
-        states.ForEach(x => _state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
     }
 }

@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Users.Enums;
+
 namespace BotSharp.Core.Conversations.Services;
 
 /// <summary>
@@ -31,7 +33,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// <param name="value"></param>
     /// <param name="isNeedVersion">whether the state is related to message or not</param>
     /// <returns></returns>
-    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true)
+    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true, int activeRounds = -1)
     {
         if (value == null)
         {
@@ -42,12 +44,12 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
 
-        if (_states.TryGetValue(name, out var values))
+        if (ContainsState(name) && _states.TryGetValue(name, out var pair))
         {
-            preValue = values?.LastOrDefault()?.Data ?? string.Empty;
+            preValue = pair?.Values.LastOrDefault()?.Data ?? string.Empty;
         }
 
-        if (!_states.ContainsKey(name) || preValue != currentValue)
+        if (!ContainsState(name) || preValue != currentValue)
         {
             _logger.LogInformation($"[STATE] {name} = {value}");
             foreach (var hook in hooks)
@@ -55,19 +57,30 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 hook.OnStateChanged(name, preValue, currentValue).Wait();
             }
 
-            var stateValue = new StateValue
+            var routingCtx = _services.GetRequiredService<IRoutingContext>();
+            var newPair = new StateKeyValue
             {
-                Data = currentValue,
-                UpdateTime = DateTime.UtcNow
+                Key = name,
+                Versioning = isNeedVersion
             };
 
-            if (!_states.ContainsKey(name) || !isNeedVersion)
+            var newValue = new StateValue
             {
-                _states[name] = new List<StateValue> { stateValue };
+                Data = currentValue,
+                MessageId = routingCtx.MessageId,
+                Active = true,
+                ActiveRounds = activeRounds > 0 ? activeRounds : -1,
+                UpdateTime = DateTime.UtcNow,
+            };
+
+            if (!isNeedVersion || !_states.ContainsKey(name))
+            {
+                newPair.Values = new List<StateValue> { newValue };
+                _states[name] = newPair;
             }
             else
             {
-                _states[name].Add(stateValue);
+                _states[name].Values.Add(newValue);
             }
         }
 
@@ -78,16 +91,45 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         _conversationId = conversationId;
 
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+        var curMsgId = routingCtx.MessageId;
         _states = _db.GetConversationStates(_conversationId);
+        var dialogs = _db.GetConversationDialogs(_conversationId);
+        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.Client)
+                                 .OrderBy(x => x.MetaData?.CreateTime)
+                                 .ToList();
+
+        var curMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(curMsgId) && x.MetaData?.MessageId == curMsgId);
+        curMsgIndex = curMsgIndex < 0 ? userDialogs.Count() : curMsgIndex;
         var curStates = new Dictionary<string, string>();
 
         if (!_states.IsNullOrEmpty())
         {
             foreach (var state in _states)
             {
-                var value = state.Value?.LastOrDefault()?.Data ?? string.Empty;
-                curStates[state.Key] = value;
-                _logger.LogInformation($"[STATE] {state.Key} : {value}");
+                var value = state.Value?.Values?.LastOrDefault();
+                if (value == null || !value.Active) continue;
+
+                if (value.ActiveRounds > 0)
+                {
+                    var stateMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(x.MetaData?.MessageId) && x.MetaData.MessageId == value.MessageId);
+                    if (stateMsgIndex >= 0 && curMsgIndex - stateMsgIndex >= value.ActiveRounds)
+                    {
+                        state.Value.Values.Add(new StateValue
+                        {
+                            Data = value.Data,
+                            MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : value.MessageId,
+                            Active = false,
+                            ActiveRounds = value.ActiveRounds,
+                            UpdateTime = DateTime.UtcNow
+                        });
+                        continue;
+                    }
+                }
+
+                var data = value.Data ?? string.Empty;
+                curStates[state.Key] = data;
+                _logger.LogInformation($"[STATE] {state.Key} : {data}");
             }
         }
 
@@ -112,7 +154,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         foreach (var dic in _states)
         {
-            states.Add(new StateKeyValue(dic.Key, dic.Value));
+            states.Add(dic.Value);
         }
 
         _db.UpdateConversationStates(_conversationId, states);
@@ -121,7 +163,27 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void CleanStates()
     {
-        _states.Clear();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+        var curMsgId = routingCtx.MessageId;
+        var utcNow = DateTime.UtcNow;
+
+        foreach (var key in _states.Keys)
+        {
+            var value = _states[key];
+            if (value == null || !value.Versioning || value.Values.IsNullOrEmpty()) continue;
+
+            var lastValue = value.Values.LastOrDefault();
+            if (lastValue == null || !lastValue.Active) continue;
+
+            value.Values.Add(new StateValue
+            {
+                Data = lastValue.Data,
+                MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : lastValue.MessageId,
+                Active = false,
+                ActiveRounds = lastValue.ActiveRounds,
+                UpdateTime = utcNow
+            });
+        }
     }
 
     public Dictionary<string, string> GetStates()
@@ -129,19 +191,22 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var curStates = new Dictionary<string, string>();
         foreach (var state in _states)
         {
-            curStates[state.Key] = state.Value?.LastOrDefault()?.Data ?? string.Empty;
+            var value = state.Value?.Values?.LastOrDefault();
+            if (value == null || !value.Active) continue;
+
+            curStates[state.Key] = value.Data ?? string.Empty;
         }
         return curStates;
     }
 
     public string GetState(string name, string defaultValue = "")
     {
-        if (!_states.ContainsKey(name) || _states[name].IsNullOrEmpty())
+        if (!_states.ContainsKey(name) || _states[name].Values.IsNullOrEmpty() || !_states[name].Values.Last().Active)
         {
             return defaultValue;
         }
 
-        return _states[name].Last().Data;
+        return _states[name].Values.Last().Data;
     }
 
     public void Dispose()
@@ -152,8 +217,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public bool ContainsState(string name)
     {
         return _states.ContainsKey(name)
-            && !_states[name].IsNullOrEmpty()
-            && !string.IsNullOrEmpty(_states[name].Last().Data);
+            && !_states[name].Values.IsNullOrEmpty()
+            && _states[name].Values.LastOrDefault()?.Active == true
+            && !string.IsNullOrEmpty(_states[name].Values.Last().Data);
     }
 
     public void SaveStateByArgs(JsonDocument args)

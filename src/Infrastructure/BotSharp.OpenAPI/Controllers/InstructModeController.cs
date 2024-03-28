@@ -22,9 +22,10 @@ public class InstructModeController : ControllerBase
         [FromBody] InstructMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
         state.SetState("provider", input.Provider)
             .SetState("model", input.Model)
+            .SetState("model_id", input.ModelId)
             .SetState("instruction", input.Instruction)
             .SetState("input_text", input.Text);
 
@@ -43,9 +44,10 @@ public class InstructModeController : ControllerBase
     public async Task<string> TextCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
         state.SetState("provider", input.Provider)
-            .SetState("model", input.Model);
+            .SetState("model", input.Model)
+            .SetState("model_id", input.ModelId);
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
         return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.NewGuid().ToString());
@@ -55,9 +57,10 @@ public class InstructModeController : ControllerBase
     public async Task<string> ChatCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Split('=')[0], x.Split('=')[1]));
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
         state.SetState("provider", input.Provider)
-            .SetState("model", input.Model);
+            .SetState("model", input.Model)
+            .SetState("model_id", input.ModelId);
 
         var textCompletion = CompletionProvider.GetChatCompletion(_services);
         var message = await textCompletion.GetChatCompletions(new Agent()

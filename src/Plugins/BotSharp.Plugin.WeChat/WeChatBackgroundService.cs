@@ -1,6 +1,9 @@
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Plugin.WeChat.Users;
 using Microsoft.AspNetCore.Http;
@@ -50,9 +53,13 @@ namespace BotSharp.Plugin.WeChat
             .OrderByDescending(_ => _.CreatedTime)
             .FirstOrDefault()?.Id;
 
-            conversationService.SetConversationId(latestConversationId, new List<string>
+            var inputMsg = new RoleDialogModel(AgentRole.User, message);
+            var routing = _service.GetRequiredService<IRoutingService>();
+            routing.Context.SetMessageId(latestConversationId, inputMsg.MessageId);
+
+            conversationService.SetConversationId(latestConversationId, new List<MessageState>
             {
-                "channel=wechat" 
+                new MessageState("channel", "wechat")
             });
 
             latestConversationId ??= (await conversationService.NewConversation(new Conversation()
@@ -61,8 +68,8 @@ namespace BotSharp.Plugin.WeChat
                 AgentId = AgentId
             }))?.Id;
 
-            var result = await conversationService.SendMessage(AgentId, 
-                new RoleDialogModel("user", message),
+            var result = await conversationService.SendMessage(AgentId,
+                inputMsg,
                 replyMessage: null, 
                 async msg =>
                 {

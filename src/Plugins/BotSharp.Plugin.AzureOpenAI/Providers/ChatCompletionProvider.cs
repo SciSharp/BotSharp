@@ -18,13 +18,13 @@ namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
 {
-    private readonly AzureOpenAiSettings _settings;
-    private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
-    
-    private string _model;
+    protected readonly AzureOpenAiSettings _settings;
+    protected readonly IServiceProvider _services;
+    protected readonly ILogger _logger;
 
-    public string Provider => "azure-openai";
+    protected string _model;
+
+    public virtual string Provider => "azure-openai";
 
     public ChatCompletionProvider(AzureOpenAiSettings settings, 
         ILogger<ChatCompletionProvider> logger,
@@ -45,7 +45,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetClient(_model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, _services);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
         chatCompletionsOptions.DeploymentName = _model;
         var response = client.GetChatCompletions(chatCompletionsOptions);
@@ -104,7 +104,7 @@ public class ChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetClient(_model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, _services);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
 
         chatCompletionsOptions.DeploymentName = _model;
@@ -161,7 +161,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public async Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived)
     {
-        var client = ProviderHelper.GetClient(_model, _services);
+        var client = ProviderHelper.GetClient(Provider, _model, _services);
         var (prompt, chatCompletionsOptions) = PrepareOptions(agent, conversations);
         chatCompletionsOptions.DeploymentName = _model;
         var response = await client.GetChatCompletionsStreamingAsync(chatCompletionsOptions);
