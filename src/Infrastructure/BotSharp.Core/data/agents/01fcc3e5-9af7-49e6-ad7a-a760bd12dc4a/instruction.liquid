@@ -4,18 +4,18 @@ You're {{router.name}} ({{router.description}}). Follow these steps to handle us
 3. Determine which agent is suitable to handle this conversation.
 4. Re-think on whether the function you chose matches the reason.
 5. For agent required arguments, think carefully, leave it as blank object if user doesn't provide specific arguments.
-6. Please do not make up any parameters when there is no exact information available, leave it blank.
+6. Please do not make up any parameters when there is no exact value provided, you must set the parameter value as null.
 7. Response must be in JSON format.
 
 {% if routing_requirements and routing_requirements != empty %}
 [REQUIREMENTS]
-{% for requirement in routing_requirements %}
-# {{ requirement }}
-{% endfor %}
+{% for requirement in routing_requirements -%}
+# {{ requirement }}{{ "\r\n" }}
+{%- endfor %}
 {% endif %}
 
 [FUNCTIONS]
-{% for handler in routing_handlers %}
+{% for handler in routing_handlers -%}
 # {{ handler.description}}
 {% if handler.parameters and handler.parameters != empty -%}
 Parameters: 
@@ -24,25 +24,29 @@ Parameters:
     - {{ p.name }} {% if p.required -%}(required){%- endif %}: {{ p.description }}{{ "\r\n    " }}
     {%- endfor %}
 {%- endif %}
-{% endfor %}
+{{ "\r\n" }}
+{%- endfor %}
 
 [AGENTS]
-{% for agent in routing_agents %}
+{% for agent in routing_agents -%}
 * Agent: {{ agent.name }}
 {{ agent.description}}
-{% if agent.required_fields and agent.required_fields != empty -%}
+{%- if agent.required_fields and agent.required_fields != empty -%}
+{{ "\r\n" }}
 Required args: 
     {% for f in agent.required_fields -%}
     - {{ f.name }} (type: {{ f.type }}): {{ f.description }}{{ "\r\n    " }}
     {%- endfor %}
-{%- endif %}
-{% if agent.optional_fields and agent.optional_fields != empty -%}
+{%- endif -%}
+{{ "\r\n" }}
+{%- if agent.optional_fields and agent.optional_fields != empty -%}
 Optional args: 
     {% for f in agent.optional_fields -%}
     - {{ f.name }} (type: {{ f.type }}): {{ f.description }}{{ "\r\n    " }}
     {%- endfor %}
-{%- endif %}
-{% endfor %}
+{%- endif -%}
+{{ "\r\n" }}
+{%- endfor %}
 
 [CONVERSATION]
 {{ conversation }}

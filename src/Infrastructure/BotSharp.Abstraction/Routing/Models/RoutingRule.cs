@@ -18,6 +18,7 @@ public class RoutingRule
     /// <summary>
     /// Field type: string, number, object
     /// </summary>
+    [JsonPropertyName("field_type")]
     public string FieldType { get; set; } = "string";
 
     public bool Required { get; set; }
