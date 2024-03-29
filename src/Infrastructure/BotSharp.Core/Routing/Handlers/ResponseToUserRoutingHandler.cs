@@ -11,7 +11,8 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
         new ParameterPropertyDef("reason", "why response to user"),
-        new ParameterPropertyDef("response", "response content")
+        new ParameterPropertyDef("response", "response content"),
+        new ParameterPropertyDef("conversation_end", "whether to end this conversation, true or false", type: "boolean")
     };
 
     public ResponseToUserRoutingHandler(IServiceProvider services, ILogger<ResponseToUserRoutingHandler> logger, RoutingSettings settings) 
