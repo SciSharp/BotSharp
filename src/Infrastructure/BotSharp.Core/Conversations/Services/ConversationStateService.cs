@@ -43,60 +43,54 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var preValue = string.Empty;
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
-        var preActiveRounds = -1;
-        var curActiveRounds = activeRounds > 0 ? activeRounds : -1;
 
         if (ContainsState(name) && _states.TryGetValue(name, out var pair))
         {
             var lastNode = pair?.Values.LastOrDefault();
-            preActiveRounds = lastNode?.ActiveRounds ?? -1;
             preValue = lastNode?.Data ?? string.Empty;
         }
 
-        if (!ContainsState(name) || preValue != currentValue || (preValue == currentValue && preActiveRounds > 0))
+        _logger.LogInformation($"[STATE] {name} = {value}");
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
+        if (!ContainsState(name) || preValue != currentValue)
         {
-            _logger.LogInformation($"[STATE] {name} = {value}");
-            var routingCtx = _services.GetRequiredService<IRoutingContext>();
-
-            if (!ContainsState(name) || preValue != currentValue)
+            foreach (var hook in hooks)
             {
-                foreach (var hook in hooks)
+                hook.OnStateChanged(new StateChangeModel
                 {
-                    hook.OnStateChanged(new StateChangeModel
-                    {
-                        ConversationId = _conversationId,
-                        MessageId = routingCtx.MessageId,
-                        Name = name,
-                        BeforeValue = preValue,
-                        AfterValue = currentValue
-                    }).Wait();
-                }
+                    ConversationId = _conversationId,
+                    MessageId = routingCtx.MessageId,
+                    Name = name,
+                    BeforeValue = preValue,
+                    AfterValue = currentValue
+                }).Wait();
             }
-            
-            var newPair = new StateKeyValue
-            {
-                Key = name,
-                Versioning = isNeedVersion
-            };
+        }
 
-            var newValue = new StateValue
-            {
-                Data = currentValue,
-                MessageId = routingCtx.MessageId,
-                Active = true,
-                ActiveRounds = curActiveRounds,
-                UpdateTime = DateTime.UtcNow,
-            };
+        var newPair = new StateKeyValue
+        {
+            Key = name,
+            Versioning = isNeedVersion
+        };
 
-            if (!isNeedVersion || !_states.ContainsKey(name))
-            {
-                newPair.Values = new List<StateValue> { newValue };
-                _states[name] = newPair;
-            }
-            else
-            {
-                _states[name].Values.Add(newValue);
-            }
+        var newValue = new StateValue
+        {
+            Data = currentValue,
+            MessageId = routingCtx.MessageId,
+            Active = true,
+            ActiveRounds = activeRounds > 0 ? activeRounds : -1,
+            UpdateTime = DateTime.UtcNow,
+        };
+
+        if (!isNeedVersion || !_states.ContainsKey(name))
+        {
+            newPair.Values = new List<StateValue> { newValue };
+            _states[name] = newPair;
+        }
+        else
+        {
+            _states[name].Values.Add(newValue);
         }
 
         return this;
