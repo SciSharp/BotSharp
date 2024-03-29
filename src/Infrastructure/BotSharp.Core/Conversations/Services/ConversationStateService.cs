@@ -43,27 +43,34 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var preValue = string.Empty;
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
+        var preActiveRounds = -1;
+        var curActiveRounds = activeRounds > 0 ? activeRounds : -1;
 
         if (ContainsState(name) && _states.TryGetValue(name, out var pair))
         {
-            preValue = pair?.Values.LastOrDefault()?.Data ?? string.Empty;
+            var lastNode = pair?.Values.LastOrDefault();
+            preActiveRounds = lastNode?.ActiveRounds ?? -1;
+            preValue = lastNode?.Data ?? string.Empty;
         }
 
-        if (!ContainsState(name) || preValue != currentValue)
+        if (!ContainsState(name) || preValue != currentValue || (preValue == currentValue && preActiveRounds > 0))
         {
             _logger.LogInformation($"[STATE] {name} = {value}");
             var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
-            foreach (var hook in hooks)
+            if (!ContainsState(name) || preValue != currentValue)
             {
-                hook.OnStateChanged(new StateChangeModel
+                foreach (var hook in hooks)
                 {
-                    ConversationId = _conversationId,
-                    MessageId = routingCtx.MessageId,
-                    Name = name,
-                    BeforeValue = preValue,
-                    AfterValue = currentValue
-                }).Wait();
+                    hook.OnStateChanged(new StateChangeModel
+                    {
+                        ConversationId = _conversationId,
+                        MessageId = routingCtx.MessageId,
+                        Name = name,
+                        BeforeValue = preValue,
+                        AfterValue = currentValue
+                    }).Wait();
+                }
             }
             
             var newPair = new StateKeyValue
@@ -77,7 +84,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 Data = currentValue,
                 MessageId = routingCtx.MessageId,
                 Active = true,
-                ActiveRounds = activeRounds > 0 ? activeRounds : -1,
+                ActiveRounds = curActiveRounds,
                 UpdateTime = DateTime.UtcNow,
             };
 
