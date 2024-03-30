@@ -27,6 +27,32 @@ public class RoutingAgentHook : AgentHookBase
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var agents = routing.GetRoutableAgents(_agent.Profiles);
+
+        // Postprocess agent required fields, remove it if the states exists
+        var states = _services.GetRequiredService<IConversationStateService>();
+        foreach (var agent in agents)
+        {
+            var fields = agent.RequiredFields.ToArray();
+            foreach (var field in fields)
+            {
+                if (states.ContainsState(field.Name))
+                {
+                    var requiredField = agent.RequiredFields.First(x => x.Name == field.Name);
+                    agent.RequiredFields.Remove(requiredField);
+                }
+            }
+
+            fields = agent.OptionalFields.ToArray();
+            foreach (var field in fields)
+            {
+                if (states.ContainsState(field.Name))
+                {
+                    var optionalField = agent.OptionalFields.First(x => x.Name == field.Name);
+                    agent.OptionalFields.Remove(optionalField);
+                }
+            }
+        }
+
         dict["routing_agents"] = agents;
         dict["routing_handlers"] = routing.GetHandlers(_agent);
 
