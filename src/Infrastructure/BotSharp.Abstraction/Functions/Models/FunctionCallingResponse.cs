@@ -18,4 +18,9 @@ public class FunctionCallingResponse
 
     [JsonPropertyName("args")]
     public JsonDocument? Args { get; set; }
+
+    public override string ToString()
+    {
+        return $"{FunctionName}({JsonSerializer.Serialize(Args)}) => {Content}";
+    }
 }
