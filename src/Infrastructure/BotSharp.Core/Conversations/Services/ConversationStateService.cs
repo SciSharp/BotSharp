@@ -43,29 +43,31 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var preValue = string.Empty;
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
+        var curActiveRounds = activeRounds > 0 ? activeRounds : -1;
+        int? preActiveRounds = null;
 
         if (ContainsState(name) && _states.TryGetValue(name, out var pair))
         {
-            var lastNode = pair?.Values.LastOrDefault();
+            var lastNode = pair?.Values?.LastOrDefault();
+            preActiveRounds = lastNode?.ActiveRounds;
             preValue = lastNode?.Data ?? string.Empty;
         }
 
         _logger.LogInformation($"[STATE] {name} = {value}");
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
-        if (!ContainsState(name) || preValue != currentValue)
+        foreach (var hook in hooks)
         {
-            foreach (var hook in hooks)
+            hook.OnStateChanged(new StateChangeModel
             {
-                hook.OnStateChanged(new StateChangeModel
-                {
-                    ConversationId = _conversationId,
-                    MessageId = routingCtx.MessageId,
-                    Name = name,
-                    BeforeValue = preValue,
-                    AfterValue = currentValue
-                }).Wait();
-            }
+                ConversationId = _conversationId,
+                MessageId = routingCtx.MessageId,
+                Name = name,
+                BeforeValue = preValue,
+                BeforeActiveRounds = preActiveRounds,
+                AfterValue = currentValue,
+                AfterActiveRounds = curActiveRounds
+            }).Wait();
         }
 
         var newPair = new StateKeyValue
@@ -79,7 +81,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             Data = currentValue,
             MessageId = routingCtx.MessageId,
             Active = true,
-            ActiveRounds = activeRounds > 0 ? activeRounds : -1,
+            ActiveRounds = curActiveRounds,
             UpdateTime = DateTime.UtcNow,
         };
 
