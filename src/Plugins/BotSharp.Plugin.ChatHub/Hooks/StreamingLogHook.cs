@@ -326,7 +326,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     {
         var conversationId = _state.GetConversationId();
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
-        var log = $"Revised user goal agent to: {agent?.Name}";
+        var log = $"Revised user goal agent to {instruct.OriginalAgent}";
 
         var input = new ContentLogInputModel(conversationId, message)
         {
