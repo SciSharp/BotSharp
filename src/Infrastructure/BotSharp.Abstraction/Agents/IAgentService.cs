@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 
@@ -22,6 +23,8 @@ public interface IAgentService
     string RenderedInstruction(Agent agent);
 
     string RenderedTemplate(Agent agent, string templateName);
+
+    bool RenderFunction(Agent agent, FunctionDef def);
 
     /// <summary>
     /// Get agent detail without trigger any hook.
