@@ -19,13 +19,19 @@ public class LlmProviderService : ILlmProviderService
     {
         var providers = new List<string>();
         var services1 = _services.GetServices<ITextCompletion>();
-        providers.AddRange(services1.Select(x => x.Provider));
+        providers.AddRange(services1
+            .Where(x => GetProviderModels(x.Provider).Any())
+            .Select(x => x.Provider));
 
         var services2 = _services.GetServices<IChatCompletion>();
-        providers.AddRange(services2.Select(x => x.Provider));
+        providers.AddRange(services2
+            .Where(x => GetProviderModels(x.Provider).Any())
+            .Select(x => x.Provider));
 
         var services3 = _services.GetServices<ITextEmbedding>();
-        providers.AddRange(services3.Select(x => x.Provider));
+        providers.AddRange(services3
+            .Where(x => GetProviderModels(x.Provider).Any())
+            .Select(x => x.Provider));
 
         return providers.Distinct().ToList();
     }
