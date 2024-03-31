@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Handlers;
@@ -39,11 +40,8 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        message.FunctionArgs = JsonSerializer.Serialize(inst);
-        var ret = await routing.InvokeFunction(message.FunctionName, message);
-
         var states = _services.GetRequiredService<IConversationStateService>();
-        var goalAgent = states.GetState("user_goal_agent");
+        var goalAgent = states.GetState(StateConst.EXPECTED_GOAL_AGENT);
         if (!string.IsNullOrEmpty(goalAgent) && inst.OriginalAgent != goalAgent)
         {
             inst.OriginalAgent = goalAgent;
@@ -52,6 +50,9 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
                 await hook.OnRoutingInstructionRevised(inst, message)
             );
         }
+
+        message.FunctionArgs = JsonSerializer.Serialize(inst);
+        var ret = await routing.InvokeFunction(message.FunctionName, message);
 
         var agentId = routing.Context.GetCurrentAgentId();
 
