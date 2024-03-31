@@ -6,11 +6,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 {
     public string Name => "route_to_agent";
 
-    public string Description => "Route request to appropriate agent.";
+    public string Description => "Route request to appropriate virtual agent.";
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("next_action_reason", "the reason why route to this agent") 
+        new ParameterPropertyDef("next_action_reason", "the reason why route to this virtual agent") 
         { 
             Required = true 
         },
@@ -18,11 +18,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             Required = true
         },
-        new ParameterPropertyDef("user_goal_description", "user original goal")
+        new ParameterPropertyDef("user_goal_description", "user goal based on user initial task.")
         {
             Required = true
         },
-        new ParameterPropertyDef("user_goal_agent", "user original goal")
+        new ParameterPropertyDef("user_goal_agent", "agent who can acheive user initial task,  must align with user_goal_description ")
         {
             Required = true
         },
