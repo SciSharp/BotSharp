@@ -72,6 +72,27 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
     }
 
+    public async Task OnRenderingTemplate(Agent agent, string name, string content)
+    {
+        if (!_convSettings.ShowVerboseLog) return;
+
+        var conversationId = _state.GetConversationId();
+
+        var log = $"{agent.Name} is using template {name}";
+        var message = new RoleDialogModel(AgentRole.System, log)
+        {
+            MessageId = _routingCtx.MessageId
+        };
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent.Name,
+            Source = ContentLogSource.HardRule,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
     public async Task BeforeGenerating(Agent agent, List<RoleDialogModel> conversations)
     {
         if (!_convSettings.ShowVerboseLog) return;

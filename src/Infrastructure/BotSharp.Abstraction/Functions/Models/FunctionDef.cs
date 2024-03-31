@@ -5,6 +5,9 @@ public class FunctionDef
     public string Name { get; set; }
     public string Description { get; set; }
 
+    [JsonPropertyName("visibility_expression")]
+    public string? VisibilityExpression { get; set; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Impact { get; set; }
 
