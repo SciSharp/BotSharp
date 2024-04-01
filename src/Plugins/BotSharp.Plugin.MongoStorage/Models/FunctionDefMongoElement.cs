@@ -8,6 +8,7 @@ public class FunctionDefMongoElement
 {
     public string Name { get; set; }
     public string Description { get; set; }
+    public string? VisibilityExpression { get; set; }
     public string? Impact { get; set; }
     public FunctionParametersDefMongoElement Parameters { get; set; } = new FunctionParametersDefMongoElement();
 
@@ -22,6 +23,7 @@ public class FunctionDefMongoElement
         {
             Name = function.Name,
             Description = function.Description,
+            VisibilityExpression = function.VisibilityExpression,
             Impact = function.Impact,
             Parameters = new FunctionParametersDefMongoElement
             {
@@ -38,6 +40,7 @@ public class FunctionDefMongoElement
         {
             Name = mongoFunction.Name,
             Description = mongoFunction.Description,
+            VisibilityExpression = mongoFunction.VisibilityExpression,
             Impact = mongoFunction.Impact,
             Parameters = new FunctionParametersDef
             {
