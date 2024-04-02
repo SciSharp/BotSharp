@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MLTasks;
 using System.Diagnostics;
 using System.Drawing;
@@ -47,14 +48,14 @@ public class TokenStatistics : ITokenStatistics
         // Accumulated Token
         var stat = _services.GetRequiredService<IConversationStateService>();
         var inputCount = int.Parse(stat.GetState("prompt_total", "0"));
-        stat.SetState("prompt_total", stats.PromptCount + inputCount, false);
+        stat.SetState("prompt_total", stats.PromptCount + inputCount, isNeedVersion: false, source: StateSource.Application);
         var outputCount = int.Parse(stat.GetState("completion_total", "0"));
-        stat.SetState("completion_total", stats.CompletionCount + outputCount, false);
+        stat.SetState("completion_total", stats.CompletionCount + outputCount, isNeedVersion: false, source: StateSource.Application);
 
         // Total cost
         var total_cost = float.Parse(stat.GetState("llm_total_cost", "0"));
         total_cost += Cost;
-        stat.SetState("llm_total_cost", total_cost, false);
+        stat.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
     }
 
     public void PrintStatistics()
