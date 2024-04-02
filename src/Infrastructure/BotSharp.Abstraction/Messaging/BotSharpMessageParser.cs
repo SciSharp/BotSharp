@@ -1,20 +1,19 @@
-using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using System.Text.Json;
 using System.Reflection;
 using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace BotSharp.Core.Messaging;
+namespace BotSharp.Abstraction.Messaging;
 
 public static class BotSharpMessageParser
 {
 
-    public static IRichMessage? ParseRichMessage(JsonElement root, JsonSerializerOptions options)
+    public static IRichMessage? ParseRichMessage(JsonElement root)
     {
         IRichMessage? res = null;
+        Type? targetType = null;
         JsonElement element;
         var jsonText = root.GetRawText();
 
@@ -23,23 +22,23 @@ public static class BotSharpMessageParser
             var richType = element.GetString();
             if (richType == RichTypeEnum.ButtonTemplate)
             {
-                res = JsonSerializer.Deserialize<ButtonTemplateMessage>(jsonText, options);
+                targetType = typeof(ButtonTemplateMessage);
             }
             else if (richType == RichTypeEnum.MultiSelectTemplate)
             {
-                res = JsonSerializer.Deserialize<MultiSelectTemplateMessage>(jsonText, options);
+                targetType = typeof(MultiSelectTemplateMessage);
             }
             else if (richType == RichTypeEnum.QuickReply)
             {
-                res = JsonSerializer.Deserialize<QuickReplyMessage>(jsonText, options);
+                targetType = typeof(QuickReplyMessage);
             }
             else if (richType == RichTypeEnum.CouponTemplate)
             {
-                res = JsonSerializer.Deserialize<CouponTemplateMessage>(jsonText, options);
+                targetType = typeof(CouponTemplateMessage);
             }
             else if (richType == RichTypeEnum.Text)
             {
-                res = JsonSerializer.Deserialize<TextMessage>(jsonText, options);
+                targetType = typeof(TextMessage);
             }
             else if (richType == RichTypeEnum.GenericTemplate)
             {
@@ -51,19 +50,24 @@ public static class BotSharpMessageParser
 
                     if (wrapperType != null && genericType != null)
                     {
-                        var targetType = wrapperType.MakeGenericType(genericType);
-                        res = JsonConvert.DeserializeObject(jsonText, targetType) as IRichMessage;
+                        targetType = wrapperType.MakeGenericType(genericType);
                     }
                 }
             }
         }
 
+        if (targetType != null)
+        {
+            res = JsonConvert.DeserializeObject(jsonText, targetType) as IRichMessage;
+        }
+
         return res;
     }
 
-    public static ITemplateMessage? ParseTemplateMessage(JsonElement root, JsonSerializerOptions options)
+    public static ITemplateMessage? ParseTemplateMessage(JsonElement root)
     {
         ITemplateMessage? res = null;
+        Type? targetType = null;
         JsonElement element;
         var jsonText = root.GetRawText();
 
@@ -72,19 +76,19 @@ public static class BotSharpMessageParser
             var templateType = element.GetString();
             if (templateType == TemplateTypeEnum.Button)
             {
-                res = JsonSerializer.Deserialize<ButtonTemplateMessage>(jsonText, options);
+                targetType = typeof(ButtonTemplateMessage);
             }
             else if (templateType == TemplateTypeEnum.MultiSelect)
             {
-                res = JsonSerializer.Deserialize<MultiSelectTemplateMessage>(jsonText, options);
+                targetType = typeof(MultiSelectTemplateMessage);
             }
             else if (templateType == TemplateTypeEnum.Coupon)
             {
-                res = JsonSerializer.Deserialize<CouponTemplateMessage>(jsonText, options);
+                targetType = typeof(CouponTemplateMessage);
             }
             else if (templateType == TemplateTypeEnum.Product)
             {
-                res = JsonSerializer.Deserialize<ProductTemplateMessage>(jsonText, options);
+                targetType = typeof(ProductTemplateMessage);
             }
             else if (templateType == TemplateTypeEnum.Generic)
             {
@@ -96,11 +100,16 @@ public static class BotSharpMessageParser
 
                     if (wrapperType != null && genericType != null)
                     {
-                        var targetType = wrapperType.MakeGenericType(genericType);
+                        targetType = wrapperType.MakeGenericType(genericType);
                         res = JsonConvert.DeserializeObject(jsonText, targetType) as ITemplateMessage;
                     }
                 }
             }
+        }
+
+        if (targetType != null)
+        {
+            res = JsonConvert.DeserializeObject(jsonText, targetType) as ITemplateMessage;
         }
 
         return res;

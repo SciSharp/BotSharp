@@ -1,4 +1,3 @@
-using BotSharp.Core.Messaging;
 using System.Text.Json;
 
 namespace BotSharp.Abstraction.Messaging.JsonConverters;
@@ -9,7 +8,7 @@ public class TemplateMessageJsonConverter : JsonConverter<ITemplateMessage>
     {
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;
-        var res = BotSharpMessageParser.ParseTemplateMessage(root, options);
+        var res = BotSharpMessageParser.ParseTemplateMessage(root);
         return res;
     }
 

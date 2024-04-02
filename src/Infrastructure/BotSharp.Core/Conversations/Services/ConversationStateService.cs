@@ -70,7 +70,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
                     BeforeValue = preValue,
                     BeforeActiveRounds = preActiveRounds,
                     AfterValue = currentValue,
-                    AfterActiveRounds = curActiveRounds
+                    AfterActiveRounds = curActiveRounds,
+                    DataType = valueType,
+                    Source = source
                 }).Wait();
             }
         }

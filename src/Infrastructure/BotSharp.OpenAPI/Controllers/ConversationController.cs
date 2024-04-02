@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -166,11 +165,11 @@ public class ConversationController : ControllerBase
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
         conv.SetConversationId(conversationId, input.States);
-        conv.States.SetState("channel", input.Channel)
-                   .SetState("provider", input.Provider)
-                   .SetState("model", input.Model)
-                   .SetState("temperature", input.Temperature)
-                   .SetState("sampling_factor", input.SamplingFactor);
+        conv.States.SetState("channel", input.Channel, source: StateSource.External)
+                   .SetState("provider", input.Provider, source: StateSource.External)
+                   .SetState("model", input.Model, source: StateSource.External)
+                   .SetState("temperature", input.Temperature, source: StateSource.External)
+                   .SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
 
         var response = new ChatResponseModel();
         

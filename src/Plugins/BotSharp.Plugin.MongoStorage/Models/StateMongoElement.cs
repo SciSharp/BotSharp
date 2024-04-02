@@ -35,6 +35,9 @@ public class StateValueMongoElement
     public string? MessageId { get; set; }
     public bool Active { get; set; }
     public int ActiveRounds { get; set; }
+    public string DataType { get; set; }
+    public string Source { get; set; }
+
     public DateTime UpdateTime { get; set; }
 
     public static StateValueMongoElement ToMongoElement(StateValue element)
@@ -45,6 +48,8 @@ public class StateValueMongoElement
             MessageId = element.MessageId,
             Active = element.Active,
             ActiveRounds = element.ActiveRounds,
+            DataType = element.DataType,
+            Source = element.Source,
             UpdateTime = element.UpdateTime
         };
     }
@@ -57,6 +62,8 @@ public class StateValueMongoElement
             MessageId = element.MessageId,
             Active = element.Active,
             ActiveRounds = element.ActiveRounds,
+            DataType= element.DataType,
+            Source = element.Source,
             UpdateTime = element.UpdateTime
         };
     }

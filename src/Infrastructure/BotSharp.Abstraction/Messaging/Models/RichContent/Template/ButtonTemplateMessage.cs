@@ -17,27 +17,8 @@ public class ButtonTemplateMessage : IRichMessage, ITemplateMessage
     public string TemplateType => TemplateTypeEnum.Button;
 
     [JsonPropertyName("buttons")]
-    public ButtonElement[] Buttons { get; set; } = new ButtonElement[0];
+    public ElementButton[] Buttons { get; set; } = new ElementButton[0];
 
     [JsonPropertyName("is_horizontal")]
     public bool IsHorizontal { get; set; }
-}
-
-public class ButtonElement
-{
-    /// <summary>
-    /// web_url, postback, phone_number
-    /// </summary>
-    public string Type { get; set; } = "web_url";
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Url { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Payload { get; set; }
-
-    public string Title { get; set; } = string.Empty;
-
-    [JsonPropertyName("is_primary")]
-    public bool IsPrimary { get; set; }
 }
