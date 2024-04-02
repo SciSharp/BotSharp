@@ -3,10 +3,13 @@ using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using System.Text.Json;
+using System.Reflection;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace BotSharp.Core.Messaging;
 
-public static class MessageParser
+public static class BotSharpMessageParser
 {
 
     public static IRichMessage? ParseRichMessage(JsonElement root, JsonSerializerOptions options)
@@ -43,13 +46,13 @@ public static class MessageParser
                 if (root.TryGetProperty("element_type", out element))
                 {
                     var elementType = element.GetString();
-                    if (elementType == typeof(GenericElement).Name)
+                    var wrapperType = typeof(GenericTemplateMessage<>);
+                    var genericType = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(x => x.Name == elementType);
+
+                    if (wrapperType != null && genericType != null)
                     {
-                        res = JsonSerializer.Deserialize<GenericTemplateMessage<GenericElement>>(jsonText, options);
-                    }
-                    else if (elementType == typeof(ButtonElement).Name)
-                    {
-                        res = JsonSerializer.Deserialize<GenericTemplateMessage<ButtonElement>>(jsonText, options);
+                        var targetType = wrapperType.MakeGenericType(genericType);
+                        res = JsonConvert.DeserializeObject(jsonText, targetType) as IRichMessage;
                     }
                 }
             }
@@ -88,13 +91,13 @@ public static class MessageParser
                 if (root.TryGetProperty("element_type", out element))
                 {
                     var elementType = element.GetString();
-                    if (elementType == typeof(GenericElement).Name)
+                    var wrapperType = typeof(GenericTemplateMessage<>);
+                    var genericType = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(x => x.Name == elementType);
+
+                    if (wrapperType != null && genericType != null)
                     {
-                        res = JsonSerializer.Deserialize<GenericTemplateMessage<GenericElement>>(jsonText, options);
-                    }
-                    else if (elementType == typeof(ButtonElement).Name)
-                    {
-                        res = JsonSerializer.Deserialize<GenericTemplateMessage<ButtonElement>>(jsonText, options);
+                        var targetType = wrapperType.MakeGenericType(genericType);
+                        res = JsonConvert.DeserializeObject(jsonText, targetType) as ITemplateMessage;
                     }
                 }
             }
