@@ -38,6 +38,12 @@ public partial class RoutingService
         }
         else
         {
+            // Handle output routing exception.
+            if (agent.Type == AgentType.Routing)
+            {
+                response.Content = "Apologies, I'm not quite sure I understand. Could you please provide additional clarification or context?";
+            }
+
             message = RoleDialogModel.From(message,
                     role: AgentRole.Assistant,
                     content: response.Content);
