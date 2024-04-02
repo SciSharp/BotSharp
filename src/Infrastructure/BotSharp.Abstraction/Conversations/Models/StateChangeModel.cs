@@ -28,4 +28,7 @@ public class StateChangeModel
 
     [JsonPropertyName("source")]
     public string Source { get; set; }
+
+    [JsonPropertyName("readonly")]
+    public bool Readonly { get; set; }
 }

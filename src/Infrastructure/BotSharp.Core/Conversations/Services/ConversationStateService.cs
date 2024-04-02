@@ -35,7 +35,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// <param name="isNeedVersion">whether the state is related to message or not</param>
     /// <returns></returns>
     public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true,
-        int activeRounds = -1, string valueType = StateDataType.String, string source = StateSource.User)
+        int activeRounds = -1, string valueType = StateDataType.String, string source = StateSource.User, bool readOnly = false)
     {
         if (value == null)
         {
@@ -72,7 +72,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
                     AfterValue = currentValue,
                     AfterActiveRounds = curActiveRounds,
                     DataType = valueType,
-                    Source = source
+                    Source = source,
+                    Readonly = readOnly
                 }).Wait();
             }
         }
@@ -80,7 +81,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var newPair = new StateKeyValue
         {
             Key = name,
-            Versioning = isNeedVersion
+            Versioning = isNeedVersion,
+            Readonly = readOnly
         };
 
         var newValue = new StateValue

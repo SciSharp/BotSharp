@@ -6,6 +6,7 @@ public class StateKeyValue
 {
     public string Key { get; set; }
     public bool Versioning { get; set; }
+    public bool Readonly { get; set; }
     public List<StateValue> Values { get; set; } = new List<StateValue>();
 
     public StateKeyValue()

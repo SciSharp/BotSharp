@@ -6,6 +6,7 @@ public class StateMongoElement
 {
     public string Key { get; set; }
     public bool Versioning { get; set; }
+    public bool Readonly { get; set; }
     public List<StateValueMongoElement> Values { get; set; }
 
     public static StateMongoElement ToMongoElement(StateKeyValue state)
@@ -14,6 +15,7 @@ public class StateMongoElement
         {
             Key = state.Key,
             Versioning = state.Versioning,
+            Readonly = state.Readonly,
             Values = state.Values?.Select(x => StateValueMongoElement.ToMongoElement(x))?.ToList() ?? new List<StateValueMongoElement>()
         };
     }
@@ -24,6 +26,7 @@ public class StateMongoElement
         {
             Key = state.Key,
             Versioning = state.Versioning,
+            Readonly = state.Readonly,
             Values = state.Values?.Select(x => StateValueMongoElement.ToDomainElement(x))?.ToList() ?? new List<StateValue>()
         };
     }
