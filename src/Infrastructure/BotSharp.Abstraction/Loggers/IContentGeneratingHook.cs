@@ -28,4 +28,13 @@ public interface IContentGeneratingHook
     /// </summary>
     /// <returns></returns>
     Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats) => Task.CompletedTask;
+
+    /// <summary>
+    /// Rdndering template
+    /// </summary>
+    /// <param name="agent"></param>
+    /// <param name="name"></param>
+    /// <param name="content"></param>
+    /// <returns></returns>
+    Task OnRenderingTemplate(Agent agent, string name, string content) => Task.CompletedTask;
 }

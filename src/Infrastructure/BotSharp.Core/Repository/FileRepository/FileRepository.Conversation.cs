@@ -407,6 +407,11 @@ namespace BotSharp.Core.Repository
             var utcNow = DateTime.UtcNow;
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
 
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
             if (batchSize <= 0 || batchSize > batchLimit)
             {
                 batchSize = batchLimit;

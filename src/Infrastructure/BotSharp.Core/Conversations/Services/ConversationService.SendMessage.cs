@@ -148,15 +148,6 @@ public partial class ConversationService
         };
 
         var hooks = _services.GetServices<IConversationHook>().ToList();
-        foreach (var hook in hooks)
-        {
-            await hook.OnResponseGenerated(response);
-        }
-
-        await onResponseReceived(response);
-
-        // Add to dialog history
-        _storage.Append(_conversationId, response);
 
         if (response.Instruction != null)
         {
@@ -172,5 +163,15 @@ public partial class ConversationService
                 }
             }
         }
+
+        foreach (var hook in hooks)
+        {
+            await hook.OnResponseGenerated(response);
+        }
+
+        await onResponseReceived(response);
+
+        // Add to dialog history
+        _storage.Append(_conversationId, response);
     }
 }

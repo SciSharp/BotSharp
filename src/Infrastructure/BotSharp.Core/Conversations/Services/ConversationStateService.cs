@@ -43,45 +43,56 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var preValue = string.Empty;
         var currentValue = value.ToString();
         var hooks = _services.GetServices<IConversationHook>();
+        var curActiveRounds = activeRounds > 0 ? activeRounds : -1;
+        int? preActiveRounds = null;
 
         if (ContainsState(name) && _states.TryGetValue(name, out var pair))
         {
-            preValue = pair?.Values.LastOrDefault()?.Data ?? string.Empty;
+            var lastNode = pair?.Values?.LastOrDefault();
+            preActiveRounds = lastNode?.ActiveRounds;
+            preValue = lastNode?.Data ?? string.Empty;
         }
 
-        if (!ContainsState(name) || preValue != currentValue)
+        _logger.LogInformation($"[STATE] {name} = {value}");
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
+        foreach (var hook in hooks)
         {
-            _logger.LogInformation($"[STATE] {name} = {value}");
-            foreach (var hook in hooks)
+            hook.OnStateChanged(new StateChangeModel
             {
-                hook.OnStateChanged(name, preValue, currentValue).Wait();
-            }
-
-            var routingCtx = _services.GetRequiredService<IRoutingContext>();
-            var newPair = new StateKeyValue
-            {
-                Key = name,
-                Versioning = isNeedVersion
-            };
-
-            var newValue = new StateValue
-            {
-                Data = currentValue,
+                ConversationId = _conversationId,
                 MessageId = routingCtx.MessageId,
-                Active = true,
-                ActiveRounds = activeRounds > 0 ? activeRounds : -1,
-                UpdateTime = DateTime.UtcNow,
-            };
+                Name = name,
+                BeforeValue = preValue,
+                BeforeActiveRounds = preActiveRounds,
+                AfterValue = currentValue,
+                AfterActiveRounds = curActiveRounds
+            }).Wait();
+        }
 
-            if (!isNeedVersion || !_states.ContainsKey(name))
-            {
-                newPair.Values = new List<StateValue> { newValue };
-                _states[name] = newPair;
-            }
-            else
-            {
-                _states[name].Values.Add(newValue);
-            }
+        var newPair = new StateKeyValue
+        {
+            Key = name,
+            Versioning = isNeedVersion
+        };
+
+        var newValue = new StateValue
+        {
+            Data = currentValue,
+            MessageId = routingCtx.MessageId,
+            Active = true,
+            ActiveRounds = curActiveRounds,
+            UpdateTime = DateTime.UtcNow,
+        };
+
+        if (!isNeedVersion || !_states.ContainsKey(name))
+        {
+            newPair.Values = new List<StateValue> { newValue };
+            _states[name] = newPair;
+        }
+        else
+        {
+            _states[name].Values.Add(newValue);
         }
 
         return this;
@@ -118,7 +129,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                         state.Value.Values.Add(new StateValue
                         {
                             Data = value.Data,
-                            MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : value.MessageId,
+                            MessageId = curMsgId,
                             Active = false,
                             ActiveRounds = value.ActiveRounds,
                             UpdateTime = DateTime.UtcNow
@@ -178,7 +189,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             value.Values.Add(new StateValue
             {
                 Data = lastValue.Data,
-                MessageId = !string.IsNullOrEmpty(curMsgId) ? curMsgId : lastValue.MessageId,
+                MessageId = curMsgId,
                 Active = false,
                 ActiveRounds = lastValue.ActiveRounds,
                 UpdateTime = utcNow

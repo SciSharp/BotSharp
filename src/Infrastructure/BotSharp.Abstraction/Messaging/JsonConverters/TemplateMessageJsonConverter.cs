@@ -10,15 +10,7 @@ public class TemplateMessageJsonConverter : JsonConverter<ITemplateMessage>
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;
         var jsonText = root.GetRawText();
-        ITemplateMessage? res = null;
-
-        var parser = new MessageParser();
-        if (root.TryGetProperty("template_type", out JsonElement element))
-        {
-            var templateType = element.GetString();
-            res = parser.ParseTemplateMessage(templateType, jsonText, root, options);
-        }
-
+        var res = MessageParser.ParseTemplateMessage(root, options);
         return res;
     }
 

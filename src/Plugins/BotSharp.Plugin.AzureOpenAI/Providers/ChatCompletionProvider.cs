@@ -219,12 +219,15 @@ public class ChatCompletionProvider : IChatCompletion
 
         foreach (var function in agent.Functions)
         {
-            chatCompletionsOptions.Functions.Add(new FunctionDefinition
+            if (agentService.RenderFunction(agent, function))
             {
-                Name = function.Name,
-                Description = function.Description,
-                Parameters = BinaryData.FromObjectAsJson(function.Parameters)
-            });
+                chatCompletionsOptions.Functions.Add(new FunctionDefinition
+                {
+                    Name = function.Name,
+                    Description = function.Description,
+                    Parameters = BinaryData.FromObjectAsJson(function.Parameters)
+                });
+            }
         }
 
         foreach (var message in conversations)

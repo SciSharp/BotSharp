@@ -10,15 +10,7 @@ public class RichContentJsonConverter : JsonConverter<IRichMessage>
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;
         var jsonText = root.GetRawText();
-        IRichMessage? res = null;
-
-        var parser = new MessageParser();
-        if (root.TryGetProperty("rich_type", out JsonElement element))
-        {
-            var richType = element.GetString();
-            res = parser.ParseRichMessage(richType, jsonText, root, options);
-        }
-
+        var res = MessageParser.ParseRichMessage(root, options);
         return res;
     }
 

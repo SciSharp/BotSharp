@@ -12,7 +12,7 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
     {
         new ParameterPropertyDef("reason", "why need customer service"),
         new ParameterPropertyDef("summary", "the whole conversation summary with important information"),
-        new ParameterPropertyDef("response", "tell the user that you are being transferred to customer service")
+        new ParameterPropertyDef("response", "asking user whether to connect with customer service representative")
     };
 
     public HumanInterventionNeededHandler(IServiceProvider services, ILogger<HumanInterventionNeededHandler> logger, RoutingSettings settings)

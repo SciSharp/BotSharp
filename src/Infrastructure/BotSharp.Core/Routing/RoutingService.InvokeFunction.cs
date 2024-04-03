@@ -4,6 +4,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
+    private List<FunctionCallingResponse> _functionCallStack = new List<FunctionCallingResponse>();
     public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
@@ -35,6 +36,13 @@ public partial class RoutingService
         try
         {
             result = await function.Execute(message);
+            _functionCallStack.Add(new FunctionCallingResponse
+            {
+                Role = AgentRole.Function,
+                FunctionName = message.FunctionName,
+                Args = JsonDocument.Parse(message.FunctionArgs ?? "{}"),
+                Content = message.Content
+            });
         }
         catch (JsonException ex)
         {
@@ -66,6 +74,13 @@ public partial class RoutingService
             message.FunctionName != originalFunctionName)
         {
             message.FunctionName = originalFunctionName;
+        }
+
+        // Save to Storage as well
+        if (!message.StopCompletion && message.FunctionName != "route_to_agent")
+        {
+            var storage = _services.GetRequiredService<IConversationStorage>();
+            storage.Append(Context.ConversationId, message);
         }
 
         return result;

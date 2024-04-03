@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Routing.Handlers;
@@ -6,11 +7,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 {
     public string Name => "route_to_agent";
 
-    public string Description => "Route request to appropriate agent.";
+    public string Description => "Route request to appropriate virtual agent.";
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("next_action_reason", "the reason why route to this agent") 
+        new ParameterPropertyDef("next_action_reason", "the reason why route to this virtual agent") 
         { 
             Required = true 
         },
@@ -18,11 +19,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             Required = true
         },
-        new ParameterPropertyDef("user_goal_description", "user original goal")
+        new ParameterPropertyDef("user_goal_description", "user goal based on user initial task.")
         {
             Required = true
         },
-        new ParameterPropertyDef("user_goal_agent", "user original goal")
+        new ParameterPropertyDef("user_goal_agent", "agent who can acheive user initial task,  must align with user_goal_description ")
         {
             Required = true
         },
@@ -39,11 +40,8 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
-        message.FunctionArgs = JsonSerializer.Serialize(inst);
-        var ret = await routing.InvokeFunction(message.FunctionName, message);
-
         var states = _services.GetRequiredService<IConversationStateService>();
-        var goalAgent = states.GetState("user_goal_agent");
+        var goalAgent = states.GetState(StateConst.EXPECTED_GOAL_AGENT);
         if (!string.IsNullOrEmpty(goalAgent) && inst.OriginalAgent != goalAgent)
         {
             inst.OriginalAgent = goalAgent;
@@ -52,6 +50,9 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
                 await hook.OnRoutingInstructionRevised(inst, message)
             );
         }
+
+        message.FunctionArgs = JsonSerializer.Serialize(inst);
+        var ret = await routing.InvokeFunction(message.FunctionName, message);
 
         var agentId = routing.Context.GetCurrentAgentId();
 

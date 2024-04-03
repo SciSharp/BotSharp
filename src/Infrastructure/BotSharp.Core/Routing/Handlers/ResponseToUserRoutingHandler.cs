@@ -6,12 +6,13 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 {
     public string Name => "response_to_user";
 
-    public string Description => "Response according to the context without asking specific agent.";
+    public string Description => "When you can handle the conversation without asking specific agent.";
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("reason", "why response to user"),
-        new ParameterPropertyDef("response", "response content")
+        new ParameterPropertyDef("reason", "why response to user directly without go to other agents"),
+        new ParameterPropertyDef("response", "response content to user in courteous words. If the user wants to end the conversation, you must set conversation_end to true and response politely."),
+        new ParameterPropertyDef("conversation_end", "whether to end this conversation, true or false", type: "boolean")
     };
 
     public ResponseToUserRoutingHandler(IServiceProvider services, ILogger<ResponseToUserRoutingHandler> logger, RoutingSettings settings) 

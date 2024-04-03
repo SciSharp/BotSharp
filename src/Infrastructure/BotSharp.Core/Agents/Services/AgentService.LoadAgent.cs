@@ -90,32 +90,6 @@ public partial class AgentService
         return agent;
     }
 
-    public string RenderedTemplate(Agent agent, string templateName)
-    {
-        // render liquid template
-        var render = _services.GetRequiredService<ITemplateRender>();
-        var template = agent.Templates.First(x => x.Name == templateName).Content;
-        // update states
-        var conv = _services.GetRequiredService<IConversationService>();
-        foreach (var t in conv.States.GetStates())
-        {
-            agent.TemplateDict[t.Key] = t.Value;
-        }
-        return render.Render(template, agent.TemplateDict);
-    }
-
-    public string RenderedInstruction(Agent agent)
-    {
-        var render = _services.GetRequiredService<ITemplateRender>();
-        // update states
-        var conv = _services.GetRequiredService<IConversationService>();
-        foreach (var t in conv.States.GetStates())
-        {
-            agent.TemplateDict[t.Key] = t.Value;
-        }
-        return render.Render(agent.Instruction, agent.TemplateDict);
-    }
-
     private void PopulateState(Dictionary<string, object> dict)
     {
         var conv = _services.GetRequiredService<IConversationService>();
