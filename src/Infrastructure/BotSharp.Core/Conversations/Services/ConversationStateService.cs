@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -33,7 +34,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// <param name="value"></param>
     /// <param name="isNeedVersion">whether the state is related to message or not</param>
     /// <returns></returns>
-    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true, int activeRounds = -1)
+    public IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true,
+        int activeRounds = -1, string valueType = StateDataType.String, string source = StateSource.User, bool readOnly = false)
     {
         if (value == null)
         {
@@ -56,24 +58,31 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _logger.LogInformation($"[STATE] {name} = {value}");
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
-        foreach (var hook in hooks)
+        if (!ContainsState(name) || preValue != currentValue || preActiveRounds != curActiveRounds)
         {
-            hook.OnStateChanged(new StateChangeModel
+            foreach (var hook in hooks)
             {
-                ConversationId = _conversationId,
-                MessageId = routingCtx.MessageId,
-                Name = name,
-                BeforeValue = preValue,
-                BeforeActiveRounds = preActiveRounds,
-                AfterValue = currentValue,
-                AfterActiveRounds = curActiveRounds
-            }).Wait();
+                hook.OnStateChanged(new StateChangeModel
+                {
+                    ConversationId = _conversationId,
+                    MessageId = routingCtx.MessageId,
+                    Name = name,
+                    BeforeValue = preValue,
+                    BeforeActiveRounds = preActiveRounds,
+                    AfterValue = currentValue,
+                    AfterActiveRounds = curActiveRounds,
+                    DataType = valueType,
+                    Source = source,
+                    Readonly = readOnly
+                }).Wait();
+            }
         }
 
         var newPair = new StateKeyValue
         {
             Key = name,
-            Versioning = isNeedVersion
+            Versioning = isNeedVersion,
+            Readonly = readOnly
         };
 
         var newValue = new StateValue
@@ -82,6 +91,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
             MessageId = routingCtx.MessageId,
             Active = true,
             ActiveRounds = curActiveRounds,
+            DataType = valueType,
+            Source = source,
             UpdateTime = DateTime.UtcNow,
         };
 
@@ -132,6 +143,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
                             MessageId = curMsgId,
                             Active = false,
                             ActiveRounds = value.ActiveRounds,
+                            DataType = value.DataType,
+                            Source = value.Source,
                             UpdateTime = DateTime.UtcNow
                         });
                         continue;
@@ -192,6 +205,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 MessageId = curMsgId,
                 Active = false,
                 ActiveRounds = lastValue.ActiveRounds,
+                DataType = lastValue.DataType,
+                Source = lastValue.Source,
                 UpdateTime = utcNow
             });
         }
@@ -246,7 +261,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             {
                 if (!string.IsNullOrEmpty(property.Value.ToString()))
                 {
-                    SetState(property.Name, property.Value);
+                    SetState(property.Name, property.Value, source: StateSource.Application);
                 }
             }
         }

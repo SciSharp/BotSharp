@@ -436,6 +436,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             BeforeActiveRounds = stateChange.BeforeActiveRounds,
             AfterValue = stateChange.AfterValue,
             AfterActiveRounds = stateChange.AfterActiveRounds,
+            DataType = stateChange.DataType,
+            Source = stateChange.Source,
+            Readonly = stateChange.Readonly,
             CreateTime = DateTime.UtcNow
         };
 

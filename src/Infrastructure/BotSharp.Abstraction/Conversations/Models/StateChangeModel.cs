@@ -22,4 +22,13 @@ public class StateChangeModel
 
     [JsonPropertyName("after_active_rounds")]
     public int? AfterActiveRounds { get; set; }
+
+    [JsonPropertyName("data_type")]
+    public string DataType { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; }
+
+    [JsonPropertyName("readonly")]
+    public bool Readonly { get; set; }
 }
