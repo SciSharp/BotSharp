@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using System.Drawing;
 
@@ -49,6 +50,17 @@ public partial class RoutingService
             if (!string.IsNullOrEmpty(states.GetState(field)))
             {
                 var value = states.GetState(field);
+
+                // Check if the value is correct data type
+                var rule = routingRules.First(x => x.Field == field);
+                if (rule.FieldType == "number")
+                {
+                    if (!long.TryParse(value, out var longValue))
+                    {
+                        states.SetState(field, "", isNeedVersion: true, source: StateSource.Application);
+                        continue;
+                    }
+                }
                 message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, field, value);
                 missingFields.Remove(field);
             }
