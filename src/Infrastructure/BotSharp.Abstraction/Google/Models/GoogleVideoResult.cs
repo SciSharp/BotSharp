@@ -3,7 +3,7 @@ namespace BotSharp.Abstraction.Google.Models;
 public class GoogleVideoResult
 {
     public string Kind { get; set; }
-    public IList<VideoItem> Items { get; set; } = new List<VideoItem>();
+    public List<VideoItem> Items { get; set; } = new List<VideoItem>();
 }
 
 public class VideoItem
@@ -25,6 +25,7 @@ public class VideoSnippet
 {
     public string Title { get; set; }
     public string Description { get; set; }
+    public string ChannelId { get; set; }
     public string ChannelTitle { get; set; }
     public VideoThumbnails Thumbnails { get; set; }
 }

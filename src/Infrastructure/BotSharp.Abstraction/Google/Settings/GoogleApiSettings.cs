@@ -19,4 +19,5 @@ public class YoutubeSettings
     public string Endpoint { get; set; }
     public string Part { get; set; }
     public string RegionCode { get; set; }
+    public IList<string> Channels { get; set; }
 }
