@@ -16,6 +16,7 @@ public interface IConversationStateService
     IConversationStateService SetState<T>(string name, T value, bool isNeedVersion = true,
         int activeRounds = -1, string valueType = StateDataType.String, string source = StateSource.User, bool readOnly = false);
     void SaveStateByArgs(JsonDocument args);
+    bool RemoveState(string name);
     void CleanStates();
     void Save();
 }
