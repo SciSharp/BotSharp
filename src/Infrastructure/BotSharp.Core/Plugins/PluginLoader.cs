@@ -144,9 +144,12 @@ public class PluginLoader
         var config = db.GetPluginConfig();
         if (enable)
         {
-            if (!config.EnabledPlugins.Exists(x => x == id))
+            var dependentPlugins = new HashSet<string>();
+            FindPluginDependency(id, enable, ref dependentPlugins);
+            var missingPlugins = dependentPlugins.Where(x => !config.EnabledPlugins.Contains(x)).ToList();
+            if (!missingPlugins.IsNullOrEmpty())
             {
-                config.EnabledPlugins.Add(id);
+                config.EnabledPlugins.AddRange(missingPlugins);
                 db.SavePluginConfig(config);
             }
 
@@ -184,6 +187,36 @@ public class PluginLoader
             }
         }
         return plugin;
+    }
+
+    private void FindPluginDependency(string pluginId, bool enabled, ref HashSet<string> dependentPlugins)
+    {
+        var pluginDef = _plugins.FirstOrDefault(x => x.Id == pluginId);
+        if (pluginDef == null) return;
+
+        if (!pluginDef.IsCore)
+        {
+            pluginDef.Enabled = enabled;
+            dependentPlugins.Add(pluginId);
+        }
+
+        var foundPlugin = _modules.FirstOrDefault(x => x.Id == pluginId);
+        if (foundPlugin == null) return;
+
+        var attr = foundPlugin.GetType().GetCustomAttribute<PluginDependencyAttribute>();
+        if (attr != null && !attr.PluginNames.IsNullOrEmpty())
+        {
+            foreach (var name in attr.PluginNames)
+            {
+                var plugins = _plugins.Where(x => x.Assembly == name).ToList();
+                if (plugins.IsNullOrEmpty()) return;
+
+                foreach (var plugin in plugins)
+                {
+                    FindPluginDependency(plugin.Id, enabled, ref dependentPlugins);
+                }
+            }
+        }
     }
 
     public string GetSummaryComment(Type member)
