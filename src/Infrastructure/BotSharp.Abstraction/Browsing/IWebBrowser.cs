@@ -23,6 +23,6 @@ public interface IWebBrowser
     Task<string> ExtractData(BrowserActionParams actionParams);
     Task<T> EvaluateScript<T>(string conversationId, string script);
     Task CloseBrowser(string conversationId);
-    Task<BrowserActionResult> SendHttpRequest(BrowserActionParams actionParams);
+    Task<BrowserActionResult> SendHttpRequest(HttpRequestParams actionParams);
     Task<string> GetAttributeValue(MessageInfo message, ElementLocatingArgs location, BrowserActionResult result);
 }

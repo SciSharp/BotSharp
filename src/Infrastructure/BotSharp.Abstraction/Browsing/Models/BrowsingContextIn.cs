@@ -40,10 +40,4 @@ public class BrowsingContextIn
 
     [JsonPropertyName("direction")]
     public string? Direction { get; set; }
-
-    /// <summary>
-    /// Http request payload
-    /// </summary>
-    [JsonPropertyName("payload")]
-    public string? Payload { get; set; }
 }
