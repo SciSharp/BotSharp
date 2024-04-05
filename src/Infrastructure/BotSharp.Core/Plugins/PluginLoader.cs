@@ -145,7 +145,8 @@ public class PluginLoader
         if (enable)
         {
             var dependentPlugins = new HashSet<string>();
-            FindPluginDependency(id, enable, ref dependentPlugins);
+            var dependentAgentIds = new HashSet<string>();
+            FindPluginDependency(id, enable, ref dependentPlugins, ref dependentAgentIds);
             var missingPlugins = dependentPlugins.Where(x => !config.EnabledPlugins.Contains(x)).ToList();
             if (!missingPlugins.IsNullOrEmpty())
             {
@@ -155,7 +156,7 @@ public class PluginLoader
 
             // enable agents
             var agentService = services.GetRequiredService<IAgentService>();
-            foreach (var agentId in plugin.AgentIds) 
+            foreach (var agentId in dependentAgentIds) 
             {
                 var agent = agentService.LoadAgent(agentId).Result;
                 agent.Disabled = false;
@@ -189,7 +190,7 @@ public class PluginLoader
         return plugin;
     }
 
-    private void FindPluginDependency(string pluginId, bool enabled, ref HashSet<string> dependentPlugins)
+    private void FindPluginDependency(string pluginId, bool enabled, ref HashSet<string> dependentPlugins, ref HashSet<string> dependentAgentIds)
     {
         var pluginDef = _plugins.FirstOrDefault(x => x.Id == pluginId);
         if (pluginDef == null) return;
@@ -198,6 +199,13 @@ public class PluginLoader
         {
             pluginDef.Enabled = enabled;
             dependentPlugins.Add(pluginId);
+            if (!pluginDef.AgentIds.IsNullOrEmpty())
+            {
+                foreach (var agentId in pluginDef.AgentIds)
+                {
+                    dependentAgentIds.Add(agentId);
+                }
+            }
         }
 
         var foundPlugin = _modules.FirstOrDefault(x => x.Id == pluginId);
@@ -213,7 +221,7 @@ public class PluginLoader
 
                 foreach (var plugin in plugins)
                 {
-                    FindPluginDependency(plugin.Id, enabled, ref dependentPlugins);
+                    FindPluginDependency(plugin.Id, enabled, ref dependentPlugins, ref dependentAgentIds);
                 }
             }
         }
