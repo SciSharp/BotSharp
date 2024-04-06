@@ -22,12 +22,12 @@ public class InstructModeController : ControllerBase
         [FromBody] InstructMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
-        state.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("model_id", input.ModelId)
-            .SetState("instruction", input.Instruction)
-            .SetState("input_text", input.Text);
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External)
+            .SetState("instruction", input.Instruction, source: StateSource.External)
+            .SetState("input_text", input.Text,source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
@@ -44,10 +44,10 @@ public class InstructModeController : ControllerBase
     public async Task<string> TextCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
-        state.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("model_id", input.ModelId);
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External);
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
         return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.NewGuid().ToString());
@@ -57,10 +57,10 @@ public class InstructModeController : ControllerBase
     public async Task<string> ChatCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
-        state.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("model_id", input.ModelId);
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External);
 
         var textCompletion = CompletionProvider.GetChatCompletion(_services);
         var message = await textCompletion.GetChatCompletions(new Agent()
