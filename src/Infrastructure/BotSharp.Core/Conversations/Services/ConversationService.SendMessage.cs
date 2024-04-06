@@ -72,10 +72,13 @@ public partial class ConversationService
         }
 
         // Persist to storage
-        _storage.Append(_conversationId, message);
+        if (!message.StopCompletion)
+        {
+            _storage.Append(_conversationId, message);
 
-        // Add to thread
-        dialogs.Add(RoleDialogModel.From(message));
+            // Add to thread
+            dialogs.Add(RoleDialogModel.From(message));
+        }
 
         if (!stopCompletion)
         {
@@ -146,6 +149,12 @@ public partial class ConversationService
             Recipient = new Recipient { Id = state.GetConversationId() },
             Message = new TextMessage(response.Content)
         };
+
+        // Patch return function name
+        if (response.PostbackFunctionName != null)
+        {
+            response.FunctionName = response.PostbackFunctionName;
+        }
 
         var hooks = _services.GetServices<IConversationHook>().ToList();
 
