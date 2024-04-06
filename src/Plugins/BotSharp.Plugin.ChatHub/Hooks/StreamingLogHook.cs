@@ -98,7 +98,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (!_convSettings.ShowVerboseLog) return;
     }
 
-    public override async Task OnFunctionExecuted(RoleDialogModel message)
+    public override async Task OnFunctionExecuting(RoleDialogModel message)
     {
         if (message.FunctionName == "route_to_agent")
         {
@@ -109,7 +109,30 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
         var args = JsonSerializer.Serialize(JsonDocument.Parse(message.FunctionArgs), _options.JsonSerializerOptions);
-        var log = $"*{message.FunctionName}*\r\n```json\r\n{args}\r\n```\r\n=> {message.Content?.Trim()}";
+        var log = $"{message.FunctionName} <u>executing</u>\r\n```json\r\n{args}\r\n```";
+
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent?.Name,
+            AgentId = agent?.Id,
+            Source = ContentLogSource.FunctionCall,
+            Log = log
+        };
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationContentLogGenerated", BuildContentLog(input));
+    }
+
+    public override async Task OnFunctionExecuted(RoleDialogModel message)
+    {
+        if (message.FunctionName == "route_to_agent")
+        {
+            return;
+        }
+
+        var conversationId = _state.GetConversationId();
+        var agent = await _agentService.LoadAgent(message.CurrentAgentId);
+        message.FunctionArgs = message.FunctionArgs ?? "{}";
+        // var args = JsonSerializer.Serialize(JsonDocument.Parse(message.FunctionArgs), _options.JsonSerializerOptions);
+        var log = $"{message.FunctionName} =>\r\n*{message.Content?.Trim()}*";
 
         var input = new ContentLogInputModel(conversationId, message)
         {
