@@ -1,5 +1,8 @@
+using Amazon.Auth.AccessControlPolicy;
+using AspectInjector.Broker;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Users.Enums;
+using System;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -201,9 +204,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
             var key = pair.Key;
             var curValue = pair.Value;
 
-            if (!_historyStates.TryGetValue(key, out var historyValue) 
-                || historyValue == null 
-                || historyValue.Values.IsNullOrEmpty() 
+            if (!_historyStates.TryGetValue(key, out var historyValue)
+                || historyValue == null
+                || historyValue.Values.IsNullOrEmpty()
                 || !curValue.Versioning)
             {
                 states.Add(curValue);
@@ -232,8 +235,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
         if (!ContainsState(name)) return false;
 
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
-        var leafNode = _curStates[name].Values?.LastOrDefault();
-        if (leafNode == null) return false;
+        var value = _curStates[name];
+        var leafNode = value?.Values?.LastOrDefault();
+        if (value == null || !value.Versioning || leafNode == null) return false;
 
         _curStates[name].Values.Add(new StateValue
         {
@@ -245,6 +249,24 @@ public class ConversationStateService : IConversationStateService, IDisposable
             Source = leafNode.Source,
             UpdateTime = DateTime.UtcNow
         });
+
+        var hooks = _services.GetServices<IConversationHook>();
+        foreach (var hook in hooks)
+        {
+            hook.OnStateChanged(new StateChangeModel
+            {
+                ConversationId = _conversationId,
+                MessageId = routingCtx.MessageId,
+                Name = name,
+                BeforeValue = leafNode.Data,
+                BeforeActiveRounds = leafNode.ActiveRounds,
+                AfterValue = null,
+                AfterActiveRounds = leafNode.ActiveRounds,
+                DataType = leafNode.DataType,
+                Source = leafNode.Source,
+                Readonly = _curStates[name].Readonly
+            }).Wait();
+        }
 
         return true;
     }
