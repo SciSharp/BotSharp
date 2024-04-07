@@ -12,13 +12,13 @@ public class StateChangeModel
     public string Name { get; set; }
 
     [JsonPropertyName("before_value")]
-    public string BeforeValue { get; set; }
+    public string? BeforeValue { get; set; }
 
     [JsonPropertyName("before_active_rounds")]
     public int? BeforeActiveRounds { get; set; }
 
     [JsonPropertyName("after_value")]
-    public string AfterValue { get; set; }
+    public string? AfterValue { get; set; }
 
     [JsonPropertyName("after_active_rounds")]
     public int? AfterActiveRounds { get; set; }
