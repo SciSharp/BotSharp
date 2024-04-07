@@ -28,11 +28,11 @@ public class ConversationStorage : IConversationStorage
         var dialogElements = new List<DialogElement>();
 
         // Prevent duplicate record to be inserted
-        /*var dialogs = db.GetConversationDialogs(conversationId);
+        var dialogs = db.GetConversationDialogs(conversationId);
         if (dialogs.Any(x => x.MetaData.MessageId == dialog.MessageId && x.Content == dialog.Content))
         {
             return;
-        }*/
+        }
 
         if (dialog.Role == AgentRole.Function)
         {
