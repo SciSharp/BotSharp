@@ -58,9 +58,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         if (ContainsState(name) && _curStates.TryGetValue(name, out var pair))
         {
-            var lastNode = pair?.Values?.LastOrDefault();
-            preActiveRounds = lastNode?.ActiveRounds;
-            preValue = lastNode?.Data ?? string.Empty;
+            var leafNode = pair?.Values?.LastOrDefault();
+            preActiveRounds = leafNode?.ActiveRounds;
+            preValue = leafNode?.Data ?? string.Empty;
         }
 
         _logger.LogInformation($"[STATE] {name} = {value}");
@@ -139,7 +139,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         {
             var key = state.Key;
             var value = state.Value;
-            var leafNode = value.Values.LastOrDefault();
+            var leafNode = value?.Values?.LastOrDefault();
             if (leafNode == null) continue;
 
             _curStates[key] = new StateKeyValue
@@ -261,7 +261,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
                 AfterActiveRounds = leafNode.ActiveRounds,
                 DataType = leafNode.DataType,
                 Source = leafNode.Source,
-                Readonly = _curStates[name].Readonly
+                Readonly = value.Readonly
             }).Wait();
         }
 
