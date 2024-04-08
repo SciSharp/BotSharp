@@ -2,10 +2,11 @@ namespace BotSharp.Abstraction.Functions.Models;
 
 public class ParameterPropertyDef : NameDesc
 {
-    public ParameterPropertyDef(string name, string description, string type = "string") 
+    public ParameterPropertyDef(string name, string description, string type = "string", bool required = false) 
         : base(name, description)
     {
         Type = type;
+        Required = required;
     }
 
     [JsonPropertyName("required")]

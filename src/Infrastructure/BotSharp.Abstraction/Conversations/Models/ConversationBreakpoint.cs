@@ -10,4 +10,7 @@ public class ConversationBreakpoint
 
     [JsonPropertyName("created_time")]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+
+    [JsonPropertyName("reason")]
+    public string? Reason { get; set; }
 }

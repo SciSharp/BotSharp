@@ -44,21 +44,12 @@ public partial class MongoRepository
         }
         }).ToList();
 
-        var initialBreakpoints = new List<BreakpointMongoElement>()
-        {
-            new BreakpointMongoElement
-            {
-                Breakpoint = utcNow.AddMilliseconds(-100),
-                CreatedTime = utcNow
-            }
-        };
-
         var stateDoc = new ConversationStateDocument
         {
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
             States = initialStates,
-            Breakpoints = initialBreakpoints
+            Breakpoints = new List<BreakpointMongoElement>()
         };
 
         _dc.Conversations.InsertOne(convDoc);
@@ -152,15 +143,16 @@ public partial class MongoRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
-    public void UpdateConversationBreakpoint(string conversationId, string messageId, DateTime breakpoint)
+    public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
 
         var newBreakpoint = new BreakpointMongoElement()
         {
-            MessageId = messageId,
-            Breakpoint = breakpoint,
-            CreatedTime = DateTime.UtcNow
+            MessageId = breakpoint.MessageId,
+            Breakpoint = breakpoint.Breakpoint,
+            CreatedTime = DateTime.UtcNow,
+            Reason = breakpoint.Reason
         };
         var filterState = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var updateState = Builders<ConversationStateDocument>.Update.Push(x => x.Breakpoints, newBreakpoint);
@@ -168,11 +160,11 @@ public partial class MongoRepository
         _dc.ConversationStates.UpdateOne(filterState, updateState);
     }
 
-    public DateTime GetConversationBreakpoint(string conversationId)
+    public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
     {
         if (string.IsNullOrEmpty(conversationId))
         {
-            return default;
+            return null;
         }
 
         var filter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
@@ -180,10 +172,16 @@ public partial class MongoRepository
 
         if (state == null || state.Breakpoints.IsNullOrEmpty())
         {
-            return default;
+            return null;
         }
 
-        return state.Breakpoints.LastOrDefault()?.Breakpoint ?? default;
+        return state.Breakpoints.Select(x => new ConversationBreakpoint
+        {
+            Breakpoint = x.Breakpoint,
+            CreatedTime = x.CreatedTime,
+            MessageId = x.MessageId,
+            Reason = x.Reason,
+        }).LastOrDefault();
     }
 
     public ConversationState GetConversationStates(string conversationId)
