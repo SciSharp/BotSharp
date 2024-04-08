@@ -46,7 +46,7 @@ public partial class PlaywrightWebDriver
             if (elements == null)
             {
                 var errorMessage = $"Can't locate element by keyword {actionParams.Context.ElementName}";
-                result.ErrorMessage = errorMessage;
+                result.Message = errorMessage;
                 return result;
             }
         }
@@ -60,7 +60,7 @@ public partial class PlaywrightWebDriver
         }
         catch (Exception ex) 
         {
-            result.ErrorMessage = ex.Message;
+            result.Message = ex.Message;
             result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }

@@ -26,7 +26,7 @@ public class ClickButtonFn : IFunctionCallback
         var content = $"Click button of '{args.ElementName}'";
         message.Content = result.IsSuccess ? 
             $"{content} successfully" : 
-            $"{content} failed. {result.ErrorMessage}";
+            $"{content} failed. {result.Message}";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

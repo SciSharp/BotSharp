@@ -42,8 +42,8 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            result.ErrorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";
-            _logger.LogError(result.ErrorMessage);
+            result.Message = $"Can't locate element by keyword {actionParams.Context.ElementText}";
+            _logger.LogError(result.Message);
         }
         else if (count == 1)
         {
@@ -57,8 +57,8 @@ public partial class PlaywrightWebDriver
         }
         else if (count > 1)
         {
-            result.ErrorMessage = $"Multiple elements are found by keyword {actionParams.Context.ElementText}";
-            _logger.LogWarning(result.ErrorMessage);
+            result.Message = $"Multiple elements are found by keyword {actionParams.Context.ElementText}";
+            _logger.LogWarning(result.Message);
             var all = await locator.AllAsync();
             foreach (var element in all)
             {

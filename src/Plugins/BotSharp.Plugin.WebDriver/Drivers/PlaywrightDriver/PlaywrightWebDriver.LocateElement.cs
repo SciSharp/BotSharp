@@ -2,6 +2,12 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
+    /// <summary>
+    /// Using attributes or text to locate element and return the selector
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="location"></param>
+    /// <returns></returns>
     public async Task<BrowserActionResult> LocateElement(MessageInfo message, ElementLocatingArgs location)
     {
         var result = new BrowserActionResult();
@@ -53,8 +59,8 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            result.ErrorMessage = $"Can't locate element by keyword {location.Text}";
-            _logger.LogError(result.ErrorMessage);
+            result.Message = $"Can't locate element by keyword {location.Text}";
+            _logger.LogError(result.Message);
         }
         else if (count == 1)
         {
@@ -67,8 +73,8 @@ public partial class PlaywrightWebDriver
         {
             if (location.FailIfMultiple)
             {
-                result.ErrorMessage = $"Multiple elements are found by {locator}";
-                _logger.LogError(result.ErrorMessage);
+                result.Message = $"Multiple elements are found by {locator}";
+                _logger.LogError(result.Message);
 
                 foreach (var element in await locator.AllAsync())
                 {
@@ -81,6 +87,19 @@ public partial class PlaywrightWebDriver
                 result.Selector = locator.ToString();
                 result.IsSuccess = true;
             }
+        }
+
+        // Hightlight the element
+        if (result.IsSuccess && location.Highlight)
+        {
+            var handle = await page.QuerySelectorAsync(result.Selector);
+
+            await page.EvaluateAsync($@"
+                (element) => {{
+                    element.style.outline = '2px solid red';
+                }}", handle);
+
+            result.IsHighlighted = true;
         }
 
         return result;

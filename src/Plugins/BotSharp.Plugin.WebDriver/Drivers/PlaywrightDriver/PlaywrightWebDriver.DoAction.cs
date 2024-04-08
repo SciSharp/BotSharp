@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Browsing.Enums;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -7,9 +9,13 @@ public partial class PlaywrightWebDriver
         var page = _instance.GetPage(message.ConversationId);
         ILocator locator = page.Locator(result.Selector);
 
-        if (action.Action == "click")
+        if (action.Action == BroswerActionEnum.Click)
         {
             await locator.ClickAsync();
+        }
+        else if (action.Action == BroswerActionEnum.InputText)
+        {
+            await locator.FillAsync(action.Content);
         }
     }
 }

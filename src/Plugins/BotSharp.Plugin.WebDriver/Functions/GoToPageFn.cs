@@ -27,7 +27,7 @@ public class GoToPageFn : IFunctionCallback
         url = url.Replace("https://https://", "https://");
 
         var result = await _browser.GoToPage(convService.ConversationId, url);
-        message.Content = result.IsSuccess ? $"Page {url} is open." : $"Page {url} open failed. {result.ErrorMessage}";
+        message.Content = result.IsSuccess ? $"Page {url} is open." : $"Page {url} open failed. {result.Message}";
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 

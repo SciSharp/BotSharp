@@ -19,12 +19,12 @@ public partial class PlaywrightWebDriver
             }
             else
             {
-                result.ErrorMessage = response.StatusText;
+                result.Message = response.StatusText;
             }
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = ex.Message;
+            result.Message = ex.Message;
             result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }

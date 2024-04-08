@@ -22,7 +22,7 @@ public partial class PlaywrightWebDriver
         var errorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";
         if (count == 0)
         {
-            result.ErrorMessage = errorMessage;
+            result.Message = errorMessage;
             return result;
         }
 
@@ -30,7 +30,7 @@ public partial class PlaywrightWebDriver
         count = await parentElement.CountAsync();
         if (count == 0)
         {
-            result.ErrorMessage = errorMessage;
+            result.Message = errorMessage;
             return result;
         }
 
@@ -40,7 +40,7 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            result.ErrorMessage = errorMessage;
+            result.Message = errorMessage;
             return result;
         }
 
@@ -53,7 +53,7 @@ public partial class PlaywrightWebDriver
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = ex.Message;
+            result.Message = ex.Message;
             result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }

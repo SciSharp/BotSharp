@@ -26,7 +26,7 @@ public class CheckRadioButtonFn : IFunctionCallback
         var content = $"Check value of '{args.UpdateValue}' for radio button '{args.ElementName}'";
         message.Content = result.IsSuccess ?
             $"{content} successfully" :
-            $"{content} failed. {result.ErrorMessage}";
+            $"{content} failed. {result.Message}";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
