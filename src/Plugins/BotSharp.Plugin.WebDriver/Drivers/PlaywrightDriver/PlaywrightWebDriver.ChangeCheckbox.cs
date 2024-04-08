@@ -25,13 +25,13 @@ public partial class PlaywrightWebDriver
         var errorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";
         if (count == 0)
         {
-            result.ErrorMessage = errorMessage;
+            result.Message = errorMessage;
             return result;
         }
         else if (count > 1)
         {
-            result.ErrorMessage = $"Located multiple elements by {actionParams.Context.ElementText}";
-            _logger.LogError(result.ErrorMessage);
+            result.Message = $"Located multiple elements by {actionParams.Context.ElementText}";
+            _logger.LogError(result.Message);
             var allElements = await elements.AllAsync();
             foreach (var element in allElements)
             {
@@ -44,7 +44,7 @@ public partial class PlaywrightWebDriver
         count = await parentElement.CountAsync();
         if (count == 0)
         {
-            result.ErrorMessage = errorMessage;
+            result.Message = errorMessage;
             return result;
         }
 
@@ -61,13 +61,13 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            result.ErrorMessage = errorMessage;
+            result.Message = errorMessage;
             return result;
         }
         else if (count > 1)
         {
-            result.ErrorMessage = $"Located multiple elements by {actionParams.Context.ElementText}";
-            _logger.LogError(result.ErrorMessage);
+            result.Message = $"Located multiple elements by {actionParams.Context.ElementText}";
+            _logger.LogError(result.Message);
             return result;
         }
 
@@ -87,7 +87,7 @@ public partial class PlaywrightWebDriver
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = ex.Message;
+            result.Message = ex.Message;
             result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }

@@ -31,7 +31,7 @@ public class OpenBrowserFn : IFunctionCallback
         }
         else
         {
-            message.Content = $"Launch browser failed. {result.ErrorMessage}";
+            message.Content = $"Launch browser failed. {result.Message}";
         }
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

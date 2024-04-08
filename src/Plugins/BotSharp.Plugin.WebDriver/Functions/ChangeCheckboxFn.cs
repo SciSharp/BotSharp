@@ -26,7 +26,7 @@ public class ChangeCheckboxFn : IFunctionCallback
         var content = $"{(args.UpdateValue == "check" ? "Check" : "Uncheck")} checkbox of '{args.ElementText}'";
         message.Content = result.IsSuccess ? 
             $"{content} successfully" : 
-            $"{content} failed. {result.ErrorMessage}";
+            $"{content} failed. {result.Message}";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

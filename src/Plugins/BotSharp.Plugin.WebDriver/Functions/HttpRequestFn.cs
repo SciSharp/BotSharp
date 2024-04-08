@@ -25,7 +25,7 @@ public class HttpRequestFn : IFunctionCallback
 
         message.Content = result.IsSuccess ? 
             result.Body :
-            $"Http request failed. {result.ErrorMessage}";
+            $"Http request failed. {result.Message}";
 
         return true;
     }

@@ -21,4 +21,9 @@ public class ElementLocatingArgs
     public string? Selector { get; set; }
 
     public bool FailIfMultiple { get; set; }
+
+    /// <summary>
+    /// Draw outline around the element
+    /// </summary>
+    public bool Highlight { get; set; }
 }
