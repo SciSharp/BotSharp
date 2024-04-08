@@ -19,6 +19,9 @@ public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
     [JsonPropertyName("is_horizontal")]
     public bool IsHorizontal { get; set; }
 
+    [JsonPropertyName("is_popup")]
+    public bool IsPopup { get; set; }
+
     [JsonPropertyName("element_type")]
     public string ElementType => typeof(T).Name;
 }
