@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using System.Globalization;
 using System.IO;
@@ -35,30 +34,13 @@ namespace BotSharp.Core.Repository
             var stateFile = Path.Combine(dir, STATE_FILE);
             if (!File.Exists(stateFile))
             {
-                var states = conversation.States ?? new Dictionary<string, string>();
-                var initialStates = states.Select(x => new StateKeyValue
-                {
-                    Key = x.Key,
-                    Values = new List<StateValue>
-                    {
-                        new StateValue { Data = x.Value, UpdateTime = DateTime.UtcNow }
-                    }
-                }).ToList();
-                File.WriteAllText(stateFile, JsonSerializer.Serialize(initialStates, _options));
+                File.WriteAllText(stateFile, JsonSerializer.Serialize(new List<StateKeyValue>(), _options));
             }
 
             var breakpointFile = Path.Combine(dir, BREAKPOINT_FILE);
             if (!File.Exists(breakpointFile))
             {
-                var initialBreakpoints = new List<ConversationBreakpoint>
-                {
-                    new ConversationBreakpoint()
-                    {
-                        Breakpoint = utcNow.AddMilliseconds(-100),
-                        CreatedTime = DateTime.UtcNow
-                    }
-                };
-                File.WriteAllText(breakpointFile, JsonSerializer.Serialize(initialBreakpoints, _options));
+                File.WriteAllText(breakpointFile, JsonSerializer.Serialize(new List<ConversationBreakpoint>(), _options));
             }
         }
 
@@ -180,8 +162,8 @@ namespace BotSharp.Core.Repository
                     {
                         MessageId = breakpoint.MessageId,
                         Breakpoint = breakpoint.Breakpoint,
-                        CreatedTime = DateTime.UtcNow,
                         Reason = breakpoint.Reason,
+                        CreatedTime = DateTime.UtcNow,
                     }
                 };
 

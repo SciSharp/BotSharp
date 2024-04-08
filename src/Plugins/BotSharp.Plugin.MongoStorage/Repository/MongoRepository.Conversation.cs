@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
 using BotSharp.Plugin.MongoStorage.Models;
-using System.Text.RegularExpressions;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -34,21 +33,11 @@ public partial class MongoRepository
             Dialogs = new List<DialogMongoElement>()
         };
 
-        var states = conversation.States ?? new Dictionary<string, string>();
-        var initialStates = states.Select(x => new StateMongoElement
-        {
-            Key = x.Key,
-            Values = new List<StateValueMongoElement>
-        {
-            new StateValueMongoElement { Data = x.Value, UpdateTime = DateTime.UtcNow }
-        }
-        }).ToList();
-
         var stateDoc = new ConversationStateDocument
         {
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
-            States = initialStates,
+            States = new List<StateMongoElement>(),
             Breakpoints = new List<BreakpointMongoElement>()
         };
 
@@ -169,19 +158,20 @@ public partial class MongoRepository
 
         var filter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var state = _dc.ConversationStates.Find(filter).FirstOrDefault();
+        var leafNode = state?.Breakpoints?.LastOrDefault();
 
-        if (state == null || state.Breakpoints.IsNullOrEmpty())
+        if (leafNode == null)
         {
             return null;
         }
 
-        return state.Breakpoints.Select(x => new ConversationBreakpoint
+        return new ConversationBreakpoint
         {
-            Breakpoint = x.Breakpoint,
-            CreatedTime = x.CreatedTime,
-            MessageId = x.MessageId,
-            Reason = x.Reason,
-        }).LastOrDefault();
+            Breakpoint = leafNode.Breakpoint,
+            MessageId = leafNode.MessageId,
+            Reason = leafNode.Reason,
+            CreatedTime = leafNode.CreatedTime,
+        };
     }
 
     public ConversationState GetConversationStates(string conversationId)
