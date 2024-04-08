@@ -2,12 +2,18 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
 {
-    public async Task UpdateBreakpoint(bool resetStates = false)
+    public async Task UpdateBreakpoint(bool resetStates = false, string? reason = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var messageId = routingCtx.MessageId;
-        db.UpdateConversationBreakpoint(_conversationId, messageId, DateTime.UtcNow);
+
+        db.UpdateConversationBreakpoint(_conversationId, new ConversationBreakpoint
+        {
+            MessageId = messageId,
+            Breakpoint = DateTime.UtcNow,
+            Reason = reason
+        });
 
         // Reset states
         if (resetStates)

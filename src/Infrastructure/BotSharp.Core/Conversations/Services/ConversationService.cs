@@ -115,7 +115,14 @@ public partial class ConversationService : IConversationService
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var breakpoint = db.GetConversationBreakpoint(_conversationId);
-            dialogs = dialogs.Where(x => x.CreatedAt >= breakpoint).ToList();
+            if (breakpoint != null)
+            {
+                dialogs = dialogs.Where(x => x.CreatedAt >= breakpoint.Breakpoint).ToList();
+                if (!string.IsNullOrEmpty(breakpoint.Reason))
+                {
+                    dialogs.Insert(0, new RoleDialogModel(AgentRole.User, breakpoint.Reason));
+                }
+            }
         }
 
         return dialogs

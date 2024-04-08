@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Routing;
@@ -58,7 +59,7 @@ public partial class RouteToAgentFn : IFunctionCallback
         if (!string.IsNullOrEmpty(args.AgentName) && args.AgentName.Length < 32)
         {
             _context.Push(args.AgentName, args.NextActionReason);
-            states.SetState("next_action_agent", args.AgentName, isNeedVersion: true);
+            states.SetState(StateConst.NEXT_ACTION_AGENT, args.AgentName, isNeedVersion: true);
         }
 
         if (string.IsNullOrEmpty(args.AgentName))

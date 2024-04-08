@@ -12,7 +12,8 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
         new ParameterPropertyDef("reason", "why response to user directly without go to other agents"),
         new ParameterPropertyDef("response", "response content to user in courteous words. If the user wants to end the conversation, you must set conversation_end to true and response politely."),
-        new ParameterPropertyDef("conversation_end", "whether to end this conversation, true or false", type: "boolean")
+        new ParameterPropertyDef("conversation_end", "whether to end this conversation", type: "boolean"),
+        new ParameterPropertyDef("task_completed ", "whether the user's task request has been completed.", type: "boolean")
     };
 
     public ResponseToUserRoutingHandler(IServiceProvider services, ILogger<ResponseToUserRoutingHandler> logger, RoutingSettings settings) 

@@ -19,6 +19,12 @@ public class RoutingArgs
     [JsonPropertyName("conversation_end")]
     public bool ConversationEnd { get; set; }
 
+    [JsonPropertyName("task_completed")]
+    public bool TaskCompleted { get; set; }
+
+    [JsonPropertyName("is_new_task")]
+    public bool IsNewTask { get; set; }
+
     /// <summary>
     /// The content of replying to user
     /// </summary>

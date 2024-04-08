@@ -156,27 +156,31 @@ public partial class ConversationService
             response.FunctionName = response.PostbackFunctionName;
         }
 
-        var hooks = _services.GetServices<IConversationHook>().ToList();
-
         if (response.Instruction != null)
         {
             var conversation = _services.GetRequiredService<IConversationService>();
             var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.NextActionReason);
 
+            // Emit conversation task completed hook
+            if (response.Instruction.TaskCompleted)
+            {
+                await HookEmitter.Emit<IConversationHook>(_services, async hook =>
+                    await hook.OnTaskCompleted(response)
+                );
+            }
+
             // Emit conversation ending hook
             if (response.Instruction.ConversationEnd)
             {
-                foreach (var hook in hooks)
-                {
-                    await hook.OnConversationEnding(response);
-                }
+                await HookEmitter.Emit<IConversationHook>(_services, async hook =>
+                    await hook.OnConversationEnding(response)
+                );
             }
         }
 
-        foreach (var hook in hooks)
-        {
-            await hook.OnResponseGenerated(response);
-        }
+        await HookEmitter.Emit<IConversationHook>(_services, async hook =>
+            await hook.OnResponseGenerated(response)
+        );
 
         await onResponseReceived(response);
 

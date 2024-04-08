@@ -58,8 +58,8 @@ public interface IBotSharpRepository
     Conversation GetConversation(string conversationId);
     PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
-    void UpdateConversationBreakpoint(string conversationId, string messageId, DateTime breakpoint);
-    DateTime GetConversationBreakpoint(string conversationId);
+    void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
+    ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
     List<Conversation> GetLastConversations();
     List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours);
     bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false);

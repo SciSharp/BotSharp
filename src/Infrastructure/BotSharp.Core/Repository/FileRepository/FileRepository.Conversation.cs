@@ -160,7 +160,7 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        public void UpdateConversationBreakpoint(string conversationId, string messageId, DateTime breakpoint)
+        public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
         {
             var convDir = FindConversationDirectory(conversationId);
             if (!string.IsNullOrEmpty(convDir))
@@ -178,9 +178,10 @@ namespace BotSharp.Core.Repository
                 {
                     new ConversationBreakpoint
                     {
-                        MessageId = messageId,
-                        Breakpoint = breakpoint,
-                        CreatedTime = DateTime.UtcNow
+                        MessageId = breakpoint.MessageId,
+                        Breakpoint = breakpoint.Breakpoint,
+                        CreatedTime = DateTime.UtcNow,
+                        Reason = breakpoint.Reason,
                     }
                 };
 
@@ -197,12 +198,12 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        public DateTime GetConversationBreakpoint(string conversationId)
+        public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
         {
             var convDir = FindConversationDirectory(conversationId);
             if (string.IsNullOrEmpty(convDir))
             {
-                return default;
+                return null;
             }
 
             var breakpointFile = Path.Combine(convDir, BREAKPOINT_FILE);
@@ -214,7 +215,7 @@ namespace BotSharp.Core.Repository
             var content = File.ReadAllText(breakpointFile);
             var records = JsonSerializer.Deserialize<List<ConversationBreakpoint>>(content, _options);
 
-            return records?.LastOrDefault()?.Breakpoint ?? default;
+            return records?.LastOrDefault();
         }
 
         public ConversationState GetConversationStates(string conversationId)
