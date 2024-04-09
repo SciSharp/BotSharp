@@ -221,11 +221,12 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (agentService.RenderFunction(agent, function))
             {
+                var property = agentService.RenderFunctionProperty(agent, function);
                 chatCompletionsOptions.Functions.Add(new FunctionDefinition
                 {
                     Name = function.Name,
                     Description = function.Description,
-                    Parameters = BinaryData.FromObjectAsJson(function.Parameters)
+                    Parameters = BinaryData.FromObjectAsJson(property)
                 });
             }
         }

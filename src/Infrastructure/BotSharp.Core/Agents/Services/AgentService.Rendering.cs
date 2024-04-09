@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Templating;
+using Newtonsoft.Json.Linq;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -30,6 +31,64 @@ public partial class AgentService
         }
 
         return true;
+    }
+
+    public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def)
+    {
+        var parameterDef = def?.Parameters;
+        var propertyDef = parameterDef?.Properties;
+        if (propertyDef == null) return null;
+
+        var visibleExpress = "visibility_expression";
+        var root = propertyDef.RootElement;
+        var iterator = root.EnumerateObject();
+        var list = new List<string>();
+        while (iterator.MoveNext())
+        {
+            var prop = iterator.Current;
+            var name = prop.Name;
+            var node = prop.Value;
+            var matched = true;
+            if (node.TryGetProperty(visibleExpress, out var element))
+            {
+                var expression = element.GetString();
+                var render = _services.GetRequiredService<ITemplateRender>();
+                var result = render.Render(expression, new Dictionary<string, object>
+                {
+                    { "states", agent.TemplateDict }
+                });
+                matched = result == "visible";
+            }
+
+            if (matched)
+            {
+                list.Add(name);
+            }
+        }
+
+        var rootObject = JObject.Parse(root.GetRawText());
+        var clonedRoot = rootObject.DeepClone() as JObject;
+        var required = parameterDef?.Required ?? new List<string>();
+        foreach (var property in rootObject.Properties())
+        {
+            if (list.Contains(property.Name))
+            {
+                var value = clonedRoot.GetValue(property.Name) as JObject;
+                if (value != null && value.ContainsKey(visibleExpress))
+                {
+                    value.Remove(visibleExpress);
+                }
+            }
+            else
+            {
+                clonedRoot.Remove(property.Name);
+                required.Remove(property.Name);
+            }
+        }
+
+        parameterDef.Properties = JsonSerializer.Deserialize<JsonDocument>(clonedRoot.ToString());
+        parameterDef.Required = required;
+        return parameterDef; ;
     }
 
     public string RenderedTemplate(Agent agent, string templateName)
