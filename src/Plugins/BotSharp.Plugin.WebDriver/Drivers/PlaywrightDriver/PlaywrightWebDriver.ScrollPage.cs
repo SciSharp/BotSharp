@@ -5,9 +5,9 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> ScrollPageAsync(BrowserActionParams actionParams)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(actionParams.ConversationId);
+        await _instance.Wait(actionParams.ContextId);
 
-        var page = _instance.GetPage(actionParams.ConversationId);
+        var page = _instance.GetPage(actionParams.ContextId);
 
         if(actionParams.Context.Direction == "down")
             await page.EvaluateAsync("window.scrollBy(0, window.innerHeight - 200)");

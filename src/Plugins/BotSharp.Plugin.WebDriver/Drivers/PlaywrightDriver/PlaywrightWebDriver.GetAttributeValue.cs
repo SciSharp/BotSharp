@@ -4,7 +4,7 @@ public partial class PlaywrightWebDriver
 {
     public async Task<string> GetAttributeValue(MessageInfo message, ElementLocatingArgs location, BrowserActionResult result)
     {
-        var page = _instance.GetPage(message.ConversationId);
+        var page = _instance.GetPage(message.ContextId);
         ILocator locator = page.Locator(result.Selector);
         var value = string.Empty;
 

@@ -5,10 +5,10 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> ClickButton(BrowserActionParams actionParams)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(actionParams.ConversationId);
+        await _instance.Wait(actionParams.ContextId);
 
         // Find by text exactly match
-        var elements = _instance.GetPage(actionParams.ConversationId)
+        var elements = _instance.GetPage(actionParams.ContextId)
             .GetByRole(AriaRole.Button, new PageGetByRoleOptions
             {
                 Name = actionParams.Context.ElementName
@@ -17,7 +17,7 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            elements = _instance.GetPage(actionParams.ConversationId)
+            elements = _instance.GetPage(actionParams.ContextId)
                 .GetByRole(AriaRole.Link, new PageGetByRoleOptions
                 {
                     Name = actionParams.Context.ElementName
@@ -27,7 +27,7 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            elements = _instance.GetPage(actionParams.ConversationId)
+            elements = _instance.GetPage(actionParams.ContextId)
                 .GetByText(actionParams.Context.ElementName);
             count = await elements.CountAsync();
         }
@@ -36,12 +36,12 @@ public partial class PlaywrightWebDriver
         {
             // Infer element if not found
             var driverService = _services.GetRequiredService<WebDriverService>();
-            var html = await FilteredButtonHtml(actionParams.ConversationId);
+            var html = await FilteredButtonHtml(actionParams.ContextId);
             var htmlElementContextOut = await driverService.InferElement(actionParams.Agent,
                 html,
                 actionParams.Context.ElementName,
                 actionParams.MessageId);
-            elements = Locator(actionParams.ConversationId, htmlElementContextOut);
+            elements = Locator(actionParams.ContextId, htmlElementContextOut);
 
             if (elements == null)
             {
@@ -54,7 +54,7 @@ public partial class PlaywrightWebDriver
         try
         {
             await elements.ClickAsync();
-            await _instance.Wait(actionParams.ConversationId);
+            await _instance.Wait(actionParams.ContextId);
 
             result.IsSuccess = true;
         }
@@ -67,12 +67,12 @@ public partial class PlaywrightWebDriver
         return result;
     }
 
-    private async Task<string> FilteredButtonHtml(string conversationId)
+    private async Task<string> FilteredButtonHtml(string contextId)
     {
         var driverService = _services.GetRequiredService<WebDriverService>();
 
         // Retrieve the page raw html and infer the element path
-        var body = await _instance.GetPage(conversationId).QuerySelectorAsync("body");
+        var body = await _instance.GetPage(contextId).QuerySelectorAsync("body");
 
         var str = new List<string>();
         /*var anchors = await body.QuerySelectorAllAsync("a");

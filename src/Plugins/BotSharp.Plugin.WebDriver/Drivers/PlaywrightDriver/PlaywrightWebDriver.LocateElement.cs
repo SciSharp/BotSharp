@@ -11,7 +11,7 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> LocateElement(MessageInfo message, ElementLocatingArgs location)
     {
         var result = new BrowserActionResult();
-        var page = _instance.GetPage(message.ConversationId);
+        var page = _instance.GetPage(message.ContextId);
         ILocator locator = page.Locator("body");
         int count = 0;
 

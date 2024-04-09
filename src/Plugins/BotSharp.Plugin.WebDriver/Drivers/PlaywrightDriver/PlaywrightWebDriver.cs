@@ -22,12 +22,12 @@ public partial class PlaywrightWebDriver : IWebBrowser
         _agent = agent;
     }
 
-    private ILocator? Locator(string conversationId, HtmlElementContextOut context)
+    private ILocator? Locator(string contextId, HtmlElementContextOut context)
     {
         ILocator element = default;
         if (!string.IsNullOrEmpty(context.ElementId))
         {
-            element = _instance.GetPage(conversationId).Locator($"#{context.ElementId}");
+            element = _instance.GetPage(contextId).Locator($"#{context.ElementId}");
         }
         else if (!string.IsNullOrEmpty(context.ElementName))
         {
@@ -38,7 +38,7 @@ public partial class PlaywrightWebDriver : IWebBrowser
                 "button" => AriaRole.Button,
                 _ => AriaRole.Generic
             };
-            element = _instance.GetPage(conversationId).Locator($"[name='{context.ElementName}']");
+            element = _instance.GetPage(contextId).Locator($"[name='{context.ElementName}']");
             var count = element.CountAsync().Result;
             if (count == 0)
             {
@@ -58,7 +58,7 @@ public partial class PlaywrightWebDriver : IWebBrowser
                 _logger.LogError($"Can't locate the web element {context.Index}.");
                 return null;
             }
-            element = _instance.GetPage(conversationId).Locator(context.TagName).Nth(context.Index);
+            element = _instance.GetPage(contextId).Locator(context.TagName).Nth(context.Index);
         }
 
         return element;

@@ -2,18 +2,19 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> GoToPage(string conversationId, string url)
+    public async Task<BrowserActionResult> GoToPage(string contextId, string url, bool openNewTab = false)
     {
         var result = new BrowserActionResult();
         try
         {
-            var response = await _instance.GetPage(conversationId).GotoAsync(url);
-            await _instance.GetPage(conversationId).WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-            await _instance.GetPage(conversationId).WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var page = openNewTab ? await _instance.NewPage(contextId) : 
+                _instance.GetPage(contextId);
+            var response = await page.GotoAsync(url);
+            await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             if (response.Status == 200)
             {
-                var page = _instance.GetPage(conversationId);
                 result.Body = await page.ContentAsync();
                 result.IsSuccess = true;
             }
