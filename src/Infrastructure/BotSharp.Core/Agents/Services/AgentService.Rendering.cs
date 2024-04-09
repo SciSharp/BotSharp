@@ -42,7 +42,7 @@ public partial class AgentService
         var visibleExpress = "visibility_expression";
         var root = propertyDef.RootElement;
         var iterator = root.EnumerateObject();
-        var list = new List<string>();
+        var visibleProps = new List<string>();
         while (iterator.MoveNext())
         {
             var prop = iterator.Current;
@@ -62,7 +62,7 @@ public partial class AgentService
 
             if (matched)
             {
-                list.Add(name);
+                visibleProps.Add(name);
             }
         }
 
@@ -71,7 +71,7 @@ public partial class AgentService
         var required = parameterDef?.Required ?? new List<string>();
         foreach (var property in rootObject.Properties())
         {
-            if (list.Contains(property.Name))
+            if (visibleProps.Contains(property.Name))
             {
                 var value = clonedRoot.GetValue(property.Name) as JObject;
                 if (value != null && value.ContainsKey(visibleExpress))
