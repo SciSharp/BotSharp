@@ -117,9 +117,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
         return this;
     }
 
-    public Dictionary<string, string> Load(string conversationId)
+    public Dictionary<string, string> Load(string conversationId, bool isReadOnly = false)
     {
-        _conversationId = conversationId;
+        _conversationId = !isReadOnly ? conversationId : null;
 
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var curMsgId = routingCtx.MessageId;
@@ -320,7 +320,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Dispose()
     {
-        Save();
+        
     }
 
     public bool ContainsState(string name)

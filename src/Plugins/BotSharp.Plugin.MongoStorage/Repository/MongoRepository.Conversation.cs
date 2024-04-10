@@ -191,14 +191,11 @@ public partial class MongoRepository
     {
         if (string.IsNullOrEmpty(conversationId) || states == null) return;
 
-        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var filterStates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var saveStates = states.Select(x => StateMongoElement.ToMongoElement(x)).ToList();
         var updateStates = Builders<ConversationStateDocument>.Update.Set(x => x.States, saveStates);
-        var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.ConversationStates.UpdateOne(filterStates, updateStates);
-        _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
     public void UpdateConversationStatus(string conversationId, string status)
@@ -391,7 +388,7 @@ public partial class MongoRepository
         {
             var skip = (page - 1) * batchSize;
             var candidates = _dc.Conversations.AsQueryable()
-                                              .Where(x => (x.DialogCount <= messageLimit) && x.UpdatedTime <= utcNow.AddHours(-bufferHours))
+                                              .Where(x => x.DialogCount <= messageLimit && x.UpdatedTime <= utcNow.AddHours(-bufferHours))
                                               .Skip(skip)
                                               .Take(batchSize)
                                               .Select(x => x.Id)
