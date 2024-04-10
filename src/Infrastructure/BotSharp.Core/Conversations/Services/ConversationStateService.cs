@@ -320,7 +320,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Dispose()
     {
-        
+        Save();
     }
 
     public bool ContainsState(string name)
