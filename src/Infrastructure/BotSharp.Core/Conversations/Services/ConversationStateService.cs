@@ -117,15 +117,15 @@ public class ConversationStateService : IConversationStateService, IDisposable
         return this;
     }
 
-    public Dictionary<string, string> Load(string conversationId)
+    public Dictionary<string, string> Load(string conversationId, bool isReadOnly = false)
     {
-        _conversationId = conversationId;
+        _conversationId = !isReadOnly ? conversationId : null;
 
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var curMsgId = routingCtx.MessageId;
 
-        _historyStates = _db.GetConversationStates(_conversationId);
-        var dialogs = _db.GetConversationDialogs(_conversationId);
+        _historyStates = _db.GetConversationStates(conversationId);
+        var dialogs = _db.GetConversationDialogs(conversationId);
         var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.Client)
                                  .OrderBy(x => x.MetaData?.CreateTime)
                                  .ToList();
@@ -177,7 +177,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
             _logger.LogInformation($"[STATE] {key} : {data}");
         }
 
-        _logger.LogInformation($"Loaded conversation states: {_conversationId}");
+        _logger.LogInformation($"Loaded conversation states: {conversationId}");
         var hooks = _services.GetServices<IConversationHook>();
         foreach (var hook in hooks)
         {

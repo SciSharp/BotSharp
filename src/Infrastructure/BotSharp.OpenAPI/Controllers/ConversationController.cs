@@ -125,7 +125,7 @@ public class ConversationController : ControllerBase
         var result = ConversationViewModel.FromSession(conversations.Items.First());
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        result.States = state.Load(conversationId);
+        result.States = state.Load(conversationId, isReadOnly: true);
 
         var user = await userService.GetUser(result.User.Id);
         result.User = UserViewModel.FromUser(user);

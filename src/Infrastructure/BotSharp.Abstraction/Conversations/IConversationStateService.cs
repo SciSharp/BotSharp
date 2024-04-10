@@ -9,7 +9,7 @@ namespace BotSharp.Abstraction.Conversations;
 public interface IConversationStateService
 {
     string GetConversationId();
-    Dictionary<string, string> Load(string conversationId);
+    Dictionary<string, string> Load(string conversationId, bool isReadOnly = false);
     string GetState(string name, string defaultValue = "");
     bool ContainsState(string name);
     Dictionary<string, string> GetStates();
