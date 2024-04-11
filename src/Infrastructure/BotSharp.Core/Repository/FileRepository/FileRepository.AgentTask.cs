@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks.Models;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace BotSharp.Core.Repository;
 
@@ -192,18 +190,22 @@ public partial class FileRepository
         File.WriteAllText(taskFile, fileContent);
     }
 
-    public bool DeleteAgentTask(string agentId, string taskId)
+    public bool DeleteAgentTask(string agentId, List<string> taskIds)
     {
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
-        if (!Directory.Exists(agentDir)) return false;
+        if (!Directory.Exists(agentDir) || taskIds.IsNullOrEmpty()) return false;
 
         var taskDir = Path.Combine(agentDir, "tasks");
         if (!Directory.Exists(taskDir)) return false;
 
-        var taskFile = FindTaskFileById(taskDir, taskId);
-        if (string.IsNullOrWhiteSpace(taskFile)) return false;
+        foreach (var taskId in taskIds)
+        {
+            var taskFile = FindTaskFileById(taskDir, taskId);
+            if (string.IsNullOrWhiteSpace(taskFile)) return false;
 
-        File.Delete(taskFile);
+            File.Delete(taskFile);
+        }
+        
         return true;
     }
 

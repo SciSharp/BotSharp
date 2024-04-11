@@ -39,11 +39,13 @@ public partial class AgentService
         await Task.CompletedTask;
     }
 
-    public async Task UpdateAgentFromFile(string id)
+    public async Task<string> UpdateAgentFromFile(string id)
     {
         var agent = _db.GetAgent(id);
-
-        if (agent == null) return;
+        if (agent == null)
+        {
+            return $"Cannot find agent ${id}";
+        }
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
@@ -53,7 +55,12 @@ public partial class AgentService
 
         var clonedAgent = Agent.Clone(agent);
         var foundAgent = FetchAgentFileById(agent.Id, filePath);
-        if (foundAgent != null)
+        if (foundAgent == null)
+        {
+            return $"Cannot find agent {agent.Name} in file directory: {filePath}";
+        }
+
+        try
         {
             clonedAgent.SetId(foundAgent.Id)
                        .SetName(foundAgent.Name)
@@ -71,15 +78,19 @@ public partial class AgentService
                        .SetLlmConfig(foundAgent.LlmConfig);
 
             _db.UpdateAgent(clonedAgent, AgentField.All);
-
             Utilities.ClearCache();
+            return $"Agent {agent.Name} has been migrated!";
         }
-
-        await Task.CompletedTask;
+        catch (Exception ex)
+        {
+            return $"Failed to migrate agent {agent.Name} in file directory {filePath}.\r\nError: {ex.Message}";
+        }
     }
 
-    private Agent FetchAgentFileById(string agentId, string filePath)
+    private Agent? FetchAgentFileById(string agentId, string filePath)
     {
+        if (!Directory.Exists(filePath)) return null;
+
         foreach (var dir in Directory.GetDirectories(filePath))
         {
             var agentJson = File.ReadAllText(Path.Combine(dir, "agent.json"));

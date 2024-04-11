@@ -32,6 +32,7 @@ public interface IBotSharpRepository
     void BulkInsertAgents(List<Agent> agents);
     void BulkInsertUserAgents(List<UserAgent> userAgents);
     bool DeleteAgents();
+    bool DeleteAgent(string agentId);
     List<string> GetAgentResponses(string agentId, string prefix, string intent);
     string GetAgentTemplate(string agentId, string templateName);
     #endregion
@@ -42,7 +43,7 @@ public interface IBotSharpRepository
     void InsertAgentTask(AgentTask task);
     void BulkInsertAgentTasks(List<AgentTask> tasks);
     void UpdateAgentTask(AgentTask task, AgentTaskField field);
-    bool DeleteAgentTask(string agentId, string taskId);
+    bool DeleteAgentTask(string agentId, List<string> taskIds);
     bool DeleteAgentTasks();
     #endregion
 
