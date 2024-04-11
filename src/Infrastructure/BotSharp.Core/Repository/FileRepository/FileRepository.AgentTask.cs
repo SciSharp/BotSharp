@@ -198,15 +198,17 @@ public partial class FileRepository
         var taskDir = Path.Combine(agentDir, "tasks");
         if (!Directory.Exists(taskDir)) return false;
 
+        var deletedTasks = new List<string>();
         foreach (var taskId in taskIds)
         {
             var taskFile = FindTaskFileById(taskDir, taskId);
-            if (string.IsNullOrWhiteSpace(taskFile)) return false;
+            if (string.IsNullOrWhiteSpace(taskFile)) continue;
 
             File.Delete(taskFile);
+            deletedTasks.Add(taskId);
         }
         
-        return true;
+        return deletedTasks.Any();
     }
 
     public bool DeleteAgentTasks()
