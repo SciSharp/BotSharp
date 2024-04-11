@@ -398,7 +398,27 @@ public partial class MongoRepository
         {
             return false;
         }
+    }
 
+    public bool DeleteAgent(string agentId)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(agentId)) return false;
+
+            var agentFilter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+            var agentUserFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
+            var agentTaskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.AgentId, agentId);
+
+            _dc.Agents.DeleteOne(agentFilter);
+            _dc.UserAgents.DeleteMany(agentUserFilter);
+            _dc.AgentTasks.DeleteMany(agentTaskFilter);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private Agent TransformAgentDocument(AgentDocument? agentDoc)
