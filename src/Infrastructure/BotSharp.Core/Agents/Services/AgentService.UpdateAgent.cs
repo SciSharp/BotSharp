@@ -41,10 +41,13 @@ public partial class AgentService
 
     public async Task<string> UpdateAgentFromFile(string id)
     {
+        string updateResult;
         var agent = _db.GetAgent(id);
         if (agent == null)
         {
-            return $"Cannot find agent ${id}";
+            updateResult = $"Cannot find agent ${id}";
+            _logger.LogError(updateResult);
+            return updateResult;
         }
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
@@ -57,7 +60,9 @@ public partial class AgentService
         var foundAgent = FetchAgentFileById(agent.Id, filePath);
         if (foundAgent == null)
         {
-            return $"Cannot find agent {agent.Name} in file directory: {filePath}";
+            updateResult = $"Cannot find agent {agent.Name} in file directory: {filePath}";
+            _logger.LogError(updateResult);
+            return updateResult;
         }
 
         try
@@ -79,11 +84,16 @@ public partial class AgentService
 
             _db.UpdateAgent(clonedAgent, AgentField.All);
             Utilities.ClearCache();
-            return $"Agent {agent.Name} has been migrated!";
+
+            updateResult = $"Agent {agent.Name} has been migrated!";
+            _logger.LogInformation(updateResult);
+            return updateResult;
         }
         catch (Exception ex)
         {
-            return $"Failed to migrate agent {agent.Name} in file directory {filePath}.\r\nError: {ex.Message}";
+            updateResult = $"Failed to migrate agent {agent.Name} in file directory {filePath}.\r\nError: {ex.Message}";
+            _logger.LogError(updateResult);
+            return updateResult;
         }
     }
 
