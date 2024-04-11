@@ -51,10 +51,12 @@ public partial class AgentService
                 var isAgentDeleted = _db.DeleteAgent(agent.Id);
                 if (isAgentDeleted)
                 {
+                    await Task.Delay(100);
                     _db.BulkInsertAgents(new List<Agent> { agent });
                     _db.BulkInsertUserAgents(new List<UserAgent> { userAgent });
                     _db.BulkInsertAgentTasks(tasks);
                     refreshedAgents.Add(agent.Name);
+                    _logger.LogInformation($"Agent {agent.Name} has been migrated.");
                 }
             }
             catch (Exception ex)
@@ -66,7 +68,7 @@ public partial class AgentService
         if (!refreshedAgents.IsNullOrEmpty())
         {
             Utilities.ClearCache();
-            refreshResult = $"Agents are migrated! {string.Join("\r\n", refreshedAgents)}";
+            refreshResult = $"Agents are migrated!\r\n{string.Join("\r\n", refreshedAgents)}";
         }
         else
         {
