@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Enums;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -6,12 +7,19 @@ public partial class AgentService
 {
     public async Task<string> RefreshAgents()
     {
+        string refreshResult;
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+        if (dbSettings.Default == RepositoryEnum.FileRepository)
+        {
+            refreshResult = $"Invalid database repository setting: {dbSettings.Default}";
+            _logger.LogWarning(refreshResult);
+            return refreshResult;
+        }
+
         var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                                     dbSettings.FileRepository,
                                     _agentSettings.DataDir);
 
-        string refreshResult;
         if (!Directory.Exists(agentDir))
         {
             refreshResult = $"Cannot find the directory: {agentDir}";

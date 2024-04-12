@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
 
@@ -42,6 +43,16 @@ public partial class AgentService
     public async Task<string> UpdateAgentFromFile(string id)
     {
         string updateResult;
+        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+
+        if (dbSettings.Default == RepositoryEnum.FileRepository)
+        {
+            updateResult = $"Invalid database repository setting: {dbSettings.Default}";
+            _logger.LogWarning(updateResult);
+            return updateResult;
+        }
+
         var agent = _db.GetAgent(id);
         if (agent == null)
         {
@@ -50,8 +61,6 @@ public partial class AgentService
             return updateResult;
         }
 
-        var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var agentSettings = _services.GetRequiredService<AgentSettings>();
         var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                                     dbSettings.FileRepository,
                                     agentSettings.DataDir);

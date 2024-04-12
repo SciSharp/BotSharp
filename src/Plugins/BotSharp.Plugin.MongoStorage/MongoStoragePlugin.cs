@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Plugin.MongoStorage.Repository;
 
 namespace BotSharp.Plugin.MongoStorage;
@@ -18,7 +19,7 @@ public class MongoStoragePlugin : IBotSharpPlugin
         var dbSettings = new BotSharpDatabaseSettings();
         config.Bind("Database", dbSettings);
 
-        if (dbSettings.Default == "MongoRepository")
+        if (dbSettings.Default == RepositoryEnum.MongoRepository)
         {
             services.AddScoped((IServiceProvider x) =>
             {
