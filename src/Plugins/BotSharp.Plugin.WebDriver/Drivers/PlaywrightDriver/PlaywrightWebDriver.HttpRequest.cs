@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> SendHttpRequest(HttpRequestParams args)
+    public async Task<BrowserActionResult> SendHttpRequest(string contextId, HttpRequestParams args)
     {
         var result = new BrowserActionResult();
 
@@ -25,10 +25,9 @@ public partial class PlaywrightWebDriver
                     }})();
                 ";
 
-        var conv = _services.GetRequiredService<IConversationService>();
         try
         {
-            var response = await EvaluateScript<object>(conv.ConversationId, script);
+            var response = await EvaluateScript<object>(contextId, script);
             result.IsSuccess = true;
             result.Body = JsonSerializer.Serialize(response);
         }

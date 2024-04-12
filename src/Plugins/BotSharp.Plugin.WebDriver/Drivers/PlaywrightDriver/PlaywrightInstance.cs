@@ -6,6 +6,7 @@ public class PlaywrightInstance : IDisposable
 {
     IPlaywright _playwright;
     Dictionary<string, IBrowserContext> _contexts = new Dictionary<string, IBrowserContext>();
+    public Dictionary<string, IBrowserContext> Contexts => _contexts;
 
     public IPage GetPage(string id)
     {
@@ -13,24 +14,22 @@ public class PlaywrightInstance : IDisposable
         return _contexts[id].Pages.LastOrDefault();
     }
 
-    public async Task InitInstance(string id)
+    public async Task<IBrowserContext> InitInstance(string id)
     {
         if (_playwright == null)
         {
             _playwright = await Playwright.CreateAsync();
         }
-        await InitContext(id);
+        return await InitContext(id);
     }
 
-    public async Task InitContext(string id)
+    public async Task<IBrowserContext> InitContext(string id)
     {
         if (_contexts.ContainsKey(id))
-            return;
-#if DEBUG
-        string tempFolderPath = $"{Path.GetTempPath()}\\playwright";
-#else
+            return _contexts[id];
+
         string tempFolderPath = $"{Path.GetTempPath()}\\playwright\\{id}";
-#endif
+
         _contexts[id] = await _playwright.Chromium.LaunchPersistentContextAsync(tempFolderPath, new BrowserTypeLaunchPersistentContextOptions
         {
 #if DEBUG
@@ -65,6 +64,8 @@ public class PlaywrightInstance : IDisposable
             Serilog.Log.Warning($"Playwright browser context is closed");
             _contexts.Remove(id);
         };
+
+        return _contexts[id];
     }
 
     public async Task<IPage> NewPage(string id)
@@ -89,6 +90,14 @@ public class PlaywrightInstance : IDisposable
         if (_contexts.ContainsKey(id))
         {
             await _contexts[id].CloseAsync();
+        }
+    }
+
+    public async Task CloseCurrentPage(string id)
+    {
+        if (_contexts.ContainsKey(id))
+        {
+            await GetPage(id).CloseAsync();
         }
     }
 

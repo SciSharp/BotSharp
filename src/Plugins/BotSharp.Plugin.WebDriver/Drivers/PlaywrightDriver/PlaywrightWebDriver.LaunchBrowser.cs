@@ -2,17 +2,27 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> LaunchBrowser(string conversationId, string? url)
+    public async Task<BrowserActionResult> LaunchBrowser(string contextId, string? url, bool openIfNotExist = true)
     {
         var result = new BrowserActionResult() 
         { 
             IsSuccess = true 
         };
-        await _instance.InitInstance(conversationId);
+        var context = await _instance.InitInstance(contextId);
 
         if (!string.IsNullOrEmpty(url))
         {
-            var page = await _instance.NewPage(conversationId);
+            // Check if the page is already open
+            foreach (var p in context.Pages)
+            {
+                if (p.Url == url)
+                {
+                    await p.BringToFrontAsync();
+                    return result;
+                }
+            }
+
+            var page = await _instance.NewPage(contextId);
             
             if (!string.IsNullOrEmpty(url))
             {

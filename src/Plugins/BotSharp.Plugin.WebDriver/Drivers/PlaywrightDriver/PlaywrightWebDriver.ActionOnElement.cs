@@ -4,7 +4,7 @@ public partial class PlaywrightWebDriver
 {
     public async Task<BrowserActionResult> ActionOnElement(MessageInfo message, ElementLocatingArgs location, ElementActionArgs action)
     {
-        await _instance.Wait(message.ConversationId);
+        await _instance.Wait(message.ContextId);
         var result = await LocateElement(message, location);
         if (result.IsSuccess)
         {

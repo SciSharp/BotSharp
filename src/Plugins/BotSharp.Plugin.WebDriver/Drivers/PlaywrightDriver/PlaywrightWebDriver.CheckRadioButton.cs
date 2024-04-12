@@ -5,7 +5,7 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> CheckRadioButton(BrowserActionParams actionParams)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(actionParams.ConversationId);
+        await _instance.Wait(actionParams.ContextId);
 
         // Retrieve the page raw html and infer the element path
         var regexExpression = actionParams.Context.MatchRule.ToLower() switch
@@ -16,7 +16,7 @@ public partial class PlaywrightWebDriver
             _ => $"^{actionParams.Context.ElementText}$"
         };
         var regex = new Regex(regexExpression, RegexOptions.IgnoreCase);
-        var elements = _instance.GetPage(actionParams.ConversationId).GetByText(regex);
+        var elements = _instance.GetPage(actionParams.ContextId).GetByText(regex);
         var count = await elements.CountAsync();
 
         var errorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";

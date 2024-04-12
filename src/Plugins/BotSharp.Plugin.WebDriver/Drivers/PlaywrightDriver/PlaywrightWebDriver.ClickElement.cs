@@ -5,9 +5,9 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> ClickElement(BrowserActionParams actionParams)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(actionParams.ConversationId);
+        await _instance.Wait(actionParams.ContextId);
 
-        var page = _instance.GetPage(actionParams.ConversationId);
+        var page = _instance.GetPage(actionParams.ContextId);
         ILocator locator = default;
         int count = 0;
 
@@ -51,7 +51,7 @@ public partial class PlaywrightWebDriver
             await locator.ClickAsync();
 
             // Triggered ajax
-            await _instance.Wait(actionParams.ConversationId);
+            await _instance.Wait(actionParams.ContextId);
 
             result.IsSuccess = true;
         }

@@ -5,10 +5,10 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> InputUserPassword(BrowserActionParams actionParams)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(actionParams.ConversationId);
+        await _instance.Wait(actionParams.ContextId);
 
         // Retrieve the page raw html and infer the element path
-        var body = await _instance.GetPage(actionParams.ConversationId)
+        var body = await _instance.GetPage(actionParams.ContextId)
             .QuerySelectorAsync("body");
 
         var inputs = await body.QuerySelectorAllAsync("input");

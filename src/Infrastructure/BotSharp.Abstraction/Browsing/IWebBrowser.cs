@@ -4,8 +4,8 @@ namespace BotSharp.Abstraction.Browsing;
 
 public interface IWebBrowser
 {
-    Task<BrowserActionResult> LaunchBrowser(string conversationId, string? url);
-    Task<BrowserActionResult> ScreenshotAsync(string conversationId, string path);
+    Task<BrowserActionResult> LaunchBrowser(string contextId, string? url, bool openIfNotExist = true);
+    Task<BrowserActionResult> ScreenshotAsync(string contextId, string path);
     Task<BrowserActionResult> ScrollPageAsync(BrowserActionParams actionParams);
 
     Task<BrowserActionResult> ActionOnElement(MessageInfo message, ElementLocatingArgs location, ElementActionArgs action);
@@ -19,10 +19,11 @@ public interface IWebBrowser
     Task<BrowserActionResult> ChangeListValue(BrowserActionParams actionParams);
     Task<BrowserActionResult> CheckRadioButton(BrowserActionParams actionParams);
     Task<BrowserActionResult> ChangeCheckbox(BrowserActionParams actionParams);
-    Task<BrowserActionResult> GoToPage(string conversationId, string url);
+    Task<BrowserActionResult> GoToPage(string contextId, string url, bool openNewTab = false);
     Task<string> ExtractData(BrowserActionParams actionParams);
-    Task<T> EvaluateScript<T>(string conversationId, string script);
-    Task CloseBrowser(string conversationId);
-    Task<BrowserActionResult> SendHttpRequest(HttpRequestParams actionParams);
+    Task<T> EvaluateScript<T>(string contextId, string script);
+    Task CloseBrowser(string contextId);
+    Task CloseCurrentPage(string contextId);
+    Task<BrowserActionResult> SendHttpRequest(string contextId, HttpRequestParams actionParams);
     Task<string> GetAttributeValue(MessageInfo message, ElementLocatingArgs location, BrowserActionResult result);
 }
