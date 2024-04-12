@@ -20,4 +20,7 @@ public class ElementButton
 
     [JsonPropertyName("is_secondary")]
     public bool IsSecondary { get; set; }
+
+    [JsonPropertyName("post_action_disclaimer")]
+    public string? PostActionDisclaimer { get; set; }
 }
