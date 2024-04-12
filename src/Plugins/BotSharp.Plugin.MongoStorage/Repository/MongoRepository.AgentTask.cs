@@ -155,12 +155,16 @@ public partial class MongoRepository
         _dc.AgentTasks.ReplaceOne(filter, taskDoc);
     }
 
-    public bool DeleteAgentTask(string agentId, string taskId)
+    public bool DeleteAgentTask(string agentId, List<string> taskIds)
     {
-        if (string.IsNullOrEmpty(taskId)) return false;
+        if (taskIds.IsNullOrEmpty()) return false;
 
-        var filter = Builders<AgentTaskDocument>.Filter.Eq(x => x.Id, taskId);
-        var taskDeleted = _dc.AgentTasks.DeleteOne(filter);
+        var builder = Builders<AgentTaskDocument>.Filter;
+        var filters = new List<FilterDefinition<AgentTaskDocument>>
+        {
+            builder.In(x => x.Id, taskIds)
+        };
+        var taskDeleted = _dc.AgentTasks.DeleteMany(builder.And(filters));
         return taskDeleted.DeletedCount > 0;
     }
 

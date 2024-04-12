@@ -6,7 +6,7 @@ public class HumanInterventionNeededHandler : RoutingHandlerBase, IRoutingHandle
 {
     public string Name => "human_intervention_needed";
 
-    public string Description => "Reach out to human being, customer service or customer representative.";
+    public string Description => "Reach out to human customer service.";
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {

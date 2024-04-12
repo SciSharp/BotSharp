@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
 
@@ -39,21 +40,41 @@ public partial class AgentService
         await Task.CompletedTask;
     }
 
-    public async Task UpdateAgentFromFile(string id)
+    public async Task<string> UpdateAgentFromFile(string id)
     {
-        var agent = _db.GetAgent(id);
-
-        if (agent == null) return;
-
+        string updateResult;
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
+
+        if (dbSettings.Default == RepositoryEnum.FileRepository)
+        {
+            updateResult = $"Invalid database repository setting: {dbSettings.Default}";
+            _logger.LogWarning(updateResult);
+            return updateResult;
+        }
+
+        var agent = _db.GetAgent(id);
+        if (agent == null)
+        {
+            updateResult = $"Cannot find agent ${id}";
+            _logger.LogError(updateResult);
+            return updateResult;
+        }
+
         var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                                     dbSettings.FileRepository,
                                     agentSettings.DataDir);
 
         var clonedAgent = Agent.Clone(agent);
         var foundAgent = FetchAgentFileById(agent.Id, filePath);
-        if (foundAgent != null)
+        if (foundAgent == null)
+        {
+            updateResult = $"Cannot find agent {agent.Name} in file directory: {filePath}";
+            _logger.LogError(updateResult);
+            return updateResult;
+        }
+
+        try
         {
             clonedAgent.SetId(foundAgent.Id)
                        .SetName(foundAgent.Name)
@@ -71,15 +92,24 @@ public partial class AgentService
                        .SetLlmConfig(foundAgent.LlmConfig);
 
             _db.UpdateAgent(clonedAgent, AgentField.All);
-
             Utilities.ClearCache();
-        }
 
-        await Task.CompletedTask;
+            updateResult = $"Agent {agent.Name} has been migrated!";
+            _logger.LogInformation(updateResult);
+            return updateResult;
+        }
+        catch (Exception ex)
+        {
+            updateResult = $"Failed to migrate agent {agent.Name} in file directory {filePath}.\r\nError: {ex.Message}";
+            _logger.LogError(updateResult);
+            return updateResult;
+        }
     }
 
-    private Agent FetchAgentFileById(string agentId, string filePath)
+    private Agent? FetchAgentFileById(string agentId, string filePath)
     {
+        if (!Directory.Exists(filePath)) return null;
+
         foreach (var dir in Directory.GetDirectories(filePath))
         {
             var agentJson = File.ReadAllText(Path.Combine(dir, "agent.json"));

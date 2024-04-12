@@ -73,86 +73,57 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     #region Agent
     public Agent GetAgent(string agentId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<Agent> GetAgents(AgentFilter filter)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<Agent> GetAgentsByUser(string userId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void UpdateAgent(Agent agent, AgentField field)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public string GetAgentTemplate(string agentId, string templateName)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void BulkInsertAgents(List<Agent> agents)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void BulkInsertUserAgents(List<UserAgent> userAgents)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public bool DeleteAgents()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
+
+    public bool DeleteAgent(string agentId)
+        => throw new NotImplementedException();
     #endregion
 
     #region Agent Task
     public PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public AgentTask? GetAgentTask(string agentId, string taskId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void InsertAgentTask(AgentTask task)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void BulkInsertAgentTasks(List<AgentTask> tasks)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
-    public bool DeleteAgentTask(string agentId, string taskId)
-    {
-        throw new NotImplementedException();
-    }
+    public bool DeleteAgentTask(string agentId, List<string> taskIds)
+        => throw new NotImplementedException();
 
     public bool DeleteAgentTasks()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
     #endregion
 
     #region Conversation

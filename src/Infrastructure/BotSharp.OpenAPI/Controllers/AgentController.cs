@@ -84,15 +84,15 @@ public class AgentController : ControllerBase
     }
 
     [HttpPost("/refresh-agents")]
-    public async Task RefreshAgents()
+    public async Task<string> RefreshAgents()
     {
-        await _agentService.RefreshAgents();
+        return await _agentService.RefreshAgents();
     }
 
     [HttpPut("/agent/file/{agentId}")]
-    public async Task UpdateAgentFromFile([FromRoute] string agentId)
+    public async Task<string> UpdateAgentFromFile([FromRoute] string agentId)
     {
-        await _agentService.UpdateAgentFromFile(agentId);
+        return await _agentService.UpdateAgentFromFile(agentId);
     }
 
     [HttpPut("/agent/{agentId}")]

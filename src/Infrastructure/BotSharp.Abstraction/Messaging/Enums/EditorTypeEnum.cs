@@ -12,6 +12,7 @@ public static class EditorTypeEnum
     public const string DateTimePicker = "datetime-picker";
     public const string DateTimeRangePicker = "datetime-range-picker";
     public const string Email = "email";
+    public const string File = "file";
 
     /// <summary>
     /// Regex, set the expression in editor_attributes
