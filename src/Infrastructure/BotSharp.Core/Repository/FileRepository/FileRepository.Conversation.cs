@@ -521,7 +521,7 @@ namespace BotSharp.Core.Repository
                         CreateTime = DateTime.Parse(blocks[0])
                     };
 
-                    var richContent = blocks.Count() > 6 ? blocks[6] : null;
+                    var richContent = blocks.Count() > 6 ? DecodeRichContent(blocks[6]) : null;
                     dialogs.Add(new DialogElement(meta, trimmed, richContent));
                 }
             }
@@ -537,7 +537,8 @@ namespace BotSharp.Core.Repository
             {
                 var meta = element.MetaData;
                 var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.ffffff tt", CultureInfo.InvariantCulture);
-                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}|{element.RichContent}";
+                var encodedRichContent = EncodeRichContent(element.RichContent);
+                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}|{encodedRichContent}";
                 dialogTexts.Add(metaStr);
                 var content = $"  - {element.Content}";
                 dialogTexts.Add(content);
@@ -685,6 +686,24 @@ namespace BotSharp.Core.Repository
             var breakpointStr = JsonSerializer.Serialize(breakpoints, _options);
             File.WriteAllText(breakpointDir, breakpointStr);
             return true;
+        }
+
+        private string? EncodeRichContent(string? content)
+        {
+            if (string.IsNullOrEmpty(content)) return content;
+
+            var bytes = Encoding.UTF8.GetBytes(content);
+            var encoded = Convert.ToBase64String(bytes);
+            return encoded;
+        }
+
+        private string? DecodeRichContent(string? content)
+        {
+            if (string.IsNullOrEmpty(content)) return content;
+
+            var decoded = Convert.FromBase64String(content);
+            var origin = Encoding.UTF8.GetString(decoded);
+            return origin;
         }
         #endregion
     }
