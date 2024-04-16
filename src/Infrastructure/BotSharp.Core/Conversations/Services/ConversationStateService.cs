@@ -344,10 +344,12 @@ public class ConversationStateService : IConversationStateService, IDisposable
         {
             foreach (JsonProperty property in root.EnumerateObject())
             {
-                var stateValue = property.Value.ToString();
+                var propertyValue = property.Value;
+                var stateValue = propertyValue.ToString();
                 if (!string.IsNullOrEmpty(stateValue))
                 {
-                    if (bool.TryParse(stateValue, out _))
+                    if (propertyValue.ValueKind == JsonValueKind.True ||
+                        propertyValue.ValueKind == JsonValueKind.False)
                     {
                         stateValue = stateValue?.ToLower();
                     }
