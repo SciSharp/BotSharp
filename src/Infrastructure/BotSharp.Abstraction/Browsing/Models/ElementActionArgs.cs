@@ -7,12 +7,16 @@ public class ElementActionArgs
     private BroswerActionEnum _action;
     public BroswerActionEnum Action => _action;
 
-    private string _content;
-    public string Content => _content;
+    private string? _content;
+    public string? Content => _content;
 
-    public ElementActionArgs(BroswerActionEnum action)
+    private ElementPosition? _position;
+    public ElementPosition? Position => _position;
+
+    public ElementActionArgs(BroswerActionEnum action, ElementPosition? position = null)
     {
         _action = action;
+        _position = position;
     }
 
     public ElementActionArgs(BroswerActionEnum action, string content)

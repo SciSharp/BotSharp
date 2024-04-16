@@ -9,7 +9,21 @@ public partial class PlaywrightWebDriver
 
         if (action.Action == BroswerActionEnum.Click)
         {
-            await locator.ClickAsync();
+            if (action.Position == null)
+            {
+                await locator.ClickAsync();
+            }
+            else
+            {
+                await locator.ClickAsync(new LocatorClickOptions
+                {
+                    Position = new Position
+                    {
+                        X = action.Position.X,
+                        Y = action.Position.Y
+                    }
+                });
+            }
         }
         else if (action.Action == BroswerActionEnum.InputText)
         {

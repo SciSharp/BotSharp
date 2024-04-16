@@ -23,24 +23,21 @@ public partial class PlaywrightWebDriver
             }
 
             var page = await _instance.NewPage(contextId);
-            
-            if (!string.IsNullOrEmpty(url))
+
+            try
             {
-                try
+                var response = await page.GotoAsync(url, new PageGotoOptions
                 {
-                    var response = await page.GotoAsync(url, new PageGotoOptions
-                    {
-                        Timeout = 15 * 1000
-                    });
-                    await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-                    result.IsSuccess = response.Status == 200;
-                }
-                catch(Exception ex)
-                {
-                    result.Message = ex.Message;
-                    result.StackTrace = ex.StackTrace;
-                    _logger.LogError(ex.Message);
-                }
+                    Timeout = 15 * 1000
+                });
+                await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+                result.IsSuccess = response.Status == 200;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+                result.StackTrace = ex.StackTrace;
+                _logger.LogError(ex.Message);
             }
         }
 

@@ -133,8 +133,8 @@
   <ItemGroup>
     <PackageReference Include="Aspects.Cache" Version="2.0.4" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
-    <PackageReference Include="EntityFrameworkCore.BootKit" Version="6.3.1" />
-    <PackageReference Include="Fluid.Core" Version="2.7.0" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.1.1"/>
+    <PackageReference Include="Fluid.Core" Version="2.8.0" />
     <PackageReference Include="Nanoid" Version="3.0.0" />
   </ItemGroup>
 
