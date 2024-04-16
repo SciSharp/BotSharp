@@ -127,6 +127,8 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _historyStates = _db.GetConversationStates(conversationId);
         var dialogs = _db.GetConversationDialogs(conversationId);
         var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.Client)
+                                 .GroupBy(x => x.MetaData?.MessageId)
+                                 .Select(g => g.First())
                                  .OrderBy(x => x.MetaData?.CreateTime)
                                  .ToList();
         var curMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(curMsgId) && x.MetaData?.MessageId == curMsgId);
@@ -342,9 +344,15 @@ public class ConversationStateService : IConversationStateService, IDisposable
         {
             foreach (JsonProperty property in root.EnumerateObject())
             {
-                if (!string.IsNullOrEmpty(property.Value.ToString()))
+                var stateValue = property.Value.ToString();
+                if (!string.IsNullOrEmpty(stateValue))
                 {
-                    SetState(property.Name, property.Value, source: StateSource.Application);
+                    if (bool.TryParse(stateValue, out _))
+                    {
+                        stateValue = stateValue?.ToLower();
+                    }
+
+                    SetState(property.Name, stateValue, source: StateSource.Application);
                 }
             }
         }
