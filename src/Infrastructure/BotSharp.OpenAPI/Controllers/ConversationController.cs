@@ -84,6 +84,7 @@ public class ConversationController : ControllerBase
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
                     Text = message.Content,
+                    SecondaryText = message.SecondaryContent,
                     Data = message.Data,
                     Sender = UserViewModel.FromUser(user)
                 });
@@ -97,6 +98,7 @@ public class ConversationController : ControllerBase
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
                     Text = message.Content,
+                    SecondaryText = message.SecondaryContent,
                     Function = message.FunctionName,
                     Data = message.Data,
                     Sender = new UserViewModel
@@ -104,7 +106,8 @@ public class ConversationController : ControllerBase
                         FirstName = agent.Name,
                         Role = message.Role,
                     },
-                    RichContent = message.RichContent
+                    RichContent = message.RichContent,
+                    SecondaryRichContent = message.SecondaryRichContent
                 });
             }
         }

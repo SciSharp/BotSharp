@@ -26,6 +26,8 @@ public class RoleDialogModel : ITrackableMessage
 
     public string Content { get; set; }
 
+    public string? SecondaryContent { get; set; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string CurrentAgentId { get; set; }
 
@@ -56,6 +58,9 @@ public class RoleDialogModel : ITrackableMessage
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RichContent<IRichMessage>? RichContent { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RichContent<IRichMessage>? SecondaryRichContent { get; set; }
 
     /// <summary>
     /// Stop conversation completion
