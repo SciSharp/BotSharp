@@ -71,7 +71,7 @@ public class ConversationStorage : IConversationStorage
             }
 
             var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options.JsonSerializerOptions) : null;
-            var secondaryRichContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
+            var secondaryRichContent = dialog.SecondaryRichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
             dialogElements.Add(new DialogElement(meta, content, richContent, dialog.SecondaryContent, secondaryRichContent));
         }
 
