@@ -506,11 +506,14 @@ namespace BotSharp.Core.Repository
             var rawDialogs = File.ReadAllLines(dialogDir);
             if (!rawDialogs.IsNullOrEmpty())
             {
-                for (int i = 0; i < rawDialogs.Count(); i += 2)
+                for (int i = 0; i < rawDialogs.Count(); i += 5)
                 {
                     var blocks = rawDialogs[i].Split("|");
-                    var content = rawDialogs[i + 1];
-                    var trimmed = content.Substring(4);
+                    var content = rawDialogs[i + 2];
+                    var trimmedContent = content.Substring(4);
+                    var secondaryContent = rawDialogs[i + 4];
+                    var trimmedSecondaryContent = secondaryContent.Substring(4);
+
                     var meta = new DialogMetaData
                     {
                         Role = blocks[1],
@@ -521,8 +524,9 @@ namespace BotSharp.Core.Repository
                         CreateTime = DateTime.Parse(blocks[0])
                     };
 
-                    var richContent = blocks.Count() > 6 ? DecodeRichContent(blocks[6]) : null;
-                    dialogs.Add(new DialogElement(meta, trimmed, richContent));
+                    var richContent = DecodeRichContent(rawDialogs[i + 1]);
+                    var secondaryRichContent = DecodeRichContent(rawDialogs[i + 3]);
+                    dialogs.Add(new DialogElement(meta, trimmedContent, richContent, trimmedSecondaryContent, secondaryRichContent));
                 }
             }
             return dialogs;
@@ -538,10 +542,17 @@ namespace BotSharp.Core.Repository
                 var meta = element.MetaData;
                 var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.ffffff tt", CultureInfo.InvariantCulture);
                 var encodedRichContent = EncodeRichContent(element.RichContent);
-                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}|{encodedRichContent}";
+                var encodedSecondaryRichContent = EncodeRichContent(element.SecondaryRichContent);
+                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}";
                 dialogTexts.Add(metaStr);
+
+                dialogTexts.Add(encodedRichContent);
                 var content = $"  - {element.Content}";
                 dialogTexts.Add(content);
+
+                dialogTexts.Add(encodedSecondaryRichContent);
+                var secondaryContent = $"  - {element.SecondaryContent}";
+                dialogTexts.Add(secondaryContent);
             }
 
             return dialogTexts;

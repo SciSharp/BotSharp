@@ -50,7 +50,7 @@ public class ConversationStorage : IConversationStorage
             {
                 return;
             }
-            dialogElements.Add(new DialogElement(meta, content));
+            dialogElements.Add(new DialogElement(meta, content, dialog.SecondaryContent));
         }
         else
         {
@@ -71,7 +71,8 @@ public class ConversationStorage : IConversationStorage
             }
 
             var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options.JsonSerializerOptions) : null;
-            dialogElements.Add(new DialogElement(meta, content, richContent));
+            var secondaryRichContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
+            dialogElements.Add(new DialogElement(meta, content, richContent, dialog.SecondaryContent, secondaryRichContent));
         }
 
         db.AppendConversationDialogs(conversationId, dialogElements);
@@ -88,6 +89,7 @@ public class ConversationStorage : IConversationStorage
         {
             var meta = dialog.MetaData;
             var content = dialog.Content;
+            var secondaryContent = dialog.SecondaryContent;
             var role = meta.Role;
             var currentAgentId = meta.AgentId;
             var messageId = meta.MessageId;
@@ -96,6 +98,8 @@ public class ConversationStorage : IConversationStorage
             var createdAt = meta.CreateTime;
             var richContent = !string.IsNullOrEmpty(dialog.RichContent) ? 
                                 JsonSerializer.Deserialize<RichContent<IRichMessage>>(dialog.RichContent, _options.JsonSerializerOptions) : null;
+            var secondaryRichContent = !string.IsNullOrEmpty(dialog.SecondaryRichContent) ?
+                                JsonSerializer.Deserialize<RichContent<IRichMessage>>(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
 
             var record = new RoleDialogModel(role, content)
             {
@@ -104,7 +108,9 @@ public class ConversationStorage : IConversationStorage
                 CreatedAt = createdAt,
                 SenderId = senderId,
                 FunctionName = function,
-                RichContent = richContent
+                RichContent = richContent,
+                SecondaryContent = secondaryContent,
+                SecondaryRichContent = secondaryRichContent,
             };
             results.Add(record);
 

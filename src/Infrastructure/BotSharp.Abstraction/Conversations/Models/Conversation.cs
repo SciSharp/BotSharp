@@ -34,23 +34,28 @@ public class DialogElement
 {
     public DialogMetaData MetaData { get; set; }
     public string Content { get; set; }
+    public string? SecondaryContent { get; set; }
     public string? RichContent { get; set; }
+    public string? SecondaryRichContent { get; set; }
 
     public DialogElement()
     {
 
     }
 
-    public DialogElement(DialogMetaData meta, string content, string? richContent = null)
+    public DialogElement(DialogMetaData meta, string content, string? richContent = null,
+        string? secondaryContent = null, string? secondaryRichContent = null)
     {
         MetaData = meta;
         Content = content;
         RichContent = richContent;
+        SecondaryContent = secondaryContent;
+        SecondaryRichContent = secondaryRichContent;
     }
 
     public override string ToString()
     {
-        return $"{MetaData.Role}: {Content} [{MetaData.CreateTime}]";
+        return $"{MetaData.Role}: {Content} [{MetaData?.CreateTime}]";
     }
 }
 
