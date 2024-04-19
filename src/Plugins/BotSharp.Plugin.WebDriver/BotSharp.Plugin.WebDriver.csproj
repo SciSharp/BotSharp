@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="1.41.2" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.19.0" />
   </ItemGroup>
 
   <ItemGroup>
