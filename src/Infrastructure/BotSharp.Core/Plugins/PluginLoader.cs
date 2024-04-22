@@ -5,7 +5,6 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.Core.Plugins;
 
