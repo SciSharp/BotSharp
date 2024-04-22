@@ -6,7 +6,9 @@ public class DialogMongoElement
 {
     public DialogMetaDataMongoElement MetaData { get; set; }
     public string Content { get; set; }
+    public string? SecondaryContent { get; set; }
     public string? RichContent { get; set; }
+    public string? SecondaryRichContent { get; set; }
 
     public DialogMongoElement()
     {
@@ -19,7 +21,9 @@ public class DialogMongoElement
         {
             MetaData = DialogMetaDataMongoElement.ToMongoElement(dialog.MetaData),
             Content = dialog.Content,
-            RichContent = dialog.RichContent
+            SecondaryContent = dialog.SecondaryContent,
+            RichContent = dialog.RichContent,
+            SecondaryRichContent = dialog.SecondaryRichContent
         };
     }
 
@@ -29,7 +33,9 @@ public class DialogMongoElement
         {
             MetaData = DialogMetaDataMongoElement.ToDomainElement(dialog.MetaData),
             Content = dialog.Content,
-            RichContent = dialog.RichContent
+            SecondaryContent = dialog.SecondaryContent,
+            RichContent = dialog.RichContent,
+            SecondaryRichContent = dialog.SecondaryRichContent
         };
     }
 }
