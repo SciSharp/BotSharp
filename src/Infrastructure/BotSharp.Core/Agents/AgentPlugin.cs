@@ -14,6 +14,13 @@ public class AgentPlugin : IBotSharpPlugin
     public SettingsMeta Settings =>
         new SettingsMeta("Agent");
 
+    public string[] AgentIds => new string[]
+    {
+        "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a",
+        "01e2fc5c-2c89-4ec7-8470-7688608b496c",
+        "01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b"
+    };
+
     public object GetNewSettingsInstance() =>
          new AgentSettings();
 

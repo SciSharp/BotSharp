@@ -51,7 +51,7 @@ public partial class RouteToAgentFn : IFunctionCallback
             var originalAgent = db.GetAgents(filter).FirstOrDefault();
             if (originalAgent != null)
             {
-                _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " & is corrected" : "")}");
+                _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " " + originalAgent.Name + " & is corrected" : "")}");
             }
         }
 
