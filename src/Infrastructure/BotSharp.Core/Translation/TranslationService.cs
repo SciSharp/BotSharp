@@ -1,4 +1,6 @@
+using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Attributes;
 using Newtonsoft.Json;
 using System.Reflection;
@@ -10,6 +12,8 @@ public class TranslationService : ITranslationService
     private readonly IServiceProvider _services;
     private readonly ILogger<TranslationService> _logger;
     private readonly BotSharpOptions _options;
+    private Agent _router;
+    private string _messageId;
 
     public TranslationService(IServiceProvider services,
         ILogger<TranslationService> logger,
@@ -20,8 +24,10 @@ public class TranslationService : ITranslationService
         _options = options;
     }
 
-    public T Translate<T>(T data, string language = "Spanish", bool clone = true) where T : class
+    public async Task<T> Translate<T>(Agent router, string messageId, T data, string language = "Spanish", bool clone = true) where T : class
     {
+        _router = router;
+        _messageId = messageId;
         var cloned = data;
         if (clone)
         {
@@ -30,7 +36,7 @@ public class TranslationService : ITranslationService
 
         var unique = new HashSet<string>();
         Collect(cloned, ref unique);
-        var map = InnerTranslate(unique, language);
+        var map = await InnerTranslate(unique, language);
         cloned = Assign(cloned, map);
         return cloned;
     }
@@ -250,14 +256,44 @@ public class TranslationService : ITranslationService
     /// <param name="list"></param>
     /// <param name="language"></param>
     /// <returns></returns>
-    private Dictionary<string, string> InnerTranslate(HashSet<string> list, string language)
+    private async Task<Dictionary<string, string>> InnerTranslate(HashSet<string> list, string language)
     {
-        var map = new Dictionary<string, string>();
-        if (list == null || !list.Any()) return map;
+        // chat completion
+        var completion = CompletionProvider.GetChatCompletion(_services,
+            provider: _router?.LlmConfig?.Provider,
+            model: _router?.LlmConfig?.Model);
 
-        foreach (var item in list)
+        var texts = list.ToArray();
+        var translator = new Agent
         {
-            map.Add(item, "hello world");
+            Id = Guid.Empty.ToString(),
+            Name = "Translator",
+            TemplateDict = new Dictionary<string, object>
+            {
+                { "text_list",  JsonConvert.SerializeObject(texts) },
+                { "language", language }
+            }
+        };
+
+        var template = _router.Templates.First(x => x.Name == "translation_prompt").Content;
+        var render = _services.GetRequiredService<ITemplateRender>();
+        var prompt = render.Render(template, translator.TemplateDict);
+
+        var translationDialogs = new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, prompt)
+            {
+                FunctionName = "translation_prompt",
+                MessageId = _messageId
+            }
+        };
+        var translationResponse = await completion.GetChatCompletions(translator, translationDialogs);
+        var translatedTexts = translationResponse.Content.JsonArrayContent<string>();
+        var map = new Dictionary<string, string>();
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            map.Add(texts[i], translatedTexts[i]);
         }
 
         return map;

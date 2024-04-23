@@ -29,5 +29,6 @@ public class ElementButton
 
     [JsonPropertyName("post_action_disclaimer")]
     [JsonProperty("post_action_disclaimer")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? PostActionDisclaimer { get; set; }
 }
