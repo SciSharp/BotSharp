@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Utilities;
 
 namespace BotSharp.Core.Routing;
 
@@ -137,7 +138,18 @@ public class RoutingContext : IRoutingContext
         }
     }
 
-    public string PreviousAgentId()
+    public void PopTo(string agentId, string reason)
+    {
+        var currentAgentId = GetCurrentAgentId();
+        while (!string.IsNullOrEmpty(currentAgentId) && 
+            currentAgentId != agentId)
+        {
+            Pop(reason);
+            currentAgentId = GetCurrentAgentId();
+        }
+    }
+
+    public string FirstGoalAgentId()
     {
         if (_stack.Count == 1)
         {
@@ -149,6 +161,11 @@ public class RoutingContext : IRoutingContext
         }
 
         return string.Empty;
+    }
+
+    public bool ContainsAgentId(string agentId)
+    {
+        return _stack.ToArray().Contains(agentId);
     }
 
     public void Replace(string agentId, string? reason = null)
