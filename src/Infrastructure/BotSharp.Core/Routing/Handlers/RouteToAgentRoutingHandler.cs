@@ -32,7 +32,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         new ParameterPropertyDef("user_message_in_english",
             "Translate user message from non-English to English"),
         new ParameterPropertyDef("language",
-            "Language name of the message user sent, the name may be English, Spanish or Chinese.", 
+            "Language name detected based on user last message, the name may be English, Spanish or Chinese.", 
             required: true),
     };
 
