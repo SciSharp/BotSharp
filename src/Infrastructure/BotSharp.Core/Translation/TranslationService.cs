@@ -37,6 +37,8 @@ public class TranslationService : ITranslationService
 
     private T Clone<T>(T data) where T : class
     {
+        if (data == null) return data;
+
         var str = System.Text.Json.JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
         var cloned = System.Text.Json.JsonSerializer.Deserialize<T>(str, _options.JsonSerializerOptions);
         return cloned;
