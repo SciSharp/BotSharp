@@ -17,7 +17,6 @@ public class ElementButton
     public string Title { get; set; } = string.Empty;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [Translate]
     public string Payload { get; set; }
 
     [JsonPropertyName("is_primary")]
