@@ -54,7 +54,7 @@ public class RoutingArgs
     public string UserMessageInEnglish { get; set; }
 
     [JsonPropertyName("language")]
-    public string Language { get; set; } = LanguageType.UNKNOWN;
+    public string Language { get; set; } = LanguageType.ENGLISH;
 
     public override string ToString()
     {

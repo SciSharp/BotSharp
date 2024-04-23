@@ -152,12 +152,19 @@ public partial class RoutingService : IRoutingService
         // Handle multi-language for output
         if (inst.Language != LanguageType.UNKNOWN && inst.Language != LanguageType.ENGLISH)
         {
+            var translator = _services.GetRequiredService<ITranslationService>();
             if (response.RichContent != null)
             {
-                var translator = _services.GetRequiredService<ITranslationService>();
-                response.RichContent.Message = await translator.Translate(_router, 
-                    message.MessageId, 
-                    response.RichContent.Message, 
+                response.RichContent.Message = await translator.Translate(_router,
+                    message.MessageId,
+                    response.RichContent.Message,
+                    language: inst.Language);
+            }
+            else
+            {
+                response.Content = await translator.Translate(_router,
+                    message.MessageId,
+                    response.Content,
                     language: inst.Language);
             }
         }
