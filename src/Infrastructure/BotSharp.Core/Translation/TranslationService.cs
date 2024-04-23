@@ -1,6 +1,7 @@
 using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
+using BotSharp.Abstraction.Translation;
 using BotSharp.Abstraction.Translation.Attributes;
 using Newtonsoft.Json;
 using System.Reflection;
@@ -28,16 +29,23 @@ public class TranslationService : ITranslationService
     {
         _router = router;
         _messageId = messageId;
+
+        var unique = new HashSet<string>();
+        Collect(data, ref unique);
+        if (unique.Count == 0)
+        {
+            return data;
+        }
+
         var cloned = data;
         if (clone)
         {
             cloned = Clone(data);
         }
 
-        var unique = new HashSet<string>();
-        Collect(cloned, ref unique);
         var map = await InnerTranslate(unique, language);
         cloned = Assign(cloned, map);
+
         return cloned;
     }
 
