@@ -50,6 +50,12 @@ public class RoutingArgs
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string UserGoal { get; set; }
 
+    [JsonPropertyName("user_message_in_english")]
+    public string UserMessageInEnglish { get; set; }
+
+    [JsonPropertyName("language")]
+    public string Language { get; set; } = LanguageType.UNKNOWN;
+
     public override string ToString()
     {
         var route = string.IsNullOrEmpty(AgentName) ? "" : $"<Route to {AgentName.ToUpper()} because {NextActionReason}>";

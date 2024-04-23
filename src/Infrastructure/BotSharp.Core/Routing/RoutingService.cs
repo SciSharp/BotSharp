@@ -1,7 +1,19 @@
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Templating;
+using BotSharp.Core.Routing.Planning;
+using Fluid.Ast;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics.Metrics;
 using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using ThirdParty.Json.LitJson;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Core.Routing;
 
@@ -39,15 +51,10 @@ public partial class RoutingService : IRoutingService
         var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
 
         var conv = _services.GetRequiredService<IConversationService>();
-        var dialogs = new List<RoleDialogModel>();
-        if (conv.States.GetState("hide_context", "false") == "true")
-        {
-            dialogs.Add(message);
-        }
-        else
-        {
-            dialogs = conv.GetDialogHistory();
-        }
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        storage.Append(conv.ConversationId, message);
+
+        var dialogs = conv.GetDialogHistory();
         handler.SetDialogs(dialogs);
 
         var inst = new FunctionCallFromLlm
@@ -71,10 +78,13 @@ public partial class RoutingService : IRoutingService
 
     public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        _router = await agentService.LoadAgent(message.CurrentAgentId);
-
         RoleDialogModel response = default;
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var convService = _services.GetRequiredService<IConversationService>();
+        var storage = _services.GetRequiredService<IConversationStorage>();
+
+        _router = await agentService.LoadAgent(message.CurrentAgentId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var executor = _services.GetRequiredService<IExecutor>();
@@ -83,17 +93,23 @@ public partial class RoutingService : IRoutingService
 
         _context.Push(_router.Id);
 
-        int loopCount = 0;
-        while (loopCount < planner.MaxLoopCount && !_context.IsEmpty)
+        dialogs.Add(message);
+
+        // Get first instruction
+        _router.TemplateDict["conversation"] = await GetConversationContent(dialogs);
+        var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
+
+        // Handle multi-language for input
+
+        if (inst.Language != LanguageType.UNKNOWN && inst.Language != LanguageType.ENGLISH)
         {
-            loopCount++;
+            message.Content = inst.UserMessageInEnglish;
+        }
+        storage.Append(convService.ConversationId, message);
 
-            var conversation = await GetConversationContent(dialogs);
-            _router.TemplateDict["conversation"] = conversation;
-
-            // Get instruction from Planner
-            var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
-
+        int loopCount = 1;
+        while (true)
+        {
             await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
                 await hook.OnRoutingInstructionReceived(inst, message)
             );
@@ -121,6 +137,29 @@ public partial class RoutingService : IRoutingService
             }
 
             await planner.AgentExecuted(_router, inst, response, dialogs);
+
+            if (loopCount >= planner.MaxLoopCount || _context.IsEmpty)
+            {
+                break;
+            }
+
+            // Get next instruction from Planner
+            _router.TemplateDict["conversation"] = await GetConversationContent(dialogs);
+            inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
+            loopCount++;
+        }
+
+        // Handle multi-language for output
+        if (inst.Language != LanguageType.UNKNOWN && inst.Language != LanguageType.ENGLISH)
+        {
+            if (response.RichContent != null)
+            {
+                var translator = _services.GetRequiredService<ITranslationService>();
+                response.RichContent.Message = await translator.Translate(_router, 
+                    message.MessageId, 
+                    response.RichContent.Message, 
+                    language: inst.Language);
+            }
         }
 
         return response;

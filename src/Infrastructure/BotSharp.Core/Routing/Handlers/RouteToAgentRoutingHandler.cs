@@ -28,7 +28,12 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
             type: "object"),
         new ParameterPropertyDef("is_new_task",
             "whether the user is requesting a new task that is different from the previous topic.", 
-            type: "boolean")
+            type: "boolean"),
+        new ParameterPropertyDef("user_message_in_english",
+            "Translate user message from non-English to English"),
+        new ParameterPropertyDef("language",
+            "Language name of the message user sent, the name may be English, Spanish or Chinese.", 
+            required: true),
     };
 
     public RouteToAgentRoutingHandler(IServiceProvider services, ILogger<RouteToAgentRoutingHandler> logger, RoutingSettings settings) 

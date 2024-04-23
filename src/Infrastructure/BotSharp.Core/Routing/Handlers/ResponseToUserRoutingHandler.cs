@@ -10,10 +10,21 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        new ParameterPropertyDef("reason", "why response to user directly without go to other agents"),
-        new ParameterPropertyDef("response", "response content to user in courteous words. If the user wants to end the conversation, you must set conversation_end to true and response politely."),
-        new ParameterPropertyDef("conversation_end", "whether to end this conversation", type: "boolean"),
-        new ParameterPropertyDef("task_completed ", "whether the user's task request has been completed.", type: "boolean")
+        new ParameterPropertyDef("reason", 
+            "why response to user directly without go to other agents"),
+        new ParameterPropertyDef("response",
+            "response content to user in courteous words with language English. If the user wants to end the conversation, you must set conversation_end to true and response politely."),
+        new ParameterPropertyDef("conversation_end", 
+            "whether to end this conversation", 
+            type: "boolean"),
+        new ParameterPropertyDef("task_completed ", 
+            "whether the user's task request has been completed.", 
+            type: "boolean"),
+        new ParameterPropertyDef("user_message_in_english",
+            "Translate user message from non-English to English"),
+        new ParameterPropertyDef("language",
+            "Language name of the message user sent, the name may be English, Spanish or Chinese.",
+            required: true),
     };
 
     public ResponseToUserRoutingHandler(IServiceProvider services, ILogger<ResponseToUserRoutingHandler> logger, RoutingSettings settings) 

@@ -11,6 +11,7 @@ public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("text")]
     [JsonProperty("text")]
+    [Translate]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]
@@ -36,6 +37,7 @@ public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
 
 public class GenericElement
 {
+    [Translate]
     public string Title { get; set; }
     public string Subtitle { get; set; }
 

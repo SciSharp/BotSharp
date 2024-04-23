@@ -71,15 +71,6 @@ public partial class ConversationService
             }
         }
 
-        // Persist to storage
-        if (!message.StopCompletion)
-        {
-            _storage.Append(_conversationId, message);
-
-            // Add to thread
-            dialogs.Add(RoleDialogModel.From(message));
-        }
-
         if (!stopCompletion)
         {
             // Routing with reasoning
