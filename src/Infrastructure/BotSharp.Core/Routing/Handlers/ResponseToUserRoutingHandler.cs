@@ -23,7 +23,7 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
         new ParameterPropertyDef("user_message_in_english",
             "Translate user message from non-English to English"),
         new ParameterPropertyDef("language",
-            "Language name detected based on user last message, the name may be English, Spanish or Chinese.",
+            "Language detected based on the latest message that USER sent, could be English, Spanish or Chinese.",
             required: true),
     };
 
