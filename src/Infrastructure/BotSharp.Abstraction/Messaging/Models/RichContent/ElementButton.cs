@@ -13,6 +13,7 @@ public class ElementButton
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Url { get; set; }
 
+    [Translate]
     public string Title { get; set; } = string.Empty;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
