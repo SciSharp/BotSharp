@@ -162,7 +162,7 @@ public partial class RoutingService : IRoutingService
             }
             else
             {
-                response.Content = await translator.Translate(_router,
+                response.SecondaryContent = await translator.Translate(_router,
                     message.MessageId,
                     response.Content,
                     language: inst.Language);
