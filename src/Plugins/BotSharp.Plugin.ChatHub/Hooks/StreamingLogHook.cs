@@ -7,6 +7,8 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using Microsoft.AspNetCore.SignalR;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -45,7 +47,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public override async Task OnMessageReceived(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
-        var log = $"{message.Content}";
+        var log = $"{GetMessageContent(message)}";
 
         var input = new ContentLogInputModel(conversationId, message)
         {
@@ -59,7 +61,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
     {
         var conversationId = _state.GetConversationId();
-        var log = $"{message.Content}";
+        var log = $"{GetMessageContent(message)}";
         var replyContent = JsonSerializer.Serialize(replyMsg, _options.JsonSerializerOptions);
         log += $"\r\n```json\r\n{replyContent}\r\n```";
 
@@ -183,10 +185,18 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (message.Role == AgentRole.Assistant)
         {
             var agent = await _agentService.LoadAgent(message.CurrentAgentId);
-            var log = $"{message.Content}";
-            if (message.RichContent != null)
+            var log = $"{GetMessageContent(message)}";
+            if (message.RichContent != null || message.SecondaryRichContent != null)
             {
-                var richContent = JsonSerializer.Serialize(message.RichContent, _options.JsonSerializerOptions);
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    AllowTrailingCommas = true,
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+                };
+                var richContent = JsonSerializer.Serialize(message.SecondaryRichContent ?? message.RichContent, jsonOptions);
                 log += $"\r\n```json\r\n{richContent}\r\n```";
             }
 
@@ -204,7 +214,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public override async Task OnTaskCompleted(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
-        var log = $"{message.Content}";
+        var log = $"{GetMessageContent(message)}";
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
 
         var input = new ContentLogInputModel(conversationId, message)
@@ -478,5 +488,10 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         };
 
         return JsonSerializer.Serialize(model, _options.JsonSerializerOptions);
+    }
+
+    private string GetMessageContent(RoleDialogModel message)
+    {
+        return !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content;
     }
 }
