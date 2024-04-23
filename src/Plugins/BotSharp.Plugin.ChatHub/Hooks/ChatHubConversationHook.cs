@@ -45,7 +45,7 @@ public class ChatHubConversationHook : ConversationHookBase
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
-            Text = message.Content,
+            Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Sender = UserViewModel.FromUser(sender)
         });
 
@@ -71,9 +71,9 @@ public class ChatHubConversationHook : ConversationHookBase
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
-            Text = message.Content,
+            Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Function = message.FunctionName,
-            RichContent = message.RichContent,
+            RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
             Sender = new UserViewModel()
             {
