@@ -1,9 +1,8 @@
-using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
-using BotSharp.Abstraction.Translation;
 using BotSharp.Abstraction.Translation.Attributes;
 using Newtonsoft.Json;
+using System.Collections;
 using System.Reflection;
 
 namespace BotSharp.Core.Translation;
@@ -81,7 +80,7 @@ public class TranslationService : ITranslationService
             return;
         }
 
-        var isList = interfaces.Any(x => x.Name == typeof(IEnumerable<>).Name);
+        var isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
         if (dataType.IsArray || isList)
         {
             var elementType = dataType.IsArray ? dataType.GetElementType() : dataType.GetGenericArguments().FirstOrDefault();
@@ -124,7 +123,7 @@ public class TranslationService : ITranslationService
             else if (propType.IsClass || propType.IsInterface)
             {
                 interfaces = propType.GetTypeInfo().ImplementedInterfaces;
-                isList = interfaces.Any(x => x.Name == typeof(IEnumerable<>).Name);
+                isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
                 if (interfaces.Any(x => x.Name == typeof(IDictionary<,>).Name))
                 {
                     Collect(value, ref res);
@@ -175,7 +174,7 @@ public class TranslationService : ITranslationService
             return data;
         }
 
-        var isList = interfaces.Any(x => x.Name == typeof(IEnumerable<>).Name);
+        var isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
         if (dataType.IsArray || isList)
         {
             var elementType = dataType.IsArray ? dataType.GetElementType() : dataType.GetGenericArguments().FirstOrDefault();
@@ -227,7 +226,7 @@ public class TranslationService : ITranslationService
             else if (propType.IsClass || propType.IsInterface)
             {
                 interfaces = propType.GetTypeInfo().ImplementedInterfaces;
-                isList = interfaces.Any(x => x.Name == typeof(IEnumerable<>).Name);
+                isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
                 if (interfaces.Any(x => x.Name == typeof(IDictionary<,>).Name))
                 {
                     Assign(value, map);
