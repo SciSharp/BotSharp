@@ -44,5 +44,5 @@ public interface IRoutingService
 
     Task<string> GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 50);
 
-    bool HasMissingRequiredField(RoleDialogModel message, out string agentId);
+    (bool, string) HasMissingRequiredField(RoleDialogModel message, out string agentId);
 }
