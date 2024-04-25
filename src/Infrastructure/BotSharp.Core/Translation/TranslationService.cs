@@ -31,7 +31,7 @@ public class TranslationService : ITranslationService
 
         var unique = new HashSet<string>();
         Collect(data, ref unique);
-        if (unique.Count == 0)
+        if (unique.IsNullOrEmpty())
         {
             return data;
         }
@@ -68,23 +68,21 @@ public class TranslationService : ITranslationService
         if (data == null) return;
 
         var dataType = data.GetType();
-        if (dataType == typeof(string))
+        if (IsStringType(dataType))
         {
             res.Add(data.ToString());
             return;
         }
 
-        var interfaces = dataType.GetTypeInfo().ImplementedInterfaces;
-        if (interfaces.Any(x => x.Name == typeof(IDictionary<,>).Name))
+        if (IsDictionaryType(dataType))
         {
             return;
         }
 
-        var isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
-        if (dataType.IsArray || isList)
+        if (IsListType(dataType))
         {
             var elementType = dataType.IsArray ? dataType.GetElementType() : dataType.GetGenericArguments().FirstOrDefault();
-            if (elementType == typeof(string))
+            if (IsStringType(elementType))
             {
                 foreach (var item in (data as IEnumerable<string>))
                 {
@@ -92,7 +90,7 @@ public class TranslationService : ITranslationService
                     res.Add(item);
                 }
             }
-            else if (elementType != null && (elementType.IsClass || elementType.IsInterface))
+            else if (IsTrackToNextLevel(elementType))
             {
                 foreach (var item in (data as IEnumerable<object>))
                 {
@@ -113,32 +111,30 @@ public class TranslationService : ITranslationService
 
             if (value == null) continue;
 
-            if (propType == typeof(string))
+            if (IsStringType(propType))
             {
                 if (translate != null)
                 {
                     Collect(value, ref res);
                 }
             }
-            else if (propType.IsClass || propType.IsInterface)
+            else if (IsTrackToNextLevel(propType))
             {
-                interfaces = propType.GetTypeInfo().ImplementedInterfaces;
-                isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
-                if (interfaces.Any(x => x.Name == typeof(IDictionary<,>).Name))
+                if (IsDictionaryType(propType))
                 {
                     Collect(value, ref res);
                 }
-                else if (propType.IsArray || isList)
+                else if (IsListType(propType))
                 {
                     var elementType = propType.IsArray ? propType.GetElementType() : propType.GetGenericArguments().FirstOrDefault();
-                    if (elementType == typeof(string))
+                    if (IsStringType(elementType))
                     {
                         if (translate != null)
                         {
                             Collect(value, ref res);
                         }
                     }
-                    else if (elementType != null && (elementType.IsClass || elementType.IsInterface))
+                    else if (IsTrackToNextLevel(elementType))
                     {
                         Collect(value, ref res);
                     }
@@ -163,22 +159,20 @@ public class TranslationService : ITranslationService
         if (data == null) return data;
 
         var dataType = data.GetType();
-        if (dataType == typeof(string) && map.TryGetValue(data.ToString(), out var target))
+        if (IsStringType(dataType) && map.TryGetValue(data.ToString(), out var target))
         {
             return target as T;
         }
 
-        var interfaces = dataType.GetTypeInfo().ImplementedInterfaces;
-        if (interfaces.Any(x => x.Name == typeof(IDictionary<,>).Name))
+        if (IsDictionaryType(dataType))
         {
             return data;
         }
 
-        var isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
-        if (dataType.IsArray || isList)
+        if (IsListType(dataType))
         {
             var elementType = dataType.IsArray ? dataType.GetElementType() : dataType.GetGenericArguments().FirstOrDefault();
-            if (elementType == typeof(string))
+            if (IsStringType(elementType))
             {
                 var list = new List<string>();
                 foreach (var item in (data as IEnumerable<string>))
@@ -195,7 +189,7 @@ public class TranslationService : ITranslationService
 
                 data = dataType.IsArray ? list.ToArray() as T : list as T;
             }
-            else if (elementType != null && (elementType.IsClass || elementType.IsInterface))
+            else if (IsTrackToNextLevel(elementType))
             {
                 foreach (var item in (data as IEnumerable<object>))
                 {
@@ -216,25 +210,23 @@ public class TranslationService : ITranslationService
 
             if (value == null) continue;
 
-            if (propType == typeof(string))
+            if (IsStringType(propType))
             {
                 if (translate != null)
                 {
                     prop.SetValue(data, Assign(value, map));
                 }
             }
-            else if (propType.IsClass || propType.IsInterface)
+            else if (IsTrackToNextLevel(propType))
             {
-                interfaces = propType.GetTypeInfo().ImplementedInterfaces;
-                isList = interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
-                if (interfaces.Any(x => x.Name == typeof(IDictionary<,>).Name))
+                if (IsDictionaryType(propType))
                 {
                     Assign(value, map);
                 }
-                else if (propType.IsArray || isList)
+                else if (IsListType(propType))
                 {
                     var elementType = propType.IsArray ? propType.GetElementType() : propType.GetGenericArguments().FirstOrDefault();
-                    if (elementType == typeof(string))
+                    if (IsStringType(elementType))
                     {
                         if (translate != null)
                         {
@@ -242,7 +234,7 @@ public class TranslationService : ITranslationService
                             prop.SetValue(data, targetValue);
                         }
                     }
-                    else if (elementType != null && (elementType.IsClass || elementType.IsInterface))
+                    else if (IsTrackToNextLevel(elementType))
                     {
                         prop.SetValue(data, Assign(value, map));
                     }
@@ -305,4 +297,36 @@ public class TranslationService : ITranslationService
 
         return map;
     }
+
+    #region Type methods
+    private static bool IsStringType(Type? type)
+    {
+        if (type == null) return false;
+
+        return type == typeof(string);
+    }
+
+    private static bool IsListType(Type? type)
+    {
+        if (type == null) return false;
+
+        var interfaces = type.GetTypeInfo().ImplementedInterfaces;
+        return type.IsArray || interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
+    }
+
+    private static bool IsDictionaryType(Type? type)
+    {
+        if (type == null) return false;
+
+        var underlyingInterfaces = type.UnderlyingSystemType.GetTypeInfo().ImplementedInterfaces;
+        return underlyingInterfaces.Any(x => x.Name == typeof(IDictionary).Name);
+    }
+
+    private static bool IsTrackToNextLevel(Type? type)
+    {
+        if (type == null) return false;
+
+        return type.IsClass || type.IsInterface || type.IsAbstract;
+    }
+    #endregion
 }
