@@ -100,11 +100,17 @@ public partial class RoutingService : IRoutingService
         var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
 
         // Handle multi-language for input
+        var translator = _services.GetRequiredService<ITranslationService>();
 
-        if (inst.Language != LanguageType.UNKNOWN && inst.Language != LanguageType.ENGLISH)
+        var language = states.GetState("language", inst.Language);
+        if (language != LanguageType.UNKNOWN && language != LanguageType.ENGLISH)
         {
-            message.Content = inst.UserMessageInEnglish;
+            message.SecondaryContent = message.Content;
+            message.Content = await translator.Translate(_router, message.MessageId, message.Content,
+                language: LanguageType.ENGLISH,
+                clone: false);
         }
+
         storage.Append(convService.ConversationId, message);
 
         int loopCount = 1;
@@ -150,22 +156,26 @@ public partial class RoutingService : IRoutingService
         }
 
         // Handle multi-language for output
-        if (inst.Language != LanguageType.UNKNOWN && inst.Language != LanguageType.ENGLISH)
+        if (language != LanguageType.UNKNOWN && language != LanguageType.ENGLISH)
         {
-            var translator = _services.GetRequiredService<ITranslationService>();
             if (response.RichContent != null)
             {
-                response.RichContent.Message = await translator.Translate(_router,
+                if (string.IsNullOrEmpty(response.RichContent.Message.Text))
+                {
+                    response.RichContent.Message.Text = response.Content;
+                }
+
+                response.SecondaryRichContent = await translator.Translate(_router,
                     message.MessageId,
-                    response.RichContent.Message,
-                    language: inst.Language);
+                    response.RichContent,
+                    language: language);
             }
             else
             {
                 response.SecondaryContent = await translator.Translate(_router,
                     message.MessageId,
                     response.Content,
-                    language: inst.Language);
+                    language: language);
             }
         }
 

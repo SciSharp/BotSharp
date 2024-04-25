@@ -1,8 +1,10 @@
+using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Attributes;
 using Newtonsoft.Json;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace BotSharp.Core.Translation;
@@ -14,6 +16,7 @@ public class TranslationService : ITranslationService
     private readonly BotSharpOptions _options;
     private Agent _router;
     private string _messageId;
+    private IChatCompletion _completion;
 
     public TranslationService(IServiceProvider services,
         ILogger<TranslationService> logger,
@@ -42,8 +45,31 @@ public class TranslationService : ITranslationService
             cloned = Clone(data);
         }
 
-        var map = await InnerTranslate(unique, language);
-        cloned = Assign(cloned, map);
+        // chat completion
+        _completion = CompletionProvider.GetChatCompletion(_services,
+            provider: _router?.LlmConfig?.Provider,
+            model: _router?.LlmConfig?.Model);
+        var template = _router.Templates.First(x => x.Name == "translation_prompt").Content;
+
+        var texts = unique.ToArray();
+        var translatedStringList = await InnerTranslate(JsonConvert.SerializeObject(texts), language, template);
+
+        try
+        {
+            var translatedTexts = translatedStringList.JsonArrayContent<string>();
+            var map = new Dictionary<string, string>();
+
+            for (var i = 0; i < texts.Length; i++)
+            {
+                map.Add(texts[i], translatedTexts[i]);
+            }
+
+            cloned = Assign(cloned, map);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+        }
 
         return cloned;
     }
@@ -263,26 +289,19 @@ public class TranslationService : ITranslationService
     /// <param name="list"></param>
     /// <param name="language"></param>
     /// <returns></returns>
-    private async Task<Dictionary<string, string>> InnerTranslate(HashSet<string> list, string language)
+    private async Task<string> InnerTranslate(string texts, string language, string template)
     {
-        // chat completion
-        var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: _router?.LlmConfig?.Provider,
-            model: _router?.LlmConfig?.Model);
-
-        var texts = list.ToArray();
         var translator = new Agent
         {
             Id = Guid.Empty.ToString(),
             Name = "Translator",
             TemplateDict = new Dictionary<string, object>
             {
-                { "text_list",  JsonConvert.SerializeObject(texts) },
+                { "text_list",  texts },
                 { "language", language }
             }
         };
 
-        var template = _router.Templates.First(x => x.Name == "translation_prompt").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
         var prompt = render.Render(template, translator.TemplateDict);
 
@@ -294,15 +313,7 @@ public class TranslationService : ITranslationService
                 MessageId = _messageId
             }
         };
-        var translationResponse = await completion.GetChatCompletions(translator, translationDialogs);
-        var translatedTexts = translationResponse.Content.JsonArrayContent<string>();
-        var map = new Dictionary<string, string>();
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            map.Add(texts[i], translatedTexts[i]);
-        }
-
-        return map;
+        var response = await _completion.GetChatCompletions(translator, translationDialogs);
+        return response.Content;
     }
 }

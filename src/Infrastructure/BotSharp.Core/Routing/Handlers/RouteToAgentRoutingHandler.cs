@@ -31,9 +31,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
             type: "boolean"),
         new ParameterPropertyDef("language",
             "User preferred language, considering the whole conversation. Language could be English, Spanish or Chinese.", 
-            required: true),
-        new ParameterPropertyDef("lastest_message_translated_to_english",
-            "Translate lastest user message in [CONVERSATION] to English"),
+            required: true)
     };
 
     public RouteToAgentRoutingHandler(IServiceProvider services, ILogger<RouteToAgentRoutingHandler> logger, RoutingSettings settings) 
