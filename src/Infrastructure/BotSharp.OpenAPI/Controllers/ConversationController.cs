@@ -83,8 +83,7 @@ public class ConversationController : ControllerBase
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
-                    Text = message.Content,
-                    SecondaryText = message.SecondaryContent,
+                    Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Data = message.Data,
                     Sender = UserViewModel.FromUser(user)
                 });
@@ -97,8 +96,7 @@ public class ConversationController : ControllerBase
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
-                    Text = message.Content,
-                    SecondaryText = message.SecondaryContent,
+                    Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Function = message.FunctionName,
                     Data = message.Data,
                     Sender = new UserViewModel
@@ -106,8 +104,7 @@ public class ConversationController : ControllerBase
                         FirstName = agent.Name,
                         Role = message.Role,
                     },
-                    RichContent = message.RichContent,
-                    SecondaryRichContent = message.SecondaryRichContent
+                    RichContent = message.SecondaryRichContent ?? message.RichContent
                 });
             }
         }
@@ -180,9 +177,9 @@ public class ConversationController : ControllerBase
             replyMessage: input.Postback,
             async msg =>
             {
-                response.Text = msg.Content;
+                response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
                 response.Function = msg.FunctionName;
-                response.RichContent = msg.RichContent;
+                response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
             },

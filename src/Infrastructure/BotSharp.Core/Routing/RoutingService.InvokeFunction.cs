@@ -4,9 +4,6 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    private List<FunctionCallingResponse> _functionCallStack = new List<FunctionCallingResponse>();
-    public List<FunctionCallingResponse> FunctionCallStack => _functionCallStack;
-
     public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
@@ -37,14 +34,6 @@ public partial class RoutingService
         try
         {
             result = await function.Execute(clonedMessage);
-
-            _functionCallStack.Add(new FunctionCallingResponse
-            {
-                Role = AgentRole.Function,
-                FunctionName = clonedMessage.FunctionName,
-                Args = JsonDocument.Parse(clonedMessage.FunctionArgs ?? "{}"),
-                Content = clonedMessage.Content
-            });
 
             // After functions have been executed
             foreach (var hook in hooks)

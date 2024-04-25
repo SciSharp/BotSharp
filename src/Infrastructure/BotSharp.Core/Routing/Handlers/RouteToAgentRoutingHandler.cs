@@ -12,23 +12,28 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
         new ParameterPropertyDef("next_action_reason", 
-            "the reason why route to this virtual agent", 
+            "the reason why route to this virtual agent.", 
             required: true),
         new ParameterPropertyDef("next_action_agent", 
-            "agent for next action based on user latest response, if user is replying last agent's question, you must route to this agent", 
+            "agent for next action based on user latest response, if user is replying last agent's question, you must route to this agent.", 
             required: true),
+        new ParameterPropertyDef("args",
+            "useful parameters of next action agent, format: { }",
+            type: "object"),
         new ParameterPropertyDef("user_goal_description", 
             "user goal based on user initial task.", 
             required: true),
         new ParameterPropertyDef("user_goal_agent",
             "agent who can acheive user initial task,  must align with user_goal_description.", 
             required: true),
-        new ParameterPropertyDef("args", 
-            "useful parameters of next action agent, format: { }", 
-            type: "object"),
         new ParameterPropertyDef("is_new_task",
             "whether the user is requesting a new task that is different from the previous topic.", 
-            type: "boolean")
+            type: "boolean"),
+        new ParameterPropertyDef("language",
+            "User preferred language, considering the whole conversation. Language could be English, Spanish or Chinese.", 
+            required: true),
+        new ParameterPropertyDef("lastest_message_translated_to_english",
+            "Translate lastest user message in [CONVERSATION] to English"),
     };
 
     public RouteToAgentRoutingHandler(IServiceProvider services, ILogger<RouteToAgentRoutingHandler> logger, RoutingSettings settings) 

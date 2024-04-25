@@ -71,15 +71,6 @@ public partial class ConversationService
             }
         }
 
-        // Persist to storage
-        if (!message.StopCompletion)
-        {
-            _storage.Append(_conversationId, message);
-
-            // Add to thread
-            dialogs.Add(RoleDialogModel.From(message));
-        }
-
         if (!stopCompletion)
         {
             // Routing with reasoning
@@ -139,7 +130,7 @@ public partial class ConversationService
             response.RichContent is RichContent<IRichMessage> template &&
             string.IsNullOrEmpty(template.Message.Text))
         {
-            template.Message.Text = response.Content;
+            template.Message.Text = response.SecondaryContent ?? response.Content;
         }
 
         // Only read content from RichContent for UI rendering. When richContent is null, create a basic text message for richContent.
@@ -147,7 +138,7 @@ public partial class ConversationService
         response.RichContent = response.RichContent ?? new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
-            Message = new TextMessage(response.Content)
+            Message = new TextMessage(response.SecondaryContent ?? response.Content)
         };
 
         // Patch return function name

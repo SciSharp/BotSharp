@@ -8,6 +8,7 @@ using BotSharp.Core.Instructs;
 using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Planning;
 using BotSharp.Core.Templating;
+using BotSharp.Core.Translation;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Conversations;
@@ -35,6 +36,7 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
         services.AddScoped<IConversationAttachmentService, ConversationAttachmentService>();
+        services.AddScoped<ITranslationService, TranslationService>();
 
         // Rich content messaging
         services.AddScoped<IRichContentService, RichContentService>();

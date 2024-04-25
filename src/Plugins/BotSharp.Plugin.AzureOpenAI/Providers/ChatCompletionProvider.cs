@@ -300,6 +300,7 @@ public class ChatCompletionProvider : IChatCompletion
                 }));
             prompt += $"{verbose}\r\n";
 
+            prompt += "\r\n[CONVERSATION]\r\n";
             verbose = string.Join("\r\n", chatCompletionsOptions.Messages
                 .Where(x => x.Role != AgentRole.System).Select(x =>
                 {
@@ -311,7 +312,7 @@ public class ChatCompletionProvider : IChatCompletion
                     else if (x.Role == ChatRole.User)
                     {
                         var m = x as ChatRequestUserMessage;
-                        return !string.IsNullOrEmpty(m.Name) ?
+                        return !string.IsNullOrEmpty(m.Name) && m.Name != "route_to_agent" ?
                             $"{m.Name}: {m.Content}" :
                             $"{m.Role}: {m.Content}";
                     }

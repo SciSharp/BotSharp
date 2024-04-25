@@ -13,6 +13,7 @@ public class ElementButton
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Url { get; set; }
 
+    [Translate]
     public string Title { get; set; } = string.Empty;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -28,5 +29,7 @@ public class ElementButton
 
     [JsonPropertyName("post_action_disclaimer")]
     [JsonProperty("post_action_disclaimer")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [Translate]
     public string? PostActionDisclaimer { get; set; }
 }

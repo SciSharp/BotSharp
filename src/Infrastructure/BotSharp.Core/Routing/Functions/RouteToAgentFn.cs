@@ -83,11 +83,11 @@ public partial class RouteToAgentFn : IFunctionCallback
             }
 
             var routing = _services.GetRequiredService<IRoutingService>();
-            var missingfield = routing.HasMissingRequiredField(message, out var agentId);
+            var (missingfield, reason) = routing.HasMissingRequiredField(message, out var agentId);
             if (missingfield && message.CurrentAgentId != agentId)
             {
                 // Stack redirection agent
-                _context.Push(agentId, reason: $"REDIRECTION {message.Content}");
+                _context.Push(agentId, reason: $"REDIRECTION {reason}");
             }
         }
 
