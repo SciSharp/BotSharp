@@ -14,6 +14,7 @@ public class ButtonTemplateMessage : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("text")]
     [JsonProperty("text")]
+    [Translate]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]

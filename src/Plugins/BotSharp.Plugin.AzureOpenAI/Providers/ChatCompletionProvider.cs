@@ -300,7 +300,6 @@ public class ChatCompletionProvider : IChatCompletion
                 }));
             prompt += $"{verbose}\r\n";
 
-            prompt += "\r\n[CONVERSATION]\r\n";
             verbose = string.Join("\r\n", chatCompletionsOptions.Messages
                 .Where(x => x.Role != AgentRole.System).Select(x =>
                 {
