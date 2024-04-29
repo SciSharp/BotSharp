@@ -57,11 +57,6 @@ public partial class SeleniumWebDriver : IWebBrowser
         throw new NotImplementedException();
     }
 
-    public Task<T> EvaluateScript<T>(string contextId, string script)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<string> ExtractData(BrowserActionParams actionParams)
     {
         throw new NotImplementedException();
@@ -83,11 +78,6 @@ public partial class SeleniumWebDriver : IWebBrowser
     }
 
     public Task<BrowserActionResult> ScrollPageAsync(BrowserActionParams actionParams)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<BrowserActionResult> SendHttpRequest(string contextId, HttpRequestParams actionParams)
     {
         throw new NotImplementedException();
     }
