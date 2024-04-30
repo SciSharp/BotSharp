@@ -25,5 +25,5 @@ public interface IWebBrowser
     Task CloseBrowser(string contextId);
     Task CloseCurrentPage(string contextId);
     Task<BrowserActionResult> SendHttpRequest(string contextId, HttpRequestParams actionParams);
-    Task<string> GetAttributeValue(MessageInfo message, ElementLocatingArgs location, BrowserActionResult result);
+    Task<BrowserActionResult> GetAttributeValue(MessageInfo message, ElementLocatingArgs location);
 }

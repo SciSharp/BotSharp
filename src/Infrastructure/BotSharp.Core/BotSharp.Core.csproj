@@ -152,6 +152,7 @@
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.2.1" />
     <PackageReference Include="Fluid.Core" Version="2.8.0" />
     <PackageReference Include="Nanoid" Version="3.0.0" />
+    <PackageReference Include="RedLock.net" Version="2.3.2" />
   </ItemGroup>
 
   <ItemGroup>

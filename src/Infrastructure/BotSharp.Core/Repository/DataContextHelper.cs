@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Repositories;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using System.Data.Common;
