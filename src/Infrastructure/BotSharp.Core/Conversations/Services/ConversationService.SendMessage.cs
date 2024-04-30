@@ -77,7 +77,7 @@ public partial class ConversationService
             var settings = _services.GetRequiredService<RoutingSettings>();
 
             response = agent.Type == AgentType.Routing ?
-                await routing.InstructLoop(message, dialogs) :
+                await routing.InstructLoop(message, dialogs, onFunctionExecuting) :
                 await routing.InstructDirect(agent, message);
 
             routing.ResetRecursiveCounter();

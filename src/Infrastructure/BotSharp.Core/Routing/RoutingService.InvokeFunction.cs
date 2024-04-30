@@ -4,7 +4,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
+    public async Task<bool> InvokeFunction(string name, RoleDialogModel message, Func<RoleDialogModel, Task>? onFunctionExecuting = null)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
         if (function == null)
@@ -24,6 +24,12 @@ public partial class RoutingService
             .ToList();
 
         // Before executing functions
+        clonedMessage.Indication = function.Indication;
+        if (onFunctionExecuting != null)
+        {
+            await onFunctionExecuting(clonedMessage);
+        }
+        
         foreach (var hook in hooks)
         {
             await hook.OnFunctionExecuting(clonedMessage);
