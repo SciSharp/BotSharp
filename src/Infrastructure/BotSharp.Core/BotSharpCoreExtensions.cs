@@ -14,9 +14,11 @@ public static class BotSharpCoreExtensions
     {
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddSingleton<DistributedLocker>();
 
         RegisterPlugins(services, config);
         ConfigureBotSharpOptions(services, configOptions);
+
         return services;
     }
 

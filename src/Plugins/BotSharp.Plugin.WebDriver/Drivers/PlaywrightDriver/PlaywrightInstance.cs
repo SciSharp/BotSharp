@@ -40,13 +40,13 @@ public class PlaywrightInstance : IDisposable
             Channel = "chrome",
             IgnoreDefaultArgs = new[]
             {
-                    "--disable-infobars"
-                },
+                "--disable-infobars"
+            },
             Args = new[]
             {
-                    "--disable-infobars",
-                    // "--start-maximized"
-                }
+                "--disable-infobars",
+                // "--start-maximized"
+            }
         });
 
         _contexts[id].Page += async (sender, e) =>

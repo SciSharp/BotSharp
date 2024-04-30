@@ -4,20 +4,29 @@ namespace BotSharp.Abstraction.Browsing.Models;
 
 public class ElementActionArgs
 {
-    private BroswerActionEnum _action;
-    public BroswerActionEnum Action => _action;
+    public BroswerActionEnum Action { get; set; }
 
-    private string _content;
-    public string Content => _content;
+    public string? Content { get; set; }
 
-    public ElementActionArgs(BroswerActionEnum action)
+    public ElementPosition? Position { get; set; }
+
+    /// <summary>
+    /// Required for deserialization
+    /// </summary>
+    public ElementActionArgs()
     {
-        _action = action;
+
+    }
+
+    public ElementActionArgs(BroswerActionEnum action, ElementPosition? position = null)
+    {
+        Action = action;
+        Position = position;
     }
 
     public ElementActionArgs(BroswerActionEnum action, string content)
     {
-        _action = action;
-        _content = content;
+        Action = action;
+        Content = content;
     }
 }
