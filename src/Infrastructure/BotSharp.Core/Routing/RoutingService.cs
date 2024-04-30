@@ -1,19 +1,8 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Routing.Settings;
-using BotSharp.Abstraction.Templating;
-using BotSharp.Core.Routing.Planning;
-using Fluid.Ast;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics.Metrics;
 using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using ThirdParty.Json.LitJson;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Core.Routing;
 
@@ -67,7 +56,7 @@ public partial class RoutingService : IRoutingService
             ExecutingDirectly = true
         };
 
-        var result = await handler.Handle(this, inst, message);
+        var result = await handler.Handle(this, inst, message, null);
 
         var response = dialogs.Last();
         response.MessageId = message.MessageId;
@@ -76,7 +65,7 @@ public partial class RoutingService : IRoutingService
         return response;
     }
 
-    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         RoleDialogModel response = default;
 
@@ -134,12 +123,12 @@ public partial class RoutingService : IRoutingService
             if (inst.HandleDialogsByPlanner)
             {
                 var dialogWithoutContext = planner.BeforeHandleContext(inst, message, dialogs);
-                response = await executor.Execute(this, inst, message, dialogWithoutContext);
+                response = await executor.Execute(this, inst, message, dialogWithoutContext, onFunctionExecuting);
                 planner.AfterHandleContext(dialogs, dialogWithoutContext);
             }
             else
             {
-                response = await executor.Execute(this, inst, message, dialogs);
+                response = await executor.Execute(this, inst, message, dialogs, onFunctionExecuting);
             }
 
             await planner.AgentExecuted(_router, inst, response, dialogs);

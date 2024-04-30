@@ -30,7 +30,7 @@ public class ResponseToUserRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var response = new RoleDialogModel(AgentRole.Assistant, inst.Response)
         {

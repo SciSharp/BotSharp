@@ -5,7 +5,7 @@ namespace BotSharp.Core.Routing;
 public partial class RoutingService
 {
     private int _currentRecursionDepth = 0;
-    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
+    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -34,7 +34,8 @@ public partial class RoutingService
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
             message.CurrentAgentId = agent.Id;
-            await InvokeFunction(message, dialogs);
+
+            await InvokeFunction(message, dialogs, onFunctionExecuting);
         }
         else
         {
@@ -54,7 +55,7 @@ public partial class RoutingService
         return true;
     }
 
-    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task>? onFunctionExecuting = null)
     {
         // execute function
         // Save states
@@ -63,7 +64,7 @@ public partial class RoutingService
 
         var routing = _services.GetRequiredService<IRoutingService>();
         // Call functions
-        await routing.InvokeFunction(message.FunctionName, message);
+        await routing.InvokeFunction(message.FunctionName, message, onFunctionExecuting);
 
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
@@ -88,7 +89,7 @@ public partial class RoutingService
 
                 // Send to Next LLM
                 var agentId = routing.Context.GetCurrentAgentId();
-                await InvokeAgent(agentId, dialogs);
+                await InvokeAgent(agentId, dialogs, onFunctionExecuting);
             }
         }
         else

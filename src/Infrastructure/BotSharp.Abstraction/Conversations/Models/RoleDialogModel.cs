@@ -28,6 +28,11 @@ public class RoleDialogModel : ITrackableMessage
 
     public string? SecondaryContent { get; set; }
 
+    /// <summary>
+    /// Indicator message used to provide UI feedback for function execution
+    /// </summary>
+    public string? Indication { get; set; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string CurrentAgentId { get; set; }
 

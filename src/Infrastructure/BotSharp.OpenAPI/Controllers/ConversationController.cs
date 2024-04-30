@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Routing;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -149,6 +151,15 @@ public class ConversationController : ControllerBase
         return response;
     }
 
+    private void SetStates(IConversationService conv, NewMessageModel input)
+    {
+        conv.States.SetState("channel", input.Channel, source: StateSource.External)
+           .SetState("provider", input.Provider, source: StateSource.External)
+           .SetState("model", input.Model, source: StateSource.External)
+           .SetState("temperature", input.Temperature, source: StateSource.External)
+           .SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
+    }
+
     [HttpPost("/conversation/{agentId}/{conversationId}")]
     public async Task<ChatResponseModel> SendMessage([FromRoute] string agentId,
         [FromRoute] string conversationId,
@@ -165,11 +176,7 @@ public class ConversationController : ControllerBase
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
         conv.SetConversationId(conversationId, input.States);
-        conv.States.SetState("channel", input.Channel, source: StateSource.External)
-                   .SetState("provider", input.Provider, source: StateSource.External)
-                   .SetState("model", input.Model, source: StateSource.External)
-                   .SetState("temperature", input.Temperature, source: StateSource.External)
-                   .SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
+        SetStates(conv, input);
 
         var response = new ChatResponseModel();
         
@@ -192,6 +199,92 @@ public class ConversationController : ControllerBase
         response.ConversationId = conversationId;
 
         return response;
+    }
+
+    [HttpPost("/conversation/{agentId}/{conversationId}/sse")]
+    public async Task SendMessageSse([FromRoute] string agentId,
+        [FromRoute] string conversationId,
+        [FromBody] NewMessageModel input)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        if (!string.IsNullOrEmpty(input.TruncateMessageId))
+        {
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId);
+        }
+
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
+
+        conv.SetConversationId(conversationId, input.States);
+        SetStates(conv, input);
+
+        var response = new ChatResponseModel();
+
+        Response.StatusCode = 200;
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
+
+        await conv.SendMessage(agentId, inputMsg,
+            replyMessage: input.Postback,
+            async msg =>
+            {
+                response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                response.Function = msg.FunctionName;
+                response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
+                response.Instruction = msg.Instruction;
+                response.Data = msg.Data;
+
+                await OnChunkReceived(Response, msg);
+            },
+            async msg =>
+            {
+                var message = new RoleDialogModel(AgentRole.Function, msg.Content)
+                {
+                    FunctionArgs = msg.FunctionArgs,
+                    FunctionName = msg.FunctionName,
+                    Indication = msg.Indication
+                };
+                await OnChunkReceived(Response, message);
+            },
+            async msg =>
+            {
+
+            });
+
+        var state = _services.GetRequiredService<IConversationStateService>();
+        response.States = state.GetStates();
+        response.MessageId = inputMsg.MessageId;
+        response.ConversationId = conversationId;
+
+        // await OnEventCompleted(Response);
+    }
+
+    private async Task OnChunkReceived(HttpResponse response, RoleDialogModel message)
+    {
+        var json = JsonConvert.SerializeObject(message, new JsonSerializerSettings
+        {
+            Formatting = Formatting.None,
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore,
+        });
+
+        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        await Task.Delay(10);
+
+        buffer = Encoding.UTF8.GetBytes("\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+    }
+
+    private async Task OnEventCompleted(HttpResponse response)
+    {
+        var buffer = Encoding.UTF8.GetBytes("data:[DONE]\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+
+        buffer = Encoding.UTF8.GetBytes("\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
     }
 
     [HttpPost("/conversation/{conversationId}/attachments")]

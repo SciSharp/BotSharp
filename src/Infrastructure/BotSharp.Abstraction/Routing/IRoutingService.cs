@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Routing.Models;
-
 namespace BotSharp.Abstraction.Routing;
 
 public interface IRoutingService
@@ -30,9 +28,9 @@ public interface IRoutingService
 
     List<RoutingHandlerDef> GetHandlers(Agent router);
     void ResetRecursiveCounter();
-    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs);
-    Task<bool> InvokeFunction(string name, RoleDialogModel message);
-    Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs);
+    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting);
+    Task<bool> InvokeFunction(string name, RoleDialogModel messages, Func<RoleDialogModel, Task>? onFunctionExecuting = null);
+    Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting);
 
     /// <summary>
     /// Talk to a specific Agent directly, bypassing the Router

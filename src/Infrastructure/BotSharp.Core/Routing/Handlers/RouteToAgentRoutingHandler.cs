@@ -39,7 +39,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var states = _services.GetRequiredService<IConversationStateService>();
         var goalAgent = states.GetState(StateConst.EXPECTED_GOAL_AGENT);
@@ -85,7 +85,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         }
         else
         {
-            ret = await routing.InvokeAgent(agentId, _dialogs);
+            ret = await routing.InvokeAgent(agentId, _dialogs, onFunctionExecuting);
         }
 
         var response = _dialogs.Last();
