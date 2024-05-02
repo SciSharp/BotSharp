@@ -512,7 +512,7 @@ namespace BotSharp.Core.Repository
                     var content = rawDialogs[i + 2];
                     var trimmedContent = content.Substring(4);
                     var secondaryContent = rawDialogs[i + 4];
-                    var trimmedSecondaryContent = secondaryContent.Substring(4);
+                    var trimmedSecondaryContent = string.IsNullOrEmpty(secondaryContent) ? null : secondaryContent.Substring(4);
 
                     var meta = new DialogMetaData
                     {
@@ -551,7 +551,7 @@ namespace BotSharp.Core.Repository
                 dialogTexts.Add(content);
 
                 dialogTexts.Add(encodedSecondaryRichContent);
-                var secondaryContent = $"  - {element.SecondaryContent}";
+                var secondaryContent = element.SecondaryContent == null ? null : $"  - {element.SecondaryContent}";
                 dialogTexts.Add(secondaryContent);
             }
 
