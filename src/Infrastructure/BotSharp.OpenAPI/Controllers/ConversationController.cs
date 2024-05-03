@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Routing;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using BotSharp.Abstraction.Files.Models;
+using Microsoft.AspNetCore.Hosting;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -314,5 +316,32 @@ public class ConversationController : ControllerBase
         }
 
         return BadRequest(new { message = "Invalid file." });
+    }
+
+    [HttpGet("/conversation/{conversationId}/files/{messageId}")]
+    public IEnumerable<OutputFileModel> GetConversationFiles([FromRoute] string conversationId, [FromRoute] string messageId)
+    {
+        var attachment = _services.GetRequiredService<IConversationAttachmentService>();
+        return attachment.GetConversationFiles(conversationId, messageId);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("/conversation/{conversationId}/file/{messageId}/type/{type}/{index}")]
+    public async Task<IActionResult> GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId,
+        [FromRoute] string type, [FromRoute] int index, [FromQuery] string token)
+    {
+        var attachment = _services.GetRequiredService<IConversationAttachmentService>();
+        var file = attachment.GetMessageFile(conversationId, messageId, type, index);
+        if (System.IO.File.Exists(file))
+        {
+            using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, (int)stream.Length);
+            return File(bytes, "application/octet-stream", Path.GetFileName(file));
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 }

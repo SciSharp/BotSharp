@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.IO.Enumeration;
 using System.Threading;
@@ -12,6 +13,7 @@ public class ConversationAttachmentService : IConversationAttachmentService
 
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
+    private const string SEPARATOR = ".";
 
     public ConversationAttachmentService(
         BotSharpDatabaseSettings dbSettings,
@@ -32,22 +34,60 @@ public class ConversationAttachmentService : IConversationAttachmentService
         return dir;
     }
 
-    public string GetConversationFileDirectory(string conversationId)
+    public IEnumerable<OutputFileModel> GetConversationFiles(string conversationId, string messageId)
     {
-        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
-        if (!Directory.Exists(dir))
+        var outputFiles = new List<OutputFileModel>();
+        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId))
         {
-            Directory.CreateDirectory(dir);
+            return outputFiles;
         }
-        return dir;
+
+        var context = _services.GetRequiredService<IHttpContextAccessor>();
+        var request = context.HttpContext.Request;
+        var host = $"{request.Scheme}{Uri.SchemeDelimiter}{request.Host.Value}";
+        var dir = GetConversationFileDirectory(conversationId);
+
+        foreach (var file in Directory.GetFiles(dir))
+        {
+            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
+            var splits = fileName.Split('.');
+            var fileMsgId = splits.First();
+
+            if (fileMsgId != messageId) continue;
+
+            var index = splits[1];
+            var fileType = splits.Last();
+            var model = new OutputFileModel()
+            {
+                FileUrl = $"{host}/conversation/{conversationId}/file/{messageId}/type/{fileType}/{index}",
+                FileName = fileName,
+                FileType = fileType
+            };
+            outputFiles.Add(model);
+        }
+        return outputFiles;
+    }
+
+    public string? GetMessageFile(string conversationId, string messageId, string fileType, int index)
+    {
+        var targetFile = $"{messageId}{SEPARATOR}{index}.{fileType}";
+        var dir = GetConversationFileDirectory(conversationId);
+        var files = Directory.GetFiles(dir);
+        var found = files.FirstOrDefault(f =>
+        {
+            var fileName = f.Split(Path.DirectorySeparatorChar).Last();
+            return fileName.IsEqualTo(targetFile);
+        });
+
+        return found;
     }
 
     public void SaveConversationFiles(List<BotSharpFile> files)
     {
         if (files.IsNullOrEmpty()) return;
 
-        var converationId = files.First().ConversationId;
-        var dir = GetConversationFileDirectory(converationId);
+        var conversationId = files.First().ConversationId;
+        var dir = GetConversationFileDirectory(conversationId);
 
         for (int i = 0; i < files.Count; i++)
         {
@@ -67,10 +107,21 @@ public class ConversationAttachmentService : IConversationAttachmentService
                 continue;
             }
 
-            var fileName = $"{file.MessageId}-{i+1}{parsedFormat}";
+            var fileName = $"{file.MessageId}{SEPARATOR}{i+1}{parsedFormat}";
             Thread.Sleep(100);
             File.WriteAllBytes(Path.Combine(dir, fileName), bytes);
         }
+    }
+
+    #region Private methods
+    private string GetConversationFileDirectory(string conversationId)
+    {
+        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        return dir;
     }
 
     private string GetFileType(string data)
@@ -122,4 +173,5 @@ public class ConversationAttachmentService : IConversationAttachmentService
         }
         return parsed;
     }
+    #endregion
 }
