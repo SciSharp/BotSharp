@@ -13,7 +13,7 @@ public class FunctionCallingResponse
     [JsonPropertyName("content")]
     public string? Content { get; set; }
 
-    [JsonPropertyName("function_name")]
+    [JsonPropertyName("function")]
     public string? FunctionName {  get; set; }
 
     [JsonPropertyName("args")]
