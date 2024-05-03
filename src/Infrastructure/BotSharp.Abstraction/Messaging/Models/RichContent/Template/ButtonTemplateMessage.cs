@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Messaging.Enums;
 using Newtonsoft.Json;
 
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;

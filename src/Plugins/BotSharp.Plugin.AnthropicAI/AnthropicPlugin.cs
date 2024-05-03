@@ -1,9 +1,6 @@
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Plugin.AnthropicAI.Providers;
-using BotSharp.Plugin.AnthropicAI.Settings;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BotSharp.Plugin.AnthropicAI;
 
@@ -14,7 +11,7 @@ public class AnthropicPlugin : IBotSharpPlugin
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = new AnthropicSettings();
-        config.Bind("Anthropic", settings);
+        config.Bind("AnthropicAi", settings);
         services.AddSingleton(x =>
         {
             // Console.WriteLine($"Loaded Anthropic settings: {settings.Claude.ApiKey.SubstringMax(4)}");

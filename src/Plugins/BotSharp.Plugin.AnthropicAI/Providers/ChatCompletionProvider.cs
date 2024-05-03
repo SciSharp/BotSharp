@@ -1,4 +1,5 @@
 using Anthropic.SDK.Common;
+using BotSharp.Abstraction.MLTasks.Settings;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -38,7 +39,7 @@ public class ChatCompletionProvider : IChatCompletion
         var settings = settingsService.GetSetting("anthropic", agent.LlmConfig?.Model ?? "claude-3-haiku");
 
         var client = new AnthropicClient(new APIAuthentication(settings.ApiKey));
-        var (prompt, parameters) = PrepareOptions(agent, conversations);
+        var (prompt, parameters) = PrepareOptions(agent, conversations, settings);
 
         var response = await client.Messages.GetClaudeMessageAsync(parameters);
 
@@ -93,7 +94,7 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
+    private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations, LlmModelSetting settings)
     {
         var instruction = "";
 
@@ -163,7 +164,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             Messages = messages,
             MaxTokens = 256,
-            Model = AnthropicModels.Claude3Haiku,
+            Model = settings.Version, // AnthropicModels.Claude3Haiku
             Stream = false,
             Temperature = 0m,
             SystemMessage = instruction,
