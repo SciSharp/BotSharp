@@ -38,9 +38,9 @@ public class ChatCompletionProvider : IChatCompletion
         var settings = settingsService.GetSetting("anthropic", agent.LlmConfig?.Model ?? "claude-3-haiku");
 
         var client = new AnthropicClient(new APIAuthentication(settings.ApiKey));
-        var (prompt, parameters, tools) = PrepareOptions(agent, conversations);
+        var (prompt, parameters) = PrepareOptions(agent, conversations);
 
-        var response = await client.Messages.GetClaudeMessageAsync(parameters, tools);
+        var response = await client.Messages.GetClaudeMessageAsync(parameters);
 
         RoleDialogModel responseMessage;
 
@@ -93,15 +93,15 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    private (string, MessageParameters, List<Anthropic.SDK.Common.Tool>) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
+    private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var prompt = "";
+        var instruction = "";
 
         var agentService = _services.GetRequiredService<IAgentService>();
 
         if (!string.IsNullOrEmpty(agent.Instruction))
         {
-            prompt += agentService.RenderedInstruction(agent);
+            instruction += agentService.RenderedInstruction(agent);
         }
 
         /*var routing = _services.GetRequiredService<IRoutingService>();
@@ -166,7 +166,8 @@ public class ChatCompletionProvider : IChatCompletion
             Model = AnthropicModels.Claude3Haiku,
             Stream = false,
             Temperature = 0m,
-            SystemMessage = prompt
+            SystemMessage = instruction,
+            Tools = new List<Function>() { }
         };
 
         JsonSerializerOptions jsonSerializationOptions = new()
@@ -175,7 +176,6 @@ public class ChatCompletionProvider : IChatCompletion
             Converters = { new JsonStringEnumConverter() },
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
         };
-        var tools = new List<Anthropic.SDK.Common.Tool>();
 
         foreach (var fn in agent.Functions)
         {
@@ -197,12 +197,66 @@ public class ChatCompletionProvider : IChatCompletion
             };*/
 
             string jsonString = JsonSerializer.Serialize(fn.Parameters, jsonSerializationOptions);
-            tools.Add(new Function(fn.Name, fn.Description,
+            parameters.Tools.Add(new Function(fn.Name, fn.Description,
                 JsonNode.Parse(jsonString)));
         }
 
+        var prompt = GetPrompt(parameters);
 
-        return (prompt, parameters, tools);
+        return (prompt, parameters);
+    }
+
+    private string GetPrompt(MessageParameters parameters)
+    {
+        var prompt = $"{parameters.SystemMessage}\r\n";
+        prompt += "\r\n[CONVERSATION]";
+
+        var verbose = string.Join("\r\n", parameters.Messages
+            .Select(x =>
+            {
+                var role = x.Role.ToString().ToLower();
+
+                if (x.Role == RoleType.User)
+                {
+                    var content = string.Join("\r\n", x.Content.Select(c =>
+                    {
+                        if (c is TextContent text)
+                            return text.Text;
+                        else if (c is ToolResultContent tool)
+                            return $"{tool.Content}";
+                        else
+                            return string.Empty;
+                    }));
+                    return $"{role}: {content}";
+                }
+                else if (x.Role == RoleType.Assistant)
+                {
+                    var content = string.Join("\r\n", x.Content.Select(c =>
+                    {
+                        if (c is TextContent text)
+                            return text.Text;
+                        else if (c is ToolUseContent tool)
+                            return $"Call function {tool.Name}({JsonSerializer.Serialize(tool.Input)})";
+                        else
+                            return string.Empty;
+                    }));
+                    return $"{role}: {content}";
+                }
+                return string.Empty;
+            }));
+
+        prompt += $"\r\n{verbose}\r\n";
+
+        if (parameters.Tools != null && parameters.Tools.Count > 0)
+        {
+            var functions = string.Join("\r\n", parameters.Tools.Select(x =>
+            {
+                return $"\r\n{x.Name}: {x.Description}\r\n{JsonSerializer.Serialize(x.Parameters)}";
+            }));
+            prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
+        }
+
+        return prompt;
     }
 
     public void SetModelName(string model)
