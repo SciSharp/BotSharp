@@ -75,6 +75,8 @@ public class RoleDialogModel : ITrackableMessage
 
     public FunctionCallFromLlm Instruction { get; set; }
 
+    public List<BotSharpFile> Files { get; set; } = new List<BotSharpFile>();
+
     private RoleDialogModel()
     {
     }

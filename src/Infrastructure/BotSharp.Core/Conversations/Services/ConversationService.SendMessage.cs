@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing.Settings;
 using System.Drawing;
@@ -138,6 +139,13 @@ public partial class ConversationService
         response.RichContent = response.RichContent ?? new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
+            Message = new TextMessage(response.SecondaryContent ?? response.Content)
+        };
+
+        response.RichContent = new RichContent<IRichMessage>
+        {
+            Recipient = new Recipient { Id = state.GetConversationId() },
+            Editor = EditorTypeEnum.File,
             Message = new TextMessage(response.SecondaryContent ?? response.Content)
         };
 

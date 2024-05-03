@@ -15,3 +15,4 @@ global using BotSharp.Abstraction.Routing.Models;
 global using BotSharp.Abstraction.Routing.Planning;
 global using BotSharp.Abstraction.Templating;
 global using BotSharp.Abstraction.Translation.Attributes;
+global using BotSharp.Abstraction.Files.Models;

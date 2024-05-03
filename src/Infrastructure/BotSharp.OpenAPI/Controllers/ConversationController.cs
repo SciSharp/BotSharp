@@ -171,7 +171,10 @@ public class ConversationController : ControllerBase
             await conv.TruncateConversation(conversationId, input.TruncateMessageId);
         }
 
-        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
+        {
+            Files = input.Files
+        };
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
