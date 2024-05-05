@@ -7,6 +7,9 @@ namespace BotSharp.Plugin.AnthropicAI;
 public class AnthropicPlugin : IBotSharpPlugin
 {
     public string Id => "012119da-8367-4be8-9a75-ab6ae55071e6";
+    public string Name => "Anthropic AI";
+    public string Description => "Anthropic is an AI safety and research company";
+    public string? IconUrl => "https://www.anthropic.com/images/icons/safari-pinned-tab.svg";
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
