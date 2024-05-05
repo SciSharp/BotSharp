@@ -334,6 +334,7 @@ public class ChatCompletionProvider : IChatCompletion
                 }));
             prompt += $"{verbose}\r\n";
 
+            prompt += "\r\n[CONVERSATION]";
             verbose = string.Join("\r\n", chatCompletionsOptions.Messages
                 .Where(x => x.Role != AgentRole.System).Select(x =>
                 {
@@ -364,13 +365,14 @@ public class ChatCompletionProvider : IChatCompletion
             prompt += $"\r\n{verbose}\r\n";
         }
 
-        if (chatCompletionsOptions.Functions.Count > 0)
+        if (chatCompletionsOptions.Tools.Count > 0)
         {
-            var functions = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+            var functions = string.Join("\r\n", chatCompletionsOptions.Tools.Select(x =>
             {
-                return $"\r\n{x.Name}: {x.Description}\r\n{x.Parameters}";
+                var fn = x as ChatCompletionsFunctionToolDefinition;
+                return $"\r\n{fn.Name}: {fn.Description}\r\n{fn.Parameters}";
             }));
-            prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
+            prompt += $"\r\n[FUNCTIONS]{functions}\r\n";
         }
 
         return prompt;
