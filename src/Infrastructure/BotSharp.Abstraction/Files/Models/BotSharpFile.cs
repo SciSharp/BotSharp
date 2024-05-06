@@ -3,9 +3,6 @@ namespace BotSharp.Abstraction.Files.Models;
 
 public class BotSharpFile
 {
-    [JsonPropertyName("message_id")]
-    public string MessageId { get; set; }
-
     [JsonPropertyName("file_name")]
     public string FileName { get; set; }
 

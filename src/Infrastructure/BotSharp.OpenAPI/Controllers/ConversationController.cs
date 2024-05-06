@@ -168,15 +168,15 @@ public class ConversationController : ControllerBase
         [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        if (!string.IsNullOrEmpty(input.TruncateMessageId))
-        {
-            await conv.TruncateConversation(conversationId, input.TruncateMessageId);
-        }
-
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
             Files = input.Files
         };
+        if (!string.IsNullOrEmpty(input.TruncateMessageId))
+        {
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
+        }
+
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
@@ -212,12 +212,15 @@ public class ConversationController : ControllerBase
         [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
+        {
+            Files = input.Files
+        };
         if (!string.IsNullOrEmpty(input.TruncateMessageId))
         {
-            await conv.TruncateConversation(conversationId, input.TruncateMessageId);
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
         }
 
-        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 

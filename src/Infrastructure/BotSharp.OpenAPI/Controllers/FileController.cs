@@ -44,12 +44,11 @@ public class FileController : ControllerBase
         return fileService.GetConversationFiles(conversationId, messageId);
     }
 
-    [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}/type/{type}")]
-    public async Task<IActionResult> GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId,
-        [FromRoute] string fileName, [FromRoute] string type)
+    [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}")]
+    public async Task<IActionResult> GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string fileName)
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var file = fileService.GetMessageFile(conversationId, messageId, fileName, type);
+        var file = fileService.GetMessageFile(conversationId, messageId, fileName);
         if (string.IsNullOrEmpty(file))
         {
             return NotFound();

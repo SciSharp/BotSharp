@@ -86,6 +86,7 @@ public class RoleDialogModel : ITrackableMessage
         Role = role;
         Content = text;
         MessageId = Guid.NewGuid().ToString();
+        CreatedAt = DateTime.UtcNow;
     }
 
     public override string ToString()

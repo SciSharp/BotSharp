@@ -63,7 +63,7 @@ public interface IBotSharpRepository
     ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
     List<Conversation> GetLastConversations();
     List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours);
-    bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
+    IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
     #endregion
     
     #region Execution Log

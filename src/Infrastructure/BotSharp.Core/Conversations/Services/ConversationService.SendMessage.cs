@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Messaging;
-using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing.Settings;
 using System.Drawing;
@@ -28,7 +27,6 @@ public partial class ConversationService
 #endif
 
         message.CurrentAgentId = agent.Id;
-        message.CreatedAt = DateTime.UtcNow;
         if (string.IsNullOrEmpty(message.SenderId))
         {
             message.SenderId = _user.Id;
@@ -47,6 +45,11 @@ public partial class ConversationService
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(_conversationId, message.MessageId);
         routing.Context.Push(agent.Id);
+
+        // Save message files
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        fileService.SaveMessageFiles(_conversationId, message.MessageId, message.Files);
+        message.Files?.Clear();
 
         // Before chat completion hook
         foreach (var hook in hooks)
@@ -139,13 +142,6 @@ public partial class ConversationService
         response.RichContent = response.RichContent ?? new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
-            Message = new TextMessage(response.SecondaryContent ?? response.Content)
-        };
-
-        response.RichContent = new RichContent<IRichMessage>
-        {
-            Recipient = new Recipient { Id = state.GetConversationId() },
-            Editor = EditorTypeEnum.File,
             Message = new TextMessage(response.SecondaryContent ?? response.Content)
         };
 

@@ -446,24 +446,40 @@ namespace BotSharp.Core.Repository
         }
 
 
-        public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
+        public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
         {
-            if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId)) return false;
+            var deletedMessageIds = new List<string>();
+            if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId))
+            {
+                return deletedMessageIds;
+            }
 
             var dialogs = new List<DialogElement>();
+            
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return false;
+            if (string.IsNullOrEmpty(convDir))
+            {
+                return deletedMessageIds;
+            }
 
             var dialogDir = Path.Combine(convDir, DIALOG_FILE);
             dialogs = CollectDialogElements(dialogDir);
-            if (dialogs.IsNullOrEmpty()) return false;
+            if (dialogs.IsNullOrEmpty())
+            {
+                return deletedMessageIds;
+            }
 
             var foundIdx = dialogs.FindIndex(x => x.MetaData?.MessageId == messageId);
-            if (foundIdx < 0) return false;
+            if (foundIdx < 0)
+            {
+                return deletedMessageIds;
+            }
+
+            deletedMessageIds = dialogs.Where((x, idx) => idx >= foundIdx && !string.IsNullOrEmpty(x.MetaData?.MessageId))
+                                       .Select(x => x.MetaData.MessageId).Distinct().ToList();
 
             // Handle truncated dialogs
             var isSaved = HandleTruncatedDialogs(convDir, dialogDir, dialogs, foundIdx);
-            if (!isSaved) return false;
 
             // Handle truncated states
             var refTime = dialogs.ElementAt(foundIdx).MetaData.CreateTime;
@@ -482,7 +498,7 @@ namespace BotSharp.Core.Repository
                 HandleTruncatedLogs(convDir, refTime);
             }
 
-            return isSaved;
+            return deletedMessageIds;
         }
 
 

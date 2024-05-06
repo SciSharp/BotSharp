@@ -47,16 +47,16 @@ public class BotSharpFileService : IBotSharpFileService
             var fileType = extension.Substring(1);
             var model = new OutputFileModel()
             {
-                FileUrl = $"/conversation/{conversationId}/message/{messageId}/file/{fileName}/type/{fileType}",
+                FileUrl = $"/conversation/{conversationId}/message/{messageId}/file/{fileName}",
                 FileName = fileName,
-                FileType = extension
+                FileType = fileType
             };
             outputFiles.Add(model);
         }
         return outputFiles;
     }
 
-    public string? GetMessageFile(string conversationId, string messageId, string fileName, string fileType)
+    public string? GetMessageFile(string conversationId, string messageId, string fileName)
     {
         var dir = GetConversationFileDirectory(conversationId, messageId);
         if (string.IsNullOrEmpty(dir))
@@ -64,23 +64,21 @@ public class BotSharpFileService : IBotSharpFileService
             return null;
         }
 
-        var targetFile = $"{fileName}.{fileType}";
-        var found = Directory.GetFiles(dir).FirstOrDefault(f => Path.GetFileName(f).IsEqualTo(targetFile));
+        var found = Directory.GetFiles(dir).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
         return found;
     }
 
-    public void SaveConversationFiles(string conversationId, List<BotSharpFile> files)
+    public void SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files)
     {
         if (files.IsNullOrEmpty()) return;
 
-        var messageId = files.FirstOrDefault()?.MessageId;
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
         if (string.IsNullOrEmpty(dir)) return;
 
         for (int i = 0; i < files.Count; i++)
         {
             var file = files[i];
-            if (string.IsNullOrEmpty(file.MessageId) || string.IsNullOrEmpty(file.FileData))
+            if (string.IsNullOrEmpty(file.FileData))
             {
                 continue;
             }
@@ -91,6 +89,52 @@ public class BotSharpFileService : IBotSharpFileService
             Thread.Sleep(100);
             File.WriteAllBytes(Path.Combine(dir, fileName), bytes);
         }
+    }
+
+    public bool DeleteMessageFiles(string conversationId, IEnumerable<string> messageIds, string targetMessageId, string? newMessageId = null)
+    {
+        if (string.IsNullOrEmpty(conversationId) ||  messageIds == null) return false;
+
+        if (!string.IsNullOrEmpty(targetMessageId) && !string.IsNullOrEmpty(newMessageId))
+        {
+            var prevDir = GetConversationFileDirectory(conversationId, targetMessageId);
+            var newDir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, newMessageId);
+
+            if (Directory.Exists(prevDir))
+            {
+                if (Directory.Exists(newDir))
+                {
+                    Directory.Delete(newDir, true);
+                }
+
+                Directory.Move(prevDir, newDir);
+            }
+        }
+
+        foreach ( var messageId in messageIds)
+        {
+            var dir = GetConversationFileDirectory(conversationId, messageId);
+            if (string.IsNullOrEmpty(dir)) continue;
+
+            Thread.Sleep(100);
+            Directory.Delete(dir, true);
+        }
+
+        return true;
+    }
+
+    public bool DeleteConversationFiles(IEnumerable<string> conversationIds)
+    {
+        if (conversationIds.IsNullOrEmpty()) return false;
+
+        foreach (var conversationId in conversationIds)
+        {
+            var convDir = FindConversationDirectory(conversationId);
+            if (string.IsNullOrEmpty(convDir)) continue;
+
+            Directory.Delete(convDir, true);
+        }
+        return true;
     }
 
     #region Private methods
@@ -113,6 +157,16 @@ public class BotSharpFileService : IBotSharpFileService
                 return string.Empty;
             }
         }
+        return dir;
+    }
+
+    private string? FindConversationDirectory(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return null;
+
+        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId);
+        if (!Directory.Exists(dir)) return null;
+
         return dir;
     }
 
