@@ -326,23 +326,20 @@ public class ConversationController : ControllerBase
         return attachment.GetConversationFiles(conversationId, messageId);
     }
 
-    [AllowAnonymous]
     [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}/type/{type}")]
     public async Task<IActionResult> GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId,
         [FromRoute] string fileName, [FromRoute] string type)
     {
         var attachment = _services.GetRequiredService<IBotSharpFileService>();
         var file = attachment.GetMessageFile(conversationId, messageId, fileName, type);
-        if (!string.IsNullOrEmpty(file))
-        {
-            using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var bytes = new byte[stream.Length];
-            stream.Read(bytes, 0, (int)stream.Length);
-            return File(bytes, "application/octet-stream", Path.GetFileName(file));
-        }
-        else
+        if (string.IsNullOrEmpty(file))
         {
             return NotFound();
         }
+
+        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes, 0, (int)stream.Length);
+        return File(bytes, "application/octet-stream", Path.GetFileName(file));
     }
 }
