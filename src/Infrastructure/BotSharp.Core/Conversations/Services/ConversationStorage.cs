@@ -26,7 +26,7 @@ public class ConversationStorage : IConversationStorage
     {
         var agentId = dialog.CurrentAgentId;
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var attachment = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var dialogElements = new List<DialogElement>();
 
         // Prevent duplicate record to be inserted
@@ -78,7 +78,7 @@ public class ConversationStorage : IConversationStorage
         }
 
         db.AppendConversationDialogs(conversationId, dialogElements);
-        attachment.SaveConversationFiles(conversationId, dialog.Files);
+        fileService.SaveConversationFiles(conversationId, dialog.Files);
         dialog.Files.Clear();
     }
 
