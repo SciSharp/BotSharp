@@ -19,6 +19,11 @@ public class FunctionParametersDef
     [JsonPropertyName("required")]
     public List<string> Required {  get; set; } = new List<string>();
 
+    public override string ToString()
+    {
+        return $"{{\"type\":\"{Type}\", \"properties\":{JsonSerializer.Serialize(Properties)}, \"required\":[{string.Join(",", Required.Select(x => "\"" + x + "\""))}]}}";
+    }
+
     public FunctionParametersDef()
     {
         

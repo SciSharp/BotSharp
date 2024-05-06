@@ -17,8 +17,19 @@ public partial class RoutingService
             return false;
         }
 
+        var provide = agent.LlmConfig.Provider;
+        var model = agent.LlmConfig.Model;
+
+        if (provide == null || model == null)
+        {
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            provide = agentSettings.LlmConfig.Provider;
+            model = agentSettings.LlmConfig.Model;
+        }
+
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, 
-            agentConfig: agent.LlmConfig);
+            provider: provide,
+            model: model);
 
         var message = dialogs.Last();
         var response = await chatCompletion.GetChatCompletions(agent, dialogs);
@@ -31,6 +42,7 @@ public partial class RoutingService
             {
                 response.FunctionName = response.FunctionName.Split("/").Last();
             }
+            message.ToolCallId = response.ToolCallId;
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
             message.CurrentAgentId = agent.Id;

@@ -52,11 +52,7 @@ public class ChatCompletionProvider : IChatCompletion
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
-        var responseMessage = new RoleDialogModel(AgentRole.Assistant, message.Content)
-        {
-            CurrentAgentId = agent.Id,
-            MessageId = conversations.Last().MessageId
-        };
+        RoleDialogModel responseMessage;
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
@@ -73,6 +69,33 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
             }
+        }
+        else if (choice.FinishReason == CompletionsFinishReason.ToolCalls)
+        {
+            // Add the assistant message with tool calls to the conversation history
+            // ChatRequestAssistantMessage toolCallHistoryMessage = new(message);
+            // chatCompletionsOptions.Messages.Add(toolCallHistoryMessage);
+
+            // Add a new tool message for each tool call that is resolved
+            var toolCall = message.ToolCalls.First() as ChatCompletionsFunctionToolCall;
+            // var toolCallResponseMessage = GetToolCallResponseMessage(toolCall);
+            // Now make a new request with all the messages thus far, including the original
+
+            responseMessage = new RoleDialogModel(AgentRole.Function, message.Content)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.Last().MessageId,
+                FunctionName = toolCall.Name,
+                FunctionArgs = toolCall.Arguments
+            };
+        }
+        else
+        {
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, message.Content)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.Last().MessageId
+            };
         }
 
         // After chat completion hook
@@ -222,7 +245,17 @@ public class ChatCompletionProvider : IChatCompletion
             if (agentService.RenderFunction(agent, function))
             {
                 var property = agentService.RenderFunctionProperty(agent, function);
-                chatCompletionsOptions.Functions.Add(new FunctionDefinition
+
+                // legacy function call
+                /*chatCompletionsOptions.Functions.Add(new FunctionDefinition
+                {
+                    Name = function.Name,
+                    Description = function.Description,
+                    Parameters = BinaryData.FromObjectAsJson(property)
+                });*/
+
+                // new chat tool
+                chatCompletionsOptions.Tools.Add(new ChatCompletionsFunctionToolDefinition
                 {
                     Name = function.Name,
                     Description = function.Description,
@@ -241,6 +274,7 @@ public class ChatCompletionProvider : IChatCompletion
                 });
 
                 chatCompletionsOptions.Messages.Add(new ChatRequestFunctionMessage(message.FunctionName, message.Content));
+                // chatCompletionsOptions.Messages.Add(new ChatRequestToolMessage(message.Content, message.ToolCallId));
             }
             else if (message.Role == ChatRole.User)
             {
@@ -300,6 +334,7 @@ public class ChatCompletionProvider : IChatCompletion
                 }));
             prompt += $"{verbose}\r\n";
 
+            prompt += "\r\n[CONVERSATION]";
             verbose = string.Join("\r\n", chatCompletionsOptions.Messages
                 .Where(x => x.Role != AgentRole.System).Select(x =>
                 {
@@ -330,13 +365,14 @@ public class ChatCompletionProvider : IChatCompletion
             prompt += $"\r\n{verbose}\r\n";
         }
 
-        if (chatCompletionsOptions.Functions.Count > 0)
+        if (chatCompletionsOptions.Tools.Count > 0)
         {
-            var functions = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+            var functions = string.Join("\r\n", chatCompletionsOptions.Tools.Select(x =>
             {
-                return $"\r\n{x.Name}: {x.Description}\r\n{x.Parameters}";
+                var fn = x as ChatCompletionsFunctionToolDefinition;
+                return $"\r\n{fn.Name}: {fn.Description}\r\n{fn.Parameters}";
             }));
-            prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
+            prompt += $"\r\n[FUNCTIONS]{functions}\r\n";
         }
 
         return prompt;
@@ -345,5 +381,16 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    ChatRequestToolMessage GetToolCallResponseMessage(ChatCompletionsToolCall toolCall)
+    {
+        var functionToolCall = toolCall as ChatCompletionsFunctionToolCall;
+        // Validate and process the JSON arguments for the function call
+        string unvalidatedArguments = functionToolCall.Arguments;
+        var functionResultData = (object)null; // GetYourFunctionResultData(unvalidatedArguments);
+                                               // Here, replacing with an example as if returned from "GetYourFunctionResultData"
+        functionResultData = "31 celsius";
+        return new ChatRequestToolMessage(functionResultData.ToString(), toolCall.Id);
     }
 }

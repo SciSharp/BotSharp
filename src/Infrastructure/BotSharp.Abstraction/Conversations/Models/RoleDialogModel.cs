@@ -43,6 +43,9 @@ public class RoleDialogModel : ITrackableMessage
     public string? FunctionName { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ToolCallId { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? PostbackFunctionName { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -111,6 +114,7 @@ public class RoleDialogModel : ITrackableMessage
             MessageId = source.MessageId,
             FunctionArgs = source.FunctionArgs,
             FunctionName = source.FunctionName,
+            ToolCallId = source.ToolCallId,
             PostbackFunctionName = source.PostbackFunctionName,
             RichContent = source.RichContent,
             StopCompletion = source.StopCompletion,
