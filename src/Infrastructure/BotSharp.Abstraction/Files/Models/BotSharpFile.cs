@@ -3,9 +3,6 @@ namespace BotSharp.Abstraction.Files.Models;
 
 public class BotSharpFile
 {
-    [JsonPropertyName("conversation_id")]
-    public string ConversationId { get; set; }
-
     [JsonPropertyName("message_id")]
     public string MessageId { get; set; }
 
@@ -20,5 +17,4 @@ public class BotSharpFile
 
     [JsonPropertyName("file_size")]
     public int FileSize { get; set; }
-
 }

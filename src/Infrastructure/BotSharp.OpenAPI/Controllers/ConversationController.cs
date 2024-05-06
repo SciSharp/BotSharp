@@ -3,6 +3,7 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using BotSharp.Abstraction.Files.Models;
 using Microsoft.AspNetCore.Hosting;
+using BotSharp.Abstraction.Files;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -298,7 +299,7 @@ public class ConversationController : ControllerBase
     {
         if (files != null && files.Length > 0)
         {
-            var attachmentService = _services.GetRequiredService<IConversationAttachmentService>();
+            var attachmentService = _services.GetRequiredService<IBotSharpFileService>();
             var dir = attachmentService.GetDirectory(conversationId);
             foreach (var file in files)
             {
@@ -321,18 +322,18 @@ public class ConversationController : ControllerBase
     [HttpGet("/conversation/{conversationId}/files/{messageId}")]
     public IEnumerable<OutputFileModel> GetConversationFiles([FromRoute] string conversationId, [FromRoute] string messageId)
     {
-        var attachment = _services.GetRequiredService<IConversationAttachmentService>();
+        var attachment = _services.GetRequiredService<IBotSharpFileService>();
         return attachment.GetConversationFiles(conversationId, messageId);
     }
 
     [AllowAnonymous]
-    [HttpGet("/conversation/{conversationId}/file/{messageId}/type/{type}/{index}")]
+    [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}/type/{type}")]
     public async Task<IActionResult> GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId,
-        [FromRoute] string type, [FromRoute] int index, [FromQuery] string token)
+        [FromRoute] string fileName, [FromRoute] string type)
     {
-        var attachment = _services.GetRequiredService<IConversationAttachmentService>();
-        var file = attachment.GetMessageFile(conversationId, messageId, type, index);
-        if (System.IO.File.Exists(file))
+        var attachment = _services.GetRequiredService<IBotSharpFileService>();
+        var file = attachment.GetMessageFile(conversationId, messageId, fileName, type);
+        if (!string.IsNullOrEmpty(file))
         {
             using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
             var bytes = new byte[stream.Length];

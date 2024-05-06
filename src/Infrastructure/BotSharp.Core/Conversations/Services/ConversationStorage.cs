@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Options;
@@ -25,7 +26,7 @@ public class ConversationStorage : IConversationStorage
     {
         var agentId = dialog.CurrentAgentId;
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var attachment = _services.GetRequiredService<IConversationAttachmentService>();
+        var attachment = _services.GetRequiredService<IBotSharpFileService>();
         var dialogElements = new List<DialogElement>();
 
         // Prevent duplicate record to be inserted
@@ -77,7 +78,7 @@ public class ConversationStorage : IConversationStorage
         }
 
         db.AppendConversationDialogs(conversationId, dialogElements);
-        attachment.SaveConversationFiles(dialog.Files);
+        attachment.SaveConversationFiles(conversationId, dialog.Files);
         dialog.Files.Clear();
     }
 
