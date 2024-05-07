@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
@@ -411,16 +412,29 @@ public partial class MongoRepository
         return conversationIds.Take(batchSize).ToList();
     }
 
-    public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
+    public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
     {
-        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId)) return false;
+        var deletedMessageIds = new List<string>();
+        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId))
+        {
+            return deletedMessageIds;
+        }
 
         var dialogFilter = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundDialog = _dc.ConversationDialogs.Find(dialogFilter).FirstOrDefault();
-        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty()) return false;
+        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty())
+        {
+            return deletedMessageIds;
+        }
 
         var foundIdx = foundDialog.Dialogs.FindIndex(x => x.MetaData?.MessageId == messageId);
-        if (foundIdx < 0) return false;
+        if (foundIdx < 0)
+        {
+            return deletedMessageIds;
+        }
+
+        deletedMessageIds = foundDialog.Dialogs.Where((x, idx) => idx >= foundIdx && !string.IsNullOrEmpty(x.MetaData?.MessageId))
+                                               .Select(x => x.MetaData.MessageId).Distinct().ToList();
 
         // Handle truncated dialogs
         var truncatedDialogs = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
@@ -499,6 +513,6 @@ public partial class MongoRepository
             _dc.StateLogs.DeleteMany(stateLogBuilder.And(stateLogFilters));
         }
         
-        return true;
+        return deletedMessageIds;
     }
 }

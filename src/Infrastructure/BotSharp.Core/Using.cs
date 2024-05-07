@@ -23,6 +23,8 @@ global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Repositories;
 global using BotSharp.Abstraction.Repositories.Filters;
 global using BotSharp.Abstraction.Translation;
+global using BotSharp.Abstraction.Files;
+global using BotSharp.Abstraction.Files.Models;
 global using BotSharp.Abstraction.Translation.Attributes;
 global using BotSharp.Abstraction.Messaging.Enums;
 global using BotSharp.Core.Repository;

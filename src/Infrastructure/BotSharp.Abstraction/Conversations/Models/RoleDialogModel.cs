@@ -78,6 +78,8 @@ public class RoleDialogModel : ITrackableMessage
 
     public FunctionCallFromLlm Instruction { get; set; }
 
+    public List<BotSharpFile> Files { get; set; } = new List<BotSharpFile>();
+
     private RoleDialogModel()
     {
     }
@@ -87,6 +89,7 @@ public class RoleDialogModel : ITrackableMessage
         Role = role;
         Content = text;
         MessageId = Guid.NewGuid().ToString();
+        CreatedAt = DateTime.UtcNow;
     }
 
     public override string ToString()

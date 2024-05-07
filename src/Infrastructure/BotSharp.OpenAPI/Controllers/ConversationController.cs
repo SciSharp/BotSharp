@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Routing;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using BotSharp.Abstraction.Files.Models;
+using BotSharp.Abstraction.Files;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -166,12 +168,15 @@ public class ConversationController : ControllerBase
         [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
+        {
+            Files = input.Files
+        };
         if (!string.IsNullOrEmpty(input.TruncateMessageId))
         {
-            await conv.TruncateConversation(conversationId, input.TruncateMessageId);
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
         }
 
-        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
@@ -207,12 +212,15 @@ public class ConversationController : ControllerBase
         [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
+        {
+            Files = input.Files
+        };
         if (!string.IsNullOrEmpty(input.TruncateMessageId))
         {
-            await conv.TruncateConversation(conversationId, input.TruncateMessageId);
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
         }
 
-        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
@@ -285,31 +293,5 @@ public class ConversationController : ControllerBase
 
         buffer = Encoding.UTF8.GetBytes("\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
-    }
-
-    [HttpPost("/conversation/{conversationId}/attachments")]
-    public IActionResult UploadAttachments([FromRoute] string conversationId, 
-        IFormFile[] files)
-    {
-        if (files != null && files.Length > 0)
-        {
-            var attachmentService = _services.GetRequiredService<IConversationAttachmentService>();
-            var dir = attachmentService.GetDirectory(conversationId);
-            foreach (var file in files)
-            {
-                // Save the file, process it, etc.
-                var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                var filePath = Path.Combine(dir, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    file.CopyTo(stream);
-                }
-            }
-
-            return Ok(new { message = "File uploaded successfully." });
-        }
-
-        return BadRequest(new { message = "Invalid file." });
     }
 }

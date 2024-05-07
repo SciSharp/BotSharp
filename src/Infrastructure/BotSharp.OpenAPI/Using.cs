@@ -24,6 +24,8 @@ global using BotSharp.Abstraction.Conversations.Enums;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Models;
 global using BotSharp.Abstraction.Repositories.Filters;
+global using BotSharp.Abstraction.Files.Models;
+global using BotSharp.Abstraction.Files;
 global using BotSharp.OpenAPI.ViewModels.Conversations;
 global using BotSharp.OpenAPI.ViewModels.Users;
 global using BotSharp.OpenAPI.ViewModels.Agents;
