@@ -148,9 +148,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public List<DialogElement> GetConversationDialogs(string conversationId)
         => throw new NotImplementedException();
 
-    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
-        => new NotImplementedException();
-
     public ConversationState GetConversationStates(string conversationId)
         => throw new NotImplementedException();
 

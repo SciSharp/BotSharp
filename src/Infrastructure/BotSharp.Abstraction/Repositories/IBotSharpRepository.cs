@@ -51,7 +51,6 @@ public interface IBotSharpRepository
     void CreateNewConversation(Conversation conversation);
     bool DeleteConversations(IEnumerable<string> conversationIds);
     List<DialogElement> GetConversationDialogs(string conversationId);
-    void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements);
     void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
     ConversationState GetConversationStates(string conversationId);
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
