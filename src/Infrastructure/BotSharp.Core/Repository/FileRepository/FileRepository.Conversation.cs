@@ -28,7 +28,7 @@ namespace BotSharp.Core.Repository
             var dialogFile = Path.Combine(dir, DIALOG_FILE);
             if (!File.Exists(dialogFile))
             {
-                File.WriteAllText(dialogFile, string.Empty);
+                File.WriteAllText(dialogFile, "[]");
             }
 
             var stateFile = Path.Combine(dir, STATE_FILE);
@@ -65,37 +65,18 @@ namespace BotSharp.Core.Repository
             if (!string.IsNullOrEmpty(convDir))
             {
                 var dialogDir = Path.Combine(convDir, DIALOG_FILE);
-                dialogs = CollectDialogElements(dialogDir);
+                var texts = File.ReadAllText(dialogDir);
+                try
+                {
+                    dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts, _options) ?? new List<DialogElement>();
+                }
+                catch
+                {
+                    dialogs = new List<DialogElement>();
+                }
             }
 
             return dialogs;
-        }
-
-        public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
-        {
-            var dialogElements = GetConversationDialogs(conversationId);
-            if (dialogElements.IsNullOrEmpty() || updateElements.IsNullOrEmpty()) return;
-
-            var convDir = FindConversationDirectory(conversationId);
-            if (!string.IsNullOrEmpty(convDir))
-            {
-                var dialogDir = Path.Combine(convDir, DIALOG_FILE);
-                if (File.Exists(dialogDir))
-                {
-                    var updated = dialogElements.Select((x, idx) =>
-                    {
-                        var found = updateElements.FirstOrDefault(e => e.Index == idx);
-                        if (found != null)
-                        {
-                            x.Content = found.UpdateContent;
-                        }
-                        return x;
-                    }).ToList();
-
-                    var texts = ParseDialogElements(updated);
-                    File.WriteAllLines(dialogDir, texts);
-                }
-            }
         }
 
         public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
@@ -106,8 +87,18 @@ namespace BotSharp.Core.Repository
                 var dialogFile = Path.Combine(convDir, DIALOG_FILE);
                 if (File.Exists(dialogFile))
                 {
-                    var texts = ParseDialogElements(dialogs);
-                    File.AppendAllLines(dialogFile, texts);
+                    var prevDialogs = File.ReadAllText(dialogFile);
+                    var elements = JsonSerializer.Deserialize<List<DialogElement>>(prevDialogs, _options);
+                    if (elements != null)
+                    {
+                        elements.AddRange(dialogs);
+                    }
+                    else
+                    {
+                        elements = elements ?? new List<DialogElement>();
+                    }
+
+                    File.WriteAllText(dialogFile, JsonSerializer.Serialize(elements, _options));
                 }
 
                 var convFile = Path.Combine(convDir, CONVERSATION_FILE);
@@ -519,69 +510,16 @@ namespace BotSharp.Core.Repository
 
             if (!File.Exists(dialogDir)) return dialogs;
 
-            var rawDialogs = File.ReadAllLines(dialogDir);
-            if (!rawDialogs.IsNullOrEmpty())
-            {
-                for (int i = 0; i < rawDialogs.Count(); i += 5)
-                {
-                    var blocks = rawDialogs[i].Split("|");
-                    var content = rawDialogs[i + 2];
-                    var trimmedContent = content.Substring(4);
-                    var secondaryContent = rawDialogs[i + 4];
-                    var trimmedSecondaryContent = string.IsNullOrEmpty(secondaryContent) ? null : secondaryContent.Substring(4);
-                    var payload = blocks.Count() > 6 ? blocks[6] : null;
-
-                    var meta = new DialogMetaData
-                    {
-                        Role = blocks[1],
-                        AgentId = blocks[2],
-                        MessageId = blocks[3],
-                        SenderId = !string.IsNullOrWhiteSpace(blocks[4]) ? blocks[4] : null,
-                        FunctionName = !string.IsNullOrWhiteSpace(blocks[5]) ? blocks[5] : null,
-                        CreateTime = DateTime.Parse(blocks[0])
-                    };
-
-                    var richContent = DecodeText(rawDialogs[i + 1]);
-                    var secondaryRichContent = DecodeText(rawDialogs[i + 3]);
-                    dialogs.Add(new DialogElement
-                    {
-                        MetaData = meta,
-                        Content = trimmedContent,
-                        SecondaryContent = trimmedSecondaryContent,
-                        RichContent = richContent,
-                        SecondaryRichContent = secondaryRichContent,
-                        Payload = payload
-                    });
-                }
-            }
+            var texts = File.ReadAllText(dialogDir);
+            dialogs = JsonSerializer.Deserialize<List<DialogElement>>(texts) ?? new List<DialogElement>();
             return dialogs;
         }
 
-        private List<string> ParseDialogElements(List<DialogElement> dialogs)
+        private string ParseDialogElements(List<DialogElement> dialogs)
         {
-            var dialogTexts = new List<string>();
-            if (dialogs.IsNullOrEmpty()) return dialogTexts;
+            if (dialogs.IsNullOrEmpty()) return "[]";
 
-            foreach (var element in dialogs)
-            {
-                var meta = element.MetaData;
-                var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.ffffff tt", CultureInfo.InvariantCulture);
-                var encodedRichContent = EncodeText(element.RichContent);
-                var encodedSecondaryRichContent = EncodeText(element.SecondaryRichContent);
-                var payload = element.Payload;
-                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}|{payload}";
-                dialogTexts.Add(metaStr);
-
-                dialogTexts.Add(encodedRichContent);
-                var content = $"  - {element.Content}";
-                dialogTexts.Add(content);
-
-                dialogTexts.Add(encodedSecondaryRichContent);
-                var secondaryContent = element.SecondaryContent == null ? null : $"  - {element.SecondaryContent}";
-                dialogTexts.Add(secondaryContent);
-            }
-
-            return dialogTexts;
+            return JsonSerializer.Serialize(dialogs, _options) ?? "[]";
         }
 
         private List<StateKeyValue> CollectConversationStates(string stateFile)
@@ -701,7 +639,7 @@ namespace BotSharp.Core.Repository
             if (!File.Exists(dialogDir)) File.Create(dialogDir);
 
             var texts = ParseDialogElements(dialogs);
-            File.WriteAllLines(dialogDir, texts);
+            File.WriteAllText(dialogDir, texts);
             return true;
         }
 

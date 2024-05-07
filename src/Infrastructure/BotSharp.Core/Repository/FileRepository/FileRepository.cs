@@ -27,7 +27,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string USER_AGENT_FILE = "agents.json";
     private const string CONVERSATION_FILE = "conversation.json";
     private const string STATS_FILE = "stats.json";
-    private const string DIALOG_FILE = "dialogs.txt";
+    private const string DIALOG_FILE = "dialogs.json";
     private const string STATE_FILE = "state.json";
     private const string BREAKPOINT_FILE = "breakpoint.json";
     private const string EXECUTION_LOG_FILE = "execution.log";

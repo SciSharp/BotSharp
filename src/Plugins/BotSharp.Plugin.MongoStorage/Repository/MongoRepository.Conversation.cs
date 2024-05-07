@@ -85,27 +85,6 @@ public partial class MongoRepository
         return formattedDialog ?? new List<DialogElement>();
     }
 
-    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
-    {
-        if (string.IsNullOrEmpty(conversationId) || updateElements.IsNullOrEmpty()) return;
-
-        var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var foundDialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
-        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty()) return;
-
-        foundDialog.Dialogs = foundDialog.Dialogs.Select((x, idx) =>
-        {
-            var found = updateElements.FirstOrDefault(e => e.Index == idx);
-            if (found != null)
-            {
-                x.Content = found.UpdateContent;
-            }
-            return x;
-        }).ToList();
-
-        _dc.ConversationDialogs.ReplaceOne(filterDialog, foundDialog);
-    }
-
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
