@@ -104,7 +104,7 @@ public class ConversationStorage : IConversationStorage
             var meta = dialog.MetaData;
             var content = dialog.Content;
             var secondaryContent = dialog.SecondaryContent;
-            var payload = dialog.Payload;
+            var payload = string.IsNullOrEmpty(dialog.Payload) ? null : dialog.Payload;
             var role = meta.Role;
             var currentAgentId = meta.AgentId;
             var messageId = meta.MessageId;

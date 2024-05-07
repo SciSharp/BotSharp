@@ -123,7 +123,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (conv.Role == AgentRole.User)
             {
-                messages.Add(new Message(RoleType.User, conv.Content));
+                messages.Add(new Message(RoleType.User, conv.Payload ?? conv.Content));
             }
             else if (conv.Role == AgentRole.Assistant)
             {

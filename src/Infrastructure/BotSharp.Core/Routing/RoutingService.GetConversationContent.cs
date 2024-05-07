@@ -16,7 +16,7 @@ public partial class RoutingService
                 role = agent.Name;
             }
 
-            conversation += $"{role}: {dialog.SecondaryContent ?? dialog.Content}\r\n";
+            conversation += $"{role}: {dialog.Payload ?? dialog.SecondaryContent ?? dialog.Content}\r\n";
         }
 
         return conversation;
