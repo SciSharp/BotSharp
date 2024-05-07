@@ -52,7 +52,10 @@ public partial class ConversationService
         message.Files?.Clear();
 
         // Save payload
-        message.Payload = string.IsNullOrEmpty(replyMessage.Payload) ? message.Content : replyMessage.Payload;
+        if (replyMessage != null)
+        {
+            message.Payload = string.IsNullOrEmpty(replyMessage.Payload) ? message.Content : replyMessage.Payload;
+        }
 
         // Before chat completion hook
         foreach (var hook in hooks)
