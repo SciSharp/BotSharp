@@ -28,6 +28,9 @@ public class RoleDialogModel : ITrackableMessage
 
     public string? SecondaryContent { get; set; }
 
+    /// <summary>
+    /// Postback content
+    /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("payload")]
     public string? Payload { get; set; }

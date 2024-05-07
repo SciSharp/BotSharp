@@ -51,6 +51,9 @@ public partial class ConversationService
         fileService.SaveMessageFiles(_conversationId, message.MessageId, message.Files);
         message.Files?.Clear();
 
+        // Save payload
+        message.Payload = string.IsNullOrEmpty(replyMessage.Payload) ? message.Content : replyMessage.Payload;
+
         // Before chat completion hook
         foreach (var hook in hooks)
         {

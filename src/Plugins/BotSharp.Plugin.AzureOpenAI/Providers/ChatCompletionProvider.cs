@@ -278,7 +278,7 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == ChatRole.User)
             {
-                var userMessage = new ChatRequestUserMessage(message.Content)
+                var userMessage = new ChatRequestUserMessage(message.Payload ?? message.Content)
                 {
                     // To display Planner name in log
                     Name = message.FunctionName,
