@@ -28,6 +28,10 @@ public class ChatResponseModel : InstructResult
     [JsonPropertyName("rich_content")]
     public RichContent<IRichMessage>? RichContent { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("payload")]
+    public string? Payload { get; set; }
+
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

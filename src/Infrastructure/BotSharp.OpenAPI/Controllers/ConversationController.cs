@@ -89,7 +89,8 @@ public class ConversationController : ControllerBase
                     CreatedAt = message.CreatedAt,
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Data = message.Data,
-                    Sender = UserViewModel.FromUser(user)
+                    Sender = UserViewModel.FromUser(user),
+                    Payload = message.Payload
                 });
             }
             else if (message.Role == AgentRole.Assistant)
