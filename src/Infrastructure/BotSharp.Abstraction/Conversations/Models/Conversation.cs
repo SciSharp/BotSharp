@@ -37,6 +37,7 @@ public class DialogElement
     public string? SecondaryContent { get; set; }
     public string? RichContent { get; set; }
     public string? SecondaryRichContent { get; set; }
+    public string? Payload { get; set; }
 
     public DialogElement()
     {
@@ -44,13 +45,14 @@ public class DialogElement
     }
 
     public DialogElement(DialogMetaData meta, string content, string? richContent = null,
-        string? secondaryContent = null, string? secondaryRichContent = null)
+        string? secondaryContent = null, string? secondaryRichContent = null, string? payload = null)
     {
         MetaData = meta;
         Content = content;
         RichContent = richContent;
         SecondaryContent = secondaryContent;
         SecondaryRichContent = secondaryRichContent;
+        Payload = payload;
     }
 
     public override string ToString()

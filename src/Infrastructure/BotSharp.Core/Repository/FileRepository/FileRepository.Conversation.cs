@@ -529,6 +529,7 @@ namespace BotSharp.Core.Repository
                     var trimmedContent = content.Substring(4);
                     var secondaryContent = rawDialogs[i + 4];
                     var trimmedSecondaryContent = string.IsNullOrEmpty(secondaryContent) ? null : secondaryContent.Substring(4);
+                    var payload = blocks.Count() > 6 ? blocks[6] : null;
 
                     var meta = new DialogMetaData
                     {
@@ -540,9 +541,17 @@ namespace BotSharp.Core.Repository
                         CreateTime = DateTime.Parse(blocks[0])
                     };
 
-                    var richContent = DecodeRichContent(rawDialogs[i + 1]);
-                    var secondaryRichContent = DecodeRichContent(rawDialogs[i + 3]);
-                    dialogs.Add(new DialogElement(meta, trimmedContent, richContent, trimmedSecondaryContent, secondaryRichContent));
+                    var richContent = DecodeText(rawDialogs[i + 1]);
+                    var secondaryRichContent = DecodeText(rawDialogs[i + 3]);
+                    dialogs.Add(new DialogElement
+                    {
+                        MetaData = meta,
+                        Content = trimmedContent,
+                        SecondaryContent = trimmedSecondaryContent,
+                        RichContent = richContent,
+                        SecondaryRichContent = secondaryRichContent,
+                        Payload = payload
+                    });
                 }
             }
             return dialogs;
@@ -557,9 +566,10 @@ namespace BotSharp.Core.Repository
             {
                 var meta = element.MetaData;
                 var createTime = meta.CreateTime.ToString("MM/dd/yyyy hh:mm:ss.ffffff tt", CultureInfo.InvariantCulture);
-                var encodedRichContent = EncodeRichContent(element.RichContent);
-                var encodedSecondaryRichContent = EncodeRichContent(element.SecondaryRichContent);
-                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}";
+                var encodedRichContent = EncodeText(element.RichContent);
+                var encodedSecondaryRichContent = EncodeText(element.SecondaryRichContent);
+                var payload = element.Payload;
+                var metaStr = $"{createTime}|{meta.Role}|{meta.AgentId}|{meta.MessageId}|{meta.SenderId}|{meta.FunctionName}|{payload}";
                 dialogTexts.Add(metaStr);
 
                 dialogTexts.Add(encodedRichContent);
@@ -715,20 +725,20 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
-        private string? EncodeRichContent(string? content)
+        private string? EncodeText(string? text)
         {
-            if (string.IsNullOrEmpty(content)) return content;
+            if (string.IsNullOrEmpty(text)) return text;
 
-            var bytes = Encoding.UTF8.GetBytes(content);
+            var bytes = Encoding.UTF8.GetBytes(text);
             var encoded = Convert.ToBase64String(bytes);
             return encoded;
         }
 
-        private string? DecodeRichContent(string? content)
+        private string? DecodeText(string? text)
         {
-            if (string.IsNullOrEmpty(content)) return content;
+            if (string.IsNullOrEmpty(text)) return text;
 
-            var decoded = Convert.FromBase64String(content);
+            var decoded = Convert.FromBase64String(text);
             var origin = Encoding.UTF8.GetString(decoded);
             return origin;
         }
