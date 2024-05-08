@@ -16,6 +16,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 {
     private readonly ConversationSetting _convSettings;
     private readonly BotSharpOptions _options;
+    private readonly JsonSerializerOptions _localJsonOptions;
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IConversationStateService _state;
@@ -41,6 +42,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         _user = user;
         _agentService = agentService;
         _routingCtx = routingCtx;
+        _localJsonOptions = InitLocalJsonOptions(options);
     }
 
     #region IConversationHook
@@ -188,15 +190,15 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             var log = $"{GetMessageContent(message)}";
             if (message.RichContent != null || message.SecondaryRichContent != null)
             {
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    AllowTrailingCommas = true,
-                    WriteIndented = true,
-                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
-                };
-                var richContent = JsonSerializer.Serialize(message.SecondaryRichContent ?? message.RichContent, jsonOptions);
+                //var jsonOptions = new JsonSerializerOptions
+                //{
+                //    PropertyNameCaseInsensitive = true,
+                //    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                //    AllowTrailingCommas = true,
+                //    WriteIndented = true,
+                //    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+                //};
+                var richContent = JsonSerializer.Serialize(message.SecondaryRichContent ?? message.RichContent, _localJsonOptions);
                 log += $"\r\n```json\r\n{richContent}\r\n```";
             }
 
@@ -493,5 +495,27 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     private string GetMessageContent(RoleDialogModel message)
     {
         return !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content;
+    }
+
+    private JsonSerializerOptions InitLocalJsonOptions(BotSharpOptions options)
+    {
+        var localOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            AllowTrailingCommas = true,
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+        };
+
+        if (options?.JsonSerializerOptions != null && !options.JsonSerializerOptions.Converters.IsNullOrEmpty())
+        {
+            foreach (var converter in options.JsonSerializerOptions.Converters)
+            {
+                localOptions.Converters.Add(converter);
+            }
+        }
+
+        return localOptions;
     }
 }
