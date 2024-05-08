@@ -190,14 +190,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             var log = $"{GetMessageContent(message)}";
             if (message.RichContent != null || message.SecondaryRichContent != null)
             {
-                //var jsonOptions = new JsonSerializerOptions
-                //{
-                //    PropertyNameCaseInsensitive = true,
-                //    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                //    AllowTrailingCommas = true,
-                //    WriteIndented = true,
-                //    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
-                //};
                 var richContent = JsonSerializer.Serialize(message.SecondaryRichContent ?? message.RichContent, _localJsonOptions);
                 log += $"\r\n```json\r\n{richContent}\r\n```";
             }
