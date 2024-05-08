@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Messaging.Enums;
 using Newtonsoft.Json;
 
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
@@ -11,6 +10,7 @@ public class MultiSelectTemplateMessage : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("text")]
     [JsonProperty("text")]
+    [Translate]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]
@@ -28,6 +28,7 @@ public class MultiSelectTemplateMessage : IRichMessage, ITemplateMessage
 
 public class OptionElement
 {
+    [Translate]
     public string Title { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string? Payload { get; set; }
