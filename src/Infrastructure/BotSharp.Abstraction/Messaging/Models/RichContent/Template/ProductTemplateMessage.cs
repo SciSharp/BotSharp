@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Messaging.Enums;
 using Newtonsoft.Json;
 
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
@@ -11,6 +10,7 @@ public class ProductTemplateMessage : IRichMessage, ITemplateMessage
 
     [JsonPropertyName("text")]
     [JsonProperty("text")]
+    [Translate]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]
