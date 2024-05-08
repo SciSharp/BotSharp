@@ -8,7 +8,7 @@ public class TemplateMessageJsonConverter : JsonConverter<ITemplateMessage>
     {
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;
-        var res = BotSharpMessageParser.ParseTemplateMessage(root);
+        var res = BotSharpMessageParser.ParseTemplateMessage(root, options);
         return res;
     }
 
