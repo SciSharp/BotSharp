@@ -1,16 +1,14 @@
-using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using System.Text.Json;
 using System.Reflection;
-using Newtonsoft.Json;
 
 namespace BotSharp.Abstraction.Messaging;
 
 public static class BotSharpMessageParser
 {
 
-    public static IRichMessage? ParseRichMessage(JsonElement root)
+    public static IRichMessage? ParseRichMessage(JsonElement root, JsonSerializerOptions options)
     {
         IRichMessage? res = null;
         Type? targetType = null;
@@ -58,13 +56,13 @@ public static class BotSharpMessageParser
 
         if (targetType != null)
         {
-            res = JsonConvert.DeserializeObject(jsonText, targetType) as IRichMessage;
+            res = JsonSerializer.Deserialize(jsonText, targetType, options) as IRichMessage;
         }
 
         return res;
     }
 
-    public static ITemplateMessage? ParseTemplateMessage(JsonElement root)
+    public static ITemplateMessage? ParseTemplateMessage(JsonElement root, JsonSerializerOptions options)
     {
         ITemplateMessage? res = null;
         Type? targetType = null;
@@ -101,7 +99,6 @@ public static class BotSharpMessageParser
                     if (wrapperType != null && genericType != null)
                     {
                         targetType = wrapperType.MakeGenericType(genericType);
-                        res = JsonConvert.DeserializeObject(jsonText, targetType) as ITemplateMessage;
                     }
                 }
             }
@@ -109,7 +106,7 @@ public static class BotSharpMessageParser
 
         if (targetType != null)
         {
-            res = JsonConvert.DeserializeObject(jsonText, targetType) as ITemplateMessage;
+            res = JsonSerializer.Deserialize(jsonText, targetType, options) as ITemplateMessage;
         }
 
         return res;

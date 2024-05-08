@@ -1,10 +1,7 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
-using BotSharp.Abstraction.Translation.Attributes;
-using Newtonsoft.Json;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace BotSharp.Core.Translation;
@@ -39,10 +36,14 @@ public class TranslationService : ITranslationService
             return data;
         }
 
-        var cloned = data;
+        var clonedData = data;
         if (clone)
         {
-            cloned = Clone(data);
+            clonedData = Clone(data);
+            if (clonedData == null)
+            {
+                return data;
+            }
         }
 
         // chat completion
@@ -52,7 +53,7 @@ public class TranslationService : ITranslationService
         var template = _router.Templates.First(x => x.Name == "translation_prompt").Content;
 
         var texts = unique.ToArray();
-        var translatedStringList = await InnerTranslate(JsonConvert.SerializeObject(texts), language, template);
+        var translatedStringList = await InnerTranslate(JsonSerializer.Serialize(texts, _options.JsonSerializerOptions), language, template);
 
         try
         {
@@ -64,22 +65,22 @@ public class TranslationService : ITranslationService
                 map.Add(texts[i], translatedTexts[i]);
             }
 
-            cloned = Assign(cloned, map);
+            clonedData = Assign(clonedData, map);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
         }
 
-        return cloned;
+        return clonedData;
     }
 
     private T Clone<T>(T data) where T : class
     {
         if (data == null) return data;
 
-        var str = System.Text.Json.JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
-        var cloned = System.Text.Json.JsonSerializer.Deserialize<T>(str, _options.JsonSerializerOptions);
+        var str = JsonSerializer.Serialize(data, _options.JsonSerializerOptions);
+        var cloned = JsonSerializer.Deserialize<T>(str, _options.JsonSerializerOptions);
         return cloned;
     }
 
@@ -256,7 +257,8 @@ public class TranslationService : ITranslationService
                     {
                         if (translate != null)
                         {
-                            var targetValue = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(Assign(value, map)), propType);
+                            var json = JsonSerializer.Serialize(Assign(value, map), _options.JsonSerializerOptions);
+                            var targetValue = JsonSerializer.Deserialize(json, propType, _options.JsonSerializerOptions);
                             prop.SetValue(data, targetValue);
                         }
                     }

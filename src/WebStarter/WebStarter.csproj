@@ -54,6 +54,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.LLamaSharp\BotSharp.Plugin.LLamaSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SqlDriver\BotSharp.Plugin.SqlDriver.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj" />
   </ItemGroup>
   
   <ItemGroup>

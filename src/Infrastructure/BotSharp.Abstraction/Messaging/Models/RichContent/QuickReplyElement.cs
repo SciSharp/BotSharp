@@ -1,6 +1,3 @@
-using Newtonsoft.Json;
-using JsonIgnoreAttribute = System.Text.Json.Serialization.JsonIgnoreAttribute;
-
 namespace BotSharp.Abstraction.Messaging.Models.RichContent;
 
 public class QuickReplyElement
@@ -12,7 +9,6 @@ public class QuickReplyElement
     public string? Payload { get; set; }
 
     [JsonPropertyName("image_url")]
-    [JsonProperty("image_url")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ImageUrl { get; set; }
 }
