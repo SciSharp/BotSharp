@@ -1,5 +1,3 @@
-//using Newtonsoft.Json;
-
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 
 public class ProductTemplateMessage : IRichMessage, ITemplateMessage
