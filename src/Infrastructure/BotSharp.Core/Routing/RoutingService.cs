@@ -82,25 +82,28 @@ public partial class RoutingService : IRoutingService
 
         _context.Push(_router.Id);
 
+        // Handle multi-language for input
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        if (agentSettings.EnableTranslator)
+        {
+            var translator = _services.GetRequiredService<ITranslationService>();
+
+            var language = states.GetState("language", LanguageType.UNKNOWN);
+            if (language != LanguageType.ENGLISH)
+            {
+                message.SecondaryContent = message.Content;
+                message.Content = await translator.Translate(_router, message.MessageId, message.Content,
+                    language: LanguageType.ENGLISH,
+                    clone: false);
+            }
+        }
+
         dialogs.Add(message);
+        storage.Append(convService.ConversationId, message);
 
         // Get first instruction
         _router.TemplateDict["conversation"] = await GetConversationContent(dialogs);
         var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
-
-        // Handle multi-language for input
-        var translator = _services.GetRequiredService<ITranslationService>();
-
-        var language = states.GetState("language", inst.Language);
-        if (language != LanguageType.UNKNOWN && language != LanguageType.ENGLISH)
-        {
-            message.SecondaryContent = message.Content;
-            message.Content = await translator.Translate(_router, message.MessageId, message.Content,
-                language: LanguageType.ENGLISH,
-                clone: false);
-        }
-
-        storage.Append(convService.ConversationId, message);
 
         int loopCount = 1;
         while (true)
