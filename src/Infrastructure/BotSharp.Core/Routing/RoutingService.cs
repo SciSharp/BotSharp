@@ -144,30 +144,6 @@ public partial class RoutingService : IRoutingService
             loopCount++;
         }
 
-        // Handle multi-language for output
-        if (language != LanguageType.UNKNOWN && language != LanguageType.ENGLISH)
-        {
-            if (response.RichContent != null)
-            {
-                if (string.IsNullOrEmpty(response.RichContent.Message.Text))
-                {
-                    response.RichContent.Message.Text = response.Content;
-                }
-
-                response.SecondaryRichContent = await translator.Translate(_router,
-                    message.MessageId,
-                    response.RichContent,
-                    language: language);
-            }
-            else
-            {
-                response.SecondaryContent = await translator.Translate(_router,
-                    message.MessageId,
-                    response.Content,
-                    language: language);
-            }
-        }
-
         return response;
     }
 
