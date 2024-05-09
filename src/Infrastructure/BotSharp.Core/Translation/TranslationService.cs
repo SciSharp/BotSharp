@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
+using BotSharp.Abstraction.Translation.Models;
 using System.Collections;
 using System.Reflection;
 
@@ -57,7 +59,13 @@ public class TranslationService : ITranslationService
 
         try
         {
-            var translatedTexts = translatedStringList.JsonArrayContent<string>();
+            // Override language if it's Unknown, it's used to output the corresponding language.
+            var states = _services.GetRequiredService<IConversationStateService>();
+            var inputLanguage = string.IsNullOrEmpty(translatedStringList.InputLanguage) ? LanguageType.ENGLISH : translatedStringList.InputLanguage;
+            var languageState = states.GetState("language", inputLanguage);
+            states.SetState("language", languageState, activeRounds: 1);
+
+            var translatedTexts = translatedStringList.Texts;
             var map = new Dictionary<string, string>();
 
             for (var i = 0; i < texts.Length; i++)
@@ -283,7 +291,7 @@ public class TranslationService : ITranslationService
     /// <param name="list"></param>
     /// <param name="language"></param>
     /// <returns></returns>
-    private async Task<string> InnerTranslate(string texts, string language, string template)
+    private async Task<TranslationOutput> InnerTranslate(string texts, string language, string template)
     {
         var translator = new Agent
         {
@@ -308,7 +316,7 @@ public class TranslationService : ITranslationService
             }
         };
         var response = await _completion.GetChatCompletions(translator, translationDialogs);
-        return response.Content;
+        return response.Content.JsonContent<TranslationOutput>();
     }
 
     #region Type methods
