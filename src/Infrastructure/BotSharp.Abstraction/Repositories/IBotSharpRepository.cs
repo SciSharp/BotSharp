@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
 
@@ -35,6 +34,7 @@ public interface IBotSharpRepository
     bool DeleteAgent(string agentId);
     List<string> GetAgentResponses(string agentId, string prefix, string intent);
     string GetAgentTemplate(string agentId, string templateName);
+    bool PatchAgentTemplate(string agentId, AgentTemplate template);
     #endregion
 
     #region Agent Task

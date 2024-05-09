@@ -401,6 +401,25 @@ namespace BotSharp.Core.Repository
             return string.Empty;
         }
 
+        public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+        {
+            if (string.IsNullOrEmpty(agentId) || template == null) return false;
+
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            if (!Directory.Exists(dir)) return false;
+
+            var foundTemplate = Directory.GetFiles(dir).FirstOrDefault(f =>
+            {
+                var fileName = Path.GetFileNameWithoutExtension(f);
+                var extension = Path.GetExtension(f).Substring(1);
+                return fileName.IsEqualTo(template.Name) && extension.IsEqualTo(_agentSettings.TemplateFormat);
+            });
+
+            if (foundTemplate == null) return false;
+
+            File.WriteAllText(foundTemplate, template.Content);
+            return true;
+        }
 
         public void BulkInsertAgents(List<Agent> agents)
         {

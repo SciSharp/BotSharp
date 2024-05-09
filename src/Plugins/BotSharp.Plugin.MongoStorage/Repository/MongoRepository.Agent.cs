@@ -332,6 +332,23 @@ public partial class MongoRepository
         return agent.Templates?.FirstOrDefault(x => x.Name == templateName.ToLower())?.Content ?? string.Empty;
     }
 
+    public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+    {
+        if (string.IsNullOrEmpty(agentId) || template == null) return false;
+
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var agent = _dc.Agents.Find(filter).FirstOrDefault();
+        if (agent == null || agent.Templates.IsNullOrEmpty()) return false;
+
+        var foundTemplate = agent.Templates.FirstOrDefault(x => x.Name.IsEqualTo(template.Name));
+        if (foundTemplate == null) return false;
+
+        foundTemplate.Content = template.Content;
+        var update = Builders<AgentDocument>.Update.Set(x => x.Templates, agent.Templates);
+        _dc.Agents.UpdateOne(filter, update);
+        return true;
+    }
+
     public void BulkInsertAgents(List<Agent> agents)
     {
         if (agents.IsNullOrEmpty()) return;
