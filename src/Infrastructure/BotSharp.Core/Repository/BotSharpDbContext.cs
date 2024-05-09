@@ -87,6 +87,9 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public string GetAgentTemplate(string agentId, string templateName)
         => throw new NotImplementedException();
 
+    public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+        => throw new NotImplementedException();
+
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
         => throw new NotImplementedException();
 

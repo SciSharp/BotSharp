@@ -110,4 +110,12 @@ public class AgentController : ControllerBase
         model.Id = agentId;
         await _agentService.UpdateAgent(model, field);
     }
+
+    [HttpPatch("/agent/{agentId}/templates")]
+    public async Task<string> PatchAgentTemplates([FromRoute] string agentId, [FromBody] AgentTemplatePatchModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        return await _agentService.PatchAgentTemplate(model);
+    }
 }
