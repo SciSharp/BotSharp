@@ -39,6 +39,7 @@ namespace BotSharp.Logger.Hooks
                         message.MessageId,
                         message.RichContent,
                         language: language);
+                    message.SecondaryContent = message.SecondaryRichContent.Message.Text;
                 }
                 else
                 {
