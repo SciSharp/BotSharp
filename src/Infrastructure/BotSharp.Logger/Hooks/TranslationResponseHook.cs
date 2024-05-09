@@ -11,6 +11,7 @@ namespace BotSharp.Logger.Hooks
     {
         private readonly IServiceProvider _services;
         private readonly IConversationStateService _states;
+        private const string AIAssistant = "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a";
 
         public TranslationResponseHook(IServiceProvider services,
             IConversationStateService states)
@@ -22,7 +23,7 @@ namespace BotSharp.Logger.Hooks
         {
             // Handle multi-language for output
             var agentService = _services.GetRequiredService<IAgentService>();
-            var router = await agentService.LoadAgent(message.CurrentAgentId);
+            var router = await agentService.LoadAgent(AIAssistant);
             var translator = _services.GetRequiredService<ITranslationService>();
             var language = _states.GetState("language", LanguageType.ENGLISH);
             if (language != LanguageType.UNKNOWN && language != LanguageType.ENGLISH)
