@@ -10,7 +10,7 @@ public partial class RoutingService
         if (function == null)
         {
             message.StopCompletion = true;
-            message.Content = $"Can't find function implementation of {message.FunctionName}.";
+            message.Content = $"Can't find function implementation of {name}.";
             _logger.LogError(message.Content);
             return false;
         }
