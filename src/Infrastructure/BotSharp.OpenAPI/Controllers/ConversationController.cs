@@ -171,8 +171,10 @@ public class ConversationController : ControllerBase
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
-            Files = input.Files
+            Files = input.Files,
+            CreatedAt = DateTime.UtcNow
         };
+
         if (!string.IsNullOrEmpty(input.TruncateMessageId))
         {
             await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
@@ -215,8 +217,10 @@ public class ConversationController : ControllerBase
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
-            Files = input.Files
+            Files = input.Files,
+            CreatedAt = DateTime.UtcNow
         };
+
         if (!string.IsNullOrEmpty(input.TruncateMessageId))
         {
             await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
