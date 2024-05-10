@@ -21,6 +21,12 @@ namespace BotSharp.Logger.Hooks
         }
         public override async Task OnResponseGenerated(RoleDialogModel message)
         {
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            if (!agentSettings.EnableTranslator)
+            {
+                return;
+            }
+                
             // Handle multi-language for output
             var agentService = _services.GetRequiredService<IAgentService>();
             var router = await agentService.LoadAgent(AIAssistant);
