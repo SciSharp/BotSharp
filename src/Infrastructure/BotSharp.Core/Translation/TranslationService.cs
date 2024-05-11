@@ -61,9 +61,11 @@ public class TranslationService : ITranslationService
         {
             // Override language if it's Unknown, it's used to output the corresponding language.
             var states = _services.GetRequiredService<IConversationStateService>();
-            var inputLanguage = string.IsNullOrEmpty(translatedStringList.InputLanguage) ? LanguageType.ENGLISH : translatedStringList.InputLanguage;
-            var languageState = states.GetState("language", inputLanguage);
-            states.SetState("language", languageState, activeRounds: 1);
+            if (!states.ContainsState("language"))
+            {
+                var inputLanguage = string.IsNullOrEmpty(translatedStringList.InputLanguage) ? LanguageType.ENGLISH : translatedStringList.InputLanguage;
+                states.SetState("language", inputLanguage, activeRounds: 1);
+            }
 
             var translatedTexts = translatedStringList.Texts;
             var map = new Dictionary<string, string>();
