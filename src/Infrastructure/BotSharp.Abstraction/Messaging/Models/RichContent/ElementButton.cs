@@ -8,13 +8,18 @@ public class ElementButton
     public string Type { get; set; } = "web_url";
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string Url { get; set; }
+    public string? Url { get; set; }
 
     [Translate]
     public string Title { get; set; } = string.Empty;
 
+    [JsonPropertyName("description")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string Payload { get; set; }
+    [Translate]
+    public string? Description { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Payload { get; set; }
 
     [JsonPropertyName("is_primary")]
     public bool IsPrimary { get; set; }
