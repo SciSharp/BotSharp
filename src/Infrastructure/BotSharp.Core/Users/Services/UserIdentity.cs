@@ -56,4 +56,14 @@ public class UserIdentity : IUserIdentity
             return $"{FirstName} {LastName}".Trim();
         }
     }
+
+    [JsonPropertyName("user_language")]
+    public string? UserLanguage
+    {
+        get
+        {
+            _contextAccessor.HttpContext.Request.Headers.TryGetValue("User-Language", out var languages);
+            return languages.FirstOrDefault();
+        }
+    }
 }

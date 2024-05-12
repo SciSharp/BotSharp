@@ -8,4 +8,5 @@ public interface IUserIdentity
     string FirstName { get; }
     string LastName { get; }
     string FullName { get; }
+    string? UserLanguage { get; }
 }
