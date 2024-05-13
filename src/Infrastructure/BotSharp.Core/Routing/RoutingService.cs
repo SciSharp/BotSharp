@@ -88,7 +88,7 @@ public partial class RoutingService : IRoutingService
         {
             var translator = _services.GetRequiredService<ITranslationService>();
 
-            var language = states.GetState("language", LanguageType.UNKNOWN);
+            var language = states.GetState(StateConst.LANGUAGE, LanguageType.UNKNOWN);
             if (language != LanguageType.ENGLISH)
             {
                 message.SecondaryContent = message.Content;
