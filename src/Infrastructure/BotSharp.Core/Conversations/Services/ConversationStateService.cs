@@ -270,7 +270,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         return true;
     }
 
-    public void CleanStates(params string[] keepStates)
+    public void CleanStates(params string[] excludedStates)
     {
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var curMsgId = routingCtx.MessageId;
@@ -279,7 +279,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         foreach (var key in _curStates.Keys)
         {
             // skip state
-            if (keepStates.Contains(key))
+            if (excludedStates.Contains(key))
             {
                 continue;
             }

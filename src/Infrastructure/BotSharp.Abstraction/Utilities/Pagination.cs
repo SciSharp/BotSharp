@@ -26,6 +26,11 @@ public class Pagination
         } 
     }
 
+    /// <summary>
+    /// Sort by field
+    /// </summary>
+    public string? Sort { get; set; }
+
     public int Offset
     {
         get { return (Page - 1) * Size; }
