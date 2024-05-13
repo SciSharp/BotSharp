@@ -151,6 +151,13 @@ public partial class ConversationService
             Message = new TextMessage(response.SecondaryContent ?? response.Content)
         };
 
+        response.RichContent = new RichContent<IRichMessage>
+        {
+            Recipient = new Recipient { Id = state.GetConversationId() },
+            Editor = "file",
+            Message = new TextMessage(response.SecondaryContent ?? response.Content)
+        };
+
         // Patch return function name
         if (response.PostbackFunctionName != null)
         {

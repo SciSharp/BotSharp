@@ -38,10 +38,11 @@ public class FileController : ControllerBase
     }
 
     [HttpGet("/conversation/{conversationId}/files/{messageId}")]
-    public IEnumerable<OutputFileModel> GetConversationFiles([FromRoute] string conversationId, [FromRoute] string messageId)
+    public IEnumerable<MessageFileViewModel> GetMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId)
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        return fileService.GetConversationFiles(conversationId, messageId);
+        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId });
+        return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? new List<MessageFileViewModel>();
     }
 
     [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}")]

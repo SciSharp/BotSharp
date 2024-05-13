@@ -17,18 +17,18 @@ public partial class RoutingService
             return false;
         }
 
-        var provide = agent.LlmConfig.Provider;
+        var provider = agent.LlmConfig.Provider;
         var model = agent.LlmConfig.Model;
 
-        if (provide == null || model == null)
+        if (provider == null || model == null)
         {
             var agentSettings = _services.GetRequiredService<AgentSettings>();
-            provide = agentSettings.LlmConfig.Provider;
+            provider = agentSettings.LlmConfig.Provider;
             model = agentSettings.LlmConfig.Model;
         }
 
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, 
-            provider: provide,
+            provider: provider,
             model: model);
 
         var message = dialogs.Last();

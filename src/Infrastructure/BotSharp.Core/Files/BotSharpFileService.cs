@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.StaticFiles;
 using System.IO;
 using System.Threading;
 
@@ -8,9 +9,12 @@ public class BotSharpFileService : IBotSharpFileService
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly IServiceProvider _services;
     private readonly string _baseDir;
+    private readonly IEnumerable<string> _allowedTypes = new List<string> { "image/png", "image/jpeg" };
 
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
+    private const int MIN_OFFSET = 1;
+    private const int MAX_OFFSET = 5;
 
     public BotSharpFileService(
         BotSharpDatabaseSettings dbSettings,
@@ -31,29 +35,67 @@ public class BotSharpFileService : IBotSharpFileService
         return dir;
     }
 
-    public IEnumerable<OutputFileModel> GetConversationFiles(string conversationId, string messageId)
+    public IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int offset = 2)
     {
-        var outputFiles = new List<OutputFileModel>();
-        var dir = GetConversationFileDirectory(conversationId, messageId);
-        if (string.IsNullOrEmpty(dir))
+        var files = new List<MessageFileModel>();
+        if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
         {
-            return outputFiles;
+            return files;
         }
 
-        foreach (var file in Directory.GetFiles(dir))
+        if (offset <= 0)
         {
-            var fileName = Path.GetFileNameWithoutExtension(file);
-            var extension = Path.GetExtension(file);
-            var fileType = extension.Substring(1);
-            var model = new OutputFileModel()
-            {
-                FileUrl = $"/conversation/{conversationId}/message/{messageId}/file/{fileName}",
-                FileName = fileName,
-                FileType = fileType
-            };
-            outputFiles.Add(model);
+            offset = MIN_OFFSET;
         }
-        return outputFiles;
+        else if (offset > MAX_OFFSET)
+        {
+            offset = MAX_OFFSET;
+        }
+
+        var messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset).ToList();
+        files = GetMessageFiles(conversationId, messageIds, imageOnly: true).ToList();
+        return files;
+    }
+
+    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, bool imageOnly = false)
+    {
+        var files = new List<MessageFileModel>();
+        if (messageIds.IsNullOrEmpty()) return files;
+
+        foreach (var messageId in messageIds)
+        {
+            var dir = GetConversationFileDirectory(conversationId, messageId);
+            if (string.IsNullOrEmpty(dir))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.GetFiles(dir))
+            {
+                var contentType = GetFileContentType(file);
+                if (imageOnly && !_allowedTypes.Contains(contentType))
+                {
+                    continue;
+                }
+
+                var fileName = Path.GetFileNameWithoutExtension(file);
+                var extension = Path.GetExtension(file);
+                var fileType = extension.Substring(1);
+
+                var model = new MessageFileModel()
+                {
+                    MessageId = messageId,
+                    FileUrl = $"/conversation/{conversationId}/message/{messageId}/file/{fileName}",
+                    FileStorageUrl = file,
+                    FileName = fileName,
+                    FileType = fileType,
+                    ContentType = contentType
+                };
+                files.Add(model);
+            }
+        }
+        
+        return files;
     }
 
     public string? GetMessageFile(string conversationId, string messageId, string fileName)
@@ -182,42 +224,16 @@ public class BotSharpFileService : IBotSharpFileService
         return Convert.FromBase64String(base64Str);
     }
 
-    private string GetFileType(string data)
+    private string GetFileContentType(string filePath)
     {
-        if (string.IsNullOrEmpty(data))
+        string contentType;
+        var provider = new FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(filePath, out contentType))
         {
-            return string.Empty;
+            contentType = string.Empty;
         }
 
-        var startIdx = data.IndexOf(':');
-        var endIdx = data.IndexOf(';');
-        var fileType = data.Substring(startIdx + 1, endIdx - startIdx - 1);
-        return fileType;
-    }
-
-    private string ParseFileFormat(string type)
-    {
-        var parsed = string.Empty;
-        switch (type)
-        {
-            case "image/png":
-                parsed = ".png";
-                break;
-            case "image/jpeg":
-            case "image/jpg":
-                parsed = ".jpeg";
-                break;
-            case "application/pdf":
-                parsed = ".pdf";
-                break;
-            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-                parsed = ".xlsx";
-                break;
-            case "text/plain":
-                parsed = ".txt";
-                break;
-        }
-        return parsed;
+        return contentType;
     }
     #endregion
 }
