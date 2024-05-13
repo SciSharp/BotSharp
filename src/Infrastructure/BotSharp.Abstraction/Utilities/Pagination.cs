@@ -31,6 +31,11 @@ public class Pagination
     /// </summary>
     public string? Sort { get; set; }
 
+    /// <summary>
+    /// Sort order: asc or desc
+    /// </summary>
+    public string Order { get; set; } = "asc";
+
     public int Offset
     {
         get { return (Page - 1) * Size; }
