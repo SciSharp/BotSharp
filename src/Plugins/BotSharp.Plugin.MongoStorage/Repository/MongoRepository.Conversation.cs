@@ -452,8 +452,7 @@ public partial class MongoRepository
             if (!foundStates.Breakpoints.IsNullOrEmpty())
             {
                 var breakpoints = foundStates.Breakpoints ?? new List<BreakpointMongoElement>();
-                var targetIdx = breakpoints.FindIndex(x => x.MessageId == messageId);
-                var truncatedBreakpoints = breakpoints.Where((x, idx) => idx < targetIdx).ToList();
+                var truncatedBreakpoints = breakpoints.Where(x => x.CreatedTime < refTime).ToList();
                 foundStates.Breakpoints = truncatedBreakpoints;
             }
             
