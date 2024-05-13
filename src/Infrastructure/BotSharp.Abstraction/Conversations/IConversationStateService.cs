@@ -17,6 +17,6 @@ public interface IConversationStateService
         int activeRounds = -1, string valueType = StateDataType.String, string source = StateSource.User, bool readOnly = false);
     void SaveStateByArgs(JsonDocument args);
     bool RemoveState(string name);
-    void CleanStates(params string[] keepStates);
+    void CleanStates(params string[] excludedStates);
     void Save();
 }
