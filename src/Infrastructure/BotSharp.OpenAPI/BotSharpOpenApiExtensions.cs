@@ -126,6 +126,20 @@ public static class BotSharpOpenApiExtensions
             });
         }
 
+        // Wexin OAuth
+        if (!string.IsNullOrWhiteSpace(config["OAuth:Wexin:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:Wexin:ClientSecret"]))
+        {
+            builder = builder.AddWeixin(options =>
+            {
+                options.ClientId = config["OAuth:GitHub:ClientId"];
+                options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
+                options.Scope.Add("user:email");
+                options.Backchannel = builder.Services.BuildServiceProvider()
+                    .GetRequiredService<IHttpClientFactory>()
+                    .CreateClient();
+            });
+        }
+
         // Add services to the container.
         services.AddControllers()
             .AddJsonOptions(options =>
