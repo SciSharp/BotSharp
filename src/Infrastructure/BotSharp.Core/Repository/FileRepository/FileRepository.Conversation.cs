@@ -481,7 +481,7 @@ namespace BotSharp.Core.Repository
             // Handle truncated breakpoints
             var breakpointDir = Path.Combine(convDir, BREAKPOINT_FILE);
             var breakpoints = CollectConversationBreakpoints(breakpointDir);
-            isSaved = HandleTruncatedBreakpoints(breakpointDir, breakpoints, messageId);
+            isSaved = HandleTruncatedBreakpoints(breakpointDir, breakpoints, refTime);
 
             // Remove logs
             if (cleanLog)
@@ -585,10 +585,9 @@ namespace BotSharp.Core.Repository
             return isSaved;
         }
 
-        private bool HandleTruncatedBreakpoints(string breakpointDir, List<ConversationBreakpoint> breakpoints, string refMessageId)
+        private bool HandleTruncatedBreakpoints(string breakpointDir, List<ConversationBreakpoint> breakpoints, DateTime refTime)
         {
-            var targetIdx = breakpoints.FindIndex(x => x.MessageId == refMessageId);
-            var truncatedBreakpoints = breakpoints?.Where((x, idx) => idx < targetIdx)?
+            var truncatedBreakpoints = breakpoints?.Where(x => x.CreatedTime < refTime)?
                                                    .ToList() ?? new List<ConversationBreakpoint>();
 
             var isSaved = SaveTruncatedBreakpoints(breakpointDir, truncatedBreakpoints);
