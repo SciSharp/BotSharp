@@ -61,10 +61,10 @@ public class TranslationService : ITranslationService
         {
             // Override language if it's Unknown, it's used to output the corresponding language.
             var states = _services.GetRequiredService<IConversationStateService>();
-            if (!states.ContainsState("language"))
+            if (!states.ContainsState(StateConst.LANGUAGE))
             {
                 var inputLanguage = string.IsNullOrEmpty(translatedStringList.InputLanguage) ? LanguageType.ENGLISH : translatedStringList.InputLanguage;
-                states.SetState("language", inputLanguage, activeRounds: 1);
+                states.SetState(StateConst.LANGUAGE, inputLanguage, activeRounds: 1);
             }
 
             var translatedTexts = translatedStringList.Texts;
@@ -302,7 +302,7 @@ public class TranslationService : ITranslationService
             TemplateDict = new Dictionary<string, object>
             {
                 { "text_list",  texts },
-                { "language", language }
+                { StateConst.LANGUAGE, language }
             }
         };
 

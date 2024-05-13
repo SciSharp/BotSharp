@@ -31,7 +31,7 @@ namespace BotSharp.Logger.Hooks
             var agentService = _services.GetRequiredService<IAgentService>();
             var router = await agentService.LoadAgent(AIAssistant);
             var translator = _services.GetRequiredService<ITranslationService>();
-            var language = _states.GetState("language", LanguageType.ENGLISH);
+            var language = _states.GetState(StateConst.LANGUAGE, LanguageType.ENGLISH);
             if (language != LanguageType.UNKNOWN && language != LanguageType.ENGLISH)
             {
                 if (message.RichContent != null)
