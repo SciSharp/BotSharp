@@ -76,7 +76,7 @@ public class TranslationService : ITranslationService
 
             for (var i = 0; i < texts.Count; i++)
             {
-                map.Add(keys[0], translatedTexts[i]);
+                map[keys[i]] = translatedTexts[i];
             }
 
             clonedData = Assign(clonedData, map);
