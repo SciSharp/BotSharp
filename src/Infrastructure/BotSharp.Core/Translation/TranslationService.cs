@@ -1,3 +1,4 @@
+using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Options;
@@ -54,8 +55,9 @@ public class TranslationService : ITranslationService
             model: _router?.LlmConfig?.Model);
         var template = _router.Templates.First(x => x.Name == "translation_prompt").Content;
 
+        var keys = unique.ToArray();
         var texts = unique.ToArray()
-            .Select((text, i) => $"{i + 1}. {text}")
+            .Select((text, i) => $"{i + 1}. \"{text}\"")
             .ToList();
         var translatedStringList = await InnerTranslate(texts, language, template);
 
@@ -74,7 +76,7 @@ public class TranslationService : ITranslationService
 
             for (var i = 0; i < texts.Count; i++)
             {
-                map.Add(texts[i], translatedTexts[i]);
+                map.Add(keys[0], translatedTexts[i]);
             }
 
             clonedData = Assign(clonedData, map);
