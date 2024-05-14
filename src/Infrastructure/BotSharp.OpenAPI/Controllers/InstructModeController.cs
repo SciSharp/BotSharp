@@ -83,7 +83,7 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", modelId: "gpt-4-turbo", multiModal: true);
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", modelId: "gpt-multi-modal", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = Guid.Empty.ToString(),
@@ -99,7 +99,7 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error in analyzing files. {ex.Message}");
-            return $"Error in analyzing files. {ex.Message}";
+            return $"Error in analyzing files.";
         }
     }
 }
