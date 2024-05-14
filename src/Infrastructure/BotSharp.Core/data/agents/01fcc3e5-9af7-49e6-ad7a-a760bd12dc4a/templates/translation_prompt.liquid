@@ -1,5 +1,7 @@
-{{ text_list }}
+{% for text in text_list %}
+{{ text }}
+{% endfor %}
 
 =====
 Translate the above sentences in the list into {{ language }}.
-Output the translated text in JSON {"input_lang":"",  "output_lang":"{{ language }}", "texts":[""]}, input_lang is based on the original sentences.
+Output the translated text in JSON {"input_lang":"",  "output_lang":"{{ language }}", "texts":[]}, input_lang is based on the original sentences.
