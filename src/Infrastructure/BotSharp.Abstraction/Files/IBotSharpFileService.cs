@@ -18,4 +18,11 @@ public interface IBotSharpFileService
     /// <returns></returns>
     bool DeleteMessageFiles(string conversationId, IEnumerable<string> messageIds, string targetMessageId, string? newMessageId = null);
     bool DeleteConversationFiles(IEnumerable<string> conversationIds);
+
+    /// <summary>
+    /// Get file bytes and content type from data, e.g., "data:image/png;base64,aaaaaaaaa"
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    (string, byte[]) GetFileInfoFromData(string data);
 }

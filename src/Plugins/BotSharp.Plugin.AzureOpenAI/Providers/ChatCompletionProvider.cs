@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
@@ -226,9 +227,10 @@ public class ChatCompletionProvider : IChatCompletion
         var state = _services.GetRequiredService<IConversationStateService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
+        var allowMultiModal = settings != null && settings.MultiModal;
 
         var chatFiles = new List<MessageFileModel>();
-        if (settings != null && settings.MultiModal)
+        if (allowMultiModal)
         {
             chatFiles = fileService.GetChatImages(state.GetConversationId(), conversations, offset: 2).ToList();
         }
@@ -305,6 +307,24 @@ public class ChatCompletionProvider : IChatCompletion
                     {
                         using var stream = File.OpenRead(file.FileStorageUrl);
                         chatItems.Add(new ChatMessageImageContentItem(stream, file.ContentType, ChatMessageImageDetailLevel.Low));
+                    }
+                }
+
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    foreach (var file in message.Files)
+                    {
+                        if (!string.IsNullOrEmpty(file.FileUrl))
+                        {
+                            var uri = new Uri(file.FileUrl);
+                            chatItems.Add(new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                        }
+                        else if (!string.IsNullOrEmpty(file.FileData))
+                        {
+                            var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
+                            using var stream = new MemoryStream(bytes, 0, bytes.Length);
+                            chatItems.Add(new ChatMessageImageContentItem(stream, contentType, ChatMessageImageDetailLevel.Low));
+                        }
                     }
                 }
 

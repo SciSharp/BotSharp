@@ -8,6 +8,7 @@ public class BotSharpFileService : IBotSharpFileService
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly IServiceProvider _services;
+    private readonly ILogger<BotSharpFileService> _logger;
     private readonly string _baseDir;
     private readonly IEnumerable<string> _allowedTypes = new List<string> { "image/png", "image/jpeg" };
 
@@ -18,9 +19,11 @@ public class BotSharpFileService : IBotSharpFileService
 
     public BotSharpFileService(
         BotSharpDatabaseSettings dbSettings,
+        ILogger<BotSharpFileService> logger,
         IServiceProvider services)
     {
         _dbSettings = dbSettings;
+        _logger = logger;
         _services = services;
         _baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbSettings.FileRepository);
     }
@@ -117,19 +120,26 @@ public class BotSharpFileService : IBotSharpFileService
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
         if (string.IsNullOrEmpty(dir)) return;
 
-        for (int i = 0; i < files.Count; i++)
+        try
         {
-            var file = files[i];
-            if (string.IsNullOrEmpty(file.FileData))
+            for (int i = 0; i < files.Count; i++)
             {
-                continue;
-            }
+                var file = files[i];
+                if (string.IsNullOrEmpty(file.FileData))
+                {
+                    continue;
+                }
 
-            var bytes = GetFileBytes(file.FileData);
-            var fileType = Path.GetExtension(file.FileName);
-            var fileName = $"{i + 1}{fileType}";
-            Thread.Sleep(100);
-            File.WriteAllBytes(Path.Combine(dir, fileName), bytes);
+                var (_, bytes) = GetFileInfoFromData(file.FileData);
+                var fileType = Path.GetExtension(file.FileName);
+                var fileName = $"{i + 1}{fileType}";
+                Thread.Sleep(100);
+                File.WriteAllBytes(Path.Combine(dir, fileName), bytes);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error when saving conversation files: {ex.Message}");
         }
     }
 
@@ -179,6 +189,23 @@ public class BotSharpFileService : IBotSharpFileService
         return true;
     }
 
+    public (string, byte[]) GetFileInfoFromData(string data)
+    {
+        if (string.IsNullOrEmpty(data))
+        {
+            return (string.Empty, new byte[0]);
+        }
+
+        var typeStartIdx = data.IndexOf(':');
+        var typeEndIdx = data.IndexOf(';');
+        var contentType = data.Substring(typeStartIdx + 1, typeEndIdx - typeStartIdx - 1);
+
+        var base64startIdx = data.IndexOf(',');
+        var base64Str = data.Substring(base64startIdx + 1);
+
+        return (contentType, Convert.FromBase64String(base64Str));
+    }
+
     #region Private methods
     private string GetConversationFileDirectory(string? conversationId, string? messageId, bool createNewDir = false)
     {
@@ -210,18 +237,6 @@ public class BotSharpFileService : IBotSharpFileService
         if (!Directory.Exists(dir)) return null;
 
         return dir;
-    }
-
-    private byte[] GetFileBytes(string data)
-    {
-        if (string.IsNullOrEmpty(data))
-        {
-            return new byte[0];
-        }
-
-        var startIdx = data.IndexOf(',');
-        var base64Str = data.Substring(startIdx + 1);
-        return Convert.FromBase64String(base64Str);
     }
 
     private string GetFileContentType(string filePath)

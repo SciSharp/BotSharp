@@ -11,10 +11,12 @@ namespace BotSharp.OpenAPI.Controllers;
 public class InstructModeController : ControllerBase
 {
     private readonly IServiceProvider _services;
+    private readonly ILogger<InstructModeController> _logger;
 
-    public InstructModeController(IServiceProvider services)
+    public InstructModeController(IServiceProvider services, ILogger<InstructModeController> logger)
     {
         _services = services;
+        _logger = logger;
     }
 
     [HttpPost("/instruct/{agentId}")]
@@ -71,5 +73,36 @@ public class InstructModeController : ControllerBase
             new RoleDialogModel(AgentRole.User, input.Text)
         });
         return message.Content;
+    }
+
+    [HttpPost("/instruct/multi-modal")]
+    public async Task<string> MultiModalCompletion([FromBody] IncomingMessageModel input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External);
+
+        try
+        {
+            var completion = CompletionProvider.GetChatCompletion(_services, input.Provider ?? "openai", input.Model ?? "gpt-4-turbo");
+            var message = await completion.GetChatCompletions(new Agent()
+            {
+                Id = Guid.Empty.ToString(),
+            }, new List<RoleDialogModel>
+            {
+                new RoleDialogModel(AgentRole.User, input.Text)
+                {
+                    Files = input.Files
+                }
+            });
+            return message.Content;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error in analyzing files. {ex.Message}");
+            return $"Error in analyzing files. {ex.Message}";
+        }
     }
 }

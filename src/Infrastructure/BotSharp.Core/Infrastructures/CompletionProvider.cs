@@ -47,7 +47,7 @@ public class CompletionProvider
             logger.LogError($"Can't resolve completion provider by {provider}");
         }
 
-        completer.SetModelName(model);
+        completer?.SetModelName(model);
 
         return completer;
     }
