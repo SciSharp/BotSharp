@@ -83,7 +83,7 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", modelId: "gpt-multi-modal", multiModal: true);
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", modelId: "gpt-4", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = Guid.Empty.ToString(),
