@@ -80,13 +80,10 @@ public class InstructModeController : ControllerBase
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
-        state.SetState("provider", input.Provider, source: StateSource.External)
-            .SetState("model", input.Model, source: StateSource.External)
-            .SetState("model_id", input.ModelId, source: StateSource.External);
 
         try
         {
-            var completion = CompletionProvider.GetChatCompletion(_services, input.Provider ?? "openai", input.Model ?? "gpt-4-turbo");
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: "openai", modelId: "gpt-4-turbo", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
                 Id = Guid.Empty.ToString(),
