@@ -54,8 +54,10 @@ public class TranslationService : ITranslationService
             model: _router?.LlmConfig?.Model);
         var template = _router.Templates.First(x => x.Name == "translation_prompt").Content;
 
-        var texts = unique.ToArray();
-        var translatedStringList = await InnerTranslate(JsonSerializer.Serialize(texts, _options.JsonSerializerOptions), language, template);
+        var texts = unique.ToArray()
+            .Select((text, i) => $"{i + 1}. {text}")
+            .ToList();
+        var translatedStringList = await InnerTranslate(texts, language, template);
 
         try
         {
@@ -70,7 +72,7 @@ public class TranslationService : ITranslationService
             var translatedTexts = translatedStringList.Texts;
             var map = new Dictionary<string, string>();
 
-            for (var i = 0; i < texts.Length; i++)
+            for (var i = 0; i < texts.Count; i++)
             {
                 map.Add(texts[i], translatedTexts[i]);
             }
@@ -293,7 +295,7 @@ public class TranslationService : ITranslationService
     /// <param name="list"></param>
     /// <param name="language"></param>
     /// <returns></returns>
-    private async Task<TranslationOutput> InnerTranslate(string texts, string language, string template)
+    private async Task<TranslationOutput> InnerTranslate(List<string> texts, string language, string template)
     {
         var translator = new Agent
         {
