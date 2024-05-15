@@ -295,51 +295,64 @@ public class ChatCompletionProvider : IChatCompletion
             else if (message.Role == ChatRole.User)
             {
                 var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
-                var chatItems = new List<ChatMessageContentItem>()
-                {
-                    new ChatMessageTextContentItem(text)
-                };
 
-                var files = chatFiles.Where(x => x.MessageId == message.MessageId).ToList();
-                if (!files.IsNullOrEmpty())
+                ChatRequestUserMessage userMessage = null;
+                if (allowMultiModal)
                 {
-                    foreach (var file in files)
+                    var chatItems = new List<ChatMessageContentItem>()
                     {
-                        using var stream = File.OpenRead(file.FileStorageUrl);
-                        chatItems.Add(new ChatMessageImageContentItem(stream, file.ContentType, ChatMessageImageDetailLevel.Low));
-                    }
-                }
-
-                if (allowMultiModal && !message.Files.IsNullOrEmpty())
-                {
-                    foreach (var file in message.Files)
+                        new ChatMessageTextContentItem(text)
+                    };
+                
+                    var files = chatFiles.Where(x => x.MessageId == message.MessageId).ToList();
+                    if (!files.IsNullOrEmpty())
                     {
-                        if (!string.IsNullOrEmpty(file.FileUrl))
+                        foreach (var file in files)
                         {
-                            var uri = new Uri(file.FileUrl);
-                            chatItems.Add(new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
-                            using var stream = new MemoryStream(bytes, 0, bytes.Length);
-                            chatItems.Add(new ChatMessageImageContentItem(stream, contentType, ChatMessageImageDetailLevel.Low));
+                            using var stream = File.OpenRead(file.FileStorageUrl);
+                            chatItems.Add(new ChatMessageImageContentItem(stream, file.ContentType, ChatMessageImageDetailLevel.Low));
                         }
                     }
+                
+                    if (!message.Files.IsNullOrEmpty())
+                    {
+                        foreach (var file in message.Files)
+                        {
+                            if (!string.IsNullOrEmpty(file.FileUrl))
+                            {
+                                var uri = new Uri(file.FileUrl);
+                                chatItems.Add(new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                            }
+                            else if (!string.IsNullOrEmpty(file.FileData))
+                            {
+                                var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
+                                using var stream = new MemoryStream(bytes, 0, bytes.Length);
+                                chatItems.Add(new ChatMessageImageContentItem(stream, contentType, ChatMessageImageDetailLevel.Low));
+                            }
+                        }
+                    }
+                
+                    //if (!string.IsNullOrEmpty(message.ImageUrl))
+                    //{
+                    //    var uri = new Uri(message.ImageUrl);
+                    //    userMessage.MultimodalContentItems.Add(
+                    //        new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                    //}
+                
+                    userMessage = new ChatRequestUserMessage(chatItems)
+                    {
+                        // To display Planner name in log
+                        Name = message.FunctionName,
+                    };
                 }
-
-                //if (!string.IsNullOrEmpty(message.ImageUrl))
-                //{
-                //    var uri = new Uri(message.ImageUrl);
-                //    userMessage.MultimodalContentItems.Add(
-                //        new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
-                //}
-
-                var userMessage = new ChatRequestUserMessage(chatItems)
+                else
                 {
-                    // To display Planner name in log
-                    Name = message.FunctionName,
-                };
+                    userMessage = new ChatRequestUserMessage(text)
+                    {
+                        // To display Planner name in log
+                        Name = message.FunctionName,
+                    };
+                }
 
                 chatCompletionsOptions.Messages.Add(userMessage);
             }
@@ -396,9 +409,12 @@ public class ChatCompletionProvider : IChatCompletion
                     else if (x.Role == ChatRole.User)
                     {
                         var m = x as ChatRequestUserMessage;
+                        var content = m.Content ?? string.Join(", ", m.MultimodalContentItems
+                            .Where(m => m is ChatMessageTextContentItem)
+                            .Select(m => (m as ChatMessageTextContentItem)?.Text));
                         return !string.IsNullOrEmpty(m.Name) && m.Name != "route_to_agent" ?
-                            $"{m.Name}: {m.Content}" :
-                            $"{m.Role}: {m.Content}";
+                            $"{m.Name}: {content}" :
+                            $"{m.Role}: {content}";
                     }
                     else if (x.Role == ChatRole.Assistant)
                     {
