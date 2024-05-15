@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Routing;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -38,10 +39,16 @@ public class ConversationController : ControllerBase
     [HttpPost("/conversations")]
     public async Task<PagedItems<ConversationViewModel>> GetConversations([FromBody] ConversationFilter filter)
     {
-        var service = _services.GetRequiredService<IConversationService>();
-        var conversations = await service.GetConversations(filter);
-
+        var convService = _services.GetRequiredService<IConversationService>();
         var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user == null)
+        {
+            return new PagedItems<ConversationViewModel>();
+        }
+
+        filter.UserId = user.Role != UserRole.Admin ? user.Id : null;
+        var conversations = await convService.GetConversations(filter);
         var agentService = _services.GetRequiredService<IAgentService>();
         var list = conversations.Items
             .Select(x => ConversationViewModel.FromSession(x))
@@ -49,9 +56,8 @@ public class ConversationController : ControllerBase
 
         foreach (var item in list)
         {
-            var user = await userService.GetUser(item.User.Id);
+            user = await userService.GetUser(item.User.Id);
             item.User = UserViewModel.FromUser(user);
-
             var agent = await agentService.GetAgent(item.AgentId);
             item.AgentName = agent?.Name;
         }
@@ -116,21 +122,30 @@ public class ConversationController : ControllerBase
     }
 
     [HttpGet("/conversation/{conversationId}")]
-    public async Task<ConversationViewModel> GetConversation([FromRoute] string conversationId)
+    public async Task<ConversationViewModel?> GetConversation([FromRoute] string conversationId)
     {
         var service = _services.GetRequiredService<IConversationService>();
-        var conversations = await service.GetConversations(new ConversationFilter
-        {
-            Id = conversationId
-        });
-
         var userService = _services.GetRequiredService<IUserService>();
-        var result = ConversationViewModel.FromSession(conversations.Items.First());
+        var user = await userService.GetUser(_user.Id);
+        if (user == null)
+        {
+            return null;
+        }
 
+        var filter = new ConversationFilter
+        {
+            Id = conversationId,
+            UserId = user.Role != UserRole.Admin ? user.Id : null
+        };
+        var conversations = await service.GetConversations(filter);
+        if (conversations.Items.IsNullOrEmpty())
+        {
+            return null;
+        }
+        
+        var result = ConversationViewModel.FromSession(conversations.Items.First());
         var state = _services.GetRequiredService<IConversationStateService>();
         result.States = state.Load(conversationId, isReadOnly: true);
-
-        var user = await userService.GetUser(result.User.Id);
         result.User = UserViewModel.FromUser(user);
 
         return result;

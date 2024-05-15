@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -7,11 +9,13 @@ namespace BotSharp.OpenAPI.Controllers;
 public class AgentController : ControllerBase
 {
     private readonly IAgentService _agentService;
+    private readonly IUserIdentity _user;
     private readonly IServiceProvider _services;
 
-    public AgentController(IAgentService agentService, IServiceProvider services)
+    public AgentController(IAgentService agentService, IUserIdentity user, IServiceProvider services)
     {
         _agentService = agentService;
+        _user = user;
         _services = services;
     }
 
@@ -45,6 +49,18 @@ public class AgentController : ControllerBase
             
             rule.RedirectToAgentName = found.Name;
         }
+
+        var editable = false;
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user != null && user.Role != UserRole.Admin)
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var userAgents = db.GetAgentsByUser(user.Id);
+            editable = userAgents?.Select(x => x.Id)?.Contains(targetAgent.Id) ?? false;
+        }
+
+        targetAgent.Editable = editable || user?.Role == UserRole.Admin;
         return targetAgent;
     }
              
