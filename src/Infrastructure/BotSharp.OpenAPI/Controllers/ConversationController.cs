@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Routing;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -181,7 +182,22 @@ public class ConversationController : ControllerBase
     [HttpDelete("/conversation/{conversationId}")]
     public async Task<bool> DeleteConversation([FromRoute] string conversationId)
     {
+        var userService = _services.GetRequiredService<IUserService>();
         var conversationService = _services.GetRequiredService<IConversationService>();
+
+        var user = await userService.GetUser(_user.Id);
+        var filter = new ConversationFilter
+        {
+            Id = conversationId,
+            UserId = user.Role != UserRole.Admin ? user.Id : null
+        };
+        var conversations = await conversationService.GetConversations(filter);
+
+        if (conversations.Items.IsNullOrEmpty())
+        {
+            return false;
+        }
+
         var response = await conversationService.DeleteConversations(new List<string> { conversationId });
         return response;
     }
