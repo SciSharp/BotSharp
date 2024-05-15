@@ -50,9 +50,7 @@ public class ConversationController : ControllerBase
         filter.UserId = user.Role != UserRole.Admin ? user.Id : null;
         var conversations = await convService.GetConversations(filter);
         var agentService = _services.GetRequiredService<IAgentService>();
-        var list = conversations.Items
-            .Select(x => ConversationViewModel.FromSession(x))
-            .ToList();
+        var list = conversations.Items.Select(x => ConversationViewModel.FromSession(x)).ToList();
 
         foreach (var item in list)
         {

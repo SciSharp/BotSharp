@@ -25,7 +25,6 @@ public partial class FileRepository
     {
         var userId = Guid.NewGuid().ToString();
         user.Id = userId;
-        user.Role = UserRole.Admin;
         var dir = Path.Combine(_dbSettings.FileRepository, "users", userId);
         if (!Directory.Exists(dir))
         {

@@ -48,5 +48,7 @@ public interface IAgentService
     string GetDataDir();
     string GetAgentDataDir(string agentId);
 
+    List<Agent> GetAgentsByUser(string userId);
+
     PluginDef GetPlugin(string agentId);
 }

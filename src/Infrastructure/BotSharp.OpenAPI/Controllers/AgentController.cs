@@ -50,17 +50,16 @@ public class AgentController : ControllerBase
             rule.RedirectToAgentName = found.Name;
         }
 
-        var editable = false;
+        var editable = true;
         var userService = _services.GetRequiredService<IUserService>();
         var user = await userService.GetUser(_user.Id);
-        if (user != null && user.Role != UserRole.Admin)
+        if (user?.Role != UserRole.Admin)
         {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            var userAgents = db.GetAgentsByUser(user.Id);
+            var userAgents = _agentService.GetAgentsByUser(user?.Id);
             editable = userAgents?.Select(x => x.Id)?.Contains(targetAgent.Id) ?? false;
         }
 
-        targetAgent.Editable = editable || user?.Role == UserRole.Admin;
+        targetAgent.Editable = editable;
         return targetAgent;
     }
              

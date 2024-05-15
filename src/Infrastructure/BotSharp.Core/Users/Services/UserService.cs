@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
