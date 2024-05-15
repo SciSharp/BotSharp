@@ -41,17 +41,21 @@ public class PluginController : ControllerBase
             new PluginMenuDef("Apps", weight: 5)
             {
                 IsHeader = true,
+            },
+            new PluginMenuDef("System", weight: 30)
+            { 
+                IsHeader = true,
+                Roles = new List<string> { UserRole.Admin }
+            },
+            new PluginMenuDef("Plugins", link: "page/plugin", icon: "bx bx-plug", weight: 31)
+            {
+                Roles = new List<string> { UserRole.Admin }
+            },
+            new PluginMenuDef("Settings", link: "page/setting", icon: "bx bx-cog", weight: 32)
+            {
+                Roles = new List<string> { UserRole.Admin }
             }
         };
-
-        var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (user?.Role == UserRole.Admin)
-        {
-            menu.Add(new PluginMenuDef("System", weight: 30) { IsHeader = true });
-            menu.Add(new PluginMenuDef("Plugins", link: "page/plugin", icon: "bx bx-plug", weight: 31));
-            menu.Add(new PluginMenuDef("Settings", link: "page/setting", icon: "bx bx-cog", weight: 32));
-        }
 
         var loader = _services.GetRequiredService<PluginLoader>();
         foreach (var plugin in loader.GetPlugins(_services))
@@ -62,6 +66,10 @@ public class PluginController : ControllerBase
             }
             plugin.Module.AttachMenu(menu);
         }
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        menu = loader.FilterPluginsByRoles(menu, user?.Role);
         menu = menu.OrderBy(x => x.Weight).ToList();
         return menu;
     }

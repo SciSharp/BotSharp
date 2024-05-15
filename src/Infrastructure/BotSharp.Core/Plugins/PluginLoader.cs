@@ -269,4 +269,20 @@ public class PluginLoader
             }
         });
     }
+
+    public List<PluginMenuDef> FilterPluginsByRoles(List<PluginMenuDef> plugins, string userRole)
+    {
+        if (plugins.IsNullOrEmpty()) return plugins;
+
+        var filtered = new List<PluginMenuDef>();
+        foreach (var plugin in plugins)
+        {
+            if (plugin.Roles.IsNullOrEmpty() || plugin.Roles.Contains(userRole))
+            {
+                plugin.SubMenu = FilterPluginsByRoles(plugin.SubMenu, userRole);
+                filtered.Add(plugin);
+            }
+        }
+        return filtered;
+    }
 }
