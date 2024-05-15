@@ -154,6 +154,7 @@ public class ConversationController : ControllerBase
             return new UserViewModel
             {
                 Id = _user.Id,
+                UserName = _user.UserName,
                 FirstName = _user.FirstName,
                 LastName = _user.LastName,
                 Email = _user.Email,
