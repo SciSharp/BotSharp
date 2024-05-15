@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.Routing;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using BotSharp.Abstraction.Files.Models;
-using BotSharp.Abstraction.Files;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -136,6 +134,35 @@ public class ConversationController : ControllerBase
         result.User = UserViewModel.FromUser(user);
 
         return result;
+    }
+
+    [HttpGet("/conversation/{conversationId}/user")]
+    public async Task<UserViewModel> GetConversationUser([FromRoute] string conversationId)
+    {
+        var service = _services.GetRequiredService<IConversationService>();
+        var conversations = await service.GetConversations(new ConversationFilter
+        {
+            Id = conversationId
+        });
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var conversation = conversations?.Items?.FirstOrDefault();
+        var userId = conversation == null ? _user.Id : conversation.UserId;
+        var user = await userService.GetUser(userId);
+        if (user == null)
+        {
+            return new UserViewModel
+            {
+                Id = _user.Id,
+                UserName = _user.UserName,
+                FirstName = _user.FirstName,
+                LastName = _user.LastName,
+                Email = _user.Email,
+                Source = "Unknown"
+            };
+        }
+
+        return UserViewModel.FromUser(user);
     }
 
     [HttpDelete("/conversation/{conversationId}")]
