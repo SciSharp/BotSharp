@@ -4,14 +4,19 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
@@ -218,6 +223,17 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, ChatCompletionsOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+        var allowMultiModal = settings != null && settings.MultiModal;
+
+        var chatFiles = new List<MessageFileModel>();
+        if (allowMultiModal)
+        {
+            chatFiles = fileService.GetChatImages(state.GetConversationId(), conversations, offset: 2).ToList();
+        }
 
         var chatCompletionsOptions = new ChatCompletionsOptions();
         
@@ -279,18 +295,51 @@ public class ChatCompletionProvider : IChatCompletion
             else if (message.Role == ChatRole.User)
             {
                 var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
-                var userMessage = new ChatRequestUserMessage(text)
+                var chatItems = new List<ChatMessageContentItem>()
+                {
+                    new ChatMessageTextContentItem(text)
+                };
+
+                var files = chatFiles.Where(x => x.MessageId == message.MessageId).ToList();
+                if (!files.IsNullOrEmpty())
+                {
+                    foreach (var file in files)
+                    {
+                        using var stream = File.OpenRead(file.FileStorageUrl);
+                        chatItems.Add(new ChatMessageImageContentItem(stream, file.ContentType, ChatMessageImageDetailLevel.Low));
+                    }
+                }
+
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
+                {
+                    foreach (var file in message.Files)
+                    {
+                        if (!string.IsNullOrEmpty(file.FileUrl))
+                        {
+                            var uri = new Uri(file.FileUrl);
+                            chatItems.Add(new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                        }
+                        else if (!string.IsNullOrEmpty(file.FileData))
+                        {
+                            var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
+                            using var stream = new MemoryStream(bytes, 0, bytes.Length);
+                            chatItems.Add(new ChatMessageImageContentItem(stream, contentType, ChatMessageImageDetailLevel.Low));
+                        }
+                    }
+                }
+
+                //if (!string.IsNullOrEmpty(message.ImageUrl))
+                //{
+                //    var uri = new Uri(message.ImageUrl);
+                //    userMessage.MultimodalContentItems.Add(
+                //        new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                //}
+
+                var userMessage = new ChatRequestUserMessage(chatItems)
                 {
                     // To display Planner name in log
                     Name = message.FunctionName,
                 };
-
-                if (!string.IsNullOrEmpty(message.ImageUrl))
-                {
-                    var uri = new Uri(message.ImageUrl);
-                    userMessage.MultimodalContentItems.Add(
-                        new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
-                }
 
                 chatCompletionsOptions.Messages.Add(userMessage);
             }
@@ -301,7 +350,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api-a-few-tips-and-tricks-on-controlling-the-creativity-deterministic-output-of-prompt-responses/172683
-        var state = _services.GetRequiredService<IConversationStateService>();
+        //var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.0"));
         chatCompletionsOptions.Temperature = temperature;
