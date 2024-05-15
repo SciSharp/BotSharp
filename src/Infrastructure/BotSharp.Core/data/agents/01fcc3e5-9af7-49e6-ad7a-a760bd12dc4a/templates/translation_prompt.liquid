@@ -1,7 +1,9 @@
 {% for text in text_list %}
 {{ text }}
 {% endfor %}
-
 =====
-Translate the above sentences in the list into {{ language }}.
-Output the translated text in JSON {"input_lang":"",  "output_lang":"{{ language }}", "texts":[]}, input_lang is based on the original sentences.
+Translate the above sentences into {{ language }}.
+Output the translated text in JSON {"input_lang":"original text language",  "output_lang":"{{ language }}", "texts":[""]}.
+Do not include the serial number before each sentence.
+Do not include double quotes outside the sentence.
+The number of output sentences must be {{ text_list | size }}.
