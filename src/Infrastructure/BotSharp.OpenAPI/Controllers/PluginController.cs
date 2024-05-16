@@ -69,7 +69,7 @@ public class PluginController : ControllerBase
 
         var userService = _services.GetRequiredService<IUserService>();
         var user = await userService.GetUser(_user.Id);
-        menu = loader.FilterPluginsByRoles(menu, user?.Role);
+        menu = loader.GetPluginMenuByRoles(menu, user?.Role);
         menu = menu.OrderBy(x => x.Weight).ToList();
         return menu;
     }

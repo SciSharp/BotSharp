@@ -270,7 +270,7 @@ public class PluginLoader
         });
     }
 
-    public List<PluginMenuDef> FilterPluginsByRoles(List<PluginMenuDef> plugins, string userRole)
+    public List<PluginMenuDef> GetPluginMenuByRoles(List<PluginMenuDef> plugins, string userRole)
     {
         if (plugins.IsNullOrEmpty()) return plugins;
 
@@ -279,7 +279,7 @@ public class PluginLoader
         {
             if (plugin.Roles.IsNullOrEmpty() || plugin.Roles.Contains(userRole))
             {
-                plugin.SubMenu = FilterPluginsByRoles(plugin.SubMenu, userRole);
+                plugin.SubMenu = GetPluginMenuByRoles(plugin.SubMenu, userRole);
                 filtered.Add(plugin);
             }
         }
