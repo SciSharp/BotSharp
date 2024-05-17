@@ -28,6 +28,11 @@ public partial class PlaywrightWebDriver
         else if (action.Action == BroswerActionEnum.InputText)
         {
             await locator.FillAsync(action.Content);
+
+            if (action.PressKey != null)
+            {
+                await locator.PressAsync(action.PressKey);
+            }
         }
     }
 }

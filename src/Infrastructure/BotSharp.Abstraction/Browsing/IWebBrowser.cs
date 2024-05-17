@@ -24,6 +24,6 @@ public interface IWebBrowser
     Task<T> EvaluateScript<T>(string contextId, string script);
     Task CloseBrowser(string contextId);
     Task CloseCurrentPage(string contextId);
-    Task<BrowserActionResult> SendHttpRequest(string contextId, HttpRequestParams actionParams);
+    Task<BrowserActionResult> SendHttpRequest(MessageInfo message, HttpRequestParams actionParams);
     Task<BrowserActionResult> GetAttributeValue(MessageInfo message, ElementLocatingArgs location);
 }

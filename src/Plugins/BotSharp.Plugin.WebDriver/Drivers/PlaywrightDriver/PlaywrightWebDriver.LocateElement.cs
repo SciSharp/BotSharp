@@ -1,3 +1,5 @@
+using System.Xml.Linq;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -18,12 +20,12 @@ public partial class PlaywrightWebDriver
         // check if selector is specified
         if (location.Selector != null)
         {
-            locator = page.Locator(location.Selector);
+            locator = locator.Locator(location.Selector);
             count = await locator.CountAsync();
         }
 
         // try attribute
-        if (count == 0 && !string.IsNullOrEmpty(location.AttributeName))
+        if (!string.IsNullOrEmpty(location.AttributeName))
         {
             locator = locator.Locator($"[{location.AttributeName}='{location.AttributeValue}']");
             count = await locator.CountAsync();
@@ -65,12 +67,29 @@ public partial class PlaywrightWebDriver
         else if (count == 1)
         {
             result.Selector = locator.ToString().Split('@').Last();
+
+            // Make sure the element is visible
+            await locator.EvaluateAsync("element => element.style.height = ''");
+            await locator.EvaluateAsync("element => element.style.width = ''");
+            await locator.EvaluateAsync("element => element.style.opacity = ''");
+
             var text = await locator.InnerTextAsync();
             result.Body = text;
             result.IsSuccess = true;
         }
         else if (count > 1)
         {
+            // Make sure the element is visible
+            foreach (var element in await locator.AllAsync())
+            {
+                if (!await element.IsVisibleAsync())
+                {
+                    await element.EvaluateAsync("element => element.style.height = '10px'");
+                    await element.EvaluateAsync("element => element.style.width = '10px'");
+                    await element.EvaluateAsync("element => element.style.opacity = '1.0'");
+                }
+            }
+
             if (location.FailIfMultiple)
             {
                 result.Message = $"Multiple elements are found by {locator}";
