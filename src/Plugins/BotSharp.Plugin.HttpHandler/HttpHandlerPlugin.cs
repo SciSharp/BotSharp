@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Http.Settings;
+using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.HttpHandler;
@@ -12,6 +14,10 @@ public class HttpHandlerPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<HttpSettings>("Http");
+        });
     }
 }

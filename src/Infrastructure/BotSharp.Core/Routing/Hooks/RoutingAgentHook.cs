@@ -1,8 +1,6 @@
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Settings;
-using System.Diagnostics.Metrics;
 
 namespace BotSharp.Core.Routing.Hooks;
 
@@ -105,6 +103,51 @@ public class RoutingAgentHook : AgentHookBase
                         }
                     }
                 });
+            }
+
+            var settings = _services.GetRequiredService<AgentSettings>();
+            if (settings.EnableHttpHandler)
+            {
+                var httpHandlerName = "handle_http_request";
+                var existHttpHandler = functions.Any(x => x.Name == httpHandlerName);
+                var funcs = _services.GetServices<IFunctionCallback>();
+                var httpRequestFunc = funcs.FirstOrDefault(x => x.Name == httpHandlerName);
+                if (!existHttpHandler && httpRequestFunc != null)
+                {
+                    var json = JsonSerializer.Serialize(new
+                    {
+                        request_url = new
+                        {
+                            type = "string",
+                            description = $"The http url that is requested. It can be an absolute url that starts with \"http\" or \"https\", or a relative url that starts with \"/\""
+                        },
+                        http_method = new
+                        {
+                            type = "string",
+                            description = $"The http method that is requested, e.g., GET, POST, PUT, and DELETE."
+                        },
+                        request_content = new
+                        {
+                            type = "string",
+                            description = $"The http request content. It must be in json format."
+                        }
+                    });
+                    functions.Add(new FunctionDef
+                    {
+                        Name = httpRequestFunc.Name,
+                        Description = "If the user requests to send an http request, you need to capture the http method and request content, and then call this function to send the http request.",
+                        Parameters =
+                        {
+                            Properties = JsonSerializer.Deserialize<JsonDocument>(json),
+                            Required = new List<string>
+                            {
+                                "request_url",
+                                "http_method"
+                            }
+                        }
+                    });
+                }
+
             }
         }
 
