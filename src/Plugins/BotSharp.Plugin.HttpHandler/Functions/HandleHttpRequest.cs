@@ -95,7 +95,7 @@ public class HandleHttpRequest : IFunctionCallback
 
         if (httpMethod == HttpMethod.Get)
         {
-            httpContent = BuildHttpContent(string.Empty);
+            httpContent = BuildHttpContent("{}");
         }
         else
         {
@@ -143,7 +143,7 @@ public class HandleHttpRequest : IFunctionCallback
         var str = string.Empty;
         try
         {
-            var json = JsonSerializer.Deserialize<JsonDocument>(content ?? string.Empty, _options.JsonSerializerOptions);
+            var json = JsonSerializer.Deserialize<JsonDocument>(content ?? "{}", _options.JsonSerializerOptions);
             str = JsonSerializer.Serialize(json, _options.JsonSerializerOptions);
         }
         catch (Exception ex)
