@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -27,7 +26,7 @@ public class AgentController : ControllerBase
     }
 
     [HttpGet("/agent/{id}")]
-    public async Task<AgentViewModel> GetAgent([FromRoute] string id)
+    public async Task<AgentViewModel?> GetAgent([FromRoute] string id)
     {
         var agents = await GetAgents(new AgentFilter
         {
@@ -35,6 +34,8 @@ public class AgentController : ControllerBase
         });
 
         var targetAgent = agents.Items.FirstOrDefault();
+        if (targetAgent == null) return null;
+
         var redirectAgentIds = targetAgent.RoutingRules
                                           .Where(x => !string.IsNullOrEmpty(x.RedirectTo))
                                           .Select(x => x.RedirectTo).ToList();
@@ -132,5 +133,11 @@ public class AgentController : ControllerBase
         var model = agent.ToAgent();
         model.Id = agentId;
         return await _agentService.PatchAgentTemplate(model);
+    }
+
+    [HttpDelete("/agent/{agentId}")]
+    public async Task<bool> DeleteAgent([FromRoute] string agentId)
+    {
+        return await _agentService.DeleteAgent(agentId);
     }
 }
