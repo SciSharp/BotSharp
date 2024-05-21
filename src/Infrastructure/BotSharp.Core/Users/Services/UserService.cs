@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -56,6 +55,12 @@ public class UserService : IUserService
 
         _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}");
         Utilities.ClearCache();
+
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.UserCreated(record);
+        }
 
         return record;
     }
