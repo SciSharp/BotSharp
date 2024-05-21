@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
 
