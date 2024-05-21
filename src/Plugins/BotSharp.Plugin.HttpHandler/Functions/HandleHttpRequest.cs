@@ -165,8 +165,8 @@ public class HandleHttpRequest : IFunctionCallback
             var root = json.RootElement;
             foreach (var prop in root.EnumerateObject())
             {
-                var name = prop.Name;
-                var value = prop.Value.ToString();
+                var name = prop.Name.Trim();
+                var value = prop.Value.ToString().Trim();
                 if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value))
                 {
                     continue;
