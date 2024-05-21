@@ -36,7 +36,7 @@ public class CompletionProvider
         string? provider = null, 
         string? model = null,
         string? modelId = null,
-        bool multiModal = false,
+        bool? multiModal = null,
         AgentLlmConfig? agentConfig = null)
     {
         var completions = services.GetServices<IChatCompletion>();
@@ -59,7 +59,7 @@ public class CompletionProvider
         string? provider = null,
         string? model = null,
         string? modelId = null,
-        bool multiModal = false,
+        bool? multiModal = null,
         AgentLlmConfig? agentConfig = null)
     {
         var agentSetting = services.GetRequiredService<AgentSettings>();
@@ -82,7 +82,7 @@ public class CompletionProvider
             {
                 var modelIdentity = state.ContainsState("model_id") ? state.GetState("model_id") : modelId;
                 var llmProviderService = services.GetRequiredService<ILlmProviderService>();
-                model = llmProviderService.GetProviderModel(provider, modelIdentity, multiModal)?.Name;
+                model = llmProviderService.GetProviderModel(provider, modelIdentity, multiModal: multiModal)?.Name;
             }
         }
 

@@ -57,8 +57,11 @@ public class TranslationService : ITranslationService
 
         var keys = unique.ToArray();
         var texts = unique.ToArray()
-            .Select((text, i) => $"{i + 1}. \"{text}\"")
-            .ToList();
+            .Select((text, i) => new TranslationInput
+            {
+                Id = i + 1,
+                Text = text
+            }).ToList();
         var translatedStringList = await InnerTranslate(texts, language, template);
 
         try
@@ -297,15 +300,18 @@ public class TranslationService : ITranslationService
     /// <param name="list"></param>
     /// <param name="language"></param>
     /// <returns></returns>
-    private async Task<TranslationOutput> InnerTranslate(List<string> texts, string language, string template)
+    private async Task<TranslationOutput> InnerTranslate(List<TranslationInput> texts, string language, string template)
     {
+        var jsonString = JsonSerializer.Serialize(texts);
         var translator = new Agent
         {
             Id = Guid.Empty.ToString(),
             Name = "Translator",
+            Instruction = "You are a translation expert.",
             TemplateDict = new Dictionary<string, object>
             {
-                { "text_list",  texts },
+                { "text_list",  jsonString },
+                { "text_list_size", texts.Count },
                 { StateConst.LANGUAGE, language }
             }
         };

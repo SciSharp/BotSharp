@@ -1,8 +1,4 @@
 using BotSharp.Abstraction.Routing;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-using BotSharp.Abstraction.Users.Enums;
-using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -332,12 +328,7 @@ public class ConversationController : ControllerBase
 
     private async Task OnChunkReceived(HttpResponse response, RoleDialogModel message)
     {
-        var json = JsonConvert.SerializeObject(message, new JsonSerializerSettings
-        {
-            Formatting = Formatting.None,
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
-        });
+        var json = JsonSerializer.Serialize(message);
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);

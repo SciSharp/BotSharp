@@ -1,9 +1,5 @@
-{% for text in text_list %}
-{{ text }}
-{% endfor %}
+{{ text_list }}
+
 =====
-Translate the above sentences into {{ language }}.
-Output the translated text in JSON {"input_lang":"original text language",  "output_lang":"{{ language }}", "texts":[""]}.
-Do not include the serial number before each sentence.
-Do not include double quotes outside the sentence.
-The number of output sentences must be {{ text_list | size }}.
+Translate all the above sentences into {{ language }}.
+Output the translated text in JSON {"input_lang":"original text language", "output_count": {{ text_list_size }}, "output_lang":"{{ language }}", "texts":[{"id": 1, "text":""}]}.
