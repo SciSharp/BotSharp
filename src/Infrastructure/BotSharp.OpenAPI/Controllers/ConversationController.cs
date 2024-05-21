@@ -257,7 +257,11 @@ public class ConversationController : ControllerBase
         conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
 
-        var response = new ChatResponseModel();
+        var response = new ChatResponseModel
+        {
+            ConversationId = conversationId,
+            MessageId = inputMsg.MessageId,
+        };
 
         Response.StatusCode = 200;
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
@@ -266,6 +270,7 @@ public class ConversationController : ControllerBase
 
         await conv.SendMessage(agentId, inputMsg,
             replyMessage: input.Postback,
+            // responsed generated
             async msg =>
             {
                 response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
@@ -274,18 +279,21 @@ public class ConversationController : ControllerBase
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
 
-                await OnChunkReceived(Response, msg);
+                await OnChunkReceived(Response, response);
             },
+            // executing
             async msg =>
             {
-                var message = new RoleDialogModel(AgentRole.Function, msg.Content)
+                var indicator = new ChatResponseModel
                 {
-                    FunctionArgs = msg.FunctionArgs,
-                    FunctionName = msg.FunctionName,
-                    Indication = msg.Indication
+                    ConversationId = conversationId,
+                    MessageId = msg.MessageId,
+                    Text = msg.Indication, 
+                    Function = "indicating",
                 };
-                await OnChunkReceived(Response, message);
+                await OnChunkReceived(Response, indicator);
             },
+            // executed
             async msg =>
             {
 
@@ -299,7 +307,7 @@ public class ConversationController : ControllerBase
         // await OnEventCompleted(Response);
     }
 
-    private async Task OnChunkReceived(HttpResponse response, RoleDialogModel message)
+    private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
     {
         var json = JsonSerializer.Serialize(message);
 
