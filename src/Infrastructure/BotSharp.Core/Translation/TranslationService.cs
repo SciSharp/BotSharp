@@ -79,7 +79,7 @@ public class TranslationService : ITranslationService
 
             for (var i = 0; i < texts.Count; i++)
             {
-                map[keys[i]] = translatedTexts[i];
+                map[keys[i]] = translatedTexts[i].Text;
             }
 
             clonedData = Assign(clonedData, map);
