@@ -302,10 +302,7 @@ public class TranslationService : ITranslationService
     /// <returns></returns>
     private async Task<TranslationOutput> InnerTranslate(List<TranslationInput> texts, string language, string template)
     {
-        var jsonString = JsonSerializer.Serialize(texts, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-        }) ;
+        var jsonString = JsonSerializer.Serialize(texts);
         var translator = new Agent
         {
             Id = Guid.Empty.ToString(),
