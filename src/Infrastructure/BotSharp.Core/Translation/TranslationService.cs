@@ -62,10 +62,18 @@ public class TranslationService : ITranslationService
                 Id = i + 1,
                 Text = text
             }).ToList();
-        var translatedStringList = await InnerTranslate(texts, language, template);
 
         try
         {
+            var translatedStringList = await InnerTranslate(texts, language, template);
+
+            int retry = 0;
+            while (translatedStringList.Texts.Length != texts.Count && retry < 3)
+            {
+                translatedStringList = await InnerTranslate(texts, language, template);
+                retry++;
+            }
+
             // Override language if it's Unknown, it's used to output the corresponding language.
             var states = _services.GetRequiredService<IConversationStateService>();
             if (!states.ContainsState(StateConst.LANGUAGE))
