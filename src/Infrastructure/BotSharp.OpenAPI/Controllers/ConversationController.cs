@@ -251,6 +251,8 @@ public class ConversationController : ControllerBase
             await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
         }
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
@@ -278,6 +280,7 @@ public class ConversationController : ControllerBase
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
+                response.States = state.GetStates();
 
                 await OnChunkReceived(Response, response);
             },
@@ -290,6 +293,7 @@ public class ConversationController : ControllerBase
                     MessageId = msg.MessageId,
                     Text = msg.Indication, 
                     Function = "indicating",
+                    States = new Dictionary<string, string>()
                 };
                 await OnChunkReceived(Response, indicator);
             },
@@ -299,7 +303,6 @@ public class ConversationController : ControllerBase
 
             });
 
-        var state = _services.GetRequiredService<IConversationStateService>();
         response.States = state.GetStates();
         response.MessageId = inputMsg.MessageId;
         response.ConversationId = conversationId;
@@ -309,7 +312,10 @@ public class ConversationController : ControllerBase
 
     private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
     {
-        var json = JsonSerializer.Serialize(message);
+        var json = JsonSerializer.Serialize(message, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        });
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
