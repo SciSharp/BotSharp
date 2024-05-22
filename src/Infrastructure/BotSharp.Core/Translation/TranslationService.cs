@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using System.Collections;
 using System.Reflection;
+using System.Text.Encodings.Web;
 
 namespace BotSharp.Core.Translation;
 
