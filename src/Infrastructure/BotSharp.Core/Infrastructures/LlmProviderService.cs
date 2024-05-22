@@ -44,11 +44,15 @@ public class LlmProviderService : ILlmProviderService
             ?.Models ?? new List<LlmModelSetting>();
     }
 
-    public LlmModelSetting GetProviderModel(string provider, string id)
+    public LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null)
     {
         var models = GetProviderModels(provider)
-            .Where(x => x.Id == id)
-            .ToList();
+            .Where(x => x.Id == id);
+
+        if (multiModal.HasValue)
+        {
+            models = models.Where(x => x.MultiModal == multiModal);
+        }
 
         var random = new Random();
         var index = random.Next(0, models.Count());

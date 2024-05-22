@@ -1,8 +1,4 @@
 using BotSharp.Abstraction.Routing;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-using BotSharp.Abstraction.Files.Models;
-using BotSharp.Abstraction.Files;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -138,6 +134,35 @@ public class ConversationController : ControllerBase
         return result;
     }
 
+    [HttpGet("/conversation/{conversationId}/user")]
+    public async Task<UserViewModel> GetConversationUser([FromRoute] string conversationId)
+    {
+        var service = _services.GetRequiredService<IConversationService>();
+        var conversations = await service.GetConversations(new ConversationFilter
+        {
+            Id = conversationId
+        });
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var conversation = conversations?.Items?.FirstOrDefault();
+        var userId = conversation == null ? _user.Id : conversation.UserId;
+        var user = await userService.GetUser(userId);
+        if (user == null)
+        {
+            return new UserViewModel
+            {
+                Id = _user.Id,
+                UserName = _user.UserName,
+                FirstName = _user.FirstName,
+                LastName = _user.LastName,
+                Email = _user.Email,
+                Source = "Unknown"
+            };
+        }
+
+        return UserViewModel.FromUser(user);
+    }
+
     [HttpDelete("/conversation/{conversationId}")]
     public async Task<bool> DeleteConversation([FromRoute] string conversationId)
     {
@@ -232,7 +257,11 @@ public class ConversationController : ControllerBase
         conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
 
-        var response = new ChatResponseModel();
+        var response = new ChatResponseModel
+        {
+            ConversationId = conversationId,
+            MessageId = inputMsg.MessageId,
+        };
 
         Response.StatusCode = 200;
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
@@ -241,6 +270,7 @@ public class ConversationController : ControllerBase
 
         await conv.SendMessage(agentId, inputMsg,
             replyMessage: input.Postback,
+            // responsed generated
             async msg =>
             {
                 response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
@@ -249,18 +279,21 @@ public class ConversationController : ControllerBase
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
 
-                await OnChunkReceived(Response, msg);
+                await OnChunkReceived(Response, response);
             },
+            // executing
             async msg =>
             {
-                var message = new RoleDialogModel(AgentRole.Function, msg.Content)
+                var indicator = new ChatResponseModel
                 {
-                    FunctionArgs = msg.FunctionArgs,
-                    FunctionName = msg.FunctionName,
-                    Indication = msg.Indication
+                    ConversationId = conversationId,
+                    MessageId = msg.MessageId,
+                    Text = msg.Indication, 
+                    Function = "indicating",
                 };
-                await OnChunkReceived(Response, message);
+                await OnChunkReceived(Response, indicator);
             },
+            // executed
             async msg =>
             {
 
@@ -274,14 +307,9 @@ public class ConversationController : ControllerBase
         // await OnEventCompleted(Response);
     }
 
-    private async Task OnChunkReceived(HttpResponse response, RoleDialogModel message)
+    private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
     {
-        var json = JsonConvert.SerializeObject(message, new JsonSerializerSettings
-        {
-            Formatting = Formatting.None,
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
-        });
+        var json = JsonSerializer.Serialize(message);
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);

@@ -65,7 +65,7 @@ public class UserService : IUserService
         return record;
     }
 
-    public async Task<Token> GetToken(string authorization)
+    public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
@@ -77,13 +77,14 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        User? user = null;
         var hooks = _services.GetServices<IAuthenticationHook>();
         if (record == null  || record.Source != "internal")
         {
             // check 3rd party user
             foreach (var hook in hooks)
             {
-                var user = await hook.Authenticate(id, password);
+                user = await hook.Authenticate(id, password);
                 if (user == null)
                 {
                     continue;
@@ -114,7 +115,7 @@ public class UserService : IUserService
             }
         }
 
-        if (record == null)
+        if ((!hooks.IsNullOrEmpty() && user == null) || record == null)
         {
             return default;
         }

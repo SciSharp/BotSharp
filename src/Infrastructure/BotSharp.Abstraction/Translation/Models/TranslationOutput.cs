@@ -9,5 +9,5 @@ public class TranslationOutput
     public string OutputLanguage { get; set; } = LanguageType.ENGLISH;
 
     [JsonPropertyName("texts")]
-    public string[] Texts { get; set; } = Array.Empty<string>();
+    public TranslationInput[] Texts { get; set; } = Array.Empty<TranslationInput>();
 }

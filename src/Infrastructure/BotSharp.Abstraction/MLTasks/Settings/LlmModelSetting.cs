@@ -28,6 +28,11 @@ public class LlmModelSetting
     public LlmModelType Type { get; set; } = LlmModelType.Chat;
 
     /// <summary>
+    /// If true, allow sending images/vidoes to this model
+    /// </summary>
+    public bool MultiModal { get; set; }
+
+    /// <summary>
     /// Prompt cost per 1K token
     /// </summary>
     public float PromptCost { get; set; }

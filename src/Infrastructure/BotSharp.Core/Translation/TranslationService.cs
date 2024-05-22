@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using System.Collections;
 using System.Reflection;
+using System.Text.Encodings.Web;
 
 namespace BotSharp.Core.Translation;
 
@@ -57,12 +58,23 @@ public class TranslationService : ITranslationService
 
         var keys = unique.ToArray();
         var texts = unique.ToArray()
-            .Select((text, i) => $"{i + 1}. \"{text}\"")
-            .ToList();
-        var translatedStringList = await InnerTranslate(texts, language, template);
+            .Select((text, i) => new TranslationInput
+            {
+                Id = i + 1,
+                Text = text
+            }).ToList();
 
         try
         {
+            var translatedStringList = await InnerTranslate(texts, language, template);
+
+            int retry = 0;
+            while (translatedStringList.Texts.Length != texts.Count && retry < 3)
+            {
+                translatedStringList = await InnerTranslate(texts, language, template);
+                retry++;
+            }
+
             // Override language if it's Unknown, it's used to output the corresponding language.
             var states = _services.GetRequiredService<IConversationStateService>();
             if (!states.ContainsState(StateConst.LANGUAGE))
@@ -76,7 +88,7 @@ public class TranslationService : ITranslationService
 
             for (var i = 0; i < texts.Count; i++)
             {
-                map[keys[i]] = translatedTexts[i];
+                map[keys[i]] = translatedTexts[i].Text;
             }
 
             clonedData = Assign(clonedData, map);
@@ -297,15 +309,19 @@ public class TranslationService : ITranslationService
     /// <param name="list"></param>
     /// <param name="language"></param>
     /// <returns></returns>
-    private async Task<TranslationOutput> InnerTranslate(List<string> texts, string language, string template)
+    private async Task<TranslationOutput> InnerTranslate(List<TranslationInput> texts, string language, string template)
     {
+        var options = new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        var jsonString = JsonSerializer.Serialize(texts, options);
         var translator = new Agent
         {
             Id = Guid.Empty.ToString(),
             Name = "Translator",
+            Instruction = "You are a translation expert.",
             TemplateDict = new Dictionary<string, object>
             {
-                { "text_list",  texts },
+                { "text_list",  jsonString },
+                { "text_list_size", texts.Count },
                 { StateConst.LANGUAGE, language }
             }
         };

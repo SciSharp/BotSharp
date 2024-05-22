@@ -35,10 +35,13 @@ public class CompletionProvider
     public static IChatCompletion GetChatCompletion(IServiceProvider services, 
         string? provider = null, 
         string? model = null,
+        string? modelId = null,
+        bool? multiModal = null,
         AgentLlmConfig? agentConfig = null)
     {
         var completions = services.GetServices<IChatCompletion>();
-        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, agentConfig: agentConfig);
+        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId, 
+            multiModal: multiModal, agentConfig: agentConfig);
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
         if (completer == null)
@@ -47,7 +50,7 @@ public class CompletionProvider
             logger.LogError($"Can't resolve completion provider by {provider}");
         }
 
-        completer.SetModelName(model);
+        completer?.SetModelName(model);
 
         return completer;
     }
@@ -55,6 +58,8 @@ public class CompletionProvider
     private static (string, string) GetProviderAndModel(IServiceProvider services, 
         string? provider = null,
         string? model = null,
+        string? modelId = null,
+        bool? multiModal = null,
         AgentLlmConfig? agentConfig = null)
     {
         var agentSetting = services.GetRequiredService<AgentSettings>();
@@ -73,11 +78,11 @@ public class CompletionProvider
             {
                 model = state.GetState("model", model ?? "gpt-35-turbo-4k");
             }
-            else if (state.ContainsState("model_id"))
+            else if (state.ContainsState("model_id") || !string.IsNullOrEmpty(modelId))
             {
-                var modelId = state.GetState("model_id");
+                var modelIdentity = state.ContainsState("model_id") ? state.GetState("model_id") : modelId;
                 var llmProviderService = services.GetRequiredService<ILlmProviderService>();
-                model = llmProviderService.GetProviderModel(provider, modelId)?.Name;
+                model = llmProviderService.GetProviderModel(provider, modelIdentity, multiModal: multiModal)?.Name;
             }
         }
 
