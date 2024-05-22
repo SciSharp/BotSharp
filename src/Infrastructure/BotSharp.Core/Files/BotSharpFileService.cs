@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.StaticFiles;
+using System;
 using System.IO;
 using System.Threading;
 
@@ -8,21 +9,27 @@ public class BotSharpFileService : IBotSharpFileService
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly IServiceProvider _services;
+    private readonly IUserIdentity _user;
     private readonly ILogger<BotSharpFileService> _logger;
     private readonly string _baseDir;
     private readonly IEnumerable<string> _allowedTypes = new List<string> { "image/png", "image/jpeg" };
 
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
+    private const string USERS_FOLDER = "users";
+    private const string USER_AVATAR_FOLDER = "avatar";
+
     private const int MIN_OFFSET = 1;
     private const int MAX_OFFSET = 5;
 
     public BotSharpFileService(
         BotSharpDatabaseSettings dbSettings,
+        IUserIdentity user,
         ILogger<BotSharpFileService> logger,
         IServiceProvider services)
     {
         _dbSettings = dbSettings;
+        _user = user;
         _logger = logger;
         _services = services;
         _baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbSettings.FileRepository);
@@ -38,7 +45,7 @@ public class BotSharpFileService : IBotSharpFileService
         return dir;
     }
 
-    public IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int offset = 2)
+    public IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int offset = 1)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
@@ -68,7 +75,7 @@ public class BotSharpFileService : IBotSharpFileService
         foreach (var messageId in messageIds)
         {
             var dir = GetConversationFileDirectory(conversationId, messageId);
-            if (string.IsNullOrEmpty(dir))
+            if (!ExistDirectory(dir))
             {
                 continue;
             }
@@ -101,24 +108,24 @@ public class BotSharpFileService : IBotSharpFileService
         return files;
     }
 
-    public string? GetMessageFile(string conversationId, string messageId, string fileName)
+    public string GetMessageFile(string conversationId, string messageId, string fileName)
     {
         var dir = GetConversationFileDirectory(conversationId, messageId);
-        if (string.IsNullOrEmpty(dir))
+        if (!ExistDirectory(dir))
         {
-            return null;
+            return string.Empty;
         }
 
         var found = Directory.GetFiles(dir).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
         return found;
     }
 
-    public void SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files)
+    public bool SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files)
     {
-        if (files.IsNullOrEmpty()) return;
+        if (files.IsNullOrEmpty()) return false;
 
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
-        if (string.IsNullOrEmpty(dir)) return;
+        if (!ExistDirectory(dir)) return false;
 
         try
         {
@@ -136,10 +143,53 @@ public class BotSharpFileService : IBotSharpFileService
                 Thread.Sleep(100);
                 File.WriteAllBytes(Path.Combine(dir, fileName), bytes);
             }
+            return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when saving conversation files: {ex.Message}");
+            _logger.LogWarning($"Error when saving conversation files: {ex.Message}");
+            return false;
+        }
+    }
+
+    public string GetUserAvatar()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var user = db.GetUserById(_user.Id);
+        var dir = GetUserAvatarDir(user?.Id);
+
+        if (!ExistDirectory(dir)) return string.Empty;
+
+        var found = Directory.GetFiles(dir).FirstOrDefault() ?? string.Empty;
+        return found;
+    }
+
+    public bool SaveUserAvatar(BotSharpFile file)
+    {
+        if (file == null || string.IsNullOrEmpty(file.FileData)) return false;
+
+        try
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var user = db.GetUserById(_user.Id);
+            var dir = GetUserAvatarDir(user?.Id);
+
+            if (string.IsNullOrEmpty(dir)) return false;
+
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, true);
+            }
+
+            dir = GetUserAvatarDir(user?.Id, createNewDir: true);
+            var (_, bytes) = GetFileInfoFromData(file.FileData);
+            File.WriteAllBytes(Path.Combine(dir, file.FileName), bytes);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when saving user avatar: {ex.Message}");
+            return false;
         }
     }
 
@@ -152,9 +202,9 @@ public class BotSharpFileService : IBotSharpFileService
             var prevDir = GetConversationFileDirectory(conversationId, targetMessageId);
             var newDir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, newMessageId);
 
-            if (Directory.Exists(prevDir))
+            if (ExistDirectory(prevDir))
             {
-                if (Directory.Exists(newDir))
+                if (ExistDirectory(newDir))
                 {
                     Directory.Delete(newDir, true);
                 }
@@ -182,7 +232,7 @@ public class BotSharpFileService : IBotSharpFileService
         foreach (var conversationId in conversationIds)
         {
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) continue;
+            if (!ExistDirectory(convDir)) continue;
 
             Directory.Delete(convDir, true);
         }
@@ -215,16 +265,9 @@ public class BotSharpFileService : IBotSharpFileService
         }
 
         var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
-        if (!Directory.Exists(dir))
+        if (!Directory.Exists(dir) && createNewDir)
         {
-            if (createNewDir)
-            {
-                Directory.CreateDirectory(dir);
-            }
-            else
-            {
-                return string.Empty;
-            }
+            Directory.CreateDirectory(dir);
         }
         return dir;
     }
@@ -234,8 +277,21 @@ public class BotSharpFileService : IBotSharpFileService
         if (string.IsNullOrEmpty(conversationId)) return null;
 
         var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId);
-        if (!Directory.Exists(dir)) return null;
+        return dir;
+    }
 
+    private string GetUserAvatarDir(string? userId, bool createNewDir = false)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            return string.Empty;
+        }
+
+        var dir = Path.Combine(_baseDir, USERS_FOLDER, userId, USER_AVATAR_FOLDER);
+        if (!Directory.Exists(dir) && createNewDir)
+        {
+            Directory.CreateDirectory(dir);
+        }
         return dir;
     }
 
@@ -249,6 +305,11 @@ public class BotSharpFileService : IBotSharpFileService
         }
 
         return contentType;
+    }
+
+    private bool ExistDirectory(string? dir)
+    {
+        return !string.IsNullOrEmpty(dir) && Directory.Exists(dir);
     }
     #endregion
 }

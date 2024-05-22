@@ -46,7 +46,7 @@ public class FileController : ControllerBase
     }
 
     [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}")]
-    public async Task<IActionResult> GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string fileName)
+    public IActionResult GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string fileName)
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var file = fileService.GetMessageFile(conversationId, messageId, fileName);
@@ -54,7 +54,30 @@ public class FileController : ControllerBase
         {
             return NotFound();
         }
+        return BuildFileResult(file);
+    }
 
+    [HttpPost("/user/avatar")]
+    public bool UploadUserAvatar([FromBody] BotSharpFile file)
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        return fileService.SaveUserAvatar(file);
+    }
+
+    [HttpGet("/user/avatar")]
+    public IActionResult GetUserAvatar()
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var file = fileService.GetUserAvatar();
+        if (string.IsNullOrEmpty(file))
+        {
+            return NotFound();
+        }
+        return BuildFileResult(file);
+    }
+
+    private FileContentResult BuildFileResult(string file)
+    {
         using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
         var bytes = new byte[stream.Length];
         stream.Read(bytes, 0, (int)stream.Length);
