@@ -77,7 +77,7 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
-        User? user = null;
+        User? user = record;
         var hooks = _services.GetServices<IAuthenticationHook>();
         if (record == null  || record.Source != "internal")
         {

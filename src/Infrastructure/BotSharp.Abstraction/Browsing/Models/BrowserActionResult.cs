@@ -8,4 +8,9 @@ public class BrowserActionResult
     public string Selector { get; set; }
     public string Body { get; set; }
     public bool IsHighlighted { get; set; }
+
+    public override string ToString()
+    {
+        return $"{IsSuccess} - {Selector}";
+    }
 }

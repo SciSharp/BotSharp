@@ -24,6 +24,12 @@ public partial class PlaywrightWebDriver
             count = await locator.CountAsync();
         }
 
+        if (location.Tag != null)
+        {
+            locator = page.Locator(location.Tag);
+            count = await locator.CountAsync();
+        }
+
         // try attribute
         if (!string.IsNullOrEmpty(location.AttributeName))
         {
@@ -66,12 +72,20 @@ public partial class PlaywrightWebDriver
         }
         else if (count == 1)
         {
+            if (location.Parent)
+            {
+                locator = locator.Locator("..");
+            }
+
             result.Selector = locator.ToString().Split('@').Last();
 
             // Make sure the element is visible
-            await locator.EvaluateAsync("element => element.style.height = ''");
-            await locator.EvaluateAsync("element => element.style.width = ''");
-            await locator.EvaluateAsync("element => element.style.opacity = ''");
+            /*if (!await locator.IsVisibleAsync())
+            {
+                await locator.EvaluateAsync("element => element.style.height = '15px'");
+                await locator.EvaluateAsync("element => element.style.width = '15px'");
+                await locator.EvaluateAsync("element => element.style.opacity = '1.0'");
+            }*/
 
             var text = await locator.InnerTextAsync();
             result.Body = text;
