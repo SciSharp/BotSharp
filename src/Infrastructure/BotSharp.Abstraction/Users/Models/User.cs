@@ -14,6 +14,8 @@ public class User
     public string Source { get; set; } = "internal";
     public string? ExternalId { get; set; }
     public string Role { get; set; } = UserRole.Client;
+    public string? VerificationCode { get; set; }
+    public bool Verified { get; set; }
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }

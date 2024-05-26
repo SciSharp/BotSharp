@@ -27,6 +27,7 @@ public partial class PlaywrightWebDriver
 
         try
         {
+            _logger.LogInformation($"SendHttpRequest: {args.Url}");
             var response = await EvaluateScript<object>(message.ContextId, script);
             result.IsSuccess = true;
             result.Body = JsonSerializer.Serialize(response);

@@ -17,10 +17,11 @@ public interface IBotSharpRepository
     #endregion
 
     #region User
-    User? GetUserByEmail(string email);
-    User? GetUserById(string id);
-    User? GetUserByUserName(string userName);
-    void CreateUser(User user);
+    User? GetUserByEmail(string email) => throw new NotImplementedException();
+    User? GetUserById(string id) => throw new NotImplementedException();
+    User? GetUserByUserName(string userName) => throw new NotImplementedException();
+    void CreateUser(User user) => throw new NotImplementedException();
+    void UpdateUserVerified(string userId) => throw new NotImplementedException();
     #endregion
 
     #region Agent
