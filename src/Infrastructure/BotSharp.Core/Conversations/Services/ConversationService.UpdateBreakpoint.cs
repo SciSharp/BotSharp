@@ -4,7 +4,7 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
 {
-    public async Task UpdateBreakpoint(bool resetStates = false, string? reason = null)
+    public async Task UpdateBreakpoint(bool resetStates = false, string? reason = null, params string[] excludedStates)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
@@ -22,7 +22,8 @@ public partial class ConversationService : IConversationService
         {
             var states = _services.GetRequiredService<IConversationStateService>();
             // keep language state
-            states.CleanStates(StateConst.LANGUAGE);
+            if(excludedStates.IsNullOrEmpty()) excludedStates = new string[] { StateConst.LANGUAGE };
+            states.CleanStates(excludedStates);
         }
 
         var hooks = _services.GetServices<IConversationHook>()
