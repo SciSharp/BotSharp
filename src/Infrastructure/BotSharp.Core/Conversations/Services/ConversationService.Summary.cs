@@ -30,8 +30,8 @@ public partial class ConversationService
 
     private async Task<string> Summarize(Agent agent, string prompt, List<RoleDialogModel> dialogs)
     {
-        var provider = agent.LlmConfig.Provider;
-        var model = agent.LlmConfig.Model;
+        var provider = agent?.LlmConfig?.Provider;
+        var model = agent?.LlmConfig?.Model;
 
         if (provider == null || model == null)
         {
