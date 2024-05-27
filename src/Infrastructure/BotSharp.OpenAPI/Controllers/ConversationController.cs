@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -8,12 +9,16 @@ public class ConversationController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public ConversationController(IServiceProvider services,
-        IUserIdentity user)
+        IUserIdentity user,
+        BotSharpOptions options)
     {
         _services = services;
         _user = user;
+        _jsonOptions = InitJsonOptions(options);
+
     }
 
     [HttpPost("/conversation/{agentId}")]
@@ -251,6 +256,8 @@ public class ConversationController : ControllerBase
             await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
         }
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
@@ -278,6 +285,7 @@ public class ConversationController : ControllerBase
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
+                response.States = state.GetStates();
 
                 await OnChunkReceived(Response, response);
             },
@@ -290,6 +298,7 @@ public class ConversationController : ControllerBase
                     MessageId = msg.MessageId,
                     Text = msg.Indication, 
                     Function = "indicating",
+                    States = new Dictionary<string, string>()
                 };
                 await OnChunkReceived(Response, indicator);
             },
@@ -299,7 +308,6 @@ public class ConversationController : ControllerBase
 
             });
 
-        var state = _services.GetRequiredService<IConversationStateService>();
         response.States = state.GetStates();
         response.MessageId = inputMsg.MessageId;
         response.ConversationId = conversationId;
@@ -309,7 +317,7 @@ public class ConversationController : ControllerBase
 
     private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
     {
-        var json = JsonSerializer.Serialize(message);
+        var json = JsonSerializer.Serialize(message, _jsonOptions);
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
@@ -326,5 +334,25 @@ public class ConversationController : ControllerBase
 
         buffer = Encoding.UTF8.GetBytes("\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
+    }
+
+    private JsonSerializerOptions InitJsonOptions(BotSharpOptions options)
+    {
+        var jsonOption = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            AllowTrailingCommas = true
+        };
+
+        if (options?.JsonSerializerOptions != null)
+        {
+            foreach (var option in options.JsonSerializerOptions.Converters)
+            {
+                jsonOption.Converters.Add(option);
+            }
+        }
+
+        return jsonOption;
     }
 }
