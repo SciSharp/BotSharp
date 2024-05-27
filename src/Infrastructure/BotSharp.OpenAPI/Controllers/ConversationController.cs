@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -8,12 +9,16 @@ public class ConversationController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public ConversationController(IServiceProvider services,
-        IUserIdentity user)
+        IUserIdentity user,
+        BotSharpOptions options)
     {
         _services = services;
         _user = user;
+        _jsonOptions = InitJsonOptions(options);
+
     }
 
     [HttpPost("/conversation/{agentId}")]
@@ -319,10 +324,7 @@ public class ConversationController : ControllerBase
 
     private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
     {
-        var json = JsonSerializer.Serialize(message, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        });
+        var json = JsonSerializer.Serialize(message, _jsonOptions);
 
         var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
@@ -339,5 +341,25 @@ public class ConversationController : ControllerBase
 
         buffer = Encoding.UTF8.GetBytes("\n");
         await response.Body.WriteAsync(buffer, 0, buffer.Length);
+    }
+
+    private JsonSerializerOptions InitJsonOptions(BotSharpOptions options)
+    {
+        var jsonOption = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            AllowTrailingCommas = true
+        };
+
+        if (options?.JsonSerializerOptions != null)
+        {
+            foreach (var option in options.JsonSerializerOptions.Converters)
+            {
+                jsonOption.Converters.Add(option);
+            }
+        }
+
+        return jsonOption;
     }
 }
