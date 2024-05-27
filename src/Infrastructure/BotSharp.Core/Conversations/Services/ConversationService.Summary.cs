@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -51,10 +50,5 @@ public partial class ConversationService
         }, dialogs);
 
         return response.Content;
-    }
-
-    private void SaveState(string summary)
-    {
-        _state.SetState("conversation_summary", summary, source: StateSource.Application);
     }
 }
