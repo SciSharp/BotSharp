@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Infrastructures.Enums;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -9,24 +9,52 @@ public partial class ConversationService
     {
         if (string.IsNullOrEmpty(conversationId)) return string.Empty;
 
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
+
         var dialogs = _storage.GetDialogs(conversationId);
+        if (dialogs.IsNullOrEmpty()) return string.Empty;
 
-        return string.Empty;
+        var router = await agentService.LoadAgent(AIAssistant);
+        var content = await routing.GetConversationContent(dialogs);
+        var prompt = GetPrompt(router, content);
+        var summary = await Summarize(router, prompt, dialogs);
+
+        return summary;
     }
 
-    private IEnumerable<string> BuildConversationContent(List<RoleDialogModel> dialogs)
+    private string GetPrompt(Agent agent, string content)
     {
-
-    }
-
-    private string GetPrompt(Agent router, List<RoleDialogModel> dialogs)
-    {
-        var template = router.Templates.First(x => x.Name == "conversation.summary").Content;
-
+        var template = agent.Templates.First(x => x.Name == "conversation.summary").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
-        return render.Render(template, new Dictionary<string, object>
+        return render.Render(template, new Dictionary<string, object> { });
+    }
+
+    private async Task<string> Summarize(Agent agent, string prompt, List<RoleDialogModel> dialogs)
+    {
+        var provider = agent.LlmConfig.Provider;
+        var model = agent.LlmConfig.Model;
+
+        if (provider == null || model == null)
         {
-            { "conversation",  }
-        });
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            provider = agentSettings.LlmConfig.Provider;
+            model = agentSettings.LlmConfig.Model;
+        }
+
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
+        var response = await chatCompletion.GetChatCompletions(new Agent
+        {
+            Id = agent.Id,
+            Name = agent.Name,
+            Instruction = prompt
+        }, dialogs);
+
+        return response.Content;
+    }
+
+    private void SaveState(string summary)
+    {
+        _state.SetState("conversation_summary", summary, source: StateSource.Application);
     }
 }
