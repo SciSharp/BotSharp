@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -30,17 +31,30 @@ public partial class ConversationService
 
     private async Task<string> Summarize(Agent agent, string prompt, List<RoleDialogModel> dialogs)
     {
-        var provider = agent?.LlmConfig?.Provider;
-        var model = agent?.LlmConfig?.Model;
+        var provider = "openai";
+        string? model;
 
-        if (provider == null || model == null)
+        var providerService = _services.GetRequiredService<ILlmProviderService>();
+        var modelSettings = providerService.GetProviderModels(provider);
+        var modelSetting = modelSettings.FirstOrDefault(x => x.Name.IsEqualTo("gpt4-turbo") || x.Name.IsEqualTo("gpt-4o"));
+
+        if (modelSetting != null)
         {
-            var agentSettings = _services.GetRequiredService<AgentSettings>();
-            provider = agentSettings.LlmConfig.Provider;
-            model = agentSettings.LlmConfig.Model;
+            model = modelSetting.Name;
+        }
+        else
+        {
+            provider = agent?.LlmConfig?.Provider;
+            model = agent?.LlmConfig?.Model;
+            if (provider == null || model == null)
+            {
+                var agentSettings = _services.GetRequiredService<AgentSettings>();
+                provider = agentSettings.LlmConfig.Provider;
+                model = agentSettings.LlmConfig.Model;
+            }
         }
 
-        var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
+        var chatCompletion = CompletionProvider.GetChatCompletion(_services, provider, model);
         var response = await chatCompletion.GetChatCompletions(new Agent
         {
             Id = agent.Id,
