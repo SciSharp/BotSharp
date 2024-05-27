@@ -15,14 +15,13 @@ public partial class ConversationService
         if (dialogs.IsNullOrEmpty()) return string.Empty;
 
         var router = await agentService.LoadAgent(AIAssistant);
-        var content = await routing.GetConversationContent(dialogs);
-        var prompt = GetPrompt(router, content);
+        var prompt = GetPrompt(router);
         var summary = await Summarize(router, prompt, dialogs);
 
         return summary;
     }
 
-    private string GetPrompt(Agent agent, string content)
+    private string GetPrompt(Agent agent)
     {
         var template = agent.Templates.First(x => x.Name == "conversation.summary").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
