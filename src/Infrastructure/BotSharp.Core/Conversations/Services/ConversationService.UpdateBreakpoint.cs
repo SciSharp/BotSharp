@@ -22,7 +22,12 @@ public partial class ConversationService : IConversationService
         {
             var states = _services.GetRequiredService<IConversationStateService>();
             // keep language state
-            if(excludedStates.IsNullOrEmpty()) excludedStates = new string[] { StateConst.LANGUAGE };
+            if (excludedStates == null) excludedStates = new string[] { };
+            if (!excludedStates.Contains(StateConst.LANGUAGE))
+            {
+                excludedStates = excludedStates.Append(StateConst.LANGUAGE).ToArray();
+            }
+
             states.CleanStates(excludedStates);
         }
 
