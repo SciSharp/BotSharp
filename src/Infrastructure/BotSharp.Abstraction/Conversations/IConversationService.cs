@@ -53,4 +53,6 @@ public interface IConversationService
     /// <param name="reason">Append user init words</param>
     /// <returns></returns>
     Task UpdateBreakpoint(bool resetStates = false, string? reason = null);
+
+    Task<string> GetConversationSummary(string conversationId);
 }
