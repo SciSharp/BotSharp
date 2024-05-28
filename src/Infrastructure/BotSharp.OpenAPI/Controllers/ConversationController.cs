@@ -298,6 +298,7 @@ public class ConversationController : ControllerBase
                     MessageId = msg.MessageId,
                     Text = msg.Indication, 
                     Function = "indicating",
+                    Instruction = msg.Instruction,
                     States = new Dictionary<string, string>()
                 };
                 await OnChunkReceived(Response, indicator);

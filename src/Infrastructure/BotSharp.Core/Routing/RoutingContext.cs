@@ -118,6 +118,7 @@ public class RoutingContext : IRoutingContext
 
         var message = new RoleDialogModel(AgentRole.User, $"Try to route to agent {agent.Name}")
         {
+            CurrentAgentId = currentAgentId,
             FunctionName = "route_to_agent",
             FunctionArgs = JsonSerializer.Serialize(new FunctionCallFromLlm
             {
