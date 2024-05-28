@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Messaging.Enums;
-
 namespace BotSharp.Abstraction.Messaging.Models.RichContent;
 
 public class RichContent<T> where T : IRichMessage

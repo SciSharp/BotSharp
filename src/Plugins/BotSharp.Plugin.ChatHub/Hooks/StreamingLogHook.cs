@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Loggers.Enums;
@@ -7,6 +8,8 @@ using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using Microsoft.AspNetCore.SignalR;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
@@ -14,6 +17,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 {
     private readonly ConversationSetting _convSettings;
     private readonly BotSharpOptions _options;
+    private readonly JsonSerializerOptions _localJsonOptions;
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IConversationStateService _state;
@@ -39,13 +43,16 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         _user = user;
         _agentService = agentService;
         _routingCtx = routingCtx;
+        _localJsonOptions = InitLocalJsonOptions(options);
     }
 
     #region IConversationHook
     public override async Task OnMessageReceived(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
-        var log = $"{message.Content}";
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var log = $"{GetMessageContent(message)}";
 
         var input = new ContentLogInputModel(conversationId, message)
         {
@@ -59,7 +66,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
     {
         var conversationId = _state.GetConversationId();
-        var log = $"{message.Content}";
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var log = $"{GetMessageContent(message)}";
         var replyContent = JsonSerializer.Serialize(replyMsg, _options.JsonSerializerOptions);
         log += $"\r\n```json\r\n{replyContent}\r\n```";
 
@@ -77,6 +86,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (!_convSettings.ShowVerboseLog) return;
 
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
 
         var log = $"{agent.Name} is using template {name}";
         var message = new RoleDialogModel(AgentRole.System, log)
@@ -100,12 +110,11 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
     public override async Task OnFunctionExecuting(RoleDialogModel message)
     {
-        if (message.FunctionName == "route_to_agent")
-        {
-            return;
-        }
-
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        if (message.FunctionName == "route_to_agent") return;
+
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
         var args = JsonSerializer.Serialize(JsonDocument.Parse(message.FunctionArgs), _options.JsonSerializerOptions);
@@ -123,12 +132,11 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
     public override async Task OnFunctionExecuted(RoleDialogModel message)
     {
-        if (message.FunctionName == "route_to_agent")
-        {
-            return;
-        }
-
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        if (message.FunctionName == "route_to_agent") return;
+
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
         // var args = JsonSerializer.Serialize(JsonDocument.Parse(message.FunctionArgs), _options.JsonSerializerOptions);
@@ -155,6 +163,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (!_convSettings.ShowVerboseLog) return;
 
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
 
         var log = tokenStats.Prompt;
@@ -176,17 +186,19 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     /// <returns></returns>
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
-        var conv = _services.GetRequiredService<IConversationService>();
+        var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
 
+        var conv = _services.GetRequiredService<IConversationService>();
         await _chatHub.Clients.User(_user.Id).SendAsync("OnConversateStateLogGenerated", BuildStateLog(conv.ConversationId, _state.GetStates(), message));
 
         if (message.Role == AgentRole.Assistant)
         {
             var agent = await _agentService.LoadAgent(message.CurrentAgentId);
-            var log = $"{message.Content}";
-            if (message.RichContent != null)
+            var log = $"{GetMessageContent(message)}";
+            if (message.RichContent != null || message.SecondaryRichContent != null)
             {
-                var richContent = JsonSerializer.Serialize(message.RichContent, _options.JsonSerializerOptions);
+                var richContent = JsonSerializer.Serialize(message.SecondaryRichContent ?? message.RichContent, _localJsonOptions);
                 log += $"\r\n```json\r\n{richContent}\r\n```";
             }
 
@@ -204,7 +216,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public override async Task OnTaskCompleted(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
-        var log = $"{message.Content}";
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var log = $"{GetMessageContent(message)}";
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
 
         var input = new ContentLogInputModel(conversationId, message)
@@ -219,6 +233,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public override async Task OnConversationEnding(RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var log = $"Conversation ended";
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
 
@@ -233,6 +249,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
     public override async Task OnBreakpointUpdated(string conversationId, bool resetStates)
     {
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var log = $"Conversation breakpoint is updated";
         if (resetStates)
         {
@@ -259,6 +277,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
     public override async Task OnStateChanged(StateChangeModel stateChange)
     {
+        var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         if (stateChange == null) return;
 
         await _chatHub.Clients.User(_user.Id).SendAsync("OnStateChangeGenerated", BuildStateChangeLog(stateChange));
@@ -269,6 +290,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public async Task OnAgentEnqueued(string agentId, string preAgentId, string? reason = null)
     {
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var agent = await _agentService.LoadAgent(agentId);
 
         // Agent queue log
@@ -294,6 +317,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public async Task OnAgentDequeued(string agentId, string currentAgentId, string? reason = null)
     {
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var agent = await _agentService.LoadAgent(agentId);
         var currentAgent = await _agentService.LoadAgent(currentAgentId);
 
@@ -320,6 +345,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public async Task OnAgentReplaced(string fromAgentId, string toAgentId, string? reason = null)
     {
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var fromAgent = await _agentService.LoadAgent(fromAgentId);
         var toAgent = await _agentService.LoadAgent(toAgentId);
 
@@ -346,6 +373,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public async Task OnAgentQueueEmptied(string agentId, string? reason = null)
     {
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
 
         // Agent queue log
         var log = $"Agent queue is empty";
@@ -370,6 +398,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public async Task OnRoutingInstructionReceived(FunctionCallFromLlm instruct, RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var log = JsonSerializer.Serialize(instruct, _options.JsonSerializerOptions);
         log = $"```json\r\n{log}\r\n```";
@@ -387,6 +417,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     public async Task OnRoutingInstructionRevised(FunctionCallFromLlm instruct, RoleDialogModel message)
     {
         var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         var log = $"Revised user goal agent to {instruct.OriginalAgent}";
 
@@ -413,7 +445,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Role = input.Message.Role,
             Content = input.Log,
             Source = input.Source,
-            CreateTime = input.Message.CreatedAt
+            CreateTime = DateTime.UtcNow
         };
 
         var json = JsonSerializer.Serialize(output, _options.JsonSerializerOptions);
@@ -435,7 +467,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             ConversationId = conversationId,
             MessageId = message.MessageId,
             States = states,
-            CreateTime = message.CreatedAt
+            CreateTime = DateTime.UtcNow
         };
 
         var convSettings = _services.GetRequiredService<ConversationSetting>();
@@ -478,5 +510,32 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         };
 
         return JsonSerializer.Serialize(model, _options.JsonSerializerOptions);
+    }
+
+    private string GetMessageContent(RoleDialogModel message)
+    {
+        return !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content;
+    }
+
+    private JsonSerializerOptions InitLocalJsonOptions(BotSharpOptions options)
+    {
+        var localOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            AllowTrailingCommas = true,
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+        };
+
+        if (options?.JsonSerializerOptions != null && !options.JsonSerializerOptions.Converters.IsNullOrEmpty())
+        {
+            foreach (var converter in options.JsonSerializerOptions.Converters)
+            {
+                localOptions.Converters.Add(converter);
+            }
+        }
+
+        return localOptions;
     }
 }

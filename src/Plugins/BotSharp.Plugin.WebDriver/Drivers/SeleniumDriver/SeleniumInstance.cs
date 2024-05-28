@@ -33,11 +33,15 @@ public class SeleniumInstance : IDisposable
 
         string tempFolderPath = $"{Path.GetTempPath()}\\_selenium\\{id}";
 
-        var options = new ChromeOptions();
+        var options = new ChromeOptions
+        {
+            // DebuggerAddress = "localhost:9222",
+            // BrowserVersion = "123.0.6312.46"
+        };
         options.AddArgument("disable-infobars");
         options.AddArgument($"--user-data-dir={tempFolderPath}");
         var selenium = new ChromeDriver(options);
-        selenium.Manage().Window.Maximize();
+        // selenium.Manage().Window.Maximize();
         selenium.Navigate().GoToUrl("about:blank");
         _contexts[id] = selenium;
 

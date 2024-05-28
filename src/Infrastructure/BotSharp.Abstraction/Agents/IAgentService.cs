@@ -37,6 +37,13 @@ public interface IAgentService
     
     Task<bool> DeleteAgent(string id);
     Task UpdateAgent(Agent agent, AgentField updateField);
+
+    /// <summary>
+    /// Path existing templates of agent, cannot create new or delete templates
+    /// </summary>
+    /// <param name="agent"></param>
+    /// <returns></returns>
+    Task<string> PatchAgentTemplate(Agent agent);
     Task<string> UpdateAgentFromFile(string id);
     string GetDataDir();
     string GetAgentDataDir(string agentId);

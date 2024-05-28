@@ -4,16 +4,13 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    private List<FunctionCallingResponse> _functionCallStack = new List<FunctionCallingResponse>();
-    public List<FunctionCallingResponse> FunctionCallStack => _functionCallStack;
-
-    public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
+    public async Task<bool> InvokeFunction(string name, RoleDialogModel message, Func<RoleDialogModel, Task>? onFunctionExecuting = null)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
         if (function == null)
         {
             message.StopCompletion = true;
-            message.Content = $"Can't find function implementation of {message.FunctionName}.";
+            message.Content = $"Can't find function implementation of {name}.";
             _logger.LogError(message.Content);
             return false;
         }
@@ -27,6 +24,12 @@ public partial class RoutingService
             .ToList();
 
         // Before executing functions
+        clonedMessage.Indication = function.Indication;
+        if (onFunctionExecuting != null)
+        {
+            await onFunctionExecuting(clonedMessage);
+        }
+        
         foreach (var hook in hooks)
         {
             await hook.OnFunctionExecuting(clonedMessage);
@@ -37,14 +40,6 @@ public partial class RoutingService
         try
         {
             result = await function.Execute(clonedMessage);
-
-            _functionCallStack.Add(new FunctionCallingResponse
-            {
-                Role = AgentRole.Function,
-                FunctionName = clonedMessage.FunctionName,
-                Args = JsonDocument.Parse(clonedMessage.FunctionArgs ?? "{}"),
-                Content = clonedMessage.Content
-            });
 
             // After functions have been executed
             foreach (var hook in hooks)

@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
 
@@ -18,10 +17,11 @@ public interface IBotSharpRepository
     #endregion
 
     #region User
-    User? GetUserByEmail(string email);
-    User? GetUserById(string id);
-    User? GetUserByUserName(string userName);
-    void CreateUser(User user);
+    User? GetUserByEmail(string email) => throw new NotImplementedException();
+    User? GetUserById(string id) => throw new NotImplementedException();
+    User? GetUserByUserName(string userName) => throw new NotImplementedException();
+    void CreateUser(User user) => throw new NotImplementedException();
+    void UpdateUserVerified(string userId) => throw new NotImplementedException();
     #endregion
 
     #region Agent
@@ -35,6 +35,7 @@ public interface IBotSharpRepository
     bool DeleteAgent(string agentId);
     List<string> GetAgentResponses(string agentId, string prefix, string intent);
     string GetAgentTemplate(string agentId, string templateName);
+    bool PatchAgentTemplate(string agentId, AgentTemplate template);
     #endregion
 
     #region Agent Task
@@ -51,7 +52,6 @@ public interface IBotSharpRepository
     void CreateNewConversation(Conversation conversation);
     bool DeleteConversations(IEnumerable<string> conversationIds);
     List<DialogElement> GetConversationDialogs(string conversationId);
-    void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements);
     void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
     ConversationState GetConversationStates(string conversationId);
     void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
@@ -63,7 +63,7 @@ public interface IBotSharpRepository
     ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
     List<Conversation> GetLastConversations();
     List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours);
-    bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
+    IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
     #endregion
     
     #region Execution Log

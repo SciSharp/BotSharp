@@ -4,14 +4,19 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.AzureOpenAI.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
@@ -52,11 +57,7 @@ public class ChatCompletionProvider : IChatCompletion
         var choice = response.Value.Choices[0];
         var message = choice.Message;
 
-        var responseMessage = new RoleDialogModel(AgentRole.Assistant, message.Content)
-        {
-            CurrentAgentId = agent.Id,
-            MessageId = conversations.Last().MessageId
-        };
+        RoleDialogModel responseMessage;
 
         if (choice.FinishReason == CompletionsFinishReason.FunctionCall)
         {
@@ -73,6 +74,33 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
             }
+        }
+        else if (choice.FinishReason == CompletionsFinishReason.ToolCalls)
+        {
+            // Add the assistant message with tool calls to the conversation history
+            // ChatRequestAssistantMessage toolCallHistoryMessage = new(message);
+            // chatCompletionsOptions.Messages.Add(toolCallHistoryMessage);
+
+            // Add a new tool message for each tool call that is resolved
+            var toolCall = message.ToolCalls.First() as ChatCompletionsFunctionToolCall;
+            // var toolCallResponseMessage = GetToolCallResponseMessage(toolCall);
+            // Now make a new request with all the messages thus far, including the original
+
+            responseMessage = new RoleDialogModel(AgentRole.Function, message.Content)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.Last().MessageId,
+                FunctionName = toolCall.Name,
+                FunctionArgs = toolCall.Arguments
+            };
+        }
+        else
+        {
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, message.Content)
+            {
+                CurrentAgentId = agent.Id,
+                MessageId = conversations.Last().MessageId
+            };
         }
 
         // After chat completion hook
@@ -195,6 +223,17 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, ChatCompletionsOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var settingsService = _services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(Provider, _model);
+        var allowMultiModal = settings != null && settings.MultiModal;
+
+        var chatFiles = new List<MessageFileModel>();
+        if (allowMultiModal)
+        {
+            chatFiles = fileService.GetChatImages(state.GetConversationId(), conversations, offset: 2).ToList();
+        }
 
         var chatCompletionsOptions = new ChatCompletionsOptions();
         
@@ -222,7 +261,17 @@ public class ChatCompletionProvider : IChatCompletion
             if (agentService.RenderFunction(agent, function))
             {
                 var property = agentService.RenderFunctionProperty(agent, function);
-                chatCompletionsOptions.Functions.Add(new FunctionDefinition
+
+                // legacy function call
+                /*chatCompletionsOptions.Functions.Add(new FunctionDefinition
+                {
+                    Name = function.Name,
+                    Description = function.Description,
+                    Parameters = BinaryData.FromObjectAsJson(property)
+                });*/
+
+                // new chat tool
+                chatCompletionsOptions.Tools.Add(new ChatCompletionsFunctionToolDefinition
                 {
                     Name = function.Name,
                     Description = function.Description,
@@ -241,20 +290,68 @@ public class ChatCompletionProvider : IChatCompletion
                 });
 
                 chatCompletionsOptions.Messages.Add(new ChatRequestFunctionMessage(message.FunctionName, message.Content));
+                // chatCompletionsOptions.Messages.Add(new ChatRequestToolMessage(message.Content, message.ToolCallId));
             }
             else if (message.Role == ChatRole.User)
             {
-                var userMessage = new ChatRequestUserMessage(message.Content)
-                {
-                    // To display Planner name in log
-                    Name = message.FunctionName,
-                };
+                var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
 
-                if (!string.IsNullOrEmpty(message.ImageUrl))
+                ChatRequestUserMessage userMessage = null;
+                if (allowMultiModal)
                 {
-                    var uri = new Uri(message.ImageUrl);
-                    userMessage.MultimodalContentItems.Add(
-                        new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                    var chatItems = new List<ChatMessageContentItem>()
+                    {
+                        new ChatMessageTextContentItem(text)
+                    };
+                
+                    var files = chatFiles.Where(x => x.MessageId == message.MessageId).ToList();
+                    if (!files.IsNullOrEmpty())
+                    {
+                        foreach (var file in files)
+                        {
+                            using var stream = File.OpenRead(file.FileStorageUrl);
+                            chatItems.Add(new ChatMessageImageContentItem(stream, file.ContentType, ChatMessageImageDetailLevel.Low));
+                        }
+                    }
+                
+                    if (!message.Files.IsNullOrEmpty())
+                    {
+                        foreach (var file in message.Files)
+                        {
+                            if (!string.IsNullOrEmpty(file.FileUrl))
+                            {
+                                var uri = new Uri(file.FileUrl);
+                                chatItems.Add(new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                            }
+                            else if (!string.IsNullOrEmpty(file.FileData))
+                            {
+                                var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
+                                using var stream = new MemoryStream(bytes, 0, bytes.Length);
+                                chatItems.Add(new ChatMessageImageContentItem(stream, contentType, ChatMessageImageDetailLevel.Low));
+                            }
+                        }
+                    }
+                
+                    //if (!string.IsNullOrEmpty(message.ImageUrl))
+                    //{
+                    //    var uri = new Uri(message.ImageUrl);
+                    //    userMessage.MultimodalContentItems.Add(
+                    //        new ChatMessageImageContentItem(uri, ChatMessageImageDetailLevel.Low));
+                    //}
+                
+                    userMessage = new ChatRequestUserMessage(chatItems)
+                    {
+                        // To display Planner name in log
+                        Name = message.FunctionName,
+                    };
+                }
+                else
+                {
+                    userMessage = new ChatRequestUserMessage(text)
+                    {
+                        // To display Planner name in log
+                        Name = message.FunctionName,
+                    };
                 }
 
                 chatCompletionsOptions.Messages.Add(userMessage);
@@ -266,7 +363,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api-a-few-tips-and-tricks-on-controlling-the-creativity-deterministic-output-of-prompt-responses/172683
-        var state = _services.GetRequiredService<IConversationStateService>();
+        //var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
         var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.0"));
         chatCompletionsOptions.Temperature = temperature;
@@ -300,6 +397,7 @@ public class ChatCompletionProvider : IChatCompletion
                 }));
             prompt += $"{verbose}\r\n";
 
+            prompt += "\r\n[CONVERSATION]";
             verbose = string.Join("\r\n", chatCompletionsOptions.Messages
                 .Where(x => x.Role != AgentRole.System).Select(x =>
                 {
@@ -311,9 +409,12 @@ public class ChatCompletionProvider : IChatCompletion
                     else if (x.Role == ChatRole.User)
                     {
                         var m = x as ChatRequestUserMessage;
-                        return !string.IsNullOrEmpty(m.Name) ?
-                            $"{m.Name}: {m.Content}" :
-                            $"{m.Role}: {m.Content}";
+                        var content = m.Content ?? string.Join(", ", m.MultimodalContentItems
+                            .Where(m => m is ChatMessageTextContentItem)
+                            .Select(m => (m as ChatMessageTextContentItem)?.Text));
+                        return !string.IsNullOrEmpty(m.Name) && m.Name != "route_to_agent" ?
+                            $"{m.Name}: {content}" :
+                            $"{m.Role}: {content}";
                     }
                     else if (x.Role == ChatRole.Assistant)
                     {
@@ -330,13 +431,14 @@ public class ChatCompletionProvider : IChatCompletion
             prompt += $"\r\n{verbose}\r\n";
         }
 
-        if (chatCompletionsOptions.Functions.Count > 0)
+        if (chatCompletionsOptions.Tools.Count > 0)
         {
-            var functions = string.Join("\r\n", chatCompletionsOptions.Functions.Select(x =>
+            var functions = string.Join("\r\n", chatCompletionsOptions.Tools.Select(x =>
             {
-                return $"\r\n{x.Name}: {x.Description}\r\n{x.Parameters}";
+                var fn = x as ChatCompletionsFunctionToolDefinition;
+                return $"\r\n{fn.Name}: {fn.Description}\r\n{fn.Parameters}";
             }));
-            prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
+            prompt += $"\r\n[FUNCTIONS]{functions}\r\n";
         }
 
         return prompt;
@@ -345,5 +447,16 @@ public class ChatCompletionProvider : IChatCompletion
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    ChatRequestToolMessage GetToolCallResponseMessage(ChatCompletionsToolCall toolCall)
+    {
+        var functionToolCall = toolCall as ChatCompletionsFunctionToolCall;
+        // Validate and process the JSON arguments for the function call
+        string unvalidatedArguments = functionToolCall.Arguments;
+        var functionResultData = (object)null; // GetYourFunctionResultData(unvalidatedArguments);
+                                               // Here, replacing with an example as if returned from "GetYourFunctionResultData"
+        functionResultData = "31 celsius";
+        return new ChatRequestToolMessage(functionResultData.ToString(), toolCall.Id);
     }
 }

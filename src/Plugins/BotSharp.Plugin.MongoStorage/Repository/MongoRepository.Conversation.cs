@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Plugin.MongoStorage.Collections;
@@ -82,27 +83,6 @@ public partial class MongoRepository
 
         var formattedDialog = foundDialog.Dialogs?.Select(x => DialogMongoElement.ToDomainElement(x))?.ToList();
         return formattedDialog ?? new List<DialogElement>();
-    }
-
-    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
-    {
-        if (string.IsNullOrEmpty(conversationId) || updateElements.IsNullOrEmpty()) return;
-
-        var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var foundDialog = _dc.ConversationDialogs.Find(filterDialog).FirstOrDefault();
-        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty()) return;
-
-        foundDialog.Dialogs = foundDialog.Dialogs.Select((x, idx) =>
-        {
-            var found = updateElements.FirstOrDefault(e => e.Index == idx);
-            if (found != null)
-            {
-                x.Content = found.UpdateContent;
-            }
-            return x;
-        }).ToList();
-
-        _dc.ConversationDialogs.ReplaceOne(filterDialog, foundDialog);
     }
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
@@ -411,16 +391,29 @@ public partial class MongoRepository
         return conversationIds.Take(batchSize).ToList();
     }
 
-    public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
+    public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
     {
-        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId)) return false;
+        var deletedMessageIds = new List<string>();
+        if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId))
+        {
+            return deletedMessageIds;
+        }
 
         var dialogFilter = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundDialog = _dc.ConversationDialogs.Find(dialogFilter).FirstOrDefault();
-        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty()) return false;
+        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty())
+        {
+            return deletedMessageIds;
+        }
 
         var foundIdx = foundDialog.Dialogs.FindIndex(x => x.MetaData?.MessageId == messageId);
-        if (foundIdx < 0) return false;
+        if (foundIdx < 0)
+        {
+            return deletedMessageIds;
+        }
+
+        deletedMessageIds = foundDialog.Dialogs.Where((x, idx) => idx >= foundIdx && !string.IsNullOrEmpty(x.MetaData?.MessageId))
+                                               .Select(x => x.MetaData.MessageId).Distinct().ToList();
 
         // Handle truncated dialogs
         var truncatedDialogs = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
@@ -459,8 +452,7 @@ public partial class MongoRepository
             if (!foundStates.Breakpoints.IsNullOrEmpty())
             {
                 var breakpoints = foundStates.Breakpoints ?? new List<BreakpointMongoElement>();
-                var targetIdx = breakpoints.FindIndex(x => x.MessageId == messageId);
-                var truncatedBreakpoints = breakpoints.Where((x, idx) => idx < targetIdx).ToList();
+                var truncatedBreakpoints = breakpoints.Where(x => x.CreatedTime < refTime).ToList();
                 foundStates.Breakpoints = truncatedBreakpoints;
             }
             
@@ -499,6 +491,6 @@ public partial class MongoRepository
             _dc.StateLogs.DeleteMany(stateLogBuilder.And(stateLogFilters));
         }
         
-        return true;
+        return deletedMessageIds;
     }
 }

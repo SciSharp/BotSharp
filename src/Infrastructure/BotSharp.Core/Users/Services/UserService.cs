@@ -1,5 +1,6 @@
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.Users.Settings;
+using BotSharp.OpenAPI.ViewModels.Users;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using NanoidDotNet;
@@ -13,12 +14,17 @@ public class UserService : IUserService
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
     private readonly ILogger _logger;
+    private readonly AccountSetting _setting;
 
-    public UserService(IServiceProvider services, IUserIdentity user, ILogger<UserService> logger)
+    public UserService(IServiceProvider services, 
+        IUserIdentity user, 
+        ILogger<UserService> logger,
+        AccountSetting setting)
     {
         _services = services;
         _user = user;
         _logger = logger;
+        _setting = setting;
     }
 
     public async Task<User> CreateUser(User user)
@@ -52,15 +58,27 @@ public class UserService : IUserService
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
 
+        if (_setting.NewUserVerification)
+        {
+            record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
+            record.Verified = false;
+        }
+
         db.CreateUser(record);
 
         _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}");
         Utilities.ClearCache();
 
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.UserCreated(record);
+        }
+
         return record;
     }
 
-    public async Task<Token> GetToken(string authorization)
+    public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
@@ -72,13 +90,14 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        User? user = record;
         var hooks = _services.GetServices<IAuthenticationHook>();
         if (record == null  || record.Source != "internal")
         {
             // check 3rd party user
             foreach (var hook in hooks)
             {
-                var user = await hook.Authenticate(id, password);
+                user = await hook.Authenticate(id, password);
                 if (user == null)
                 {
                     continue;
@@ -109,7 +128,12 @@ public class UserService : IUserService
             }
         }
 
-        if (record == null)
+        if ((!hooks.IsNullOrEmpty() && user == null) || record == null)
+        {
+            return default;
+        }
+
+        if (_setting.NewUserVerification && !record.Verified)
         {
             return default;
         }
@@ -199,5 +223,44 @@ public class UserService : IUserService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(id);
         return user;
+    }
+
+    public async Task<Token> ActiveUser(UserActivationModel model)
+    {
+        var id = model.UserName;
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
+        if (record == null)
+        {
+            record = db.GetUserByUserName(id);
+        }
+
+        if (record == null)
+        {
+            return default;
+        }
+
+        if (record.VerificationCode != model.VerificationCode)
+        {
+            return default;
+        }
+
+        if (record.Verified)
+        {
+            return default;
+        }
+
+        db.UpdateUserVerified(record.Id);
+
+        var accessToken = GenerateJwtToken(record);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var token = new Token
+        {
+            AccessToken = accessToken,
+            ExpireTime = jwt.Payload.Exp.Value,
+            TokenType = "Bearer",
+            Scope = "api"
+        };
+        return token;
     }
 }

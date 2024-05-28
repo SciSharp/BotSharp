@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
+
 namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService : IConversationService
@@ -19,7 +21,8 @@ public partial class ConversationService : IConversationService
         if (resetStates)
         {
             var states = _services.GetRequiredService<IConversationStateService>();
-            states.CleanStates();
+            // keep language state
+            states.CleanStates(StateConst.LANGUAGE);
         }
 
         var hooks = _services.GetServices<IConversationHook>()

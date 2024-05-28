@@ -128,7 +128,7 @@ public class RoutingContext : IRoutingContext
         };
 
         var routing = _services.GetRequiredService<IRoutingService>();
-        var missingfield = routing.HasMissingRequiredField(message, out agentId);
+        var (missingfield, _) = routing.HasMissingRequiredField(message, out agentId);
         if (missingfield)
         {
             if (currentAgentId != agentId)

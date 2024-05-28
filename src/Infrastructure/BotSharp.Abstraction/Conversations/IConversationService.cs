@@ -15,7 +15,15 @@ public interface IConversationService
     Task<List<Conversation>> GetLastConversations();
     Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours);
     Task<bool> DeleteConversations(IEnumerable<string> ids);
-    Task<bool> TruncateConversation(string conversationId, string messageId);
+
+    /// <summary>
+    /// Truncate conversation
+    /// </summary>
+    /// <param name="conversationId">Target conversation id</param>
+    /// <param name="messageId">Target message id to delete</param>
+    /// <param name="newMessageId">If not null, delete messages while input a new message; otherwise delete messages only</param>
+    /// <returns></returns>
+    Task<bool> TruncateConversation(string conversationId, string messageId, string? newMessageId = null);
     Task<List<ContentLogOutputModel>> GetConversationContentLogs(string conversationId);
     Task<List<ConversationStateLogModel>> GetConversationStateLogs(string conversationId);
 

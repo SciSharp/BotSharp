@@ -3,7 +3,7 @@ namespace BotSharp.Abstraction.Routing.Models;
 public class RoutingArgs
 {
     [JsonPropertyName("function")]
-    public string Function { get; set; }
+    public string Function { get; set; } = string.Empty;
 
     /// <summary>
     /// The reason why you select this function or agent
@@ -30,25 +30,25 @@ public class RoutingArgs
     /// </summary>
     [JsonPropertyName("response")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string Response { get; set; }
+    public string Response { get; set; } = string.Empty;
 
     /// <summary>
     /// Agent for next action based on user latest response
     /// </summary>
     [JsonPropertyName("next_action_agent")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string AgentName { get; set; }
+    public string AgentName { get; set; } = string.Empty;
 
     /// <summary>
     /// Agent who can achieve user original goal
     /// </summary>
     [JsonPropertyName("user_goal_agent")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string OriginalAgent { get; set; }
+    public string OriginalAgent { get; set; } = string.Empty;
 
     [JsonPropertyName("user_goal_description")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string UserGoal { get; set; }
+    public string UserGoal { get; set; } = string.Empty;
 
     public override string ToString()
     {

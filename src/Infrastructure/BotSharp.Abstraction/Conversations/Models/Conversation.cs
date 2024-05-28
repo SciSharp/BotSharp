@@ -32,11 +32,23 @@ public class Conversation
 
 public class DialogElement
 {
+    [JsonPropertyName("meta_data")]
     public DialogMetaData MetaData { get; set; }
+
+    [JsonPropertyName("content")]
     public string Content { get; set; }
+
+    [JsonPropertyName("secondary_content")]
     public string? SecondaryContent { get; set; }
+
+    [JsonPropertyName("rich_content")]
     public string? RichContent { get; set; }
+
+    [JsonPropertyName("secondary_rich_content")]
     public string? SecondaryRichContent { get; set; }
+
+    [JsonPropertyName("payload")]
+    public string? Payload { get; set; }
 
     public DialogElement()
     {
@@ -44,13 +56,14 @@ public class DialogElement
     }
 
     public DialogElement(DialogMetaData meta, string content, string? richContent = null,
-        string? secondaryContent = null, string? secondaryRichContent = null)
+        string? secondaryContent = null, string? secondaryRichContent = null, string? payload = null)
     {
         MetaData = meta;
         Content = content;
         RichContent = richContent;
         SecondaryContent = secondaryContent;
         SecondaryRichContent = secondaryRichContent;
+        Payload = payload;
     }
 
     public override string ToString()
@@ -61,10 +74,21 @@ public class DialogElement
 
 public class DialogMetaData
 {
+    [JsonPropertyName("role")]
     public string Role { get; set; }
+
+    [JsonPropertyName("agent_id")]
     public string AgentId { get; set; }
+
+    [JsonPropertyName("message_id")]
     public string MessageId { get; set; }
+
+    [JsonPropertyName("function_name")]
     public string? FunctionName { get; set; }
+
+    [JsonPropertyName("sender_id")]
     public string? SenderId { get; set; }
+
+    [JsonPropertyName("create_at")]
     public DateTime CreateTime { get; set; }
 }

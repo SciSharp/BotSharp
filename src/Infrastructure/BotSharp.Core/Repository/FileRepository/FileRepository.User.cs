@@ -32,4 +32,13 @@ public partial class FileRepository
         var path = Path.Combine(dir, "user.json");
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
     }
+
+    public void UpdateUserVerified(string userId)
+    {
+        var user = GetUserById(userId);
+        user.Verified = true;
+        var dir = Path.Combine(_dbSettings.FileRepository, "users", user.Id);
+        var path = Path.Combine(dir, "user.json");
+        File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
+    }
 }

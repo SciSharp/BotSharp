@@ -9,4 +9,6 @@ public class IncomingMessageModel : MessageConfig
     /// Postback message
     /// </summary>
     public PostbackMessageModel? Postback { get; set; }
+
+    public List<BotSharpFile> Files { get; set; } = new List<BotSharpFile>();
 }

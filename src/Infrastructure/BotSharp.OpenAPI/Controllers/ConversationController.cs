@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -8,12 +9,16 @@ public class ConversationController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public ConversationController(IServiceProvider services,
-        IUserIdentity user)
+        IUserIdentity user,
+        BotSharpOptions options)
     {
         _services = services;
         _user = user;
+        _jsonOptions = InitJsonOptions(options);
+
     }
 
     [HttpPost("/conversation/{agentId}")]
@@ -83,10 +88,10 @@ public class ConversationController : ControllerBase
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
-                    Text = message.Content,
-                    SecondaryText = message.SecondaryContent,
+                    Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Data = message.Data,
-                    Sender = UserViewModel.FromUser(user)
+                    Sender = UserViewModel.FromUser(user),
+                    Payload = message.Payload
                 });
             }
             else if (message.Role == AgentRole.Assistant)
@@ -97,8 +102,7 @@ public class ConversationController : ControllerBase
                     ConversationId = conversationId,
                     MessageId = message.MessageId,
                     CreatedAt = message.CreatedAt,
-                    Text = message.Content,
-                    SecondaryText = message.SecondaryContent,
+                    Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Function = message.FunctionName,
                     Data = message.Data,
                     Sender = new UserViewModel
@@ -106,8 +110,7 @@ public class ConversationController : ControllerBase
                         FirstName = agent.Name,
                         Role = message.Role,
                     },
-                    RichContent = message.RichContent,
-                    SecondaryRichContent = message.SecondaryRichContent
+                    RichContent = message.SecondaryRichContent ?? message.RichContent
                 });
             }
         }
@@ -136,6 +139,35 @@ public class ConversationController : ControllerBase
         return result;
     }
 
+    [HttpGet("/conversation/{conversationId}/user")]
+    public async Task<UserViewModel> GetConversationUser([FromRoute] string conversationId)
+    {
+        var service = _services.GetRequiredService<IConversationService>();
+        var conversations = await service.GetConversations(new ConversationFilter
+        {
+            Id = conversationId
+        });
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var conversation = conversations?.Items?.FirstOrDefault();
+        var userId = conversation == null ? _user.Id : conversation.UserId;
+        var user = await userService.GetUser(userId);
+        if (user == null)
+        {
+            return new UserViewModel
+            {
+                Id = _user.Id,
+                UserName = _user.UserName,
+                FirstName = _user.FirstName,
+                LastName = _user.LastName,
+                Email = _user.Email,
+                Source = "Unknown"
+            };
+        }
+
+        return UserViewModel.FromUser(user);
+    }
+
     [HttpDelete("/conversation/{conversationId}")]
     public async Task<bool> DeleteConversation([FromRoute] string conversationId)
     {
@@ -152,27 +184,37 @@ public class ConversationController : ControllerBase
         return response;
     }
 
+    private void SetStates(IConversationService conv, NewMessageModel input)
+    {
+        conv.States.SetState("channel", input.Channel, source: StateSource.External)
+           .SetState("provider", input.Provider, source: StateSource.External)
+           .SetState("model", input.Model, source: StateSource.External)
+           .SetState("temperature", input.Temperature, source: StateSource.External)
+           .SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
+    }
+
     [HttpPost("/conversation/{agentId}/{conversationId}")]
     public async Task<ChatResponseModel> SendMessage([FromRoute] string agentId,
         [FromRoute] string conversationId,
         [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
+        {
+            Files = input.Files,
+            CreatedAt = DateTime.UtcNow
+        };
+
         if (!string.IsNullOrEmpty(input.TruncateMessageId))
         {
-            await conv.TruncateConversation(conversationId, input.TruncateMessageId);
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
         }
 
-        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text);
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
         conv.SetConversationId(conversationId, input.States);
-        conv.States.SetState("channel", input.Channel, source: StateSource.External)
-                   .SetState("provider", input.Provider, source: StateSource.External)
-                   .SetState("model", input.Model, source: StateSource.External)
-                   .SetState("temperature", input.Temperature, source: StateSource.External)
-                   .SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
+        SetStates(conv, input);
 
         var response = new ChatResponseModel();
         
@@ -180,9 +222,9 @@ public class ConversationController : ControllerBase
             replyMessage: input.Postback,
             async msg =>
             {
-                response.Text = msg.Content;
+                response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
                 response.Function = msg.FunctionName;
-                response.RichContent = msg.RichContent;
+                response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
             },
@@ -197,29 +239,120 @@ public class ConversationController : ControllerBase
         return response;
     }
 
-    [HttpPost("/conversation/{conversationId}/attachments")]
-    public IActionResult UploadAttachments([FromRoute] string conversationId, 
-        IFormFile[] files)
+    [HttpPost("/conversation/{agentId}/{conversationId}/sse")]
+    public async Task SendMessageSse([FromRoute] string agentId,
+        [FromRoute] string conversationId,
+        [FromBody] NewMessageModel input)
     {
-        if (files != null && files.Length > 0)
+        var conv = _services.GetRequiredService<IConversationService>();
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
-            var attachmentService = _services.GetRequiredService<IConversationAttachmentService>();
-            var dir = attachmentService.GetDirectory(conversationId);
-            foreach (var file in files)
-            {
-                // Save the file, process it, etc.
-                var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                var filePath = Path.Combine(dir, fileName);
+            Files = input.Files,
+            CreatedAt = DateTime.UtcNow
+        };
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    file.CopyTo(stream);
-                }
-            }
-
-            return Ok(new { message = "File uploaded successfully." });
+        if (!string.IsNullOrEmpty(input.TruncateMessageId))
+        {
+            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
         }
 
-        return BadRequest(new { message = "Invalid file." });
+        var state = _services.GetRequiredService<IConversationStateService>();
+
+        var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
+
+        conv.SetConversationId(conversationId, input.States);
+        SetStates(conv, input);
+
+        var response = new ChatResponseModel
+        {
+            ConversationId = conversationId,
+            MessageId = inputMsg.MessageId,
+        };
+
+        Response.StatusCode = 200;
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
+        Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
+
+        await conv.SendMessage(agentId, inputMsg,
+            replyMessage: input.Postback,
+            // responsed generated
+            async msg =>
+            {
+                response.Text = !string.IsNullOrEmpty(msg.SecondaryContent) ? msg.SecondaryContent : msg.Content;
+                response.Function = msg.FunctionName;
+                response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
+                response.Instruction = msg.Instruction;
+                response.Data = msg.Data;
+                response.States = state.GetStates();
+
+                await OnChunkReceived(Response, response);
+            },
+            // executing
+            async msg =>
+            {
+                var indicator = new ChatResponseModel
+                {
+                    ConversationId = conversationId,
+                    MessageId = msg.MessageId,
+                    Text = msg.Indication, 
+                    Function = "indicating",
+                    States = new Dictionary<string, string>()
+                };
+                await OnChunkReceived(Response, indicator);
+            },
+            // executed
+            async msg =>
+            {
+
+            });
+
+        response.States = state.GetStates();
+        response.MessageId = inputMsg.MessageId;
+        response.ConversationId = conversationId;
+
+        // await OnEventCompleted(Response);
+    }
+
+    private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
+    {
+        var json = JsonSerializer.Serialize(message, _jsonOptions);
+
+        var buffer = Encoding.UTF8.GetBytes($"data:{json}\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        await Task.Delay(10);
+
+        buffer = Encoding.UTF8.GetBytes("\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+    }
+
+    private async Task OnEventCompleted(HttpResponse response)
+    {
+        var buffer = Encoding.UTF8.GetBytes("data:[DONE]\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+
+        buffer = Encoding.UTF8.GetBytes("\n");
+        await response.Body.WriteAsync(buffer, 0, buffer.Length);
+    }
+
+    private JsonSerializerOptions InitJsonOptions(BotSharpOptions options)
+    {
+        var jsonOption = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            AllowTrailingCommas = true
+        };
+
+        if (options?.JsonSerializerOptions != null)
+        {
+            foreach (var option in options.JsonSerializerOptions.Converters)
+            {
+                jsonOption.Converters.Add(option);
+            }
+        }
+
+        return jsonOption;
     }
 }

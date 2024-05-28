@@ -9,6 +9,7 @@ public class DialogMongoElement
     public string? SecondaryContent { get; set; }
     public string? RichContent { get; set; }
     public string? SecondaryRichContent { get; set; }
+    public string? Payload { get; set; }
 
     public DialogMongoElement()
     {
@@ -23,7 +24,8 @@ public class DialogMongoElement
             Content = dialog.Content,
             SecondaryContent = dialog.SecondaryContent,
             RichContent = dialog.RichContent,
-            SecondaryRichContent = dialog.SecondaryRichContent
+            SecondaryRichContent = dialog.SecondaryRichContent,
+            Payload = dialog.Payload
         };
     }
 
@@ -35,7 +37,8 @@ public class DialogMongoElement
             Content = dialog.Content,
             SecondaryContent = dialog.SecondaryContent,
             RichContent = dialog.RichContent,
-            SecondaryRichContent = dialog.SecondaryRichContent
+            SecondaryRichContent = dialog.SecondaryRichContent,
+            Payload = dialog.Payload
         };
     }
 }

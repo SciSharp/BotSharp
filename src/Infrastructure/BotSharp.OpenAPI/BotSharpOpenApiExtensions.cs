@@ -11,8 +11,6 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.JsonWebTokens;
 using BotSharp.OpenAPI.BackgroundServices;
-using BotSharp.Abstraction.Settings;
-using BotSharp.Abstraction.Google.Settings;
 
 namespace BotSharp.OpenAPI;
 
@@ -33,12 +31,6 @@ public static class BotSharpOpenApiExtensions
     {
         services.AddScoped<IUserIdentity, UserIdentity>();
         services.AddHostedService<ConversationTimeoutService>();
-
-        services.AddScoped(provider =>
-        {
-            var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<GoogleApiSettings>("GoogleApi");
-        });
 
         // Add bearer authentication
         var schema = "MIXED_SCHEME";
@@ -123,6 +115,20 @@ public static class BotSharpOpenApiExtensions
                 options.AccessType = AspNet.Security.OAuth.Keycloak.KeycloakAuthenticationAccessType.Confidential;
                 int version = Convert.ToInt32(config["OAuth:Keycloak:Version"]??"22") ;
                 options.Version = new Version(version,0);
+            });
+        }
+
+        // Wexin OAuth
+        if (!string.IsNullOrWhiteSpace(config["OAuth:Wexin:ClientId"]) && !string.IsNullOrWhiteSpace(config["OAuth:Wexin:ClientSecret"]))
+        {
+            builder = builder.AddWeixin(options =>
+            {
+                options.ClientId = config["OAuth:GitHub:ClientId"];
+                options.ClientSecret = config["OAuth:GitHub:ClientSecret"];
+                options.Scope.Add("user:email");
+                options.Backchannel = builder.Services.BuildServiceProvider()
+                    .GetRequiredService<IHttpClientFactory>()
+                    .CreateClient();
             });
         }
 

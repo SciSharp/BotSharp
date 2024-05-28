@@ -61,6 +61,18 @@ public class UserController : ControllerBase
         return UserViewModel.FromUser(createdUser);
     }
 
+    [AllowAnonymous]
+    [HttpPost("/user/activate")]
+    public async Task<ActionResult<Token>> ActivateUser(UserActivationModel model)
+    {
+        var token = await _userService.ActiveUser(model);
+        if (token == null)
+        {
+            return Unauthorized();
+        }
+        return Ok(token);
+    }
+
     [HttpGet("/user/me")]
     public async Task<UserViewModel> GetMyUserProfile()
     {

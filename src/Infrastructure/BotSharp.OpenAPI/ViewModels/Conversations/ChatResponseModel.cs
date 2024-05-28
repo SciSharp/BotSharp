@@ -21,9 +21,6 @@ public class ChatResponseModel : InstructResult
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public FunctionCallFromLlm? Instruction { get; set; }
 
-    [JsonPropertyName("secondary_text")]
-    public string? SecondaryText { get; set; }
-
     /// <summary>
     /// Rich message for UI rendering
     /// </summary>
@@ -32,8 +29,8 @@ public class ChatResponseModel : InstructResult
     public RichContent<IRichMessage>? RichContent { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("secondary_rich_content")]
-    public RichContent<IRichMessage>? SecondaryRichContent { get; set; }
+    [JsonPropertyName("payload")]
+    public string? Payload { get; set; }
 
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Routing.Settings;
@@ -39,15 +40,10 @@ public partial class RoutingService : IRoutingService
         var handler = handlers.FirstOrDefault(x => x.Name == "route_to_agent");
 
         var conv = _services.GetRequiredService<IConversationService>();
-        var dialogs = new List<RoleDialogModel>();
-        if (conv.States.GetState("hide_context", "false") == "true")
-        {
-            dialogs.Add(message);
-        }
-        else
-        {
-            dialogs = conv.GetDialogHistory();
-        }
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        storage.Append(conv.ConversationId, message);
+
+        var dialogs = conv.GetDialogHistory();
         handler.SetDialogs(dialogs);
 
         var inst = new FunctionCallFromLlm
@@ -60,7 +56,7 @@ public partial class RoutingService : IRoutingService
             ExecutingDirectly = true
         };
 
-        var result = await handler.Handle(this, inst, message);
+        var result = await handler.Handle(this, inst, message, null);
 
         var response = dialogs.Last();
         response.MessageId = message.MessageId;
@@ -69,12 +65,15 @@ public partial class RoutingService : IRoutingService
         return response;
     }
 
-    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        _router = await agentService.LoadAgent(message.CurrentAgentId);
-
         RoleDialogModel response = default;
+
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var convService = _services.GetRequiredService<IConversationService>();
+        var storage = _services.GetRequiredService<IConversationStorage>();
+
+        _router = await agentService.LoadAgent(message.CurrentAgentId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var executor = _services.GetRequiredService<IExecutor>();
@@ -83,17 +82,32 @@ public partial class RoutingService : IRoutingService
 
         _context.Push(_router.Id);
 
-        int loopCount = 0;
-        while (loopCount < planner.MaxLoopCount && !_context.IsEmpty)
+        // Handle multi-language for input
+        var agentSettings = _services.GetRequiredService<AgentSettings>();
+        if (agentSettings.EnableTranslator)
         {
-            loopCount++;
+            var translator = _services.GetRequiredService<ITranslationService>();
 
-            var conversation = await GetConversationContent(dialogs);
-            _router.TemplateDict["conversation"] = conversation;
+            var language = states.GetState(StateConst.LANGUAGE, LanguageType.ENGLISH);
+            if (language != LanguageType.ENGLISH)
+            {
+                message.SecondaryContent = message.Content;
+                message.Content = await translator.Translate(_router, message.MessageId, message.Content,
+                    language: LanguageType.ENGLISH,
+                    clone: false);
+            }
+        }
 
-            // Get instruction from Planner
-            var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
+        dialogs.Add(message);
+        storage.Append(convService.ConversationId, message);
 
+        // Get first instruction
+        _router.TemplateDict["conversation"] = await GetConversationContent(dialogs);
+        var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
+
+        int loopCount = 1;
+        while (true)
+        {
             await HookEmitter.Emit<IRoutingHook>(_services, async hook =>
                 await hook.OnRoutingInstructionReceived(inst, message)
             );
@@ -112,15 +126,25 @@ public partial class RoutingService : IRoutingService
             if (inst.HandleDialogsByPlanner)
             {
                 var dialogWithoutContext = planner.BeforeHandleContext(inst, message, dialogs);
-                response = await executor.Execute(this, inst, message, dialogWithoutContext);
+                response = await executor.Execute(this, inst, message, dialogWithoutContext, onFunctionExecuting);
                 planner.AfterHandleContext(dialogs, dialogWithoutContext);
             }
             else
             {
-                response = await executor.Execute(this, inst, message, dialogs);
+                response = await executor.Execute(this, inst, message, dialogs, onFunctionExecuting);
             }
 
             await planner.AgentExecuted(_router, inst, response, dialogs);
+
+            if (loopCount >= planner.MaxLoopCount || _context.IsEmpty)
+            {
+                break;
+            }
+
+            // Get next instruction from Planner
+            _router.TemplateDict["conversation"] = await GetConversationContent(dialogs);
+            inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
+            loopCount++;
         }
 
         return response;

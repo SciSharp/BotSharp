@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -49,6 +49,8 @@
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\agent.json" />
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\functions.json" />
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\instruction.liquid" />
+    <None Remove="data\agents\01fcc3e5-0af7-49e6-ad7a-a760bd12dc4d\agent.json" />
+    <None Remove="data\agents\01fcc3e5-0af7-49e6-ad7a-a760bd12dc4d\instruction.liquid" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\agent.json" />
     <None Remove="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\instruction.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json" />
@@ -62,6 +64,7 @@
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.2nd.plan.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.2nd.task.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\response_with_function.liquid" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\translation_prompt.liquid" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\agent.json" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\instruction.liquid" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.executor.liquid" />
@@ -77,6 +80,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-0af7-49e6-ad7a-a760bd12dc4d\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-0af7-49e6-ad7a-a760bd12dc4d\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01e2fc5c-2c89-4ec7-8470-7688608b496c\agent.json">
@@ -118,6 +127,9 @@
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\.welcome.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\translation_prompt.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\agent.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -147,7 +159,9 @@
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.2.1" />
     <PackageReference Include="Fluid.Core" Version="2.8.0" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
     <PackageReference Include="Nanoid" Version="3.0.0" />
+    <PackageReference Include="RedLock.net" Version="2.3.2" />
   </ItemGroup>
 
   <ItemGroup>

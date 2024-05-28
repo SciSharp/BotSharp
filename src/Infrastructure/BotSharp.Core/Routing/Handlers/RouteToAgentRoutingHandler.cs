@@ -12,20 +12,20 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
         new ParameterPropertyDef("next_action_reason", 
-            "the reason why route to this virtual agent", 
+            "the reason why route to this virtual agent.", 
             required: true),
         new ParameterPropertyDef("next_action_agent", 
-            "agent for next action based on user latest response, if user is replying last agent's question, you must route to this agent", 
+            "agent for next action based on user latest response, if user is replying last agent's question, you must route to this agent.", 
             required: true),
+        new ParameterPropertyDef("args",
+            "useful parameters of next action agent, format: { }",
+            type: "object"),
         new ParameterPropertyDef("user_goal_description", 
             "user goal based on user initial task.", 
             required: true),
         new ParameterPropertyDef("user_goal_agent",
             "agent who can acheive user initial task,  must align with user_goal_description.", 
             required: true),
-        new ParameterPropertyDef("args", 
-            "useful parameters of next action agent, format: { }", 
-            type: "object"),
         new ParameterPropertyDef("is_new_task",
             "whether the user is requesting a new task that is different from the previous topic.", 
             type: "boolean")
@@ -36,7 +36,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var states = _services.GetRequiredService<IConversationStateService>();
         var goalAgent = states.GetState(StateConst.EXPECTED_GOAL_AGENT);
@@ -82,7 +82,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         }
         else
         {
-            ret = await routing.InvokeAgent(agentId, _dialogs);
+            ret = await routing.InvokeAgent(agentId, _dialogs, onFunctionExecuting);
         }
 
         var response = _dialogs.Last();

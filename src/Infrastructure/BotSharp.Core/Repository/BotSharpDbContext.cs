@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -87,6 +86,9 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public string GetAgentTemplate(string agentId, string templateName)
         => throw new NotImplementedException();
 
+    public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+        => throw new NotImplementedException();
+
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
         => throw new NotImplementedException();
 
@@ -148,9 +150,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public List<DialogElement> GetConversationDialogs(string conversationId)
         => throw new NotImplementedException();
 
-    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
-        => new NotImplementedException();
-
     public ConversationState GetConversationStates(string conversationId)
         => throw new NotImplementedException();
 
@@ -172,21 +171,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public void UpdateConversationStatus(string conversationId, string status)
         => new NotImplementedException();
 
-    public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
-        => throw new NotImplementedException();
-    #endregion
-
-    #region User
-    public User? GetUserByEmail(string email) 
-        => throw new NotImplementedException();
-
-    public User? GetUserById(string id) 
-        => throw new NotImplementedException();
-
-    public User? GetUserByUserName(string userName) 
-        => throw new NotImplementedException();
-
-    public void CreateUser(User user) 
+    public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
         => throw new NotImplementedException();
     #endregion
 

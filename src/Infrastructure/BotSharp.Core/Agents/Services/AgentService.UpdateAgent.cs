@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
@@ -104,6 +101,59 @@ public partial class AgentService
             _logger.LogError(updateResult);
             return updateResult;
         }
+    }
+
+
+    public async Task<string> PatchAgentTemplate(Agent agent)
+    {
+        var patchResult = string.Empty;
+        if (agent == null || agent.Templates.IsNullOrEmpty())
+        {
+            patchResult = $"Null agent instance or empty input templates";
+            _logger.LogWarning(patchResult);
+            return patchResult;
+        }
+
+        var record = _db.GetAgent(agent.Id);
+        if (record == null)
+        {
+            patchResult = $"Cannot find agent {agent.Id}";
+            _logger.LogWarning(patchResult);
+            return patchResult;
+        }
+
+        var successTemplates = new List<string>();
+        var failTemplates = new List<string>();
+        foreach (var template in agent.Templates)
+        {
+            if (template == null) continue;
+
+            var result = _db.PatchAgentTemplate(agent.Id, template);
+            if (result)
+            {
+                successTemplates.Add(template.Name);
+                _logger.LogInformation($"Template {template.Name} is updated successfully!");
+            }
+            else
+            {
+                failTemplates.Add(template.Name);
+                _logger.LogWarning($"Template {template.Name} is failed to be updated!");
+            }
+        }
+
+        Utilities.ClearCache();
+
+        if (!successTemplates.IsNullOrEmpty())
+        {
+            patchResult += $"Success templates:\n{string.Join('\n', successTemplates)}\n\n";
+        }
+
+        if (!failTemplates.IsNullOrEmpty())
+        {
+            patchResult += $"Failed templates:\n{string.Join('\n', failTemplates)}";
+        }
+
+        return patchResult;
     }
 
     private Agent? FetchAgentFileById(string agentId, string filePath)

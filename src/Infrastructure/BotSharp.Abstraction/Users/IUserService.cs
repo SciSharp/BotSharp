@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.OpenAPI.ViewModels.Users;
 
 namespace BotSharp.Abstraction.Users;
 
@@ -6,6 +7,7 @@ public interface IUserService
 {
     Task<User> GetUser(string id);
     Task<User> CreateUser(User user);
-    Task<Token> GetToken(string authorization);
+    Task<Token> ActiveUser(UserActivationModel model);
+    Task<Token?> GetToken(string authorization);
     Task<User> GetMyProfile();
 }

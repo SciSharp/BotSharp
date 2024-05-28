@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Routing.Planning;
 
 namespace BotSharp.Core.Routing.Planning;
@@ -18,7 +16,8 @@ public class InstructExecutor : IExecutor
     public async Task<RoleDialogModel> Execute(IRoutingService routing,
         FunctionCallFromLlm inst,
         RoleDialogModel message,
-        List<RoleDialogModel> dialogs)
+        List<RoleDialogModel> dialogs, 
+        Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         message.Instruction = inst;
 
@@ -26,7 +25,7 @@ public class InstructExecutor : IExecutor
         var handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
         handler.SetDialogs(dialogs);
 
-        var handled = await handler.Handle(routing, inst, message);
+        var handled = await handler.Handle(routing, inst, message, onFunctionExecuting);
 
         // For client display purpose
         var response = dialogs.Last();

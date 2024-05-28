@@ -2,10 +2,10 @@ namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
 
 public partial class SeleniumWebDriver
 {
-    public async Task<string> GetAttributeValue(MessageInfo message, ElementLocatingArgs location, BrowserActionResult result)
+    public async Task<BrowserActionResult> GetAttributeValue(MessageInfo message, ElementLocatingArgs location)
     {
         var driver = await _instance.InitInstance(message.ContextId);
-        var locator = driver.FindElement(By.CssSelector(result.Selector));
+        var locator = driver.FindElement(By.CssSelector(location.Selector));
         var value = string.Empty;
 
         if (!string.IsNullOrEmpty(location?.AttributeName))
@@ -13,6 +13,10 @@ public partial class SeleniumWebDriver
             value = locator.GetAttribute(location.AttributeName);
         }
 
-        return value ?? string.Empty;
+        return new BrowserActionResult 
+        {
+            IsSuccess = true,
+            Body = value ?? string.Empty 
+        };
     }
 }

@@ -50,7 +50,13 @@ public class ConversationStorage : IConversationStorage
             {
                 return;
             }
-            dialogElements.Add(new DialogElement(meta, content, dialog.SecondaryContent));
+            dialogElements.Add(new DialogElement
+            {
+                MetaData = meta,
+                Content = dialog.Content,
+                SecondaryContent = dialog.SecondaryContent,
+                Payload = dialog.Payload
+            });
         }
         else
         {
@@ -72,7 +78,15 @@ public class ConversationStorage : IConversationStorage
 
             var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options.JsonSerializerOptions) : null;
             var secondaryRichContent = dialog.SecondaryRichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
-            dialogElements.Add(new DialogElement(meta, content, richContent, dialog.SecondaryContent, secondaryRichContent));
+            dialogElements.Add(new DialogElement
+            {
+                MetaData = meta,
+                Content = dialog.Content,
+                SecondaryContent = dialog.SecondaryContent,
+                RichContent = richContent,
+                SecondaryRichContent = secondaryRichContent,
+                Payload = dialog.Payload
+            });
         }
 
         db.AppendConversationDialogs(conversationId, dialogElements);
@@ -90,6 +104,7 @@ public class ConversationStorage : IConversationStorage
             var meta = dialog.MetaData;
             var content = dialog.Content;
             var secondaryContent = dialog.SecondaryContent;
+            var payload = string.IsNullOrEmpty(dialog.Payload) ? null : dialog.Payload;
             var role = meta.Role;
             var currentAgentId = meta.AgentId;
             var messageId = meta.MessageId;
@@ -111,6 +126,7 @@ public class ConversationStorage : IConversationStorage
                 RichContent = richContent,
                 SecondaryContent = secondaryContent,
                 SecondaryRichContent = secondaryRichContent,
+                Payload = payload
             };
             results.Add(record);
 

@@ -8,7 +8,7 @@ public class RichContentJsonConverter : JsonConverter<IRichMessage>
     {
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;
-        var res = BotSharpMessageParser.ParseRichMessage(root);
+        var res = BotSharpMessageParser.ParseRichMessage(root, options);
         return res;
     }
 

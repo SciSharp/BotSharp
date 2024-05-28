@@ -28,6 +28,18 @@ public class RoleDialogModel : ITrackableMessage
 
     public string? SecondaryContent { get; set; }
 
+    /// <summary>
+    /// Postback content
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("payload")]
+    public string? Payload { get; set; }
+
+    /// <summary>
+    /// Indicator message used to provide UI feedback for function execution
+    /// </summary>
+    public string? Indication { get; set; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string CurrentAgentId { get; set; }
 
@@ -36,6 +48,9 @@ public class RoleDialogModel : ITrackableMessage
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FunctionName { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ToolCallId { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? PostbackFunctionName { get; set; }
@@ -70,6 +85,8 @@ public class RoleDialogModel : ITrackableMessage
 
     public FunctionCallFromLlm Instruction { get; set; }
 
+    public List<BotSharpFile> Files { get; set; } = new List<BotSharpFile>();
+
     private RoleDialogModel()
     {
     }
@@ -103,6 +120,7 @@ public class RoleDialogModel : ITrackableMessage
             MessageId = source.MessageId,
             FunctionArgs = source.FunctionArgs,
             FunctionName = source.FunctionName,
+            ToolCallId = source.ToolCallId,
             PostbackFunctionName = source.PostbackFunctionName,
             RichContent = source.RichContent,
             StopCompletion = source.StopCompletion,

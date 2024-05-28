@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Browsing.Settings;
+using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 using BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
 using BotSharp.Plugin.WebDriver.Hooks;
@@ -14,11 +16,27 @@ public class WebDriverPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        // services.AddScoped<IWebBrowser, PlaywrightWebDriver>();
-        // services.AddSingleton<PlaywrightInstance>();
+        var settings = new WebBrowsingSettings();
+        config.Bind("WebBrowsing", settings);
 
-        services.AddScoped<IWebBrowser, SeleniumWebDriver>();
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settings;
+        });
+
+        services.AddScoped<PlaywrightWebDriver>();
+        services.AddSingleton<PlaywrightInstance>();
+
+        services.AddScoped<SeleniumWebDriver>();
         services.AddSingleton<SeleniumInstance>();
+
+        services.AddScoped<IWebBrowser>(provider => settings.Driver switch
+        {
+            "Playwright" => provider.GetRequiredService<PlaywrightWebDriver>(),
+            "Selenium" => provider.GetRequiredService<SeleniumWebDriver>(),
+            _ => provider.GetRequiredService<PlaywrightWebDriver>(),
+        });
 
         services.AddScoped<WebDriverService>();
         services.AddScoped<IConversationHook, WebDriverConversationHook>();
