@@ -1,3 +1,5 @@
+using System.Xml.Linq;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -18,12 +20,18 @@ public partial class PlaywrightWebDriver
         // check if selector is specified
         if (location.Selector != null)
         {
-            locator = page.Locator(location.Selector);
+            locator = locator.Locator(location.Selector);
+            count = await locator.CountAsync();
+        }
+
+        if (location.Tag != null)
+        {
+            locator = page.Locator(location.Tag);
             count = await locator.CountAsync();
         }
 
         // try attribute
-        if (count == 0 && !string.IsNullOrEmpty(location.AttributeName))
+        if (!string.IsNullOrEmpty(location.AttributeName))
         {
             locator = locator.Locator($"[{location.AttributeName}='{location.AttributeValue}']");
             count = await locator.CountAsync();
@@ -64,13 +72,38 @@ public partial class PlaywrightWebDriver
         }
         else if (count == 1)
         {
+            if (location.Parent)
+            {
+                locator = locator.Locator("..");
+            }
+
             result.Selector = locator.ToString().Split('@').Last();
-            var text = await locator.InnerTextAsync();
-            result.Body = text;
+
+            // Make sure the element is visible
+            /*if (!await locator.IsVisibleAsync())
+            {
+                await locator.EvaluateAsync("element => element.style.height = '15px'");
+                await locator.EvaluateAsync("element => element.style.width = '15px'");
+                await locator.EvaluateAsync("element => element.style.opacity = '1.0'");
+            }*/
+
+            var html = await locator.InnerHTMLAsync();
+            result.Body = html;
             result.IsSuccess = true;
         }
         else if (count > 1)
         {
+            // Make sure the element is visible
+            foreach (var element in await locator.AllAsync())
+            {
+                if (!await element.IsVisibleAsync())
+                {
+                    await element.EvaluateAsync("element => element.style.height = '10px'");
+                    await element.EvaluateAsync("element => element.style.width = '10px'");
+                    await element.EvaluateAsync("element => element.style.opacity = '1.0'");
+                }
+            }
+
             if (location.FailIfMultiple)
             {
                 result.Message = $"Multiple elements are found by {locator}";

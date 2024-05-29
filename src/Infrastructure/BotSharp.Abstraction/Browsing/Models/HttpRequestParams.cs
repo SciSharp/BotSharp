@@ -18,7 +18,7 @@ public class HttpRequestParams
 
     public HttpRequestParams(string url,  HttpMethod method, string? payload = null)
     {
-        Method = HttpMethod.Get;
+        Method = method;
         Url = url;
         Payload = payload;
     }

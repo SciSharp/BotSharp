@@ -10,6 +10,8 @@ public class ElementActionArgs
 
     public ElementPosition? Position { get; set; }
 
+    public string? PressKey { get; set; }
+
     /// <summary>
     /// Required for deserialization
     /// </summary>

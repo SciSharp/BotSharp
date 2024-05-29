@@ -5,6 +5,7 @@ using BotSharp.Core.Plugins;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Messaging.JsonConverters;
+using BotSharp.Abstraction.Users.Settings;
 
 namespace BotSharp.Core;
 
@@ -83,6 +84,10 @@ public static class BotSharpCoreExtensions
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<PluginSettings>("PluginLoader");
         });
+
+        var accountSettings = new AccountSetting();
+        config.Bind("Account", accountSettings);
+        services.AddScoped(x => accountSettings);
 
         var loader = new PluginLoader(services, config, pluginSettings);
         loader.Load(assembly =>

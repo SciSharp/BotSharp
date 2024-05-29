@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
 
 public partial class SeleniumWebDriver
 {
-    public async Task<BrowserActionResult> SendHttpRequest(string contextId, HttpRequestParams args)
+    public async Task<BrowserActionResult> SendHttpRequest(MessageInfo message, HttpRequestParams args)
     {
         var result = new BrowserActionResult();
 
@@ -27,7 +27,7 @@ public partial class SeleniumWebDriver
 
         try
         {
-            var response = await EvaluateScript<object>(contextId, script);
+            var response = await EvaluateScript<object>(message.ContextId, script);
             result.IsSuccess = true;
             result.Body = JsonSerializer.Serialize(response);
         }

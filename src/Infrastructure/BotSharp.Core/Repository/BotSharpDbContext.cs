@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -173,20 +172,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         => new NotImplementedException();
 
     public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
-        => throw new NotImplementedException();
-    #endregion
-
-    #region User
-    public User? GetUserByEmail(string email) 
-        => throw new NotImplementedException();
-
-    public User? GetUserById(string id) 
-        => throw new NotImplementedException();
-
-    public User? GetUserByUserName(string userName) 
-        => throw new NotImplementedException();
-
-    public void CreateUser(User user) 
         => throw new NotImplementedException();
     #endregion
 

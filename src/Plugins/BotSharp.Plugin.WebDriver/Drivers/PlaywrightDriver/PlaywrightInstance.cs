@@ -40,11 +40,12 @@ public class PlaywrightInstance : IDisposable
             Channel = "chrome",
             IgnoreDefaultArgs = new[]
             {
-                "--disable-infobars"
+                "--enable-automation",
             },
             Args = new[]
             {
                 "--disable-infobars",
+                "--no-sandbox",
                 // "--start-maximized"
             }
         });
@@ -104,6 +105,6 @@ public class PlaywrightInstance : IDisposable
     public void Dispose()
     {
         _contexts.Clear();
-        _playwright.Dispose();
+        _playwright?.Dispose();
     }
 }
