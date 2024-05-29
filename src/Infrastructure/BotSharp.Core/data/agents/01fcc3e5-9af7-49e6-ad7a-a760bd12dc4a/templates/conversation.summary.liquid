@@ -1,4 +1,4 @@
-Please read each conversation in the [CONVERSATION] section and provide a summary.
+Please read each conversation in the [CONVERSATIONS] section and provide a summary.
 
 *** Super Important! Please consider every conversation. Do not only consider the recent sentences. ***
 ** Please do not respond to the latest conversation.
@@ -10,5 +10,5 @@ Please read each conversation in the [CONVERSATION] section and provide a summar
 [CONVERSATIONS]
 
 {% for text in texts -%}
-{{ text }}{{ "\r\n\r\n" }}
+{{ text }}{{ "\r\n" }}
 {%- endfor %}
