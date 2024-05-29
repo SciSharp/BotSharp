@@ -54,4 +54,6 @@ public interface IConversationService
     /// <param name="excludedStates"></param>
     /// <returns></returns>
     Task UpdateBreakpoint(bool resetStates = false, string? reason = null, params string[] excludedStates);
+
+    Task<string> GetConversationSummary(string conversationId);
 }

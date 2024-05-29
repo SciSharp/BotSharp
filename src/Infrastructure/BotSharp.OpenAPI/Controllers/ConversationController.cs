@@ -139,6 +139,13 @@ public class ConversationController : ControllerBase
         return result;
     }
 
+    [HttpGet("/conversation/{conversationId}/summary")]
+    public async Task<string> GetConversationSummary([FromRoute] string conversationId)
+    {
+        var service = _services.GetRequiredService<IConversationService>();
+        return await service.GetConversationSummary(conversationId);
+    }
+
     [HttpGet("/conversation/{conversationId}/user")]
     public async Task<UserViewModel> GetConversationUser([FromRoute] string conversationId)
     {
