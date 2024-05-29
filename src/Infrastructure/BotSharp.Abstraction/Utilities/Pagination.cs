@@ -3,7 +3,7 @@ namespace BotSharp.Abstraction.Utilities;
 public class Pagination
 {
     private int _page;
-    private int _size => 10;
+    private int _size;
 
     public int Page
     { 
@@ -19,11 +19,11 @@ public class Pagination
             if (_size > 100) return 100;
 
             return _size;
-        } 
-        //set 
-        //{
-        //    _size = value;
-        //} 
+        }
+        set
+        {
+            _size = value;
+        }
     }
 
     /// <summary>
