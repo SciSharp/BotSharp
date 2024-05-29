@@ -19,6 +19,9 @@ public class PluginMenuDef
     [JsonIgnore]
     public int Weight { get; set; }
 
+    [JsonIgnore]
+    public List<string>? Roles { get; set; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<PluginMenuDef>? SubMenu {  get; set; }
 

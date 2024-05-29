@@ -1,8 +1,4 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Tasks.Models;
-using BotSharp.Abstraction.Users.Models;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -26,32 +22,13 @@ public partial class AgentService
 
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
-        var filePath = Path.Combine(dbSettings.FileRepository, agentSettings.DataDir);
-        var foundAgent = FetchAgentFileByName(agent.Name, filePath);
-
-        if (foundAgent != null)
-        {
-            agentRecord.SetId(foundAgent.Id)
-                       .SetName(foundAgent.Name)
-                       .SetDescription(foundAgent.Description)
-                       .SetIsPublic(foundAgent.IsPublic)
-                       .SetDisabled(foundAgent.Disabled)
-                       .SetAgentType(foundAgent.Type)
-                       .SetProfiles(foundAgent.Profiles)
-                       .SetRoutingRules(foundAgent.RoutingRules)
-                       .SetInstruction(foundAgent.Instruction)
-                       .SetTemplates(foundAgent.Templates)
-                       .SetFunctions(foundAgent.Functions)
-                       .SetResponses(foundAgent.Responses)
-                       .SetLlmConfig(foundAgent.LlmConfig);
-        }
 
         var user = _db.GetUserById(_user.Id);
         var userAgentRecord = new UserAgent
         {
             Id = Guid.NewGuid().ToString(),
             UserId = user.Id,
-            AgentId = foundAgent?.Id ?? agentRecord.Id,
+            AgentId = agentRecord.Id,
             Editable = false,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
@@ -65,7 +42,7 @@ public partial class AgentService
 
         Utilities.ClearCache();
 
-        return agentRecord;
+        return await Task.FromResult(agentRecord);
     }
 
     private Agent FetchAgentFileByName(string agentName, string filePath)

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Users.Enums;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -8,6 +9,10 @@ public partial class AgentService
 {
     public async Task UpdateAgent(Agent agent, AgentField updateField)
     {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user?.Role != UserRole.Admin) return;
+
         if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
         var record = _db.GetAgent(agent.Id);

@@ -1,0 +1,14 @@
+Please read each conversation in the [CONVERSATIONS] section and provide a summary.
+
+*** Super Important! Please consider every conversation. Do not only consider the recent sentences. ***
+** Please do not respond to the latest conversation.
+** If there are different topics in the conversations, please summarize each topic in different sentences and list them in bullets.
+* Please use concise sentences to summarize each topic.
+* Please do not include excessive details in the summaries.
+* Please use 'user' instead of 'you', 'he' or 'she'.
+
+[CONVERSATIONS]
+
+{% for text in texts -%}
+{{ text }}{{ "\r\n" }}
+{%- endfor %}
