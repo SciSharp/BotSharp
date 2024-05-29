@@ -87,8 +87,8 @@ public partial class PlaywrightWebDriver
                 await locator.EvaluateAsync("element => element.style.opacity = '1.0'");
             }*/
 
-            var text = await locator.InnerTextAsync();
-            result.Body = text;
+            var html = await locator.InnerHTMLAsync();
+            result.Body = html;
             result.IsSuccess = true;
         }
         else if (count > 1)
