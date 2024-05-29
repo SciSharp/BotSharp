@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using System.IO;
 
