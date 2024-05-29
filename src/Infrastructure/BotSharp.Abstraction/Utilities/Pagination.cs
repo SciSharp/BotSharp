@@ -13,11 +13,8 @@ public class Pagination
 
     public int Size
     {
-        get 
+        get
         {
-            if (_size <= 0) return 20;
-            if (_size > 100) return 100;
-
             return _size;
         }
         set
