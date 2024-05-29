@@ -5,31 +5,51 @@ namespace BotSharp.Core.Conversations.Services;
 
 public partial class ConversationService
 {
-    public async Task<string> GetConversationSummary(string conversationId)
+    public async Task<string> GetConversationSummary(IEnumerable<string> conversationIds)
     {
-        if (string.IsNullOrEmpty(conversationId)) return string.Empty;
+        if (conversationIds.IsNullOrEmpty()) return string.Empty;
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var agentService = _services.GetRequiredService<IAgentService>();
 
-        var dialogs = _storage.GetDialogs(conversationId);
-        if (dialogs.IsNullOrEmpty()) return string.Empty;
+        var contents = new List<string>();
+        foreach ( var conversationId in conversationIds)
+        {
+            if (string.IsNullOrEmpty(conversationId)) continue;
+
+            var dialogs = _storage.GetDialogs(conversationId);
+
+            if (dialogs.IsNullOrEmpty()) continue;
+
+            var content = GetConversationContent(dialogs);
+            contents.Add(content);
+        }
 
         var router = await agentService.LoadAgent(AIAssistant);
-        var prompt = GetPrompt(router);
-        var summary = await Summarize(router, prompt, dialogs);
+        var prompt = GetPrompt(router, contents);
+        var summary = await Summarize(router, prompt);
 
         return summary;
     }
 
-    private string GetPrompt(Agent agent)
+    private string GetPrompt(Agent agent, List<string> contents)
     {
         var template = agent.Templates.First(x => x.Name == "conversation.summary").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
-        return render.Render(template, new Dictionary<string, object> { });
+
+        var texts = string.Empty;
+        for (int i = 0; i < contents.Count; i++)
+        {
+            texts += $"[Conversation {i+1}]\r\n{contents[i]}";
+        }
+
+        return render.Render(template, new Dictionary<string, object>
+        {
+            { "texts", texts }
+        });
     }
 
-    private async Task<string> Summarize(Agent agent, string prompt, List<RoleDialogModel> dialogs)
+    private async Task<string> Summarize(Agent agent, string prompt)
     {
         var provider = "openai";
         string? model;
@@ -60,8 +80,29 @@ public partial class ConversationService
             Id = agent.Id,
             Name = agent.Name,
             Instruction = prompt
-        }, dialogs);
+        }, new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, "Please summarize the conversations.")
+        });
 
         return response.Content;
+    }
+
+    private string GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 50)
+    {
+        var conversation = "";
+
+        foreach (var dialog in dialogs.TakeLast(maxDialogCount))
+        {
+            var role = dialog.Role;
+            if (role != AgentRole.User)
+            {
+                role = AgentRole.Assistant;
+            }
+
+            conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
+        }
+
+        return conversation + "\r\n";
     }
 }

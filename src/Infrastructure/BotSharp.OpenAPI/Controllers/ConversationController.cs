@@ -152,11 +152,11 @@ public class ConversationController : ControllerBase
         return result;
     }
 
-    [HttpGet("/conversation/{conversationId}/summary")]
-    public async Task<string> GetConversationSummary([FromRoute] string conversationId)
+    [HttpPost("/conversation/summary")]
+    public async Task<string> GetConversationSummary([FromBody] ConversationSummaryModel input)
     {
         var service = _services.GetRequiredService<IConversationService>();
-        return await service.GetConversationSummary(conversationId);
+        return await service.GetConversationSummary(input.ConversationIds);
     }
 
     [HttpGet("/conversation/{conversationId}/user")]
