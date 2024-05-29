@@ -263,4 +263,30 @@ public class UserService : IUserService
         };
         return token;
     }
+
+    public async Task<bool> VerifyUserUnique(string userName)
+    {
+        if (string.IsNullOrEmpty(userName))
+            return false;
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var user = db.GetUserByUserName(userName);
+        if (user == null)
+            return true;
+        
+        return false;
+    }
+
+    public async Task<bool> VerifyEmailUnique(string email)
+    {
+        if (string.IsNullOrEmpty(email))
+            return false;
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var emailName = db.GetUserByEmail(email);
+        if (emailName == null)
+            return true;
+
+        return false;
+    }
 }

@@ -94,4 +94,16 @@ public class UserController : ControllerBase
         }
         return UserViewModel.FromUser(user);
     }
+
+    [HttpGet("/user/name/existing")]
+    public async Task<bool> VerifyUserUnique([FromQuery] string userName)
+    {
+        return await _userService.VerifyUserUnique(userName);
+    }
+
+    [HttpGet("/user/email/existing")]
+    public async Task<bool> VerifyEmailUnique([FromQuery] string email)
+    {
+        return await _userService.VerifyEmailUnique(email);
+    }
 }
