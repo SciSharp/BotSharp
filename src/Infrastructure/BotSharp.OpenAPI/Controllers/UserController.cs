@@ -95,16 +95,14 @@ public class UserController : ControllerBase
         return UserViewModel.FromUser(user);
     }
 
-    [AllowAnonymous]
-    [HttpPost("/user/unique/{username}")]
-    public async Task<bool> VerifyUserUnique([FromRoute] string userName)
+    [HttpGet("/user/name/existing")]
+    public async Task<bool> VerifyUserUnique([FromQuery] string userName)
     {
         return await _userService.VerifyUserUnique(userName);
     }
 
-    [AllowAnonymous]
-    [HttpPost("/email/unique/{email}")]
-    public async Task<bool> VerifyEmailUnique([FromRoute]string email)
+    [HttpGet("/user/email/existing")]
+    public async Task<bool> VerifyEmailUnique([FromQuery] string email)
     {
         return await _userService.VerifyEmailUnique(email);
     }
