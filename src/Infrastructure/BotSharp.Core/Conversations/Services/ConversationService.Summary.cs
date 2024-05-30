@@ -22,6 +22,8 @@ public partial class ConversationService
             if (dialogs.IsNullOrEmpty()) continue;
 
             var content = GetConversationContent(dialogs);
+            if (string.IsNullOrEmpty(content)) continue;
+
             contents.Add(content);
         }
 
@@ -98,6 +100,11 @@ public partial class ConversationService
             if (role != AgentRole.User && role != AgentRole.Assistant) continue;
 
             conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
+        }
+
+        if (string.IsNullOrEmpty(conversation))
+        {
+            return string.Empty;
         }
 
         return conversation + "\r\n";
