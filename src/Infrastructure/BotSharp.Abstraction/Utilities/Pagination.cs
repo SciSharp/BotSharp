@@ -15,7 +15,7 @@ public class Pagination
     {
         get
         {
-            return _size;
+            return _size > 0 ? _size : 1;
         }
         set
         {
