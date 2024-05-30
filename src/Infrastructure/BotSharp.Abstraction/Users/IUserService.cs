@@ -10,6 +10,6 @@ public interface IUserService
     Task<Token> ActiveUser(UserActivationModel model);
     Task<Token?> GetToken(string authorization);
     Task<User> GetMyProfile();
-    Task<bool> VerifyUserUnique(string userName);
-    Task<bool> VerifyEmailUnique(string email);
+    Task<bool> VerifyUserNameExisting(string userName);
+    Task<bool> VerifyEmailExisting(string email);
 }
