@@ -106,4 +106,36 @@ public class UserController : ControllerBase
     {
         return await _userService.VerifyEmailUnique(email);
     }
+
+    #region Avatar
+    [HttpPost("/user/avatar")]
+    public bool UploadUserAvatar([FromBody] BotSharpFile file)
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        return fileService.SaveUserAvatar(file);
+    }
+
+    [HttpGet("/user/avatar")]
+    public IActionResult GetUserAvatar()
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var file = fileService.GetUserAvatar();
+        if (string.IsNullOrEmpty(file))
+        {
+            return NotFound();
+        }
+        return BuildFileResult(file);
+    }
+    #endregion
+
+
+    #region Private methods
+    private FileContentResult BuildFileResult(string file)
+    {
+        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes, 0, (int)stream.Length);
+        return File(bytes, "application/octet-stream", Path.GetFileName(file));
+    }
+    #endregion
 }

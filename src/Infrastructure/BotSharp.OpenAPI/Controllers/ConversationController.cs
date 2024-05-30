@@ -219,15 +219,7 @@ public class ConversationController : ControllerBase
         return response;
     }
 
-    private void SetStates(IConversationService conv, NewMessageModel input)
-    {
-        conv.States.SetState("channel", input.Channel, source: StateSource.External)
-           .SetState("provider", input.Provider, source: StateSource.External)
-           .SetState("model", input.Model, source: StateSource.External)
-           .SetState("temperature", input.Temperature, source: StateSource.External)
-           .SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
-    }
-
+    #region Send message
     [HttpPost("/conversation/{agentId}/{conversationId}")]
     public async Task<ChatResponseModel> SendMessage([FromRoute] string agentId,
         [FromRoute] string conversationId,
@@ -350,6 +342,73 @@ public class ConversationController : ControllerBase
 
         // await OnEventCompleted(Response);
     }
+    #endregion
+
+    #region Files and attachments
+    [HttpPost("/conversation/{conversationId}/attachments")]
+    public IActionResult UploadAttachments([FromRoute] string conversationId,
+        IFormFile[] files)
+    {
+        if (files != null && files.Length > 0)
+        {
+            var fileService = _services.GetRequiredService<IBotSharpFileService>();
+            var dir = fileService.GetDirectory(conversationId);
+            foreach (var file in files)
+            {
+                // Save the file, process it, etc.
+                var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                var filePath = Path.Combine(dir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+            }
+
+            return Ok(new { message = "File uploaded successfully." });
+        }
+
+        return BadRequest(new { message = "Invalid file." });
+    }
+
+    [HttpGet("/conversation/{conversationId}/files/{messageId}")]
+    public IEnumerable<MessageFileViewModel> GetMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId)
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId });
+        return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? new List<MessageFileViewModel>();
+    }
+
+    [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}")]
+    public IActionResult GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string fileName)
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var file = fileService.GetMessageFile(conversationId, messageId, fileName);
+        if (string.IsNullOrEmpty(file))
+        {
+            return NotFound();
+        }
+        return BuildFileResult(file);
+    }
+    #endregion
+
+    #region Private methods
+    private void SetStates(IConversationService conv, NewMessageModel input)
+    {
+        conv.States.SetState("channel", input.Channel, source: StateSource.External)
+           .SetState("provider", input.Provider, source: StateSource.External)
+           .SetState("model", input.Model, source: StateSource.External)
+           .SetState("temperature", input.Temperature, source: StateSource.External)
+           .SetState("sampling_factor", input.SamplingFactor, source: StateSource.External);
+    }
+
+    private FileContentResult BuildFileResult(string file)
+    {
+        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes, 0, (int)stream.Length);
+        return File(bytes, "application/octet-stream", Path.GetFileName(file));
+    }
 
     private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
     {
@@ -391,4 +450,5 @@ public class ConversationController : ControllerBase
 
         return jsonOption;
     }
+    #endregion
 }
