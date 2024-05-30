@@ -16,8 +16,8 @@ public class UserService : IUserService
     private readonly ILogger _logger;
     private readonly AccountSetting _setting;
 
-    public UserService(IServiceProvider services, 
-        IUserIdentity user, 
+    public UserService(IServiceProvider services,
+        IUserIdentity user,
         ILogger<UserService> logger,
         AccountSetting setting)
     {
@@ -92,7 +92,7 @@ public class UserService : IUserService
 
         User? user = record;
         var hooks = _services.GetServices<IAuthenticationHook>();
-        if (record == null  || record.Source != "internal")
+        if (record == null || record.Source != "internal")
         {
             // check 3rd party user
             foreach (var hook in hooks)
@@ -264,27 +264,27 @@ public class UserService : IUserService
         return token;
     }
 
-    public async Task<bool> VerifyUserUnique(string userName)
+    public async Task<bool> VerifyUserNameExisting(string userName)
     {
         if (string.IsNullOrEmpty(userName))
-            return false;
+            return true;
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserByUserName(userName);
-        if (user == null)
+        if (user != null)
             return true;
-        
+
         return false;
     }
 
-    public async Task<bool> VerifyEmailUnique(string email)
+    public async Task<bool> VerifyEmailExisting(string email)
     {
         if (string.IsNullOrEmpty(email))
-            return false;
+            return true;
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var emailName = db.GetUserByEmail(email);
-        if (emailName == null)
+        if (emailName != null)
             return true;
 
         return false;

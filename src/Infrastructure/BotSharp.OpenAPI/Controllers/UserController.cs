@@ -36,7 +36,7 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("/sso/{provider}")]
-    public async Task<IActionResult> Authorize([FromRoute] string provider,string redirectUrl)
+    public async Task<IActionResult> Authorize([FromRoute] string provider, string redirectUrl)
     {
         return Challenge(new AuthenticationProperties { RedirectUri = redirectUrl }, provider);
     }
@@ -96,15 +96,15 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("/user/name/existing")]
-    public async Task<bool> VerifyUserUnique([FromQuery] string userName)
+    public async Task<bool> VerifyUserNameExisting([FromQuery] string userName)
     {
-        return await _userService.VerifyUserUnique(userName);
+        return await _userService.VerifyUserNameExisting(userName);
     }
 
     [HttpGet("/user/email/existing")]
-    public async Task<bool> VerifyEmailUnique([FromQuery] string email)
+    public async Task<bool> VerifyEmailExisting([FromQuery] string email)
     {
-        return await _userService.VerifyEmailUnique(email);
+        return await _userService.VerifyEmailExisting(email);
     }
 
     #region Avatar
