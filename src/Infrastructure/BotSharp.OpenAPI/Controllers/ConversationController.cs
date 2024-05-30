@@ -30,7 +30,6 @@ public class ConversationController : ControllerBase
         {
             AgentId = agentId,
             Channel = ConversationChannel.OpenAPI,
-            UserId = _user.Id,
             TaskId = config.TaskId
         };
         conv = await service.NewConversation(conv);
