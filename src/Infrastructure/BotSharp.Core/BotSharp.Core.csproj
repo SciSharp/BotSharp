@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -56,6 +56,7 @@
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\agent.json" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\instruction.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\.welcome.liquid" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\conversation.summary.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.hf.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.naive.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.sequential.get_remaining_task.liquid" />
@@ -140,6 +141,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.reviewer.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\conversation.summary.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\plugins\config.json">

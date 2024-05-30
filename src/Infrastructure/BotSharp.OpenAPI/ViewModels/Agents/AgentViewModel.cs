@@ -42,6 +42,8 @@ public class AgentViewModel
 
     public PluginDef Plugin { get; set; }
 
+    public bool Editable { get; set; }
+
     [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }
 

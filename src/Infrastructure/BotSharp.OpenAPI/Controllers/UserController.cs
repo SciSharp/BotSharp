@@ -61,6 +61,18 @@ public class UserController : ControllerBase
         return UserViewModel.FromUser(createdUser);
     }
 
+    [AllowAnonymous]
+    [HttpPost("/user/activate")]
+    public async Task<ActionResult<Token>> ActivateUser(UserActivationModel model)
+    {
+        var token = await _userService.ActiveUser(model);
+        if (token == null)
+        {
+            return Unauthorized();
+        }
+        return Ok(token);
+    }
+
     [HttpGet("/user/me")]
     public async Task<UserViewModel> GetMyUserProfile()
     {
@@ -82,4 +94,48 @@ public class UserController : ControllerBase
         }
         return UserViewModel.FromUser(user);
     }
+
+    [HttpGet("/user/name/existing")]
+    public async Task<bool> VerifyUserUnique([FromQuery] string userName)
+    {
+        return await _userService.VerifyUserUnique(userName);
+    }
+
+    [HttpGet("/user/email/existing")]
+    public async Task<bool> VerifyEmailUnique([FromQuery] string email)
+    {
+        return await _userService.VerifyEmailUnique(email);
+    }
+
+    #region Avatar
+    [HttpPost("/user/avatar")]
+    public bool UploadUserAvatar([FromBody] BotSharpFile file)
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        return fileService.SaveUserAvatar(file);
+    }
+
+    [HttpGet("/user/avatar")]
+    public IActionResult GetUserAvatar()
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var file = fileService.GetUserAvatar();
+        if (string.IsNullOrEmpty(file))
+        {
+            return NotFound();
+        }
+        return BuildFileResult(file);
+    }
+    #endregion
+
+
+    #region Private methods
+    private FileContentResult BuildFileResult(string file)
+    {
+        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes, 0, (int)stream.Length);
+        return File(bytes, "application/octet-stream", Path.GetFileName(file));
+    }
+    #endregion
 }

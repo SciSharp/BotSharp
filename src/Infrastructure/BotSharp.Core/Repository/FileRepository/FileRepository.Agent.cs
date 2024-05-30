@@ -436,7 +436,40 @@ namespace BotSharp.Core.Repository
 
         public bool DeleteAgent(string agentId)
         {
-            return false;
+            if (string.IsNullOrEmpty(agentId)) return false;
+
+            try
+            {
+                var agentDir = GetAgentDataDir(agentId);
+                if (string.IsNullOrEmpty(agentDir)) return false;
+
+                // Delete agent user relationships
+                var usersDir = Path.Combine(_dbSettings.FileRepository, "users");
+                if (Directory.Exists(usersDir))
+                {
+                    foreach (var userDir in Directory.GetDirectories(usersDir))
+                    {
+                        var userAgentFile = Directory.GetFiles(userDir).FirstOrDefault(x => Path.GetFileName(x) == USER_AGENT_FILE);
+                        if (string.IsNullOrEmpty(userAgentFile)) continue;
+
+                        var text = File.ReadAllText(userAgentFile);
+                        var userAgents = JsonSerializer.Deserialize<List<UserAgent>>(text, _options);
+                        if (userAgents.IsNullOrEmpty()) continue;
+
+                        userAgents = userAgents.Where(x => x.AgentId != agentId).ToList();
+                        File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+                    }
+                }
+
+                // Delete agent folder
+                Directory.Delete(agentDir, true);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

@@ -51,6 +51,9 @@ public interface IConversationService
     /// </summary>
     /// <param name="resetStates">Whether to reset all states</param>
     /// <param name="reason">Append user init words</param>
+    /// <param name="excludedStates"></param>
     /// <returns></returns>
-    Task UpdateBreakpoint(bool resetStates = false, string? reason = null);
+    Task UpdateBreakpoint(bool resetStates = false, string? reason = null, params string[] excludedStates);
+
+    Task<string> GetConversationSummary(IEnumerable<string> conversationId);
 }

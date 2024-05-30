@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> LaunchBrowser(string contextId, string? url, bool openIfNotExist = true)
+    public async Task<BrowserActionResult> LaunchBrowser(string contextId, string? url)
     {
         var result = new BrowserActionResult() 
         { 

@@ -4,7 +4,7 @@ namespace BotSharp.Abstraction.Browsing;
 
 public interface IWebBrowser
 {
-    Task<BrowserActionResult> LaunchBrowser(string contextId, string? url, bool openIfNotExist = true);
+    Task<BrowserActionResult> LaunchBrowser(string contextId, string? url);
     Task<BrowserActionResult> ScreenshotAsync(string contextId, string path);
     Task<BrowserActionResult> ScrollPageAsync(BrowserActionParams actionParams);
 
@@ -24,6 +24,6 @@ public interface IWebBrowser
     Task<T> EvaluateScript<T>(string contextId, string script);
     Task CloseBrowser(string contextId);
     Task CloseCurrentPage(string contextId);
-    Task<BrowserActionResult> SendHttpRequest(string contextId, HttpRequestParams actionParams);
+    Task<BrowserActionResult> SendHttpRequest(MessageInfo message, HttpRequestParams actionParams);
     Task<BrowserActionResult> GetAttributeValue(MessageInfo message, ElementLocatingArgs location);
 }

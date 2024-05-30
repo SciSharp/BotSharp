@@ -21,7 +21,12 @@ public class HttpRequestFn : IFunctionCallback
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        var result = await _browser.SendHttpRequest(convService.ConversationId, args);
+        var result = await _browser.SendHttpRequest(new MessageInfo
+        {
+            AgentId = agent.Id,
+            MessageId = message.MessageId,
+            ContextId = convService.ConversationId
+        }, args);
 
         message.Content = result.IsSuccess ? 
             result.Body :

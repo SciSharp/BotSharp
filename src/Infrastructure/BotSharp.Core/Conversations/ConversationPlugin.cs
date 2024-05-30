@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Google.Settings;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Plugins.Models;
@@ -32,6 +33,12 @@ public class ConversationPlugin : IBotSharpPlugin
         {
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<ConversationSetting>("Conversation");
+        });
+
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<GoogleApiSettings>("GoogleApi");
         });
 
         services.AddScoped<IConversationStorage, ConversationStorage>();

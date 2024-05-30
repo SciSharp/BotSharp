@@ -19,6 +19,7 @@ public class UserViewModel
     public string Source { get; set; }
     [JsonPropertyName("external_id")]
     public string? ExternalId { get; set; }
+    public string Avatar { get; set; } = "/user/avatar";
     [JsonPropertyName("create_date")]
     public DateTime CreateDate { get; set; }
     [JsonPropertyName("update_date")]
@@ -47,7 +48,8 @@ public class UserViewModel
             Source = user.Source,
             ExternalId = user.ExternalId,
             CreateDate = user.CreatedTime,
-            UpdateDate = user.UpdatedTime
+            UpdateDate = user.UpdatedTime,
+            Avatar = "/user/avatar"
         };
     }
 }
