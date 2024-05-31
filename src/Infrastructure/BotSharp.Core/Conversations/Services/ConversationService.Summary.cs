@@ -97,7 +97,12 @@ public partial class ConversationService
         foreach (var dialog in dialogs.TakeLast(maxDialogCount))
         {
             var role = dialog.Role;
-            if (role != AgentRole.User && role != AgentRole.Assistant) continue;
+            if (role == AgentRole.Function) continue;
+
+            if (role != AgentRole.User)
+            {
+                role = AgentRole.Assistant;
+            }
 
             conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
         }
