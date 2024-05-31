@@ -22,7 +22,7 @@ public partial class ConversationService
             if (dialogs.IsNullOrEmpty()) continue;
 
             var content = GetConversationContent(dialogs);
-            if (string.IsNullOrEmpty(content)) continue;
+            if (string.IsNullOrWhiteSpace(content)) continue;
 
             contents.Add(content);
         }
