@@ -27,6 +27,8 @@ public partial class ConversationService
             contents.Add(content);
         }
 
+        if (contents.IsNullOrEmpty()) return string.Empty;
+
         var router = await agentService.LoadAgent(AIAssistant);
         var prompt = GetPrompt(router, contents);
         var summary = await Summarize(router, prompt);
@@ -97,7 +99,12 @@ public partial class ConversationService
         foreach (var dialog in dialogs.TakeLast(maxDialogCount))
         {
             var role = dialog.Role;
-            if (role != AgentRole.User && role != AgentRole.Assistant) continue;
+            if (role == AgentRole.Function) continue;
+
+            if (role != AgentRole.User)
+            {
+                role = AgentRole.Assistant;
+            }
 
             conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
         }

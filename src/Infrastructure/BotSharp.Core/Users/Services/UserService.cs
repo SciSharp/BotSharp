@@ -217,7 +217,7 @@ public class UserService : IUserService
         return user;
     }
 
-    [MemoryCache(10 * 60)]
+    [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<User> GetUser(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
