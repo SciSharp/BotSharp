@@ -27,6 +27,8 @@ public partial class ConversationService
             contents.Add(content);
         }
 
+        if (contents.IsNullOrEmpty()) return string.Empty;
+
         var router = await agentService.LoadAgent(AIAssistant);
         var prompt = GetPrompt(router, contents);
         var summary = await Summarize(router, prompt);
