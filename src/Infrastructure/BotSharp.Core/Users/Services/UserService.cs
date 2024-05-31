@@ -206,7 +206,12 @@ public class UserService : IUserService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         User user = default;
-        if (_user.UserName != null)
+
+        if (_user.Id != null)
+        {
+            user = db.GetUserById(_user.Id);
+        }
+        else if (_user.UserName != null)
         {
             user = db.GetUserByUserName(_user.UserName);
         }
