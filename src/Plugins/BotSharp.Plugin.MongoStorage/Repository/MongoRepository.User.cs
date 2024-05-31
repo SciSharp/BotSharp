@@ -37,6 +37,7 @@ public partial class MongoRepository
             Salt = user.Salt,
             Password = user.Password,
             Email = user.Email,
+            Phone = user.Phone,
             Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role,

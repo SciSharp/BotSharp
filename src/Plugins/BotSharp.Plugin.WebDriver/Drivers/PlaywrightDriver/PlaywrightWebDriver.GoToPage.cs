@@ -31,7 +31,8 @@ public partial class PlaywrightWebDriver
 
             if (response.Status == 200)
             {
-                result.Body = await page.ContentAsync();
+                // Disable this due to performance issue, some page is too large
+                // result.Body = await page.InnerHTMLAsync("body");
                 result.IsSuccess = true;
             }
             else
