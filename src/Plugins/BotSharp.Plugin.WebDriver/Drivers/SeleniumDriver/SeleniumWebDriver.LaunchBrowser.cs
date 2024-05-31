@@ -2,18 +2,18 @@ namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
 
 public partial class SeleniumWebDriver
 {
-    public async Task<BrowserActionResult> LaunchBrowser(string contextId, string? url)
+    public async Task<BrowserActionResult> LaunchBrowser(MessageInfo message, string? url)
     {
         var result = new BrowserActionResult()
         {
             IsSuccess = true
         };
-        var context = await _instance.InitInstance(contextId);
+        var context = await _instance.InitInstance(message.ContextId);
 
         if (!string.IsNullOrEmpty(url))
         {
             // Check if the page is already open
-            var page = await _instance.NewPage(contextId);
+            var page = await _instance.NewPage(message.ContextId);
 
             try
             {

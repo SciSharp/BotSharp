@@ -72,7 +72,7 @@ public partial class SeleniumWebDriver : IWebBrowser
         throw new NotImplementedException();
     }
 
-    public Task<BrowserActionResult> ScreenshotAsync(string contextId, string path)
+    public Task<BrowserActionResult> ScreenshotAsync(MessageInfo message, string path)
     {
         throw new NotImplementedException();
     }

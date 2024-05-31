@@ -4,8 +4,8 @@ namespace BotSharp.Abstraction.Browsing;
 
 public interface IWebBrowser
 {
-    Task<BrowserActionResult> LaunchBrowser(string contextId, string? url);
-    Task<BrowserActionResult> ScreenshotAsync(string contextId, string path);
+    Task<BrowserActionResult> LaunchBrowser(MessageInfo message, string? url);
+    Task<BrowserActionResult> ScreenshotAsync(MessageInfo message, string path);
     Task<BrowserActionResult> ScrollPageAsync(BrowserActionParams actionParams);
 
     Task<BrowserActionResult> ActionOnElement(MessageInfo message, ElementLocatingArgs location, ElementActionArgs action);
@@ -19,7 +19,7 @@ public interface IWebBrowser
     Task<BrowserActionResult> ChangeListValue(BrowserActionParams actionParams);
     Task<BrowserActionResult> CheckRadioButton(BrowserActionParams actionParams);
     Task<BrowserActionResult> ChangeCheckbox(BrowserActionParams actionParams);
-    Task<BrowserActionResult> GoToPage(string contextId, string url, bool openNewTab = false);
+    Task<BrowserActionResult> GoToPage(MessageInfo message, string url, bool openNewTab = false);
     Task<string> ExtractData(BrowserActionParams actionParams);
     Task<T> EvaluateScript<T>(string contextId, string script);
     Task CloseBrowser(string contextId);

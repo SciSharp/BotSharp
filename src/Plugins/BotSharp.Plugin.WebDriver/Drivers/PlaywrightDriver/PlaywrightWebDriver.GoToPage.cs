@@ -2,26 +2,29 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> GoToPage(string contextId, string url, bool openNewTab = false)
+    public async Task<BrowserActionResult> GoToPage(MessageInfo message, string url, bool openNewTab = false)
     {
         var result = new BrowserActionResult();
-        var context = await _instance.InitInstance(contextId);
+        var context = await _instance.InitInstance(message.ContextId);
         try
         {
             // Check if the page is already open
-            foreach (var p in context.Pages)
+            if (!openNewTab && context.Pages.Count > 0)
             {
-                if (p.Url == url)
+                foreach (var p in context.Pages)
                 {
-                    result.Body = await p.ContentAsync();
-                    result.IsSuccess = true;
-                    await p.BringToFrontAsync();
-                    return result;
+                    if (p.Url == url)
+                    {
+                        result.Body = await p.ContentAsync();
+                        result.IsSuccess = true;
+                        await p.BringToFrontAsync();
+                        return result;
+                    }
                 }
             }
 
-            var page = openNewTab ? await _instance.NewPage(contextId) : 
-                _instance.GetPage(contextId);
+            var page = openNewTab ? await _instance.NewPage(message.ContextId) : 
+                _instance.GetPage(message.ContextId);
             var response = await page.GotoAsync(url);
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
