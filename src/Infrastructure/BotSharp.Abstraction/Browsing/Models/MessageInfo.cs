@@ -7,5 +7,5 @@ public class MessageInfo
     public string ContextId { get; set; } = null!;
     public string? MessageId { get; set; }
     public string? TaskId { get; set; }
-    public int StepNum { get; set; }
+    public string StepId { get; set; } = Guid.NewGuid().ToString();
 }
