@@ -41,10 +41,10 @@ public partial class ConversationService
         var template = agent.Templates.First(x => x.Name == "conversation.summary").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
 
-        var texts = string.Empty;
+        var texts = new List<string>();
         for (int i = 0; i < contents.Count; i++)
         {
-            texts += $"[Conversation {i+1}]\r\n{contents[i]}";
+            texts.Add($"{contents[i]}");
         }
 
         return render.Render(template, new Dictionary<string, object>
