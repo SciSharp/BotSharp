@@ -14,4 +14,10 @@ public class BotSharpFile
 
     [JsonPropertyName("file_url")]
     public string FileUrl { get; set; } = string.Empty;
+
+    [JsonPropertyName("content_type")]
+    public string ContentType { get; set; } = string.Empty;
+
+    [JsonPropertyName("file_storage_url")]
+    public string FileStorageUrl { get; set; } = string.Empty;
 }

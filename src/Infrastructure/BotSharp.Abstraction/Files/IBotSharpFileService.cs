@@ -3,9 +3,10 @@ namespace BotSharp.Abstraction.Files;
 public interface IBotSharpFileService
 {
     string GetDirectory(string conversationId);
-    IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int offset = 2);
+    IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int? offset = null);
     IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, bool imageOnly = false);
     string GetMessageFile(string conversationId, string messageId, string fileName);
+    bool HasConversationFiles(string conversationId);
     Task<bool> SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files);
 
     string GetUserAvatar();

@@ -229,12 +229,6 @@ public class ChatCompletionProvider : IChatCompletion
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
 
-        var chatFiles = new List<MessageFileModel>();
-        if (allowMultiModal)
-        {
-            chatFiles = fileService.GetChatImages(state.GetConversationId(), conversations, offset: 2).ToList();
-        }
-
         var chatCompletionsOptions = new ChatCompletionsOptions();
         
         if (!string.IsNullOrEmpty(agent.Instruction))
@@ -304,16 +298,6 @@ public class ChatCompletionProvider : IChatCompletion
                         new ChatMessageTextContentItem(text)
                     };
                 
-                    var files = chatFiles.Where(x => x.MessageId == message.MessageId).ToList();
-                    if (!files.IsNullOrEmpty())
-                    {
-                        foreach (var file in files)
-                        {
-                            using var stream = File.OpenRead(file.FileStorageUrl);
-                            chatItems.Add(new ChatMessageImageContentItem(stream, file.ContentType, ChatMessageImageDetailLevel.Low));
-                        }
-                    }
-                
                     if (!message.Files.IsNullOrEmpty())
                     {
                         foreach (var file in message.Files)
@@ -328,6 +312,11 @@ public class ChatCompletionProvider : IChatCompletion
                                 var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
                                 using var stream = new MemoryStream(bytes, 0, bytes.Length);
                                 chatItems.Add(new ChatMessageImageContentItem(stream, contentType, ChatMessageImageDetailLevel.Low));
+                            }
+                            else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+                            {
+                                using var stream = File.OpenRead(file.FileStorageUrl);
+                                chatItems.Add(new ChatMessageImageContentItem(stream, file.ContentType, ChatMessageImageDetailLevel.Low));
                             }
                         }
                     }

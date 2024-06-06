@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Google.Settings;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Messaging;
@@ -6,7 +5,6 @@ using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
-using BotSharp.Core.Files;
 using BotSharp.Core.Instructs;
 using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Planning;
@@ -44,7 +42,6 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<IConversationStorage, ConversationStorage>();
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
-        services.AddScoped<IBotSharpFileService, BotSharpFileService>();
         services.AddScoped<ITranslationService, TranslationService>();
 
         // Rich content messaging

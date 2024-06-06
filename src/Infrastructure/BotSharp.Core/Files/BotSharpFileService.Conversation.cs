@@ -1,14 +1,14 @@
 using BotSharp.Abstraction.Browsing;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace BotSharp.Core.Files;
 
 public partial class BotSharpFileService
 {
-    public IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int offset = 1)
+    public IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int? offset = null)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
@@ -25,7 +25,16 @@ public partial class BotSharpFileService
             offset = MAX_OFFSET;
         }
 
-        var messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset).ToList();
+        var messageIds = new List<string>();
+        if (offset.HasValue)
+        {
+            messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
+        }
+        else
+        {
+            messageIds = conversations.Select(x => x.MessageId).Distinct().ToList();
+        }
+
         files = GetMessageFiles(conversationId, messageIds, imageOnly: true).ToList();
         return files;
     }
@@ -83,6 +92,16 @@ public partial class BotSharpFileService
         return found;
     }
 
+    public bool HasConversationFiles(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+
+        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
+        if (!ExistDirectory(dir)) return false;
+
+        return Directory.GetDirectories(dir).Count() > 0;
+    }
+
     public async Task<bool> SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files)
     {
         if (files.IsNullOrEmpty()) return false;
@@ -122,7 +141,7 @@ public partial class BotSharpFileService
                 {
                     var path = Path.Combine(preFixPath, fileName);
                     await web.GoToPage(contextId, path);
-                    path = Path.Combine(preFixPath, $"{Guid.NewGuid()}.png");
+                    path = Path.Combine(preFixPath, $"{Guid.NewGuid()}.{i + 1}.png");
                     await web.ScreenshotAsync(contextId, path);
                 }
             }
