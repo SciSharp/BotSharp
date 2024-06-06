@@ -370,19 +370,19 @@ public class ConversationController : ControllerBase
         return BadRequest(new { message = "Invalid file." });
     }
 
-    [HttpGet("/conversation/{conversationId}/files/{messageId}")]
-    public IEnumerable<MessageFileViewModel> GetMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId)
+    [HttpGet("/conversation/{conversationId}/files/{messageId}/{source}")]
+    public IEnumerable<MessageFileViewModel> GetMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source)
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId }, imageOnly: true);
+        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId }, source, imageOnly: false);
         return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? new List<MessageFileViewModel>();
     }
 
-    [HttpGet("/conversation/{conversationId}/message/{messageId}/file/{fileName}")]
-    public IActionResult GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string fileName)
+    [HttpGet("/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}")]
+    public IActionResult GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source, [FromRoute] string index, [FromRoute] string fileName)
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var file = fileService.GetMessageFile(conversationId, messageId, fileName);
+        var file = fileService.GetMessageFile(conversationId, messageId, source, index, fileName);
         if (string.IsNullOrEmpty(file))
         {
             return NotFound();

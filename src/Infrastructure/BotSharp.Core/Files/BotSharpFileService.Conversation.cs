@@ -8,7 +8,7 @@ namespace BotSharp.Core.Files;
 
 public partial class BotSharpFileService
 {
-    public IEnumerable<MessageFileModel> GetChatImages(string conversationId, List<RoleDialogModel> conversations, int? offset = null)
+    public IEnumerable<MessageFileModel> GetChatImages(string conversationId, string source, List<RoleDialogModel> conversations, int? offset = null)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
@@ -35,54 +35,60 @@ public partial class BotSharpFileService
             messageIds = conversations.Select(x => x.MessageId).Distinct().ToList();
         }
 
-        files = GetMessageFiles(conversationId, messageIds, imageOnly: true).ToList();
+        files = GetMessageFiles(conversationId, messageIds, source, imageOnly: true).ToList();
         return files;
     }
 
-    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, bool imageOnly = false)
+    public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds,
+        string source, bool imageOnly = false)
     {
         var files = new List<MessageFileModel>();
         if (messageIds.IsNullOrEmpty()) return files;
 
         foreach (var messageId in messageIds)
         {
-            var dir = GetConversationFileDirectory(conversationId, messageId);
+            var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId, source);
             if (!ExistDirectory(dir))
             {
                 continue;
             }
 
-            foreach (var file in Directory.GetFiles(dir))
+            foreach (var subDir in Directory.GetDirectories(dir))
             {
-                var contentType = GetFileContentType(file);
-                if (imageOnly && !_allowedImageTypes.Contains(contentType))
+                var index = subDir.Split(Path.DirectorySeparatorChar).Last();
+
+                foreach (var file in Directory.GetFiles(subDir))
                 {
-                    continue;
+                    var contentType = GetFileContentType(file);
+                    if (imageOnly && !_allowedImageTypes.Contains(contentType))
+                    {
+                        continue;
+                    }
+
+                    var fileName = Path.GetFileNameWithoutExtension(file);
+                    var extension = Path.GetExtension(file);
+                    var fileType = extension.Substring(1);
+
+                    var model = new MessageFileModel()
+                    {
+                        MessageId = messageId,
+                        FileUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}",
+                        FileStorageUrl = file,
+                        FileName = fileName,
+                        FileType = fileType,
+                        ContentType = contentType
+                    };
+                    files.Add(model);
                 }
-
-                var fileName = Path.GetFileNameWithoutExtension(file);
-                var extension = Path.GetExtension(file);
-                var fileType = extension.Substring(1);
-
-                var model = new MessageFileModel()
-                {
-                    MessageId = messageId,
-                    FileUrl = $"/conversation/{conversationId}/message/{messageId}/file/{fileName}",
-                    FileStorageUrl = file,
-                    FileName = fileName,
-                    FileType = fileType,
-                    ContentType = contentType
-                };
-                files.Add(model);
             }
         }
 
         return files;
     }
 
-    public string GetMessageFile(string conversationId, string messageId, string fileName)
+    public string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName)
     {
-        var dir = GetConversationFileDirectory(conversationId, messageId);
+        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId, source, index);
         if (!ExistDirectory(dir))
         {
             return string.Empty;
@@ -92,36 +98,36 @@ public partial class BotSharpFileService
         return found;
     }
 
-    public bool HasConversationFiles(string conversationId)
+    public bool HasConversationUserFiles(string conversationId)
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
 
-        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
+        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, USER_FILE_FOLDER);
         if (!ExistDirectory(dir)) return false;
 
         return Directory.GetDirectories(dir).Count() > 0;
     }
 
-    public async Task<bool> SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files)
+    public bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files)
     {
         if (files.IsNullOrEmpty()) return false;
 
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
         if (!ExistDirectory(dir)) return false;
 
-        var contextId = string.Empty;
-        var web = _services.GetRequiredService<IWebBrowser>();
-        var isNeedScreenShot = files.Any(x => _allowScreenShotTypes.Contains(Path.GetExtension(x.FileName)));
-        var preFixPath = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
+        //var contextId = string.Empty;
+        //var web = _services.GetRequiredService<IWebBrowser>();
+        //var isNeedScreenShot = files.Any(x => _allowScreenShotTypes.Contains(Path.GetExtension(x.FileName)));
+        //var preFixPath = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
 
         try
         {
-            if (isNeedScreenShot)
-            {
-                var state = _services.GetRequiredService<IConversationStateService>();
-                contextId = state.GetConversationId() ?? Guid.NewGuid().ToString();
-                await web.LaunchBrowser(contextId, string.Empty);
-            }
+            //if (isNeedScreenShot)
+            //{
+            //    var state = _services.GetRequiredService<IConversationStateService>();
+            //    contextId = state.GetConversationId() ?? Guid.NewGuid().ToString();
+            //    await web.LaunchBrowser(contextId, string.Empty);
+            //}
 
             for (int i = 0; i < files.Count; i++)
             {
@@ -132,24 +138,28 @@ public partial class BotSharpFileService
                 }
 
                 var (_, bytes) = GetFileInfoFromData(file.FileData);
-                var fileType = Path.GetExtension(file.FileName);
-                var fileName = $"{i + 1}{fileType}";
                 Thread.Sleep(100);
-                File.WriteAllBytes(Path.Combine(dir, fileName), bytes);
-
-                if (isNeedScreenShot && _allowScreenShotTypes.Contains(fileType))
+                var subDir = Path.Combine(dir, source, $"{i + 1}");
+                if (!ExistDirectory(subDir))
                 {
-                    var path = Path.Combine(preFixPath, fileName);
-                    await web.GoToPage(contextId, path);
-                    path = Path.Combine(preFixPath, $"{Guid.NewGuid()}.{i + 1}.png");
-                    await web.ScreenshotAsync(contextId, path);
+                    Directory.CreateDirectory(subDir);
                 }
+
+                File.WriteAllBytes(Path.Combine(subDir, file.FileName), bytes);
+
+                //if (isNeedScreenShot && _allowScreenShotTypes.Contains(fileType))
+                //{
+                //    var path = Path.Combine(preFixPath, fileName);
+                //    await web.GoToPage(contextId, path);
+                //    path = Path.Combine(preFixPath, $"{Guid.NewGuid()}.{i + 1}.png");
+                //    await web.ScreenshotAsync(contextId, path);
+                //}
             }
 
-            if (isNeedScreenShot)
-            {
-                await web.CloseBrowser(contextId);
-            }
+            //if (isNeedScreenShot)
+            //{
+            //    await web.CloseBrowser(contextId);
+            //}
 
             return true;
         }
@@ -159,7 +169,6 @@ public partial class BotSharpFileService
             return false;
         }
     }
-
 
 
     public bool DeleteMessageFiles(string conversationId, IEnumerable<string> messageIds, string targetMessageId, string? newMessageId = null)
@@ -179,6 +188,13 @@ public partial class BotSharpFileService
                 }
 
                 Directory.Move(prevDir, newDir);
+                Thread.Sleep(100);
+
+                var botDir = Path.Combine(newDir, BOT_FILE_FOLDER);
+                if (ExistDirectory(botDir))
+                {
+                    Directory.Delete(botDir, true);
+                }
             }
         }
 

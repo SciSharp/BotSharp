@@ -50,7 +50,7 @@ public class LoadAttachmentFn : IFunctionCallback
         }
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var files = fileService.GetChatImages(conversationId, dialogs);
+        var files = fileService.GetChatImages(conversationId, FileSourceType.User, dialogs);
 
         foreach (var dialog in dialogs)
         {

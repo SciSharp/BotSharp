@@ -17,6 +17,8 @@ public partial class BotSharpFileService : IBotSharpFileService
 
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
+    private const string USER_FILE_FOLDER = "user";
+    private const string BOT_FILE_FOLDER = "bot";
     private const string USERS_FOLDER = "users";
     private const string USER_AVATAR_FOLDER = "avatar";
 

@@ -18,7 +18,7 @@ public class AttachmentProcessingHook : AgentHookBase
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var conv = _services.GetRequiredService<IConversationService>();
-        var hasConvFiles = fileService.HasConversationFiles(conv.ConversationId);
+        var hasConvFiles = fileService.HasConversationUserFiles(conv.ConversationId);
 
         if (hasConvFiles)
         {

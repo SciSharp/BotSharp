@@ -9,7 +9,7 @@ public class FilePlugin : IBotSharpPlugin
 
     public string Name => "File";
 
-    public string Description => "Provides file processing funcationality.";
+    public string Description => "Provides file analysis.";
 
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
