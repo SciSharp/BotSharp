@@ -374,7 +374,7 @@ public class ConversationController : ControllerBase
     public IEnumerable<MessageFileViewModel> GetMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId)
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId });
+        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId }, imageOnly: true);
         return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? new List<MessageFileViewModel>();
     }
 

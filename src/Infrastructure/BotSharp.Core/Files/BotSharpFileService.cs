@@ -12,7 +12,8 @@ public partial class BotSharpFileService : IBotSharpFileService
     private readonly IUserIdentity _user;
     private readonly ILogger<BotSharpFileService> _logger;
     private readonly string _baseDir;
-    private readonly IEnumerable<string> _allowedTypes = new List<string> { "image/png", "image/jpeg" };
+    private readonly IEnumerable<string> _allowedImageTypes = new List<string> { "image/png", "image/jpeg" };
+    private readonly IEnumerable<string> _allowScreenShotTypes = new List<string> { ".pdf" };
 
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";

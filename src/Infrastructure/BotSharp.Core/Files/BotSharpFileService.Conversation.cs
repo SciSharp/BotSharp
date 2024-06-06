@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Browsing;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Threading;
 
@@ -44,7 +46,7 @@ public partial class BotSharpFileService
             foreach (var file in Directory.GetFiles(dir))
             {
                 var contentType = GetFileContentType(file);
-                if (imageOnly && !_allowedTypes.Contains(contentType))
+                if (imageOnly && !_allowedImageTypes.Contains(contentType))
                 {
                     continue;
                 }
@@ -81,15 +83,27 @@ public partial class BotSharpFileService
         return found;
     }
 
-    public bool SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files)
+    public async Task<bool> SaveMessageFiles(string conversationId, string messageId, List<BotSharpFile> files)
     {
         if (files.IsNullOrEmpty()) return false;
 
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
         if (!ExistDirectory(dir)) return false;
 
+        var contextId = string.Empty;
+        var web = _services.GetRequiredService<IWebBrowser>();
+        var isNeedScreenShot = files.Any(x => _allowScreenShotTypes.Contains(Path.GetExtension(x.FileName)));
+        var preFixPath = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
+
         try
         {
+            if (isNeedScreenShot)
+            {
+                var state = _services.GetRequiredService<IConversationStateService>();
+                contextId = state.GetConversationId() ?? Guid.NewGuid().ToString();
+                await web.LaunchBrowser(contextId, string.Empty);
+            }
+
             for (int i = 0; i < files.Count; i++)
             {
                 var file = files[i];
@@ -103,7 +117,21 @@ public partial class BotSharpFileService
                 var fileName = $"{i + 1}{fileType}";
                 Thread.Sleep(100);
                 File.WriteAllBytes(Path.Combine(dir, fileName), bytes);
+
+                if (isNeedScreenShot && _allowScreenShotTypes.Contains(fileType))
+                {
+                    var path = Path.Combine(preFixPath, fileName);
+                    await web.GoToPage(contextId, path);
+                    path = Path.Combine(preFixPath, $"{Guid.NewGuid()}.png");
+                    await web.ScreenshotAsync(contextId, path);
+                }
             }
+
+            if (isNeedScreenShot)
+            {
+                await web.CloseBrowser(contextId);
+            }
+
             return true;
         }
         catch (Exception ex)
