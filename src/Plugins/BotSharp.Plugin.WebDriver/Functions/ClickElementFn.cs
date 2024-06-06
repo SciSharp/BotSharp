@@ -26,7 +26,7 @@ public class ClickElementFn : IFunctionCallback
         var content = $"Click element {args.MatchRule} text '{args.ElementText}'";
         message.Content = result.IsSuccess ? 
             $"{content} successfully" : 
-            $"{content} failed. {result.ErrorMessage}";
+            $"{content} failed. {result.Message}";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

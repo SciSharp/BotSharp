@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Repositories.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -73,86 +72,60 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     #region Agent
     public Agent GetAgent(string agentId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<Agent> GetAgents(AgentFilter filter)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public List<Agent> GetAgentsByUser(string userId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void UpdateAgent(Agent agent, AgentField field)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public string GetAgentTemplate(string agentId, string templateName)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
+
+    public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+        => throw new NotImplementedException();
 
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void BulkInsertAgents(List<Agent> agents)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void BulkInsertUserAgents(List<UserAgent> userAgents)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public bool DeleteAgents()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
+
+    public bool DeleteAgent(string agentId)
+        => throw new NotImplementedException();
     #endregion
 
     #region Agent Task
     public PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public AgentTask? GetAgentTask(string agentId, string taskId)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void InsertAgentTask(AgentTask task)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void BulkInsertAgentTasks(List<AgentTask> tasks)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
-    public bool DeleteAgentTask(string agentId, string taskId)
-    {
-        throw new NotImplementedException();
-    }
+    public bool DeleteAgentTask(string agentId, List<string> taskIds)
+        => throw new NotImplementedException();
 
     public bool DeleteAgentTasks()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
     #endregion
 
     #region Conversation
@@ -177,9 +150,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public List<DialogElement> GetConversationDialogs(string conversationId)
         => throw new NotImplementedException();
 
-    public void UpdateConversationDialogElements(string conversationId, List<DialogContentUpdateModel> updateElements)
-        => new NotImplementedException();
-
     public ConversationState GetConversationStates(string conversationId)
         => throw new NotImplementedException();
 
@@ -189,10 +159,10 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public void UpdateConversationTitle(string conversationId, string title)
         => new NotImplementedException();
 
-    public void UpdateConversationBreakpoint(string conversationId, string messageId, DateTime breakpoint)
+    public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
         => new NotImplementedException();
 
-    public DateTime GetConversationBreakpoint(string conversationId)
+    public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
         => throw new NotImplementedException();
 
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
@@ -201,21 +171,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public void UpdateConversationStatus(string conversationId, string status)
         => new NotImplementedException();
 
-    public bool TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
-        => throw new NotImplementedException();
-    #endregion
-
-    #region User
-    public User? GetUserByEmail(string email) 
-        => throw new NotImplementedException();
-
-    public User? GetUserById(string id) 
-        => throw new NotImplementedException();
-
-    public User? GetUserByUserName(string userName) 
-        => throw new NotImplementedException();
-
-    public void CreateUser(User user) 
+    public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
         => throw new NotImplementedException();
     #endregion
 

@@ -10,6 +10,7 @@ public class RoutingRuleMongoElement
     public bool Required { get; set; }
     public string? RedirectTo { get; set; }
     public string Type { get; set; }
+    public string FieldType { get; set; }
 
     public RoutingRuleMongoElement()
     {
@@ -25,6 +26,7 @@ public class RoutingRuleMongoElement
             Required = routingRule.Required,
             RedirectTo = routingRule.RedirectTo,
             Type = routingRule.Type,
+            FieldType = routingRule.FieldType
         };
     }
 
@@ -39,6 +41,12 @@ public class RoutingRuleMongoElement
             Required = rule.Required,
             RedirectTo = rule.RedirectTo,
             Type = rule.Type,
+            FieldType= rule.FieldType
         };
+    }
+
+    public override string ToString()
+    {
+        return $"{Field} - {FieldType}, Required: {Required} ({Type})";
     }
 }

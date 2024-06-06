@@ -27,7 +27,6 @@ public partial class ConversationService
 #endif
 
         message.CurrentAgentId = agent.Id;
-        message.CreatedAt = DateTime.UtcNow;
         if (string.IsNullOrEmpty(message.SenderId))
         {
             message.SenderId = _user.Id;
@@ -46,6 +45,17 @@ public partial class ConversationService
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(_conversationId, message.MessageId);
         routing.Context.Push(agent.Id);
+
+        // Save message files
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        fileService.SaveMessageFiles(_conversationId, message.MessageId, message.Files);
+        message.Files?.Clear();
+
+        // Save payload
+        if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
+        {
+            message.Payload =  replyMessage.Payload;
+        }
 
         // Before chat completion hook
         foreach (var hook in hooks)
@@ -71,19 +81,13 @@ public partial class ConversationService
             }
         }
 
-        // Persist to storage
-        _storage.Append(_conversationId, message);
-
-        // Add to thread
-        dialogs.Add(RoleDialogModel.From(message));
-
         if (!stopCompletion)
         {
             // Routing with reasoning
             var settings = _services.GetRequiredService<RoutingSettings>();
 
             response = agent.Type == AgentType.Routing ?
-                await routing.InstructLoop(message, dialogs) :
+                await routing.InstructLoop(message, dialogs, onFunctionExecuting) :
                 await routing.InstructDirect(agent, message);
 
             routing.ResetRecursiveCounter();
@@ -136,7 +140,7 @@ public partial class ConversationService
             response.RichContent is RichContent<IRichMessage> template &&
             string.IsNullOrEmpty(template.Message.Text))
         {
-            template.Message.Text = response.Content;
+            template.Message.Text = response.SecondaryContent ?? response.Content;
         }
 
         // Only read content from RichContent for UI rendering. When richContent is null, create a basic text message for richContent.
@@ -144,30 +148,40 @@ public partial class ConversationService
         response.RichContent = response.RichContent ?? new RichContent<IRichMessage>
         {
             Recipient = new Recipient { Id = state.GetConversationId() },
-            Message = new TextMessage(response.Content)
+            Message = new TextMessage(response.SecondaryContent ?? response.Content)
         };
 
-        var hooks = _services.GetServices<IConversationHook>().ToList();
+        // Patch return function name
+        if (response.PostbackFunctionName != null)
+        {
+            response.FunctionName = response.PostbackFunctionName;
+        }
 
         if (response.Instruction != null)
         {
             var conversation = _services.GetRequiredService<IConversationService>();
             var updatedConversation = await conversation.UpdateConversationTitle(_conversationId, response.Instruction.NextActionReason);
 
+            // Emit conversation task completed hook
+            if (response.Instruction.TaskCompleted)
+            {
+                await HookEmitter.Emit<IConversationHook>(_services, async hook =>
+                    await hook.OnTaskCompleted(response)
+                );
+            }
+
             // Emit conversation ending hook
             if (response.Instruction.ConversationEnd)
             {
-                foreach (var hook in hooks)
-                {
-                    await hook.OnConversationEnding(response);
-                }
+                await HookEmitter.Emit<IConversationHook>(_services, async hook =>
+                    await hook.OnConversationEnding(response)
+                );
             }
         }
 
-        foreach (var hook in hooks)
-        {
-            await hook.OnResponseGenerated(response);
-        }
+        await HookEmitter.Emit<IConversationHook>(_services, async hook =>
+            await hook.OnResponseGenerated(response)
+        );
 
         await onResponseReceived(response);
 

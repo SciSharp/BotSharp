@@ -5,6 +5,9 @@ public class ElementLocatingArgs
     [JsonPropertyName("match_rule")]
     public string MatchRule { get; set; } = string.Empty;
 
+    [JsonPropertyName("tag")]
+    public string? Tag { get; set; } = null!;
+
     [JsonPropertyName("text")]
     public string? Text { get; set; }
 
@@ -20,5 +23,12 @@ public class ElementLocatingArgs
     [JsonPropertyName("selector")]
     public string? Selector { get; set; }
 
+    public bool Parent { get; set; }
+
     public bool FailIfMultiple { get; set; }
+
+    /// <summary>
+    /// Draw outline around the element
+    /// </summary>
+    public bool Highlight { get; set; }
 }

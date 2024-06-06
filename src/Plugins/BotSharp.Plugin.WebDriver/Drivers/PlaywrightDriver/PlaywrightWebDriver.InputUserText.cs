@@ -5,9 +5,9 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> InputUserText(BrowserActionParams actionParams)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(actionParams.ConversationId);
+        await _instance.Wait(actionParams.ContextId);
 
-        var page = _instance.GetPage(actionParams.ConversationId);
+        var page = _instance.GetPage(actionParams.ContextId);
         ILocator locator = default;
         int count = 0;
 
@@ -37,12 +37,12 @@ public partial class PlaywrightWebDriver
         if (count == 0)
         {
             var driverService = _services.GetRequiredService<WebDriverService>();
-            var html = await FilteredInputHtml(actionParams.ConversationId);
+            var html = await FilteredInputHtml(actionParams.ContextId);
             var htmlElementContextOut = await driverService.InferElement(actionParams.Agent,
                 html,
                 actionParams.Context.ElementText,
                 actionParams.MessageId);
-            locator = Locator(actionParams.ConversationId, htmlElementContextOut);
+            locator = Locator(actionParams.ContextId, htmlElementContextOut);
             count = await locator.CountAsync();
         }
         else if (count > 0)
@@ -56,12 +56,12 @@ public partial class PlaywrightWebDriver
                 }
 
                 // Triggered ajax
-                await _instance.Wait(actionParams.ConversationId);
+                await _instance.Wait(actionParams.ContextId);
                 result.IsSuccess = true;
             }
             catch (Exception ex)
             {
-                result.ErrorMessage = ex.Message;
+                result.Message = ex.Message;
                 result.StackTrace = ex.StackTrace;
                 _logger.LogError(ex.Message);
             }

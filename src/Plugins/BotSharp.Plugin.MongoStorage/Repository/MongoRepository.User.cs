@@ -40,10 +40,20 @@ public partial class MongoRepository
             Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role,
+            VerificationCode = user.VerificationCode,
+            Verified = user.Verified,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
         };
 
         _dc.Users.InsertOne(userCollection);
+    }
+
+    public void UpdateUserVerified(string userId)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update.Set(x => x.Verified, true)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+        _dc.Users.UpdateOne(filter, update);
     }
 }

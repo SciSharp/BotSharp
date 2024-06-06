@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Plugin.MongoStorage.Repository;
 
 namespace BotSharp.Plugin.MongoStorage;
@@ -18,7 +20,7 @@ public class MongoStoragePlugin : IBotSharpPlugin
         var dbSettings = new BotSharpDatabaseSettings();
         config.Bind("Database", dbSettings);
 
-        if (dbSettings.Default == "MongoRepository")
+        if (dbSettings.Default == RepositoryEnum.MongoRepository)
         {
             services.AddScoped((IServiceProvider x) =>
             {
@@ -33,7 +35,10 @@ public class MongoStoragePlugin : IBotSharpPlugin
     public bool AttachMenu(List<PluginMenuDef> menu)
     {
         var section = menu.First(x => x.Label == "Apps");
-        menu.Add(new PluginMenuDef("MongoDB", icon: "bx bx-data", link: "page/mongodb", weight: section.Weight + 10));
+        menu.Add(new PluginMenuDef("MongoDB", icon: "bx bx-data", link: "page/mongodb", weight: section.Weight + 10)
+        {
+            Roles = new List<string> { UserRole.Admin }
+        });
         return true;
     }
 }

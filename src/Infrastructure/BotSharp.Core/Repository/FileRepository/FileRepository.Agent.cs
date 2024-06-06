@@ -1,9 +1,4 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Tasks.Models;
-using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -406,6 +401,25 @@ namespace BotSharp.Core.Repository
             return string.Empty;
         }
 
+        public bool PatchAgentTemplate(string agentId, AgentTemplate template)
+        {
+            if (string.IsNullOrEmpty(agentId) || template == null) return false;
+
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            if (!Directory.Exists(dir)) return false;
+
+            var foundTemplate = Directory.GetFiles(dir).FirstOrDefault(f =>
+            {
+                var fileName = Path.GetFileNameWithoutExtension(f);
+                var extension = Path.GetExtension(f).Substring(1);
+                return fileName.IsEqualTo(template.Name) && extension.IsEqualTo(_agentSettings.TemplateFormat);
+            });
+
+            if (foundTemplate == null) return false;
+
+            File.WriteAllText(foundTemplate, template.Content);
+            return true;
+        }
 
         public void BulkInsertAgents(List<Agent> agents)
         {
@@ -418,6 +432,44 @@ namespace BotSharp.Core.Repository
         public bool DeleteAgents()
         {
             return false;
+        }
+
+        public bool DeleteAgent(string agentId)
+        {
+            if (string.IsNullOrEmpty(agentId)) return false;
+
+            try
+            {
+                var agentDir = GetAgentDataDir(agentId);
+                if (string.IsNullOrEmpty(agentDir)) return false;
+
+                // Delete agent user relationships
+                var usersDir = Path.Combine(_dbSettings.FileRepository, "users");
+                if (Directory.Exists(usersDir))
+                {
+                    foreach (var userDir in Directory.GetDirectories(usersDir))
+                    {
+                        var userAgentFile = Directory.GetFiles(userDir).FirstOrDefault(x => Path.GetFileName(x) == USER_AGENT_FILE);
+                        if (string.IsNullOrEmpty(userAgentFile)) continue;
+
+                        var text = File.ReadAllText(userAgentFile);
+                        var userAgents = JsonSerializer.Deserialize<List<UserAgent>>(text, _options);
+                        if (userAgents.IsNullOrEmpty()) continue;
+
+                        userAgents = userAgents.Where(x => x.AgentId != agentId).ToList();
+                        File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+                    }
+                }
+
+                // Delete agent folder
+                Directory.Delete(agentDir, true);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

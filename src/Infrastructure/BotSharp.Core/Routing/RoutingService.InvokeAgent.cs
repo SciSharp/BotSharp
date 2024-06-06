@@ -5,7 +5,7 @@ namespace BotSharp.Core.Routing;
 public partial class RoutingService
 {
     private int _currentRecursionDepth = 0;
-    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
+    public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
@@ -17,8 +17,19 @@ public partial class RoutingService
             return false;
         }
 
+        var provider = agent.LlmConfig.Provider;
+        var model = agent.LlmConfig.Model;
+
+        if (provider == null || model == null)
+        {
+            var agentSettings = _services.GetRequiredService<AgentSettings>();
+            provider = agentSettings.LlmConfig.Provider;
+            model = agentSettings.LlmConfig.Model;
+        }
+
         var chatCompletion = CompletionProvider.GetChatCompletion(_services, 
-            agentConfig: agent.LlmConfig);
+            provider: provider,
+            model: model);
 
         var message = dialogs.Last();
         var response = await chatCompletion.GetChatCompletions(agent, dialogs);
@@ -31,10 +42,12 @@ public partial class RoutingService
             {
                 response.FunctionName = response.FunctionName.Split("/").Last();
             }
+            message.ToolCallId = response.ToolCallId;
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
             message.CurrentAgentId = agent.Id;
-            await InvokeFunction(message, dialogs);
+
+            await InvokeFunction(message, dialogs, onFunctionExecuting);
         }
         else
         {
@@ -54,7 +67,7 @@ public partial class RoutingService
         return true;
     }
 
-    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs)
+    private async Task<bool> InvokeFunction(RoleDialogModel message, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task>? onFunctionExecuting = null)
     {
         // execute function
         // Save states
@@ -63,7 +76,7 @@ public partial class RoutingService
 
         var routing = _services.GetRequiredService<IRoutingService>();
         // Call functions
-        await routing.InvokeFunction(message.FunctionName, message);
+        await routing.InvokeFunction(message.FunctionName, message, onFunctionExecuting);
 
         // Pass execution result to LLM to get response
         if (!message.StopCompletion)
@@ -88,7 +101,7 @@ public partial class RoutingService
 
                 // Send to Next LLM
                 var agentId = routing.Context.GetCurrentAgentId();
-                await InvokeAgent(agentId, dialogs);
+                await InvokeAgent(agentId, dialogs, onFunctionExecuting);
             }
         }
         else

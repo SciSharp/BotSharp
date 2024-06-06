@@ -1,12 +1,34 @@
+using BotSharp.Abstraction.Browsing.Enums;
+
 namespace BotSharp.Abstraction.Browsing.Models;
 
 public class ElementActionArgs
 {
-    private string _action;
-    public string Action => _action;
+    public BroswerActionEnum Action { get; set; }
 
-    public ElementActionArgs(string action)
+    public string? Content { get; set; }
+
+    public ElementPosition? Position { get; set; }
+
+    public string? PressKey { get; set; }
+
+    /// <summary>
+    /// Required for deserialization
+    /// </summary>
+    public ElementActionArgs()
     {
-        _action = action;
+
+    }
+
+    public ElementActionArgs(BroswerActionEnum action, ElementPosition? position = null)
+    {
+        Action = action;
+        Position = position;
+    }
+
+    public ElementActionArgs(BroswerActionEnum action, string content)
+    {
+        Action = action;
+        Content = content;
     }
 }

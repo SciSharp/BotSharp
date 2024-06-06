@@ -17,15 +17,20 @@ public class HttpRequestFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var args = JsonSerializer.Deserialize<BrowsingContextIn>(message.FunctionArgs);
+        var args = JsonSerializer.Deserialize<HttpRequestParams>(message.FunctionArgs);
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        var result = await _browser.SendHttpRequest(new BrowserActionParams(agent, args, convService.ConversationId, message.MessageId));
+        var result = await _browser.SendHttpRequest(new MessageInfo
+        {
+            AgentId = agent.Id,
+            MessageId = message.MessageId,
+            ContextId = convService.ConversationId
+        }, args);
 
         message.Content = result.IsSuccess ? 
             result.Body :
-            $"Http request failed. {result.ErrorMessage}";
+            $"Http request failed. {result.Message}";
 
         return true;
     }

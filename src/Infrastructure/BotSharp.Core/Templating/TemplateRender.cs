@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
+using BotSharp.Abstraction.Translation.Models;
 using Fluid;
 
 namespace BotSharp.Core.Templating;
@@ -27,7 +28,10 @@ public class TemplateRender : ITemplateRender
         _options.MemberAccessStrategy.Register<Agent>();
         _options.MemberAccessStrategy.Register<RoutableAgent>();
         _options.MemberAccessStrategy.Register<RoutingHandlerDef>();
+        _options.MemberAccessStrategy.Register<FunctionDef>();
+        _options.MemberAccessStrategy.Register<FunctionParametersDef>();
         _options.MemberAccessStrategy.Register<UserIdentity>();
+        _options.MemberAccessStrategy.Register<TranslationInput>();
     }
 
     public string Render(string template, Dictionary<string, object> dict)

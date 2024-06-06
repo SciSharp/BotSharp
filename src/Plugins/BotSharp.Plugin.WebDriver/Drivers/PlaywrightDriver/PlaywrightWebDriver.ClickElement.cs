@@ -5,9 +5,9 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> ClickElement(BrowserActionParams actionParams)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(actionParams.ConversationId);
+        await _instance.Wait(actionParams.ContextId);
 
-        var page = _instance.GetPage(actionParams.ConversationId);
+        var page = _instance.GetPage(actionParams.ContextId);
         ILocator locator = default;
         int count = 0;
 
@@ -42,8 +42,8 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            result.ErrorMessage = $"Can't locate element by keyword {actionParams.Context.ElementText}";
-            _logger.LogError(result.ErrorMessage);
+            result.Message = $"Can't locate element by keyword {actionParams.Context.ElementText}";
+            _logger.LogError(result.Message);
         }
         else if (count == 1)
         {
@@ -51,14 +51,14 @@ public partial class PlaywrightWebDriver
             await locator.ClickAsync();
 
             // Triggered ajax
-            await _instance.Wait(actionParams.ConversationId);
+            await _instance.Wait(actionParams.ContextId);
 
             result.IsSuccess = true;
         }
         else if (count > 1)
         {
-            result.ErrorMessage = $"Multiple elements are found by keyword {actionParams.Context.ElementText}";
-            _logger.LogWarning(result.ErrorMessage);
+            result.Message = $"Multiple elements are found by keyword {actionParams.Context.ElementText}";
+            _logger.LogWarning(result.Message);
             var all = await locator.AllAsync();
             foreach (var element in all)
             {

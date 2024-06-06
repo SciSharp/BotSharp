@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Core.Conversations.Services;
@@ -11,6 +12,8 @@ public partial class ConversationService : IConversationService
     private readonly IConversationStorage _storage;
     private readonly IConversationStateService _state;
     private string _conversationId;
+    private const string AIAssistant = "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a";
+
     public string ConversationId => _conversationId;
 
     public IConversationStateService States => _state;
@@ -34,7 +37,9 @@ public partial class ConversationService : IConversationService
     public async Task<bool> DeleteConversations(IEnumerable<string> ids)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var isDeleted = db.DeleteConversations(ids);
+        fileService.DeleteConversationFiles(ids);
         return await Task.FromResult(isDeleted);
     }
 
@@ -114,7 +119,14 @@ public partial class ConversationService : IConversationService
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var breakpoint = db.GetConversationBreakpoint(_conversationId);
-            dialogs = dialogs.Where(x => x.CreatedAt >= breakpoint).ToList();
+            if (breakpoint != null)
+            {
+                dialogs = dialogs.Where(x => x.CreatedAt >= breakpoint.Breakpoint).ToList();
+                if (!string.IsNullOrEmpty(breakpoint.Reason))
+                {
+                    dialogs.Insert(0, new RoleDialogModel(AgentRole.User, breakpoint.Reason));
+                }
+            }
         }
 
         return dialogs
@@ -126,6 +138,6 @@ public partial class ConversationService : IConversationService
     {
         _conversationId = conversationId;
         _state.Load(_conversationId);
-        states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
+        states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
     }
 }

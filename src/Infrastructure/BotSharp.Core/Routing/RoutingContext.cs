@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Routing.Settings;
+using BotSharp.Abstraction.Utilities;
 
 namespace BotSharp.Core.Routing;
 
@@ -117,6 +118,7 @@ public class RoutingContext : IRoutingContext
 
         var message = new RoleDialogModel(AgentRole.User, $"Try to route to agent {agent.Name}")
         {
+            CurrentAgentId = currentAgentId,
             FunctionName = "route_to_agent",
             FunctionArgs = JsonSerializer.Serialize(new FunctionCallFromLlm
             {
@@ -127,7 +129,7 @@ public class RoutingContext : IRoutingContext
         };
 
         var routing = _services.GetRequiredService<IRoutingService>();
-        var missingfield = routing.HasMissingRequiredField(message, out agentId);
+        var (missingfield, _) = routing.HasMissingRequiredField(message, out agentId);
         if (missingfield)
         {
             if (currentAgentId != agentId)
@@ -137,7 +139,18 @@ public class RoutingContext : IRoutingContext
         }
     }
 
-    public string PreviousAgentId()
+    public void PopTo(string agentId, string reason)
+    {
+        var currentAgentId = GetCurrentAgentId();
+        while (!string.IsNullOrEmpty(currentAgentId) && 
+            currentAgentId != agentId)
+        {
+            Pop(reason);
+            currentAgentId = GetCurrentAgentId();
+        }
+    }
+
+    public string FirstGoalAgentId()
     {
         if (_stack.Count == 1)
         {
@@ -149,6 +162,11 @@ public class RoutingContext : IRoutingContext
         }
 
         return string.Empty;
+    }
+
+    public bool ContainsAgentId(string agentId)
+    {
+        return _stack.ToArray().Contains(agentId);
     }
 
     public void Replace(string agentId, string? reason = null)

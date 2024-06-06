@@ -2,35 +2,42 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> LaunchBrowser(string conversationId, string? url)
+    public async Task<BrowserActionResult> LaunchBrowser(string contextId, string? url)
     {
         var result = new BrowserActionResult() 
         { 
             IsSuccess = true 
         };
-        await _instance.InitInstance(conversationId);
+        var context = await _instance.InitInstance(contextId);
 
         if (!string.IsNullOrEmpty(url))
         {
-            var page = await _instance.NewPage(conversationId);
-            
-            if (!string.IsNullOrEmpty(url))
+            // Check if the page is already open
+            foreach (var p in context.Pages)
             {
-                try
+                if (p.Url == url)
                 {
-                    var response = await page.GotoAsync(url, new PageGotoOptions
-                    {
-                        Timeout = 15 * 1000
-                    });
-                    await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-                    result.IsSuccess = response.Status == 200;
+                    await p.BringToFrontAsync();
+                    return result;
                 }
-                catch(Exception ex)
+            }
+
+            var page = await _instance.NewPage(contextId);
+
+            try
+            {
+                var response = await page.GotoAsync(url, new PageGotoOptions
                 {
-                    result.ErrorMessage = ex.Message;
-                    result.StackTrace = ex.StackTrace;
-                    _logger.LogError(ex.Message);
-                }
+                    Timeout = 15 * 1000
+                });
+                await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+                result.IsSuccess = response.Status == 200;
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+                result.StackTrace = ex.StackTrace;
+                _logger.LogError(ex.Message);
             }
         }
 

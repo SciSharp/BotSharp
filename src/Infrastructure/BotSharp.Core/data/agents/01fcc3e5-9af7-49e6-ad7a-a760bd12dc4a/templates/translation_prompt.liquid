@@ -1,0 +1,6 @@
+{{ text_list }}
+
+=====
+Translate all the above sentences into {{ language }}.
+Output the translated text in JSON {"input_lang":"original text language", "output_count": {{ text_list_size }}, "output_lang":"{{ language }}", "texts":[{"id": 1, "text":""},{"id": 2, "text":""}]}.
+The "output_count" must equal the length of the "texts" array in the output.

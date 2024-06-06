@@ -4,12 +4,35 @@ public partial class PlaywrightWebDriver
 {
     public async Task DoAction(MessageInfo message, ElementActionArgs action, BrowserActionResult result)
     {
-        var page = _instance.GetPage(message.ConversationId);
+        var page = _instance.GetPage(message.ContextId);
         ILocator locator = page.Locator(result.Selector);
 
-        if (action.Action == "click")
+        if (action.Action == BroswerActionEnum.Click)
         {
-            await locator.ClickAsync();
+            if (action.Position == null)
+            {
+                await locator.ClickAsync();
+            }
+            else
+            {
+                await locator.ClickAsync(new LocatorClickOptions
+                {
+                    Position = new Position
+                    {
+                        X = action.Position.X,
+                        Y = action.Position.Y
+                    }
+                });
+            }
+        }
+        else if (action.Action == BroswerActionEnum.InputText)
+        {
+            await locator.FillAsync(action.Content);
+
+            if (action.PressKey != null)
+            {
+                await locator.PressAsync(action.PressKey);
+            }
         }
     }
 }

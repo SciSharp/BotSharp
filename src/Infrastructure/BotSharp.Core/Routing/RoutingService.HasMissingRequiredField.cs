@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using System.Drawing;
 
@@ -9,8 +10,9 @@ public partial class RoutingService
     /// If the target agent needs some required fields but the
     /// </summary>
     /// <returns></returns>
-    public bool HasMissingRequiredField(RoleDialogModel message, out string agentId)
+    public (bool, string) HasMissingRequiredField(RoleDialogModel message, out string agentId)
     {
+        var reason = string.Empty;
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var routing = _services.GetRequiredService<IRoutingService>();
 
@@ -19,7 +21,7 @@ public partial class RoutingService
         if (routingRules == null || !routingRules.Any())
         {
             agentId = message.CurrentAgentId;
-            return false;
+            return (false, reason);
         }
 
         agentId = routingRules.First().AgentId;
@@ -49,6 +51,17 @@ public partial class RoutingService
             if (!string.IsNullOrEmpty(states.GetState(field)))
             {
                 var value = states.GetState(field);
+
+                // Check if the value is correct data type
+                var rule = routingRules.First(x => x.Field == field);
+                if (rule.FieldType == "number")
+                {
+                    if (!long.TryParse(value, out var longValue))
+                    {
+                        states.SetState(field, "", isNeedVersion: true, source: StateSource.Application);
+                        continue;
+                    }
+                }
                 message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, field, value);
                 missingFields.Remove(field);
             }
@@ -56,9 +69,13 @@ public partial class RoutingService
 
         if (missingFields.Any())
         {
+            var logger = _services.GetRequiredService<ILogger<RouteToAgentFn>>();
+
             // Add field to args
             message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "missing_fields", missingFields);
-            message.Content = $"missing some information: {string.Join(", ", missingFields)}";
+            reason = $"missing some information: {string.Join(", ", missingFields)}";
+            // message.Content = reason;
+            logger.LogWarning(reason);
 
             // Handle redirect
             var routingRule = routingRules.FirstOrDefault(x => missingFields.Contains(x.Field));
@@ -70,7 +87,6 @@ public partial class RoutingService
                 // Add redirected agent
                 message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", record.Name);
                 agentId = routingRule.RedirectTo;
-                var logger = _services.GetRequiredService<ILogger<RouteToAgentFn>>();
 #if DEBUG
                 Console.WriteLine($"*** Routing redirect to {record.Name.ToUpper()} ***", Color.Yellow);
 #else
@@ -84,7 +100,7 @@ public partial class RoutingService
             }
         }
 
-        return missingFields.Any();
+        return (missingFields.Any(), reason);
     }
 
     private string AppendPropertyToArgs(string args, string key, string value)

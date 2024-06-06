@@ -10,7 +10,7 @@ namespace BotSharp.Abstraction.Agents;
 public interface IAgentService
 {
     Task<Agent> CreateAgent(Agent agent);
-    Task RefreshAgents();
+    Task<string> RefreshAgents();
     Task<PagedItems<Agent>> GetAgents(AgentFilter filter);
 
     /// <summary>
@@ -26,6 +26,8 @@ public interface IAgentService
 
     bool RenderFunction(Agent agent, FunctionDef def);
 
+    FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def);
+
     /// <summary>
     /// Get agent detail without trigger any hook.
     /// </summary>
@@ -35,9 +37,18 @@ public interface IAgentService
     
     Task<bool> DeleteAgent(string id);
     Task UpdateAgent(Agent agent, AgentField updateField);
-    Task UpdateAgentFromFile(string id);
+
+    /// <summary>
+    /// Path existing templates of agent, cannot create new or delete templates
+    /// </summary>
+    /// <param name="agent"></param>
+    /// <returns></returns>
+    Task<string> PatchAgentTemplate(Agent agent);
+    Task<string> UpdateAgentFromFile(string id);
     string GetDataDir();
     string GetAgentDataDir(string agentId);
+
+    List<Agent> GetAgentsByUser(string userId);
 
     PluginDef GetPlugin(string agentId);
 }

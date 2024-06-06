@@ -1,0 +1,11 @@
+{
+  "id": "01fcc3e5-0af7-49e6-ad7a-a760bd12dc4d",
+  "name": "Fallback Agent",
+  "description": "Don't have sufficient confidence to trigger any of existing agent.",
+  "type": "task",
+  "createdDateTime": "2024-05-07T10:00:00Z",
+  "updatedDateTime": "2024-05-07T10:00:00Z",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "fallback" ]
+}

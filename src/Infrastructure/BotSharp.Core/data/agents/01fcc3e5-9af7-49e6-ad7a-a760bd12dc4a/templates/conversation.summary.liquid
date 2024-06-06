@@ -1,0 +1,17 @@
+Please read each conversation in the [CONVERSATIONS] section and provide a summary.
+
+*** Super Important! Please consider every conversation. Do not only consider the recent sentences. ***
+** Please do not respond to the latest conversation.
+** If there are different topics in the conversations, please summarize each topic in different sentences and list them in bullets.
+** Please summarize each conversation separately.
+* Please do not exceed 20 words when summarizing each topic.
+* Please do not contain general information in each topic summary.
+* Please include some but not excessive details in each topic summary.
+* Please do not use "user", "I", "you", "he" or "she".
+
+[CONVERSATIONS]
+
+{% for text in texts -%}
+[CONVERSATION]
+{{ text }}{{ "\r\n" }}
+{%- endfor %}

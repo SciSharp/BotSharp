@@ -45,7 +45,7 @@ public class ChatHubConversationHook : ConversationHookBase
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
-            Text = message.Content,
+            Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Sender = UserViewModel.FromUser(sender)
         });
 
@@ -57,6 +57,20 @@ public class ChatHubConversationHook : ConversationHookBase
         });
 
         await base.OnMessageReceived(message);
+    }
+
+    public override async Task OnFunctionExecuting(RoleDialogModel message)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+
+        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        {
+            ConversationId = conv.ConversationId,
+            SenderAction = SenderActionEnum.TypingOn,
+            Indication = message.Indication
+        });
+
+        await base.OnFunctionExecuting(message);
     }
 
     public override async Task OnPostbackMessageReceived(RoleDialogModel message, PostbackMessageModel replyMsg)
@@ -71,9 +85,9 @@ public class ChatHubConversationHook : ConversationHookBase
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
-            Text = message.Content,
+            Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Function = message.FunctionName,
-            RichContent = message.RichContent,
+            RichContent = message.SecondaryRichContent ?? message.RichContent,
             Data = message.Data,
             Sender = new UserViewModel()
             {

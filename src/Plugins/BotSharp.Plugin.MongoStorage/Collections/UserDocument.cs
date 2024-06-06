@@ -13,7 +13,8 @@ public class UserDocument : MongoBase
     public string Source { get; set; } = "internal";
     public string? ExternalId { get; set; }
     public string Role { get; set; }
-
+    public string? VerificationCode { get; set; }
+    public bool Verified { get; set; }
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
 
@@ -30,7 +31,9 @@ public class UserDocument : MongoBase
             Salt = Salt,
             Source = Source,
             ExternalId = ExternalId,
-            Role = Role
+            Role = Role,
+            VerificationCode = VerificationCode,
+            Verified = Verified,
         };
     }
 }

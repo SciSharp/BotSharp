@@ -47,4 +47,10 @@ public partial class AgentService : IAgentService
         }
         return dir;
     }
+
+    public List<Agent> GetAgentsByUser(string userId)
+    {
+        var agents = _db.GetAgentsByUser(userId);
+        return agents;
+    }
 }

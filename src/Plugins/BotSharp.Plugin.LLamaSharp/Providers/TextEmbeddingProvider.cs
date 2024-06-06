@@ -27,7 +27,7 @@ public class TextEmbeddingProvider : ITextEmbedding
             _embedder = new LLamaEmbedder(weights, @params);
         }
 
-        return Task.FromResult(_embedder.GetEmbeddings(text));
+        return _embedder.GetEmbeddings(text);
     }
 
     public Task<List<float[]>> GetVectorsAsync(List<string> texts)

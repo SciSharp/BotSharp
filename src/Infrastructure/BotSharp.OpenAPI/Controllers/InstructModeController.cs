@@ -11,10 +11,12 @@ namespace BotSharp.OpenAPI.Controllers;
 public class InstructModeController : ControllerBase
 {
     private readonly IServiceProvider _services;
+    private readonly ILogger<InstructModeController> _logger;
 
-    public InstructModeController(IServiceProvider services)
+    public InstructModeController(IServiceProvider services, ILogger<InstructModeController> logger)
     {
         _services = services;
+        _logger = logger;
     }
 
     [HttpPost("/instruct/{agentId}")]
@@ -22,12 +24,12 @@ public class InstructModeController : ControllerBase
         [FromBody] InstructMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
-        state.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("model_id", input.ModelId)
-            .SetState("instruction", input.Instruction)
-            .SetState("input_text", input.Text);
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External)
+            .SetState("instruction", input.Instruction, source: StateSource.External)
+            .SetState("input_text", input.Text,source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
@@ -44,10 +46,10 @@ public class InstructModeController : ControllerBase
     public async Task<string> TextCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
-        state.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("model_id", input.ModelId);
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External);
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
         return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.NewGuid().ToString());
@@ -57,10 +59,10 @@ public class InstructModeController : ControllerBase
     public async Task<string> ChatCompletion([FromBody] IncomingMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds));
-        state.SetState("provider", input.Provider)
-            .SetState("model", input.Model)
-            .SetState("model_id", input.ModelId);
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        state.SetState("provider", input.Provider, source: StateSource.External)
+            .SetState("model", input.Model, source: StateSource.External)
+            .SetState("model_id", input.ModelId, source: StateSource.External);
 
         var textCompletion = CompletionProvider.GetChatCompletion(_services);
         var message = await textCompletion.GetChatCompletions(new Agent()
@@ -71,5 +73,34 @@ public class InstructModeController : ControllerBase
             new RoleDialogModel(AgentRole.User, input.Text)
         });
         return message.Content;
+    }
+
+    [HttpPost("/instruct/multi-modal")]
+    public async Task<string> MultiModalCompletion([FromBody] IncomingMessageModel input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+
+        try
+        {
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: input.Provider ?? "openai",
+                modelId: input.ModelId ?? "gpt-4", multiModal: true);
+            var message = await completion.GetChatCompletions(new Agent()
+            {
+                Id = Guid.Empty.ToString(),
+            }, new List<RoleDialogModel>
+            {
+                new RoleDialogModel(AgentRole.User, input.Text)
+                {
+                    Files = input.Files
+                }
+            });
+            return message.Content;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error in analyzing files. {ex.Message}");
+            return $"Error in analyzing files.";
+        }
     }
 }

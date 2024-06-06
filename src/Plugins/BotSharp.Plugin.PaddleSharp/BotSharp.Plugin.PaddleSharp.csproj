@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -12,14 +12,14 @@
 
   <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.5.0" />
-    <PackageReference Include="Magick.NET.Core" Version="13.5.0" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.8.0" />
+    <PackageReference Include="Magick.NET.Core" Version="13.8.0" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.9.0.20240103" />
     <PackageReference Include="Sdcb.PaddleInference" Version="2.5.0.1" />
     <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="2.5.1" />
     <PackageReference Include="Sdcb.PaddleOCR" Version="2.7.0.1" />
     <PackageReference Include="Sdcb.PaddleOCR.Models.LocalV3" Version="2.7.0.1" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.5" />
   </ItemGroup>
 
   <ItemGroup>

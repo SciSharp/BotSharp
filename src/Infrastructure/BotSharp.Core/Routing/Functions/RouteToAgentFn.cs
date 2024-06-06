@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Routing;
@@ -50,7 +51,7 @@ public partial class RouteToAgentFn : IFunctionCallback
             var originalAgent = db.GetAgents(filter).FirstOrDefault();
             if (originalAgent != null)
             {
-                _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " & is corrected" : "")}");
+                _context.Push(originalAgent.Id, $"user goal agent{(correctToOriginalAgent ? " " + originalAgent.Name + " & is corrected" : "")}");
             }
         }
 
@@ -58,7 +59,7 @@ public partial class RouteToAgentFn : IFunctionCallback
         if (!string.IsNullOrEmpty(args.AgentName) && args.AgentName.Length < 32)
         {
             _context.Push(args.AgentName, args.NextActionReason);
-            states.SetState("next_action_agent", args.AgentName, isNeedVersion: true);
+            states.SetState(StateConst.NEXT_ACTION_AGENT, args.AgentName, isNeedVersion: true);
         }
 
         if (string.IsNullOrEmpty(args.AgentName))
@@ -82,11 +83,11 @@ public partial class RouteToAgentFn : IFunctionCallback
             }
 
             var routing = _services.GetRequiredService<IRoutingService>();
-            var missingfield = routing.HasMissingRequiredField(message, out var agentId);
+            var (missingfield, reason) = routing.HasMissingRequiredField(message, out var agentId);
             if (missingfield && message.CurrentAgentId != agentId)
             {
                 // Stack redirection agent
-                _context.Push(agentId, reason: $"REDIRECTION {message.Content}");
+                _context.Push(agentId, reason: $"REDIRECTION {reason}");
             }
         }
 

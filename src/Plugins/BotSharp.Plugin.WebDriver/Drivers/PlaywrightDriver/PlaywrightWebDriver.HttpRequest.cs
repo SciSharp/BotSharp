@@ -1,19 +1,25 @@
+using System.Net.Http;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> SendHttpRequest(BrowserActionParams actionParams)
+    public async Task<BrowserActionResult> SendHttpRequest(MessageInfo message, HttpRequestParams args)
     {
         var result = new BrowserActionResult();
+
+        var body = args.Method == HttpMethod.Post ?
+            $"body: '{args.Payload}'" : string.Empty;
+
         // Send AJAX request
         string script = $@"
                     (async () => {{
-                        const response = await fetch('{actionParams.Context.Url}', {{
-                            method: 'POST',
+                        const response = await fetch('{args.Url}', {{
+                            method: '{args.Method}',
                             headers: {{
                                 'Content-Type': 'application/json'
                             }},
-                            body: '{actionParams.Context.Payload}'
+                            {body}
                         }});
                         return await response.json();
                     }})();
@@ -21,13 +27,14 @@ public partial class PlaywrightWebDriver
 
         try
         {
-            var response = await EvaluateScript<object>(actionParams.ConversationId, script);
+            _logger.LogInformation($"SendHttpRequest: {args.Url}");
+            var response = await EvaluateScript<object>(message.ContextId, script);
             result.IsSuccess = true;
             result.Body = JsonSerializer.Serialize(response);
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = ex.Message;
+            result.Message = ex.Message;
             result.StackTrace = ex.StackTrace;
             _logger.LogError(ex.Message);
         }

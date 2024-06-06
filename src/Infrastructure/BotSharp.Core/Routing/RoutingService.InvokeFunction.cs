@@ -4,45 +4,56 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    private List<FunctionCallingResponse> _functionCallStack = new List<FunctionCallingResponse>();
-    public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
+    public async Task<bool> InvokeFunction(string name, RoleDialogModel message, Func<RoleDialogModel, Task>? onFunctionExecuting = null)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
         if (function == null)
         {
             message.StopCompletion = true;
-            message.Content = $"Can't find function implementation of {message.FunctionName}.";
+            message.Content = $"Can't find function implementation of {name}.";
             _logger.LogError(message.Content);
             return false;
         }
 
-        var originalFunctionName = message.FunctionName;
-        message.FunctionName = name;
-        message.Role = AgentRole.Function;
-        message.FunctionArgs = message.FunctionArgs;
+        // Clone message
+        var clonedMessage = RoleDialogModel.From(message);
+        clonedMessage.FunctionName = name;
 
         var hooks = _services.GetServices<IConversationHook>()
             .OrderBy(x => x.Priority)
             .ToList();
 
         // Before executing functions
+        clonedMessage.Indication = function.Indication;
+        if (onFunctionExecuting != null)
+        {
+            await onFunctionExecuting(clonedMessage);
+        }
+        
         foreach (var hook in hooks)
         {
-            await hook.OnFunctionExecuting(message);
+            await hook.OnFunctionExecuting(clonedMessage);
         }
 
         bool result = false;
 
         try
         {
-            result = await function.Execute(message);
-            _functionCallStack.Add(new FunctionCallingResponse
+            result = await function.Execute(clonedMessage);
+
+            // After functions have been executed
+            foreach (var hook in hooks)
             {
-                Role = AgentRole.Function,
-                FunctionName = message.FunctionName,
-                Args = JsonDocument.Parse(message.FunctionArgs ?? "{}"),
-                Content = message.Content
-            });
+                await hook.OnFunctionExecuted(clonedMessage);
+            }
+
+            // Set result to original message
+            message.PostbackFunctionName = clonedMessage.PostbackFunctionName;
+            message.CurrentAgentId = clonedMessage.CurrentAgentId;
+            message.Content = clonedMessage.Content;
+            message.StopCompletion = clonedMessage.StopCompletion;
+            message.RichContent = clonedMessage.RichContent;
+            message.Data = clonedMessage.Data;
         }
         catch (JsonException ex)
         {
@@ -63,25 +74,12 @@ public partial class RoutingService
             message.Content = JsonSerializer.Serialize(message.Data);
         }
 
-        // After functions have been executed
-        foreach (var hook in hooks)
-        {
-            await hook.OnFunctionExecuted(message);
-        }
-
-        // restore original function name
-        if (!message.StopCompletion && 
-            message.FunctionName != originalFunctionName)
-        {
-            message.FunctionName = originalFunctionName;
-        }
-
         // Save to Storage as well
-        if (!message.StopCompletion && message.FunctionName != "route_to_agent")
+        /*if (!message.StopCompletion && message.FunctionName != "route_to_agent")
         {
             var storage = _services.GetRequiredService<IConversationStorage>();
             storage.Append(Context.ConversationId, message);
-        }
+        }*/
 
         return result;
     }

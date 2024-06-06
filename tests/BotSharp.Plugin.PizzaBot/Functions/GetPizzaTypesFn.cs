@@ -38,7 +38,7 @@ public class GetPizzaTypesFn : IFunctionCallback
             Message = new ButtonTemplateMessage
             {
                 Text = "Please select a pizza type",
-                Buttons = pizzaTypes.Select(x => new ButtonElement
+                Buttons = pizzaTypes.Select(x => new ElementButton
                 {
                     Type = "text",
                     Title = x,

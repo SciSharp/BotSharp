@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Messaging.Enums;
-
 namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 
 public class ProductTemplateMessage : IRichMessage, ITemplateMessage
@@ -8,6 +6,7 @@ public class ProductTemplateMessage : IRichMessage, ITemplateMessage
     public string RichType => RichTypeEnum.GenericTemplate;
 
     [JsonPropertyName("text")]
+    [Translate]
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("template_type")]

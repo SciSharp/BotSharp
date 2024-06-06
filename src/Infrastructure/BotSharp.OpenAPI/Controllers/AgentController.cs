@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -7,11 +8,13 @@ namespace BotSharp.OpenAPI.Controllers;
 public class AgentController : ControllerBase
 {
     private readonly IAgentService _agentService;
+    private readonly IUserIdentity _user;
     private readonly IServiceProvider _services;
 
-    public AgentController(IAgentService agentService, IServiceProvider services)
+    public AgentController(IAgentService agentService, IUserIdentity user, IServiceProvider services)
     {
         _agentService = agentService;
+        _user = user;
         _services = services;
     }
 
@@ -23,7 +26,7 @@ public class AgentController : ControllerBase
     }
 
     [HttpGet("/agent/{id}")]
-    public async Task<AgentViewModel> GetAgent([FromRoute] string id)
+    public async Task<AgentViewModel?> GetAgent([FromRoute] string id)
     {
         var agents = await GetAgents(new AgentFilter
         {
@@ -31,6 +34,8 @@ public class AgentController : ControllerBase
         });
 
         var targetAgent = agents.Items.FirstOrDefault();
+        if (targetAgent == null) return null;
+
         var redirectAgentIds = targetAgent.RoutingRules
                                           .Where(x => !string.IsNullOrEmpty(x.RedirectTo))
                                           .Select(x => x.RedirectTo).ToList();
@@ -45,6 +50,17 @@ public class AgentController : ControllerBase
             
             rule.RedirectToAgentName = found.Name;
         }
+
+        var editable = true;
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user?.Role != UserRole.Admin)
+        {
+            var userAgents = _agentService.GetAgentsByUser(user?.Id);
+            editable = userAgents?.Select(x => x.Id)?.Contains(targetAgent.Id) ?? false;
+        }
+
+        targetAgent.Editable = editable;
         return targetAgent;
     }
              
@@ -84,15 +100,15 @@ public class AgentController : ControllerBase
     }
 
     [HttpPost("/refresh-agents")]
-    public async Task RefreshAgents()
+    public async Task<string> RefreshAgents()
     {
-        await _agentService.RefreshAgents();
+        return await _agentService.RefreshAgents();
     }
 
     [HttpPut("/agent/file/{agentId}")]
-    public async Task UpdateAgentFromFile([FromRoute] string agentId)
+    public async Task<string> UpdateAgentFromFile([FromRoute] string agentId)
     {
-        await _agentService.UpdateAgentFromFile(agentId);
+        return await _agentService.UpdateAgentFromFile(agentId);
     }
 
     [HttpPut("/agent/{agentId}")]
@@ -109,5 +125,19 @@ public class AgentController : ControllerBase
         var model = agent.ToAgent();
         model.Id = agentId;
         await _agentService.UpdateAgent(model, field);
+    }
+
+    [HttpPatch("/agent/{agentId}/templates")]
+    public async Task<string> PatchAgentTemplates([FromRoute] string agentId, [FromBody] AgentTemplatePatchModel agent)
+    {
+        var model = agent.ToAgent();
+        model.Id = agentId;
+        return await _agentService.PatchAgentTemplate(model);
+    }
+
+    [HttpDelete("/agent/{agentId}")]
+    public async Task<bool> DeleteAgent([FromRoute] string agentId)
+    {
+        return await _agentService.DeleteAgent(agentId);
     }
 }

@@ -1,0 +1,11 @@
+{
+  "id": "01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b",
+  "name": "Human Support",
+  "description": "Reach out to human customer service.",
+  "type": "task",
+  "createdDateTime": "2024-04-22T10:00:00Z",
+  "updatedDateTime": "2024-04-22T10:00:00Z",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "human" ]
+}

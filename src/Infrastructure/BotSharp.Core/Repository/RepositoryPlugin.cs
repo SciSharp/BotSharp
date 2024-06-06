@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 
@@ -32,7 +33,7 @@ public class RepositoryPlugin : IBotSharpPlugin
 
         var myDatabaseSettings = new BotSharpDatabaseSettings();
         config.Bind("Database", myDatabaseSettings);
-        if (myDatabaseSettings.Default == "FileRepository")
+        if (myDatabaseSettings.Default == RepositoryEnum.FileRepository)
         {
             services.AddScoped<IBotSharpRepository, FileRepository>();
         }

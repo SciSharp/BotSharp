@@ -44,6 +44,9 @@ public abstract class ConversationHookBase : IConversationHook
     public virtual Task OnConversationEnding(RoleDialogModel message)
         => Task.CompletedTask;
 
+    public virtual Task OnNewTaskDetected(RoleDialogModel message, string reason)
+        => Task.CompletedTask;
+
     public virtual Task OnTaskCompleted(RoleDialogModel message)
         => Task.CompletedTask;
 

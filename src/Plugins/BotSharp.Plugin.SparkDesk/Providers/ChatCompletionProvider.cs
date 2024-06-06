@@ -222,7 +222,7 @@ public class ChatCompletionProvider : IChatCompletion
         return  (prompt, messages.ToArray(), functions.ToArray());       
     }
 
-    private string GetPrompt(List<ChatMessage> messages,List<FunctionDef> functions)
+    private string GetPrompt(List<ChatMessage> messages, List<FunctionDef> functions)
     {
         var prompt = string.Empty;
 
