@@ -197,7 +197,7 @@ public partial class BotSharpFileService
         var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
         if (!ExistDirectory(dir)) return false;
 
-        return Directory.GetDirectories(dir).Count() > 0;
+        return Directory.GetDirectories(dir).Any();
     }
 
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files)
