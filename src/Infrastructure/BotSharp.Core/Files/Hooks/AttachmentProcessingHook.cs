@@ -24,27 +24,33 @@ public class AttachmentProcessingHook : AgentHookBase
         {
             var json = JsonSerializer.Serialize(new
             {
-                user_question = new
+                user_request = new
                 {
                     type = "string",
-                    description = $"The question asked by user, which is related to analyzing images or other files."
+                    description = "The request posted by user, which is related to analyzing requested files. User can request for multiple files to process at one time."
+                },
+                file_types = new
+                {
+                    type = "string",
+                    description = "The file types requested by user to analyze, such as image, png, jpeg, and pdf. There can be multiple file types in a single request. An example output is, 'image,pdf'"
                 }
             });
 
             functions.Add(new FunctionDef
             {
                 Name = "load_attachment",
-                Description = $"If the user's request is related to analyzing files, you can call this function to analyze files.",
+                Description = "If the user's request is related to analyzing files and/or images, you can call this function to analyze files and images.",
                 Parameters =
                     {
                         Properties = JsonSerializer.Deserialize<JsonDocument>(json),
                         Required = new List<string>
                         {
-                            "user_question"
+                            "user_request",
+                            "file_types"
                         }
                     }
             });
         }
-        return true;
+        return base.OnFunctionsLoaded(functions); ;
     }
 }
