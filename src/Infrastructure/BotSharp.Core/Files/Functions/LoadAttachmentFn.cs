@@ -12,6 +12,7 @@ public class LoadAttachmentFn : IFunctionCallback
     private readonly ILogger<LoadAttachmentFn> _logger;
     private const string AIAssistant = "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a";
     private readonly IEnumerable<string> _imageTypes = new List<string> { "image", "images", "png", "jpg", "jpeg" };
+    private readonly IEnumerable<string> _pdfTypes = new List<string> { "pdf" };
 
     public LoadAttachmentFn(
         IServiceProvider services,
@@ -89,7 +90,7 @@ public class LoadAttachmentFn : IFunctionCallback
             {
                 parsed.Add(imageType);
             }
-            else if (type.IsEqualTo("pdf"))
+            else if (_pdfTypes.Any(x => type.IsEqualTo(x)))
             {
                 parsed.Add(pdfType);
             }
