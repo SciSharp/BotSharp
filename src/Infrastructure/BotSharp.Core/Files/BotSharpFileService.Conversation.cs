@@ -207,20 +207,8 @@ public partial class BotSharpFileService
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
         if (!ExistDirectory(dir)) return false;
 
-        //var contextId = string.Empty;
-        //var web = _services.GetRequiredService<IWebBrowser>();
-        //var isNeedScreenShot = files.Any(x => _allowScreenShotTypes.Contains(Path.GetExtension(x.FileName)));
-        //var preFixPath = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
-
         try
         {
-            //if (isNeedScreenShot)
-            //{
-            //    var state = _services.GetRequiredService<IConversationStateService>();
-            //    contextId = state.GetConversationId() ?? Guid.NewGuid().ToString();
-            //    await web.LaunchBrowser(contextId, string.Empty);
-            //}
-
             for (int i = 0; i < files.Count; i++)
             {
                 var file = files[i];
@@ -238,20 +226,7 @@ public partial class BotSharpFileService
                 }
 
                 File.WriteAllBytes(Path.Combine(subDir, file.FileName), bytes);
-
-                //if (isNeedScreenShot && _allowScreenShotTypes.Contains(fileType))
-                //{
-                //    var path = Path.Combine(preFixPath, fileName);
-                //    await web.GoToPage(contextId, path);
-                //    path = Path.Combine(preFixPath, $"{Guid.NewGuid()}.{i + 1}.png");
-                //    await web.ScreenshotAsync(contextId, path);
-                //}
             }
-
-            //if (isNeedScreenShot)
-            //{
-            //    await web.CloseBrowser(contextId);
-            //}
 
             return true;
         }
