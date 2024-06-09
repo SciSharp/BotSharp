@@ -138,7 +138,7 @@ public partial class BotSharpFileService
         foreach (var messageId in messageIds)
         {
             var dir = GetConversationFileDirectory(conversationId, messageId);
-            if (string.IsNullOrEmpty(dir)) continue;
+            if (!ExistDirectory(dir)) continue;
 
             Thread.Sleep(100);
             Directory.Delete(dir, true);

@@ -22,10 +22,12 @@ public partial class ConversationService
             if (dialogs.IsNullOrEmpty()) continue;
 
             var content = GetConversationContent(dialogs);
-            if (string.IsNullOrEmpty(content)) continue;
+            if (string.IsNullOrWhiteSpace(content)) continue;
 
             contents.Add(content);
         }
+
+        if (contents.IsNullOrEmpty()) return string.Empty;
 
         var router = await agentService.LoadAgent(AIAssistant);
         var prompt = GetPrompt(router, contents);
@@ -39,10 +41,10 @@ public partial class ConversationService
         var template = agent.Templates.First(x => x.Name == "conversation.summary").Content;
         var render = _services.GetRequiredService<ITemplateRender>();
 
-        var texts = string.Empty;
+        var texts = new List<string>();
         for (int i = 0; i < contents.Count; i++)
         {
-            texts += $"[Conversation {i+1}]\r\n{contents[i]}";
+            texts.Add($"{contents[i]}");
         }
 
         return render.Render(template, new Dictionary<string, object>
@@ -97,7 +99,12 @@ public partial class ConversationService
         foreach (var dialog in dialogs.TakeLast(maxDialogCount))
         {
             var role = dialog.Role;
-            if (role != AgentRole.User && role != AgentRole.Assistant) continue;
+            if (role == AgentRole.Function) continue;
+
+            if (role != AgentRole.User)
+            {
+                role = AgentRole.Assistant;
+            }
 
             conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
         }
