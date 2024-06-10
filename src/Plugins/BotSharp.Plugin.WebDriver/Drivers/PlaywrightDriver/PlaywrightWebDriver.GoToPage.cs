@@ -2,20 +2,21 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> GoToPage(MessageInfo message, string url, bool openNewTab = false)
+    public async Task<BrowserActionResult> GoToPage(MessageInfo message, PageActionArgs args)
     {
         var result = new BrowserActionResult();
         var context = await _instance.InitInstance(message.ContextId);
         try
         {
             // Check if the page is already open
-            if (!openNewTab && context.Pages.Count > 0)
+            if (!args.OpenNewTab && context.Pages.Count > 0)
             {
                 foreach (var p in context.Pages)
                 {
-                    if (p.Url == url)
+                    if (p.Url == args.Url)
                     {
-                        result.Body = await p.ContentAsync();
+                        // Disable this due to performance issue, some page is too large
+                        // result.Body = await p.ContentAsync();
                         result.IsSuccess = true;
                         await p.BringToFrontAsync();
                         return result;
@@ -23,14 +24,11 @@ public partial class PlaywrightWebDriver
                 }
             }
 
-            var page = openNewTab ? await _instance.NewPage(message.ContextId) : 
+            var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId) : 
                 _instance.GetPage(message.ContextId);
-            var response = await page.GotoAsync(url);
+            var response = await page.GotoAsync(args.Url);
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-            await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
-            {
-                Timeout = 1000 * 60 * 5
-            });
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             if (response.Status == 200)
             {

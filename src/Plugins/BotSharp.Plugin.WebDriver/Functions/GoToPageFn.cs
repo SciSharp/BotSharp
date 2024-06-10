@@ -31,7 +31,10 @@ public class GoToPageFn : IFunctionCallback
             AgentId = message.CurrentAgentId,
             ContextId = convService.ConversationId,
             MessageId = message.MessageId
-        }, url);
+        }, new PageActionArgs
+        {
+            Url = url
+        });
         message.Content = result.IsSuccess ? $"Page {url} is open." : $"Page {url} open failed. {result.Message}";
 
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

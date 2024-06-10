@@ -2,14 +2,14 @@ namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
 
 public partial class SeleniumWebDriver
 {
-    public async Task<BrowserActionResult> GoToPage(MessageInfo message, string url, bool openNewTab = false)
+    public async Task<BrowserActionResult> GoToPage(MessageInfo message, PageActionArgs args)
     {
         var result = new BrowserActionResult();
         try
         {
-            var page = openNewTab ? await _instance.NewPage(message.ContextId) :
+            var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId) :
                 _instance.GetPage(message.ContextId);
-            page.GoToUrl(url);
+            page.GoToUrl(args.Url);
             await _instance.Wait(message.ContextId);
             
             result.Body = _instance.GetPageContent(message.ContextId);

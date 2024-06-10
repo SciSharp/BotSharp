@@ -52,7 +52,7 @@ public partial class SeleniumWebDriver : IWebBrowser
         throw new NotImplementedException();
     }
 
-    public Task CloseCurrentPage(string contextId)
+    public Task<BrowserActionResult> CloseCurrentPage(MessageInfo message)
     {
         throw new NotImplementedException();
     }
@@ -77,7 +77,7 @@ public partial class SeleniumWebDriver : IWebBrowser
         throw new NotImplementedException();
     }
 
-    public Task<BrowserActionResult> ScrollPageAsync(BrowserActionParams actionParams)
+    public Task<BrowserActionResult> ScrollPage(MessageInfo message, PageActionArgs args)
     {
         throw new NotImplementedException();
     }

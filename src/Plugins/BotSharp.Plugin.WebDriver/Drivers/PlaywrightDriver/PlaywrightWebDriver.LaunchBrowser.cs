@@ -2,44 +2,13 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> LaunchBrowser(MessageInfo message, string? url)
+    public async Task<BrowserActionResult> LaunchBrowser(MessageInfo message)
     {
-        var result = new BrowserActionResult() 
-        { 
-            IsSuccess = true 
-        };
         var context = await _instance.InitInstance(message.ContextId);
-
-        if (!string.IsNullOrEmpty(url))
+        var result = new BrowserActionResult
         {
-            // Check if the page is already open
-            foreach (var p in context.Pages)
-            {
-                if (p.Url == url)
-                {
-                    await p.BringToFrontAsync();
-                    return result;
-                }
-            }
-
-            var page = await _instance.NewPage(message.ContextId);
-
-            try
-            {
-                var response = await page.GotoAsync(url, new PageGotoOptions
-                {
-                    Timeout = 15 * 1000
-                });
-                await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-                result.IsSuccess = response.Status == 200;
-            }
-            catch (Exception ex)
-            {
-                result.Message = ex.Message;
-                result.StackTrace = ex.StackTrace;
-                _logger.LogError(ex.Message);
-            }
-        }
+            IsSuccess = context.Pages.Count > 0
+        };
 
         return result;
     }

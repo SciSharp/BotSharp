@@ -42,5 +42,9 @@ public partial class PlaywrightWebDriver
                 await locator.PressAsync(action.PressKey);
             }
         }
+        else if (action.Action == BroswerActionEnum.Hover)
+        {
+            await locator.HoverAsync();
+        }
     }
 }
