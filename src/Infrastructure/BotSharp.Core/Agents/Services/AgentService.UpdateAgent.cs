@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Enums;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -11,7 +13,9 @@ public partial class AgentService
     {
         var userService = _services.GetRequiredService<IUserService>();
         var user = await userService.GetUser(_user.Id);
-        if (user?.Role != UserRole.Admin) return;
+        var userAgents = GetAgentsByUser(user?.Id);
+        var editable = userAgents?.Select(x => x.Id)?.Contains(agent.Id) ?? false;
+        if (user?.Role != UserRole.Admin && !editable) return;
 
         if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 

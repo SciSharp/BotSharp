@@ -373,7 +373,6 @@ namespace BotSharp.Core.Repository
 
             var filter = new AgentFilter
             {
-                IsPublic = true,
                 AgentIds = agentIds
             };
             var agents = GetAgents(filter);
