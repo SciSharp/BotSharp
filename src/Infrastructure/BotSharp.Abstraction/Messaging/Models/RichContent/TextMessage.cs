@@ -8,6 +8,8 @@ public class TextMessage : IRichMessage
     [Translate]
     public string Text { get; set; } = string.Empty;
 
+    public TextMessage() { }
+
     public TextMessage(string text)
     {
         Text = text;

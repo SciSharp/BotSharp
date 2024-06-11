@@ -3,7 +3,7 @@ namespace BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 public class ProductTemplateMessage : IRichMessage, ITemplateMessage
 {
     [JsonPropertyName("rich_type")]
-    public string RichType => RichTypeEnum.GenericTemplate;
+    public string RichType => RichTypeEnum.ProductTemplate;
 
     [JsonPropertyName("text")]
     [Translate]
