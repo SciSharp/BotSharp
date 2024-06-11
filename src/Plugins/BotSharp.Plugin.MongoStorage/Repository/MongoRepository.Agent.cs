@@ -308,8 +308,7 @@ public partial class MongoRepository
 
         var filter = new AgentFilter
         {
-            AgentIds = agentIds,
-            IsPublic = true
+            AgentIds = agentIds
         };
         var agents = GetAgents(filter);
         return agents;
