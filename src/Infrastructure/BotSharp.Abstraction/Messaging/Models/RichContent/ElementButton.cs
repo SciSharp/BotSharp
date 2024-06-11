@@ -13,6 +13,9 @@ public class ElementButton
     [Translate]
     public string Title { get; set; } = string.Empty;
 
+    [Translate]
+    public string? TitleAs { get; set; } = string.Empty;
+
     [JsonPropertyName("description")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [Translate]

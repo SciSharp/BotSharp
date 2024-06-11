@@ -6,6 +6,8 @@ public class QuickReplyElement
     public string ContentType { get; set; } = "text";
 
     public string Title { get; set; } = string.Empty;
+    [Translate]
+    public string? TitleAs { get; set; } = string.Empty;
     public string? Payload { get; set; }
 
     [JsonPropertyName("image_url")]
