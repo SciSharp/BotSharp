@@ -48,7 +48,7 @@ public partial class ConversationService
 
         // Save message files
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        fileService.SaveMessageFiles(_conversationId, message.MessageId, message.Files);
+        fileService.SaveMessageFiles(_conversationId, message.MessageId, FileSourceType.User, message.Files);
         message.Files?.Clear();
 
         // Save payload
