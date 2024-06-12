@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Browsing;
+using BotSharp.Abstraction.Browsing.Models;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
@@ -50,14 +51,16 @@ public partial class BotSharpFileService
 
         try
         {
-            var contextId = string.Empty;
+            var msgInfo = new MessageInfo
+            {
+                ContextId = Guid.NewGuid().ToString()
+            };
             var web = _services.GetRequiredService<IWebBrowser>();
             var preFixPath = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
 
             if (isNeedScreenShot)
             {
-                contextId = Guid.NewGuid().ToString();
-                await web.LaunchBrowser(contextId, string.Empty);
+                await web.LaunchBrowser(msgInfo);
             }
 
             foreach (var messageId in messageIds)
@@ -101,9 +104,9 @@ public partial class BotSharpFileService
                         }
                         else
                         {
-                            await web.GoToPage(contextId, file);
+                            await web.GoToPage(msgInfo, new PageActionArgs { Url = file });
                             var path = Path.Combine(subDir, SCREENSHOT_FILE_FOLDER, $"{Guid.NewGuid()}.png");
-                            await web.ScreenshotAsync(contextId, path);
+                            await web.ScreenshotAsync(msgInfo, path);
                             contentType = GetFileContentType(path);
 
                             var model = new MessageFileModel()
@@ -120,7 +123,7 @@ public partial class BotSharpFileService
 
             if (isNeedScreenShot)
             {
-                await web.CloseBrowser(contextId);
+                await web.CloseBrowser(msgInfo.ContextId);
             }
         }
         catch (Exception ex)
