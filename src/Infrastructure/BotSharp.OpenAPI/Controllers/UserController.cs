@@ -95,12 +95,14 @@ public class UserController : ControllerBase
         return UserViewModel.FromUser(user);
     }
 
+    [AllowAnonymous]
     [HttpGet("/user/name/existing")]
     public async Task<bool> VerifyUserNameExisting([FromQuery] string userName)
     {
         return await _userService.VerifyUserNameExisting(userName);
     }
 
+    [AllowAnonymous]
     [HttpGet("/user/email/existing")]
     public async Task<bool> VerifyEmailExisting([FromQuery] string email)
     {

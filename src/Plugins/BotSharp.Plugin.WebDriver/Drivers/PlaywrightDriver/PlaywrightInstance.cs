@@ -38,16 +38,16 @@ public class PlaywrightInstance : IDisposable
             Headless = true,
 #endif
             Channel = "chrome",
-            IgnoreDefaultArgs = new[]
-            {
+            IgnoreDefaultArgs =
+            [
                 "--enable-automation",
-            },
-            Args = new[]
-            {
+            ],
+            Args = 
+            [
                 "--disable-infobars",
-                "--no-sandbox",
+                "--test-type"
                 // "--start-maximized"
-            }
+            ]
         });
 
         _contexts[id].Page += async (sender, e) =>

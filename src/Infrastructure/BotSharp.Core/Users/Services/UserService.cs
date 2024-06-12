@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -55,6 +56,10 @@ public class UserService : IUserService
 
         record = user;
         record.Email = user.Email?.ToLower();
+        if (user.Phone != null)
+        {
+            record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
+        }
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashText(user.Password, record.Salt);
 
