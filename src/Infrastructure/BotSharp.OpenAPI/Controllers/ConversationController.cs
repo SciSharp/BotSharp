@@ -59,7 +59,7 @@ public class ConversationController : ControllerBase
             user = await userService.GetUser(item.User.Id);
             item.User = UserViewModel.FromUser(user);
             var agent = await agentService.GetAgent(item.AgentId);
-            item.AgentName = agent?.Name;
+            item.AgentName = agent?.Name ?? "Unkown";
         }
 
         return new PagedItems<ConversationViewModel>
@@ -110,7 +110,7 @@ public class ConversationController : ControllerBase
                     Data = message.Data,
                     Sender = new UserViewModel
                     {
-                        FirstName = agent.Name,
+                        FirstName = agent?.Name ?? "Unkown",
                         Role = message.Role,
                     },
                     RichContent = message.SecondaryRichContent ?? message.RichContent
