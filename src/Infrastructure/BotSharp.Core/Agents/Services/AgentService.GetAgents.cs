@@ -44,7 +44,11 @@ public partial class AgentService
         if (profile.LlmConfig == null)
         {
             profile.LlmConfig = agentSetting.LlmConfig;
-            profile.LlmConfig.IsInherit = true;
+        }
+        else if (string.IsNullOrEmpty(profile.LlmConfig?.Provider) || string.IsNullOrEmpty(profile.LlmConfig?.Model))
+        {
+            profile.LlmConfig.Provider = agentSetting.LlmConfig.Provider;
+            profile.LlmConfig.Model = agentSetting.LlmConfig.Model;
         }
 
         profile.Plugin = GetPlugin(profile.Id);
