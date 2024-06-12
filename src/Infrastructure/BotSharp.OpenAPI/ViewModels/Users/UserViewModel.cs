@@ -5,14 +5,15 @@ namespace BotSharp.OpenAPI.ViewModels.Users;
 
 public class UserViewModel
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = null!;
     [JsonPropertyName("user_name")]
-    public string UserName { get; set; }
+    public string UserName { get; set; } = null!;
     [JsonPropertyName("first_name")]
-    public string FirstName { get; set; }
+    public string FirstName { get; set; } = null!;
     [JsonPropertyName("last_name")]
-    public string LastName { get; set; }
-    public string Email { get; set; }
+    public string? LastName { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
     public string Role { get; set; } = UserRole.Client;
     [JsonPropertyName("full_name")]
     public string FullName => $"{FirstName} {LastName}".Trim();
@@ -44,6 +45,7 @@ public class UserViewModel
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
+            Phone = user.Phone,
             Role = user.Role,
             Source = user.Source,
             ExternalId = user.ExternalId,

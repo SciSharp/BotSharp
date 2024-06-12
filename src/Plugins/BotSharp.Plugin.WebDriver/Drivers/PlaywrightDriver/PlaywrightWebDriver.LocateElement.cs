@@ -77,7 +77,7 @@ public partial class PlaywrightWebDriver
                 locator = locator.Locator("..");
             }
 
-            result.Selector = locator.ToString().Split('@').Last();
+            result.Selector = locator.ToString().Split("Locator@").Last();
 
             // Make sure the element is visible
             /*if (!await locator.IsVisibleAsync())
@@ -117,7 +117,7 @@ public partial class PlaywrightWebDriver
             }
             else
             {
-                result.Selector = locator.ToString();
+                result.Selector = locator.ToString().Split("Locator@").Last();
                 result.IsSuccess = true;
             }
         }

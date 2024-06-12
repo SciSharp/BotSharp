@@ -20,6 +20,9 @@ public class MessageFileModel
     [JsonPropertyName("content_type")]
     public string ContentType { get; set; }
 
+    [JsonPropertyName("file_source")]
+    public string FileSource { get; set; } = FileSourceType.User;
+
     public MessageFileModel()
     {
         

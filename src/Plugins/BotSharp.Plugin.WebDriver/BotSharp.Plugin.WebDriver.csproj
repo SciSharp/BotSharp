@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>$(LangVersion)</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
@@ -19,6 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="1.44.0" />
     <PackageReference Include="Selenium.WebDriver" Version="4.21.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
   </ItemGroup>
 
   <ItemGroup>
