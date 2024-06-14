@@ -17,6 +17,7 @@ public partial class FileRepository : IBotSharpRepository
     private readonly AgentSettings _agentSettings;
     private readonly ConversationSetting _conversationSettings;
     private readonly StatisticsSettings _statisticsSetting;
+    private readonly ILogger<FileRepository> _logger;
     private JsonSerializerOptions _options;
 
     private const string AGENT_FILE = "agent.json";
@@ -34,19 +35,22 @@ public partial class FileRepository : IBotSharpRepository
     private const string PLUGIN_CONFIG_FILE = "config.json";
     private const string AGENT_TASK_PREFIX = "#metadata";
     private const string AGENT_TASK_SUFFIX = "/metadata";
+    private const string TRANSLATION_MEMORY_FILE = "memory.json";
 
     public FileRepository(
         IServiceProvider services,
         BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
         ConversationSetting conversationSettings,
-        StatisticsSettings statisticsSettings)
+        StatisticsSettings statisticsSettings,
+         ILogger<FileRepository> logger)
     {
         _services = services;
         _dbSettings = dbSettings;
         _agentSettings = agentSettings;
         _conversationSettings = conversationSettings;
         _statisticsSetting = statisticsSettings;
+        _logger = logger;
 
         _options = new JsonSerializerOptions
         {
