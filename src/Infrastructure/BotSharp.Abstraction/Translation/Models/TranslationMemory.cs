@@ -11,8 +11,8 @@ public class TranslationMemory
     [JsonPropertyName("hash_text")]
     public string HashText { get; set; }
 
-    [JsonPropertyName("memories")]
-    public List<TranslationMemoryItem> Memories { get; set; } = new List<TranslationMemoryItem>();
+    [JsonPropertyName("translations")]
+    public List<TranslationMemoryItem> Translations { get; set; } = new List<TranslationMemoryItem>();
 }
 
 public class TranslationMemoryItem

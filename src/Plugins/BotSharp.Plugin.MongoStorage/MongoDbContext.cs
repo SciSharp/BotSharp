@@ -1,5 +1,3 @@
-using BotSharp.Plugin.MongoStorage.Collections;
-
 namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext
@@ -117,4 +115,7 @@ public class MongoDbContext
 
     public IMongoCollection<PluginDocument> Plugins
         => Database.GetCollection<PluginDocument>($"{_collectionPrefix}_Plugins");
+
+    public IMongoCollection<TranslationMemoryDocument> TranslationMemories
+        => Database.GetCollection<TranslationMemoryDocument>($"{_collectionPrefix}_TranslationMemories");
 }

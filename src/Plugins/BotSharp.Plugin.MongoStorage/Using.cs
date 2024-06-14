@@ -13,3 +13,5 @@ global using Microsoft.Extensions.DependencyInjection;
 global using MongoDB.Bson;
 global using MongoDB.Driver;
 global using MongoDB.Bson.Serialization.Attributes;
+global using BotSharp.Plugin.MongoStorage.Collections;
+global using BotSharp.Plugin.MongoStorage.Models;

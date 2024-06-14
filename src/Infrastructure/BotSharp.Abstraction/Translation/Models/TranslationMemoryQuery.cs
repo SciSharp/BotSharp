@@ -10,6 +10,11 @@ public class TranslationMemoryQuery
     {
         
     }
+
+    public override string ToString()
+    {
+        return $"[Origin: {OriginalText}] translates to [{Language}]";
+    }
 }
 
 public class TranslationMemoryInput : TranslationMemoryQuery
@@ -23,7 +28,7 @@ public class TranslationMemoryInput : TranslationMemoryQuery
 
     public override string ToString()
     {
-        return $"Origin: {OriginalText} -> Translation: {TranslatedText} (Language: {Language})";
+        return $"[Origin: {OriginalText}] -> [Translation: {TranslatedText}] (Language: {Language})";
     }
 }
 
@@ -38,6 +43,6 @@ public class TranslationMemoryOutput: TranslationMemoryQuery
 
     public override string ToString()
     {
-        return $"Origin: {OriginalText} -> Translation: {TranslatedText} (Language: {Language})";
+        return $"[Origin: {OriginalText}] -> [Translation: {TranslatedText}] (Language: {Language})";
     }
 }

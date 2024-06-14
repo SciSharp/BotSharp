@@ -37,7 +37,7 @@ public partial class FileRepository
             var foundMemory = memories.FirstOrDefault(x => x.HashText.Equals(query.HashText));
             if (foundMemory == null) continue;
 
-            var foundItem = foundMemory.Memories?.FirstOrDefault(x => x.Language.Equals(query.Language));
+            var foundItem = foundMemory.Translations?.FirstOrDefault(x => x.Language.Equals(query.Language));
             if (foundItem == null) continue;
 
             list.Add(new TranslationMemoryOutput
@@ -97,7 +97,7 @@ public partial class FileRepository
                         Id = Guid.NewGuid().ToString(),
                         OriginalText = input.OriginalText,
                         HashText = input.HashText,
-                        Memories = new List<TranslationMemoryItem> { newItem }
+                        Translations = new List<TranslationMemoryItem> { newItem }
                     };
 
                     if (memories == null)
@@ -111,16 +111,16 @@ public partial class FileRepository
                 }
                 else
                 {
-                    var foundItem = foundMemory.Memories?.FirstOrDefault(x => x.Language.Equals(input.Language));
+                    var foundItem = foundMemory.Translations?.FirstOrDefault(x => x.Language.Equals(input.Language));
                     if (foundItem != null) continue;
 
-                    if (foundMemory.Memories == null)
+                    if (foundMemory.Translations == null)
                     {
-                        foundMemory.Memories = new List<TranslationMemoryItem> { newItem };
+                        foundMemory.Translations = new List<TranslationMemoryItem> { newItem };
                     }
                     else
                     {
-                        foundMemory.Memories.Add(newItem);
+                        foundMemory.Translations.Add(newItem);
                     }
                 }
             }

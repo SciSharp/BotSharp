@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Users.Models;
-using BotSharp.Plugin.MongoStorage.Collections;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 

@@ -122,7 +122,7 @@ public class TranslationService : ITranslationService
                         Language = language
                     });
                 }
-;
+
                 _db.SaveTranslationMemories(memoryInputs);
             }
             
