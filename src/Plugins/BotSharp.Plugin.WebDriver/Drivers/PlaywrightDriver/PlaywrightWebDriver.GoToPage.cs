@@ -18,7 +18,7 @@ public partial class PlaywrightWebDriver
                         // Disable this due to performance issue, some page is too large
                         // result.Body = await p.ContentAsync();
                         result.IsSuccess = true;
-                        await p.BringToFrontAsync();
+                        // await p.BringToFrontAsync();
                         return result;
                     }
                 }
