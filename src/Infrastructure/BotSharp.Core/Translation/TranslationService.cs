@@ -121,7 +121,7 @@ public class TranslationService : ITranslationService
         if (data == null) return;
 
         var dataType = data.GetType();
-        if (IsStringType(dataType) && !string.IsNullOrWhiteSpace(data.ToString()))
+        if (IsStringType(dataType))
         {
             res.Add(data.ToString());
             return;
@@ -139,7 +139,7 @@ public class TranslationService : ITranslationService
             {
                 foreach (var item in (data as IEnumerable<string>))
                 {
-                    if (string.IsNullOrWhiteSpace(item)) continue;
+                    if (item == null) continue;
                     res.Add(item);
                 }
             }
