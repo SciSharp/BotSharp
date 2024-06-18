@@ -1,3 +1,4 @@
+
 namespace BotSharp.Core.Files.Hooks;
 
 public class AttachmentProcessingHook : AgentHookBase
@@ -12,6 +13,20 @@ public class AttachmentProcessingHook : AgentHookBase
     {
         _services = services;
         _agentSettings = settings;
+    }
+
+    public override void OnAgentLoaded(Agent agent)
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var conv = _services.GetRequiredService<IConversationService>();
+        var hasConvFiles = fileService.HasConversationUserFiles(conv.ConversationId);
+
+        if (hasConvFiles)
+        {
+            agent.Instruction += "\r\n\r\nIf user wants to describe images or pdf files, please call load_attachment.";
+        }
+
+        base.OnAgentLoaded(agent);
     }
 
     public override bool OnFunctionsLoaded(List<FunctionDef> functions)
