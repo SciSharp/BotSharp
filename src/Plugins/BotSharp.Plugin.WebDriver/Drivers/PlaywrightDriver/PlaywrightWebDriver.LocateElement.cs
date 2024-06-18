@@ -1,4 +1,4 @@
-using System.Xml.Linq;
+using System.Web;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
@@ -88,7 +88,8 @@ public partial class PlaywrightWebDriver
             }*/
 
             var html = await locator.InnerHTMLAsync();
-            result.Body = html;
+            // fix if html has &
+            result.Body = HttpUtility.HtmlDecode(html);
             result.IsSuccess = true;
         }
         else if (count > 1)
