@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Models;
 
-public class MessageConfig : TruncateMessageRequest
+public class MessageConfig
 {
     /// <summary>
     /// Completion Provider

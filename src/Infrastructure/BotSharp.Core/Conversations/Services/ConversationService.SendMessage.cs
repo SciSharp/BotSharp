@@ -14,13 +14,7 @@ public partial class ConversationService
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted)
     {
-        var conversation = await GetConversationRecord(agentId);
-
-        // Save message files
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        fileService.SaveMessageFiles(_conversationId, message.MessageId, FileSourceType.User, message.Files);
-        message.Files?.Clear();
-
+        var conversation = await GetConversationRecordOrCreateNew(agentId);
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
@@ -97,27 +91,6 @@ public partial class ConversationService
         statistics.PrintStatistics();
 
         return true;
-    }
-
-    private async Task<Conversation> GetConversationRecord(string agentId)
-    {
-        var converation = await GetConversation(_conversationId);
-
-        // Create conversation if this conversation does not exist
-        if (converation == null)
-        {
-            var state = _services.GetRequiredService<IConversationStateService>();
-            var channel = state.GetState("channel");
-            var sess = new Conversation
-            {
-                Id = _conversationId,
-                Channel = channel,
-                AgentId = agentId
-            };
-            converation = await NewConversation(sess);
-        }
-
-        return converation;
     }
 
     private async Task HandleAssistantMessage(RoleDialogModel response, Func<RoleDialogModel, Task> onResponseReceived)
