@@ -1,3 +1,4 @@
+using Amazon.Runtime.Internal.Auth;
 using BotSharp.Abstraction.Browsing;
 using BotSharp.Abstraction.Browsing.Models;
 using Microsoft.EntityFrameworkCore;
@@ -221,14 +222,16 @@ public partial class BotSharpFileService
                 }
 
                 var (_, bytes) = GetFileInfoFromData(file.FileData);
-                Thread.Sleep(100);
                 var subDir = Path.Combine(dir, source, $"{i + 1}");
                 if (!ExistDirectory(subDir))
                 {
                     Directory.CreateDirectory(subDir);
                 }
 
-                File.WriteAllBytes(Path.Combine(subDir, file.FileName), bytes);
+                using var fs = new FileStream(Path.Combine(subDir, file.FileName), FileMode.OpenOrCreate);
+                fs.Write(bytes, 0, bytes.Length);
+                fs.Flush();
+                Thread.Sleep(100);
             }
 
             return true;
