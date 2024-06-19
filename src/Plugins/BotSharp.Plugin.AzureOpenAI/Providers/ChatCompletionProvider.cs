@@ -5,7 +5,6 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Files;
-using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Utilities;
@@ -16,7 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;

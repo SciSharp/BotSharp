@@ -31,7 +31,7 @@ public class LoadAttachmentFn : IFunctionCallback
         var wholeDialogs = conv.GetDialogHistory();
         var fileTypes = args?.FileTypes?.Split(",")?.ToList() ?? new List<string>();
         var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs, fileTypes);
-        var agent = await agentService.LoadAgent(AIAssistant);
+        var agent = await agentService.LoadAgent(!string.IsNullOrEmpty(message.CurrentAgentId) ? message.CurrentAgentId : AIAssistant);
         var fileAgent = new Agent
         {
             Id = agent.Id,
