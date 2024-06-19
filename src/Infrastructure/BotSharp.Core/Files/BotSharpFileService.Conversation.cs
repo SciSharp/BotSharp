@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Auth;
 using BotSharp.Abstraction.Browsing;
 using BotSharp.Abstraction.Browsing.Models;
 using Microsoft.EntityFrameworkCore;
