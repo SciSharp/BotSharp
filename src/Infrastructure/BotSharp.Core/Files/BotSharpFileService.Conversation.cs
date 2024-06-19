@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Auth;
 using BotSharp.Abstraction.Browsing;
 using BotSharp.Abstraction.Browsing.Models;
 using Microsoft.EntityFrameworkCore;
@@ -231,7 +230,7 @@ public partial class BotSharpFileService
                 using var fs = new FileStream(Path.Combine(subDir, file.FileName), FileMode.OpenOrCreate);
                 fs.Write(bytes, 0, bytes.Length);
                 fs.Flush();
-                Thread.Sleep(100);
+                Thread.Sleep(2000);
             }
 
             return true;
