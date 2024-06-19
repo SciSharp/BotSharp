@@ -230,7 +230,8 @@ public partial class BotSharpFileService
                 using var fs = new FileStream(Path.Combine(subDir, file.FileName), FileMode.OpenOrCreate);
                 fs.Write(bytes, 0, bytes.Length);
                 fs.Flush();
-                Thread.Sleep(100);
+                fs.Close();
+                Thread.Sleep(2000);
             }
 
             return true;
