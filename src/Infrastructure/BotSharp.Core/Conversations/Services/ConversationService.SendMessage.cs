@@ -16,6 +16,11 @@ public partial class ConversationService
     {
         var conversation = await GetConversationRecord(agentId);
 
+        // Save message files
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        fileService.SaveMessageFiles(_conversationId, message.MessageId, FileSourceType.User, message.Files);
+        message.Files?.Clear();
+
         var agentService = _services.GetRequiredService<IAgentService>();
         Agent agent = await agentService.LoadAgent(agentId);
 
@@ -45,11 +50,6 @@ public partial class ConversationService
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(_conversationId, message.MessageId);
         routing.Context.Push(agent.Id);
-
-        // Save message files
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        fileService.SaveMessageFiles(_conversationId, message.MessageId, FileSourceType.User, message.Files);
-        message.Files?.Clear();
 
         // Save payload
         if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))

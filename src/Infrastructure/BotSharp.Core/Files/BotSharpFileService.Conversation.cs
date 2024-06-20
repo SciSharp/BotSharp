@@ -221,14 +221,16 @@ public partial class BotSharpFileService
                 }
 
                 var (_, bytes) = GetFileInfoFromData(file.FileData);
-                Thread.Sleep(100);
                 var subDir = Path.Combine(dir, source, $"{i + 1}");
                 if (!ExistDirectory(subDir))
                 {
                     Directory.CreateDirectory(subDir);
                 }
 
-                File.WriteAllBytes(Path.Combine(subDir, file.FileName), bytes);
+                using var fs = new FileStream(Path.Combine(subDir, file.FileName), FileMode.Create);
+                fs.Write(bytes, 0, bytes.Length);
+                fs.Flush(true);
+                Thread.Sleep(2000);
             }
 
             return true;
