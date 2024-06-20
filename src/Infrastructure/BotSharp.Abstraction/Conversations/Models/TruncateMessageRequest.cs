@@ -2,5 +2,6 @@ namespace BotSharp.Abstraction.Conversations.Models;
 
 public class TruncateMessageRequest
 {
-    public string? TruncateMessageId { get; set; }
+    [JsonPropertyName("is_new_message")]
+    public bool isNewMessage { get; set; }
 }
