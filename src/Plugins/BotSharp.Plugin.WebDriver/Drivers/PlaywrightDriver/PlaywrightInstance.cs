@@ -71,7 +71,17 @@ public class PlaywrightInstance : IDisposable
                 Serilog.Log.Information($"Page is closed: {e.Url}");
             };
             Serilog.Log.Information($"New page is created: {page.Url}");
-            await page.SetViewportSizeAsync(1280, 800);
+            await page.SetViewportSizeAsync(1600, 900);
+
+            /*page.Response += async (sender, e) =>
+            {
+                Serilog.Log.Information($"Response: {e.Url}");
+                if (e.Headers.ContainsKey("content-type") && e.Headers["content-type"].Contains("application/json"))
+                {
+                    var json = await e.JsonAsync();
+                    Serilog.Log.Information(json.ToString());
+                }
+            };*/
         };
 
         _contexts[ctxId].Close += async (sender, e) =>
@@ -84,10 +94,26 @@ public class PlaywrightInstance : IDisposable
         return _contexts[ctxId];
     }
 
-    public async Task<IPage> NewPage(string ctxId)
+    public async Task<IPage> NewPage(string ctxId, DataFetched? fetched)
     {
         await InitContext(ctxId);
         var page = await _contexts[ctxId].NewPageAsync();
+
+        if (fetched != null)
+        {
+            page.Response += async (sender, e) =>
+            {
+                if (e.Headers.ContainsKey("content-type") &&
+                    e.Headers["content-type"].Contains("application/json") &&
+                    e.Request.ResourceType == "fetch")
+                {
+                    Serilog.Log.Information($"Response: {e.Url}");
+                    var json = await e.JsonAsync();
+                    fetched(e.Url.ToLower(), JsonSerializer.Serialize(json));
+                }
+            };
+        }
+
         return page;
     }
 

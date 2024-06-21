@@ -130,7 +130,7 @@ public partial class PlaywrightWebDriver
 
             await page.EvaluateAsync($@"
                 (element) => {{
-                    element.style.outline = '2px solid red';
+                    element.style.outline = '2px solid {location.HighlightColor}';
                 }}", handle);
 
             result.IsHighlighted = true;
