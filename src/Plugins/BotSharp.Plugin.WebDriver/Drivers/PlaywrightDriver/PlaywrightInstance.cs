@@ -149,7 +149,11 @@ public class PlaywrightInstance : IDisposable
         var pages = _pages[ctxId].ToArray();
         for (var i = 0; i < pages.Length; i++)
         {
-            await _pages[ctxId][i].CloseAsync();
+            var page = _pages[ctxId].FirstOrDefault();
+            if (page != null)
+            {
+                await page.CloseAsync();
+            }
         }
     }
 
