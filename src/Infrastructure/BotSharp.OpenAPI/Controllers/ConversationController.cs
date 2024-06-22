@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Enums;
@@ -142,7 +143,7 @@ public class ConversationController : ControllerBase
         {
             return null;
         }
-        
+
         var result = ConversationViewModel.FromSession(conversations.Items.First());
         var state = _services.GetRequiredService<IConversationStateService>();
         result.States = state.Load(conversationId, isReadOnly: true);
@@ -211,11 +212,12 @@ public class ConversationController : ControllerBase
     }
 
     [HttpDelete("/conversation/{conversationId}/message/{messageId}")]
-    public async Task<bool> DeleteConversationMessage([FromRoute] string conversationId, [FromRoute] string messageId)
+    public async Task<string?> DeleteConversationMessage([FromRoute] string conversationId, [FromRoute] string messageId, [FromBody] TruncateMessageRequest request)
     {
         var conversationService = _services.GetRequiredService<IConversationService>();
-        var response = await conversationService.TruncateConversation(conversationId, messageId);
-        return response;
+        var newMessageId = request.isNewMessage ? Guid.NewGuid().ToString() : null;
+        var isSuccess = await conversationService.TruncateConversation(conversationId, messageId, newMessageId);
+        return isSuccess ? newMessageId : string.Empty;
     }
 
     #region Send message
@@ -227,14 +229,9 @@ public class ConversationController : ControllerBase
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
-            Files = input.Files,
+            MessageId = !string.IsNullOrWhiteSpace(input.InputMessageId) ? input.InputMessageId : Guid.NewGuid().ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
-        if (!string.IsNullOrEmpty(input.TruncateMessageId))
-        {
-            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
-        }
 
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
@@ -243,7 +240,7 @@ public class ConversationController : ControllerBase
         SetStates(conv, input);
 
         var response = new ChatResponseModel();
-        
+
         await conv.SendMessage(agentId, inputMsg,
             replyMessage: input.Postback,
             async msg =>
@@ -273,14 +270,9 @@ public class ConversationController : ControllerBase
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
         {
-            Files = input.Files,
+            MessageId = !string.IsNullOrWhiteSpace(input.InputMessageId) ? input.InputMessageId : Guid.NewGuid().ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
-        if (!string.IsNullOrEmpty(input.TruncateMessageId))
-        {
-            await conv.TruncateConversation(conversationId, input.TruncateMessageId, inputMsg.MessageId);
-        }
 
         var state = _services.GetRequiredService<IConversationStateService>();
 
@@ -322,7 +314,7 @@ public class ConversationController : ControllerBase
                 {
                     ConversationId = conversationId,
                     MessageId = msg.MessageId,
-                    Text = msg.Indication, 
+                    Text = msg.Indication,
                     Function = "indicating",
                     Instruction = msg.Instruction,
                     States = new Dictionary<string, string>()
@@ -370,8 +362,20 @@ public class ConversationController : ControllerBase
         return BadRequest(new { message = "Invalid file." });
     }
 
+    [HttpPost("/agent/{agentId}/conversation/{conversationId}/upload")]
+    public async Task<string> UploadConversationMessageFiles([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
+    {
+        var convService = _services.GetRequiredService<IConversationService>();
+        convService.SetConversationId(conversationId, input.States);
+        var conv = await convService.GetConversationRecordOrCreateNew(agentId);
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var messageId = Guid.NewGuid().ToString();
+        var isSaved = fileService.SaveMessageFiles(conv.Id, messageId, FileSourceType.User, input.Files);
+        return isSaved ? messageId : string.Empty;
+    }
+
     [HttpGet("/conversation/{conversationId}/files/{messageId}/{source}")]
-    public IEnumerable<MessageFileViewModel> GetMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source)
+    public IEnumerable<MessageFileViewModel> GetConversationMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source)
     {
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId }, source, imageOnly: false);
