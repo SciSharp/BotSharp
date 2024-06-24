@@ -71,7 +71,10 @@ public class PlaywrightInstance : IDisposable
                 Serilog.Log.Information($"Page is closed: {e.Url}");
             };
             Serilog.Log.Information($"New page is created: {page.Url}");
-            await page.SetViewportSizeAsync(1600, 900);
+            if (!page.IsClosed)
+            {
+                await page.SetViewportSizeAsync(1600, 900);
+            }
 
             /*page.Response += async (sender, e) =>
             {
