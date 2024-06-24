@@ -231,11 +231,6 @@ public class ChatCompletionProvider : IChatCompletion
         throw new NotImplementedException();
     }
 
-    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
-    {
-        throw new NotImplementedException();
-    }
-
     public void SetModelName(string model)
     {
         _model = model;

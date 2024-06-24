@@ -99,8 +99,9 @@ public class InstructModeController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error in analyzing files. {ex.Message}");
-            return $"Error in analyzing files.";
+            var error = $"Error in analyzing files. {ex.Message}";
+            _logger.LogError(error);
+            return error;
         }
     }
 
@@ -113,8 +114,8 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: input.Provider ?? "openai",
-                modelId: input.ModelId ?? "dall-e");
+            var completion = CompletionProvider.GetImageGeneration(_services, provider: input.Provider ?? "openai",
+                modelId: input.ModelId ?? "dall-e", imageGenerate: true);
             var message = await completion.GetImageGeneration(new Agent()
             {
                 Id = Guid.Empty.ToString(),
@@ -129,8 +130,8 @@ public class InstructModeController : ControllerBase
         }
         catch (Exception ex)
         {
-            var error = "Error in image generation.";
-            _logger.LogError($"{error} {ex.Message}");
+            var error = $"Error in image generation. {ex.Message}";
+            _logger.LogError(error);
             imageViewModel.Message = error;
             return imageViewModel;
         }

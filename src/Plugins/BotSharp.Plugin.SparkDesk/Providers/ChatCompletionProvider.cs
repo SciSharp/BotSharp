@@ -268,9 +268,4 @@ public class ChatCompletionProvider : IChatCompletion
         FunctionDef functionDef = new FunctionDef(def.Name, def.Description, fundef.ToArray());
         return functionDef;
     }
-
-    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
-    {
-        throw new NotImplementedException();
-    }
 }

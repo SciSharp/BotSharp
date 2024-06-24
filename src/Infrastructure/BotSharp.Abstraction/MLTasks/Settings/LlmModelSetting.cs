@@ -33,6 +33,11 @@ public class LlmModelSetting
     public bool MultiModal { get; set; }
 
     /// <summary>
+    /// If true, allow generating images
+    /// </summary>
+    public bool ImageGeneration { get; set; }
+
+    /// <summary>
     /// Prompt cost per 1K token
     /// </summary>
     public float PromptCost { get; set; }

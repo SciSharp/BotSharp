@@ -102,10 +102,5 @@ namespace BotSharp.Plugin.SemanticKernel
         {
             _model = model;
         }
-
-        public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
