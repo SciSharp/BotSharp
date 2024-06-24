@@ -2,7 +2,7 @@
   "id": "00000000-0000-0000-0000-000000000000",
   "name": "Tool Assistant",
   "description": "Tool assistant that can be used to complete many different tasks",
-  "type": "tool",
+  "type": "static",
   "createdDateTime": "2023-06-24T10:39:32.2349685Z",
   "updatedDateTime": "2023-06-24T14:39:32.2349686Z",
   "iconUrl": "https://cdn.iconscout.com/icon/premium/png-256-thumb/route-1613278-1368497.png",
