@@ -4,9 +4,9 @@ namespace BotSharp.OpenAPI.ViewModels.Instructs;
 
 public class ImageGenerationViewModel
 {
-    [JsonPropertyName("content")]
+    [JsonPropertyName("revised_prompt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Content { get; set; }
+    public string? RevisedPrompt { get; set; }
 
     [JsonPropertyName("data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
