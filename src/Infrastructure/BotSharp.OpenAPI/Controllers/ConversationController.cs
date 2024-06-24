@@ -27,10 +27,11 @@ public class ConversationController : ControllerBase
     public async Task<ConversationViewModel> NewConversation([FromRoute] string agentId, [FromBody] MessageConfig config)
     {
         var service = _services.GetRequiredService<IConversationService>();
+        var channel = config.States.FirstOrDefault(x => x.Key == "channel");
         var conv = new Conversation
         {
             AgentId = agentId,
-            Channel = ConversationChannel.OpenAPI,
+            Channel = channel == default ? ConversationChannel.OpenAPI : channel.Value,
             TaskId = config.TaskId
         };
         conv = await service.NewConversation(conv);
