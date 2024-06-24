@@ -139,4 +139,9 @@ public class ChatCompletionProvider : IChatCompletion
 
         return msg;
     }
+
+    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -103,4 +103,36 @@ public class InstructModeController : ControllerBase
             return $"Error in analyzing files.";
         }
     }
+
+    [HttpPost("/instruct/image-generation")]
+    public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] IncomingMessageModel input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        var imageViewModel = new ImageGenerationViewModel();
+
+        try
+        {
+            var completion = CompletionProvider.GetChatCompletion(_services, provider: input.Provider ?? "openai",
+                modelId: input.ModelId ?? "dall-e");
+            var message = await completion.GetImageGeneration(new Agent()
+            {
+                Id = Guid.Empty.ToString(),
+            }, new List<RoleDialogModel>
+            {
+                new RoleDialogModel(AgentRole.User, input.Text)
+            });
+            
+            imageViewModel.Content = message.Content;
+            imageViewModel.Data = message.Data;
+            return imageViewModel;
+        }
+        catch (Exception ex)
+        {
+            var error = "Error in image generation.";
+            _logger.LogError($"{error} {ex.Message}");
+            imageViewModel.Message = error;
+            return imageViewModel;
+        }
+    }
 }

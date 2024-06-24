@@ -51,5 +51,6 @@ public class LlmModelSetting
 public enum LlmModelType
 {
     Text = 1,
-    Chat = 2
+    Chat = 2,
+    Image = 3
 }

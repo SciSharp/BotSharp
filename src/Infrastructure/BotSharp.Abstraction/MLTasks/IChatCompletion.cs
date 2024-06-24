@@ -24,4 +24,7 @@ public interface IChatCompletion
     Task<bool> GetChatCompletionsStreamingAsync(Agent agent, 
         List<RoleDialogModel> conversations, 
         Func<RoleDialogModel, Task> onMessageReceived);
+
+    Task<RoleDialogModel> GetImageGeneration(Agent agent,
+        List<RoleDialogModel> conversations);
 }

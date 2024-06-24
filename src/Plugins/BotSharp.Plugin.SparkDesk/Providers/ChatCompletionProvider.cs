@@ -1,8 +1,6 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Loggers;
-using BotSharp.Abstraction.Routing;
-using Sdcb.SparkDesk.ResponseInternals;
 
 namespace BotSharp.Plugin.SparkDesk.Providers;
 
@@ -269,5 +267,10 @@ public class ChatCompletionProvider : IChatCompletion
         }
         FunctionDef functionDef = new FunctionDef(def.Name, def.Description, fundef.ToArray());
         return functionDef;
+    }
+
+    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
+    {
+        throw new NotImplementedException();
     }
 }

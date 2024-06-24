@@ -264,4 +264,9 @@ public class ChatCompletionProvider : IChatCompletion
     {
         _model = model;
     }
+
+    public Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
+    {
+        throw new NotImplementedException();
+    }
 }

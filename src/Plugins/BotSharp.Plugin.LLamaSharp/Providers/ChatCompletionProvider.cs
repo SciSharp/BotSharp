@@ -191,4 +191,9 @@ public class ChatCompletionProvider : IChatCompletion
     {
         _model = model;
     }
+
+    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
+    {
+        throw new NotImplementedException();
+    }
 }
