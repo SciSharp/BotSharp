@@ -18,5 +18,7 @@ public class AgentType
     /// Agent that cannot use external tools
     /// </summary>
     public const string Static = "static";
+
+    public const string Tool = "tool";
 }
 

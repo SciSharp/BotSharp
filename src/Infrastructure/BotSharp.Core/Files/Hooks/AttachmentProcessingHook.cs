@@ -1,11 +1,11 @@
-
-using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Files.Hooks;
 
 public class AttachmentProcessingHook : AgentHookBase
 {
     private readonly IServiceProvider _services;
+    private static string TOOL_ASSISTANT = Guid.Empty.ToString();
 
     public override string SelfId => string.Empty;
 
@@ -23,41 +23,35 @@ public class AttachmentProcessingHook : AgentHookBase
 
         if (hasConvFiles)
         {
-            agent.Instruction += "\r\n\r\nPlease call load_attachment if user wants to describe files, such as images, pdf.\r\n\r\n";
-
-            if (agent.Functions != null)
+            var (prompt, loadAttachmentFn) = GetLoadAttachmentFn();
+            if (loadAttachmentFn != null)
             {
-                var json = JsonSerializer.Serialize(new
+                if (!string.IsNullOrWhiteSpace(prompt))
                 {
-                    user_request = new
-                    {
-                        type = "string",
-                        description = "The request posted by user, which is related to analyzing requested files. User can request for multiple files to process at one time."
-                    },
-                    file_types = new
-                    {
-                        type = "string",
-                        description = "The file types requested by user to analyze, such as image, png, jpeg, and pdf. There can be multiple file types in a single request. An example output is, 'image,pdf'"
-                    }
-                });
+                    agent.Instruction += $"\r\n\r\n{prompt}\r\n\r\n";
+                }
 
-                agent.Functions.Add(new FunctionDef
+                if (agent.Functions == null)
                 {
-                    Name = "load_attachment",
-                    Description = "If the user's request is related to analyzing files and/or images, you can call this function to analyze files and images.",
-                    Parameters =
-                    {
-                        Properties = JsonSerializer.Deserialize<JsonDocument>(json),
-                        Required = new List<string>
-                        {
-                            "user_request",
-                            "file_types"
-                        }
-                    }
-                });
+                    agent.Functions = new List<FunctionDef> { loadAttachmentFn };
+                }
+                else
+                {
+                    agent.Functions.Add(loadAttachmentFn);
+                }
             }
         }
 
         base.OnAgentLoaded(agent);
+    }
+
+    private (string, FunctionDef?) GetLoadAttachmentFn()
+    {
+        var fnName = "load_attachment";
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var agent = db.GetAgent(TOOL_ASSISTANT);
+        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{fnName}_prompt"))?.Content ?? string.Empty;
+        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(fnName));
+        return (prompt, loadAttachmentFn);
     }
 }
