@@ -4,7 +4,6 @@ namespace BotSharp.Core.Files.Hooks;
 
 public class AttachmentProcessingHook : AgentHookBase
 {
-    private readonly IServiceProvider _services;
     private static string TOOL_ASSISTANT = Guid.Empty.ToString();
 
     public override string SelfId => string.Empty;
@@ -12,7 +11,6 @@ public class AttachmentProcessingHook : AgentHookBase
     public AttachmentProcessingHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
-        _services = services;
     }
 
     public override void OnAgentLoaded(Agent agent)
