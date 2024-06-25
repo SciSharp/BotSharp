@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace BotSharp.Core.Files.Hooks;
 
 public class AttachmentProcessingHook : AgentHookBase
@@ -15,11 +13,11 @@ public class AttachmentProcessingHook : AgentHookBase
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var conv = _services.GetRequiredService<IConversationService>();
-        var hasConvFiles = fileService.HasConversationUserFiles(conv.ConversationId);
+        var isConvMode = conv.IsConversationMode();
+        var isEnabled = !agent.Tools.IsNullOrEmpty() && agent.Tools.Contains(AgentTool.FileAnalyzer);
 
-        if (hasConvFiles)
+        if (isConvMode && isEnabled)
         {
             var (prompt, loadAttachmentFn) = GetLoadAttachmentFn();
             if (loadAttachmentFn != null)

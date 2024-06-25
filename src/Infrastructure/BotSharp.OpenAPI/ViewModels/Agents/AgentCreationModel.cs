@@ -43,6 +43,7 @@ public class AgentCreationModel
     /// Combine different Agents together to form a Profile.
     /// </summary>
     public List<string> Profiles { get; set; } = new List<string>();
+    public List<string> Tools { get; set; } = new List<string>();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new List<RoutingRuleUpdateModel>();
     public AgentLlmConfig? LlmConfig { get; set; }
 
@@ -57,6 +58,7 @@ public class AgentCreationModel
             Functions = Functions,
             Responses = Responses,
             Samples = Samples,
+            Tools = Tools,
             IsPublic = IsPublic,
             Type = Type,
             Disabled = Disabled,

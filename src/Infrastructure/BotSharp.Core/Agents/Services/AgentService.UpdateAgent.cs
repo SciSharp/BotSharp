@@ -1,8 +1,6 @@
-using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Enums;
-using Microsoft.EntityFrameworkCore.Metadata;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -34,6 +32,7 @@ public partial class AgentService
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
         record.Samples = agent.Samples ?? new List<string>();
+        record.Tools = agent.Tools ?? new List<string>();
         if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)
         {
             record.LlmConfig = agent.LlmConfig;
@@ -95,6 +94,7 @@ public partial class AgentService
                        .SetFunctions(foundAgent.Functions)
                        .SetResponses(foundAgent.Responses)
                        .SetSamples(foundAgent.Samples)
+                       .SetTools(foundAgent.Tools)
                        .SetLlmConfig(foundAgent.LlmConfig);
 
             _db.UpdateAgent(clonedAgent, AgentField.All);

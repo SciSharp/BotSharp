@@ -53,6 +53,7 @@ public partial class MongoRepository
                                  .Select(r => AgentResponseMongoElement.ToMongoElement(r))?
                                  .ToList() ?? new List<AgentResponseMongoElement>(),
                     Samples = x.Samples ?? new List<string>(),
+                    Tools = x.Tools ?? new List<string>(),
                     IsPublic = x.IsPublic,
                     Type = x.Type,
                     InheritAgentId = x.InheritAgentId,
@@ -77,6 +78,7 @@ public partial class MongoRepository
                         .Set(x => x.Functions, agent.Functions)
                         .Set(x => x.Responses, agent.Responses)
                         .Set(x => x.Samples, agent.Samples)
+                        .Set(x => x.Tools, agent.Tools)
                         .Set(x => x.IsPublic, agent.IsPublic)
                         .Set(x => x.Type, agent.Type)
                         .Set(x => x.InheritAgentId, agent.InheritAgentId)

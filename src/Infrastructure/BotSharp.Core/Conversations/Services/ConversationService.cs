@@ -161,4 +161,9 @@ public partial class ConversationService : IConversationService
 
         return converation;
     }
+
+    public bool IsConversationMode()
+    {
+        return !string.IsNullOrWhiteSpace(_conversationId);
+    }
 }

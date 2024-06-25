@@ -91,6 +91,12 @@ public class Agent
         = new List<string>();
 
     /// <summary>
+    /// Useful tools
+    /// </summary>
+    public List<string> Tools { get; set; }
+        = new List<string>();
+
+    /// <summary>
     /// Inherit from agent
     /// </summary>
     public string? InheritAgentId { get; set; }
@@ -121,6 +127,7 @@ public class Agent
             Functions = agent.Functions,
             Responses = agent.Responses,
             Samples = agent.Samples,
+            Tools = agent.Tools,
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
@@ -159,6 +166,12 @@ public class Agent
     public Agent SetSamples(List<string> samples)
     {
         Samples = samples ?? new List<string>();
+        return this;
+    }
+
+    public Agent SetTools(List<string> tools)
+    {
+        Tools = tools ?? new List<string>();
         return this;
     }
 

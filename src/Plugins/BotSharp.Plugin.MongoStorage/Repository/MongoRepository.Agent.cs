@@ -57,6 +57,9 @@ public partial class MongoRepository
             case AgentField.LlmConfig:
                 UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                 break;
+            case AgentField.Tool:
+                UpdateAgentTools(agent.Id, agent.Tools);
+                break;
             case AgentField.All:
                 UpdateAgentAllFields(agent);
                 break;
@@ -218,6 +221,18 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
+    private void UpdateAgentTools(string agentId, List<string> tools)
+    {
+        if (tools == null) return;
+
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.Tools, tools)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
     private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
     {
         var llmConfig = AgentLlmConfigMongoElement.ToMongoElement(config);
@@ -244,6 +259,7 @@ public partial class MongoRepository
             .Set(x => x.Functions, agent.Functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList())
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Samples, agent.Samples)
+            .Set(x => x.Tools, agent.Tools)
             .Set(x => x.LlmConfig, AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig))
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
@@ -369,6 +385,7 @@ public partial class MongoRepository
                             .Select(r => AgentResponseMongoElement.ToMongoElement(r))?
                             .ToList() ?? new List<AgentResponseMongoElement>(),
             Samples = x.Samples ?? new List<string>(),
+            Tools = x.Tools ?? new List<string>(),
             IsPublic = x.IsPublic,
             Type = x.Type,
             InheritAgentId = x.InheritAgentId,
@@ -458,6 +475,7 @@ public partial class MongoRepository
                              .Select(r => AgentResponseMongoElement.ToDomainElement(r))
                              .ToList() : new List<AgentResponse>(),
             Samples = agentDoc.Samples ?? new List<string>(),
+            Tools = agentDoc.Tools ?? new List<string>(),
             IsPublic = agentDoc.IsPublic,
             Disabled = agentDoc.Disabled,
             Type = agentDoc.Type,
