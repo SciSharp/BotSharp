@@ -140,4 +140,10 @@ public class AgentController : ControllerBase
     {
         return await _agentService.DeleteAgent(agentId);
     }
+
+    [HttpGet("/agent/tools")]
+    public IEnumerable<string> GetAgentTools()
+    {
+        return _agentService.GetAgentTools();
+    }
 }

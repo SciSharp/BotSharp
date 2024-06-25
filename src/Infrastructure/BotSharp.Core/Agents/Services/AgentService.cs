@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -52,5 +53,15 @@ public partial class AgentService : IAgentService
     {
         var agents = _db.GetAgentsByUser(userId);
         return agents;
+    }
+
+    public IEnumerable<string> GetAgentTools()
+    {
+        var tools = typeof(AgentTool).GetFields(BindingFlags.Public | BindingFlags.Static)
+                                     .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+                                     .Select(x => x.GetRawConstantValue()?.ToString())
+                                     .ToList();
+
+        return tools;
     }
 }
