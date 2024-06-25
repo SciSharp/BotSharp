@@ -1,8 +1,8 @@
 <Project>
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <LangVersion>10.0</LangVersion>
-        <BotSharpVersion>1.5.1</BotSharpVersion>
+        <LangVersion>12.0</LangVersion>
+        <BotSharpVersion>1.6.1</BotSharpVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
     </PropertyGroup>
