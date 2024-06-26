@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -9,7 +11,7 @@ public partial class PlaywrightWebDriver
         try
         {
             // Check if the page is already open
-            if (!args.OpenNewTab && context.Pages.Count > 0)
+            /*if (!args.OpenNewTab && context.Pages.Count > 0)
             {
                 foreach (var p in context.Pages)
                 {
@@ -18,14 +20,15 @@ public partial class PlaywrightWebDriver
                         // Disable this due to performance issue, some page is too large
                         // result.Body = await p.ContentAsync();
                         result.IsSuccess = true;
-                        await p.BringToFrontAsync();
+                        // await p.BringToFrontAsync();
                         return result;
                     }
                 }
-            }
+            }*/
 
-            var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId) : 
+            var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId, fetched: args.OnDataFetched) : 
                 _instance.GetPage(message.ContextId);
+
             var response = await page.GotoAsync(args.Url);
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
@@ -49,5 +52,15 @@ public partial class PlaywrightWebDriver
         }
         
         return result;
+    }
+
+    private void Page_Response1(object sender, IResponse e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Page_Response(object sender, IResponse e)
+    {
+        throw new NotImplementedException();
     }
 }
