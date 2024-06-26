@@ -172,4 +172,8 @@
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Translation\Models\" />
+  </ItemGroup>
+
 </Project>
