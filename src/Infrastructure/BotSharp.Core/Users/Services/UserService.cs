@@ -147,7 +147,7 @@ public class UserService : IUserService
         }
 
 #if !DEBUG
-        if (!isAuthenticatedByHook && Utilities.HashText(password, record.Salt) != record.Password)
+        if (!isAuthenticatedByHook && Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
         {
             return default;
         }
