@@ -37,29 +37,20 @@ public class ImageGenerationProvider : IImageGeneration
         var (prompt, options) = PrepareOptions(conversations);
         var imageClient = client.GetImageClient(_model);
 
-        ImageGenerationOptions myoptions = new()
-        {
-            Quality = GeneratedImageQuality.High,
-            Size = GeneratedImageSize.W1792xH1024,
-            Style = GeneratedImageStyle.Vivid,
-            ResponseFormat = GeneratedImageFormat.Bytes
-        };
-
-        var response = imageClient.GenerateImage(prompt, myoptions);
-        var imageUri = response.Value.ImageUri;
-        var revisedPrompt = response.Value.RevisedPrompt;
+        var response = imageClient.GenerateImage(prompt, options);
+        var value = response.Value;
 
         var content = string.Empty;
-        if (!string.IsNullOrEmpty(revisedPrompt))
+        if (!string.IsNullOrEmpty(value.RevisedPrompt))
         {
-            content = revisedPrompt;
+            content = value.RevisedPrompt;
         }
 
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, content)
         {
             CurrentAgentId = agent.Id,
             MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-            Data = imageUri.AbsoluteUri
+            Data = options.ResponseFormat == GeneratedImageFormat.Uri ? value.ImageUri?.AbsoluteUri : value.ImageBytes
         };
 
         // After
@@ -89,10 +80,10 @@ public class ImageGenerationProvider : IImageGeneration
 
         var options = new ImageGenerationOptions
         {
-            //Size = GetImageSize(size),
-            //Quality = GetImageQuality(quality),
-            //Style = GetImageStyle(style),
-            //ResponseFormat = GeneratedImageFormat.Uri
+            Size = GetImageSize(size),
+            Quality = GetImageQuality(quality),
+            Style = GetImageStyle(style),
+            ResponseFormat = GeneratedImageFormat.Uri
         };
         return (prompt, options);
     }

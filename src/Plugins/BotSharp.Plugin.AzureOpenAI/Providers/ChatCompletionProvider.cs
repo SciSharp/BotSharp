@@ -253,7 +253,8 @@ public class ChatCompletionProvider : IChatCompletion
             else if (message.Role == AgentRole.User)
             {
                 var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
-                var chat = new UserChatMessage(text)
+                var textPart = ChatMessageContentPart.CreateTextMessageContentPart(text);
+                var chat = new UserChatMessage(textPart)
                 {
                     ParticipantName = message.FunctionName
                 };
@@ -268,20 +269,20 @@ public class ChatCompletionProvider : IChatCompletion
                             {
                                 var uri = new Uri(file.FileUrl);
                                 var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(uri, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(contentPart, text);
+                                chat = new UserChatMessage(textPart, contentPart);
                             }
                             else if (!string.IsNullOrEmpty(file.FileData))
                             {
                                 var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
                                 var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromBytes(bytes), contentType, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(contentPart, text);
+                                chat = new UserChatMessage(textPart, contentPart);
                             }
                             else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                             {
                                 var contentType = fileService.GetFileContentType(file.FileStorageUrl);
                                 using var stream = File.OpenRead(file.FileStorageUrl);
                                 var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromStream(stream), contentType, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(contentPart, text);
+                                chat = new UserChatMessage(textPart, contentPart);
                             }
                         }
                     }
