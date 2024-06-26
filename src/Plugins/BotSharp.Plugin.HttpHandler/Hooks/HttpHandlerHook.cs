@@ -1,12 +1,18 @@
-namespace BotSharp.Core.Files.Hooks;
+using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents.Settings;
+using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Plugin.HttpHandler.Enums;
 
-public class AttachmentProcessingHook : AgentHookBase
+namespace BotSharp.Plugin.HttpHandler.Hooks;
+
+public class HttpHandlerHook : AgentHookBase
 {
     private static string TOOL_ASSISTANT = Guid.Empty.ToString();
 
     public override string SelfId => string.Empty;
 
-    public AttachmentProcessingHook(IServiceProvider services, AgentSettings settings)
+    public HttpHandlerHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
@@ -15,7 +21,7 @@ public class AttachmentProcessingHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Tools.IsNullOrEmpty() && agent.Tools.Contains(AgentTool.FileAnalyzer);
+        var isEnabled = !agent.Tools.IsNullOrEmpty() && agent.Tools.Contains(Tool.HttpHandler);
 
         if (isConvMode && isEnabled)
         {
@@ -43,7 +49,7 @@ public class AttachmentProcessingHook : AgentHookBase
 
     private (string, FunctionDef?) GetPromptAndFunction()
     {
-        var fn = "load_attachment";
+        var fn = "handle_http_request";
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var agent = db.GetAgent(TOOL_ASSISTANT);
         var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{fn}.fn"))?.Content ?? string.Empty;

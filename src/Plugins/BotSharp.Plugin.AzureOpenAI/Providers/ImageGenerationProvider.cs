@@ -1,17 +1,4 @@
-using Azure.AI.OpenAI;
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Loggers;
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Plugin.AzureOpenAI.Settings;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using OpenAI.Images;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
@@ -47,21 +34,32 @@ public class ImageGenerationProvider : IImageGeneration
         }
 
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var options = PrepareOptions(conversations);
-        var response = await client.GetImageGenerationsAsync(options);
-        var image = response.Value.Data.First();
+        var (prompt, options) = PrepareOptions(conversations);
+        var imageClient = client.GetImageClient(_model);
+
+        ImageGenerationOptions myoptions = new()
+        {
+            Quality = GeneratedImageQuality.High,
+            Size = GeneratedImageSize.W1792xH1024,
+            Style = GeneratedImageStyle.Vivid,
+            ResponseFormat = GeneratedImageFormat.Bytes
+        };
+
+        var response = imageClient.GenerateImage(prompt, myoptions);
+        var imageUri = response.Value.ImageUri;
+        var revisedPrompt = response.Value.RevisedPrompt;
 
         var content = string.Empty;
-        if (!string.IsNullOrEmpty(image.RevisedPrompt))
+        if (!string.IsNullOrEmpty(revisedPrompt))
         {
-            content = image.RevisedPrompt;
+            content = revisedPrompt;
         }
 
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, content)
         {
             CurrentAgentId = agent.Id,
             MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-            Data = image.Url.AbsoluteUri ?? image.Base64Data
+            Data = imageUri.AbsoluteUri
         };
 
         // After
@@ -69,10 +67,10 @@ public class ImageGenerationProvider : IImageGeneration
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
-                Prompt = options.Prompt,
+                Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = options.Prompt.Split(' ', StringSplitOptions.RemoveEmptyEntries).Count(),
+                PromptCount = prompt.Split(' ', StringSplitOptions.RemoveEmptyEntries).Count(),
                 CompletionCount = content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Count()
             });
         }
@@ -80,25 +78,99 @@ public class ImageGenerationProvider : IImageGeneration
         return responseMessage;
     }
 
-    private ImageGenerationOptions PrepareOptions(List<RoleDialogModel> conversations)
+    private (string, ImageGenerationOptions) PrepareOptions(List<RoleDialogModel> conversations)
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
+        var prompt = conversations.LastOrDefault()?.Payload ?? conversations.LastOrDefault()?.Content ?? string.Empty;
 
-        var sizeValue = !string.IsNullOrEmpty(state.GetState("image_size")) ? state.GetState("image_size") : "1024x1024";
-        var qualityValue = !string.IsNullOrEmpty(state.GetState("image_quality")) ? state.GetState("image_quality") : "standard";
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var size = state.GetState("image_size");
+        var quality = state.GetState("image_quality");
+        var style = state.GetState("image_style");
 
         var options = new ImageGenerationOptions
         {
-            DeploymentName = _model,
-            Prompt = conversations.LastOrDefault()?.Payload ?? conversations.LastOrDefault()?.Content ?? string.Empty,
-            Size = new ImageSize(sizeValue),
-            Quality = new ImageGenerationQuality(qualityValue)
+            //Size = GetImageSize(size),
+            //Quality = GetImageQuality(quality),
+            //Style = GetImageStyle(style),
+            //ResponseFormat = GeneratedImageFormat.Uri
         };
-        return options;
+        return (prompt, options);
     }
 
     public void SetModelName(string model)
     {
         _model = model;
+    }
+
+    private GeneratedImageSize GetImageSize(string size)
+    {
+        var value = !string.IsNullOrEmpty(size) ? size : "1024x1024";
+
+        GeneratedImageSize retSize;
+        switch (value)
+        {
+            case "256x256":
+                retSize = GeneratedImageSize.W256xH256;
+                break;
+            case "512x512":
+                retSize = GeneratedImageSize.W512xH512;
+                break;
+            case "1024x1024":
+                retSize = GeneratedImageSize.W1024xH1024;
+                break;
+            case "1024x1792":
+                retSize = GeneratedImageSize.W1024xH1792;
+                break;
+            case "1792x1024":
+                retSize = GeneratedImageSize.W1792xH1024;
+                break;
+            default:
+                retSize = GeneratedImageSize.W1024xH1024;
+                break;
+        }
+
+        return retSize;
+    }
+
+    private GeneratedImageQuality GetImageQuality(string quality)
+    {
+        var value = !string.IsNullOrEmpty(quality) ? quality : "standard";
+
+        GeneratedImageQuality retQuality;
+        switch (value)
+        {
+            case "standard":
+                retQuality = GeneratedImageQuality.Standard;
+                break;
+            case "hd":
+                retQuality = GeneratedImageQuality.High;
+                break;
+            default:
+                retQuality = GeneratedImageQuality.Standard;
+                break;
+        }
+
+        return retQuality;
+    }
+
+    private GeneratedImageStyle GetImageStyle(string style)
+    {
+        var value = !string.IsNullOrEmpty(style) ? style : "natural";
+
+        GeneratedImageStyle retStyle;
+        switch (value)
+        {
+            case "standard":
+                retStyle = GeneratedImageStyle.Natural;
+                break;
+            case "vivid":
+                retStyle = GeneratedImageStyle.Vivid;
+                break;
+            default:
+                retStyle = GeneratedImageStyle.Natural;
+                break;
+        }
+
+        return retStyle;
     }
 }

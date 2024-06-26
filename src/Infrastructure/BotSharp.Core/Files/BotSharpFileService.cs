@@ -66,8 +66,7 @@ public partial class BotSharpFileService : IBotSharpFileService
         return (contentType, Convert.FromBase64String(base64Str));
     }
 
-    #region Private methods
-    private string GetFileContentType(string filePath)
+    public string GetFileContentType(string filePath)
     {
         string contentType;
         var provider = new FileExtensionContentTypeProvider();
@@ -79,6 +78,7 @@ public partial class BotSharpFileService : IBotSharpFileService
         return contentType;
     }
 
+    #region Private methods
     private bool ExistDirectory(string? dir)
     {
         return !string.IsNullOrEmpty(dir) && Directory.Exists(dir);

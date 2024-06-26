@@ -57,11 +57,13 @@ public partial class AgentService : IAgentService
 
     public IEnumerable<string> GetAgentTools()
     {
-        var tools = typeof(AgentTool).GetFields(BindingFlags.Public | BindingFlags.Static)
-                                     .Where(f => f.IsLiteral && f.FieldType == typeof(string))
-                                     .Select(x => x.GetRawConstantValue()?.ToString())
-                                     .ToList();
+        var tools = new List<string>();
 
-        return tools;
+        var hooks = _services.GetServices<IAgentToolHook>();
+        foreach (var hook in hooks)
+        {
+            hook.AddTools(tools);
+        }
+        return tools.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList();
     }
 }

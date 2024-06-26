@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
+using NetTopologySuite.IO;
 
 namespace BotSharp.OpenAPI.Controllers;
 
