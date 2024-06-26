@@ -29,9 +29,19 @@ public partial class PlaywrightWebDriver
             var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId, fetched: args.OnDataFetched) : 
                 _instance.GetPage(message.ContextId);
 
-            var response = await page.GotoAsync(args.Url);
+            var response = await page.GotoAsync(args.Url, new PageGotoOptions
+            {
+                Timeout = args.Timeout
+            });
+
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            if (args.WaitForNetworkIdle)
+            {
+                await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
+                {
+                    Timeout = args.Timeout
+                });
+            }
 
             if (response.Status == 200)
             {

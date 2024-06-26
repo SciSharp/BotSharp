@@ -12,6 +12,9 @@ public class PageActionArgs
     public string Url { get; set; } = null!;
     public bool OpenNewTab { get; set; } = false;
 
+    public bool WaitForNetworkIdle = true;
+    public float? Timeout { get; set; }
+
     /// <summary>
     /// On page data fetched
     /// </summary>

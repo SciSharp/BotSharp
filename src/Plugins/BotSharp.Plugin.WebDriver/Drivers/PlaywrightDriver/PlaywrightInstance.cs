@@ -49,6 +49,11 @@ public class PlaywrightInstance : IDisposable
             Headless = true,
 #endif
             Channel = "chrome",
+            ViewportSize = new ViewportSize
+            {
+                Width = 1600,
+                Height = 900
+            },
             IgnoreDefaultArgs =
             [
                 "--enable-automation",
@@ -71,10 +76,6 @@ public class PlaywrightInstance : IDisposable
                 Serilog.Log.Information($"Page is closed: {e.Url}");
             };
             Serilog.Log.Information($"New page is created: {page.Url}");
-            if (!page.IsClosed)
-            {
-                await page.SetViewportSizeAsync(1600, 900);
-            }
 
             /*page.Response += async (sender, e) =>
             {
