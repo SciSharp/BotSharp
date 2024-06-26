@@ -60,7 +60,7 @@ public class TextCompletionProvider : ITextCompletion
         var completion = "";
         foreach (var t in response.Value.Content)
         {
-            completion += t.Text;
+            completion += t?.Text ?? string.Empty;
         };
 
         // After chat completion hook

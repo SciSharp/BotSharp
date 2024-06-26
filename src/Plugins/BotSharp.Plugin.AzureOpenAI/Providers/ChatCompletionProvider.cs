@@ -39,11 +39,12 @@ public class ChatCompletionProvider : IChatCompletion
         var value = response.Value;
         var reason = value.FinishReason;
         var content = value.Content;
+        var text = content.FirstOrDefault()?.Text ?? string.Empty;
 
         RoleDialogModel responseMessage;
         if (reason == ChatFinishReason.FunctionCall)
         {
-            responseMessage = new RoleDialogModel(AgentRole.Function, content[0].Text)
+            responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.Last().MessageId,
@@ -60,7 +61,7 @@ public class ChatCompletionProvider : IChatCompletion
         else if (reason == ChatFinishReason.ToolCalls)
         {
             var toolCall = value.ToolCalls.FirstOrDefault();
-            responseMessage = new RoleDialogModel(AgentRole.Function, content[0].Text)
+            responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.Last().MessageId,
@@ -70,7 +71,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
         else
         {
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, content[0].Text)
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.Last().MessageId
@@ -114,8 +115,9 @@ public class ChatCompletionProvider : IChatCompletion
         var value = response.Value;
         var reason = value.FinishReason;
         var content = value.Content;
+        var text = content.FirstOrDefault()?.Text ?? string.Empty;
 
-        var msg = new RoleDialogModel(AgentRole.Assistant, content[0].Text)
+        var msg = new RoleDialogModel(AgentRole.Assistant, text)
         {
             CurrentAgentId = agent.Id
         };
@@ -137,7 +139,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             _logger.LogInformation($"[{agent.Name}]: {value.FunctionCall.FunctionName}({value.FunctionCall.FunctionArguments})");
 
-            var funcContextIn = new RoleDialogModel(AgentRole.Function, content[0].Text)
+            var funcContextIn = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
                 FunctionName = value.FunctionCall.FunctionName,
@@ -182,9 +184,9 @@ public class ChatCompletionProvider : IChatCompletion
 
             if (choice.ContentUpdate.IsNullOrEmpty()) continue;
 
-            _logger.LogInformation(choice.ContentUpdate[0].Text);
+            _logger.LogInformation(choice.ContentUpdate[0]?.Text);
 
-            await onMessageReceived(new RoleDialogModel(choice.Role.ToString(), choice.ContentUpdate[0].Text));
+            await onMessageReceived(new RoleDialogModel(choice.Role.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty));
         }
 
         return true;
@@ -269,20 +271,20 @@ public class ChatCompletionProvider : IChatCompletion
                             {
                                 var uri = new Uri(file.FileUrl);
                                 var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(uri, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(textPart, contentPart);
+                                chat = new UserChatMessage(textPart, contentPart) { ParticipantName = message.FunctionName };
                             }
                             else if (!string.IsNullOrEmpty(file.FileData))
                             {
                                 var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
                                 var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromBytes(bytes), contentType, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(textPart, contentPart);
+                                chat = new UserChatMessage(textPart, contentPart) { ParticipantName = message.FunctionName };
                             }
                             else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                             {
                                 var contentType = fileService.GetFileContentType(file.FileStorageUrl);
                                 using var stream = File.OpenRead(file.FileStorageUrl);
                                 var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromStream(stream), contentType, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(textPart, contentPart);
+                                chat = new UserChatMessage(textPart, contentPart) { ParticipantName = message.FunctionName };
                             }
                         }
                     }
@@ -315,9 +317,9 @@ public class ChatCompletionProvider : IChatCompletion
                     if (!string.IsNullOrEmpty(x.ParticipantName))
                     {
                         // To display Agent name in log
-                        return $"[{x.ParticipantName}]: {x.Content[0].Text}";
+                        return $"[{x.ParticipantName}]: {x.Content.FirstOrDefault()?.Text ?? string.Empty}";
                     }
-                    return $"{AgentRole.System}: {x.Content[0].Text}";
+                    return $"{AgentRole.System}: {x.Content.FirstOrDefault()?.Text ?? string.Empty}";
                 }));
             prompt += $"{verbose}\r\n";
 
@@ -329,13 +331,13 @@ public class ChatCompletionProvider : IChatCompletion
                     var fnMessage = x as FunctionChatMessage;
                     if (fnMessage != null)
                     {
-                        return $"{AgentRole.Function}: {fnMessage.Content[0].Text}";
+                        return $"{AgentRole.Function}: {fnMessage.Content.FirstOrDefault()?.Text ?? string.Empty}";
                     }
 
                     var userMessage = x as UserChatMessage;
                     if (userMessage != null)
                     {
-                        var content = x.Content[0].Text;
+                        var content = x.Content.FirstOrDefault()?.Text ?? string.Empty;
                         return !string.IsNullOrEmpty(userMessage.ParticipantName) && userMessage.ParticipantName != "route_to_agent" ?
                             $"{userMessage.ParticipantName}: {content}" :
                             $"{AgentRole.User}: {content}";
@@ -346,7 +348,7 @@ public class ChatCompletionProvider : IChatCompletion
                     {
                         return assistMessage.FunctionCall != null ?
                             $"{AgentRole.Assistant}: Call function {assistMessage.FunctionCall.FunctionName}({assistMessage.FunctionCall.FunctionArguments})" :
-                            $"{AgentRole.Assistant}: {assistMessage.Content[0].Text}";
+                            $"{AgentRole.Assistant}: {assistMessage.Content.FirstOrDefault()?.Text ?? string.Empty}";
                     }
 
                     return string.Empty;
