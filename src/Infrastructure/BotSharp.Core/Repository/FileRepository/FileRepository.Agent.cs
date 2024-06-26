@@ -208,7 +208,7 @@ namespace BotSharp.Core.Repository
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var templateDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            var templateDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
 
             if (!Directory.Exists(templateDir))
             {
@@ -234,7 +234,7 @@ namespace BotSharp.Core.Repository
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var responseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "responses");
+            var responseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_RESPONSES_FOLDER);
             if (!Directory.Exists(responseDir))
             {
                 Directory.CreateDirectory(responseDir);
@@ -305,7 +305,7 @@ namespace BotSharp.Core.Repository
         public List<string> GetAgentResponses(string agentId, string prefix, string intent)
         {
             var responses = new List<string>();
-            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "responses");
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_RESPONSES_FOLDER);
             if (!Directory.Exists(dir)) return responses;
 
             foreach (var file in Directory.GetFiles(dir))
@@ -399,7 +399,7 @@ namespace BotSharp.Core.Repository
 
         public string GetAgentTemplate(string agentId, string templateName)
         {
-            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
             if (!Directory.Exists(dir)) return string.Empty;
 
             foreach (var file in Directory.GetFiles(dir))
@@ -421,7 +421,7 @@ namespace BotSharp.Core.Repository
         {
             if (string.IsNullOrEmpty(agentId) || template == null) return false;
 
-            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
             if (!Directory.Exists(dir)) return false;
 
             var foundTemplate = Directory.GetFiles(dir).FirstOrDefault(f =>
@@ -460,7 +460,7 @@ namespace BotSharp.Core.Repository
                 if (string.IsNullOrEmpty(agentDir)) return false;
 
                 // Delete agent user relationships
-                var usersDir = Path.Combine(_dbSettings.FileRepository, "users");
+                var usersDir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
                 if (Directory.Exists(usersDir))
                 {
                     foreach (var userDir in Directory.GetDirectories(usersDir))

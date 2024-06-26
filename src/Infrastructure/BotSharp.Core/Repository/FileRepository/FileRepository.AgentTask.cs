@@ -20,7 +20,7 @@ public partial class FileRepository
 
         foreach (var agentDir in Directory.GetDirectories(dir))
         {
-            var taskDir = Path.Combine(agentDir, "tasks");
+            var taskDir = Path.Combine(agentDir, AGENT_TASKS_FOLDER);
             if (!Directory.Exists(taskDir)) continue;
 
             var agentId = agentDir.Split(Path.DirectorySeparatorChar).Last();
@@ -84,7 +84,7 @@ public partial class FileRepository
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(agentDir)) return null;
 
-        var taskDir = Path.Combine(agentDir, "tasks");
+        var taskDir = Path.Combine(agentDir, AGENT_TASKS_FOLDER);
         if (!Directory.Exists(taskDir)) return null;
 
         var taskFile = FindTaskFileById(taskDir, taskId);
@@ -106,7 +106,7 @@ public partial class FileRepository
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, task.AgentId);
         if (!Directory.Exists(agentDir)) return;
 
-        var taskDir = Path.Combine(agentDir, "tasks");
+        var taskDir = Path.Combine(agentDir, AGENT_TASKS_FOLDER);
         if (!Directory.Exists(taskDir))
         {
             Directory.CreateDirectory(taskDir);
@@ -140,7 +140,7 @@ public partial class FileRepository
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, task.AgentId);
         if (!Directory.Exists(agentDir)) return;
 
-        var taskDir = Path.Combine(agentDir, "tasks");
+        var taskDir = Path.Combine(agentDir, AGENT_TASKS_FOLDER);
         if (!Directory.Exists(taskDir)) return;
 
         var taskFile = FindTaskFileById(taskDir, task.Id);
@@ -195,7 +195,7 @@ public partial class FileRepository
         var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(agentDir) || taskIds.IsNullOrEmpty()) return false;
 
-        var taskDir = Path.Combine(agentDir, "tasks");
+        var taskDir = Path.Combine(agentDir, AGENT_TASKS_FOLDER);
         if (!Directory.Exists(taskDir)) return false;
 
         var deletedTasks = new List<string>();
