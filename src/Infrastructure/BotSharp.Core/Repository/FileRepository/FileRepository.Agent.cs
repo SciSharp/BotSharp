@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
+using System.Threading;
 
 namespace BotSharp.Core.Repository
 {
@@ -194,11 +195,24 @@ namespace BotSharp.Core.Repository
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var functionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
-                                            agentId, AGENT_FUNCTIONS_FILE);
+            var functionDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
+                                            agentId, AGENT_FUNCTIONS_FOLDER);
 
-            var functionText = JsonSerializer.Serialize(inputFunctions, _options);
-            File.WriteAllText(functionFile, functionText);
+            if (Directory.Exists(functionDir))
+            {
+                Directory.Delete(functionDir, true);
+            }
+            Directory.CreateDirectory(functionDir);
+
+            foreach (var func in inputFunctions)
+            {
+                if (string.IsNullOrWhiteSpace(func.Name)) continue;
+
+                var text = JsonSerializer.Serialize(func, _options);
+                var file = Path.Combine(functionDir, $"{func.Name}.json");
+                File.WriteAllText(file, text);
+                Thread.Sleep(200);
+            }
         }
 
         private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)

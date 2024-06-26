@@ -22,7 +22,6 @@ public partial class FileRepository : IBotSharpRepository
 
     private const string AGENT_FILE = "agent.json";
     private const string AGENT_INSTRUCTION_FILE = "instruction";
-    private const string AGENT_FUNCTIONS_FILE = "functions.json";
     private const string AGENT_SAMPLES_FILE = "samples.txt";
     private const string USER_FILE = "user.json";
     private const string USER_AGENT_FILE = "agents.json";
