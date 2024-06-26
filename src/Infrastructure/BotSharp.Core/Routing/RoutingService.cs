@@ -116,7 +116,7 @@ public partial class RoutingService : IRoutingService
             states.SaveStateByArgs(inst.Arguments);
 
 #if DEBUG
-            Console.WriteLine($"*** Next Instruction *** {inst}", Color.GreenYellow);
+            Console.WriteLine($"*** Next Instruction *** {inst}");
 #else
             _logger.LogInformation($"*** Next Instruction *** {inst}");
 #endif
