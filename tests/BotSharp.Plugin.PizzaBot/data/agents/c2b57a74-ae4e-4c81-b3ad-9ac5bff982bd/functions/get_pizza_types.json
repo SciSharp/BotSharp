@@ -1,0 +1,9 @@
+{
+  "name": "get_pizza_types",
+  "description": "get all pizza types",
+  "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}

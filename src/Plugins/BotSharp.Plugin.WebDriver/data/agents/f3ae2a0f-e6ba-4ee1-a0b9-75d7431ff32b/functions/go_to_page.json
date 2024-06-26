@@ -1,0 +1,14 @@
+{
+  "name": "go_to_page",
+  "description": "go to another page",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "page url start with https://"
+      }
+    },
+    "required": [ "url" ]
+  }
+}

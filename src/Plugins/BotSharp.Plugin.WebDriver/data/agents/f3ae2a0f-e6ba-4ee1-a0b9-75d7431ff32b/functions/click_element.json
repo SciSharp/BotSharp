@@ -1,0 +1,30 @@
+{
+  "name": "click_element",
+  "description": "Click or check an element contains some text",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "element_type": {
+        "type": "string",
+        "description": "the element tag name"
+      },
+      "element_text": {
+        "type": "string",
+        "description": "text or placeholder shown in the element."
+      },
+      "attribute_name": {
+        "type": "string",
+        "description": "attribute name in the element"
+      },
+      "attribute_value": {
+        "type": "string",
+        "description": "attribute value in the element"
+      },
+      "match_rule": {
+        "type": "string",
+        "description": "text matching rule: EndWith, StartWith, Contains, Match"
+      }
+    },
+    "required": [ "element_type", "element_text", "match_rule" ]
+  }
+}

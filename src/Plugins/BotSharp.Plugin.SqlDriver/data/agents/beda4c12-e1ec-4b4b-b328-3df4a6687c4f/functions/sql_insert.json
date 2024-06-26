@@ -1,0 +1,56 @@
+{
+  "name": "sql_insert",
+  "description": "Insert query is generated if the record doesn't exist.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "sql_statement": {
+        "type": "string",
+        "description": "INSERT SQL statement. The value should use the parameter name like @field."
+      },
+      "reason": {
+        "type": "string",
+        "description": "reason"
+      },
+      "table": {
+        "type": "string",
+        "description": "related table"
+      },
+      "parameters": {
+        "type": "array",
+        "description": "a list of parameters in the statement match with the variables",
+        "items": {
+          "type": "object",
+          "description": "{name:'', value:''}",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "field name"
+            },
+            "value": {
+              "type": "string",
+              "description": "real value inferred by the context"
+            }
+          },
+          "required": [ "name", "value" ]
+        }
+      },
+      "return_field": {
+        "type": "object",
+        "description": "the name and alias for the return field",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "field name"
+          },
+          "alias": {
+            "type": "string",
+            "description": "meaningful field alias"
+          }
+        },
+        "required": [ "name", "alias" ]
+      }
+    },
+    "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "extract_data_from_page",
+  "description": "Extract data from current web page.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "question": {
+        "type": "string",
+        "description": "the information user wants to know"
+      }
+    },
+    "required": [ "question" ]
+  }
+}
