@@ -136,7 +136,7 @@ public class UserService : IUserService
             }
         }
 
-        if ((!hooks.IsNullOrEmpty() && user == null) || record == null)
+        if ((hooks != null && hooks.Any() && user == null) || record == null)
         {
             return default;
         }
