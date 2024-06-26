@@ -7,7 +7,7 @@ public partial class AgentService
     [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id)
     {
-        if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
+        if (string.IsNullOrEmpty(id))
         {
             return null;
         }
@@ -28,7 +28,7 @@ public partial class AgentService
         var agent = await GetAgent(id);
         if (agent == null)
         {
-            throw new Exception($"Can't load agent by id: {id}");
+            return null;
         }
 
         if (agent.InheritAgentId != null)

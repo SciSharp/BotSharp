@@ -53,6 +53,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.LlmConfig:
                     UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                     break;
+                case AgentField.Tool:
+                    UpdateAgentTools(agent.Id, agent.Tools);
+                    break;
                 case AgentField.All:
                     UpdateAgentAllFields(agent);
                     break;
@@ -140,6 +143,19 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Profiles = profiles;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
+        private void UpdateAgentTools(string agentId, List<string> tools)
+        {
+            if (tools == null) return;
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            agent.Tools = tools;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
@@ -271,6 +287,7 @@ namespace BotSharp.Core.Repository
             agent.Disabled = inputAgent.Disabled;
             agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
+            agent.Tools = inputAgent.Tools;
             agent.RoutingRules = inputAgent.RoutingRules;
             agent.LlmConfig = inputAgent.LlmConfig;
             agent.UpdatedDateTime = DateTime.UtcNow;

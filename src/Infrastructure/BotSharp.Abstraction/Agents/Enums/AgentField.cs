@@ -16,7 +16,8 @@ public enum AgentField
     Template,
     Response,
     Sample,
-    LlmConfig
+    LlmConfig,
+    Tool
 }
 
 public enum AgentTaskField

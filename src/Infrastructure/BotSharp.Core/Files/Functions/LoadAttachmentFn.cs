@@ -10,9 +10,9 @@ public class LoadAttachmentFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<LoadAttachmentFn> _logger;
-    private const string AIAssistant = "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a";
     private readonly IEnumerable<string> _imageTypes = new List<string> { "image", "images", "png", "jpg", "jpeg" };
     private readonly IEnumerable<string> _pdfTypes = new List<string> { "pdf" };
+    private static string TOOL_ASSISTANT = Guid.Empty.ToString();
 
     public LoadAttachmentFn(
         IServiceProvider services,
@@ -29,13 +29,13 @@ public class LoadAttachmentFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         
         var wholeDialogs = conv.GetDialogHistory();
-        var fileTypes = args?.FileTypes?.Split(",")?.ToList() ?? new List<string>();
+        var fileTypes = args?.FileTypes?.Split(",", StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
         var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs, fileTypes);
-        var agent = await agentService.LoadAgent(!string.IsNullOrEmpty(message.CurrentAgentId) ? message.CurrentAgentId : AIAssistant);
+        var agent = await agentService.LoadAgent(TOOL_ASSISTANT);
         var fileAgent = new Agent
         {
-            Id = agent.Id,
-            Name = agent.Name,
+            Id = agent?.Id ?? Guid.Empty.ToString(),
+            Name = agent?.Name ?? "Unkown",
             Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please describe the files.",
             TemplateDict = new Dictionary<string, object>()
         };

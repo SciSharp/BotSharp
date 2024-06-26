@@ -58,4 +58,6 @@ public interface IConversationService
     Task<string> GetConversationSummary(IEnumerable<string> conversationId);
 
     Task<Conversation> GetConversationRecordOrCreateNew(string agentId);
+
+    bool IsConversationMode();
 }

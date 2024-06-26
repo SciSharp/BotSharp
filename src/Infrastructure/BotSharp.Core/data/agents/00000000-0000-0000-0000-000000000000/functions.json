@@ -1,0 +1,20 @@
+[
+  {
+    "name": "load_attachment",
+    "description": "If the user's request is related to analyzing files and/or images, you can call this function to analyze files and images.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "user_request": {
+          "type": "string",
+          "description": "The request posted by user, which is related to analyzing requested files. User can request for multiple files to process at one time."
+        },
+        "file_types": {
+          "type": "string",
+          "description": "The file types requested by user to analyze, such as image, png, jpeg, and pdf. There can be multiple file types in a single request. An example output is, 'image,pdf'."
+        }
+      },
+      "required": [ "user_request", "file_types" ]
+    }
+  }
+]
