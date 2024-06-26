@@ -1,0 +1,10 @@
+{
+  "name": "close_browser",
+  "description": "Close browser",
+  "parameters": {
+    "type": "object",
+    "properties": {
+    },
+    "required": []
+  }
+}

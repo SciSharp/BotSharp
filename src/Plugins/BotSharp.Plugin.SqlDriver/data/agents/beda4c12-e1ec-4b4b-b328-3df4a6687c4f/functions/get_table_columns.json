@@ -1,0 +1,14 @@
+{
+  "name": "get_table_columns",
+  "description": "Get related table columns and foreign key informations",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "table": {
+        "type": "string",
+        "description": "table name"
+      }
+    },
+    "required": [ "table" ]
+  }
+}

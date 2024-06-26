@@ -25,6 +25,20 @@
   <ItemGroup>
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\agent.json" />
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\change_checkbox.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\change_list_value.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\check_radio_button.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\click_button.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\click_element.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\close_browser.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\extract_data_from_page.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\go_to_page.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\input_user_password.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\input_user_text.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\open_browser.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\scroll_page.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\send_http_request.json" />
+    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\take_screenshot.json" />
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\instruction.liquid" />
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\templates\extract_data.liquid" />
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\templates\html_parser.liquid" />
@@ -45,6 +59,48 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\templates\html_parser.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\change_checkbox.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\change_list_value.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\check_radio_button.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\click_button.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\click_element.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\close_browser.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\extract_data_from_page.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\go_to_page.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\input_user_password.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\input_user_text.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\open_browser.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\scroll_page.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\send_http_request.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\take_screenshot.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

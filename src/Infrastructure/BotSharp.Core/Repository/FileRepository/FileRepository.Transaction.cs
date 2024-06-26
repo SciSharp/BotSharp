@@ -51,7 +51,7 @@ public partial class FileRepository
             {
                 foreach (var user in _users)
                 {
-                    var dir = Path.Combine(_dbSettings.FileRepository, "users", user.Id);
+                    var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
                     if (!Directory.Exists(dir))
                     {
                         Directory.CreateDirectory(dir);
@@ -69,7 +69,7 @@ public partial class FileRepository
                         var agents = _userAgents.Where(x => x.UserId == uid).ToList();
                         if (agents.Any())
                         {
-                            var dir = Path.Combine(_dbSettings.FileRepository, "users", uid);
+                            var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, uid);
                             var path = Path.Combine(dir, USER_AGENT_FILE);
                             File.WriteAllText(path, JsonSerializer.Serialize(agents, _options));
                         }

@@ -29,4 +29,6 @@ public interface IBotSharpFileService
     /// <param name="data"></param>
     /// <returns></returns>
     (string, byte[]) GetFileInfoFromData(string data);
+
+    string GetFileContentType(string filePath);
 }

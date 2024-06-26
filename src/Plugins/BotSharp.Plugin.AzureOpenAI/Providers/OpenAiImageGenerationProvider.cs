@@ -1,7 +1,3 @@
-using BotSharp.Plugin.AzureOpenAI.Settings;
-using Microsoft.Extensions.Logging;
-using System;
-
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class OpenAiImageGenerationProvider : ImageGenerationProvider

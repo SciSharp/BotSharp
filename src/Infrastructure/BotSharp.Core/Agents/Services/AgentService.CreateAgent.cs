@@ -86,10 +86,8 @@ public partial class AgentService
 
         foreach (var file in Directory.GetFiles(templateDir))
         {
-            var fileName = file.Split(Path.DirectorySeparatorChar).Last();
-            var splitIdx = fileName.LastIndexOf(".");
-            var name = fileName.Substring(0, splitIdx);
-            var extension = fileName.Substring(splitIdx + 1);
+            var name = Path.GetFileNameWithoutExtension(file);
+            var extension = Path.GetExtension(file).Substring(1);
             if (extension.IsEqualTo(_agentSettings.TemplateFormat))
             {
                 var content = File.ReadAllText(file);
@@ -102,11 +100,28 @@ public partial class AgentService
 
     private List<FunctionDef> FetchFunctionsFromFile(string fileDir)
     {
-        var file = Path.Combine(fileDir, "functions.json");
-        if (!File.Exists(file)) return new List<FunctionDef>();
+        var functions = new List<FunctionDef>();
+        var functionDir = Path.Combine(fileDir, "functions");
 
-        var functionsJson = File.ReadAllText(file);
-        var functions = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
+        if (!Directory.Exists(functionDir)) return functions;
+
+        foreach (var file in Directory.GetFiles(functionDir))
+        {
+            try
+            {
+                var extension = Path.GetExtension(file).Substring(1);
+                if (extension != "json") continue;
+
+                var json = File.ReadAllText(file);
+                var function = JsonSerializer.Deserialize<FunctionDef>(json, _options);
+                functions.Add(function);
+            }
+            catch
+            {
+                continue;
+            }
+
+        }
         return functions;
     }
 

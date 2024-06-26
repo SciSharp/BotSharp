@@ -1,0 +1,14 @@
+{
+  "name": "click_button",
+  "description": "Click a button in a web page.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "element_name": {
+        "type": "string",
+        "description": "the html element name."
+      }
+    },
+    "required": [ "element_name" ]
+  }
+}
