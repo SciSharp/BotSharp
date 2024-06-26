@@ -61,7 +61,7 @@ public class UserService : IUserService
             record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
         }
         record.Salt = Guid.NewGuid().ToString("N");
-        record.Password = Utilities.HashText(user.Password, record.Salt);
+        record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
 
         if (_setting.NewUserVerification)
         {

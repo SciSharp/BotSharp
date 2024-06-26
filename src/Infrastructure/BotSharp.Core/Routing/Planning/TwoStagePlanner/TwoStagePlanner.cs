@@ -32,7 +32,7 @@ public partial class TwoStagePlanner : IPlaner
         if (_plan1st.IsNullOrEmpty() && _plan2nd.IsNullOrEmpty())
         {
             Directory.CreateDirectory(tempDir);
-            _md5 = Utilities.HashText(string.Join(".", dialogs.Where(x => x.Role == AgentRole.User)), "botsharp");
+            _md5 = Utilities.HashTextMd5($"{string.Join(".", dialogs.Where(x => x.Role == AgentRole.User))}{"botsharp"}");
             var filePath = Path.Combine(tempDir, $"{_md5}-1st.json");
             FirstStagePlan[] items = new FirstStagePlan[0];
             if (File.Exists(filePath))

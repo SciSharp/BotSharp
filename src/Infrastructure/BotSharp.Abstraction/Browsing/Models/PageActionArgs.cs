@@ -11,4 +11,11 @@ public class PageActionArgs
 
     public string Url { get; set; } = null!;
     public bool OpenNewTab { get; set; } = false;
+
+    /// <summary>
+    /// On page data fetched
+    /// </summary>
+    public DataFetched? OnDataFetched { get; set; }
 }
+
+public delegate void DataFetched(string url, string data);

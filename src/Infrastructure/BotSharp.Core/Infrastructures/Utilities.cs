@@ -4,13 +4,26 @@ namespace BotSharp.Core.Infrastructures;
 
 public static class Utilities
 {
-    public static string HashText(string password, string salt)
+    public static string HashTextMd5(string text)
     {
         using var md5 = System.Security.Cryptography.MD5.Create();
 
-        var data = md5.ComputeHash(Encoding.UTF8.GetBytes(password + salt));
+        var data = md5.ComputeHash(Encoding.UTF8.GetBytes(text));
         var sb = new StringBuilder();
         foreach (var c in data)
+        {
+            sb.Append(c.ToString("x2"));
+        }
+        return sb.ToString();
+    }
+
+    public static string HashTextSha256(string text)
+    {
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+
+        var data = sha256.ComputeHash(Encoding.UTF8.GetBytes(text));
+        var sb = new StringBuilder();
+        foreach(var c in data)
         {
             sb.Append(c.ToString("x2"));
         }

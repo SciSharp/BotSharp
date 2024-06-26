@@ -37,6 +37,8 @@ public class Pagination
     {
         get { return (Page - 1) * Size; }
     }
+
+    public bool ReturnTotal { get; set; } = true;
 }
 
 public class PagedItems<T>

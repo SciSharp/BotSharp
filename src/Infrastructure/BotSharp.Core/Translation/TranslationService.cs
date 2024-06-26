@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Options;
@@ -13,17 +12,21 @@ namespace BotSharp.Core.Translation;
 public class TranslationService : ITranslationService
 {
     private readonly IServiceProvider _services;
+    private readonly IBotSharpRepository _db;
     private readonly ILogger<TranslationService> _logger;
     private readonly BotSharpOptions _options;
     private Agent _router;
     private string _messageId;
     private IChatCompletion _completion;
 
-    public TranslationService(IServiceProvider services,
+    public TranslationService(
+        IServiceProvider services,
+        IBotSharpRepository db,
         ILogger<TranslationService> logger,
         BotSharpOptions options)
     {
         _services = services;
+        _db = db;
         _logger = logger;
         _options = options;
     }
@@ -56,41 +59,73 @@ public class TranslationService : ITranslationService
             model: _router?.LlmConfig?.Model);
         var template = _router.Templates.First(x => x.Name == "translation_prompt").Content;
 
+        var map = new Dictionary<string, string>();
         var keys = unique.ToArray();
-        var texts = unique.ToArray()
+
+        #region Search memory
+        var queries = keys.Select(x => new TranslationMemoryQuery
+        {
+            OriginalText = x,
+            HashText = Utilities.HashTextSha256(x),
+            Language = language
+        }).ToList();
+        var memories = _db.GetTranslationMemories(queries);
+        var memoryHashes = memories.Select(x => x.HashText).ToList();
+
+        foreach (var memory in memories)
+        {
+            map[memory.OriginalText] = memory.TranslatedText;
+        }
+
+        var outOfMemoryList = queries.Where(x => !memoryHashes.Contains(x.HashText)).ToList();
+        #endregion
+
+        var texts = outOfMemoryList.ToArray()
             .Select((text, i) => new TranslationInput
             {
                 Id = i + 1,
-                Text = text
+                Text = text.OriginalText
             }).ToList();
 
         try
         {
-            var translatedStringList = await InnerTranslate(texts, language, template);
-
-            int retry = 0;
-            while (translatedStringList.Texts.Length != texts.Count && retry < 3)
+            if (!texts.IsNullOrEmpty())
             {
-                translatedStringList = await InnerTranslate(texts, language, template);
-                retry++;
+                var translatedStringList = await InnerTranslate(texts, language, template);
+
+                int retry = 0;
+                while (translatedStringList.Texts.Length != texts.Count && retry < 3)
+                {
+                    translatedStringList = await InnerTranslate(texts, language, template);
+                    retry++;
+                }
+
+                // Override language if it's Unknown, it's used to output the corresponding language.
+                var states = _services.GetRequiredService<IConversationStateService>();
+                if (!states.ContainsState(StateConst.LANGUAGE))
+                {
+                    var inputLanguage = string.IsNullOrEmpty(translatedStringList.InputLanguage) ? LanguageType.ENGLISH : translatedStringList.InputLanguage;
+                    states.SetState(StateConst.LANGUAGE, inputLanguage, activeRounds: 1);
+                }
+
+                var translatedTexts = translatedStringList.Texts;
+                var memoryInputs = new List<TranslationMemoryInput>();
+
+                for (var i = 0; i < texts.Count; i++)
+                {
+                    map[outOfMemoryList[i].OriginalText] = translatedTexts[i].Text;
+                    memoryInputs.Add(new TranslationMemoryInput
+                    {
+                        OriginalText = outOfMemoryList[i].OriginalText,
+                        HashText = outOfMemoryList[i].HashText,
+                        TranslatedText = translatedTexts[i].Text,
+                        Language = language
+                    });
+                }
+
+                _db.SaveTranslationMemories(memoryInputs);
             }
-
-            // Override language if it's Unknown, it's used to output the corresponding language.
-            var states = _services.GetRequiredService<IConversationStateService>();
-            if (!states.ContainsState(StateConst.LANGUAGE))
-            {
-                var inputLanguage = string.IsNullOrEmpty(translatedStringList.InputLanguage) ? LanguageType.ENGLISH : translatedStringList.InputLanguage;
-                states.SetState(StateConst.LANGUAGE, inputLanguage, activeRounds: 1);
-            }
-
-            var translatedTexts = translatedStringList.Texts;
-            var map = new Dictionary<string, string>();
-
-            for (var i = 0; i < texts.Count; i++)
-            {
-                map[keys[i]] = translatedTexts[i].Text;
-            }
-
+            
             clonedData = Assign(clonedData, map);
         }
         catch (Exception ex)
