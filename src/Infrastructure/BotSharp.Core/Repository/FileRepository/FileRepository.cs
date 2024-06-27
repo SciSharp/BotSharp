@@ -22,7 +22,6 @@ public partial class FileRepository : IBotSharpRepository
 
     private const string AGENT_FILE = "agent.json";
     private const string AGENT_INSTRUCTION_FILE = "instruction";
-    private const string AGENT_FUNCTIONS_FILE = "functions.json";
     private const string AGENT_SAMPLES_FILE = "samples.txt";
     private const string USER_FILE = "user.json";
     private const string USER_AGENT_FILE = "agents.json";
@@ -36,6 +35,11 @@ public partial class FileRepository : IBotSharpRepository
     private const string AGENT_TASK_PREFIX = "#metadata";
     private const string AGENT_TASK_SUFFIX = "/metadata";
     private const string TRANSLATION_MEMORY_FILE = "memory.json";
+    private const string AGENT_FUNCTIONS_FOLDER = "functions";
+    private const string AGENT_TEMPLATES_FOLDER = "templates";
+    private const string AGENT_RESPONSES_FOLDER = "responses";
+    private const string AGENT_TASKS_FOLDER = "tasks";
+    private const string USERS_FOLDER = "users";
 
     public FileRepository(
         IServiceProvider services,
@@ -79,7 +83,7 @@ public partial class FileRepository : IBotSharpRepository
                 return _users.AsQueryable();
             }
 
-            var dir = Path.Combine(_dbSettings.FileRepository, "users");
+            var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
             _users = new List<User>();
             if (Directory.Exists(dir))
             {
@@ -142,7 +146,7 @@ public partial class FileRepository : IBotSharpRepository
                 return _userAgents.AsQueryable();
             }
 
-            var dir = Path.Combine(_dbSettings.FileRepository, "users");
+            var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
             _userAgents = new List<UserAgent>();
             if (Directory.Exists(dir))
             {
@@ -194,11 +198,28 @@ public partial class FileRepository : IBotSharpRepository
 
     private List<FunctionDef> FetchFunctions(string fileDir)
     {
-        var file = Path.Combine(fileDir, AGENT_FUNCTIONS_FILE);
-        if (!File.Exists(file)) return new List<FunctionDef>();
+        var functions = new List<FunctionDef>();
+        var functionDir = Path.Combine(fileDir, AGENT_FUNCTIONS_FOLDER);
 
-        var functionsJson = File.ReadAllText(file);
-        var functions = JsonSerializer.Deserialize<List<FunctionDef>>(functionsJson, _options);
+        if (!Directory.Exists(functionDir)) return functions;
+
+        foreach ( var file in Directory.GetFiles(functionDir))
+        {
+            try
+            {
+                var extension = Path.GetExtension(file).Substring(1);
+                if (extension != "json") continue;
+                
+                var json = File.ReadAllText(file);
+                var function = JsonSerializer.Deserialize<FunctionDef>(json, _options);
+                functions.Add(function);
+            }
+            catch
+            {
+                continue;
+            }
+            
+        }
         return functions;
     }
 
@@ -213,7 +234,7 @@ public partial class FileRepository : IBotSharpRepository
     private List<AgentTemplate> FetchTemplates(string fileDir)
     {
         var templates = new List<AgentTemplate>();
-        var templateDir = Path.Combine(fileDir, "templates");
+        var templateDir = Path.Combine(fileDir, AGENT_TEMPLATES_FOLDER);
         if (!Directory.Exists(templateDir)) return templates;
 
         foreach (var file in Directory.GetFiles(templateDir))
@@ -235,7 +256,7 @@ public partial class FileRepository : IBotSharpRepository
     private List<AgentTask> FetchTasks(string fileDir)
     {
         var tasks = new List<AgentTask>();
-        var taskDir = Path.Combine(fileDir, "tasks");
+        var taskDir = Path.Combine(fileDir, AGENT_TASKS_FOLDER);
         if (!Directory.Exists(taskDir)) return tasks;
 
         foreach (var file in Directory.GetFiles(taskDir))
@@ -252,7 +273,7 @@ public partial class FileRepository : IBotSharpRepository
     private List<AgentResponse> FetchResponses(string fileDir)
     {
         var responses = new List<AgentResponse>();
-        var responseDir = Path.Combine(fileDir, "responses");
+        var responseDir = Path.Combine(fileDir, AGENT_RESPONSES_FOLDER);
         if (!Directory.Exists(responseDir)) return responses;
 
         foreach (var file in Directory.GetFiles(responseDir))

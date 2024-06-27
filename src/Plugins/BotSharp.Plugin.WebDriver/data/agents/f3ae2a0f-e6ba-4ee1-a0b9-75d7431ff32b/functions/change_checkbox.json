@@ -1,0 +1,22 @@
+{
+  "name": "change_checkbox",
+  "description": "Check or uncheck checkbox",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "element_text": {
+        "type": "string",
+        "description": "the element title"
+      },
+      "update_value": {
+        "type": "string",
+        "description": "check or uncheck"
+      },
+      "match_rule": {
+        "type": "string",
+        "description": "text matching rule: EndWith, StartWith, Contains, Match"
+      }
+    },
+    "required": [ "element_text", "update_value", "match_rule" ]
+  }
+}

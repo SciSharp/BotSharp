@@ -136,7 +136,7 @@ public class UserService : IUserService
             }
         }
 
-        if ((!hooks.IsNullOrEmpty() && user == null) || record == null)
+        if ((hooks != null && hooks.Any() && user == null) || record == null)
         {
             return default;
         }
@@ -147,7 +147,7 @@ public class UserService : IUserService
         }
 
 #if !DEBUG
-        if (!isAuthenticatedByHook && Utilities.HashText(password, record.Salt) != record.Password)
+        if (!isAuthenticatedByHook && Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
         {
             return default;
         }

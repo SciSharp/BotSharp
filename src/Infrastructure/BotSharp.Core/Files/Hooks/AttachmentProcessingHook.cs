@@ -19,8 +19,8 @@ public class AttachmentProcessingHook : AgentHookBase
 
         if (isConvMode && isEnabled)
         {
-            var (prompt, loadAttachmentFn) = GetLoadAttachmentFn();
-            if (loadAttachmentFn != null)
+            var (prompt, fn) = GetPromptAndFunction();
+            if (fn != null)
             {
                 if (!string.IsNullOrWhiteSpace(prompt))
                 {
@@ -29,11 +29,11 @@ public class AttachmentProcessingHook : AgentHookBase
 
                 if (agent.Functions == null)
                 {
-                    agent.Functions = new List<FunctionDef> { loadAttachmentFn };
+                    agent.Functions = new List<FunctionDef> { fn };
                 }
                 else
                 {
-                    agent.Functions.Add(loadAttachmentFn);
+                    agent.Functions.Add(fn);
                 }
             }
         }
@@ -41,13 +41,13 @@ public class AttachmentProcessingHook : AgentHookBase
         base.OnAgentLoaded(agent);
     }
 
-    private (string, FunctionDef?) GetLoadAttachmentFn()
+    private (string, FunctionDef?) GetPromptAndFunction()
     {
-        var fnName = "load_attachment";
+        var fn = "load_attachment";
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var agent = db.GetAgent(TOOL_ASSISTANT);
-        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{fnName}_prompt"))?.Content ?? string.Empty;
-        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(fnName));
+        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{fn}.fn"))?.Content ?? string.Empty;
+        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(fn));
         return (prompt, loadAttachmentFn);
     }
 }
