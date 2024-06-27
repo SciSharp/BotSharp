@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_http_request.json" />
+    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_http_request.fn.liquid" />
+    <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\agent.json" />
+    <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\instruction.liquid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_http_request.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_http_request.fn.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+  </ItemGroup>
+
+</Project>
