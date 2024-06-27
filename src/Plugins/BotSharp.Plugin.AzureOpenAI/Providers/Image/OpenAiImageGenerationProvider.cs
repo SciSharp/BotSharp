@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.AzureOpenAI.Providers;
+namespace BotSharp.Plugin.AzureOpenAI.Providers.Image;
 
 public class OpenAiImageGenerationProvider : ImageGenerationProvider
 {

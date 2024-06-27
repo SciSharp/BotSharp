@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\agent.json" />
-    <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\get_table_columns.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\lookup_dictionary.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\sql_insert.json" />
@@ -26,9 +25,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\instruction.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\lookup_dictionary.liquid">

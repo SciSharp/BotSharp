@@ -1,6 +1,6 @@
 using OpenAI.Chat;
 
-namespace BotSharp.Plugin.AzureOpenAI.Providers;
+namespace BotSharp.Plugin.AzureOpenAI.Providers.Chat;
 
 public class ChatCompletionProvider : IChatCompletion
 {
@@ -12,7 +12,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     public virtual string Provider => "azure-openai";
 
-    public ChatCompletionProvider(AzureOpenAiSettings settings, 
+    public ChatCompletionProvider(AzureOpenAiSettings settings,
         ILogger<ChatCompletionProvider> logger,
         IServiceProvider services)
     {
@@ -79,7 +79,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // After chat completion hook
-        foreach(var hook in contentHooks)
+        foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
             {
@@ -94,8 +94,8 @@ public class ChatCompletionProvider : IChatCompletion
         return responseMessage;
     }
 
-    public async Task<bool> GetChatCompletionsAsync(Agent agent, 
-        List<RoleDialogModel> conversations, 
+    public async Task<bool> GetChatCompletionsAsync(Agent agent,
+        List<RoleDialogModel> conversations,
         Func<RoleDialogModel, Task> onMessageReceived,
         Func<RoleDialogModel, Task> onFunctionExecuting)
     {
@@ -142,8 +142,8 @@ public class ChatCompletionProvider : IChatCompletion
             var funcContextIn = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
-                FunctionName = value.FunctionCall.FunctionName,
-                FunctionArgs = value.FunctionCall.FunctionArguments
+                FunctionName = value.FunctionCall?.FunctionName,
+                FunctionArgs = value.FunctionCall?.FunctionArguments
             };
 
             // Somethings LLM will generate a function name with agent name.
@@ -177,7 +177,7 @@ public class ChatCompletionProvider : IChatCompletion
             if (choice.FinishReason == ChatFinishReason.FunctionCall)
             {
                 Console.Write(choice.FunctionCallUpdate?.FunctionArgumentsUpdate);
-                    
+
                 await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, choice.FunctionCallUpdate?.FunctionArgumentsUpdate));
                 continue;
             }
@@ -325,7 +325,7 @@ public class ChatCompletionProvider : IChatCompletion
 
             prompt += "\r\n[CONVERSATION]";
             verbose = string.Join("\r\n", messages
-                .Where(x => (x as SystemChatMessage) == null)
+                .Where(x => x as SystemChatMessage == null)
                 .Select(x =>
                 {
                     var fnMessage = x as FunctionChatMessage;
