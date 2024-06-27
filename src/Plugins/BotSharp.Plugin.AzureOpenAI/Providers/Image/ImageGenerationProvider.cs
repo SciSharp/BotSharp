@@ -1,6 +1,6 @@
 using OpenAI.Images;
 
-namespace BotSharp.Plugin.AzureOpenAI.Providers;
+namespace BotSharp.Plugin.AzureOpenAI.Providers.Image;
 
 public class ImageGenerationProvider : IImageGeneration
 {
