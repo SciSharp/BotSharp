@@ -85,9 +85,6 @@
     <Content Include="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\functions.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\functions\human_intervention_needed.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
