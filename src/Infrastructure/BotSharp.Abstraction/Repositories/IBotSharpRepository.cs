@@ -23,6 +23,8 @@ public interface IBotSharpRepository
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateUserVerified(string userId) => throw new NotImplementedException();
+    void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
+    void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
     #endregion
 
     #region Agent

@@ -9,4 +9,5 @@ public interface IAuthenticationHook
     void AddClaims(List<Claim> claims);
     void BeforeSending(Token token);
     Task UserCreated(User user);
+    Task CreatorNewVerificationCode(User user);
 }
