@@ -5,8 +5,10 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Serilog;
 
 namespace Microsoft.Extensions.Hosting
 {
@@ -44,7 +46,34 @@ namespace Microsoft.Extensions.Hosting
         public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
         {
             builder.Logging.AddOpenTelemetry(logging =>
-            {
+            { // Use Serilog
+                Log.Logger = new LoggerConfiguration()
+                // 对请求路径为 / heathz和 / metrics不进行日志记录
+                .Filter.ByExcluding(
+                    e => e.Properties.TryGetValue("RequestPath", out var value) && (value.ToString().StartsWith("\"/metrics\"") || value.ToString().StartsWith("\"/healthz\""))
+                    )
+#if DEBUG
+                    .MinimumLevel.Information()
+#else
+    .MinimumLevel.Warning()
+#endif
+                    .WriteTo.Console()
+                    .WriteTo.File("logs/log-.txt",
+                        shared: true,
+                        rollingInterval: RollingInterval.Day)
+                    //.WriteTo.OpenTelemetry(options =>
+                    //{
+                    //    options.Endpoint = builder.Configuration["OpenTelemetry:Endpoint"];
+                    //    options.ResourceAttributes = new Dictionary<string, object>
+                    //    {
+                    //        ["service.name"] = builder.Configuration["OpenTelemetry:ServiceName"],
+                    //        ["index"] = 10,
+                    //        ["flag"] = true,
+                    //        ["value"] = 3.14
+                    //    };
+                    //})
+                    .CreateLogger();
+
                 logging.IncludeFormattedMessage = true;
                 logging.IncludeScopes = true;
             });
@@ -75,7 +104,10 @@ namespace Microsoft.Extensions.Hosting
 
             if (useOtlpExporter)
             {
-                builder.Services.AddOpenTelemetry().UseOtlpExporter();
+                builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
+                builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
+                builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
+
             }
 
             // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
