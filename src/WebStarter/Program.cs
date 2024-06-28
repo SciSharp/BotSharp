@@ -36,6 +36,9 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
  }).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
    .AddBotSharpLogger(builder.Configuration);
 
+// Add service defaults & Aspire components.
+builder.AddServiceDefaults();
+
 // Add SignalR for WebSocket
 builder.Services.AddSignalR();
 
