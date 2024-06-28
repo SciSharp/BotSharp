@@ -12,4 +12,6 @@ public interface IUserService
     Task<User> GetMyProfile();
     Task<bool> VerifyUserNameExisting(string userName);
     Task<bool> VerifyEmailExisting(string email);
+    Task<bool> SendVerificationCodeResetPassword(User user);
+    Task<bool> ResetUserPassword(User user);
 }
