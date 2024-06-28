@@ -16,7 +16,7 @@ public class FilePlugin : IBotSharpPlugin
     {
         services.AddScoped<IBotSharpFileService, BotSharpFileService>();
 
-        services.AddScoped<IAgentHook, AttachmentProcessingHook>();
+        services.AddScoped<IAgentHook, FileAnalyzerHook>();
         services.AddScoped<IAgentToolHook, FileAnalyzerToolHook>();
     }
 }
