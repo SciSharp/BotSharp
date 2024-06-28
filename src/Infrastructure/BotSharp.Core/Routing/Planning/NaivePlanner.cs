@@ -169,13 +169,13 @@ public class NaivePlanner : IPlaner
         if (args.Function == "route_to_agent")
         {
             // Action agent name
-            if (!agents.Any(x => x.Name == args.AgentName))
+            if (!agents.Any(x => x.Name == args.AgentName) && !string.IsNullOrEmpty(args.AgentName))
             {
                 args.AgentName = agents.FirstOrDefault(x => args.AgentName.Contains(x.Name))?.Name ?? args.AgentName;
             }
 
             // Goal agent name
-            if (!agents.Any(x => x.Name == args.OriginalAgent))
+            if (!agents.Any(x => x.Name == args.OriginalAgent) && !string.IsNullOrEmpty(args.OriginalAgent))
             {
                 args.OriginalAgent = agents.FirstOrDefault(x => args.OriginalAgent.Contains(x.Name))?.Name ?? args.OriginalAgent;
             }
