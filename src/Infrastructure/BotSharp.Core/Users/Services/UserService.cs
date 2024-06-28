@@ -336,7 +336,7 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            hook.CreatorNewVerificationCode(record);
+            hook.VerificationCodeResetPassword(record);
         }
 
         return true;
