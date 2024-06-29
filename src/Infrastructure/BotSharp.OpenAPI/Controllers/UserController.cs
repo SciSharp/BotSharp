@@ -116,7 +116,7 @@ public class UserController : ControllerBase
     }
     [AllowAnonymous]
     [HttpPost("/user/resetpassword")]
-    public async Task<bool> ResetUserPassword([FromQuery] UserResetPasswordModel user)
+    public async Task<bool> ResetUserPassword([FromBody] UserResetPasswordModel user)
     {
         return await _userService.ResetUserPassword(user.ToUser());
     }
