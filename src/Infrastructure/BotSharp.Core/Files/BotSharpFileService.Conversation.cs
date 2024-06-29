@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Browsing;
-using BotSharp.Abstraction.Browsing.Models;
+using BotSharp.Abstraction.Files.Converters;
+using BotSharp.Core.Files.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
@@ -51,17 +51,7 @@ public partial class BotSharpFileService
 
         try
         {
-            var msgInfo = new MessageInfo
-            {
-                ContextId = Guid.NewGuid().ToString()
-            };
-            var web = _services.GetRequiredService<IWebBrowser>();
             var preFixPath = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
-
-            if (isNeedScreenShot)
-            {
-                await web.LaunchBrowser(msgInfo);
-            }
 
             foreach (var messageId in messageIds)
             {
@@ -91,39 +81,39 @@ public partial class BotSharpFileService
                         var screenShotDir = Path.Combine(subDir, SCREENSHOT_FILE_FOLDER);
                         if (ExistDirectory(screenShotDir) && Directory.GetFiles(screenShotDir).Any())
                         {
-                            file = Directory.GetFiles(screenShotDir).First();
-                            contentType = GetFileContentType(file);
-
-                            var model = new MessageFileModel()
+                            foreach (var screenShot in Directory.GetFiles(screenShotDir))
                             {
-                                MessageId = messageId,
-                                FileStorageUrl = file,
-                                ContentType = contentType
-                            };
-                            files.Add(model);
+                                contentType = GetFileContentType(screenShot);
+                                if (!_allowedImageTypes.Contains(contentType)) continue;
+
+                                var model = new MessageFileModel()
+                                {
+                                    MessageId = messageId,
+                                    FileStorageUrl = screenShot,
+                                    ContentType = contentType
+                                };
+                                files.Add(model);
+                            }
                         }
                         else
                         {
-                            await web.GoToPage(msgInfo, new PageActionArgs { Url = file });
-                            var path = Path.Combine(subDir, SCREENSHOT_FILE_FOLDER, $"{Guid.NewGuid()}.png");
-                            await web.ScreenshotAsync(msgInfo, path);
-                            contentType = GetFileContentType(path);
+                            var screenShotPath = Path.Combine(subDir, SCREENSHOT_FILE_FOLDER);
+                            var images = await ConvertPdfToImages(file, screenShotPath);
 
-                            var model = new MessageFileModel()
+                            foreach (var image in images)
                             {
-                                MessageId = messageId,
-                                FileStorageUrl = path,
-                                ContentType = contentType
-                            };
-                            files.Add(model);
+                                contentType = GetFileContentType(image);
+                                var model = new MessageFileModel()
+                                {
+                                    MessageId = messageId,
+                                    FileStorageUrl = image,
+                                    ContentType = contentType
+                                };
+                                files.Add(model);
+                            }
                         }
                     }
                 }
-            }
-
-            if (isNeedScreenShot)
-            {
-                await web.CloseBrowser(msgInfo.ContextId);
             }
         }
         catch (Exception ex)
@@ -227,9 +217,13 @@ public partial class BotSharpFileService
                     Directory.CreateDirectory(subDir);
                 }
 
-                using var fs = new FileStream(Path.Combine(subDir, file.FileName), FileMode.Create);
-                fs.Write(bytes, 0, bytes.Length);
-                fs.Flush(true);
+                using (var fs = new FileStream(Path.Combine(subDir, file.FileName), FileMode.Create))
+                {
+                    fs.Write(bytes, 0, bytes.Length);
+                    fs.Flush(true);
+                    fs.Close();
+                    Thread.Sleep(100);
+                }
             }
 
             return true;
@@ -317,6 +311,21 @@ public partial class BotSharpFileService
 
         var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId);
         return dir;
+    }
+
+    private async Task<IEnumerable<string>> ConvertPdfToImages(string pdfLoc, string imageLoc)
+    {
+        var converters = _services.GetServices<IPdf2ImageConverter>();
+        if (converters.IsNullOrEmpty()) return Enumerable.Empty<string>();
+
+        var converter = converters.FirstOrDefault(x => x.GetType().Name != typeof(PdfiumConverter).Name);
+        if (converter == null)
+        {
+            converter = converters.FirstOrDefault(x => x.GetType().Name == typeof(PdfiumConverter).Name);
+            if (converter == null) return Enumerable.Empty<string>();
+        }
+
+        return await converter.ConvertPdfToImages(pdfLoc, imageLoc);
     }
     #endregion
 }

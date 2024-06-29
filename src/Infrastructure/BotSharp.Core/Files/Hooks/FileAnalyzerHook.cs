@@ -1,12 +1,12 @@
 namespace BotSharp.Core.Files.Hooks;
 
-public class AttachmentProcessingHook : AgentHookBase
+public class FileAnalyzerHook : AgentHookBase
 {
     private static string TOOL_ASSISTANT = Guid.Empty.ToString();
 
     public override string SelfId => string.Empty;
 
-    public AttachmentProcessingHook(IServiceProvider services, AgentSettings settings)
+    public FileAnalyzerHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }

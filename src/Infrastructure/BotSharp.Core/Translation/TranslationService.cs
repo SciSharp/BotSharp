@@ -13,6 +13,7 @@ public class TranslationService : ITranslationService
 {
     private readonly IServiceProvider _services;
     private readonly IBotSharpRepository _db;
+    private readonly ConversationSetting _convSettings;
     private readonly ILogger<TranslationService> _logger;
     private readonly BotSharpOptions _options;
     private Agent _router;
@@ -22,11 +23,13 @@ public class TranslationService : ITranslationService
     public TranslationService(
         IServiceProvider services,
         IBotSharpRepository db,
+        ConversationSetting convSettings,
         ILogger<TranslationService> logger,
         BotSharpOptions options)
     {
         _services = services;
         _db = db;
+        _convSettings = convSettings;
         _logger = logger;
         _options = options;
     }
@@ -69,18 +72,23 @@ public class TranslationService : ITranslationService
             HashText = Utilities.HashTextSha256(x),
             Language = language
         }).ToList();
-        var memories = _db.GetTranslationMemories(queries);
-        var memoryHashes = memories.Select(x => x.HashText).ToList();
+        var outOfMemoryList = queries;
 
-        foreach (var memory in memories)
+        if (_convSettings.EnableTranslationMemory)
         {
-            map[memory.OriginalText] = memory.TranslatedText;
-        }
+            var memories = _db.GetTranslationMemories(queries);
+            var memoryHashes = memories.Select(x => x.HashText).ToList();
 
-        var outOfMemoryList = queries.Where(x => !memoryHashes.Contains(x.HashText)).ToList();
+            foreach (var memory in memories)
+            {
+                map[memory.OriginalText] = memory.TranslatedText;
+            }
+
+            outOfMemoryList = queries.Where(x => !memoryHashes.Contains(x.HashText)).ToList();
+        }
         #endregion
 
-        var texts = outOfMemoryList.ToArray()
+        var texts = outOfMemoryList
             .Select((text, i) => new TranslationInput
             {
                 Id = i + 1,
@@ -123,7 +131,10 @@ public class TranslationService : ITranslationService
                     });
                 }
 
-                _db.SaveTranslationMemories(memoryInputs);
+                if (_convSettings.EnableTranslationMemory)
+                {
+                    _db.SaveTranslationMemories(memoryInputs);
+                }
             }
             
             clonedData = Assign(clonedData, map);
