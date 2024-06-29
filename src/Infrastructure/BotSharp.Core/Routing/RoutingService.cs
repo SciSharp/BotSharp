@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Routing.Settings;
-using System.Drawing;
 
 namespace BotSharp.Core.Routing;
 

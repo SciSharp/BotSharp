@@ -40,12 +40,13 @@ public partial class PlaywrightWebDriver
         // Retrieve the page raw html and infer the element path
         if (!string.IsNullOrEmpty(location.Text))
         {
+            var text = location.Text.Replace("(", "\\(").Replace(")", "\\)");
             var regexExpression = location.MatchRule.ToLower() switch
             {
-                "startwith" => $"^{location.Text}",
-                "endwith" => $"{location.Text}$",
-                "contains" => $"{location.Text}",
-                _ => $"^{location.Text}$"
+                "startwith" => $"^{text}",
+                "endwith" => $"{text}$",
+                "contains" => $"{text}",
+                _ => $"^{text}$"
             };
             var regex = new Regex(regexExpression, RegexOptions.IgnoreCase);
             locator = locator.GetByText(regex);
