@@ -8,7 +8,6 @@ public class BrowserActionResult
     public string Selector { get; set; }
     public string Body { get; set; }
     public bool IsHighlighted { get; set; }
-    public DateTime? ExecutedAt { get; set; } = DateTime.UtcNow;
 
     public override string ToString()
     {

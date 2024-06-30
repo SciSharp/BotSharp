@@ -4,7 +4,7 @@ namespace BotSharp.Abstraction.Browsing;
 
 public interface IWebBrowser
 {
-    Task<BrowserActionResult> LaunchBrowser(MessageInfo message);
+    Task<BrowserActionResult> LaunchBrowser(MessageInfo message, BrowserActionArgs args);
     Task<BrowserActionResult> ScreenshotAsync(MessageInfo message, string path);
     Task<BrowserActionResult> ScrollPage(MessageInfo message, PageActionArgs args);
 

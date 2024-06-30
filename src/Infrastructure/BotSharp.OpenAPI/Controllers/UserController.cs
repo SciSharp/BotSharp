@@ -108,6 +108,18 @@ public class UserController : ControllerBase
     {
         return await _userService.VerifyEmailExisting(email);
     }
+    [AllowAnonymous]
+    [HttpPost("/user/verifycode")]
+    public async Task<bool> SendVerificationCodeResetPassword([FromQuery] UserCreationModel user)
+    {
+        return await _userService.SendVerificationCodeResetPassword(user.ToUser());
+    }
+    [AllowAnonymous]
+    [HttpPost("/user/resetpassword")]
+    public async Task<bool> ResetUserPassword([FromBody] UserResetPasswordModel user)
+    {
+        return await _userService.ResetUserPassword(user.ToUser());
+    }
 
     #region Avatar
     [HttpPost("/user/avatar")]

@@ -95,6 +95,13 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        //verify password is correct or not.
+        var hashPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
+        if (hashPassword != record.Password)
+        {
+            return default;
+        }
+
         User? user = record;
         var isAuthenticatedByHook = false;
         var hooks = _services.GetServices<IAuthenticationHook>();
@@ -280,12 +287,16 @@ public class UserService : IUserService
     public async Task<bool> VerifyUserNameExisting(string userName)
     {
         if (string.IsNullOrEmpty(userName))
+        {
             return true;
+        }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserByUserName(userName);
         if (user != null)
+        {
             return true;
+        }
 
         return false;
     }
@@ -293,13 +304,61 @@ public class UserService : IUserService
     public async Task<bool> VerifyEmailExisting(string email)
     {
         if (string.IsNullOrEmpty(email))
+        {
             return true;
+        }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var emailName = db.GetUserByEmail(email);
         if (emailName != null)
+        {
             return true;
+        }
 
         return false;
+    }
+
+    public async Task<bool> SendVerificationCodeResetPassword(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByEmail(user.Email);
+        if (record == null)
+        {
+            return false;
+        }
+
+        record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
+
+        //update current verification code.
+        db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
+
+        //send code to user Email.
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            hook.VerificationCodeResetPassword(record);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> ResetUserPassword(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByEmail(user.Email);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        if (user.VerificationCode != record.VerificationCode)
+        {
+            return false;
+        }
+
+        var newPassword = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+        db.UpdateUserPassword(record.Id, newPassword);
+        return true;
     }
 }

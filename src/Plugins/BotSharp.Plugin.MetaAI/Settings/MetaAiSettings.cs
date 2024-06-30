@@ -2,5 +2,5 @@ namespace BotSharp.Plugin.MetaAI.Settings;
 
 public class MetaAiSettings
 {
-    public fastTextSetting fastText { get; set; }
+    public fastTextSetting fastText { get; set; } = new();
 }

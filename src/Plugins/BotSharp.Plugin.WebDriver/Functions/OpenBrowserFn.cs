@@ -31,7 +31,10 @@ public class OpenBrowserFn : IFunctionCallback
             ContextId = convService.ConversationId,
             MessageId = message.MessageId
         };
-        var result = await _browser.LaunchBrowser(msgInfo);
+        var result = await _browser.LaunchBrowser(msgInfo, new BrowserActionArgs
+        {
+            Headless = false
+        });
         result = await _browser.GoToPage(msgInfo, new PageActionArgs
         {
             Url = url
