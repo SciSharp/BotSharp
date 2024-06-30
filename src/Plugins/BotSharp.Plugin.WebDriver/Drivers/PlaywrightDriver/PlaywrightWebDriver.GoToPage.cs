@@ -7,7 +7,7 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> GoToPage(MessageInfo message, PageActionArgs args)
     {
         var result = new BrowserActionResult();
-        var context = await _instance.InitInstance(message.ContextId);
+        var context = await _instance.GetContext(message.ContextId);
         try
         {
             // Check if the page is already open

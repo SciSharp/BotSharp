@@ -1,5 +1,6 @@
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[Obsolete("This class is deprecated, use BrowserActionArgs instead.")]
 public class BrowserActionParams
 {
     public Agent Agent { get; set; }
