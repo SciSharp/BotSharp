@@ -125,8 +125,8 @@ public class InstructModeController : ControllerBase
                 new RoleDialogModel(AgentRole.User, input.Text)
             });
             
-            imageViewModel.RevisedPrompt = message.Content;
-            imageViewModel.Data = message.Data;
+            imageViewModel.Content = message.Content;
+            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
         }
         catch (Exception ex)
