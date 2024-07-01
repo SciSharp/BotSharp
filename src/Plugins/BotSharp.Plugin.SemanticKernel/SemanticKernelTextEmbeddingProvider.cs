@@ -49,5 +49,7 @@ namespace BotSharp.Plugin.SemanticKernel
             return embeddings.Select(_ => _.ToArray())
                              .ToList();
         }
+
+        public void SetModelName(string model) { }
     }
 }

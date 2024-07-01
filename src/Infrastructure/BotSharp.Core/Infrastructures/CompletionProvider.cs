@@ -99,6 +99,26 @@ public class CompletionProvider
         return completer;
     }
 
+    public static ITextEmbedding GetTextEmbedding(IServiceProvider services,
+        string? provider = null,
+        string? model = null)
+    {
+        var completions = services.GetServices<ITextEmbedding>();
+
+        (provider, model) = GetProviderAndModel(services, provider: provider, model: model);
+
+        var completer = completions.FirstOrDefault(x => x.Provider == provider);
+        if (completer == null)
+        {
+            var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
+            logger.LogError($"Can't resolve completion provider by {provider}");
+        }
+
+        completer.SetModelName(model);
+
+        return completer;
+    }
+
     private static (string, string) GetProviderAndModel(IServiceProvider services,
         string? provider = null,
         string? model = null,
