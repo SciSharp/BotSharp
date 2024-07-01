@@ -116,7 +116,7 @@ public partial class BotSharpFileService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when reading conversation ({conversationId}) files: {ex.Message}");
+            _logger.LogWarning($"Error when reading conversation ({conversationId}) files: {ex.Message}\r\n{ex.InnerException}\r\n{ex.StackTrace}");
         }
 
         return files;
