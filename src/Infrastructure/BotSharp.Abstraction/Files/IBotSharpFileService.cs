@@ -29,7 +29,7 @@ public interface IBotSharpFileService
     /// <param name="prompt"></param>
     /// <param name="files">Pdf files</param>
     /// <returns></returns>
-    Task<string> AnalyzePdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files);
+    Task<string> InstructPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files);
 
     /// <summary>
     /// Get file bytes and content type from data, e.g., "data:image/png;base64,aaaaaaaaa"

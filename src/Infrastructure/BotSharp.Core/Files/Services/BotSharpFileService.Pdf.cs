@@ -7,7 +7,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService
 {
-    public async Task<string> AnalyzePdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files)
+    public async Task<string> InstructPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files)
     {
         var content = string.Empty;
 

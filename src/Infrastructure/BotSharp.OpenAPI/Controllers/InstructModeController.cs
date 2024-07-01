@@ -148,7 +148,7 @@ public class InstructModeController : ControllerBase
         try
         {
             var fileService = _services.GetRequiredService<IBotSharpFileService>();
-            var content = await fileService.AnalyzePdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
+            var content = await fileService.InstructPdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
             viewModel.Content = content;
             return viewModel;
         }
