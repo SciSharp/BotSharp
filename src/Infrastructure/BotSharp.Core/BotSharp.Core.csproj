@@ -181,9 +181,6 @@
     <PackageReference Include="Fluid.Core" Version="2.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
     <PackageReference Include="Nanoid" Version="3.0.0" />
-    <PackageReference Include="PdfiumViewer" Version="2.13.0" />
-    <PackageReference Include="PdfiumViewer.Native.x86.v8-xfa" Version="2018.4.8.256" />
-    <PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
     <PackageReference Include="RedLock.net" Version="2.3.2" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.6" />
   </ItemGroup>

@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Files.Converters;
-using BotSharp.Core.Files.Converters;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
@@ -330,12 +329,7 @@ public partial class BotSharpFileService
     private IPdf2ImageConverter? GetPdf2ImageConverter()
     {
         var converters = _services.GetServices<IPdf2ImageConverter>();
-        var converter = converters.FirstOrDefault(x => x.GetType().Name != typeof(PdfiumConverter).Name);
-        if (converter == null)
-        {
-            converter = converters.FirstOrDefault(x => x.GetType().Name == typeof(PdfiumConverter).Name);
-        }
-        return converter;
+        return converters.FirstOrDefault();
     }
     #endregion
 }
