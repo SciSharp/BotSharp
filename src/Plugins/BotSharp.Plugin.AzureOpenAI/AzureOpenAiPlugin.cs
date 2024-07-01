@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.AzureOpenAI.Providers.Chat;
+using BotSharp.Plugin.AzureOpenAI.Providers.Embedding;
 using BotSharp.Plugin.AzureOpenAI.Providers.Image;
 using BotSharp.Plugin.AzureOpenAI.Providers.Text;
 using Microsoft.Extensions.Configuration;
@@ -31,5 +32,7 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IChatCompletion, OpenAiChatCompletionProvider>();
         services.AddScoped<IImageGeneration, ImageGenerationProvider>();
         services.AddScoped<IImageGeneration, OpenAiImageGenerationProvider>();
+        services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
+        services.AddScoped<ITextEmbedding, OpenAiTextEmbeddingProvider>();
     }
 }

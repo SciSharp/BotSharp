@@ -6,7 +6,7 @@ public class ChatCompletionProvider : IChatCompletion
 {
     protected readonly AzureOpenAiSettings _settings;
     protected readonly IServiceProvider _services;
-    protected readonly ILogger _logger;
+    protected readonly ILogger<ChatCompletionProvider> _logger;
 
     protected string _model;
 

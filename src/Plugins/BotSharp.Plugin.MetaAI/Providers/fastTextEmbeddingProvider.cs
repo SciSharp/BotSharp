@@ -14,12 +14,17 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     private FastTextWrapper _fastText;
     private readonly IServiceProvider _services;
 
+    private int dimension;
     public int Dimension
     {
         get
         {
             LoadModel();
             return _fastText.GetModelDimension();
+        }
+        set
+        {
+            dimension = value;
         }
     }
 
@@ -66,4 +71,6 @@ public class fastTextEmbeddingProvider : ITextEmbedding
             }
         }
     }
+
+    public void SetModelName(string model) { }
 }

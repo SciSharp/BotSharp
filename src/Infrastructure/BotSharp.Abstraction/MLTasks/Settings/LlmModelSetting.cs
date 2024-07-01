@@ -57,5 +57,6 @@ public enum LlmModelType
 {
     Text = 1,
     Chat = 2,
-    Image = 3
+    Image = 3,
+    Embedding = 4
 }
