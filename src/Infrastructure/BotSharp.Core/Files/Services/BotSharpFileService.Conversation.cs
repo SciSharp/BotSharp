@@ -1,11 +1,9 @@
 using BotSharp.Abstraction.Files.Converters;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
-namespace BotSharp.Core.Files;
+namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService
 {

@@ -1,4 +1,5 @@
 using BotSharp.Core.Files.Hooks;
+using BotSharp.Core.Files.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Files;

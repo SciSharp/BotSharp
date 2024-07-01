@@ -137,4 +137,27 @@ public class InstructModeController : ControllerBase
             return imageViewModel;
         }
     }
+
+    [HttpPost("/instruct/pdf-completion")]
+    public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] IncomingMessageModel input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        var viewModel = new PdfCompletionViewModel();
+
+        try
+        {
+            var fileService = _services.GetRequiredService<IBotSharpFileService>();
+            var content = await fileService.AnalyzePdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
+            viewModel.Content = content;
+            return viewModel;
+        }
+        catch (Exception ex)
+        {
+            var error = $"Error in pdf completion. {ex.Message}";
+            _logger.LogError(error);
+            viewModel.Message = error;
+            return viewModel;
+        }
+    }
 }

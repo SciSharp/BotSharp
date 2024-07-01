@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace BotSharp.Core.Files;
+namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService
 {
