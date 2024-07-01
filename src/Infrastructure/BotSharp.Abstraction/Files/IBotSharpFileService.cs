@@ -24,6 +24,14 @@ public interface IBotSharpFileService
     bool DeleteConversationFiles(IEnumerable<string> conversationIds);
 
     /// <summary>
+    /// Take screenshots of pdf pages and get response from llm
+    /// </summary>
+    /// <param name="prompt"></param>
+    /// <param name="files">Pdf files</param>
+    /// <returns></returns>
+    Task<string> InstructPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files);
+
+    /// <summary>
     /// Get file bytes and content type from data, e.g., "data:image/png;base64,aaaaaaaaa"
     /// </summary>
     /// <param name="data"></param>

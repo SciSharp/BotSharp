@@ -1,11 +1,9 @@
 using BotSharp.Abstraction.Files.Converters;
-using BotSharp.Core.Files.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
-namespace BotSharp.Core.Files;
+namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService
 {
@@ -118,7 +116,7 @@ public partial class BotSharpFileService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when reading conversation ({conversationId}) files: {ex.Message}");
+            _logger.LogWarning($"Error when reading conversation ({conversationId}) files: {ex.Message}\r\n{ex.InnerException}\r\n{ex.StackTrace}");
         }
 
         return files;
@@ -281,7 +279,7 @@ public partial class BotSharpFileService
 
         foreach (var conversationId in conversationIds)
         {
-            var convDir = FindConversationDirectory(conversationId);
+            var convDir = GetConversationDirectory(conversationId);
             if (!ExistDirectory(convDir)) continue;
 
             Directory.Delete(convDir, true);
@@ -305,7 +303,7 @@ public partial class BotSharpFileService
         return dir;
     }
 
-    private string? FindConversationDirectory(string conversationId)
+    private string? GetConversationDirectory(string conversationId)
     {
         if (string.IsNullOrEmpty(conversationId)) return null;
 
@@ -318,14 +316,18 @@ public partial class BotSharpFileService
         var converters = _services.GetServices<IPdf2ImageConverter>();
         if (converters.IsNullOrEmpty()) return Enumerable.Empty<string>();
 
-        var converter = converters.FirstOrDefault(x => x.GetType().Name != typeof(PdfiumConverter).Name);
+        var converter = GetPdf2ImageConverter();
         if (converter == null)
         {
-            converter = converters.FirstOrDefault(x => x.GetType().Name == typeof(PdfiumConverter).Name);
-            if (converter == null) return Enumerable.Empty<string>();
+            return Enumerable.Empty<string>();
         }
-
         return await converter.ConvertPdfToImages(pdfLoc, imageLoc);
+    }
+
+    private IPdf2ImageConverter? GetPdf2ImageConverter()
+    {
+        var converters = _services.GetServices<IPdf2ImageConverter>();
+        return converters.FirstOrDefault();
     }
     #endregion
 }

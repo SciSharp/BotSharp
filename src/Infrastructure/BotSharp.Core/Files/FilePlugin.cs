@@ -1,6 +1,5 @@
-using BotSharp.Abstraction.Files.Converters;
-using BotSharp.Core.Files.Converters;
 using BotSharp.Core.Files.Hooks;
+using BotSharp.Core.Files.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Files;
@@ -20,6 +19,5 @@ public class FilePlugin : IBotSharpPlugin
 
         services.AddScoped<IAgentHook, FileAnalyzerHook>();
         services.AddScoped<IAgentToolHook, FileAnalyzerToolHook>();
-        services.AddScoped<IPdf2ImageConverter, PdfiumConverter>();
     }
 }

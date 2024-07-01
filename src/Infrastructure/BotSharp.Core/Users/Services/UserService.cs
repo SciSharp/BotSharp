@@ -96,10 +96,13 @@ public class UserService : IUserService
         }
 
         //verify password is correct or not.
-        var hashPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
-        if (hashPassword != record.Password)
+        if (record != null)
         {
-            return default;
+            var hashPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
+            if (hashPassword != record.Password)
+            {
+                return default;
+            }
         }
 
         User? user = record;

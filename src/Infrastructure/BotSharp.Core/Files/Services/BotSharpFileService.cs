@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.StaticFiles;
-using System;
 using System.IO;
-using System.Threading;
 
-namespace BotSharp.Core.Files;
+namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService : IBotSharpFileService
 {
@@ -22,6 +20,7 @@ public partial class BotSharpFileService : IBotSharpFileService
     private const string BOT_FILE_FOLDER = "bot";
     private const string USERS_FOLDER = "users";
     private const string USER_AVATAR_FOLDER = "avatar";
+    private const string SESSION_FOLDER = "sessions";
 
     private const int MIN_OFFSET = 1;
     private const int MAX_OFFSET = 5;
