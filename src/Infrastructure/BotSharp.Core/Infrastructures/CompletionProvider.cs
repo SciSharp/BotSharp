@@ -104,7 +104,6 @@ public class CompletionProvider
         string? model = null)
     {
         var completions = services.GetServices<ITextEmbedding>();
-
         (provider, model) = GetProviderAndModel(services, provider: provider, model: model);
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
@@ -115,7 +114,6 @@ public class CompletionProvider
         }
 
         completer.SetModelName(model);
-
         return completer;
     }
 
