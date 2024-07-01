@@ -8,11 +8,12 @@ public class TextEmbeddingProvider : ITextEmbedding
     protected readonly IServiceProvider _services;
     protected readonly ILogger<TextEmbeddingProvider> _logger;
 
+    private const int DEFAULT_DIMENSION = 1536;
     protected string _model;
 
     public virtual string Provider => "azure-openai";
 
-    public int Dimension { get; set; } = 4096;
+    public int Dimension { get; set; }
 
     public TextEmbeddingProvider(
         AzureOpenAiSettings settings,
@@ -59,13 +60,12 @@ public class TextEmbeddingProvider : ITextEmbedding
 
     private int GetDimension()
     {
-        var defaultDimension = 4096;
         var state = _services.GetRequiredService<IConversationStateService>();
-        var stateDimension = state.GetState("embedding_state");
+        var stateDimension = state.GetState("embedding_dimension");
         if (int.TryParse(stateDimension, out var dimension))
         {
-            return dimension > 0 ? dimension : defaultDimension;
+            return dimension > 0 ? dimension :(Dimension > 0 ? Dimension: DEFAULT_DIMENSION);
         }
-        return Dimension > 0 ? Dimension : defaultDimension;
+        return Dimension > 0 ? Dimension : DEFAULT_DIMENSION;
     }
 }
