@@ -3,6 +3,7 @@ namespace BotSharp.Core.Files.Hooks;
 public class FileAnalyzerHook : AgentHookBase
 {
     private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
+    private static string FUNCTION_NAME = "load_attachment";
 
     public override string SelfId => string.Empty;
 
@@ -43,11 +44,10 @@ public class FileAnalyzerHook : AgentHookBase
 
     private (string, FunctionDef?) GetPromptAndFunction()
     {
-        var fn = "load_attachment";
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var agent = db.GetAgent(UTILITY_ASSISTANT);
-        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{fn}.fn"))?.Content ?? string.Empty;
-        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(fn));
+        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{FUNCTION_NAME}.fn"))?.Content ?? string.Empty;
+        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(FUNCTION_NAME));
         return (prompt, loadAttachmentFn);
     }
 }
