@@ -181,16 +181,6 @@ public partial class BotSharpFileService
         return found;
     }
 
-    public bool HasConversationUserFiles(string conversationId)
-    {
-        if (string.IsNullOrEmpty(conversationId)) return false;
-
-        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
-        if (!ExistDirectory(dir)) return false;
-
-        return Directory.GetDirectories(dir).Any();
-    }
-
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files)
     {
         if (files.IsNullOrEmpty()) return false;

@@ -91,9 +91,9 @@ public class Agent
         = new List<string>();
 
     /// <summary>
-    /// Useful tools
+    /// Agent utilities
     /// </summary>
-    public List<string> Tools { get; set; }
+    public List<string> Utilities { get; set; }
         = new List<string>();
 
     /// <summary>
@@ -127,7 +127,7 @@ public class Agent
             Functions = agent.Functions,
             Responses = agent.Responses,
             Samples = agent.Samples,
-            Tools = agent.Tools,
+            Utilities = agent.Utilities,
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
@@ -169,9 +169,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetTools(List<string> tools)
+    public Agent SetUtilities(List<string> utilities)
     {
-        Tools = tools ?? new List<string>();
+        Utilities = utilities ?? new List<string>();
         return this;
     }
 

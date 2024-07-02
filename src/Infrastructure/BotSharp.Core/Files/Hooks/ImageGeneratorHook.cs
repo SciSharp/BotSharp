@@ -1,19 +1,13 @@
-using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Agents.Settings;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Plugin.HttpHandler.Enums;
+namespace BotSharp.Core.Files.Hooks;
 
-namespace BotSharp.Plugin.HttpHandler.Hooks;
-
-public class HttpHandlerHook : AgentHookBase
+public class ImageGeneratorHook : AgentHookBase
 {
     private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
-    private static string FUNCTION_NAME = "handle_http_request";
+    private static string FUNCTION_NAME = "generate_image";
 
     public override string SelfId => string.Empty;
 
-    public HttpHandlerHook(IServiceProvider services, AgentSettings settings)
+    public ImageGeneratorHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
@@ -22,7 +16,7 @@ public class HttpHandlerHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(Utility.HttpHandler);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(AgentUtility.ImageGenerator);
 
         if (isConvMode && isEnabled)
         {
