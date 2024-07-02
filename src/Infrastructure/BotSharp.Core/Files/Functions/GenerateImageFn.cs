@@ -81,26 +81,11 @@ public class GenerateImageFn : IFunctionCallback
     {
         if (images.IsNullOrEmpty()) return;
 
-        var files = new List<BotSharpFile>();
-        foreach (var image in images)
+        var files = images.Where(x => !string.IsNullOrEmpty(x?.ImageData)).Select(x => new BotSharpFile
         {
-            if (string.IsNullOrEmpty(image?.ImageData))
-            {
-                continue;
-            }
-
-            try
-            {
-                var name = $"{Guid.NewGuid()}.png";
-                var data = $"data:image/png;base64,{image.ImageData}";
-                files.Add(new BotSharpFile { FileName = name, FileData = data });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning($"Error when saving generated image: {image.ImageData}\r\n{ex.Message}");
-                continue;
-            }
-        }
+            FileName = $"{Guid.NewGuid()}.png",
+            FileData = $"data:image/png;base64,{x.ImageData}"
+        }).ToList();
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
         fileService.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
