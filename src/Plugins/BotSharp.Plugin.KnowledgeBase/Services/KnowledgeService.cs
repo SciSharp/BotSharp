@@ -32,7 +32,7 @@ public partial class KnowledgeService : IKnowledgeService
         foreach (var line in lines)
         {
             var vec = await textEmbedding.GetVectorAsync(line);
-            await db.Upsert("shared", idStart, vec, line);
+            await db.Upsert("shared", idStart.ToString(), vec, line);
             idStart++;
             Console.WriteLine($"Saved vector {idStart}/{lines.Count}: {line}\n");
         }
@@ -55,7 +55,7 @@ public partial class KnowledgeService : IKnowledgeService
         foreach (var line in lines)
         {
             var vec = await textEmbedding.GetVectorAsync(line);
-            await db.Upsert(knowledge.AgentId, idStart, vec, line);
+            await db.Upsert(knowledge.AgentId, idStart.ToString(), vec, line);
             idStart++;
             Console.WriteLine($"Saved vector {idStart}/{lines.Count}: {line}\n");
         }
