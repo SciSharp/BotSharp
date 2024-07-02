@@ -20,7 +20,7 @@ public class ChatCompletionProvider : IChatCompletion
         _services = services;
         _settings = settings;
         _logger = logger;
-        _model = $"general{settings.ModelVersion.ToString()}";
+        _model = $"general{settings.ModelVersion}";
     }
 
 
