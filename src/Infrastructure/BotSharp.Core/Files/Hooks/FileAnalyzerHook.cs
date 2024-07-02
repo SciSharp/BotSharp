@@ -2,7 +2,7 @@ namespace BotSharp.Core.Files.Hooks;
 
 public class FileAnalyzerHook : AgentHookBase
 {
-    private static string TOOL_ASSISTANT = Guid.Empty.ToString();
+    private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
 
     public override string SelfId => string.Empty;
 
@@ -15,7 +15,7 @@ public class FileAnalyzerHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Tools.IsNullOrEmpty() && agent.Tools.Contains(AgentTool.FileAnalyzer);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(AgentUtility.FileAnalyzer);
 
         if (isConvMode && isEnabled)
         {
@@ -45,7 +45,7 @@ public class FileAnalyzerHook : AgentHookBase
     {
         var fn = "load_attachment";
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.GetAgent(TOOL_ASSISTANT);
+        var agent = db.GetAgent(UTILITY_ASSISTANT);
         var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{fn}.fn"))?.Content ?? string.Empty;
         var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(fn));
         return (prompt, loadAttachmentFn);

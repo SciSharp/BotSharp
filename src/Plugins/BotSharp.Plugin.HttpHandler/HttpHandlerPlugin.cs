@@ -22,6 +22,6 @@ public class HttpHandlerPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<IAgentHook, HttpHandlerHook>();
-        services.AddScoped<IAgentToolHook, HttpHandlerToolHook>();
+        services.AddScoped<IAgentUtilityHook, HttpHandlerUtilityHook>();
     }
 }

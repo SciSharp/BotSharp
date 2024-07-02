@@ -18,6 +18,6 @@ public class FilePlugin : IBotSharpPlugin
         services.AddScoped<IBotSharpFileService, BotSharpFileService>();
 
         services.AddScoped<IAgentHook, FileAnalyzerHook>();
-        services.AddScoped<IAgentToolHook, FileAnalyzerToolHook>();
+        services.AddScoped<IAgentUtilityHook, FileAnalyzerUtilityHook>();
     }
 }
