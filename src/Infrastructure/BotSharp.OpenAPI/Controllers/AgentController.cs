@@ -141,9 +141,9 @@ public class AgentController : ControllerBase
         return await _agentService.DeleteAgent(agentId);
     }
 
-    [HttpGet("/agent/tools")]
-    public IEnumerable<string> GetAgentTools()
+    [HttpGet("/agent/utilities")]
+    public IEnumerable<string> GetAgentUtilities()
     {
-        return _agentService.GetAgentTools();
+        return _agentService.GetAgentUtilities();
     }
 }

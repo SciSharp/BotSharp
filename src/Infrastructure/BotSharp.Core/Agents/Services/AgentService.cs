@@ -55,15 +55,14 @@ public partial class AgentService : IAgentService
         return agents;
     }
 
-    public IEnumerable<string> GetAgentTools()
+    public IEnumerable<string> GetAgentUtilities()
     {
-        var tools = new List<string>();
-
-        var hooks = _services.GetServices<IAgentToolHook>();
+        var utilities = new List<string>();
+        var hooks = _services.GetServices<IAgentUtilityHook>();
         foreach (var hook in hooks)
         {
-            hook.AddTools(tools);
+            hook.AddUtilities(utilities);
         }
-        return tools.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList();
+        return utilities.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList();
     }
 }
