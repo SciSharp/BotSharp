@@ -21,7 +21,7 @@ public interface IBotSharpPlugin
     /// <summary>
     /// Has build-in agent profile with this plugin
     /// </summary>
-    string[] AgentIds => new string[0];
+    string[] AgentIds => [];
 
     void RegisterDI(IServiceCollection services, IConfiguration config);
 

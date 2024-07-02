@@ -77,6 +77,7 @@ public class QdrantDb : IVectorDb
                 Uuid = id
             },
             Vectors = vector,
+
             Payload = { }
         };
 
