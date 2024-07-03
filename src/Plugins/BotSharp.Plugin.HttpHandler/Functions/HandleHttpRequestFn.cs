@@ -41,14 +41,16 @@ public class HandleHttpRequestFn : IFunctionCallback
             var response = await SendHttpRequest(url, method, content);
             var responseContent = await HandleHttpResponse(response);
             message.RichContent = BuildRichContent(responseContent);
-            return await Task.FromResult(true);
+            message.StopCompletion = true;
+            return true;
         }
         catch (Exception ex)
         {
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
             _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
             message.RichContent = BuildRichContent($"{msg}");
-            return await Task.FromResult(false);
+            message.StopCompletion = true;
+            return false;
         }
     }
 
