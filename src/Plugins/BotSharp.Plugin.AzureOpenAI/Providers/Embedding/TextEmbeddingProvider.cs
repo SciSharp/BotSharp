@@ -62,10 +62,12 @@ public class TextEmbeddingProvider : ITextEmbedding
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         var stateDimension = state.GetState("embedding_dimension");
+        var defaultDimension = Dimension > 0 ? Dimension : DEFAULT_DIMENSION;
+
         if (int.TryParse(stateDimension, out var dimension))
         {
-            return dimension > 0 ? dimension :(Dimension > 0 ? Dimension: DEFAULT_DIMENSION);
+            return dimension > 0 ? dimension : defaultDimension;
         }
-        return Dimension > 0 ? Dimension : DEFAULT_DIMENSION;
+        return defaultDimension;
     }
 }
