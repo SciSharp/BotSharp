@@ -3,20 +3,20 @@ using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Core.Files.Functions;
 
-public class LoadAttachmentFn : IFunctionCallback
+public class ReadFileFn : IFunctionCallback
 {
-    public string Name => "load_attachment";
-    public string Indication => "Analyzing files";
+    public string Name => "read_file";
+    public string Indication => "Reading files";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger<LoadAttachmentFn> _logger;
+    private readonly ILogger<ReadFileFn> _logger;
     private readonly IEnumerable<string> _imageTypes = new List<string> { "image", "images", "png", "jpg", "jpeg" };
     private readonly IEnumerable<string> _pdfTypes = new List<string> { "pdf" };
     private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
 
-    public LoadAttachmentFn(
+    public ReadFileFn(
         IServiceProvider services,
-        ILogger<LoadAttachmentFn> logger)
+        ILogger<ReadFileFn> logger)
     {
         _services = services;
         _logger = logger;
