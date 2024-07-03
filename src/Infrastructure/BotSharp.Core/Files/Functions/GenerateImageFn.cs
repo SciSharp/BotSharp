@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions;
-using System.Net.Http;
 
 namespace BotSharp.Core.Files.Functions;
 
@@ -55,11 +54,8 @@ public class GenerateImageFn : IFunctionCallback
     private void SetImageOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var size = state.SetState("image_size", "1024x1024");
-        var quality = state.SetState("image_quality", "standard");
-        var style = state.SetState("image_style", "natural");
-        var format = state.SetState("image_format", "bytes");
-        var count = state.SetState("image_count", "1");
+        state.SetState("image_format", "bytes");
+        state.SetState("image_count", "1");
     }
 
     private async Task<string> GetImageGeneration(Agent agent, RoleDialogModel message, string? description)
@@ -70,7 +66,7 @@ public class GenerateImageFn : IFunctionCallback
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var result = await completion.GetImageGeneration(agent, new List<RoleDialogModel> { dialog });
-            await SaveGeneratedImages(result?.GeneratedImages);
+            SaveGeneratedImages(result?.GeneratedImages);
             return result?.Content ?? string.Empty;
         }
         catch (Exception ex)
@@ -81,43 +77,15 @@ public class GenerateImageFn : IFunctionCallback
         }
     }
 
-    private async Task SaveGeneratedImages(List<ImageGeneration>? images)
+    private void SaveGeneratedImages(List<ImageGeneration>? images)
     {
         if (images.IsNullOrEmpty()) return;
 
-        var files = new List<BotSharpFile>();
-        foreach (var image in images)
+        var files = images.Where(x => !string.IsNullOrEmpty(x?.ImageData)).Select(x => new BotSharpFile
         {
-            if (string.IsNullOrEmpty(image?.ImageUrl)
-                && string.IsNullOrEmpty(image?.ImageData))
-            {
-                continue;
-            }
-
-            try
-            {
-                var data = image.ImageData;
-                if (!string.IsNullOrEmpty(image.ImageUrl))
-                {
-                    var http = _services.GetRequiredService<IHttpClientFactory>();
-                    using var client = http.CreateClient();
-                    var bytes = await client.GetByteArrayAsync(image.ImageUrl);
-                    data = Convert.ToBase64String(bytes);
-                }
-
-                if (!string.IsNullOrEmpty(data))
-                {
-                    var imageName = $"{Guid.NewGuid().ToString()}.png";
-                    var imageData = $"data:image/png;base64,{data}";
-                    files.Add(new BotSharpFile { FileName = imageName, FileData = imageData });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning($"Error when saving generated image: {image.ImageUrl ?? image.ImageData}\r\n{ex.Message}");
-                continue;
-            }
-        }
+            FileName = $"{Guid.NewGuid()}.png",
+            FileData = $"data:image/png;base64,{x.ImageData}"
+        }).ToList();
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
         fileService.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);

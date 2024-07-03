@@ -218,7 +218,7 @@ public partial class BotSharpFileService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving conversation files: {ex.Message}");
+            _logger.LogWarning($"Error when saving conversation files: {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }
