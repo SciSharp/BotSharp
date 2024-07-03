@@ -103,7 +103,7 @@ public partial class ConversationService
         response.Role = AgentRole.Assistant;
         var text = $"Sending [{agentName}] {response.Role}: {response.Content}";
 #if DEBUG
-        Console.WriteLine(text, Color.Yellow);
+        Console.WriteLine(text);
 #else
         _logger.LogInformation(text);
 #endif
