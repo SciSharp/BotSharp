@@ -5,19 +5,19 @@ using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.HttpHandler.Functions;
 
-public class HandleHttpRequest : IFunctionCallback
+public class HandleHttpRequestFn : IFunctionCallback
 {
     public string Name => "handle_http_request";
     public string Indication => "Handling http request";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger<HandleHttpRequest> _logger;
+    private readonly ILogger<HandleHttpRequestFn> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IHttpContextAccessor _context;
     private readonly BotSharpOptions _options;
 
-    public HandleHttpRequest(IServiceProvider services,
-        ILogger<HandleHttpRequest> logger,
+    public HandleHttpRequestFn(IServiceProvider services,
+        ILogger<HandleHttpRequestFn> logger,
         IHttpClientFactory httpClientFactory,
         IHttpContextAccessor context,
         BotSharpOptions options)
