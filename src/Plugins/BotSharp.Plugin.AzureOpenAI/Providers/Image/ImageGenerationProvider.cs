@@ -177,7 +177,7 @@ public class ImageGenerationProvider : IImageGeneration
         GeneratedImageStyle retStyle;
         switch (value)
         {
-            case "standard":
+            case "natural":
                 retStyle = GeneratedImageStyle.Natural;
                 break;
             case "vivid":

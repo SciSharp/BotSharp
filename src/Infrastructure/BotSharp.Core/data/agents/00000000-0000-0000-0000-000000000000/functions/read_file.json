@@ -1,5 +1,5 @@
 {
-  "name": "load_attachment",
+  "name": "read_file",
   "description": "If the user's request is related to analyzing files and/or images, you can call this function to analyze files and images.",
   "parameters": {
     "type": "object",

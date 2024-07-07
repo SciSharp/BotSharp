@@ -1,9 +1,9 @@
 namespace BotSharp.Core.Files.Hooks;
 
-public class FileAnalyzerUtilityHook : IAgentUtilityHook
+public class FileReaderUtilityHook : IAgentUtilityHook
 {
     public void AddUtilities(List<string> utilities)
     {
-        utilities.Add(AgentUtility.FileAnalyzer);
+        utilities.Add(AgentUtility.FileReader);
     }
 }
