@@ -188,16 +188,16 @@ public partial class BotSharpFileService
         var dir = GetConversationFileDirectory(conversationId, messageId, createNewDir: true);
         if (!ExistDirectory(dir)) return false;
 
-        try
+        for (int i = 0; i < files.Count; i++)
         {
-            for (int i = 0; i < files.Count; i++)
+            var file = files[i];
+            if (string.IsNullOrEmpty(file.FileData))
             {
-                var file = files[i];
-                if (string.IsNullOrEmpty(file.FileData))
-                {
-                    continue;
-                }
+                continue;
+            }
 
+            try
+            {
                 var (_, bytes) = GetFileInfoFromData(file.FileData);
                 var subDir = Path.Combine(dir, source, $"{i + 1}");
                 if (!ExistDirectory(subDir))
@@ -213,14 +213,14 @@ public partial class BotSharpFileService
                     Thread.Sleep(100);
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error when saving message file {file.FileName}: {ex.Message}\r\n{ex.InnerException}");
+                continue;
+            }
+        }
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning($"Error when saving conversation files: {ex.Message}");
-            return false;
-        }
+        return true;
     }
 
 
