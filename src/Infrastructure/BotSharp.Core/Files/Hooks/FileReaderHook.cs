@@ -1,13 +1,13 @@
 namespace BotSharp.Core.Files.Hooks;
 
-public class FileAnalyzerHook : AgentHookBase
+public class FileReaderHook : AgentHookBase
 {
     private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
-    private static string FUNCTION_NAME = "load_attachment";
+    private static string FUNCTION_NAME = "read_file";
 
     public override string SelfId => string.Empty;
 
-    public FileAnalyzerHook(IServiceProvider services, AgentSettings settings)
+    public FileReaderHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
@@ -16,7 +16,7 @@ public class FileAnalyzerHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(AgentUtility.FileAnalyzer);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(AgentUtility.FileReader);
 
         if (isConvMode && isEnabled)
         {

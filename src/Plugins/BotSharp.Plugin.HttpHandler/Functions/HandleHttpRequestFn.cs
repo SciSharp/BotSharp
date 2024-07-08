@@ -5,19 +5,19 @@ using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.HttpHandler.Functions;
 
-public class HandleHttpRequest : IFunctionCallback
+public class HandleHttpRequestFn : IFunctionCallback
 {
     public string Name => "handle_http_request";
     public string Indication => "Handling http request";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger<HandleHttpRequest> _logger;
+    private readonly ILogger<HandleHttpRequestFn> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IHttpContextAccessor _context;
     private readonly BotSharpOptions _options;
 
-    public HandleHttpRequest(IServiceProvider services,
-        ILogger<HandleHttpRequest> logger,
+    public HandleHttpRequestFn(IServiceProvider services,
+        ILogger<HandleHttpRequestFn> logger,
         IHttpClientFactory httpClientFactory,
         IHttpContextAccessor context,
         BotSharpOptions options)
@@ -41,14 +41,16 @@ public class HandleHttpRequest : IFunctionCallback
             var response = await SendHttpRequest(url, method, content);
             var responseContent = await HandleHttpResponse(response);
             message.RichContent = BuildRichContent(responseContent);
-            return await Task.FromResult(true);
+            message.StopCompletion = true;
+            return true;
         }
         catch (Exception ex)
         {
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
             _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
             message.RichContent = BuildRichContent($"{msg}");
-            return await Task.FromResult(false);
+            message.StopCompletion = true;
+            return false;
         }
     }
 

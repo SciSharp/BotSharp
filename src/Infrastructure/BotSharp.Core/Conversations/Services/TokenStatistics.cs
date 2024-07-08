@@ -70,7 +70,7 @@ public class TokenStatistics : ITokenStatistics
         }
         var stats = $"Token Usage: {_promptTokenCount} prompt + {_completionTokenCount} completion = {Total} total tokens ({_timer.ElapsedMilliseconds / 1000f:f2}s). One-Way cost: {Cost:C4}, accumulated cost: {AccumulatedCost:C4}. [{_model}]";
 #if DEBUG
-        Console.WriteLine(stats, Color.DarkGray);
+        Console.WriteLine(stats);
 #else
         _logger.LogInformation(stats);
 #endif
