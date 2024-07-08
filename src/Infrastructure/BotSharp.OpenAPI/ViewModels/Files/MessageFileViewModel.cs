@@ -16,6 +16,9 @@ public class MessageFileViewModel
     [JsonPropertyName("content_type")]
     public string ContentType { get; set; }
 
+    [JsonPropertyName("file_source")]
+    public string FileSource { get; set; }
+
     public MessageFileViewModel()
     {
         
@@ -28,7 +31,8 @@ public class MessageFileViewModel
             FileUrl = model.FileUrl,
             FileName = model.FileName,
             FileType = model.FileType,
-            ContentType = model.ContentType
+            ContentType = model.ContentType,
+            FileSource = model.FileSource
         };
     }
 }

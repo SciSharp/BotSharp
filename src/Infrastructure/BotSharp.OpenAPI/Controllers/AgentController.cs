@@ -31,7 +31,7 @@ public class AgentController : ControllerBase
         var agents = await GetAgents(new AgentFilter
         {
             AgentIds = new List<string> { id }
-        });
+        }, useHook: true);
 
         var targetAgent = agents.Items.FirstOrDefault();
         if (targetAgent == null) return null;
@@ -63,26 +63,35 @@ public class AgentController : ControllerBase
         targetAgent.Editable = editable;
         return targetAgent;
     }
-             
+
     [HttpGet("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter, [FromQuery] bool useHook = false)
     {
         var agentSetting = _services.GetRequiredService<AgentSettings>();
         var pagedAgents = await _agentService.GetAgents(filter);
 
-        // prerender agent
         var items = new List<Agent>();
-        foreach (var agent in pagedAgents.Items)
+        var agents = new List<AgentViewModel>();
+        if (useHook)
         {
-            var renderedAgent = await _agentService.LoadAgent(agent.Id);
-            items.Add(renderedAgent);
-        }
+            // prerender agent
+            foreach (var agent in pagedAgents.Items)
+            {
+                var renderedAgent = await _agentService.LoadAgent(agent.Id);
+                items.Add(renderedAgent);
+            }
 
-        // Set IsHost
-        var agents = items.Select(x => AgentViewModel.FromAgent(x)).ToList();
-        foreach(var agent in agents)
+            // Set IsHost
+            agents = items.Select(x => AgentViewModel.FromAgent(x)).ToList();
+            foreach (var agent in agents)
+            {
+                agent.IsHost = agentSetting.HostAgentId == agent.Id;
+            }
+        }
+        else
         {
-            agent.IsHost = agentSetting.HostAgentId == agent.Id;
+            items = pagedAgents.Items.ToList();
+            agents = items.Select(x => AgentViewModel.FromAgent(x)).ToList();
         }
 
         return new PagedItems<AgentViewModel>
