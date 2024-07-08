@@ -11,8 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Qdrant.Client" Version="8.0.1" />
-    <PackageReference Include="Qdrant.Client" Version="1.9.0" />
+    <PackageReference Include="Qdrant.Client" Version="1.10.0" />
   </ItemGroup>
 
   <ItemGroup>
