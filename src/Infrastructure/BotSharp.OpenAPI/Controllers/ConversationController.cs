@@ -80,6 +80,10 @@ public class ConversationController : ControllerBase
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+
+        var messageIds = history.Select(x => x.MessageId).Distinct().ToList();
+        var fileMessages = fileService.GetMessagesWithFile(conversationId, messageIds);
 
         var dialogs = new List<ChatResponseModel>();
         foreach (var message in history)
@@ -96,7 +100,8 @@ public class ConversationController : ControllerBase
                     Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
                     Data = message.Data,
                     Sender = UserViewModel.FromUser(user),
-                    Payload = message.Payload
+                    Payload = message.Payload,
+                    HasMessageFiles = fileMessages.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSourceType.User)
                 });
             }
             else if (message.Role == AgentRole.Assistant)
@@ -115,11 +120,11 @@ public class ConversationController : ControllerBase
                         FirstName = agent?.Name ?? "Unkown",
                         Role = message.Role,
                     },
-                    RichContent = message.SecondaryRichContent ?? message.RichContent
+                    RichContent = message.SecondaryRichContent ?? message.RichContent,
+                    HasMessageFiles = fileMessages.Any(x => x.MessageId.IsEqualTo(message.MessageId) && x.FileSource == FileSourceType.Bot)
                 });
             }
         }
-
         return dialogs;
     }
 

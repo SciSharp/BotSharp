@@ -32,6 +32,9 @@ public class ChatResponseModel : InstructResult
     [JsonPropertyName("payload")]
     public string? Payload { get; set; }
 
+    [JsonPropertyName("has_message_files")]
+    public bool HasMessageFiles { get; set; }
+
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

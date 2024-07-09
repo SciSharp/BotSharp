@@ -1,3 +1,4 @@
+using AspectInjector.Broker;
 using BotSharp.Abstraction.Files.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
@@ -126,7 +127,7 @@ public partial class BotSharpFileService
         string source, bool imageOnly = false)
     {
         var files = new List<MessageFileModel>();
-        if (messageIds.IsNullOrEmpty()) return files;
+        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return files;
 
         foreach (var messageId in messageIds)
         {
@@ -159,7 +160,8 @@ public partial class BotSharpFileService
                         FileStorageUrl = file,
                         FileName = fileName,
                         FileType = fileType,
-                        ContentType = contentType
+                        ContentType = contentType,
+                        FileSource = source
                     };
                     files.Add(model);
                 }
@@ -179,6 +181,30 @@ public partial class BotSharpFileService
 
         var found = Directory.GetFiles(dir).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IsEqualTo(fileName));
         return found;
+    }
+
+    public IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds)
+    {
+        var foundMsgs = new List<MessageFileModel>();
+        if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return foundMsgs;
+
+        foreach (var messageId in messageIds)
+        {
+            var prefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER, messageId);
+            var userDir = Path.Combine(prefix, FileSourceType.User);
+            if (ExistDirectory(userDir))
+            {
+                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.User });
+            }
+
+            var botDir = Path.Combine(prefix, FileSourceType.Bot);
+            if (ExistDirectory(botDir))
+            {
+                foundMsgs.Add(new MessageFileModel { MessageId = messageId, FileSource = FileSourceType.Bot });
+            }
+        }
+
+        return foundMsgs;
     }
 
     public bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files)
