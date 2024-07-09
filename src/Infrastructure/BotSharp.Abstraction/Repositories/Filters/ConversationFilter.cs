@@ -21,7 +21,7 @@ public class ConversationFilter
     /// <summary>
     /// Check whether each key in the list is in the conversation states and its value equals to target value if not empty 
     /// </summary>
-    public List<KeyValue> States { get; set; } = new List<KeyValue>();
+    public IEnumerable<KeyValue> States { get; set; } = new List<KeyValue>();
 }
 
 public class KeyValue
