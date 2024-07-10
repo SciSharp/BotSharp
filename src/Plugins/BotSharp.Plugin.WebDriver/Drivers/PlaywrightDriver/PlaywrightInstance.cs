@@ -111,9 +111,20 @@ public class PlaywrightInstance : IDisposable
                     e.Headers["content-type"].Contains("application/json") &&
                     e.Request.ResourceType == "fetch")
                 {
-                    Serilog.Log.Information($"Response: {e.Url}");
-                    var json = await e.JsonAsync();
-                    fetched(e.Url.ToLower(), JsonSerializer.Serialize(json));
+                    Serilog.Log.Information($"fetched: {e.Url}");
+                    JsonElement? json = null;
+                    try
+                    {
+                        json = await e.JsonAsync();
+                    }
+                    catch(Exception ex)
+                    {
+                        Serilog.Log.Error(ex.ToString());
+                    }
+                    finally
+                    {
+                        fetched(e.Url.ToLower(), JsonSerializer.Serialize(json ?? new JsonElement()));
+                    }
                 }
             };
         }

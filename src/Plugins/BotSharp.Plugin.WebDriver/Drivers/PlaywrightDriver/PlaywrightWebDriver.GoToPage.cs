@@ -29,6 +29,7 @@ public partial class PlaywrightWebDriver
             var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId, fetched: args.OnDataFetched) : 
                 _instance.GetPage(message.ContextId);
 
+            Serilog.Log.Information($"goto page: {args.Url}");
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
             {
                 Timeout = args.Timeout
