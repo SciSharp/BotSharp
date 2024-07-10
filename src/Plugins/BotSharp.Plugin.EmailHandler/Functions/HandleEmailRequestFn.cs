@@ -52,14 +52,7 @@ namespace BotSharp.Plugin.EmailHandler.Functions
                 {
                     Text = body
                 };
-
-                using (var smtpClient = new SmtpClient())
-                {
-                    smtpClient.Connect(_emailSettings.SMTPServer, _emailSettings.SMTPPort, SecureSocketOptions.StartTls);
-                    smtpClient.Authenticate(_emailSettings.EmailAddress, _emailSettings.Password);
-                    smtpClient.Send(mailMessage);
-                    smtpClient.Disconnect(true);
-                }
+                await HandleSendEmailBySMTP(mailMessage);
                 message.Content = $"Email successfully send over to {recipient}. Email Subject: {subject}";
                 return true;
             }
@@ -69,6 +62,16 @@ namespace BotSharp.Plugin.EmailHandler.Functions
                 _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
                 message.Content = msg;
                 return false;
+            }
+        }
+        public async Task HandleSendEmailBySMTP(MimeMessage mailMessage)
+        {
+            using (var smtpClient = new SmtpClient())
+            {
+                await smtpClient.ConnectAsync(_emailSettings.SMTPServer, _emailSettings.SMTPPort, SecureSocketOptions.StartTls);
+                await smtpClient.AuthenticateAsync(_emailSettings.EmailAddress, _emailSettings.Password);
+                await smtpClient.SendAsync(mailMessage);
+                smtpClient.Disconnect(true);
             }
         }
     }
