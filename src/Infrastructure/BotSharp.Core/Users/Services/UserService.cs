@@ -88,6 +88,7 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
 
+        var hooks = _services.GetServices<IAuthenticationHook>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
@@ -96,7 +97,7 @@ public class UserService : IUserService
         }
 
         //verify password is correct or not.
-        if (record != null)
+        if (record != null && !hooks.Any())
         {
             var hashPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
             if (hashPassword != record.Password)
@@ -107,7 +108,6 @@ public class UserService : IUserService
 
         User? user = record;
         var isAuthenticatedByHook = false;
-        var hooks = _services.GetServices<IAuthenticationHook>();
         if (record == null || record.Source != "internal")
         {
             // check 3rd party user
@@ -146,7 +146,7 @@ public class UserService : IUserService
             }
         }
 
-        if ((hooks != null && hooks.Any() && user == null) || record == null)
+        if ((hooks.Any() && user == null) || record == null)
         {
             return default;
         }
