@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Templating;
-
 namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
@@ -7,7 +5,7 @@ public partial class AgentService
     [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id)
     {
-        if (string.IsNullOrEmpty(id))
+        if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
         {
             return null;
         }

@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
@@ -8,7 +9,6 @@ namespace BotSharp.Plugin.HttpHandler.Hooks;
 
 public class HttpHandlerHook : AgentHookBase
 {
-    private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
     private static string FUNCTION_NAME = "handle_http_request";
 
     public override string SelfId => string.Empty;
@@ -51,7 +51,7 @@ public class HttpHandlerHook : AgentHookBase
     private (string, FunctionDef?) GetPromptAndFunction()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.GetAgent(UTILITY_ASSISTANT);
+        var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
         var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{FUNCTION_NAME}.fn"))?.Content ?? string.Empty;
         var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(FUNCTION_NAME));
         return (prompt, loadAttachmentFn);
