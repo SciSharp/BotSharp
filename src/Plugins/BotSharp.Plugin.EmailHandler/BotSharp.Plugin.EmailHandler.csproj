@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_email_request.json" />
+    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_email_request.fn.liquid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_email_request.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_email_request.fn.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+  </ItemGroup>
+
+</Project>
