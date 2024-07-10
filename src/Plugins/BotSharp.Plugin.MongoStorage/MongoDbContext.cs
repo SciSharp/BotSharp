@@ -40,6 +40,19 @@ public class MongoDbContext
         return collection;
     }
 
+    private IMongoCollection<ConversationStateDocument> CreateConversationStateIndex()
+    {
+        var collection = Database.GetCollection<ConversationStateDocument>($"{_collectionPrefix}_ConversationStates");
+        var indexes = collection.Indexes.List().ToList();
+        var stateIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("States.Key"));
+        if (stateIndex == null)
+        {
+            var indexDef = Builders<ConversationStateDocument>.IndexKeys.Ascending("States.Key");
+            collection.Indexes.CreateOne(new CreateIndexModel<ConversationStateDocument>(indexDef));
+        }
+        return collection;
+    }
+
     private IMongoCollection<AgentTaskDocument> CreateAgentTaskIndex()
     {
         var collection = Database.GetCollection<AgentTaskDocument>($"{_collectionPrefix}_AgentTasks");
@@ -93,7 +106,7 @@ public class MongoDbContext
         => Database.GetCollection<ConversationDialogDocument>($"{_collectionPrefix}_ConversationDialogs");
 
     public IMongoCollection<ConversationStateDocument> ConversationStates
-        => Database.GetCollection<ConversationStateDocument>($"{_collectionPrefix}_ConversationStates");
+        => CreateConversationStateIndex();
 
     public IMongoCollection<ExecutionLogDocument> ExectionLogs
         => Database.GetCollection<ExecutionLogDocument>($"{_collectionPrefix}_ExecutionLogs");
