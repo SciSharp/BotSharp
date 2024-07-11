@@ -39,7 +39,7 @@ public class HandleHttpRequestFn : IFunctionCallback
         {
             var response = await SendHttpRequest(url, method, content);
             var responseContent = await HandleHttpResponse(response);
-            message.RichContent = BuildRichContent(responseContent);
+            message.Content = responseContent;
             message.StopCompletion = true;
             return true;
         }
@@ -47,7 +47,7 @@ public class HandleHttpRequestFn : IFunctionCallback
         {
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
             _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
-            message.RichContent = BuildRichContent($"{msg}");
+            message.Content = msg;
             message.StopCompletion = true;
             return false;
         }
@@ -57,21 +57,14 @@ public class HandleHttpRequestFn : IFunctionCallback
     {
         if (string.IsNullOrEmpty(url)) return null;
 
-        var settings = _services.GetRequiredService<HttpHandlerSettings>();
         using var client = _httpClientFactory.CreateClient();
         AddRequestHeaders(client);
 
         var (uri, request) = BuildHttpRequest(url, method, content);
-        if (string.IsNullOrEmpty(uri.Host))
-        {
-            client.BaseAddress = new Uri(settings.BaseAddress);
-        }
-
         var response = await client.SendAsync(request);
-
         if (response == null || !response.IsSuccessStatusCode)
         {
-            throw new Exception($"Status code: {response?.StatusCode}");
+            _logger.LogWarning($"Response status code: {response?.StatusCode}");
         }
 
         return response;
@@ -94,17 +87,24 @@ public class HandleHttpRequestFn : IFunctionCallback
         var httpMethod = GetHttpMethod(method);
         StringContent httpContent;
 
+        var requestUrl = url;
         if (httpMethod == HttpMethod.Get)
         {
             httpContent = BuildHttpContent("{}");
+            requestUrl = BuildQuery(url, content);
         }
         else
         {
             httpContent = BuildHttpContent(content);
         }
 
-        var requestUrl = BuildQuery(url, content);
-        var uri = new Uri(requestUrl);
+        if (!Uri.TryCreate(requestUrl, UriKind.Absolute, out var uri))
+        {
+            var settings = _services.GetRequiredService<HttpHandlerSettings>();
+            var baseUri = new Uri(settings.BaseAddress);
+            uri = new Uri(baseUri, requestUrl);
+        }
+        
         return (uri, new HttpRequestMessage
         {
             RequestUri = uri,
@@ -194,18 +194,5 @@ public class HandleHttpRequestFn : IFunctionCallback
         if (response == null) return string.Empty;
 
         return await response.Content.ReadAsStringAsync();
-    }
-
-    private RichContent<IRichMessage> BuildRichContent(string? content)
-    {
-        var state = _services.GetRequiredService<IConversationStateService>();
-
-        var text = !string.IsNullOrEmpty(content) ? content : "Cannot get any response from the http request.";
-        return new RichContent<IRichMessage>
-        {
-            Recipient = new Recipient { Id = state.GetConversationId() },
-            Editor = EditorTypeEnum.Text,
-            Message = new TextMessage(text)
-        };
     }
 }
