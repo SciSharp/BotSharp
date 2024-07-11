@@ -23,7 +23,7 @@ namespace BotSharp.Plugin.EmailHandler
             services.AddScoped(provider =>
             {
                 var settingService = provider.GetRequiredService<ISettingService>();
-                return settingService.Bind<EmailPluginSettings>("EmailPlugin");
+                return settingService.Bind<EmailHandlerSettings>("EmailHandler");
             });
 
             services.AddScoped<IAgentHook, EmailHandlerHook>();
