@@ -12,7 +12,6 @@ public class ReadFileFn : IFunctionCallback
     private readonly ILogger<ReadFileFn> _logger;
     private readonly IEnumerable<string> _imageTypes = new List<string> { "image", "images", "png", "jpg", "jpeg" };
     private readonly IEnumerable<string> _pdfTypes = new List<string> { "pdf" };
-    private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
 
     public ReadFileFn(
         IServiceProvider services,
@@ -31,7 +30,7 @@ public class ReadFileFn : IFunctionCallback
         var wholeDialogs = conv.GetDialogHistory();
         var fileTypes = args?.FileTypes?.Split(",", StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
         var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs, fileTypes);
-        var agent = await agentService.LoadAgent(UTILITY_ASSISTANT);
+        var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
         var fileAgent = new Agent
         {
             Id = agent?.Id ?? Guid.Empty.ToString(),

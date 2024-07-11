@@ -1,19 +1,19 @@
 using OpenAI.Chat;
 
-namespace BotSharp.Plugin.AzureOpenAI.Providers.Chat;
+namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
 public class ChatCompletionProvider : IChatCompletion
 {
-    protected readonly AzureOpenAiSettings _settings;
+    protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ChatCompletionProvider> _logger;
 
     protected string _model;
 
-    public virtual string Provider => "azure-openai";
+    public virtual string Provider => "openai";
 
     public ChatCompletionProvider(
-        AzureOpenAiSettings settings,
+        OpenAiSettings settings,
         ILogger<ChatCompletionProvider> logger,
         IServiceProvider services)
     {

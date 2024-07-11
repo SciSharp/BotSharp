@@ -1,9 +1,12 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Plugin.AzureOpenAI.Models;
+namespace BotSharp.Plugin.OpenAI.Models;
 
 public class TextCompletionRequest
 {
+    [JsonPropertyName("model")]
+    public string Model { get; set; } = string.Empty;
+
     [JsonPropertyName("prompt")]
     public string Prompt { get; set; } = string.Empty;
 

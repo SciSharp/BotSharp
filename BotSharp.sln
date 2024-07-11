@@ -89,9 +89,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.MetaGLM", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.AnthropicAI", "src\Plugins\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj", "{806A0B0E-FEFF-420E-B5B2-C9FCBF890A8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.ServiceDefaults", "src\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj", "{6406DC61-0F30-42E8-A1DB-B38CDF454273}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.ServiceDefaults", "src\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj", "{6406DC61-0F30-42E8-A1DB-B38CDF454273}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.AppHost", "src\BotSharp.AppHost\BotSharp.AppHost.csproj", "{E04FBBEF-744E-4EF3-B634-42AD9F8B68B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.AppHost", "src\BotSharp.AppHost\BotSharp.AppHost.csproj", "{E04FBBEF-744E-4EF3-B634-42AD9F8B68B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotSharp.Plugin.OpenAI", "src\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj", "{6507D336-3A4D-41D4-81C0-2B900173A5FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -373,6 +375,14 @@ Global
 		{E04FBBEF-744E-4EF3-B634-42AD9F8B68B1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E04FBBEF-744E-4EF3-B634-42AD9F8B68B1}.Release|x64.ActiveCfg = Release|Any CPU
 		{E04FBBEF-744E-4EF3-B634-42AD9F8B68B1}.Release|x64.Build.0 = Release|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Debug|x64.Build.0 = Debug|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Release|x64.ActiveCfg = Release|Any CPU
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -417,6 +427,7 @@ Global
 		{289E25C8-63F1-4D52-9909-207724DB40CB} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
 		{CCF745F2-0C95-4ED0-983B-507C528B39EA} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
 		{806A0B0E-FEFF-420E-B5B2-C9FCBF890A8C} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
+		{6507D336-3A4D-41D4-81C0-2B900173A5FE} = {D5293208-2BEF-42FC-A64C-5954F61720BA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}
