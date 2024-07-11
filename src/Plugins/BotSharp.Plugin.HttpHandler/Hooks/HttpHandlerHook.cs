@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Plugin.HttpHandler.Enums;
 
 namespace BotSharp.Plugin.HttpHandler.Hooks;
 

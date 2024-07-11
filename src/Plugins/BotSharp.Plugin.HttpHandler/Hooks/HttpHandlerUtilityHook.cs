@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Agents;
-using BotSharp.Plugin.HttpHandler.Enums;
 
 namespace BotSharp.Plugin.HttpHandler.Hooks;
 

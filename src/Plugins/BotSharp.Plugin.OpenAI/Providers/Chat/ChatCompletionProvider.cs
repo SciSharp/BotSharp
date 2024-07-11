@@ -257,40 +257,34 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
                 var textPart = ChatMessageContentPart.CreateTextMessageContentPart(text);
-                var chat = new UserChatMessage(textPart)
-                {
-                    ParticipantName = message.FunctionName
-                };
+                var contentParts = new List<ChatMessageContentPart> { textPart };
 
-                if (allowMultiModal)
+                if (allowMultiModal && !message.Files.IsNullOrEmpty())
                 {
-                    if (!message.Files.IsNullOrEmpty())
+                    foreach (var file in message.Files)
                     {
-                        foreach (var file in message.Files)
+                        if (!string.IsNullOrEmpty(file.FileUrl))
                         {
-                            if (!string.IsNullOrEmpty(file.FileUrl))
-                            {
-                                var uri = new Uri(file.FileUrl);
-                                var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(uri, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(textPart, contentPart) { ParticipantName = message.FunctionName };
-                            }
-                            else if (!string.IsNullOrEmpty(file.FileData))
-                            {
-                                var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
-                                var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromBytes(bytes), contentType, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(textPart, contentPart) { ParticipantName = message.FunctionName };
-                            }
-                            else if (!string.IsNullOrEmpty(file.FileStorageUrl))
-                            {
-                                var contentType = fileService.GetFileContentType(file.FileStorageUrl);
-                                using var stream = File.OpenRead(file.FileStorageUrl);
-                                var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromStream(stream), contentType, ImageChatMessageContentPartDetail.Low);
-                                chat = new UserChatMessage(textPart, contentPart) { ParticipantName = message.FunctionName };
-                            }
+                            var uri = new Uri(file.FileUrl);
+                            var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(uri, ImageChatMessageContentPartDetail.Low);
+                            contentParts.Add(contentPart);
+                        }
+                        else if (!string.IsNullOrEmpty(file.FileData))
+                        {
+                            var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
+                            var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromBytes(bytes), contentType, ImageChatMessageContentPartDetail.Low);
+                            contentParts.Add(contentPart);
+                        }
+                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
+                        {
+                            var contentType = fileService.GetFileContentType(file.FileStorageUrl);
+                            using var stream = File.OpenRead(file.FileStorageUrl);
+                            var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromStream(stream), contentType, ImageChatMessageContentPartDetail.Low);
+                            contentParts.Add(contentPart);
                         }
                     }
                 }
-                messages.Add(chat);
+                messages.Add(new UserChatMessage(contentParts) { ParticipantName = message.FunctionName });
             }
             else if (message.Role == AgentRole.Assistant)
             {

@@ -1,5 +1,4 @@
 using System.Net.Http;
-using BotSharp.Plugin.HttpHandler.LlmContexts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -58,7 +57,7 @@ public class HandleHttpRequestFn : IFunctionCallback
     {
         if (string.IsNullOrEmpty(url)) return null;
 
-        var settings = _services.GetRequiredService<HttpSettings>();
+        var settings = _services.GetRequiredService<HttpHandlerSettings>();
         using var client = _httpClientFactory.CreateClient();
         AddRequestHeaders(client);
 
@@ -82,7 +81,7 @@ public class HandleHttpRequestFn : IFunctionCallback
     {
         client.DefaultRequestHeaders.Add("Authorization", $"{_context.HttpContext.Request.Headers["Authorization"]}");
 
-        var settings = _services.GetRequiredService<HttpSettings>();
+        var settings = _services.GetRequiredService<HttpHandlerSettings>();
         var origin = !string.IsNullOrEmpty(settings.Origin) ? settings.Origin : $"{_context.HttpContext.Request.Headers["Origin"]}";
         if (!string.IsNullOrEmpty(origin))
         {
