@@ -14,7 +14,7 @@
       },
       "request_content": {
         "type": "string",
-        "description": "The http request content. It must be in json format.."
+        "description": "The http request content. It must be in serialized json string."
       }
     },
     "required": [ "request_url", "http_method" ]

@@ -88,6 +88,8 @@ public partial class RouteToAgentFn : IFunctionCallback
             {
                 // Stack redirection agent
                 _context.Push(agentId, reason: $"REDIRECTION {reason}");
+                message.Content = reason;
+                message.Role = AgentRole.Function;
             }
         }
 

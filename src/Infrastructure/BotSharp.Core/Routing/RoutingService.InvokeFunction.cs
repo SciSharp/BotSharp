@@ -48,6 +48,7 @@ public partial class RoutingService
             }
 
             // Set result to original message
+            message.Role = clonedMessage.Role;
             message.PostbackFunctionName = clonedMessage.PostbackFunctionName;
             message.CurrentAgentId = clonedMessage.CurrentAgentId;
             message.Content = clonedMessage.Content;
