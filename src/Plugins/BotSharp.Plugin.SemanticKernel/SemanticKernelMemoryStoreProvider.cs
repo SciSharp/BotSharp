@@ -48,7 +48,7 @@ namespace BotSharp.Plugin.SemanticKernel
 
         }
 
-        public async Task Upsert(string collectionName, int id, float[] vector, string text)
+        public async Task Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
         {
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             await _memoryStore.UpsertAsync(collectionName, MemoryRecord.LocalRecord(id.ToString(), text, null, vector));
