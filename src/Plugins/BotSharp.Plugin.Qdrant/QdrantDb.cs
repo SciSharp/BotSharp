@@ -32,6 +32,7 @@ public class QdrantDb : IVectorDb
             _client = new QdrantClient
             (
                 host: _setting.Url,
+                https: true,
                 apiKey: _setting.ApiKey
             );
         }
@@ -41,7 +42,7 @@ public class QdrantDb : IVectorDb
     public async Task<List<string>> GetCollections()
     {
         // List all the collections
-        var collections = await _client.ListCollectionsAsync();
+        var collections = await GetClient().ListCollectionsAsync();
         return collections.ToList();
     }
 
@@ -56,11 +57,6 @@ public class QdrantDb : IVectorDb
                 Size = (ulong)dim,
                 Distance = Distance.Cosine
             });
-
-            var agentService = _services.GetRequiredService<IAgentService>();
-            var agentDataDir = agentService.GetAgentDataDir(collectionName);
-            var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
-            File.WriteAllLines(knowledgePath, new string[0]);
         }
 
         // Get collection info
@@ -71,26 +67,29 @@ public class QdrantDb : IVectorDb
         }
     }
 
-    public async Task Upsert(string collectionName, int id, float[] vector, string text)
+    public async Task Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         // Insert vectors
-        await GetClient().UpsertAsync(collectionName, points: new List<PointStruct>
+        var point = new PointStruct()
         {
-            new PointStruct() 
+            Id = new PointId()
             {
-                Id = new PointId()
-                {
-                    Num = (ulong)id,
-                },
-                Vectors = vector
-            }
-        });
+                Uuid = id
+            },
+            Vectors = vector,
 
-        // Store chunks in local file system
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agentDataDir = agentService.GetAgentDataDir(collectionName);
-        var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
-        File.AppendAllLines(knowledgePath, new[] { text });
+            Payload = { }
+        };
+
+        foreach (var item in payload)
+        {
+            point.Payload.Add(item.Key, item.Value);
+        }
+
+        var result = await GetClient().UpsertAsync(collectionName, points: new List<PointStruct>
+        {
+            point
+        });
     }
 
     public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)

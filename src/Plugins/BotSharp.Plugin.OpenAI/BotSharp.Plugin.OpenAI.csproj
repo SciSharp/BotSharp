@@ -11,10 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Qdrant.Client" Version="1.10.0" />
+    <PackageReference Include="OpenAI" Version="2.0.0-beta.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
+
 </Project>

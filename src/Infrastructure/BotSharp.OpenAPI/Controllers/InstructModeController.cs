@@ -116,7 +116,7 @@ public class InstructModeController : ControllerBase
         try
         {
             var completion = CompletionProvider.GetImageGeneration(_services, provider: input.Provider ?? "openai",
-                modelId: input.ModelId ?? "dall-e", imageGenerate: true);
+                model: input.Model ?? "dall-e-3", imageGenerate: true);
             var message = await completion.GetImageGeneration(new Agent()
             {
                 Id = Guid.Empty.ToString(),

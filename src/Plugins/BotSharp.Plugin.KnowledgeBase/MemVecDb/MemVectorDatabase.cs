@@ -37,7 +37,7 @@ public class MemVectorDatabase : IVectorDb
         return texts;
     }
 
-    public async Task Upsert(string collectionName, int id, float[] vector, string text)
+    public async Task Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         _vectors[collectionName].Add(new VecRecord
         {

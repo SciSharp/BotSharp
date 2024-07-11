@@ -5,7 +5,19 @@ public partial class PlaywrightWebDriver
     public async Task DoAction(MessageInfo message, ElementActionArgs action, BrowserActionResult result)
     {
         var page = _instance.GetPage(message.ContextId);
+        if (string.IsNullOrEmpty(result.Selector))
+        {
+            Serilog.Log.Error($"Selector is not set.");
+            return;
+        }
+
         ILocator locator = page.Locator(result.Selector);
+        var count = await locator.CountAsync();
+        if (count == 0)
+        {
+            Serilog.Log.Error($"Element not found: {result.Selector}");
+            return;
+        }
 
         if (action.Action == BroswerActionEnum.Click)
         {

@@ -2,7 +2,6 @@ namespace BotSharp.Core.Files.Hooks;
 
 public class FileReaderHook : AgentHookBase
 {
-    private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
     private static string FUNCTION_NAME = "read_file";
 
     public override string SelfId => string.Empty;
@@ -45,7 +44,7 @@ public class FileReaderHook : AgentHookBase
     private (string, FunctionDef?) GetPromptAndFunction()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.GetAgent(UTILITY_ASSISTANT);
+        var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
         var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{FUNCTION_NAME}.fn"))?.Content ?? string.Empty;
         var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(FUNCTION_NAME));
         return (prompt, loadAttachmentFn);
