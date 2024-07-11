@@ -115,15 +115,22 @@ public class PlaywrightInstance : IDisposable
                     JsonElement? json = null;
                     try
                     {
-                        json = await e.JsonAsync();
+                        if (e.Status == 200 && e.Ok)
+                        {
+                            json = await e.JsonAsync();
+                        }
+                        else
+                        {
+                            Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
+                        }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Serilog.Log.Error(ex.ToString());
                     }
                     finally
                     {
-                        fetched(e.Url.ToLower(), JsonSerializer.Serialize(json ?? new JsonElement()));
+                        fetched(e.Url.ToLower(), JsonSerializer.Serialize(json));
                     }
                 }
             };
