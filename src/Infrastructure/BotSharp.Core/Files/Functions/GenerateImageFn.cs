@@ -9,7 +9,6 @@ public class GenerateImageFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly ILogger<GenerateImageFn> _logger;
-    private static string UTILITY_ASSISTANT = Guid.Empty.ToString();
     private string _conversationId;
     private string _messageId;
 
@@ -29,7 +28,7 @@ public class GenerateImageFn : IFunctionCallback
         SetImageOptions();
         
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(UTILITY_ASSISTANT);
+        var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
         var imageAgent = new Agent
         {
             Id = agent?.Id ?? Guid.Empty.ToString(),

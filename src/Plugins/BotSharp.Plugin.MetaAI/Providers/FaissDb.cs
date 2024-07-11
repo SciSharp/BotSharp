@@ -22,7 +22,7 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task Upsert(string collectionName, int id, float[] vector, string text)
+    public Task Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         throw new NotImplementedException();
     }

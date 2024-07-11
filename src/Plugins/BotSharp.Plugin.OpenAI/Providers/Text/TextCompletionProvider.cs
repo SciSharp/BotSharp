@@ -1,16 +1,16 @@
 using BotSharp.Abstraction.MLTasks.Settings;
 using System.Net.Http;
 using System.Net.Mime;
-using System.Text;
 using System.Text.Json;
+using System.Text;
 
-namespace BotSharp.Plugin.AzureOpenAI.Providers.Text;
+namespace BotSharp.Plugin.OpenAI.Providers.Text;
 
 public class TextCompletionProvider : ITextCompletion
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<TextCompletionProvider> _logger;
-    private readonly AzureOpenAiSettings _settings;
+    private readonly OpenAiSettings _settings;
     protected string _model;
 
     protected readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
@@ -21,10 +21,10 @@ public class TextCompletionProvider : ITextCompletion
         AllowTrailingCommas = true,
     };
 
-    public virtual string Provider => "azure-openai";
+    public virtual string Provider => "openai";
 
     public TextCompletionProvider(
-        AzureOpenAiSettings settings,
+        OpenAiSettings settings,
         ILogger<TextCompletionProvider> logger,
         IServiceProvider services)
     {
@@ -105,6 +105,7 @@ public class TextCompletionProvider : ITextCompletion
 
             var request = new TextCompletionRequest
             {
+                Model = _model,
                 Prompt = prompt,
                 MaxTokens = maxTokens,
                 Temperature = temperature
@@ -132,16 +133,13 @@ public class TextCompletionProvider : ITextCompletion
 
     private string BuildApiUrl(LlmModelSetting modelSetting)
     {
-        var url = string.Empty;
         var endpoint = modelSetting.Endpoint.EndsWith("/") ?
             modelSetting.Endpoint.Substring(0, modelSetting.Endpoint.Length - 1) : modelSetting.Endpoint;
-
-        url = $"{endpoint}/openai/deployments/{_model}/completions?api-version={modelSetting.Version}";
-        return url;
+        return endpoint ?? string.Empty;
     }
 
     private void AddHeader(HttpClient httpClient, string apiKey)
     {
-        httpClient.DefaultRequestHeaders.Add("api-key", $"{apiKey}");
+        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
     }
 }
