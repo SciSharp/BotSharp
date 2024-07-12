@@ -1,0 +1,22 @@
+{
+  "name": "handle_email_request",
+  "description": "If the user requests to send an email, you need to capture the email content and the recipient email address. If the user explicitly enter email subject use the same if not intelligently capture the email subject from the content. Then call this function to send out email.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "to_address": {
+        "type": "string",
+        "description": "The email address to which the email should be sent to. It needs to be a valid email address in the correct string format."
+      },
+      "email_content": {
+        "type": "string",
+        "description": "The content of the email which needs to be send over. It can be plain string or a raw html."
+      },
+      "subject": {
+        "type": "string",
+        "description": "The subject of the email which needs to be send over."
+      }
+    },
+    "required": [ "to_address", "email_content", "subject" ]
+  }
+}

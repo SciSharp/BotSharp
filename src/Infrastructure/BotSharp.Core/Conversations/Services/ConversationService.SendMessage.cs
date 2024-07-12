@@ -43,7 +43,7 @@ public partial class ConversationService
         // Enqueue receiving agent first in case it stop completion by OnMessageReceived
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(_conversationId, message.MessageId);
-        routing.Context.Push(agent.Id);
+        routing.Context.Push(agent.Id, reason: "request started");
 
         // Save payload
         if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))

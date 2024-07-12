@@ -3,25 +3,30 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Plugin.EmailHandler.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.HttpHandler.Hooks;
+namespace BotSharp.Plugin.EmailHandler.Hooks;
 
-public class HttpHandlerHook : AgentHookBase
+public class EmailHandlerHook : AgentHookBase
 {
-    private static string FUNCTION_NAME = "handle_http_request";
+    private static string FUNCTION_NAME = "handle_email_request";
 
     public override string SelfId => string.Empty;
 
-    public HttpHandlerHook(IServiceProvider services, AgentSettings settings)
+    public EmailHandlerHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
-
     public override void OnAgentLoaded(Agent agent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(Utility.HttpHandler);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(Utility.EmailHandler);
 
         if (isConvMode && isEnabled)
         {
