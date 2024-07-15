@@ -88,7 +88,7 @@ public partial class RoutingService
                 message.FunctionArgs = AppendPropertyToArgs(message.FunctionArgs, "redirect_to", record.Name);
                 agentId = routingRule.RedirectTo;
 #if DEBUG
-                Console.WriteLine($"*** Routing redirect to {record.Name.ToUpper()} ***", Color.Yellow);
+                Console.WriteLine($"*** Routing redirect to {record.Name.ToUpper()} ***");
 #else
                 logger.LogInformation($"*** Routing redirect to {record.Name.ToUpper()} ***");
 #endif
