@@ -61,7 +61,10 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             var msg = RoleDialogModel.From(message);
             var ret = await routing.InvokeFunction(message.FunctionName, msg);
-            _dialogs.Add(msg);
+            if (msg.Role == AgentRole.Function)
+            {
+                _dialogs.Add(msg);
+            }
         }
 
         var agentId = routing.Context.GetCurrentAgentId();
