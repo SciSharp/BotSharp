@@ -1,6 +1,4 @@
-using RedLockNet;
-using RedLockNet.SERedis;
-using RedLockNet.SERedis.Configuration;
+using Medallion.Threading.Redis;
 using StackExchange.Redis;
 
 namespace BotSharp.Core.Infrastructures;
@@ -8,42 +6,46 @@ namespace BotSharp.Core.Infrastructures;
 public class DistributedLocker
 {
     private readonly BotSharpDatabaseSettings _settings;
-    private readonly RedLockFactory _lockFactory;
 
-    public DistributedLocker(/*BotSharpDatabaseSettings settings*/)
+    public DistributedLocker(BotSharpDatabaseSettings settings)
     {
-        // _settings = settings;
-
-        var multiplexers = new List<RedLockMultiplexer>();
-        foreach (var x in "".Split(';'))
-        {
-            var option = new ConfigurationOptions
-            {
-                AbortOnConnectFail = false,
-                EndPoints = { x }
-            };
-            var _connMuliplexer = ConnectionMultiplexer.Connect(option);
-            multiplexers.Add(_connMuliplexer);
-        }
-
-        _lockFactory = RedLockFactory.Create(multiplexers);
+        _settings = settings;
     }
 
-    public async Task Lock(string resource, Func<Task> action)
+    public async Task Lock(string resource, Func<Task> action, int timeoutInSeconds = 30)
     {
-        var expiry = TimeSpan.FromSeconds(60);
-        var wait = TimeSpan.FromSeconds(30);
-        var retry = TimeSpan.FromSeconds(3);
+        var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        await using (var redLock = await _lockFactory.CreateLockAsync(resource, expiry, wait, retry))
+        var connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
+        var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
+        await using (var handle = await @lock.TryAcquireAsync(timeout))
         {
-            if (redLock.IsAcquired)
+            if (handle != null) 
             {
                 await action();
             }
             else
             {
-                Console.WriteLine($"Acquire locak failed due to {resource} after {wait}s timeout.");
+                Serilog.Log.Logger.Error($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+            }
+        }
+    }
+
+    public async Task Lock(string resource, Action action, int timeoutInSeconds = 30)
+    {
+        var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
+
+        var connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
+        var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
+        await using (var handle = await @lock.TryAcquireAsync(timeout))
+        {
+            if (handle != null)
+            {
+                action();
+            }
+            else
+            {
+                Serilog.Log.Logger.Error($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
             }
         }
     }
