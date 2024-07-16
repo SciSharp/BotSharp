@@ -18,3 +18,4 @@ global using BotSharp.Abstraction.Messaging.Models.RichContent;
 global using BotSharp.Abstraction.Options;
 global using BotSharp.Plugin.FileHandler.Enums;
 global using BotSharp.Plugin.FileHandler.Settings;
+global using BotSharp.Plugin.FileHandler.LlmContexts;

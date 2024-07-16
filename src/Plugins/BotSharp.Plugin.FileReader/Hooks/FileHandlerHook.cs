@@ -7,8 +7,8 @@ namespace BotSharp.Plugin.FileHandler.Hooks;
 
 public class FileHandlerHook : AgentHookBase, IAgentHook
 {
-    private const string IMAGE_READER_FN = "image_reader";
-    private const string PDF_READER_FN = "pdf_reader";
+    private const string READ_IMAGE_FN = "read_image";
+    private const string READ_PDF_FN = "read_pdf";
 
     public override string SelfId => string.Empty;
 
@@ -23,8 +23,8 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
 
         if (isConvMode)
         {
-            AddUtility(agent, UtilityName.ImageReader, IMAGE_READER_FN);
-            AddUtility(agent, UtilityName.PdfReader, PDF_READER_FN);
+            AddUtility(agent, UtilityName.ImageReader, READ_IMAGE_FN);
+            AddUtility(agent, UtilityName.PdfReader, READ_PDF_FN);
         }
 
         base.OnAgentLoaded(agent);

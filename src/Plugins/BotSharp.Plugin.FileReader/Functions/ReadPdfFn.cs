@@ -1,21 +1,26 @@
-using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Files.Enums;
+using BotSharp.Abstraction.Files.Models;
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Core.Infrastructures;
+using Microsoft.Extensions.Logging;
 
-namespace BotSharp.Core.Files.Functions;
+namespace BotSharp.Plugin.FileHandler.Functions;
 
-public class ReadFileFn : IFunctionCallback
+public class ReadPdfFn : IFunctionCallback
 {
-    public string Name => "read_file";
-    public string Indication => "Reading files";
+    public string Name => "read_pdf";
+    public string Indication => "Reading pdf";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger<ReadFileFn> _logger;
-    private readonly IEnumerable<string> _imageTypes = new List<string> { "image", "images", "png", "jpg", "jpeg" };
-    private readonly IEnumerable<string> _pdfTypes = new List<string> { "pdf" };
+    private readonly ILogger<ReadPdfFn> _logger;
 
-    public ReadFileFn(
+    private const string DEFAULT_PDF = "pdf";
+
+    public ReadPdfFn(
         IServiceProvider services,
-        ILogger<ReadFileFn> logger)
+        ILogger<ReadPdfFn> logger)
     {
         _services = services;
         _logger = logger;
@@ -23,38 +28,35 @@ public class ReadFileFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<LlmFileContext>(message.FunctionArgs);
+        var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         var conv = _services.GetRequiredService<IConversationService>();
         var agentService = _services.GetRequiredService<IAgentService>();
-        
+
         var wholeDialogs = conv.GetDialogHistory();
-        var fileTypes = args?.FileTypes?.Split(",", StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
-        var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs, fileTypes);
+        var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs);
         var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
         var fileAgent = new Agent
         {
             Id = agent?.Id ?? Guid.Empty.ToString(),
             Name = agent?.Name ?? "Unkown",
-            Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please describe the files.",
+            Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please describe the pdf file(s).",
             TemplateDict = new Dictionary<string, object>()
         };
 
         var response = await GetChatCompletion(fileAgent, dialogs);
         message.Content = response;
-        message.StopCompletion = true;
         return true;
     }
 
-    private async Task<List<RoleDialogModel>> AssembleFiles(string conversationId, List<RoleDialogModel> dialogs, List<string> fileTypes)
+    private async Task<List<RoleDialogModel>> AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
     {
         if (dialogs.IsNullOrEmpty())
         {
             return new List<RoleDialogModel>();
         }
 
-        var parsedTypes = ParseFileTypes(fileTypes);
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var files = await fileService.GetChatImages(conversationId, FileSourceType.User, parsedTypes, dialogs);
+        var files = await fileService.GetChatImages(conversationId, FileSourceType.User, new List<string> { "pdf" }, dialogs);
 
         foreach (var dialog in dialogs)
         {
@@ -71,38 +73,6 @@ public class ReadFileFn : IFunctionCallback
         return dialogs;
     }
 
-    private IEnumerable<string> ParseFileTypes(IEnumerable<string> fileTypes)
-    {
-        var imageType = "image";
-        var pdfType = "pdf";
-        var parsed = new List<string>();
-
-        if (fileTypes.IsNullOrEmpty())
-        {
-            return new List<string> { imageType };
-        }
-
-        foreach (var fileType in fileTypes)
-        {
-            var type = fileType?.Trim();
-            if (string.IsNullOrWhiteSpace(type) || _imageTypes.Any(x => type.IsEqualTo(x)))
-            {
-                parsed.Add(imageType);
-            }
-            else if (_pdfTypes.Any(x => type.IsEqualTo(x)))
-            {
-                parsed.Add(pdfType);
-            }
-        }
-
-        if (parsed.IsNullOrEmpty())
-        {
-            parsed.Add(imageType);
-        }
-
-        return parsed.Distinct();
-    }
-
     private async Task<string> GetChatCompletion(Agent agent, List<RoleDialogModel> dialogs)
     {
         try
@@ -116,7 +86,7 @@ public class ReadFileFn : IFunctionCallback
         }
         catch (Exception ex)
         {
-            var error = $"Error when analyzing files.";
+            var error = $"Error when analyzing pdf file(s).";
             _logger.LogWarning($"{error} {ex.Message}");
             return error;
         }
