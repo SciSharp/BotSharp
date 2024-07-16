@@ -53,8 +53,32 @@ public class SqlExecutorHook : AgentHookBase, IAgentHook
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
-        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(SQL_EXECUTOR_TEMPLATE))?.Content ?? string.Empty;
         var fns = agent?.Functions?.Where(x => _targetSqlExecutorFunctions.Contains(x.Name))?.ToList();
+        
+        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(SQL_EXECUTOR_TEMPLATE))?.Content ?? string.Empty;
+        var dbType = GetDatabaseType();
+        var render = _services.GetRequiredService<ITemplateRender>();
+        prompt = render.Render(prompt, new Dictionary<string, object>
+        {
+            { "db_type", dbType }
+        });
+        
         return (prompt, fns);
+    }
+
+    private string GetDatabaseType()
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        var dbType = "MySQL";
+
+        if (!string.IsNullOrWhiteSpace(settings?.SqlServerConnectionString))
+        {
+            dbType = "SQL Server";
+        }
+        else if (!string.IsNullOrWhiteSpace(settings?.SqlLiteConnectionString))
+        {
+            dbType = "SQL Lite";
+        }
+        return dbType;
     }
 }
