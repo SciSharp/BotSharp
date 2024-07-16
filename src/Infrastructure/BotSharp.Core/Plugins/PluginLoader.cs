@@ -67,7 +67,7 @@ public class PluginLoader
 
                             if (!_plugins.Any(x => x.Assembly == plugin))
                             {
-                                Console.WriteLine($"Load dependent plugin {plugin} failed by {module.Name}.", Color.Red);
+                                Console.WriteLine($"Load dependent plugin {plugin} failed by {module.Name}.");
                             }
                         }
                     }
@@ -79,7 +79,7 @@ public class PluginLoader
             }
             else
             {
-                Console.WriteLine($"Can't find assemble {assemblyPath}.", Color.Red);
+                Console.WriteLine($"Can't find assemble {assemblyPath}.");
             }
         });
     }
@@ -101,7 +101,7 @@ public class PluginLoader
             AgentIds = module.AgentIds
         });
         Console.Write($"Loaded plugin ");
-        Console.Write(name, Color.Green);
+        Console.Write(name);
         Console.WriteLine($" from {assembly}.");
         if (!string.IsNullOrEmpty(module.Description))
         {
@@ -258,7 +258,7 @@ public class PluginLoader
     {
         if (_modules.Count == 0)
         {
-            Console.WriteLine($"No plugin loaded. Please check whether the Load() method is called.", Color.Yellow);
+            Console.WriteLine($"No plugin loaded. Please check whether the Load() method is called.");
         }
 
         _modules.ForEach(module =>
