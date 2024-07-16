@@ -60,7 +60,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.FileReader\BotSharp.Plugin.FileHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.FileHandler\BotSharp.Plugin.FileHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.EmailHandler\BotSharp.Plugin.EmailHandler.csproj" />
   </ItemGroup>
   
