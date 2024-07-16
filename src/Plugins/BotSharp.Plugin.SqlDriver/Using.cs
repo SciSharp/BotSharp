@@ -19,5 +19,6 @@ global using BotSharp.Abstraction.Knowledges.Models;
 global using BotSharp.Abstraction.Settings;
 global using BotSharp.Plugin.SqlDriver.Hooks;
 global using BotSharp.Plugin.SqlDriver.Services;
+global using BotSharp.Plugin.SqlDriver.Enum;
 global using BotSharp.Plugin.SqlHero.Settings;
 global using System.Drawing;

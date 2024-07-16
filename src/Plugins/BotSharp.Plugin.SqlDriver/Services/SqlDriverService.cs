@@ -25,21 +25,21 @@ public class SqlDriverService
 
             Console.WriteLine($"{sql.Reason}");
 
-            Console.WriteLine(sql.Statement, Color.Yellow);
+            Console.WriteLine(sql.Statement);
             foreach (var p in sql.Parameters)
             {
-                Console.WriteLine($"@{p.Name} = '{p.Value}'", Color.Green);
+                Console.WriteLine($"@{p.Name} = '{p.Value}'");
             }
             if (sql.Return != null)
             {
                 Console.Write($"Return: ");
                 if (!string.IsNullOrEmpty(sql.Return.Value))
                 {
-                    Console.WriteLine($" {sql.Return.Value}", Color.Red);
+                    Console.WriteLine($" {sql.Return.Value}");
                 }
                 else
                 {
-                    Console.WriteLine($"{sql.Return.Name} as @{sql.Return.Alias}", Color.Green);
+                    Console.WriteLine($"{sql.Return.Name} as @{sql.Return.Alias}");
                 }
             }
         }

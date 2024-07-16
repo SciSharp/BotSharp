@@ -1,12 +1,3 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Functions;
-using BotSharp.Plugin.SqlDriver.Models;
-using BotSharp.Plugin.SqlHero.Settings;
-using Dapper;
-using MySqlConnector;
-using System.Text.Json;
-using System.Threading.Tasks;
-
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
 public class ExecuteQueryFn : IFunctionCallback
