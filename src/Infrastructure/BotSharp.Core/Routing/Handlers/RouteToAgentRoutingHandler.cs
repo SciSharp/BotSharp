@@ -59,12 +59,8 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         message.FunctionArgs = JsonSerializer.Serialize(inst);
         if (message.FunctionName != null)
         {
-            var msg = RoleDialogModel.From(message);
+            var msg = RoleDialogModel.From(message, role: AgentRole.Function);
             var ret = await routing.InvokeFunction(message.FunctionName, msg);
-            if (msg.Role == AgentRole.Function)
-            {
-                _dialogs.Add(msg);
-            }
         }
 
         var agentId = routing.Context.GetCurrentAgentId();
