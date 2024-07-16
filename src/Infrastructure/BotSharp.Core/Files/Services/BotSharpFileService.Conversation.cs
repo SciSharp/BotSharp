@@ -1,10 +1,6 @@
-using AspectInjector.Broker;
-using Azure.Core;
 using BotSharp.Abstraction.Files.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
-using System.Net.Mime;
-using System.Threading;
 
 namespace BotSharp.Core.Files.Services;
 

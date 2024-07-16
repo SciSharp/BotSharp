@@ -1,8 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Settings;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
-
 namespace BotSharp.Plugin.FileHandler.Hooks;
 
 public class FileHandlerHook : AgentHookBase, IAgentHook

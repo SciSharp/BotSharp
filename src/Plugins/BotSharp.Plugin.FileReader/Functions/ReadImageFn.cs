@@ -1,12 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Files.Enums;
-using BotSharp.Abstraction.Files.Models;
-using BotSharp.Abstraction.Files;
-using BotSharp.Abstraction.MLTasks;
-using Microsoft.Extensions.Logging;
-using BotSharp.Core.Infrastructures;
-using System.Net.Mime;
-
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class ReadImageFn : IFunctionCallback

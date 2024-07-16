@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.StaticFiles;
 using System.IO;
-using System.Net.Mime;
 
 namespace BotSharp.Core.Files.Services;
 

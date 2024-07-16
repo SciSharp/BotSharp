@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.FileHandler.Hooks;
 using Microsoft.Extensions.Configuration;
 
