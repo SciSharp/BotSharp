@@ -12,7 +12,7 @@ namespace BotSharp.Plugin.EmailHandler.Hooks
     {
         public void AddUtilities(List<string> utilities)
         {
-            utilities.Add(Utility.EmailHandler);
+            utilities.Add(UtilityName.EmailHandler);
         }
     }
 }

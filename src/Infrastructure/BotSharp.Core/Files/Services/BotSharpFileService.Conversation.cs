@@ -1,123 +1,42 @@
-using AspectInjector.Broker;
 using BotSharp.Abstraction.Files.Converters;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
-using System.Threading;
 
 namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService
 {
-    public async Task<IEnumerable<MessageFileModel>> GetChatImages(string conversationId, string source, IEnumerable<string> fileTypes,
-        List<RoleDialogModel> conversations, int? offset = null)
+    public async Task<IEnumerable<MessageFileModel>> GetChatImages(string conversationId, string source,
+        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        bool includeScreenShot = false, int? offset = null)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
         {
-            return new List<MessageFileModel>();
+            return files;
         }
 
-        if (offset <= 0)
+        var messageIds = GetMessageIds(conversations, offset);
+        var pathPrefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
+
+        foreach (var messageId in messageIds)
         {
-            offset = MIN_OFFSET;
-        }
-        else if (offset > MAX_OFFSET)
-        {
-            offset = MAX_OFFSET;
-        }
+            var dir = Path.Combine(pathPrefix, messageId, source);
+            if (!ExistDirectory(dir)) continue;
 
-        var messageIds = new List<string>();
-        if (offset.HasValue)
-        {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
-        }
-        else
-        {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().ToList();
-        }
-
-        files = await GetMessageFiles(conversationId, messageIds, source, fileTypes);
-        return files;
-    }
-
-    private async Task<List<MessageFileModel>> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, IEnumerable<string> fileTypes)
-    {
-        var files = new List<MessageFileModel>();
-        if (string.IsNullOrEmpty(conversationId) || messageIds.IsNullOrEmpty() || fileTypes.IsNullOrEmpty()) return files;
-
-        var isNeedScreenShot = fileTypes.Any(x => _allowScreenShotTypes.Contains(x));
-        var onlyScreenShot = fileTypes.All(x => _allowScreenShotTypes.Contains(x));
-
-        try
-        {
-            var preFixPath = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
-
-            foreach (var messageId in messageIds)
+            foreach (var subDir in Directory.GetDirectories(dir))
             {
-                var dir = Path.Combine(preFixPath, messageId, source);
-                if (!ExistDirectory(dir)) continue;
+                var file = Directory.GetFiles(subDir).FirstOrDefault();
+                if (file == null) continue;
 
-                foreach (var subDir in Directory.GetDirectories(dir))
-                {
-                    var file = Directory.GetFiles(subDir).FirstOrDefault();
-                    if (file == null) continue;
+                var contentType = GetFileContentType(file);
+                if (contentTypes?.Contains(contentType) != true) continue;
 
-                    var index = subDir.Split(Path.DirectorySeparatorChar).Last();
-                    var contentType = GetFileContentType(file);
+                var foundFiles = await GetMessageFiles(file, subDir, contentType, messageId, source, includeScreenShot);
+                if (foundFiles.IsNullOrEmpty()) continue;
 
-                    if ((!isNeedScreenShot || (isNeedScreenShot && !onlyScreenShot)) && _allowedImageTypes.Contains(contentType))
-                    {
-                        var model = new MessageFileModel()
-                        {
-                            MessageId = messageId,
-                            FileStorageUrl = file,
-                            ContentType = contentType
-                        };
-                        files.Add(model);
-                    }
-                    else if ((isNeedScreenShot && !onlyScreenShot || onlyScreenShot) && !_allowedImageTypes.Contains(contentType))
-                    {
-                        var screenShotDir = Path.Combine(subDir, SCREENSHOT_FILE_FOLDER);
-                        if (ExistDirectory(screenShotDir) && Directory.GetFiles(screenShotDir).Any())
-                        {
-                            foreach (var screenShot in Directory.GetFiles(screenShotDir))
-                            {
-                                contentType = GetFileContentType(screenShot);
-                                if (!_allowedImageTypes.Contains(contentType)) continue;
-
-                                var model = new MessageFileModel()
-                                {
-                                    MessageId = messageId,
-                                    FileStorageUrl = screenShot,
-                                    ContentType = contentType
-                                };
-                                files.Add(model);
-                            }
-                        }
-                        else
-                        {
-                            var screenShotPath = Path.Combine(subDir, SCREENSHOT_FILE_FOLDER);
-                            var images = await ConvertPdfToImages(file, screenShotPath);
-
-                            foreach (var image in images)
-                            {
-                                contentType = GetFileContentType(image);
-                                var model = new MessageFileModel()
-                                {
-                                    MessageId = messageId,
-                                    FileStorageUrl = image,
-                                    ContentType = contentType
-                                };
-                                files.Add(model);
-                            }
-                        }
-                    }
-                }
+                files.AddRange(foundFiles);
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning($"Error when reading conversation ({conversationId}) files: {ex.Message}\r\n{ex.InnerException}\r\n{ex.StackTrace}");
         }
 
         return files;
@@ -144,7 +63,7 @@ public partial class BotSharpFileService
                 foreach (var file in Directory.GetFiles(subDir))
                 {
                     var contentType = GetFileContentType(file);
-                    if (imageOnly && !_allowedImageTypes.Contains(contentType))
+                    if (imageOnly && !_imageTypes.Contains(contentType))
                     {
                         continue;
                     }
@@ -326,6 +245,102 @@ public partial class BotSharpFileService
         var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId);
         return dir;
     }
+
+    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> conversations, int? offset = null)
+    {
+        if (conversations.IsNullOrEmpty()) return Enumerable.Empty<string>();
+
+        if (offset <= 0)
+        {
+            offset = MIN_OFFSET;
+        }
+        else if (offset > MAX_OFFSET)
+        {
+            offset = MAX_OFFSET;
+        }
+
+        var messageIds = new List<string>();
+        if (offset.HasValue)
+        {
+            messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
+        }
+        else
+        {
+            messageIds = conversations.Select(x => x.MessageId).Distinct().ToList();
+        }
+
+        return messageIds;
+    }
+
+
+    private async Task<IEnumerable<MessageFileModel>> GetMessageFiles(string file, string fileDir, string contentType,
+        string messageId, string source, bool includeScreenShot)
+    {
+        var files = new List<MessageFileModel>();
+
+        try
+        {
+            if (!_imageTypes.Contains(contentType) && includeScreenShot)
+            {
+                var screenShotDir = Path.Combine(fileDir, SCREENSHOT_FILE_FOLDER);
+                if (ExistDirectory(screenShotDir) && !Directory.GetFiles(screenShotDir).IsNullOrEmpty())
+                {
+                    foreach (var screenShot in Directory.GetFiles(screenShotDir))
+                    {
+                        contentType = GetFileContentType(screenShot);
+                        if (!_imageTypes.Contains(contentType)) continue;
+
+                        var model = new MessageFileModel()
+                        {
+                            MessageId = messageId,
+                            FileName = Path.GetFileName(screenShot),
+                            FileStorageUrl = screenShot,
+                            ContentType = contentType,
+                            FileSource = source
+                        };
+                        files.Add(model);
+                    }
+                }
+                else if (contentType == MediaTypeNames.Application.Pdf)
+                {
+                    var images = await ConvertPdfToImages(file, screenShotDir);
+                    foreach (var image in images)
+                    {
+                        contentType = GetFileContentType(image);
+                        var model = new MessageFileModel()
+                        {
+                            MessageId = messageId,
+                            FileName = Path.GetFileName(image),
+                            FileStorageUrl = image,
+                            ContentType = contentType,
+                            FileSource = source
+                        };
+                        files.Add(model);
+                    }
+                }
+            }
+            else
+            {
+                var model = new MessageFileModel()
+                {
+                    MessageId = messageId,
+                    FileName = Path.GetFileName(file),
+                    FileStorageUrl = file,
+                    ContentType = contentType,
+                    FileSource = source
+                };
+                files.Add(model);
+            }
+
+            return files;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when getting message files {file} (messageId: {messageId}), Error: {ex.Message}\r\n{ex.InnerException}");
+            return files;
+        }
+    }
+
 
     private async Task<IEnumerable<string>> ConvertPdfToImages(string pdfLoc, string imageLoc)
     {
