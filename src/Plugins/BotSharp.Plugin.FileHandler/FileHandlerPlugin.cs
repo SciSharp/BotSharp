@@ -1,7 +1,7 @@
 using BotSharp.Plugin.FileHandler.Hooks;
 using Microsoft.Extensions.Configuration;
 
-namespace BotSharp.Plugin.FileReader;
+namespace BotSharp.Plugin.FileHandler;
 
 public class FileHandlerPlugin : IBotSharpPlugin
 {
