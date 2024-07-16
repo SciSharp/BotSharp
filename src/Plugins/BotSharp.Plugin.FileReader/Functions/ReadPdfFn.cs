@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Core.Infrastructures;
 using Microsoft.Extensions.Logging;
+using System.Net.Mime;
 
 namespace BotSharp.Plugin.FileHandler.Functions;
 
@@ -16,7 +17,10 @@ public class ReadPdfFn : IFunctionCallback
     private readonly IServiceProvider _services;
     private readonly ILogger<ReadPdfFn> _logger;
 
-    private const string DEFAULT_PDF = "pdf";
+    private readonly IEnumerable<string> _pdfContentTypes = new List<string>
+    {
+        MediaTypeNames.Application.Pdf
+    };
 
     public ReadPdfFn(
         IServiceProvider services,
@@ -56,7 +60,7 @@ public class ReadPdfFn : IFunctionCallback
         }
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var files = await fileService.GetChatImages(conversationId, FileSourceType.User, new List<string> { "pdf" }, dialogs);
+        var files = await fileService.GetChatImages(conversationId, FileSourceType.User, dialogs, _pdfContentTypes, includeScreenShot: true);
 
         foreach (var dialog in dialogs)
         {
@@ -87,7 +91,7 @@ public class ReadPdfFn : IFunctionCallback
         catch (Exception ex)
         {
             var error = $"Error when analyzing pdf file(s).";
-            _logger.LogWarning($"{error} {ex.Message}");
+            _logger.LogWarning($"{error} {ex.Message}\r\n{ex.InnerException}");
             return error;
         }
     }

@@ -30,20 +30,6 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
         base.OnAgentLoaded(agent);
     }
 
-    private bool IsEnableUtility(Agent agent, string utility)
-    {
-        return !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(utility);
-    }
-
-    private (string, FunctionDef?) GetPromptAndFunction(string functionName)
-    {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
-        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{functionName}.fn"))?.Content ?? string.Empty;
-        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(functionName));
-        return (prompt, loadAttachmentFn);
-    }
-
     private void AddUtility(Agent agent, string utility, string functionName)
     {
         if (!IsEnableUtility(agent, utility)) return;
@@ -65,5 +51,19 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
                 agent.Functions.Add(fn);
             }
         }
+    }
+
+    private bool IsEnableUtility(Agent agent, string utility)
+    {
+        return !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(utility);
+    }
+
+    private (string, FunctionDef?) GetPromptAndFunction(string functionName)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
+        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{functionName}.fn"))?.Content ?? string.Empty;
+        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(functionName));
+        return (prompt, loadAttachmentFn);
     }
 }

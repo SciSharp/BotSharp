@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Net.Mime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -150,7 +151,7 @@ public class HandleHttpRequestFn : IFunctionCallback
             _logger.LogWarning($"Error when build http content: {content}\n(Error: {ex.Message})");
         }
         
-        return new StringContent(str, Encoding.UTF8, "application/json");
+        return new StringContent(str, Encoding.UTF8, MediaTypeNames.Application.Json);
     }
 
     private string BuildQuery(string url, string? content)

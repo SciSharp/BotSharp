@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.MLTasks;
 using Microsoft.Extensions.Logging;
 using BotSharp.Core.Infrastructures;
+using System.Net.Mime;
 
 namespace BotSharp.Plugin.FileHandler.Functions;
 
@@ -16,8 +17,11 @@ public class ReadImageFn : IFunctionCallback
     private readonly IServiceProvider _services;
     private readonly ILogger<ReadImageFn> _logger;
 
-    private const string DEFAULT_IMAGE = "image";
-    private readonly IEnumerable<string> _targetImageTypes = new List<string> { "image", "images", "png", "jpg", "jpeg" };
+    private readonly IEnumerable<string> _imageContentTypes = new List<string>
+    {
+        MediaTypeNames.Image.Png,
+        MediaTypeNames.Image.Jpeg,
+    };
 
     public ReadImageFn(
         IServiceProvider services,
@@ -57,7 +61,7 @@ public class ReadImageFn : IFunctionCallback
         }
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var images = await fileService.GetChatImages(conversationId, FileSourceType.User, new List<string> { "image" }, dialogs);
+        var images = await fileService.GetChatImages(conversationId, FileSourceType.User, dialogs, _imageContentTypes);
 
         foreach (var dialog in dialogs)
         {
@@ -88,7 +92,7 @@ public class ReadImageFn : IFunctionCallback
         catch (Exception ex)
         {
             var error = $"Error when analyzing images.";
-            _logger.LogWarning($"{error} {ex.Message}");
+            _logger.LogWarning($"{error} {ex.Message}\r\n{ex.InnerException}");
             return error;
         }
     }

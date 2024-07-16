@@ -3,7 +3,9 @@ namespace BotSharp.Abstraction.Files;
 public interface IBotSharpFileService
 {
     string GetDirectory(string conversationId);
-    Task<IEnumerable<MessageFileModel>> GetChatImages(string conversationId, string source, IEnumerable<string> fileTypes, List<RoleDialogModel> conversations, int? offset = null);
+    Task<IEnumerable<MessageFileModel>> GetChatImages(string conversationId, string source,
+        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        bool includeScreenShot = false, int? offset = null);
     IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, bool imageOnly = false);
     string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName);
     IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds);
