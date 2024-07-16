@@ -29,7 +29,6 @@
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Dashboard\BotSharp.Plugin.Dashboard.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.FileReader\BotSharp.Plugin.FileHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaGLM\BotSharp.Plugin.MetaGLM.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SparkDesk\BotSharp.Plugin.SparkDesk.csproj" />
   </ItemGroup>
@@ -56,11 +55,13 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.LLamaSharp\BotSharp.Plugin.LLamaSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SqlDriver\BotSharp.Plugin.SqlDriver.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.FileReader\BotSharp.Plugin.FileHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.EmailHandler\BotSharp.Plugin.EmailHandler.csproj" />
   </ItemGroup>
   
   <ItemGroup>
