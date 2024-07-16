@@ -40,7 +40,6 @@ public class HandleHttpRequestFn : IFunctionCallback
             var response = await SendHttpRequest(url, method, content);
             var responseContent = await HandleHttpResponse(response);
             message.Content = responseContent;
-            message.StopCompletion = true;
             return true;
         }
         catch (Exception ex)
@@ -48,7 +47,6 @@ public class HandleHttpRequestFn : IFunctionCallback
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
             _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
             message.Content = msg;
-            message.StopCompletion = true;
             return false;
         }
     }

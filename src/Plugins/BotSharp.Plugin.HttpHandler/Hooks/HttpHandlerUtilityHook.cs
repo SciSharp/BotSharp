@@ -6,6 +6,6 @@ public class HttpHandlerUtilityHook : IAgentUtilityHook
 {
     public void AddUtilities(List<string> utilities)
     {
-        utilities.Add(Utility.HttpHandler);
+        utilities.Add(UtilityName.HttpHandler);
     }
 }

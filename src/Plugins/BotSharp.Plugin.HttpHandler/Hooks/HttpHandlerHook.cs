@@ -21,11 +21,11 @@ public class HttpHandlerHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(Utility.HttpHandler);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(UtilityName.HttpHandler);
 
         if (isConvMode && isEnabled)
         {
-            var (prompt, fn) = GetPromptAndFunction();
+            var (prompt, fn) = GetPromptAndFunction(FUNCTION_NAME);
             if (fn != null)
             {
                 if (!string.IsNullOrWhiteSpace(prompt))
@@ -47,12 +47,12 @@ public class HttpHandlerHook : AgentHookBase
         base.OnAgentLoaded(agent);
     }
 
-    private (string, FunctionDef?) GetPromptAndFunction()
+    private (string, FunctionDef?) GetPromptAndFunction(string functionName)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
-        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{FUNCTION_NAME}.fn"))?.Content ?? string.Empty;
-        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(FUNCTION_NAME));
+        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{functionName}.fn"))?.Content ?? string.Empty;
+        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(functionName));
         return (prompt, loadAttachmentFn);
     }
 }
