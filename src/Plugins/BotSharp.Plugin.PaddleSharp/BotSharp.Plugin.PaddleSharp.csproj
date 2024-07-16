@@ -19,6 +19,7 @@
     <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="2.5.1" />
     <PackageReference Include="Sdcb.PaddleOCR" Version="2.7.0.1" />
     <PackageReference Include="Sdcb.PaddleOCR.Models.LocalV3" Version="2.7.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
   </ItemGroup>
 
   <ItemGroup>

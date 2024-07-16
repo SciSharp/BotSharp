@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using ImageMagick;
 using OpenCvSharp;
-using Microsoft.AspNetCore.Http;
 using Sdcb.PaddleInference;
 using Sdcb.PaddleOCR.Models;
-using Sdcb.PaddleOCR.Models.LocalV3;
 using Sdcb.PaddleOCR;
 using System.Threading.Tasks;
 using BotSharp.Abstraction.Knowledges;
