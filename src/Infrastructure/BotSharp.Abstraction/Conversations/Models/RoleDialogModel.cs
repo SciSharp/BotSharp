@@ -110,7 +110,7 @@ public class RoleDialogModel : ITrackableMessage
     {
         if (Role == AgentRole.Function)
         {
-            return $"{Role}: {FunctionName}({FunctionArgs}) => {Content}";
+            return $"{Role}: {Content} <= {FunctionName}({FunctionArgs})";
         }
         else
         {
