@@ -67,7 +67,7 @@ public class QdrantDb : IVectorDb
         }
     }
 
-    public async Task Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         // Insert vectors
         var point = new PointStruct()
@@ -78,29 +78,37 @@ public class QdrantDb : IVectorDb
             },
             Vectors = vector,
 
-            Payload = { }
+            Payload = 
+            {
+                { "text", text }
+            }
         };
 
-        foreach (var item in payload)
+        if (payload != null)
         {
-            point.Payload.Add(item.Key, item.Value);
+            foreach (var item in payload)
+            {
+                point.Payload.Add(item.Key, item.Value);
+            }
         }
 
-        var result = await GetClient().UpsertAsync(collectionName, points: new List<PointStruct>
+        var client = GetClient();
+
+        var result = await client.UpsertAsync(collectionName, points: new List<PointStruct>
         {
             point
         });
+
+        return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
+    public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
     {
-        var result = await GetClient().SearchAsync(collectionName, vector, limit: (ulong)limit);
+        var client = GetClient();
+        var points = await client.SearchAsync(collectionName, vector, 
+            limit: (ulong)limit,
+            scoreThreshold: confidence);
 
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agentDataDir = agentService.GetAgentDataDir(collectionName);
-        var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
-        var texts = File.ReadAllLines(knowledgePath);
-
-        return result.Select(x => texts[x.Id.Num]).ToList();
+        return points.Select(x => x.Payload[returnFieldName].StringValue).ToList();
     }
 }

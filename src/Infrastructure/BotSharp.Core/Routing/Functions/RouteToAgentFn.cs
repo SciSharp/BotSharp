@@ -89,6 +89,7 @@ public partial class RouteToAgentFn : IFunctionCallback
                 // Stack redirection agent
                 _context.Push(agentId, reason: $"REDIRECTION {reason}");
                 message.Content = reason;
+                states.SetState(StateConst.AGENT_REDIRECTION_REASON, reason, isNeedVersion: false);
             }
         }
 

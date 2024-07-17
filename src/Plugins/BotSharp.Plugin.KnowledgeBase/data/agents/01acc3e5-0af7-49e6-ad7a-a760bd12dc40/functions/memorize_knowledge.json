@@ -1,0 +1,18 @@
+{
+  "name": "memorize_knowledge",
+  "description": "Retrieve related domain knowledge to handle user request",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "question": {
+        "type": "string",
+        "description": "User question with scenario detail"
+      },
+      "answer": {
+        "type": "string",
+        "description": "The answer to handle user question"
+      }
+    },
+    "required": [ "question", "answer" ]
+  }
+}

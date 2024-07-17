@@ -17,12 +17,12 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<List<string>> Search(string collectionName, float[] vector, int limit = 10)
+    public Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 10, float confidence = 0.5f)
     {
         throw new NotImplementedException();
     }
 
-    public Task Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    public Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         throw new NotImplementedException();
     }
