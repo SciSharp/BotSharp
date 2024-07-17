@@ -3,9 +3,22 @@ namespace BotSharp.Abstraction.Files;
 public interface IBotSharpFileService
 {
     string GetDirectory(string conversationId);
-    Task<IEnumerable<MessageFileModel>> GetChatImages(string conversationId, string source,
+
+    /// <summary>
+    /// Get the files that have been uploaded in the chat.
+    /// If includeScreenShot is true, it will take the screenshots of non-image files, such as pdf, and return the screenshots instead of the original file.
+    /// </summary>
+    /// <param name="conversationId"></param>
+    /// <param name="source"></param>
+    /// <param name="conversations"></param>
+    /// <param name="contentTypes"></param>
+    /// <param name="includeScreenShot"></param>
+    /// <param name="offset"></param>
+    /// <returns></returns>
+    Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
         IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
         bool includeScreenShot = false, int? offset = null);
+
     IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, bool imageOnly = false);
     string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName);
     IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds);

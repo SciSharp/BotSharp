@@ -51,7 +51,7 @@ public class ReadPdfFn : IFunctionCallback
         }
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var files = await fileService.GetChatImages(conversationId, FileSourceType.User, dialogs, _pdfContentTypes, includeScreenShot: true);
+        var files = await fileService.GetChatFiles(conversationId, FileSourceType.User, dialogs, _pdfContentTypes, includeScreenShot: true);
 
         foreach (var dialog in dialogs)
         {

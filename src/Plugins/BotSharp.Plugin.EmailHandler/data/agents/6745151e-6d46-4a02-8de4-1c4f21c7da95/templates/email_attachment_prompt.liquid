@@ -1,0 +1,20 @@
+Please take a look at the files in the [FILES] section from the conversation and select the files based on the conversation with user.
+Your response must be a list of file ids.
+** Please only output the list. Do not prepend or append anything.
+
+For example:
+Suppose there are three files:
+
+id: 1, file_name: example_file.png, content_type: image/png
+id: 2, file_name: example_file.jpeg, content_type: image/jpeg
+id: 3, file_name: example_file.pdf, content_type: application/pdf
+
+If user wants the first file and the third file, the ouput should be [1, 3].
+If user wants the all the images, the output should be [1, 2].
+If user wants the pdf file, the output should be [3].
+If user does not want any files, the ouput should be [];
+
+[FILES]
+{% for file in file_list -%}
+{{ file }}{{ "\r\n" }}
+{%- endfor %}
