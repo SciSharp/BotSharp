@@ -9,7 +9,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     protected readonly ILogger<TextEmbeddingProvider> _logger;
 
     private const int DEFAULT_DIMENSION = 1536;
-    protected string _model;
+    protected string _model = "text-embedding-3-small";
 
     public virtual string Provider => "openai";
 

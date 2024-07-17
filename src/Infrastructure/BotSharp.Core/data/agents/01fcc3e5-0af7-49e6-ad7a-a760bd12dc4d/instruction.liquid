@@ -1,1 +1,4 @@
 You are a smart AI Assistant.
+{% if agent_redirection_reason %}
+You've been reached out because: {{ agent_redirection_reason }}
+{% endif %}

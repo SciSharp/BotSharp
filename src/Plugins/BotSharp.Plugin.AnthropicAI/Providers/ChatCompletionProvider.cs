@@ -1,4 +1,5 @@
 using Anthropic.SDK.Common;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.MLTasks.Settings;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -160,13 +161,17 @@ public class ChatCompletionProvider : IChatCompletion
             }
         }
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var temperature = decimal.Parse(state.GetState("temperature", "0.0"));
+        var maxToken = int.Parse(state.GetState("max_tokens", "512"));
+
         var parameters = new MessageParameters()
         {
             Messages = messages,
-            MaxTokens = 256,
-            Model = settings.Version, // AnthropicModels.Claude3Haiku
+            MaxTokens = maxToken,
+            Model = settings.Name,
             Stream = false,
-            Temperature = 0m,
+            Temperature = temperature,
             SystemMessage = instruction,
             Tools = new List<Function>() { }
         };
