@@ -34,7 +34,7 @@ namespace BotSharp.Plugin.SemanticKernel
             return result;
         }
 
-        public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
+        public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
         {
             var results = _memoryStore.GetNearestMatchesAsync(collectionName, vector, limit);
 
@@ -48,11 +48,12 @@ namespace BotSharp.Plugin.SemanticKernel
 
         }
 
-        public async Task Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
+        public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload)
         {
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             await _memoryStore.UpsertAsync(collectionName, MemoryRecord.LocalRecord(id.ToString(), text, null, vector));
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            return true;
         }
     }
 }
