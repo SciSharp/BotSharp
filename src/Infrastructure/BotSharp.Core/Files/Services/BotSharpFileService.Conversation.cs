@@ -6,7 +6,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService
 {
-    public async Task<IEnumerable<MessageFileModel>> GetChatImages(string conversationId, string source,
+    public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
         IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
         bool includeScreenShot = false, int? offset = null)
     {
@@ -69,9 +69,7 @@ public partial class BotSharpFileService
                     }
 
                     var fileName = Path.GetFileNameWithoutExtension(file);
-                    var extension = Path.GetExtension(file);
-                    var fileType = extension.Substring(1);
-
+                    var fileType = Path.GetExtension(file).Substring(1);
                     var model = new MessageFileModel()
                     {
                         MessageId = messageId,
@@ -290,10 +288,13 @@ public partial class BotSharpFileService
                         contentType = GetFileContentType(screenShot);
                         if (!_imageTypes.Contains(contentType)) continue;
 
+                        var fileName = Path.GetFileNameWithoutExtension(screenShot);
+                        var fileType = Path.GetExtension(file).Substring(1);
                         var model = new MessageFileModel()
                         {
                             MessageId = messageId,
-                            FileName = Path.GetFileName(screenShot),
+                            FileName = fileName,
+                            FileType = fileType,
                             FileStorageUrl = screenShot,
                             ContentType = contentType,
                             FileSource = source
@@ -307,10 +308,13 @@ public partial class BotSharpFileService
                     foreach (var image in images)
                     {
                         contentType = GetFileContentType(image);
+                        var fileName = Path.GetFileNameWithoutExtension(image);
+                        var fileType = Path.GetExtension(image).Substring(1);
                         var model = new MessageFileModel()
                         {
                             MessageId = messageId,
-                            FileName = Path.GetFileName(image),
+                            FileName = fileName,
+                            FileType = fileType,
                             FileStorageUrl = image,
                             ContentType = contentType,
                             FileSource = source
@@ -321,10 +325,13 @@ public partial class BotSharpFileService
             }
             else
             {
+                var fileName = Path.GetFileNameWithoutExtension(file);
+                var fileType = Path.GetExtension(file).Substring(1);
                 var model = new MessageFileModel()
                 {
                     MessageId = messageId,
-                    FileName = Path.GetFileName(file),
+                    FileName = fileName,
+                    FileType = fileType,
                     FileStorageUrl = file,
                     ContentType = contentType,
                     FileSource = source

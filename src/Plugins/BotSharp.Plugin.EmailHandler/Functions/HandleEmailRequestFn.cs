@@ -110,7 +110,7 @@ public class HandleEmailRequestFn : IFunctionCallback
             };
 
             var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-            var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4", multiModal: true);
+            var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4");
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
             var response = await completion.GetChatCompletions(agent, dialogs);
             var content = response?.Content ?? string.Empty;
