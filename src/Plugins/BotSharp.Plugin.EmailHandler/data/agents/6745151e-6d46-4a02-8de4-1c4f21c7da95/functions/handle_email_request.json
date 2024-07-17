@@ -15,8 +15,12 @@
       "subject": {
         "type": "string",
         "description": "The subject of the email which needs to be send over."
+      },
+      "is_need_attachments": {
+        "type": "boolean",
+        "description": "If the user request to send email with attachemnts, then this value should be true. Otherwise, this value should be false."
       }
     },
-    "required": [ "to_address", "email_content", "subject" ]
+    "required": [ "to_address", "email_content", "subject", "is_need_attachments" ]
   }
 }
