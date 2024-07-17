@@ -52,7 +52,7 @@ public class ReadImageFn : IFunctionCallback
         }
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var images = await fileService.GetChatImages(conversationId, FileSourceType.User, dialogs, _imageContentTypes);
+        var images = await fileService.GetChatFiles(conversationId, FileSourceType.User, dialogs, _imageContentTypes);
 
         foreach (var dialog in dialogs)
         {
