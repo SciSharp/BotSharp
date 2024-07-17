@@ -123,14 +123,11 @@ public class PlaywrightInstance : IDisposable
                         {
                             Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
                         }
+                        fetched(e.Url.ToLower(), JsonSerializer.Serialize(json));
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         Serilog.Log.Error(ex.ToString());
-                    }
-                    finally
-                    {
-                        fetched(e.Url.ToLower(), JsonSerializer.Serialize(json));
                     }
                 }
             };
