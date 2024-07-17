@@ -11,13 +11,13 @@
   <PropertyGroup>
     <Authors>Haiping Chen</Authors>
     <Company>SciSharp STACK</Company>
-    <Product>LL Application Framework</Product>
+    <Product>AI Agent Application Framework</Product>
     <Description>
       Open source LLM application framework to build scalable, flexible and robust AI system.
     </Description>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/SciSharp/BotSharp</RepositoryUrl>
-    <PackageTags>Chatbot, Bot, LLM, AI, ChatGPT, OpenAI</PackageTags>
+    <PackageTags>Chatbot, Agent, LLM, AI, ChatGPT, OpenAI, Semantic</PackageTags>
     <PackageReleaseNotes>Support dialogue status tracking.</PackageReleaseNotes>
     <Copyright>Since 2018 Haiping Chen</Copyright>
     <PackageProjectUrl>https://github.com/SciSharp/BotSharp</PackageProjectUrl>
@@ -177,12 +177,12 @@
 
   <ItemGroup>
     <PackageReference Include="Aspects.Cache" Version="2.0.4" />
+    <PackageReference Include="DistributedLock.Redis" Version="1.0.3" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.4.2" />
-    <PackageReference Include="Fluid.Core" Version="2.8.0" />
+    <PackageReference Include="Fluid.Core" Version="2.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Nanoid" Version="3.0.0" />
-    <PackageReference Include="RedLock.net" Version="2.3.2" />
+    <PackageReference Include="Nanoid" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>

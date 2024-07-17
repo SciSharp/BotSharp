@@ -12,6 +12,9 @@ public class RepositoryPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        var myDatabaseSettings = new BotSharpDatabaseSettings();
+        config.Bind("Database", myDatabaseSettings);
+
         // In order to use EntityFramework.BootKit in other plugin
         services.AddScoped(provider =>
         {
@@ -25,14 +28,8 @@ public class RepositoryPlugin : IBotSharpPlugin
             return settingService.Bind<DatabaseBasicSettings>("Database");
         });
 
-        services.AddScoped(provider =>
-        {
-            var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<BotSharpDatabaseSettings>("Database");
-        });
+        services.AddSingleton(provider => myDatabaseSettings);
 
-        var myDatabaseSettings = new BotSharpDatabaseSettings();
-        config.Bind("Database", myDatabaseSettings);
         if (myDatabaseSettings.Default == RepositoryEnum.FileRepository)
         {
             services.AddScoped<IBotSharpRepository, FileRepository>();
