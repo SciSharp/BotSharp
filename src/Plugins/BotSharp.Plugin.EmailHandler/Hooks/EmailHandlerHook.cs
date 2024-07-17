@@ -26,7 +26,7 @@ public class EmailHandlerHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(Utility.EmailHandler);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(UtilityName.EmailHandler);
 
         if (isConvMode && isEnabled)
         {

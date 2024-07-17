@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.EmailHandler.Enums
 {
-    public class Utility
+    public class UtilityName
     {
         public const string EmailHandler = "email-handler";
     }

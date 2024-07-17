@@ -55,11 +55,13 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TelegramBots\BotSharp.Plugin.TelegramBots.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
-    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.LLamaSharp\BotSharp.Plugin.LLamaSharp.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SqlDriver\BotSharp.Plugin.SqlDriver.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.WebDriver\BotSharp.Plugin.WebDriver.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.AnthropicAI\BotSharp.Plugin.AnthropicAI.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.HttpHandler\BotSharp.Plugin.HttpHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.FileHandler\BotSharp.Plugin.FileHandler.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.EmailHandler\BotSharp.Plugin.EmailHandler.csproj" />
   </ItemGroup>
   
   <ItemGroup>

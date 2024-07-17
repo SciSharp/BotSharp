@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Net.Mime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -40,7 +41,6 @@ public class HandleHttpRequestFn : IFunctionCallback
             var response = await SendHttpRequest(url, method, content);
             var responseContent = await HandleHttpResponse(response);
             message.Content = responseContent;
-            message.StopCompletion = true;
             return true;
         }
         catch (Exception ex)
@@ -48,7 +48,6 @@ public class HandleHttpRequestFn : IFunctionCallback
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
             _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
             message.Content = msg;
-            message.StopCompletion = true;
             return false;
         }
     }
@@ -152,7 +151,7 @@ public class HandleHttpRequestFn : IFunctionCallback
             _logger.LogWarning($"Error when build http content: {content}\n(Error: {ex.Message})");
         }
         
-        return new StringContent(str, Encoding.UTF8, "application/json");
+        return new StringContent(str, Encoding.UTF8, MediaTypeNames.Application.Json);
     }
 
     private string BuildQuery(string url, string? content)
