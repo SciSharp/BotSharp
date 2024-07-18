@@ -1,10 +1,10 @@
 using OpenAI.Images;
 
-namespace BotSharp.Plugin.OpenAI.Providers.Image;
+namespace BotSharp.Plugin.AzureOpenAI.Providers.Image;
 
 public class ImageVariationProvider : IImageVariation
 {
-    protected readonly OpenAiSettings _settings;
+    protected readonly AzureOpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ImageVariationProvider> _logger;
 
@@ -13,10 +13,10 @@ public class ImageVariationProvider : IImageVariation
 
     protected string _model;
 
-    public virtual string Provider => "openai";
+    public virtual string Provider => "azure-openai";
 
     public ImageVariationProvider(
-        OpenAiSettings settings,
+        AzureOpenAiSettings settings,
         ILogger<ImageVariationProvider> logger,
         IServiceProvider services)
     {

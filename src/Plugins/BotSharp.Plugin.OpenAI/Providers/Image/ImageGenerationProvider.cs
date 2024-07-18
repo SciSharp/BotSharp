@@ -59,7 +59,7 @@ public class ImageGenerationProvider : IImageGeneration
             generatedImages.Add(generatedImage);
         }
 
-        var content = string.Join("\r\n", generatedImages.Select(x => x.Description));
+        var content = string.Join("\r\n", generatedImages.Where(x => !string.IsNullOrWhiteSpace(x.Description)).Select(x => x.Description));
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, content)
         {
             CurrentAgentId = agent.Id,

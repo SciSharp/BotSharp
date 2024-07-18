@@ -35,15 +35,15 @@ public class ImageGenerationProvider : IImageGeneration
         var response = imageClient.GenerateImages(prompt, imageCount, options);
         var values = response.Value;
 
-        var images = new List<ImageGeneration>();
+        var generatedImages = new List<ImageGeneration>();
         foreach (var value in values)
         {
             if (value == null) continue;
 
-            var image = new ImageGeneration { Description = value?.RevisedPrompt ?? string.Empty };
+            var generatedImage = new ImageGeneration { Description = value?.RevisedPrompt ?? string.Empty };
             if (options.ResponseFormat == GeneratedImageFormat.Uri)
             {
-                image.ImageUrl = value?.ImageUri?.AbsoluteUri ?? string.Empty;
+                generatedImage.ImageUrl = value?.ImageUri?.AbsoluteUri ?? string.Empty;
             }
             else if (options.ResponseFormat == GeneratedImageFormat.Bytes)
             {
@@ -53,18 +53,18 @@ public class ImageGenerationProvider : IImageGeneration
                 {
                     base64Str = Convert.ToBase64String(bytes);
                 }
-                image.ImageData = base64Str;
+                generatedImage.ImageData = base64Str;
             }
 
-            images.Add(image);
+            generatedImages.Add(generatedImage);
         }
 
-        var content = string.Join("\r\n", images.Select(x => x.Description));
+        var content = string.Join("\r\n", generatedImages.Where(x => !string.IsNullOrWhiteSpace(x.Description)).Select(x => x.Description));
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, content)
         {
             CurrentAgentId = agent.Id,
             MessageId = message?.MessageId ?? string.Empty,
-            GeneratedImages = images
+            GeneratedImages = generatedImages
         };
 
         // After
