@@ -2,11 +2,11 @@ using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
 
-public class ImageGenerationProvider : IImageGeneration
+public class ImageVariationProvider : IImageVariation
 {
     protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
-    protected readonly ILogger<ImageGenerationProvider> _logger;
+    protected readonly ILogger<ImageVariationProvider> _logger;
 
     private const int DEFAULT_IMAGE_COUNT = 1;
     private const int IMAGE_COUNT_LIMIT = 5;
@@ -15,9 +15,9 @@ public class ImageGenerationProvider : IImageGeneration
 
     public virtual string Provider => "openai";
 
-    public ImageGenerationProvider(
+    public ImageVariationProvider(
         OpenAiSettings settings,
-        ILogger<ImageGenerationProvider> logger,
+        ILogger<ImageVariationProvider> logger,
         IServiceProvider services)
     {
         _settings = settings;
@@ -25,14 +25,13 @@ public class ImageGenerationProvider : IImageGeneration
         _logger = logger;
     }
 
-
-    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, RoleDialogModel message)
+    public RoleDialogModel GetImageVariation(Agent agent, RoleDialogModel message, Stream image, string imageFileName)
     {
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var (prompt, imageCount, options) = PrepareOptions(message);
+        var (imageCount, options) = PrepareOptions();
         var imageClient = client.GetImageClient(_model);
 
-        var response = imageClient.GenerateImages(prompt, imageCount, options);
+        var response = imageClient.GenerateImageVariations(image, imageFileName, imageCount, options);
         var values = response.Value;
 
         var generatedImages = new List<ImageGeneration>();
@@ -67,20 +66,6 @@ public class ImageGenerationProvider : IImageGeneration
             GeneratedImages = generatedImages
         };
 
-        // After
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-        foreach (var hook in contentHooks)
-        {
-            await hook.AfterGenerated(responseMessage, new TokenStatsModel
-            {
-                Prompt = prompt,
-                Provider = Provider,
-                Model = _model,
-                PromptCount = prompt.Split(' ', StringSplitOptions.RemoveEmptyEntries).Count(),
-                CompletionCount = content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Count()
-            });
-        }
-
         return responseMessage;
     }
 
@@ -89,10 +74,8 @@ public class ImageGenerationProvider : IImageGeneration
         _model = model;
     }
 
-    private (string, int, ImageGenerationOptions) PrepareOptions(RoleDialogModel message)
+    private (int, ImageVariationOptions) PrepareOptions()
     {
-        var prompt = message?.Payload ?? message?.Content ?? string.Empty;
-
         var state = _services.GetRequiredService<IConversationStateService>();
         var size = state.GetState("image_size");
         var quality = state.GetState("image_quality");
@@ -100,14 +83,12 @@ public class ImageGenerationProvider : IImageGeneration
         var format = state.GetState("image_format");
         var count = GetImageCount(state.GetState("image_count", "1"));
 
-        var options = new ImageGenerationOptions
+        var options = new ImageVariationOptions
         {
             Size = GetImageSize(size),
-            Quality = GetImageQuality(quality),
-            Style = GetImageStyle(style),
             ResponseFormat = GetImageFormat(format)
         };
-        return (prompt, count, options);
+        return (count, options);
     }
 
     private GeneratedImageSize GetImageSize(string size)
@@ -138,48 +119,6 @@ public class ImageGenerationProvider : IImageGeneration
         }
 
         return retSize;
-    }
-
-    private GeneratedImageQuality GetImageQuality(string quality)
-    {
-        var value = !string.IsNullOrEmpty(quality) ? quality : "standard";
-
-        GeneratedImageQuality retQuality;
-        switch (value)
-        {
-            case "standard":
-                retQuality = GeneratedImageQuality.Standard;
-                break;
-            case "hd":
-                retQuality = GeneratedImageQuality.High;
-                break;
-            default:
-                retQuality = GeneratedImageQuality.Standard;
-                break;
-        }
-
-        return retQuality;
-    }
-
-    private GeneratedImageStyle GetImageStyle(string style)
-    {
-        var value = !string.IsNullOrEmpty(style) ? style : "natural";
-
-        GeneratedImageStyle retStyle;
-        switch (value)
-        {
-            case "natural":
-                retStyle = GeneratedImageStyle.Natural;
-                break;
-            case "vivid":
-                retStyle = GeneratedImageStyle.Vivid;
-                break;
-            default:
-                retStyle = GeneratedImageStyle.Natural;
-                break;
-        }
-
-        return retStyle;
     }
 
     private GeneratedImageFormat GetImageFormat(string format)

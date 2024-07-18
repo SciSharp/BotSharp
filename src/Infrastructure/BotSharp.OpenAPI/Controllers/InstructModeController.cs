@@ -119,10 +119,7 @@ public class InstructModeController : ControllerBase
             var message = await completion.GetImageGeneration(new Agent()
             {
                 Id = Guid.Empty.ToString(),
-            }, new List<RoleDialogModel>
-            {
-                new RoleDialogModel(AgentRole.User, input.Text)
-            });
+            }, new RoleDialogModel(AgentRole.User, input.Text));
             
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
@@ -136,6 +133,34 @@ public class InstructModeController : ControllerBase
             return imageViewModel;
         }
     }
+
+    //[HttpPost("/instruct/image-variation")]
+    //public ImageGenerationViewModel ImageVariation([FromBody] IncomingMessageModel input)
+    //{
+    //    var state = _services.GetRequiredService<IConversationStateService>();
+    //    input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+    //    var imageViewModel = new ImageGenerationViewModel();
+
+    //    try
+    //    {
+    //        var completion = CompletionProvider.GetImageVariation(_services, provider: input.Provider ?? "openai", model: input.Model ?? "dall-e-2");
+    //        var message = completion.GetImageVariation(new Agent()
+    //        {
+    //            Id = Guid.Empty.ToString(),
+    //        }, new RoleDialogModel(AgentRole.User, input.Text));
+
+    //        imageViewModel.Content = message.Content;
+    //        imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+    //        return imageViewModel;
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        var error = $"Error in image generation. {ex.Message}";
+    //        _logger.LogError(error);
+    //        imageViewModel.Message = error;
+    //        return imageViewModel;
+    //    }
+    //}
 
     [HttpPost("/instruct/pdf-completion")]
     public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] IncomingMessageModel input)

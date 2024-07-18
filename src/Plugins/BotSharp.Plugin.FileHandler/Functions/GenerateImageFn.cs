@@ -62,7 +62,7 @@ public class GenerateImageFn : IFunctionCallback
             var completion = CompletionProvider.GetImageGeneration(_services, provider: "openai", model: "dall-e-3");
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
-            var result = await completion.GetImageGeneration(agent, new List<RoleDialogModel> { dialog });
+            var result = await completion.GetImageGeneration(agent, dialog);
             SaveGeneratedImages(result?.GeneratedImages);
             return result?.Content ?? string.Empty;
         }
