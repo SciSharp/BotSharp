@@ -6,7 +6,7 @@ public class ImageGenerationProvider : IImageGeneration
 {
     protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
-    protected readonly ILogger _logger;
+    protected readonly ILogger<ImageGenerationProvider> _logger;
 
     private const int DEFAULT_IMAGE_COUNT = 1;
     private const int IMAGE_COUNT_LIMIT = 5;
@@ -26,32 +26,24 @@ public class ImageGenerationProvider : IImageGeneration
     }
 
 
-    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, RoleDialogModel message)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-
-        // Before
-        foreach (var hook in contentHooks)
-        {
-            await hook.BeforeGenerating(agent, conversations);
-        }
-
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var (prompt, imageCount, options) = PrepareOptions(conversations);
+        var (prompt, imageCount, options) = PrepareOptions(message);
         var imageClient = client.GetImageClient(_model);
 
         var response = imageClient.GenerateImages(prompt, imageCount, options);
         var values = response.Value;
 
-        var images = new List<ImageGeneration>();
+        var generatedImages = new List<ImageGeneration>();
         foreach (var value in values)
         {
             if (value == null) continue;
 
-            var image = new ImageGeneration { Description = value?.RevisedPrompt ?? string.Empty };
+            var generatedImage = new ImageGeneration { Description = value?.RevisedPrompt ?? string.Empty };
             if (options.ResponseFormat == GeneratedImageFormat.Uri)
             {
-                image.ImageUrl = value?.ImageUri?.AbsoluteUri ?? string.Empty;
+                generatedImage.ImageUrl = value?.ImageUri?.AbsoluteUri ?? string.Empty;
             }
             else if (options.ResponseFormat == GeneratedImageFormat.Bytes)
             {
@@ -61,21 +53,22 @@ public class ImageGenerationProvider : IImageGeneration
                 {
                     base64Str = Convert.ToBase64String(bytes);
                 }
-                image.ImageData = base64Str;
+                generatedImage.ImageData = base64Str;
             }
 
-            images.Add(image);
+            generatedImages.Add(generatedImage);
         }
 
-        var content = string.Join("\r\n", images.Select(x => x.Description));
+        var content = string.Join("\r\n", generatedImages.Where(x => !string.IsNullOrWhiteSpace(x.Description)).Select(x => x.Description));
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, content)
         {
             CurrentAgentId = agent.Id,
-            MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-            GeneratedImages = images
+            MessageId = message?.MessageId ?? string.Empty,
+            GeneratedImages = generatedImages
         };
 
         // After
+        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
         foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
@@ -91,9 +84,14 @@ public class ImageGenerationProvider : IImageGeneration
         return responseMessage;
     }
 
-    private (string, int, ImageGenerationOptions) PrepareOptions(List<RoleDialogModel> conversations)
+    public void SetModelName(string model)
     {
-        var prompt = conversations.LastOrDefault()?.Payload ?? conversations.LastOrDefault()?.Content ?? string.Empty;
+        _model = model;
+    }
+
+    private (string, int, ImageGenerationOptions) PrepareOptions(RoleDialogModel message)
+    {
+        var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var size = state.GetState("image_size");
@@ -110,11 +108,6 @@ public class ImageGenerationProvider : IImageGeneration
             ResponseFormat = GetImageFormat(format)
         };
         return (prompt, count, options);
-    }
-
-    public void SetModelName(string model)
-    {
-        _model = model;
     }
 
     private GeneratedImageSize GetImageSize(string size)

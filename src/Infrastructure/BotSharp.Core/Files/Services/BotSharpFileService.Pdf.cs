@@ -4,7 +4,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class BotSharpFileService
 {
-    public async Task<string> InstructPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files)
+    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files)
     {
         var content = string.Empty;
 
@@ -22,7 +22,7 @@ public partial class BotSharpFileService
 
         try
         {
-            var pdfFiles = await SaveFiles(sessionDir, files);
+            var pdfFiles = await DownloadFiles(sessionDir, files);
             var images = await ConvertPdfToImages(pdfFiles);
             if (images.IsNullOrEmpty()) return content;
 
@@ -44,7 +44,7 @@ public partial class BotSharpFileService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when analyzing pdf in file service: {ex.Message}");
+            _logger.LogError($"Error when analyzing pdf in file service: {ex.Message}\r\n{ex.InnerException}");
             return content;
         }
         finally
@@ -60,7 +60,7 @@ public partial class BotSharpFileService
         return dir;
     }
 
-    private async Task<IEnumerable<string>> SaveFiles(string dir, List<BotSharpFile> files, string extension = "pdf")
+    private async Task<IEnumerable<string>> DownloadFiles(string dir, List<BotSharpFile> files, string extension = "pdf")
     {
         if (string.IsNullOrWhiteSpace(dir) || files.IsNullOrEmpty())
         {
@@ -105,7 +105,7 @@ public partial class BotSharpFileService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when saving pdf file: {ex.Message}");
+                _logger.LogWarning($"Error when saving pdf file: {ex.Message}\r\n{ex.InnerException}");
                 continue;
             }
         }
@@ -133,7 +133,7 @@ public partial class BotSharpFileService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when converting pdf file to images ({file}): {ex.Message}");
+                _logger.LogWarning($"Error when converting pdf file to images ({file}): {ex.Message}\r\n{ex.InnerException}");
                 continue;
             }
         }

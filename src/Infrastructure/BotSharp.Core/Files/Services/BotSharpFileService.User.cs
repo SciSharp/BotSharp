@@ -40,7 +40,7 @@ public partial class BotSharpFileService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving user avatar: {ex.Message}");
+            _logger.LogWarning($"Error when saving user avatar: {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }

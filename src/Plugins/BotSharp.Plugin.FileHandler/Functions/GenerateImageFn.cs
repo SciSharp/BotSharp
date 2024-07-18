@@ -59,17 +59,17 @@ public class GenerateImageFn : IFunctionCallback
     {
         try
         {
-            var completion = CompletionProvider.GetImageGeneration(_services, provider: "openai", model: "dall-e-3", imageGenerate: true);
+            var completion = CompletionProvider.GetImageGeneration(_services, provider: "openai", model: "dall-e-3");
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
-            var result = await completion.GetImageGeneration(agent, new List<RoleDialogModel> { dialog });
+            var result = await completion.GetImageGeneration(agent, dialog);
             SaveGeneratedImages(result?.GeneratedImages);
             return result?.Content ?? string.Empty;
         }
         catch (Exception ex)
         {
             var error = $"Error when generating image.";
-            _logger.LogWarning($"{error} {ex.Message}");
+            _logger.LogWarning($"{error} {ex.Message}\r\n{ex.InnerException}");
             return error;
         }
     }
@@ -81,7 +81,7 @@ public class GenerateImageFn : IFunctionCallback
         var files = images.Where(x => !string.IsNullOrEmpty(x?.ImageData)).Select(x => new BotSharpFile
         {
             FileName = $"{Guid.NewGuid()}.png",
-            FileData = $"data:image/png;base64,{x.ImageData}"
+            FileData = $"data:{MediaTypeNames.Image.Png};base64,{x.ImageData}"
         }).ToList();
 
         var fileService = _services.GetRequiredService<IBotSharpFileService>();

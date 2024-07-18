@@ -1,6 +1,8 @@
+using System.IO;
+
 namespace BotSharp.Abstraction.MLTasks;
 
-public interface IImageGeneration
+public interface IImageVariation
 {
     /// <summary>
     /// The LLM provider like Microsoft Azure, OpenAI, ClaudAI
@@ -13,5 +15,5 @@ public interface IImageGeneration
     /// <param name="model">deployment name</param>
     void SetModelName(string model);
 
-    Task<RoleDialogModel> GetImageGeneration(Agent agent, RoleDialogModel message);
+    Task<RoleDialogModel> GetImageVariation(Agent agent, RoleDialogModel message, Stream image, string imageFileName);
 }
