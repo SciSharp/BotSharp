@@ -15,5 +15,5 @@ public interface IImageVariation
     /// <param name="model">deployment name</param>
     void SetModelName(string model);
 
-    RoleDialogModel GetImageVariation(Agent agent, RoleDialogModel message, Stream image, string imageFileName);
+    Task<RoleDialogModel> GetImageVariation(Agent agent, RoleDialogModel message, Stream image, string imageFileName);
 }

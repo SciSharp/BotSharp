@@ -44,7 +44,8 @@ public interface IBotSharpFileService
     #endregion
 
     #region Image
-
+    Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text);
+    Task<RoleDialogModel> VarifyImage(string? provider, string? model, BotSharpFile file);
     #endregion
 
     #region Pdf
@@ -54,7 +55,7 @@ public interface IBotSharpFileService
     /// <param name="prompt"></param>
     /// <param name="files">Pdf files</param>
     /// <returns></returns>
-    Task<string> InstructPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files);
+    Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files);
     #endregion
 
     #region User

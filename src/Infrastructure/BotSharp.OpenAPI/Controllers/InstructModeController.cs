@@ -109,18 +109,14 @@ public class InstructModeController : ControllerBase
     [HttpPost("/instruct/image-generation")]
     public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] IncomingMessageModel input)
     {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
 
         try
         {
-            var completion = CompletionProvider.GetImageGeneration(_services, provider: input.Provider ?? "openai", model: input.Model ?? "dall-e-3");
-            var message = await completion.GetImageGeneration(new Agent()
-            {
-                Id = Guid.Empty.ToString(),
-            }, new RoleDialogModel(AgentRole.User, input.Text));
-            
+            var message = await fileService.GenerateImage(input.Provider, input.Model, input.Text);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -134,33 +130,30 @@ public class InstructModeController : ControllerBase
         }
     }
 
-    //[HttpPost("/instruct/image-variation")]
-    //public ImageGenerationViewModel ImageVariation([FromBody] IncomingMessageModel input)
-    //{
-    //    var state = _services.GetRequiredService<IConversationStateService>();
-    //    input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
-    //    var imageViewModel = new ImageGenerationViewModel();
+    [HttpPost("/instruct/image-variation")]
+    public async Task<ImageGenerationViewModel> ImageVariation([FromBody] IncomingMessageModel input)
+    {
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        var imageViewModel = new ImageGenerationViewModel();
 
-    //    try
-    //    {
-    //        var completion = CompletionProvider.GetImageVariation(_services, provider: input.Provider ?? "openai", model: input.Model ?? "dall-e-2");
-    //        var message = completion.GetImageVariation(new Agent()
-    //        {
-    //            Id = Guid.Empty.ToString(),
-    //        }, new RoleDialogModel(AgentRole.User, input.Text));
-
-    //        imageViewModel.Content = message.Content;
-    //        imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
-    //        return imageViewModel;
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        var error = $"Error in image generation. {ex.Message}";
-    //        _logger.LogError(error);
-    //        imageViewModel.Message = error;
-    //        return imageViewModel;
-    //    }
-    //}
+        try
+        {
+            var file = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
+            var message = await fileService.VarifyImage(input.Provider, input.Model, file);
+            imageViewModel.Content = message.Content;
+            imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            return imageViewModel;
+        }
+        catch (Exception ex)
+        {
+            var error = $"Error in image variation. {ex.Message}";
+            _logger.LogError(error);
+            imageViewModel.Message = error;
+            return imageViewModel;
+        }
+    }
 
     [HttpPost("/instruct/pdf-completion")]
     public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] IncomingMessageModel input)
@@ -172,7 +165,7 @@ public class InstructModeController : ControllerBase
         try
         {
             var fileService = _services.GetRequiredService<IBotSharpFileService>();
-            var content = await fileService.InstructPdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
+            var content = await fileService.ReadPdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
             viewModel.Content = content;
             return viewModel;
         }

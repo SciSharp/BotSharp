@@ -25,7 +25,7 @@ public class ImageVariationProvider : IImageVariation
         _logger = logger;
     }
 
-    public RoleDialogModel GetImageVariation(Agent agent, RoleDialogModel message, Stream image, string imageFileName)
+    public async Task<RoleDialogModel> GetImageVariation(Agent agent, RoleDialogModel message, Stream image, string imageFileName)
     {
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var (imageCount, options) = PrepareOptions();
@@ -66,7 +66,7 @@ public class ImageVariationProvider : IImageVariation
             GeneratedImages = generatedImages
         };
 
-        return responseMessage;
+        return await Task.FromResult(responseMessage);
     }
 
     public void SetModelName(string model)

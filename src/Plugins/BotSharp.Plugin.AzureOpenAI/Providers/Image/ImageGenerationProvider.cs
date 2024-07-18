@@ -26,18 +26,10 @@ public class ImageGenerationProvider : IImageGeneration
     }
 
 
-    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, List<RoleDialogModel> conversations)
+    public async Task<RoleDialogModel> GetImageGeneration(Agent agent, RoleDialogModel message)
     {
-        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
-
-        // Before
-        foreach (var hook in contentHooks)
-        {
-            await hook.BeforeGenerating(agent, conversations);
-        }
-
         var client = ProviderHelper.GetClient(Provider, _model, _services);
-        var (prompt, imageCount, options) = PrepareOptions(conversations);
+        var (prompt, imageCount, options) = PrepareOptions(message);
         var imageClient = client.GetImageClient(_model);
 
         var response = imageClient.GenerateImages(prompt, imageCount, options);
@@ -71,11 +63,12 @@ public class ImageGenerationProvider : IImageGeneration
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, content)
         {
             CurrentAgentId = agent.Id,
-            MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+            MessageId = message?.MessageId ?? string.Empty,
             GeneratedImages = images
         };
 
         // After
+        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
         foreach (var hook in contentHooks)
         {
             await hook.AfterGenerated(responseMessage, new TokenStatsModel
@@ -91,9 +84,14 @@ public class ImageGenerationProvider : IImageGeneration
         return responseMessage;
     }
 
-    private (string, int, ImageGenerationOptions) PrepareOptions(List<RoleDialogModel> conversations)
+    public void SetModelName(string model)
     {
-        var prompt = conversations.LastOrDefault()?.Payload ?? conversations.LastOrDefault()?.Content ?? string.Empty;
+        _model = model;
+    }
+
+    private (string, int, ImageGenerationOptions) PrepareOptions(RoleDialogModel message)
+    {
+        var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var size = state.GetState("image_size");
@@ -110,11 +108,6 @@ public class ImageGenerationProvider : IImageGeneration
             ResponseFormat = GetImageFormat(format)
         };
         return (prompt, count, options);
-    }
-
-    public void SetModelName(string model)
-    {
-        _model = model;
     }
 
     private GeneratedImageSize GetImageSize(string size)
