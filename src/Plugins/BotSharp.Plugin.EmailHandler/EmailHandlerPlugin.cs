@@ -1,13 +1,6 @@
 using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Email.Settings;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Plugin.EmailHandler.Hooks;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.EmailHandler
 {
