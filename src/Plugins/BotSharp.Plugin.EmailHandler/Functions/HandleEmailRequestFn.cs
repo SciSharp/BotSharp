@@ -56,7 +56,7 @@ public class HandleEmailRequestFn : IFunctionCallback
             }
 
             mailMessage.Body = bodyBuilder.ToMessageBody();
-            var response = await HandleSendEmailBySMTP(mailMessage);
+            var response = await SendEmailBySMTP(mailMessage);
             message.Content = response;
 
             _logger.LogWarning($"Email successfully send over to {recipient}. Email Subject: {subject} [{response}]");
@@ -140,7 +140,7 @@ public class HandleEmailRequestFn : IFunctionCallback
         }
     }
 
-    private async Task<string> HandleSendEmailBySMTP(MimeMessage mailMessage)
+    private async Task<string> SendEmailBySMTP(MimeMessage mailMessage)
     {
         using var smtpClient = new SmtpClient();
         await smtpClient.ConnectAsync(_emailSettings.SMTPServer, _emailSettings.SMTPPort, SecureSocketOptions.StartTls);
