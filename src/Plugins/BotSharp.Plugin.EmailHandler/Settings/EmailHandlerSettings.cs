@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Email.Settings;
+namespace BotSharp.Plugin.EmailHandler.Settings;
 
 public class EmailHandlerSettings
 {
