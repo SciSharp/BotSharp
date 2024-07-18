@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -47,9 +47,7 @@
 
   <ItemGroup>
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\agent.json" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\generate_image.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\instruction.liquid" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\generate_image.fn.liquid" />
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\agent.json" />
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\functions.json" />
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\functions\human_intervention_needed.json" />
@@ -155,12 +153,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\instruction.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\generate_image.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\generate_image.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\plugins\config.json">

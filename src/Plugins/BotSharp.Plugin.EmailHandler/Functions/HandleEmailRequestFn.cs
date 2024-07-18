@@ -96,7 +96,7 @@ public class HandleEmailRequestFn : IFunctionCallback
             {
                 return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, content_type: {x.ContentType}";
             }).ToList();
-            var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "email_attachment_prompt");
+            var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "select_attachment_prompt");
             prompt = render.Render(prompt, new Dictionary<string, object>
             {
                 { "file_list", promptFiles }
