@@ -11,14 +11,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\generate_image.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\read_image.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\read_pdf.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\generate_image.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\read_image.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\read_pdf.fn.liquid" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\generate_image.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\read_image.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\generate_image.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\read_image.fn.liquid">

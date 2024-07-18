@@ -1,6 +1,4 @@
-using BotSharp.Abstraction.Functions;
-
-namespace BotSharp.Core.Files.Functions;
+namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class GenerateImageFn : IFunctionCallback
 {

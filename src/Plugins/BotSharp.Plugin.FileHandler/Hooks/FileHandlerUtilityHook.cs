@@ -6,5 +6,6 @@ public class FileHandlerUtilityHook : IAgentUtilityHook
     {
         utilities.Add(UtilityName.ImageReader);
         utilities.Add(UtilityName.PdfReader);
+        utilities.Add(UtilityName.ImageGenerator);
     }
 }

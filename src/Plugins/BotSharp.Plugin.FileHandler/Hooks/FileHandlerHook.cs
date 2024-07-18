@@ -4,6 +4,7 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
 {
     private const string READ_IMAGE_FN = "read_image";
     private const string READ_PDF_FN = "read_pdf";
+    private const string GENERATE_IMAGE_FN = "generate_image";
 
     public override string SelfId => string.Empty;
 
@@ -20,6 +21,7 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
         {
             AddUtility(agent, UtilityName.ImageReader, READ_IMAGE_FN);
             AddUtility(agent, UtilityName.PdfReader, READ_PDF_FN);
+            AddUtility(agent, UtilityName.ImageGenerator, GENERATE_IMAGE_FN);
         }
 
         base.OnAgentLoaded(agent);
