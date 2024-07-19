@@ -141,6 +141,10 @@ public class InstructModeController : ControllerBase
         try
         {
             var file = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
+            if (file == null)
+            {
+                return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
+            }
             var message = await fileService.VarifyImage(input.Provider, input.Model, file);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();

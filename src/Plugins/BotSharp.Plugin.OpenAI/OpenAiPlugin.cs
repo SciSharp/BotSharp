@@ -29,7 +29,6 @@ public class OpenAiPlugin : IBotSharpPlugin
         services.AddScoped<ITextCompletion, TextCompletionProvider>();
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
         services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
-        services.AddScoped<IImageGeneration, ImageGenerationProvider>();
-        services.AddScoped<IImageVariation, ImageVariationProvider>();
+        services.AddScoped<IImageCompletion, ImageCompletionProvider>();
     }
 }

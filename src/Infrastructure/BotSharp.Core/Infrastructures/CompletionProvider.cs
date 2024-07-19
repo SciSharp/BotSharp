@@ -5,7 +5,7 @@ namespace BotSharp.Core.Infrastructures;
 
 public class CompletionProvider
 {
-    public static object? GetCompletion(IServiceProvider services, 
+    public static object GetCompletion(IServiceProvider services, 
         string? provider = null, 
         string? model = null, 
         AgentLlmConfig? agentConfig = null)
@@ -18,26 +18,20 @@ public class CompletionProvider
 
         if (settings.Type == LlmModelType.Text)
         {
-            return GetTextCompletion(services, 
-                provider: provider, 
-                model: model, 
-                agentConfig: agentConfig);
+            return GetTextCompletion(services, provider: provider, model: model, agentConfig: agentConfig);
         }
         else if (settings.Type == LlmModelType.Embedding)
         {
-            return GetTextEmbedding(services,
-                provider: provider,
-                model: model);
+            return GetTextEmbedding(services, provider: provider, model: model);
         }
-        else if (settings.Type == LlmModelType.Chat)
+        else if (settings.Type == LlmModelType.Image)
         {
-            return GetChatCompletion(services,
-                provider: provider,
-                model: model,
-                agentConfig: agentConfig);
+            return GetImageCompletion(services, provider: provider, model: model);
         }
-
-        return null;
+        else
+        {
+            return GetChatCompletion(services, provider: provider, model: model, agentConfig: agentConfig);
+        }
     }
 
     public static IChatCompletion GetChatCompletion(IServiceProvider services, 
@@ -82,36 +76,15 @@ public class CompletionProvider
         return completer;
     }
 
-    public static IImageGeneration GetImageGeneration(IServiceProvider services,
-        string? provider = null,
-        string? model = null,
-        string? modelId = null,
-        bool imageGenerate = false,
-        AgentLlmConfig? agentConfig = null)
-    {
-        var completions = services.GetServices<IImageGeneration>();
-        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId,
-            imageGenerate: imageGenerate, agentConfig: agentConfig);
-
-        var completer = completions.FirstOrDefault(x => x.Provider == provider);
-        if (completer == null)
-        {
-            var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
-            logger.LogError($"Can't resolve completion provider by {provider}");
-        }
-
-        completer?.SetModelName(model);
-        return completer;
-    }
-
-    public static IImageVariation GetImageVariation(IServiceProvider services,
+    public static IImageCompletion GetImageCompletion(IServiceProvider services,
         string? provider = null,
         string? model = null,
         string? modelId = null,
         bool imageGenerate = false)
     {
-        var completions = services.GetServices<IImageVariation>();
-        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId, imageGenerate: imageGenerate);
+        var completions = services.GetServices<IImageCompletion>();
+        (provider, model) = GetProviderAndModel(services, provider: provider, 
+            model: model, modelId: modelId, imageGenerate: imageGenerate);
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
         if (completer == null)
