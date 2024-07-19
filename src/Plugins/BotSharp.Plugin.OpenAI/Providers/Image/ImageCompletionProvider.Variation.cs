@@ -10,7 +10,7 @@ public partial class ImageCompletionProvider
         var (imageCount, options) = PrepareOptions();
         var imageClient = client.GetImageClient(_model);
 
-        var response = await imageClient.GenerateImageVariationsAsync(image, imageFileName, imageCount, options);
+        var response = imageClient.GenerateImageVariations(image, imageFileName, imageCount, options);
         var values = response.Value;
 
         var generatedImages = new List<ImageGeneration>();

@@ -45,7 +45,7 @@ public partial class ImageCompletionProvider
             GeneratedImages = generatedImages
         };
 
-        return responseMessage;
+        return await Task.FromResult(responseMessage);
     }
 
     private (string, int, ImageGenerationOptions) PrepareOptions(RoleDialogModel message)
