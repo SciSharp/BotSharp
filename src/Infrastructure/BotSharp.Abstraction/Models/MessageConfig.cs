@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Models;
 
-public class MessageConfig
+public class MessageConfig : InputMessageFiles
 {
     /// <summary>
     /// Completion Provider

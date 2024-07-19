@@ -20,7 +20,7 @@ public class GenerateImageFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<LlmFileContext>(message.FunctionArgs);
+        var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         Init(message);
         SetImageOptions();
         

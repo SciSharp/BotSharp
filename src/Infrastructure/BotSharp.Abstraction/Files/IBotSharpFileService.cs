@@ -45,7 +45,9 @@ public interface IBotSharpFileService
 
     #region Image
     Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text);
-    Task<RoleDialogModel> VarifyImage(string? provider, string? model, BotSharpFile file);
+    Task<RoleDialogModel> VaryImage(string? provider, string? model, BotSharpFile image);
+    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image);
+    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image, BotSharpFile mask);
     #endregion
 
     #region Pdf

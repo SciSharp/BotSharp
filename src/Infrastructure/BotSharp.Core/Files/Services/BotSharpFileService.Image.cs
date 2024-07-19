@@ -14,15 +14,15 @@ public partial class BotSharpFileService
         return message;
     }
 
-    public async Task<RoleDialogModel> VarifyImage(string? provider, string? model, BotSharpFile file)
+    public async Task<RoleDialogModel> VaryImage(string? provider, string? model, BotSharpFile image)
     {
-        if (string.IsNullOrWhiteSpace(file?.FileUrl) && string.IsNullOrWhiteSpace(file?.FileData))
+        if (string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData))
         {
-            throw new ArgumentException($"Please fill in at least file url or file data!");
+            throw new ArgumentException($"Cannot find image url or data!");
         }
 
         var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
-        var bytes = await DownloadFile(file);
+        var bytes = await DownloadFile(image);
         using var stream = new MemoryStream();
         stream.Write(bytes, 0, bytes.Length);
         stream.Position = 0;
@@ -30,9 +30,61 @@ public partial class BotSharpFileService
         var message = await completion.GetImageVariation(new Agent()
         {
             Id = Guid.Empty.ToString()
-        }, new RoleDialogModel(AgentRole.User, string.Empty), stream, file.FileName ?? string.Empty);
+        }, new RoleDialogModel(AgentRole.User, string.Empty), stream, image.FileName ?? string.Empty);
+        
         stream.Close();
+        return message;
+    }
 
+    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image)
+    {
+        if (string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData))
+        {
+            throw new ArgumentException($"Cannot find image url or data!");
+        }
+
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
+        var bytes = await DownloadFile(image);
+        using var stream = new MemoryStream();
+        stream.Write(bytes, 0, bytes.Length);
+        stream.Position = 0;
+
+        var message = await completion.GetImageEdits(new Agent()
+        {
+            Id = Guid.Empty.ToString()
+        }, new RoleDialogModel(AgentRole.User, text), stream, image.FileName ?? string.Empty);
+        
+        stream.Close();
+        return message;
+    }
+
+    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image, BotSharpFile mask)
+    {
+        if ((string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData)) ||
+            (string.IsNullOrWhiteSpace(mask?.FileUrl) && string.IsNullOrWhiteSpace(mask?.FileData)))
+        {
+            throw new ArgumentException($"Cannot find image/mask url or data");
+        }
+
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
+        var imageBytes = await DownloadFile(image);
+        var maskBytes = await DownloadFile(mask);
+
+        using var imageStream = new MemoryStream();
+        imageStream.Write(imageBytes, 0, imageBytes.Length);
+        imageStream.Position = 0;
+
+        using var maskStream = new MemoryStream();
+        maskStream.Write(maskBytes, 0, maskBytes.Length);
+        maskStream.Position = 0;
+
+        var message = await completion.GetImageEdits(new Agent()
+        {
+            Id = Guid.Empty.ToString()
+        }, new RoleDialogModel(AgentRole.User, text), imageStream, image.FileName ?? string.Empty, maskStream, mask.FileName ?? string.Empty);
+        
+        imageStream.Close();
+        maskStream.Close();
         return message;
     }
 

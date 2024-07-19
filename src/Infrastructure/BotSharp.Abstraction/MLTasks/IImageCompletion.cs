@@ -18,4 +18,8 @@ public interface IImageCompletion
     Task<RoleDialogModel> GetImageGeneration(Agent agent, RoleDialogModel message);
 
     Task<RoleDialogModel> GetImageVariation(Agent agent, RoleDialogModel message, Stream image, string imageFileName);
+
+    Task<RoleDialogModel> GetImageEdits(Agent agent, RoleDialogModel message, Stream image, string imageFileName);
+
+    Task<RoleDialogModel> GetImageEdits(Agent agent, RoleDialogModel message, Stream image, string imageFileName, Stream mask, string maskFileName);
 }
