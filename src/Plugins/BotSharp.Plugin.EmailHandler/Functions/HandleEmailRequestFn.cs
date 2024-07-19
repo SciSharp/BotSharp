@@ -73,7 +73,7 @@ public class HandleEmailRequestFn : IFunctionCallback
 
     private async Task<IEnumerable<MessageFileModel>> GetConversationFiles()
     {
-        var convService = _services.GetService<IConversationService>();
+        var convService = _services.GetRequiredService<IConversationService>();
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var conversationId = convService.ConversationId;
         var dialogs = convService.GetDialogHistory(fromBreakpoint: false);
