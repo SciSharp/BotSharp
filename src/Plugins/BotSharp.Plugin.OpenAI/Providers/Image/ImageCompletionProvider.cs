@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
@@ -31,6 +33,34 @@ public partial class ImageCompletionProvider : IImageCompletion
     }
 
     #region Private methods
+    private List<ImageGeneration> GetImageGenerations(GeneratedImageCollection images, GeneratedImageFormat? format)
+    {
+        var generatedImages = new List<ImageGeneration>();
+        foreach (var image in images)
+        {
+            if (image == null) continue;
+
+            var generatedImage = new ImageGeneration { Description = image?.RevisedPrompt ?? string.Empty };
+            if (format == GeneratedImageFormat.Uri)
+            {
+                generatedImage.ImageUrl = image?.ImageUri?.AbsoluteUri ?? string.Empty;
+            }
+            else if (format == GeneratedImageFormat.Bytes)
+            {
+                var base64Str = string.Empty;
+                var bytes = image?.ImageBytes?.ToArray();
+                if (!bytes.IsNullOrEmpty())
+                {
+                    base64Str = Convert.ToBase64String(bytes);
+                }
+                generatedImage.ImageData = base64Str;
+            }
+
+            generatedImages.Add(generatedImage);
+        }
+        return generatedImages;
+    }
+
     private GeneratedImageSize GetImageSize(string size)
     {
         var value = !string.IsNullOrEmpty(size) ? size : "1024x1024";
