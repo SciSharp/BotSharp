@@ -53,21 +53,19 @@ public partial class ImageCompletionProvider
         var prompt = message?.Payload ?? message?.Content ?? string.Empty;
 
         var state = _services.GetRequiredService<IConversationStateService>();
-        var size = state.GetState("image_size");
-        var quality = state.GetState("image_quality");
-        var style = state.GetState("image_style");
-        var format = state.GetState("image_format");
+        var size = GetImageSize(state.GetState("image_size"));
+        var quality = GetImageQuality(state.GetState("image_quality"));
+        var style = GetImageStyle(state.GetState("image_style"));
+        var format = GetImageFormat(state.GetState("image_format"));
         var count = GetImageCount(state.GetState("image_count", "1"));
 
         var options = new ImageGenerationOptions
         {
-            Size = GetImageSize(size),
-            Quality = GetImageQuality(quality),
-            Style = GetImageStyle(style),
-            ResponseFormat = GetImageFormat(format)
+            Size = size,
+            Quality = quality,
+            Style = style,
+            ResponseFormat = format
         };
         return (prompt, count, options);
     }
-
-    
 }

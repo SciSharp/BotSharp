@@ -10,7 +10,7 @@ public partial class ImageCompletionProvider
         var (imageCount, options) = PrepareOptions();
         var imageClient = client.GetImageClient(_model);
 
-        var response = imageClient.GenerateImageVariations(image, imageFileName, imageCount, options);
+        var response = await imageClient.GenerateImageVariationsAsync(image, imageFileName, imageCount, options);
         var values = response.Value;
 
         var generatedImages = new List<ImageGeneration>();
@@ -51,14 +51,14 @@ public partial class ImageCompletionProvider
     private (int, ImageVariationOptions) PrepareOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        var size = state.GetState("image_size");
-        var format = state.GetState("image_format");
+        var size = GetImageSize(state.GetState("image_size"));
+        var format = GetImageFormat(state.GetState("image_format"));
         var count = GetImageCount(state.GetState("image_count", "1"));
 
         var options = new ImageVariationOptions
         {
-            Size = GetImageSize(size),
-            ResponseFormat = GetImageFormat(format)
+            Size = size,
+            ResponseFormat = format
         };
         return (count, options);
     }
