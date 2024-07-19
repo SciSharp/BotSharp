@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using OpenAI.Images;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Image;
