@@ -6,7 +6,7 @@ public partial class BotSharpFileService
 {
     public async Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text)
     {
-        var completion = CompletionProvider.GetImageGeneration(_services, provider: provider ?? "openai", model: model ?? "dall-e-3");
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-3");
         var message = await completion.GetImageGeneration(new Agent()
         {
             Id = Guid.Empty.ToString(),
@@ -21,7 +21,7 @@ public partial class BotSharpFileService
             throw new ArgumentException($"Please fill in at least file url or file data!");
         }
 
-        var completion = CompletionProvider.GetImageVariation(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
+        var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
         var bytes = await DownloadFile(file);
         using var stream = new MemoryStream();
         stream.Write(bytes, 0, bytes.Length);

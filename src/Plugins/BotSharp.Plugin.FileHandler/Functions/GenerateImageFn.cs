@@ -18,7 +18,6 @@ public class GenerateImageFn : IFunctionCallback
         _logger = logger;
     }
 
-
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<LlmFileContext>(message.FunctionArgs);
@@ -59,7 +58,7 @@ public class GenerateImageFn : IFunctionCallback
     {
         try
         {
-            var completion = CompletionProvider.GetImageGeneration(_services, provider: "openai", model: "dall-e-3");
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: "openai", model: "dall-e-3");
             var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
             var dialog = RoleDialogModel.From(message, AgentRole.User, text);
             var result = await completion.GetImageGeneration(agent, dialog);
