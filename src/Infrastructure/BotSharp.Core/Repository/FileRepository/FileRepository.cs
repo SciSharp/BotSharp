@@ -1,7 +1,6 @@
 using System.IO;
 using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
-using MongoDB.Driver;
 using System.Text.Encodings.Web;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Statistics.Settings;

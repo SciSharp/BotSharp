@@ -1,9 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
 using Microsoft.AspNetCore.Hosting;
-using SharpCompress.Compressors.Xz;
-using System;
-using System.IO;
-using System.Net.Mime;
 
 namespace BotSharp.OpenAPI.Controllers;
 
