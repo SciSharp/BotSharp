@@ -109,9 +109,9 @@ public class PlaywrightInstance : IDisposable
             {
                 if (e.Headers.ContainsKey("content-type") &&
                     e.Headers["content-type"].Contains("application/json") &&
-                    e.Request.ResourceType == "fetch")
+                    (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr"))
                 {
-                    Serilog.Log.Information($"fetched: {e.Url}");
+                    Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
                     JsonElement? json = null;
                     try
                     {
@@ -123,7 +123,7 @@ public class PlaywrightInstance : IDisposable
                         {
                             Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
                         }
-                        fetched(e.Url.ToLower(), JsonSerializer.Serialize(json));
+                        fetched(e.Url.ToLower(), e.Request?.PostData ?? string.Empty, JsonSerializer.Serialize(json));
                     }
                     catch(Exception ex)
                     {

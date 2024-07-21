@@ -21,4 +21,4 @@ public class PageActionArgs
     public DataFetched? OnDataFetched { get; set; }
 }
 
-public delegate void DataFetched(string url, string data);
+public delegate void DataFetched(string url, string postData, string responsData);
