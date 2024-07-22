@@ -8,11 +8,6 @@ public class MongoDbContext
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
 
-    private readonly IEnumerable<string> _dbIndexes = new List<string>()
-    {
-        "authSource"
-    };
-
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
         var mongoDbConnectionString = dbSettings.BotSharpMongoDb.ConnectionString;
