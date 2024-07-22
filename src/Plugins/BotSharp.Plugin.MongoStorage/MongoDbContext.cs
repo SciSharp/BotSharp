@@ -15,13 +15,14 @@ public class MongoDbContext
 
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
-        var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
+        var mongoDbConnectionString = dbSettings.BotSharpMongoDb.ConnectionString;
+        var dbNameIndex = dbSettings.BotSharpMongoDb.DbNameIndex;
         _mongoClient = new MongoClient(mongoDbConnectionString);
-        _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
+        _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString, dbNameIndex);
         _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs("BotSharp");
     }
 
-    private string GetDatabaseName(string mongoDbConnectionString)
+    private string GetDatabaseName(string mongoDbConnectionString, string? dbNameIndex = null)
     {
         var dbName = string.Empty;
         if (!Uri.TryCreate(mongoDbConnectionString, UriKind.Absolute, out var conn))
@@ -30,15 +31,15 @@ public class MongoDbContext
         }
 
         var query = HttpUtility.ParseQueryString(conn.Query);
-        dbName = conn.Segments?.FirstOrDefault(x => x != "/") ?? string.Empty;
         var keys = query.AllKeys ?? [];
-        foreach (var db in _dbIndexes)
+
+        if (!string.IsNullOrWhiteSpace(dbNameIndex) && keys.Contains(dbNameIndex))
         {
-            if (keys.Contains(db))
-            {
-                dbName = query[db];
-                break;
-            }
+            dbName = query[dbNameIndex];
+        }
+        else
+        {
+            dbName = conn.Segments?.FirstOrDefault(x => x != "/") ?? string.Empty;
         }
         return dbName;
     }
