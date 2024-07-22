@@ -1,3 +1,5 @@
+using System.Web;
+
 namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext
@@ -5,6 +7,11 @@ public class MongoDbContext
     private readonly MongoClient _mongoClient;
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
+
+    private readonly IEnumerable<string> _dbKeys = new List<string>()
+    {
+        "authSource"
+    };
 
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
@@ -16,13 +23,26 @@ public class MongoDbContext
 
     private string GetDatabaseName(string mongoDbConnectionString)
     {
-        var databaseName = mongoDbConnectionString.Substring(mongoDbConnectionString.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) + 1);
-        if (databaseName.Contains("?"))
+        var dbName = string.Empty;
+        if (!Uri.TryCreate(mongoDbConnectionString, UriKind.Absolute, out var conn))
         {
-            databaseName = databaseName.Substring(0, databaseName.IndexOf("?", StringComparison.InvariantCultureIgnoreCase));
+            return dbName;
         }
-        return databaseName;
+
+        var query = HttpUtility.ParseQueryString(conn.Query);
+        dbName = conn.Segments?.FirstOrDefault(x => x != "/") ?? string.Empty;
+        var keys = query.AllKeys ?? [];
+        foreach (var db in _dbKeys)
+        {
+            if (keys.Contains(db))
+            {
+                dbName = query[db];
+                break;
+            }
+        }
+        return dbName;
     }
+
 
     private IMongoDatabase Database { get { return _mongoClient.GetDatabase(_mongoDbDatabaseName); } }
 
