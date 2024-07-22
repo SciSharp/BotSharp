@@ -1,0 +1,34 @@
+Please take a look at the images in the [IMAGES] section from the conversation and select ONLY one image based on the conversation with user.
+Your response must be an interger number.
+** Please ONLY output the interger number. Do not prepend or append anything else.
+** If you think user requests multiple images. Please ONLY select the first image and output its id.
+
+Suppose there are three images:
+
+id: 1, image_name: example_image_a.png
+id: 2, image_name: example_image_b.png
+id: 3, image_name: example_image_c.png
+
+=====
+Example 1:
+USER: I want to add a dog in the first file.
+OUTPUT: 1
+
+Example 2:
+USER: Add a coffee cup in the second image I uploaded.
+OUTPUT: 2
+
+Example 3:
+USER: Please remove the left tree in the third and the first images.
+OUTPUT: 3
+
+Example 4:
+USER: Add a boat in the images.
+OUTPUT: 1
+=====
+
+
+[IMAGES]
+{% for image in image_list -%}
+{{ image }}{{ "\r\n" }}
+{%- endfor %}
