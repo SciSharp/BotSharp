@@ -14,11 +14,4 @@ public class PageActionArgs
 
     public bool WaitForNetworkIdle = true;
     public float? Timeout { get; set; }
-
-    /// <summary>
-    /// On page data fetched
-    /// </summary>
-    public DataFetched? OnDataFetched { get; set; }
 }
-
-public delegate void DataFetched(string url, string postData, string responsData);
