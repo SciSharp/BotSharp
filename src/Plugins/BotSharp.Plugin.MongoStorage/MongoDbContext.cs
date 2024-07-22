@@ -8,16 +8,17 @@ public class MongoDbContext
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
 
+    private const string DB_NAME_INDEX = "authSource";
+
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
-        var mongoDbConnectionString = dbSettings.BotSharpMongoDb.ConnectionString;
-        var dbNameIndex = dbSettings.BotSharpMongoDb.DbNameIndex;
+        var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
         _mongoClient = new MongoClient(mongoDbConnectionString);
-        _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString, dbNameIndex);
+        _mongoDbDatabaseName = GetDatabaseName(mongoDbConnectionString);
         _collectionPrefix = dbSettings.TablePrefix.IfNullOrEmptyAs("BotSharp");
     }
 
-    private string GetDatabaseName(string mongoDbConnectionString, string? dbNameIndex = null)
+    private string GetDatabaseName(string mongoDbConnectionString)
     {
         var dbName = string.Empty;
         if (!Uri.TryCreate(mongoDbConnectionString, UriKind.Absolute, out var conn))
@@ -28,9 +29,9 @@ public class MongoDbContext
         var query = HttpUtility.ParseQueryString(conn.Query);
         var keys = query.AllKeys ?? [];
 
-        if (!string.IsNullOrWhiteSpace(dbNameIndex) && keys.Contains(dbNameIndex))
+        if (keys.Contains(DB_NAME_INDEX))
         {
-            dbName = query[dbNameIndex];
+            dbName = query[DB_NAME_INDEX];
         }
         else
         {

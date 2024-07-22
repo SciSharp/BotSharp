@@ -4,7 +4,7 @@ public class BotSharpDatabaseSettings : DatabaseBasicSettings
 {
     public string[] Assemblies { get; set; }
     public string FileRepository { get; set; }
-    public BotSharpMongoDbSetting BotSharpMongoDb { get; set; }
+    public string BotSharpMongoDb { get; set; }
     public string TablePrefix { get; set; }
     public DbConnectionSetting BotSharp { get; set; }
     public string Redis { get; set; }
@@ -28,10 +28,4 @@ public class DbConnectionSetting
     {
         Slavers = new string[0];
     }
-}
-
-public class BotSharpMongoDbSetting
-{
-    public string ConnectionString { get; set; }
-    public string? DbNameIndex { get; set; }
 }
