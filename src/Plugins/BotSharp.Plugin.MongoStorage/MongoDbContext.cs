@@ -8,7 +8,7 @@ public class MongoDbContext
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
 
-    private readonly IEnumerable<string> _dbKeys = new List<string>()
+    private readonly IEnumerable<string> _dbIndexes = new List<string>()
     {
         "authSource"
     };
@@ -32,7 +32,7 @@ public class MongoDbContext
         var query = HttpUtility.ParseQueryString(conn.Query);
         dbName = conn.Segments?.FirstOrDefault(x => x != "/") ?? string.Empty;
         var keys = query.AllKeys ?? [];
-        foreach (var db in _dbKeys)
+        foreach (var db in _dbIndexes)
         {
             if (keys.Contains(db))
             {
