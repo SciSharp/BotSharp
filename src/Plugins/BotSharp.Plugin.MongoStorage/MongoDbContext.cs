@@ -1,5 +1,3 @@
-using System.Web;
-
 namespace BotSharp.Plugin.MongoStorage;
 
 public class MongoDbContext
@@ -20,26 +18,33 @@ public class MongoDbContext
 
     private string GetDatabaseName(string mongoDbConnectionString)
     {
-        var dbName = string.Empty;
-        if (!Uri.TryCreate(mongoDbConnectionString, UriKind.Absolute, out var conn))
-        {
-            return dbName;
-        }
+        var databaseName = mongoDbConnectionString.Substring(mongoDbConnectionString.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) + 1);
 
-        var query = HttpUtility.ParseQueryString(conn.Query);
-        var keys = query.AllKeys ?? [];
+        var symbol = "?";
+        if (databaseName.Contains(symbol))
+        {
+            var markIdx = databaseName.IndexOf(symbol, StringComparison.InvariantCultureIgnoreCase);
+            var db = databaseName.Substring(0, markIdx);
+            if (!string.IsNullOrWhiteSpace(db))
+            {
+                return db;
+            }
 
-        if (keys.Contains(DB_NAME_INDEX))
-        {
-            dbName = query[DB_NAME_INDEX];
+            var queryStr = databaseName.Substring(markIdx + 1);
+            var queries = queryStr.Split("&", StringSplitOptions.RemoveEmptyEntries).Select(x => new
+            {
+                Key = x.Split("=")[0],
+                Value = x.Split("=")[1]
+            }).ToList();
+            
+            var source = queries.FirstOrDefault(x => x.Key.IsEqualTo(DB_NAME_INDEX));
+            if (source != null)
+            {
+                databaseName = source.Value;
+            }
         }
-        else
-        {
-            dbName = conn.Segments?.FirstOrDefault(x => x != "/") ?? string.Empty;
-        }
-        return dbName;
+        return databaseName;
     }
-
 
     private IMongoDatabase Database { get { return _mongoClient.GetDatabase(_mongoDbDatabaseName); } }
 
