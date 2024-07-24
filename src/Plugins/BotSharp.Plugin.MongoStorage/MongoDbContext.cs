@@ -1,4 +1,5 @@
 using System.Web;
+using System.Xml.Linq;
 
 namespace BotSharp.Plugin.MongoStorage;
 
@@ -20,26 +21,13 @@ public class MongoDbContext
 
     private string GetDatabaseName(string mongoDbConnectionString)
     {
-        var dbName = string.Empty;
-        if (!Uri.TryCreate(mongoDbConnectionString, UriKind.Absolute, out var conn))
+        var databaseName = mongoDbConnectionString.Substring(mongoDbConnectionString.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) + 1);
+        if (databaseName.Contains("?"))
         {
-            return dbName;
+            databaseName = databaseName.Substring(0, databaseName.IndexOf("?", StringComparison.InvariantCultureIgnoreCase));
         }
-
-        var query = HttpUtility.ParseQueryString(conn.Query);
-        var keys = query.AllKeys ?? [];
-
-        if (keys.Contains(DB_NAME_INDEX))
-        {
-            dbName = query[DB_NAME_INDEX];
-        }
-        else
-        {
-            dbName = conn.Segments?.FirstOrDefault(x => x != "/") ?? string.Empty;
-        }
-        return dbName;
+        return databaseName;
     }
-
 
     private IMongoDatabase Database { get { return _mongoClient.GetDatabase(_mongoDbDatabaseName); } }
 
