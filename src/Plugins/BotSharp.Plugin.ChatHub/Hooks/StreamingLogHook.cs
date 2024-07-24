@@ -1,11 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Loggers;
-using BotSharp.Abstraction.Loggers.Enums;
-using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Options;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Routing;
 using Microsoft.AspNetCore.SignalR;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -570,10 +562,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
     private string FormatJson(string? json)
     {
-        var defaultJson = "{}";
         if (string.IsNullOrWhiteSpace(json))
         {
-            return defaultJson;
+            return "{}";
         }
 
         try
@@ -595,11 +586,11 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             {
                 Formatting = Newtonsoft.Json.Formatting.Indented
             };
-            return JsonConvert.SerializeObject(parsedJson, jsonSettings) ?? defaultJson;
+            return JsonConvert.SerializeObject(parsedJson, jsonSettings);
         }
         catch
         {
-            return defaultJson;
+            return json;
         }
     }
     #endregion

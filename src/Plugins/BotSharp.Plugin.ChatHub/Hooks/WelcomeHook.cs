@@ -1,8 +1,4 @@
-using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.Messaging;
-using BotSharp.Abstraction.Templating;
 using Microsoft.AspNetCore.SignalR;
-using BotSharp.Abstraction.Options;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 

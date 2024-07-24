@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Messaging.Enums;
-using BotSharp.Abstraction.Options;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
