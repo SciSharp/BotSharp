@@ -118,7 +118,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
-        var args = FormatJson(message.FunctionArgs);
+        var args = message.FunctionArgs.FormatJson();
         var log = $"{message.FunctionName} <u>executing</u>\r\n```json\r\n{args}\r\n```";
 
         var input = new ContentLogInputModel(conversationId, message)
@@ -558,40 +558,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
 
         return localOptions;
-    }
-
-    private string FormatJson(string? json)
-    {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return "{}";
-        }
-
-        try
-        {
-            var parsedJson = JObject.Parse(json);
-            foreach (var item in parsedJson)
-            {
-                try
-                {
-                    var key = item.Key;
-                    var value = parsedJson[key].ToString();
-                    var parsedValue = JObject.Parse(value);
-                    parsedJson[key] = parsedValue;
-                }
-                catch { continue; }
-            }
-
-            var jsonSettings = new JsonSerializerSettings
-            {
-                Formatting = Newtonsoft.Json.Formatting.Indented
-            };
-            return JsonConvert.SerializeObject(parsedJson, jsonSettings);
-        }
-        catch
-        {
-            return json;
-        }
     }
     #endregion
 }

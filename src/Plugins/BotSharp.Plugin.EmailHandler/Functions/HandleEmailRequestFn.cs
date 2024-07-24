@@ -78,8 +78,9 @@ public class HandleEmailRequestFn : IFunctionCallback
         var conversationId = convService.ConversationId;
         var dialogs = convService.GetDialogHistory(fromBreakpoint: false);
         var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var files = fileService.GetMessageFiles(conversationId, messageIds, FileSourceType.User);
-        return await SelectFiles(files, dialogs);
+        var userFiles = fileService.GetMessageFiles(conversationId, messageIds, FileSourceType.User);
+        var botFiles = fileService.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot);
+        return await SelectFiles(userFiles.Concat(botFiles), dialogs);
     }
 
     private async Task<IEnumerable<MessageFileModel>> SelectFiles(IEnumerable<MessageFileModel> files, List<RoleDialogModel> dialogs)
@@ -94,7 +95,7 @@ public class HandleEmailRequestFn : IFunctionCallback
         {
             var promptFiles = files.Select((x, idx) =>
             {
-                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, content_type: {x.ContentType}";
+                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, author: {x.FileSource}, content_type: {x.ContentType}";
             }).ToList();
             var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "select_attachment_prompt");
             prompt = render.Render(prompt, new Dictionary<string, object>
@@ -114,7 +115,8 @@ public class HandleEmailRequestFn : IFunctionCallback
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
             var response = await completion.GetChatCompletions(agent, dialogs);
             var content = response?.Content ?? string.Empty;
-            var fids = JsonSerializer.Deserialize<List<int>>(content) ?? new List<int>();
+            var selecteds = JsonSerializer.Deserialize<LlmContextOut>(content);
+            var fids = selecteds?.Selecteds ?? new List<int>();
             return files.Where((x, idx) => fids.Contains(idx + 1)).ToList();
         }
         catch (Exception ex)
@@ -146,6 +148,6 @@ public class HandleEmailRequestFn : IFunctionCallback
         await smtpClient.ConnectAsync(_emailSettings.SMTPServer, _emailSettings.SMTPPort, SecureSocketOptions.StartTls);
         await smtpClient.AuthenticateAsync(_emailSettings.EmailAddress, _emailSettings.Password);
         var response = await smtpClient.SendAsync(mailMessage);
-        return response;
+        return response ?? "Email sent";
     }
 }

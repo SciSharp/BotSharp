@@ -132,11 +132,11 @@ public class TextCompletionProvider : ITextCompletion
 
     private string BuildApiUrl(LlmModelSetting modelSetting)
     {
-        var url = string.Empty;
+        var apiVersion = !string.IsNullOrWhiteSpace(modelSetting.ApiVersion) ? modelSetting.ApiVersion : "2023-09-15-preview";
         var endpoint = modelSetting.Endpoint.EndsWith("/") ?
             modelSetting.Endpoint.Substring(0, modelSetting.Endpoint.Length - 1) : modelSetting.Endpoint;
 
-        url = $"{endpoint}/openai/deployments/{_model}/completions?api-version=2023-09-15-preview";
+        var url = $"{endpoint}/openai/deployments/{_model}/completions?api-version={apiVersion}";
         return url;
     }
 
