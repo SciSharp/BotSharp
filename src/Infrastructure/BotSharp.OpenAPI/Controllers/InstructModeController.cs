@@ -48,7 +48,7 @@ public class InstructModeController : ControllerBase
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
-        state.SetState("provider", input.Provider, source: StateSource.External)
+        state.SetState("provider", input.Provider ?? "azure-openai", source: StateSource.External)
             .SetState("model", input.Model, source: StateSource.External)
             .SetState("model_id", input.ModelId, source: StateSource.External);
 
