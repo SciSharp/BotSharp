@@ -31,8 +31,7 @@ public class MongoDbContext
             }
 
             var queryStr = databaseName.Substring(markIdx + 1);
-            var segments = queryStr.Split("&", StringSplitOptions.RemoveEmptyEntries);
-            var queries = segments.Select(x => new
+            var queries = queryStr.Split("&", StringSplitOptions.RemoveEmptyEntries).Select(x => new
             {
                 Key = x.Split("=")[0],
                 Value = x.Split("=")[1]
