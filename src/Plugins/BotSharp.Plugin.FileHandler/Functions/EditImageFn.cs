@@ -28,7 +28,7 @@ public class EditImageFn : IFunctionCallback
         Init(message);
         SetImageOptions();
 
-        var image = await SelectConversationImage();
+        var image = await SelectConversationImage(descrpition);
         var response = await GetImageEditGeneration(message, descrpition, image);
         message.Content = response;
         return true;
@@ -48,17 +48,17 @@ public class EditImageFn : IFunctionCallback
         state.SetState("image_count", "1");
     }
 
-    private async Task<MessageFileModel?> SelectConversationImage()
+    private async Task<MessageFileModel?> SelectConversationImage(string? description)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var dialogs = convService.GetDialogHistory(fromBreakpoint: false);
+        var dialogs = convService.GetDialogHistory();
         var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var images = fileService.GetMessageFiles(_conversationId, messageIds, FileSourceType.User, imageOnly: true);
-        return await SelectImage(images, dialogs);
+        var userImages = fileService.GetMessageFiles(_conversationId, messageIds, FileSourceType.User, imageOnly: true);
+        return await SelectImage(userImages, dialogs.LastOrDefault(), description);
     }
 
-    private async Task<MessageFileModel?> SelectImage(IEnumerable<MessageFileModel> images, List<RoleDialogModel> dialogs)
+    private async Task<MessageFileModel?> SelectImage(IEnumerable<MessageFileModel> images, RoleDialogModel message, string? description)
     {
         if (images.IsNullOrEmpty()) return null;
 
@@ -91,10 +91,15 @@ public class EditImageFn : IFunctionCallback
             var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
             var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4");
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
-            var response = await completion.GetChatCompletions(agent, dialogs);
+
+            var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
+            var dialog = RoleDialogModel.From(message, AgentRole.User, text);
+
+            var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { dialog });
             var content = response?.Content ?? string.Empty;
-            var fid = JsonSerializer.Deserialize<int?>(content);
-            return images.Where((x, idx) => idx == fid - 1).FirstOrDefault();
+            var selected = JsonSerializer.Deserialize<LlmContextOut>(content);
+            var fid = selected?.Selected ?? -1;
+            return fid > 0 ? images.Where((x, idx) => idx == fid - 1).FirstOrDefault() : null;
         }
         catch (Exception ex)
         {
@@ -126,7 +131,7 @@ public class EditImageFn : IFunctionCallback
             stream.Close();
             SaveGeneratedImage(result?.GeneratedImages?.FirstOrDefault());
 
-            return !string.IsNullOrWhiteSpace(result?.Content) ? result.Content : "Image edit is completed.";
+            return $"Image \"{image.FileName}.{image.FileType}\" is successfylly editted.";
         }
         catch (Exception ex)
         {
