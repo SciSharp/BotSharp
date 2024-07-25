@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
-using Newtonsoft.Json.Linq;
-using JsonConvert = Newtonsoft.Json.JsonConvert;
-using JsonSerializerSettings = Newtonsoft.Json.JsonSerializerSettings;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
 
