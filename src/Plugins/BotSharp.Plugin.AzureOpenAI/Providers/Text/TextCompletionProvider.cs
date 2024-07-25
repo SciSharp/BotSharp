@@ -136,7 +136,7 @@ public class TextCompletionProvider : ITextCompletion
         var endpoint = modelSetting.Endpoint.EndsWith("/") ?
             modelSetting.Endpoint.Substring(0, modelSetting.Endpoint.Length - 1) : modelSetting.Endpoint;
 
-        url = $"{endpoint}/openai/deployments/{_model}/completions?api-version={modelSetting.Version}";
+        url = $"{endpoint}/openai/deployments/{_model}/completions?api-version=2023-09-15-preview";
         return url;
     }
 
