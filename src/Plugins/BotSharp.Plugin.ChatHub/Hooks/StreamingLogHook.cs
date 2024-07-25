@@ -1,11 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Loggers;
-using BotSharp.Abstraction.Loggers.Enums;
-using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Options;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Abstraction.Routing;
 using Microsoft.AspNetCore.SignalR;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -126,7 +118,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
-        var args = FormatJson(message.FunctionArgs);
+        var args = message.FunctionArgs.FormatJson();
         var log = $"{message.FunctionName} <u>executing</u>\r\n```json\r\n{args}\r\n```";
 
         var input = new ContentLogInputModel(conversationId, message)
@@ -566,41 +558,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         }
 
         return localOptions;
-    }
-
-    private string FormatJson(string? json)
-    {
-        var defaultJson = "{}";
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return defaultJson;
-        }
-
-        try
-        {
-            var parsedJson = JObject.Parse(json);
-            foreach (var item in parsedJson)
-            {
-                try
-                {
-                    var key = item.Key;
-                    var value = parsedJson[key].ToString();
-                    var parsedValue = JObject.Parse(value);
-                    parsedJson[key] = parsedValue;
-                }
-                catch { continue; }
-            }
-
-            var jsonSettings = new JsonSerializerSettings
-            {
-                Formatting = Newtonsoft.Json.Formatting.Indented
-            };
-            return JsonConvert.SerializeObject(parsedJson, jsonSettings) ?? defaultJson;
-        }
-        catch
-        {
-            return defaultJson;
-        }
     }
     #endregion
 }

@@ -18,6 +18,11 @@ public class LlmModelSetting
     public string Version { get; set; } = "1106-Preview";
 
     /// <summary>
+    /// Api version
+    /// </summary>
+    public string? ApiVersion { get; set; }
+
+    /// <summary>
     /// Deployment same functional model in a group.
     /// It can be used to deploy same model in different regions.
     /// </summary>
