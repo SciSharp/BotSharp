@@ -7,11 +7,11 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public IPlaner GetPlanner(Agent router)
+    public IRoutingPlaner GetPlanner(Agent router)
     {
         var rule = router.RoutingRules.FirstOrDefault(x => x.Type == RuleType.Planner);
 
-        var planner = _services.GetServices<IPlaner>().
+        var planner = _services.GetServices<IRoutingPlaner>().
             FirstOrDefault(x => x.GetType().Name.EndsWith(rule.Field));
 
         if (planner == null)

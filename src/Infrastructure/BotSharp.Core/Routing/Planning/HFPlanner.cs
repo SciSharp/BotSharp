@@ -6,7 +6,7 @@ namespace BotSharp.Core.Routing.Planning;
 /// <summary>
 /// Human feedback based planner
 /// </summary>
-public class HFPlanner : IPlaner
+public class HFPlanner : IRoutingPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;

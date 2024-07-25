@@ -10,7 +10,7 @@ using System.Drawing;
 
 namespace BotSharp.Core.Routing.Planning;
 
-public class SequentialPlanner : IPlaner
+public class SequentialPlanner : IRoutingPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
