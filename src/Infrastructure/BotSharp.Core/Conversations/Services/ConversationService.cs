@@ -12,7 +12,7 @@ public partial class ConversationService : IConversationService
     private readonly IConversationStorage _storage;
     private readonly IConversationStateService _state;
     private string _conversationId;
-    private const string AIAssistant = "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a";
+    private const string AIAssistant = BuiltInAgentId.AIAssistant;
 
     public string ConversationId => _conversationId;
 

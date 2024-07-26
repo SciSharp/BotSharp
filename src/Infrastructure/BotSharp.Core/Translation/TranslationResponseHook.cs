@@ -11,7 +11,7 @@ namespace BotSharp.Logger.Hooks
     {
         private readonly IServiceProvider _services;
         private readonly IConversationStateService _states;
-        private const string AIAssistant = "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a";
+        private const string AIAssistant = BuiltInAgentId.AIAssistant;
 
         public TranslationResponseHook(IServiceProvider services,
             IConversationStateService states)

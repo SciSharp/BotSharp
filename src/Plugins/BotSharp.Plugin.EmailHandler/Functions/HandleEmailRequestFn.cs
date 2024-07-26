@@ -95,7 +95,7 @@ public class HandleEmailRequestFn : IFunctionCallback
         {
             var promptFiles = files.Select((x, idx) =>
             {
-                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, author: {x.FileSource}, content_type: {x.ContentType}";
+                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, content_type: {x.ContentType}, author: {x.FileSource}";
             }).ToList();
             var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "select_attachment_prompt");
             prompt = render.Render(prompt, new Dictionary<string, object>
@@ -113,7 +113,8 @@ public class HandleEmailRequestFn : IFunctionCallback
             var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
             var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4");
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
-            var response = await completion.GetChatCompletions(agent, dialogs);
+            var latest = dialogs.LastOrDefault();
+            var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { latest });
             var content = response?.Content ?? string.Empty;
             var selecteds = JsonSerializer.Deserialize<LlmContextOut>(content);
             var fids = selecteds?.Selecteds ?? new List<int>();
