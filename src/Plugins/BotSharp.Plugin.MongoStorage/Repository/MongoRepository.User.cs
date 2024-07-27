@@ -72,4 +72,20 @@ public partial class MongoRepository
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
         _dc.Users.UpdateOne(filter, update);
     }
+
+    public void UpdateUserEmail(string userId, string email)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update.Set(x => x.Email, email)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+        _dc.Users.UpdateOne(filter, update);
+    }
+
+    public void UpdateUserPhone(string userId, string phone)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update.Set(x => x.Phone, phone)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+        _dc.Users.UpdateOne(filter, update);
+    }
 }

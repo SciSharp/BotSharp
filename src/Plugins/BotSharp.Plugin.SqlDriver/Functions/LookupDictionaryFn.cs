@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Core.Infrastructures;

@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Playwright" Version="1.45.0" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.45.1" />
     <PackageReference Include="Selenium.WebDriver" Version="4.23.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
   </ItemGroup>

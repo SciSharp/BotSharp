@@ -121,6 +121,18 @@ public class UserController : ControllerBase
         return await _userService.ResetUserPassword(user.ToUser());
     }
 
+    [HttpPost("/user/email/modify")]
+    public async Task<bool> ModifyUserEmail([FromQuery] string email)
+    {
+        return await _userService.ModifyUserEmail(email);
+    }
+
+    [HttpPost("/user/phone/modify")]
+    public async Task<bool> ModifyUserPhone([FromQuery] string phone)
+    {
+        return await _userService.ModifyUserPhone(phone);
+    }
+
     #region Avatar
     [HttpPost("/user/avatar")]
     public bool UploadUserAvatar([FromBody] BotSharpFile file)
