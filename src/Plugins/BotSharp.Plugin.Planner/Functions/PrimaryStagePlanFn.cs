@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Transform;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Templating;
