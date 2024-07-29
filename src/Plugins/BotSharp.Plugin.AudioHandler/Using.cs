@@ -1,0 +1,13 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Text;
+global using System.Linq;
+global using System.Text.Json;
+global using Newtonsoft.Json;
+global using System.Threading.Tasks;
+global using BotSharp.Abstraction.Plugins;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Mvc;
