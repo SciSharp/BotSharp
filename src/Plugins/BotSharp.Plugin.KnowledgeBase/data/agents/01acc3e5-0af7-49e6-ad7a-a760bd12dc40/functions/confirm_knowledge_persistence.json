@@ -1,0 +1,14 @@
+{
+  "name": "confirm_knowledge_persistence",
+  "description": "Confirm with user whether need to save this knowledge to memory",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "question": {
+        "type": "string",
+        "description": "knowledge topic"
+      }
+    },
+    "required": [ "question" ]
+  }
+}

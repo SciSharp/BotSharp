@@ -1,6 +1,6 @@
 {
   "name": "memorize_knowledge",
-  "description": "Retrieve related domain knowledge to handle user request",
+  "description": "save the knowledge to memory",
   "parameters": {
     "type": "object",
     "properties": {

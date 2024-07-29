@@ -40,7 +40,7 @@ public class MemorizeKnowledgeFn : IFunctionCallback
                 { "answer", args.Answer } 
             });
 
-        message.Content = $"Save result: {(result ? "success" : "failed")}";
+        message.Content = result ? "Saved to my brain" : "I forgot it";
 
         return true;
     }

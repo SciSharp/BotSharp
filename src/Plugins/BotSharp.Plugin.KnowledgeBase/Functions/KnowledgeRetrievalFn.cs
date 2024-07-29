@@ -33,7 +33,15 @@ public class KnowledgeRetrievalFn : IFunctionCallback
         var id = Utilities.HashTextMd5(args.Question);
         var knowledges = await vectorDb.Search("lessen", vector[0], "answer");
 
-        message.Content = string.Join("\r\n\r\n=====\r\n", knowledges);
+        if (knowledges.Count > 0)
+        {
+            message.Content = string.Join("\r\n\r\n=====\r\n", knowledges);
+        }
+        else
+        {
+            message.Content = $"I didn't find any useful knowledge related to [{args.Question}]. \r\nCan you tell me the instruction and I'll memorize it.";
+            message.StopCompletion = true;
+        }
 
         return true;
     }

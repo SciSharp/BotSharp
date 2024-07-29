@@ -5,7 +5,7 @@ using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing.Planning;
 
-public class NaivePlanner : IPlaner
+public class NaivePlanner : IRoutingPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;

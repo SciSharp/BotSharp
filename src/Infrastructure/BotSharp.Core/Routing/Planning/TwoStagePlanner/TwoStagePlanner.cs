@@ -7,7 +7,7 @@ using System.IO;
 
 namespace BotSharp.Core.Routing.Planning;
 
-public partial class TwoStagePlanner : IPlaner
+public partial class TwoStagePlanner : IRoutingPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
