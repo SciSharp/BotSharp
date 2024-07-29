@@ -242,8 +242,8 @@ public class ConversationController : ControllerBase
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
 
-        conv.SetConversationId(conversationId, input.States);
         SetStates(conv, input);
+        conv.SetConversationId(conversationId, input.States);
 
         var response = new ChatResponseModel();
 

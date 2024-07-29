@@ -6,7 +6,7 @@ namespace BotSharp.Abstraction.Routing.Planning;
 /// Task breakdown and execution plan 
 /// https://www.promptingguide.ai/techniques/cot
 /// </summary>
-public interface IPlaner
+public interface IRoutingPlaner
 {
     Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs);
     Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs);
