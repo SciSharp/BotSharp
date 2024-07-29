@@ -67,8 +67,6 @@ namespace BotSharp.Plugin.AudioHandler.Provider
                 textResult.Add(result);
             }
 
-            await stream.DisposeAsync();
-
             var audioOutput = new AudioOutput
             {
                 Segments = textResult
