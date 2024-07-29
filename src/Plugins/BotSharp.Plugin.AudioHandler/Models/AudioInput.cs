@@ -10,6 +10,6 @@ namespace BotSharp.Plugin.AudioHandler.Models
     public class AudioInput
     {
         public string FilePath { get; set; }
-        public Stream stream { get; set; }
+        public Stream Stream { get; set; }
     }
 }

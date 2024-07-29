@@ -14,7 +14,7 @@ public class AudioProcessUtilities : IAudioProcessUtilities
     public Stream ConvertMp3ToStream(string mp3FileName)
     {
         var fileStream = File.OpenRead(mp3FileName);
-        var reader = new Mp3FileReader(fileStream);
+        using var reader = new Mp3FileReader(fileStream);
         if (reader.WaveFormat.SampleRate != 16000)
         {
             var wavStream = new MemoryStream();
@@ -31,7 +31,7 @@ public class AudioProcessUtilities : IAudioProcessUtilities
     public Stream ConvertWavToStream(string wavFileName)
     {
         var fileStream = File.OpenRead(wavFileName);
-        var reader = new WaveFileReader(fileStream);
+        using var reader = new WaveFileReader(fileStream);
         if (reader.WaveFormat.SampleRate != 16000)
         {
             var wavStream = new MemoryStream();

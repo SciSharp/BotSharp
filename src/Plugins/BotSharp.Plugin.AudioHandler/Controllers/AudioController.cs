@@ -12,7 +12,6 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
 #if DEBUG
     [AllowAnonymous]
 #endif
-    [Route("[controller]/text/[action]")]
     [ApiController]
     public class AudioController : ControllerBase
     {
@@ -23,7 +22,7 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
             _audioService = audioService;
         }
 
-        [HttpGet]
+        [HttpGet("audio/transcript")]
         public async Task<IActionResult> GetTextFromAudioController(string audioInputString)
         {
 #if DEBUG
