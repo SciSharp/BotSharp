@@ -364,4 +364,33 @@ public class UserService : IUserService
         db.UpdateUserPassword(record.Id, newPassword);
         return true;
     }
+
+    public async Task<bool> ModifyUserEmail(string email)
+    {
+        var curUser = await GetMyProfile();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserById(curUser.Id);
+        if (record == null)
+        {
+            return false;
+        }
+
+        db.UpdateUserEmail(record.Id, email);
+        return true;
+    }
+
+    public async Task<bool> ModifyUserPhone(string phone)
+    {
+        var curUser = await GetMyProfile();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserById(curUser.Id);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        db.UpdateUserPhone(record.Id, phone);
+        return true;
+    }
 }

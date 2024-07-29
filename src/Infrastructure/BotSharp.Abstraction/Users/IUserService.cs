@@ -14,4 +14,6 @@ public interface IUserService
     Task<bool> VerifyEmailExisting(string email);
     Task<bool> SendVerificationCodeResetPassword(User user);
     Task<bool> ResetUserPassword(User user);
+    Task<bool> ModifyUserEmail(string email);
+    Task<bool> ModifyUserPhone(string phone);
 }
