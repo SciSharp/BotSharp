@@ -1,6 +1,5 @@
 using BotSharp.Plugin.AudioHandler.Settings;
 using BotSharp.Plugin.AudioHandler.Provider;
-using BotSharp.Plugin.AudioHandler.Functions;
 using BotSharp.Abstraction.Settings;
 
 namespace BotSharp.Plugin.AudioHandler
@@ -22,8 +21,8 @@ namespace BotSharp.Plugin.AudioHandler
                 return settingService.Bind<AudioHandlerSettings>("AudioHandler");
             });
 
-            services.AddSingleton<IAudioService, AudioService>();
-            services.AddSingleton<IAudioProcessUtilities, AudioProcessUtilities>();
+            services.AddScoped<ISpeechToText, NativeWhisperProvider>();
+            services.AddScoped<IAudioProcessUtilities, AudioProcessUtilities>();
         }
     }
 }

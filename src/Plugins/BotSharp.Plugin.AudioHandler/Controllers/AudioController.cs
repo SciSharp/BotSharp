@@ -15,11 +15,11 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
     [ApiController]
     public class AudioController : ControllerBase
     {
-        private readonly IAudioService _audioService;
+        private readonly ISpeechToText _nativeWhisperProvider;
 
-        public AudioController(IAudioService audioService)
+        public AudioController(ISpeechToText audioService)
         {
-            _audioService = audioService;
+            _nativeWhisperProvider = audioService;
         }
 
         [HttpGet("audio/transcript")]
@@ -29,11 +29,7 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 #endif
-            var audioInput = new AudioInput
-            {
-                FilePath = audioInputString
-            };
-            var result = await _audioService.AudioToTextTranscript(audioInput);
+            var result = await _nativeWhisperProvider.AudioToTextTranscript(audioInputString);
 #if DEBUG
             stopWatch.Stop();
             TimeSpan ts = stopWatch.Elapsed;
@@ -44,6 +40,5 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
 #endif
             return Ok(result);
         }
-
     }
 }
