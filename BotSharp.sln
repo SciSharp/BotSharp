@@ -101,6 +101,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.FileHandler
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.Planner", "src\Plugins\BotSharp.Plugin.Planner\BotSharp.Plugin.Planner.csproj", "{54E83C6F-54EE-4ADC-8D72-93C009CC4FB4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileStorages", "FileStorages", "{38B37C0D-1930-4D47-BCBF-E358EC1096B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.TencentCos", "src\Plugins\BotSharp.Plugin.TencentCos\BotSharp.Plugin.TencentCos.csproj", "{BF029B0A-768B-43A1-8D91-E70B95505716}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -413,6 +417,14 @@ Global
 		{54E83C6F-54EE-4ADC-8D72-93C009CC4FB4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{54E83C6F-54EE-4ADC-8D72-93C009CC4FB4}.Release|x64.ActiveCfg = Release|Any CPU
 		{54E83C6F-54EE-4ADC-8D72-93C009CC4FB4}.Release|x64.Build.0 = Release|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Debug|x64.Build.0 = Debug|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF029B0A-768B-43A1-8D91-E70B95505716}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -461,6 +473,8 @@ Global
 		{A72B3BEB-E14B-4917-BE44-97EAE4E122D2} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{D6A99D4F-6248-419E-8A43-B38ADEBABA2C} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
 		{54E83C6F-54EE-4ADC-8D72-93C009CC4FB4} = {51AFE054-AE99-497D-A593-69BAEFB5106F}
+		{38B37C0D-1930-4D47-BCBF-E358EC1096B1} = {2635EC9B-2E5F-4313-AC21-0B847F31F36C}
+		{BF029B0A-768B-43A1-8D91-E70B95505716} = {38B37C0D-1930-4D47-BCBF-E358EC1096B1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9969D89-C98B-40A5-A12B-FC87E55B3A19}
