@@ -158,9 +158,8 @@ public class UserController : ControllerBase
     #region Private methods
     private FileContentResult BuildFileResult(string file)
     {
-        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var bytes = new byte[stream.Length];
-        stream.Read(bytes, 0, (int)stream.Length);
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var bytes = fileService.GetFileBytes(file);
         return File(bytes, "application/octet-stream", Path.GetFileName(file));
     }
     #endregion

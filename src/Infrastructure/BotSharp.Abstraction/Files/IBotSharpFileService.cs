@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace BotSharp.Abstraction.Files;
 
 public interface IBotSharpFileService
@@ -74,5 +76,7 @@ public interface IBotSharpFileService
     (string, byte[]) GetFileInfoFromData(string data);
     string GetDirectory(string conversationId);
     string GetFileContentType(string filePath);
+    byte[] GetFileBytes(string fileStorageUrl);
+    bool SavefileToPath(string filePath, Stream stream);
     #endregion
 }

@@ -43,4 +43,21 @@ public partial class BotSharpFileService
 
         return contentType;
     }
+
+    public byte[] GetFileBytes(string fileStorageUrl)
+    {
+        using var stream = File.OpenRead(fileStorageUrl);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes, 0, (int)stream.Length);
+        return bytes;
+    }
+
+    public bool SavefileToPath(string filePath, Stream stream)
+    {
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        {
+            stream.CopyTo(fileStream);
+        }
+        return true;
+    }
 }
