@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.EmailReader.Settings;
+namespace BotSharp.Plugin.EmailHandler.Settings;
 
 public class EmailReaderSettings
 {

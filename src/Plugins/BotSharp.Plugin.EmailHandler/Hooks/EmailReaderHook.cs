@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.EmailHandler.Hooks;
 
-public class EmailHandlerHook : AgentHookBase
+public class EmailReaderHook : AgentHookBase
 {
-    private static string FUNCTION_NAME = "handle_email_request";
+    private static string FUNCTION_NAME = "handle_email_reader";
 
     public override string SelfId => string.Empty;
 
-    public EmailHandlerHook(IServiceProvider services, AgentSettings settings)
+    public EmailReaderHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }

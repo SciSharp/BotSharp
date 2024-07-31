@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.EmailReader.Templates
+namespace BotSharp.Plugin.EmailHandler.Models
 {
     public class EmailSubjectElement : GenericElement
     {

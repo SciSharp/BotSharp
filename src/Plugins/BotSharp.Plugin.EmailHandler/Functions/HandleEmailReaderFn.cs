@@ -3,11 +3,8 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Core.Infrastructures;
-using BotSharp.Plugin.EmailReader.LlmContexts;
-using BotSharp.Plugin.EmailReader.Models;
-using BotSharp.Plugin.EmailReader.Providers;
-using BotSharp.Plugin.EmailReader.Settings;
-using BotSharp.Plugin.EmailReader.Templates;
+using BotSharp.Plugin.EmailHandler.Models;
+using BotSharp.Plugin.EmailHandler.Providers;
 using BusinessCore.Utils;
 using MailKit;
 using MailKit.Net.Imap;
@@ -23,9 +20,9 @@ public class HandleEmailReaderFn : IFunctionCallback
 {
     public string Name => "handle_email_reader";
     public readonly static string PROMPT_SUMMARY = "Provide a text summary of the following content.";
-    public readonly static string RICH_CONTENT_SUMMARIZE = "Summarize the particular email by messageId";
+    public readonly static string RICH_CONTENT_SUMMARIZE = "is_email_summarize: true. messageId";
     public readonly static string RICH_CONTENT_READ_EMAIL = "Read the email by messageId";
-    public readonly static string RICH_CONTENT_MARK_READ = "Mark the email message as read by messageId";
+    public readonly static string RICH_CONTENT_MARK_READ = "mark_as_read: true. messageId";
     public string Indication => "Handling email read";
     private readonly IServiceProvider _services;
     private readonly ILogger<HandleEmailReaderFn> _logger;
@@ -53,7 +50,7 @@ public class HandleEmailReaderFn : IFunctionCallback
     }
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
+        var args = JsonSerializer.Deserialize<LlmContextReader>(message.FunctionArgs, _options.JsonSerializerOptions);
         var isMarkRead = args?.IsMarkRead ?? false;
         var isSummarize = args?.IsSummarize ?? false;
         var messageId = args?.MessageId;

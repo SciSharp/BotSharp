@@ -1,12 +1,16 @@
-using BotSharp.Plugin.EmailReader.Models;
-using BotSharp.Plugin.EmailReader.Settings;
+using BotSharp.Plugin.EmailHandler.Models;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.EmailReader.Providers
+namespace BotSharp.Plugin.EmailHandler.Providers
 {
     public class DefaultEmailReader : IEmailReader
     {

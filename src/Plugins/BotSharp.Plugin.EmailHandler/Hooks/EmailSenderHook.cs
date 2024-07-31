@@ -3,22 +3,22 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Plugin.EmailReader.Enums;
+using BotSharp.Plugin.EmailHandler.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.EmailReader.Hooks;
+namespace BotSharp.Plugin.EmailHandler.Hooks;
 
-public class EmailReaderHook : AgentHookBase
+public class EmailSenderHook : AgentHookBase
 {
-    private static string FUNCTION_NAME = "handle_email_reader";
+    private static string FUNCTION_NAME = "handle_email_sender";
 
     public override string SelfId => string.Empty;
 
-    public EmailReaderHook(IServiceProvider services, AgentSettings settings)
+    public EmailSenderHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
@@ -26,7 +26,7 @@ public class EmailReaderHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(UtilityName.EmailReader);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(UtilityName.EmailHandler);
 
         if (isConvMode && isEnabled)
         {
