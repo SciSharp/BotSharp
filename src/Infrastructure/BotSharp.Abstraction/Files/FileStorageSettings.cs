@@ -2,5 +2,5 @@
 
 public class FileStorageSettings
 {
-    public string Default { get; set; }
+    public string Default { get; set; } = FileStorageEnum.LocalFileStorage;
 }
