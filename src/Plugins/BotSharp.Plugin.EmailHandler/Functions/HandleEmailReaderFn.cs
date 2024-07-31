@@ -5,7 +5,6 @@ using BotSharp.Abstraction.MLTasks;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.EmailHandler.Models;
 using BotSharp.Plugin.EmailHandler.Providers;
-using BusinessCore.Utils;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
@@ -85,7 +84,7 @@ public class HandleEmailReaderFn : IFunctionCallback
                     var response = await completion.GetChatCompletions(agent, dialogs);
                     var content = response?.Content ?? string.Empty;
                     message.Content = content;
-                    message.RichContent = BuildRichContent.TextPostBackRichContent(_state.GetConversationId(), message.Content);
+                    message.RichContent = BuildRichContentForSummary(_state.GetConversationId(), message.Content);
                     return true;
                 }
                 UniqueId.TryParse(messageId, out UniqueId uid);
@@ -104,6 +103,19 @@ public class HandleEmailReaderFn : IFunctionCallback
             message.Content = msg;
             return false;
         }
+    }
+    public RichContent<IRichMessage> BuildRichContentForSummary(string conversationId, string content, string editorType = EditorTypeEnum.Text)
+    {
+        return new RichContent<IRichMessage>()
+        {
+            FillPostback = true,
+            Editor = editorType,
+            Recipient = new Recipient() { Id = conversationId },
+            Message = new ButtonTemplateMessage()
+            {
+                Text = content,
+            }
+        };
     }
     private RichContent<IRichMessage> BuildRichContentForSubject(List<EmailModel> emailSubjects)
     {
