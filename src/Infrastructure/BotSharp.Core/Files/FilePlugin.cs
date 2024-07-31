@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Core.Files.Services;
 using Microsoft.Extensions.Configuration;
 
@@ -14,6 +15,12 @@ public class FilePlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<IBotSharpFileService, BotSharpFileService>();
+        var myFileStorageSettings = new FileStorageSettings();
+        config.Bind("FileStorage", myFileStorageSettings);
+
+        if (myFileStorageSettings.Default == FileStorageEnum.LocalFileStorage)
+        {
+            services.AddScoped<IBotSharpFileService, BotSharpFileService>();
+        }
     }
 }

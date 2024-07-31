@@ -356,10 +356,7 @@ public class ConversationController : ControllerBase
                 var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
                 var filePath = Path.Combine(dir, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    file.CopyTo(stream);
-                }
+                fileService.SavefileToPath(filePath, file.OpenReadStream());
             }
 
             return Ok(new { message = "File uploaded successfully." });

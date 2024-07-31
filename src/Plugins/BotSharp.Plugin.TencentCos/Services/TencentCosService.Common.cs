@@ -1,18 +1,12 @@
 using Microsoft.AspNetCore.StaticFiles;
-using System.IO;
 
-namespace BotSharp.Core.Files.Services;
+namespace BotSharp.Plugin.TencentCos.Services;
 
-public partial class BotSharpFileService
+public partial class TencentCosService
 {
     public string GetDirectory(string conversationId)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, CONVERSATION_FOLDER, conversationId, "attachments");
-        if (!Directory.Exists(dir))
-        {
-            Directory.CreateDirectory(dir);
-        }
-        return dir;
+        return $"{CONVERSATION_FOLDER}/{conversationId}/attachments/";
     }
 
     public (string, byte[]) GetFileInfoFromData(string data)
@@ -46,18 +40,31 @@ public partial class BotSharpFileService
 
     public byte[] GetFileBytes(string fileStorageUrl)
     {
-        using var stream = File.OpenRead(fileStorageUrl);
-        var bytes = new byte[stream.Length];
-        stream.Read(bytes, 0, (int)stream.Length);
-        return bytes;
+        try
+        {
+            var fileData = _cosClient.BucketClient.DownloadFileBytes(fileStorageUrl);
+
+            return fileData;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when get file bytes: {ex.Message}\r\n{ex.InnerException}");
+        }
+        return Array.Empty<byte>();
     }
 
     public bool SavefileToPath(string filePath, Stream stream)
     {
-        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        if (string.IsNullOrEmpty(filePath)) return false;
+
+        try
         {
-            stream.CopyTo(fileStream);
+            return _cosClient.BucketClient.UploadStream(filePath, stream);
         }
-        return true;
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when saving file to path: {ex.Message}\r\n{ex.InnerException}");
+            return false;
+        }
     }
 }
