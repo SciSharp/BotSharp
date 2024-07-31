@@ -1,4 +1,6 @@
-﻿namespace BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Repositories.Enums;
+
+namespace BotSharp.Abstraction.Files;
 
 public class FileStorageSettings
 {
