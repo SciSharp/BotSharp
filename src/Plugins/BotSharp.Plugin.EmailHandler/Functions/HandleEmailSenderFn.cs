@@ -5,25 +5,25 @@ using System.IO;
 
 namespace BotSharp.Plugin.EmailHandler.Functions;
 
-public class HandleEmailRequestFn : IFunctionCallback
+public class HandleEmailSenderFn : IFunctionCallback
 {
-    public string Name => "handle_email_request";
-    public string Indication => "Handling email request";
+    public string Name => "handle_email_sender";
+    public string Indication => "Handling email send request";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger<HandleEmailRequestFn> _logger;
+    private readonly ILogger<HandleEmailSenderFn> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IHttpContextAccessor _context;
     private readonly BotSharpOptions _options;
-    private readonly EmailHandlerSettings _emailSettings;
+    private readonly EmailSenderSettings _emailSettings;
 
-    public HandleEmailRequestFn(
+    public HandleEmailSenderFn(
         IServiceProvider services,
-        ILogger<HandleEmailRequestFn> logger,
+        ILogger<HandleEmailSenderFn> logger,
         IHttpClientFactory httpClientFactory,
         IHttpContextAccessor context,
         BotSharpOptions options,
-        EmailHandlerSettings emailPluginSettings)
+        EmailSenderSettings emailPluginSettings)
     {
         _services = services;
         _logger = logger;
