@@ -13,6 +13,11 @@ public class ElementActionArgs
     public string? PressKey { get; set; }
 
     /// <summary>
+    /// Wait time in seconds
+    /// </summary>
+    public int WaitTime { get; set; }
+
+    /// <summary>
     /// Required for deserialization
     /// </summary>
     public ElementActionArgs()

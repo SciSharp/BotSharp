@@ -58,5 +58,10 @@ public partial class PlaywrightWebDriver
         {
             await locator.HoverAsync();
         }
+
+        if (action.WaitTime > 0)
+        {
+            await Task.Delay(1000 * action.WaitTime);
+        }
     }
 }
