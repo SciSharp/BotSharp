@@ -11,19 +11,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_email_request.json" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_request.fn.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_email_reader.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_email_sender.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_sender.fn.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_reader.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_attachment_prompt.liquid" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_email_request.json">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_email_reader.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_request.fn.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_email_sender.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_sender.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_attachment_prompt.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_reader.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

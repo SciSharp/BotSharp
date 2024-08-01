@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Plugin.EmailHandler.Providers;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.EmailHandler
@@ -16,11 +17,22 @@ namespace BotSharp.Plugin.EmailHandler
             services.AddScoped(provider =>
             {
                 var settingService = provider.GetRequiredService<ISettingService>();
-                return settingService.Bind<EmailHandlerSettings>("EmailHandler");
+                return settingService.Bind<EmailSenderSettings>("EmailSender");
             });
 
-            services.AddScoped<IAgentHook, EmailHandlerHook>();
+            services.AddScoped<IAgentHook, EmailSenderHook>();
+            services.AddScoped<IAgentHook, EmailReaderHook>();
             services.AddScoped<IAgentUtilityHook, EmailHandlerUtilityHook>();
+
+            var emailReaderSettings = new EmailReaderSettings();
+            config.Bind("EmailReader", emailReaderSettings);
+            services.AddScoped(provider =>
+            {
+                var settingService = provider.GetRequiredService<ISettingService>();
+                return settingService.Bind<EmailReaderSettings>("EmailReader");
+            });
+            services.AddSingleton(provider => emailReaderSettings);
+            services.AddScoped<IEmailReader, DefaultEmailReader>();
         }
     }
 }
