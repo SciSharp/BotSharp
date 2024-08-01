@@ -43,7 +43,7 @@ public interface IConversationService
         Func<RoleDialogModel, Task> onFunctionExecuting,
         Func<RoleDialogModel, Task> onFunctionExecuted);
 
-    List<RoleDialogModel> GetDialogHistory(int lastCount = 50, bool fromBreakpoint = true);
+    List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true);
     Task CleanHistory(string agentId);
 
     /// <summary>

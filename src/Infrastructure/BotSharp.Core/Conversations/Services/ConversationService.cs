@@ -106,7 +106,7 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(int lastCount = 50, bool fromBreakpoint = true)
+    public List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true)
     {
         if (string.IsNullOrEmpty(_conversationId))
         {
