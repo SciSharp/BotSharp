@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
@@ -413,7 +414,9 @@ public class ConversationController : ControllerBase
         using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
         var bytes = new byte[stream.Length];
         stream.Read(bytes, 0, (int)stream.Length);
-        return File(bytes, "application/octet-stream", Path.GetFileName(file));
+        var fileExtension = Path.GetExtension(file).ToLower();
+        var enableRangeProcessing = FileConstants.AudioExtensions.Contains(fileExtension);
+        return File(bytes, "application/octet-stream", Path.GetFileName(file), enableRangeProcessing: enableRangeProcessing);
     }
 
     private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)
