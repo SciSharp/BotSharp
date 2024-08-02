@@ -414,8 +414,8 @@ public class ConversationController : ControllerBase
         using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
         var bytes = new byte[stream.Length];
         stream.Read(bytes, 0, (int)stream.Length);
-        var fileExtensions = Path.GetExtension(file).ToLower();
-        var enableRangeProcessing = FileConstants.AudioTypes.Contains(fileExtensions);
+        var fileExtension = Path.GetExtension(file).ToLower();
+        var enableRangeProcessing = FileConstants.AudioExtensions.Contains(fileExtension);
         return File(bytes, "application/octet-stream", Path.GetFileName(file), enableRangeProcessing: enableRangeProcessing);
     }
 
