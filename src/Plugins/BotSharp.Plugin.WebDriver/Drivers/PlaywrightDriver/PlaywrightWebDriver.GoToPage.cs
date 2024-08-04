@@ -1,37 +1,42 @@
+using System.Linq;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
 {
-    public async Task<BrowserActionResult> GoToPage(string contextId, string url, bool openNewTab = false)
+    public async Task<BrowserActionResult> GoToPage(MessageInfo message, PageActionArgs args)
     {
         var result = new BrowserActionResult();
-        var context = await _instance.InitInstance(contextId);
+        var context = await _instance.InitInstance(message.ContextId);
         try
         {
             // Check if the page is already open
-            foreach (var p in context.Pages)
+            /*if (!args.OpenNewTab && context.Pages.Count > 0)
             {
-                if (p.Url == url)
+                foreach (var p in context.Pages)
                 {
-                    result.Body = await p.ContentAsync();
-                    result.IsSuccess = true;
-                    await p.BringToFrontAsync();
-                    return result;
+                    if (p.Url == args.Url)
+                    {
+                        // Disable this due to performance issue, some page is too large
+                        // result.Body = await p.ContentAsync();
+                        result.IsSuccess = true;
+                        // await p.BringToFrontAsync();
+                        return result;
+                    }
                 }
-            }
+            }*/
 
-            var page = openNewTab ? await _instance.NewPage(contextId) : 
-                _instance.GetPage(contextId);
-            var response = await page.GotoAsync(url);
+            var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId, fetched: args.OnDataFetched) : 
+                _instance.GetPage(message.ContextId);
+
+            var response = await page.GotoAsync(args.Url);
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-            await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
-            {
-                Timeout = 1000 * 60 * 5
-            });
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             if (response.Status == 200)
             {
-                result.Body = await page.ContentAsync();
+                // Disable this due to performance issue, some page is too large
+                // result.Body = await page.InnerHTMLAsync("body");
                 result.IsSuccess = true;
             }
             else
@@ -47,5 +52,15 @@ public partial class PlaywrightWebDriver
         }
         
         return result;
+    }
+
+    private void Page_Response1(object sender, IResponse e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Page_Response(object sender, IResponse e)
+    {
+        throw new NotImplementedException();
     }
 }

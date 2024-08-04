@@ -1,0 +1,18 @@
+{
+  "name": "get_pizza_price",
+  "description": "call this function to get the pizza price",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "pizza_type": {
+        "type": "string",
+        "description": "The pizza type."
+      },
+      "quantity": {
+        "type": "string",
+        "description": "quantity of pizza."
+      }
+    },
+    "required": [ "pizza_type", "quantity" ]
+  }
+}

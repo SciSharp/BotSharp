@@ -21,4 +21,3 @@ global using BotSharp.Plugin.SqlDriver.Hooks;
 global using BotSharp.Plugin.SqlDriver.Services;
 global using BotSharp.Plugin.SqlHero.Settings;
 global using System.Drawing;
-global using Console = Colorful.Console;

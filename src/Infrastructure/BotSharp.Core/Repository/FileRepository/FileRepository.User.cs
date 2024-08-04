@@ -25,12 +25,12 @@ public partial class FileRepository
     {
         var userId = Guid.NewGuid().ToString();
         user.Id = userId;
-        var dir = Path.Combine(_dbSettings.FileRepository, "users", userId);
+        var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
         }
-        var path = Path.Combine(dir, "user.json");
+        var path = Path.Combine(dir, USER_FILE);
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
     }
 
@@ -38,8 +38,8 @@ public partial class FileRepository
     {
         var user = GetUserById(userId);
         user.Verified = true;
-        var dir = Path.Combine(_dbSettings.FileRepository, "users", user.Id);
-        var path = Path.Combine(dir, "user.json");
+        var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
+        var path = Path.Combine(dir, USER_FILE);
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
     }
 }

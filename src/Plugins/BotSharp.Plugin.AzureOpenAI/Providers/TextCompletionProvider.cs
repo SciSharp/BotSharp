@@ -1,16 +1,4 @@
-using Azure.AI.OpenAI;
-using BotSharp.Abstraction.MLTasks;
-using System;
-using System.Threading.Tasks;
-using BotSharp.Plugin.AzureOpenAI.Settings;
-using BotSharp.Abstraction.Conversations;
-using Microsoft.Extensions.DependencyInjection;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Agents.Enums;
-using System.Linq;
-using System.Collections.Generic;
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Loggers;
+using OpenAI.Chat;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
@@ -51,30 +39,28 @@ public class TextCompletionProvider : ITextCompletion
                 })).ToArray());
 
         var client = ProviderHelper.GetClient(Provider, _model, _services);
+        var chatClient = client.GetChatClient(_model);
 
-        var completionsOptions = new CompletionsOptions()
+        var messages = new List<ChatMessage>()
         {
-            Prompts =
-            {
-                text
-            },
-            MaxTokens = 256,
+            new UserChatMessage(text)
         };
-        completionsOptions.StopSequences.Add($"{AgentRole.Assistant}:");
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var samplingFactor = float.Parse(state.GetState("sampling_factor", "0.0"));
-        completionsOptions.Temperature = temperature;
-        completionsOptions.NucleusSamplingFactor = samplingFactor;
-        completionsOptions.DeploymentName = _model;
-        var response = await client.GetCompletionsAsync(completionsOptions);
+        var completionOptions = new ChatCompletionOptions()
+        {
+            MaxTokens = 256,
+            Temperature = temperature
+        };
+
+        var response = await chatClient.CompleteChatAsync(messages, completionOptions);
 
         // OpenAI
         var completion = "";
-        foreach (var t in response.Value.Choices)
+        foreach (var t in response.Value.Content)
         {
-            completion += t.Text;
+            completion += t?.Text ?? string.Empty;
         };
 
         // After chat completion hook
@@ -89,8 +75,8 @@ public class TextCompletionProvider : ITextCompletion
                 Prompt = text,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Value.Usage.PromptTokens,
-                CompletionCount = response.Value.Usage.CompletionTokens
+                PromptCount = response.Value.Usage.InputTokens,
+                CompletionCount = response.Value.Usage.OutputTokens
             })).ToArray());
 
         return completion.Trim();

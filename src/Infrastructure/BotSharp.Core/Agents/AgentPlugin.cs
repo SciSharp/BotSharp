@@ -17,9 +17,9 @@ public class AgentPlugin : IBotSharpPlugin
 
     public string[] AgentIds => new string[]
     {
-        "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a",
-        "01e2fc5c-2c89-4ec7-8470-7688608b496c",
-        "01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b"
+        BuiltInAgentId.AIAssistant,
+        BuiltInAgentId.Chatbot,
+        BuiltInAgentId.HumanSupport
     };
 
     public object GetNewSettingsInstance() =>
@@ -44,7 +44,7 @@ public class AgentPlugin : IBotSharpPlugin
         {
             SubMenu = new List<PluginMenuDef>
             {
-                new PluginMenuDef("Routing", link: "page/agent/router") { Roles = new List<string> { UserRole.Admin } }, // icon: "bx bx-map-pin"
+                new PluginMenuDef("Routing", link: "page/agent/router"), // icon: "bx bx-map-pin"
                 new PluginMenuDef("Evaluating", link: "page/agent/evaluator") { Roles = new List<string> { UserRole.Admin } }, // icon: "bx bx-task"
                 new PluginMenuDef("Agents", link: "page/agent"), // icon: "bx bx-bot"
             }

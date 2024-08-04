@@ -1,0 +1,18 @@
+{
+  "name": "human_intervention_needed",
+  "description": "If user wants to speak to human customer service.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "reason": {
+        "type": "string",
+        "description": "why customer needs customer service."
+      },
+      "summary": {
+        "type": "string",
+        "description": "the whole conversation summary with important information"
+      }
+    },
+    "required": [ "reason", "summary" ]
+  }
+}

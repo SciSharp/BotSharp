@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -16,8 +17,8 @@ public class UserService : IUserService
     private readonly ILogger _logger;
     private readonly AccountSetting _setting;
 
-    public UserService(IServiceProvider services, 
-        IUserIdentity user, 
+    public UserService(IServiceProvider services,
+        IUserIdentity user,
         ILogger<UserService> logger,
         AccountSetting setting)
     {
@@ -55,8 +56,12 @@ public class UserService : IUserService
 
         record = user;
         record.Email = user.Email?.ToLower();
+        if (user.Phone != null)
+        {
+            record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
+        }
         record.Salt = Guid.NewGuid().ToString("N");
-        record.Password = Utilities.HashText(user.Password, record.Salt);
+        record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
 
         if (_setting.NewUserVerification)
         {
@@ -91,8 +96,9 @@ public class UserService : IUserService
         }
 
         User? user = record;
+        var isAuthenticatedByHook = false;
         var hooks = _services.GetServices<IAuthenticationHook>();
-        if (record == null  || record.Source != "internal")
+        if (record == null || record.Source != "internal")
         {
             // check 3rd party user
             foreach (var hook in hooks)
@@ -124,22 +130,24 @@ public class UserService : IUserService
                     };
                     await CreateUser(record);
                 }
+
+                isAuthenticatedByHook = true;
                 break;
             }
         }
 
-        if ((!hooks.IsNullOrEmpty() && user == null) || record == null)
+        if ((hooks != null && hooks.Any() && user == null) || record == null)
         {
             return default;
         }
 
-        if (_setting.NewUserVerification && !record.Verified)
+        if (!isAuthenticatedByHook && _setting.NewUserVerification && !record.Verified)
         {
             return default;
         }
 
 #if !DEBUG
-        if (Utilities.HashText(password, record.Salt) != record.Password)
+        if (!isAuthenticatedByHook && Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
         {
             return default;
         }
@@ -206,7 +214,12 @@ public class UserService : IUserService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         User user = default;
-        if (_user.UserName != null)
+
+        if (_user.Id != null)
+        {
+            user = db.GetUserById(_user.Id);
+        }
+        else if (_user.UserName != null)
         {
             user = db.GetUserByUserName(_user.UserName);
         }
@@ -217,7 +230,7 @@ public class UserService : IUserService
         return user;
     }
 
-    [MemoryCache(10 * 60)]
+    [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<User> GetUser(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -264,27 +277,27 @@ public class UserService : IUserService
         return token;
     }
 
-    public async Task<bool> VerifyUserUnique(string userName)
+    public async Task<bool> VerifyUserNameExisting(string userName)
     {
         if (string.IsNullOrEmpty(userName))
-            return false;
+            return true;
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserByUserName(userName);
-        if (user == null)
+        if (user != null)
             return true;
-        
+
         return false;
     }
 
-    public async Task<bool> VerifyEmailUnique(string email)
+    public async Task<bool> VerifyEmailExisting(string email)
     {
         if (string.IsNullOrEmpty(email))
-            return false;
+            return true;
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var emailName = db.GetUserByEmail(email);
-        if (emailName == null)
+        if (emailName != null)
             return true;
 
         return false;

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
@@ -11,6 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_http_request.json" />
+    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_http_request.fn.liquid" />
     <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\agent.json" />
     <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\functions.json" />
     <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\instruction.liquid" />
@@ -26,6 +28,16 @@
     <Content Include="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_http_request.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_http_request.fn.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,22 @@
+{
+  "name": "place_an_order",
+  "description": "Place an order when user has confirmed the pizza type and quantity.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "pizza_type": {
+        "type": "string",
+        "description": "The pizza type."
+      },
+      "quantity": {
+        "type": "number",
+        "description": "quantity of pizza."
+      },
+      "unit_price": {
+        "type": "number",
+        "description": "unit price"
+      }
+    },
+    "required": [ "pizza_type", "quantity", "unit_price" ]
+  }
+}

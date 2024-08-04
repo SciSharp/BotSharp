@@ -44,7 +44,7 @@ public class LlmProviderService : ILlmProviderService
             ?.Models ?? new List<LlmModelSetting>();
     }
 
-    public LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null)
+    public LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null, bool imageGenerate = false)
     {
         var models = GetProviderModels(provider)
             .Where(x => x.Id == id);
@@ -53,6 +53,8 @@ public class LlmProviderService : ILlmProviderService
         {
             models = models.Where(x => x.MultiModal == multiModal);
         }
+
+        models = models.Where(x => x.ImageGeneration == imageGenerate);
 
         var random = new Random();
         var index = random.Next(0, models.Count());

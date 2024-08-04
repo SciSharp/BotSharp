@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Abstraction.Repositories;
@@ -87,5 +88,11 @@ public interface IBotSharpRepository
 
     #region Statistics
     void IncrementConversationCount();
+    #endregion
+
+    #region Translation
+    IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries);
+    bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs);
+
     #endregion
 }

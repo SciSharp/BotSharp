@@ -31,4 +31,5 @@ public class ElementLocatingArgs
     /// Draw outline around the element
     /// </summary>
     public bool Highlight { get; set; }
+    public string HighlightColor { get; set; } = "red";
 }

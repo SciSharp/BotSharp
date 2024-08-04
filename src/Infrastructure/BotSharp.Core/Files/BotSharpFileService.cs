@@ -12,10 +12,14 @@ public partial class BotSharpFileService : IBotSharpFileService
     private readonly IUserIdentity _user;
     private readonly ILogger<BotSharpFileService> _logger;
     private readonly string _baseDir;
-    private readonly IEnumerable<string> _allowedTypes = new List<string> { "image/png", "image/jpeg" };
+    private readonly IEnumerable<string> _allowedImageTypes = new List<string> { "image/png", "image/jpeg" };
+    private readonly IEnumerable<string> _allowScreenShotTypes = new List<string> { "pdf" };
 
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
+    private const string USER_FILE_FOLDER = "user";
+    private const string SCREENSHOT_FILE_FOLDER = "screenshot";
+    private const string BOT_FILE_FOLDER = "bot";
     private const string USERS_FOLDER = "users";
     private const string USER_AVATAR_FOLDER = "avatar";
 
@@ -62,8 +66,7 @@ public partial class BotSharpFileService : IBotSharpFileService
         return (contentType, Convert.FromBase64String(base64Str));
     }
 
-    #region Private methods
-    private string GetFileContentType(string filePath)
+    public string GetFileContentType(string filePath)
     {
         string contentType;
         var provider = new FileExtensionContentTypeProvider();
@@ -75,6 +78,7 @@ public partial class BotSharpFileService : IBotSharpFileService
         return contentType;
     }
 
+    #region Private methods
     private bool ExistDirectory(string? dir)
     {
         return !string.IsNullOrEmpty(dir) && Directory.Exists(dir);

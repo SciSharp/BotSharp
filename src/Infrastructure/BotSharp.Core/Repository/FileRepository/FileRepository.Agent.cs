@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
+using System.Threading;
 
 namespace BotSharp.Core.Repository
 {
@@ -52,6 +53,9 @@ namespace BotSharp.Core.Repository
                     break;
                 case AgentField.LlmConfig:
                     UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
+                    break;
+                case AgentField.Tool:
+                    UpdateAgentTools(agent.Id, agent.Tools);
                     break;
                 case AgentField.All:
                     UpdateAgentAllFields(agent);
@@ -145,6 +149,19 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
+        private void UpdateAgentTools(string agentId, List<string> tools)
+        {
+            if (tools == null) return;
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            agent.Tools = tools;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
         private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
         {
             if (rules == null) return;
@@ -178,11 +195,24 @@ namespace BotSharp.Core.Repository
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var functionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
-                                            agentId, AGENT_FUNCTIONS_FILE);
+            var functionDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
+                                            agentId, AGENT_FUNCTIONS_FOLDER);
 
-            var functionText = JsonSerializer.Serialize(inputFunctions, _options);
-            File.WriteAllText(functionFile, functionText);
+            if (Directory.Exists(functionDir))
+            {
+                Directory.Delete(functionDir, true);
+            }
+            Directory.CreateDirectory(functionDir);
+
+            foreach (var func in inputFunctions)
+            {
+                if (string.IsNullOrWhiteSpace(func.Name)) continue;
+
+                var text = JsonSerializer.Serialize(func, _options);
+                var file = Path.Combine(functionDir, $"{func.Name}.json");
+                File.WriteAllText(file, text);
+                Thread.Sleep(200);
+            }
         }
 
         private void UpdateAgentTemplates(string agentId, List<AgentTemplate> templates)
@@ -192,7 +222,7 @@ namespace BotSharp.Core.Repository
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var templateDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            var templateDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
 
             if (!Directory.Exists(templateDir))
             {
@@ -218,7 +248,7 @@ namespace BotSharp.Core.Repository
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var responseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "responses");
+            var responseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_RESPONSES_FOLDER);
             if (!Directory.Exists(responseDir))
             {
                 Directory.CreateDirectory(responseDir);
@@ -271,6 +301,7 @@ namespace BotSharp.Core.Repository
             agent.Disabled = inputAgent.Disabled;
             agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
+            agent.Tools = inputAgent.Tools;
             agent.RoutingRules = inputAgent.RoutingRules;
             agent.LlmConfig = inputAgent.LlmConfig;
             agent.UpdatedDateTime = DateTime.UtcNow;
@@ -288,7 +319,7 @@ namespace BotSharp.Core.Repository
         public List<string> GetAgentResponses(string agentId, string prefix, string intent)
         {
             var responses = new List<string>();
-            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "responses");
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_RESPONSES_FOLDER);
             if (!Directory.Exists(dir)) return responses;
 
             foreach (var file in Directory.GetFiles(dir))
@@ -373,7 +404,6 @@ namespace BotSharp.Core.Repository
 
             var filter = new AgentFilter
             {
-                IsPublic = true,
                 AgentIds = agentIds
             };
             var agents = GetAgents(filter);
@@ -383,7 +413,7 @@ namespace BotSharp.Core.Repository
 
         public string GetAgentTemplate(string agentId, string templateName)
         {
-            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
             if (!Directory.Exists(dir)) return string.Empty;
 
             foreach (var file in Directory.GetFiles(dir))
@@ -405,7 +435,7 @@ namespace BotSharp.Core.Repository
         {
             if (string.IsNullOrEmpty(agentId) || template == null) return false;
 
-            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, "templates");
+            var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
             if (!Directory.Exists(dir)) return false;
 
             var foundTemplate = Directory.GetFiles(dir).FirstOrDefault(f =>
@@ -444,7 +474,7 @@ namespace BotSharp.Core.Repository
                 if (string.IsNullOrEmpty(agentDir)) return false;
 
                 // Delete agent user relationships
-                var usersDir = Path.Combine(_dbSettings.FileRepository, "users");
+                var usersDir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
                 if (Directory.Exists(usersDir))
                 {
                     foreach (var userDir in Directory.GetDirectories(usersDir))

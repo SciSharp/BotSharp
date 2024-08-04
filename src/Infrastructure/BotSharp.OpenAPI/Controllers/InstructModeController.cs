@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
+using NetTopologySuite.IO;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -99,8 +100,41 @@ public class InstructModeController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error in analyzing files. {ex.Message}");
-            return $"Error in analyzing files.";
+            var error = $"Error in analyzing files. {ex.Message}";
+            _logger.LogError(error);
+            return error;
+        }
+    }
+
+    [HttpPost("/instruct/image-generation")]
+    public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] IncomingMessageModel input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        var imageViewModel = new ImageGenerationViewModel();
+
+        try
+        {
+            var completion = CompletionProvider.GetImageGeneration(_services, provider: input.Provider ?? "openai",
+                modelId: input.ModelId ?? "dall-e", imageGenerate: true);
+            var message = await completion.GetImageGeneration(new Agent()
+            {
+                Id = Guid.Empty.ToString(),
+            }, new List<RoleDialogModel>
+            {
+                new RoleDialogModel(AgentRole.User, input.Text)
+            });
+            
+            imageViewModel.RevisedPrompt = message.Content;
+            imageViewModel.Data = message.Data;
+            return imageViewModel;
+        }
+        catch (Exception ex)
+        {
+            var error = $"Error in image generation. {ex.Message}";
+            _logger.LogError(error);
+            imageViewModel.Message = error;
+            return imageViewModel;
         }
     }
 }

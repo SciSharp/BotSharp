@@ -17,6 +17,7 @@ public class AgentViewModel
     public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public List<string> Samples { get; set; }
+    public List<string> Tools { get; set; }
 
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
@@ -63,6 +64,7 @@ public class AgentViewModel
             Functions = agent.Functions,
             Responses = agent.Responses,
             Samples = agent.Samples,
+            Tools = agent.Tools,
             IsPublic= agent.IsPublic,
             Disabled = agent.Disabled,
             IconUrl = agent.IconUrl,

@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -223,5 +224,12 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     {
         throw new NotImplementedException();
     }
+    #endregion
+
+    #region Translation
+    public IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries)
+        => throw new NotImplementedException();
+    public bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs) =>
+        throw new NotImplementedException();
     #endregion
 }

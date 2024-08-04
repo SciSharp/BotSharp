@@ -140,4 +140,30 @@ public partial class ConversationService : IConversationService
         _state.Load(_conversationId);
         states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
     }
+
+    public async Task<Conversation> GetConversationRecordOrCreateNew(string agentId)
+    {
+        var converation = await GetConversation(_conversationId);
+
+        // Create conversation if this conversation does not exist
+        if (converation == null)
+        {
+            var state = _services.GetRequiredService<IConversationStateService>();
+            var channel = state.GetState("channel");
+            var sess = new Conversation
+            {
+                Id = _conversationId,
+                Channel = channel,
+                AgentId = agentId
+            };
+            converation = await NewConversation(sess);
+        }
+
+        return converation;
+    }
+
+    public bool IsConversationMode()
+    {
+        return !string.IsNullOrWhiteSpace(_conversationId);
+    }
 }

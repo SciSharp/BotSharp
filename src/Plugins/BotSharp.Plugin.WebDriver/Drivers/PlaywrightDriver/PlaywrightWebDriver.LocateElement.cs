@@ -1,4 +1,4 @@
-using System.Xml.Linq;
+using System.Web;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
@@ -77,7 +77,7 @@ public partial class PlaywrightWebDriver
                 locator = locator.Locator("..");
             }
 
-            result.Selector = locator.ToString().Split('@').Last();
+            result.Selector = locator.ToString().Split("Locator@").Last();
 
             // Make sure the element is visible
             /*if (!await locator.IsVisibleAsync())
@@ -88,7 +88,8 @@ public partial class PlaywrightWebDriver
             }*/
 
             var html = await locator.InnerHTMLAsync();
-            result.Body = html;
+            // fix if html has &
+            result.Body = HttpUtility.HtmlDecode(html);
             result.IsSuccess = true;
         }
         else if (count > 1)
@@ -117,7 +118,7 @@ public partial class PlaywrightWebDriver
             }
             else
             {
-                result.Selector = locator.ToString();
+                result.Selector = locator.ToString().Split("Locator@").Last();
                 result.IsSuccess = true;
             }
         }
@@ -129,7 +130,7 @@ public partial class PlaywrightWebDriver
 
             await page.EvaluateAsync($@"
                 (element) => {{
-                    element.style.outline = '2px solid red';
+                    element.style.outline = '2px solid {location.HighlightColor}';
                 }}", handle);
 
             result.IsHighlighted = true;

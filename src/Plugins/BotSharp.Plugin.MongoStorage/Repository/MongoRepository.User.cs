@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Users.Models;
-using BotSharp.Plugin.MongoStorage.Collections;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -37,6 +36,7 @@ public partial class MongoRepository
             Salt = user.Salt,
             Password = user.Password,
             Email = user.Email,
+            Phone = user.Phone,
             Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role,

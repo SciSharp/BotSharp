@@ -1,0 +1,30 @@
+{
+  "name": "input_user_text",
+  "description": "Input non-sensitive text in current web page.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "element_text": {
+        "type": "string",
+        "description": "text or placeholder shown in the element."
+      },
+      "input_text": {
+        "type": "string",
+        "description": "non-sensitive text user provided."
+      },
+      "press_enter": {
+        "type": "boolean",
+        "description": "whether to press Enter key"
+      },
+      "attribute_name": {
+        "type": "string",
+        "description": "attribute name in the element"
+      },
+      "attribute_value": {
+        "type": "string",
+        "description": "attribute value in the element"
+      }
+    },
+    "required": [ "element_text", "input_text" ]
+  }
+}

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -52,5 +53,17 @@ public partial class AgentService : IAgentService
     {
         var agents = _db.GetAgentsByUser(userId);
         return agents;
+    }
+
+    public IEnumerable<string> GetAgentTools()
+    {
+        var tools = new List<string>();
+
+        var hooks = _services.GetServices<IAgentToolHook>();
+        foreach (var hook in hooks)
+        {
+            hook.AddTools(tools);
+        }
+        return tools.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList();
     }
 }

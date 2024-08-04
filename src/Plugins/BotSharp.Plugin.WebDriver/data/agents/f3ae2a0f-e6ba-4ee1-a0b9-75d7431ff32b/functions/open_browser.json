@@ -1,0 +1,14 @@
+{
+  "name": "open_browser",
+  "description": "open a browser",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "website url starts with https://"
+      }
+    },
+    "required": [ "url" ]
+  }
+}

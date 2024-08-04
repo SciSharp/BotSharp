@@ -24,6 +24,7 @@ public class LlmProviderController : ControllerBase
     [HttpGet("/llm-provider/{provider}/models")]
     public IEnumerable<LlmModelSetting> GetLlmProviderModels([FromRoute] string provider)
     {
-        return _llmProvider.GetProviderModels(provider);
+        var list = _llmProvider.GetProviderModels(provider);
+        return list.Where(x => !x.ImageGeneration);
     }
 }

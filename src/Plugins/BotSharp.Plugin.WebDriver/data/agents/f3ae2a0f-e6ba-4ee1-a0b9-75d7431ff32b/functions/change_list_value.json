@@ -1,0 +1,18 @@
+{
+  "name": "change_list_value",
+  "description": "Update value from dropdown list or radio button",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "element_name": {
+        "type": "string",
+        "description": "the html selection element name."
+      },
+      "update_value": {
+        "type": "string",
+        "description": "the value in the list."
+      }
+    },
+    "required": [ "element_name", "update_value" ]
+  }
+}
