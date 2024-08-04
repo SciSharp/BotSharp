@@ -65,14 +65,14 @@ public class EvaluatingService : IEvaluatingService
 
             if (roundCount > 10)
             {
-                Console.WriteLine($"Conversation ended due to execced max round count {roundCount}", Color.Red);
+                Console.WriteLine($"Conversation ended due to execced max round count {roundCount}");
                 break;
             }
 
             if (response.FunctionName == "conversation_end" ||
                 response.FunctionName == "human_intervention_needed")
             {
-                Console.WriteLine($"Conversation ended by function {response.FunctionName}", Color.Green);
+                Console.WriteLine($"Conversation ended by function {response.FunctionName}");
                 break;
             }
         }

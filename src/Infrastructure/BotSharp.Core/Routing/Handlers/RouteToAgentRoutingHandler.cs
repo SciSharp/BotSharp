@@ -57,7 +57,11 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         }
 
         message.FunctionArgs = JsonSerializer.Serialize(inst);
-        var ret = await routing.InvokeFunction(message.FunctionName, message);
+        if (message.FunctionName != null)
+        {
+            var msg = RoleDialogModel.From(message, role: AgentRole.Function);
+            var ret = await routing.InvokeFunction(message.FunctionName, msg);
+        }
 
         var agentId = routing.Context.GetCurrentAgentId();
 
@@ -82,7 +86,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         }
         else
         {
-            ret = await routing.InvokeAgent(agentId, _dialogs, onFunctionExecuting);
+            var ret = await routing.InvokeAgent(agentId, _dialogs, onFunctionExecuting);
         }
 
         var response = _dialogs.Last();

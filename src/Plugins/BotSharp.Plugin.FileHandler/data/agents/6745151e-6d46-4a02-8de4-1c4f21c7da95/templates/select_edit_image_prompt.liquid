@@ -1,0 +1,41 @@
+Please take a look at the images in the [IMAGES] section from the conversation and select ONLY one image based on the conversation with user.
+
+** Ensure the output is only in JSON format without any additional text.
+** You may need to look at the image_name as a reference to find the correct image id.
+
+Here is the JSON format to use:
+{
+    "selected_id": the id selected from the [IMAGES] section
+}
+
+
+Suppose there are four images:
+
+id: 1, image_name: example_image_a.png
+id: 2, image_name: example_image_b.png
+id: 3, image_name: example_image_c.png
+id: 4, image_name: example_image_d.png
+
+=====
+Example 1:
+USER: I want to add a dog in the first file.
+OUTPUT: { "selected_id": 1 }
+
+Example 2:
+USER: Add a coffee cup in the second image I uploaded.
+OUTPUT: { "selected_id": 2 }
+
+Example 3:
+USER: Please remove the left tree in the third and the first images.
+OUTPUT: { "selected_id": 3 }
+
+Example 4:
+USER: Circle the head of the dog in example_image_b.png.
+OUTPUT: { "selected_id": 4 }
+=====
+
+
+[IMAGES]
+{% for image in image_list -%}
+{{ image }}{{ "\r\n" }}
+{%- endfor %}

@@ -4,6 +4,6 @@ public interface IVectorDb
 {
     Task<List<string>> GetCollections();
     Task CreateCollection(string collectionName, int dim);
-    Task Upsert(string collectionName, int id, float[] vector, string text);
-    Task<List<string>> Search(string collectionName, float[] vector, int limit = 5);
+    Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null);
+    Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f);
 }

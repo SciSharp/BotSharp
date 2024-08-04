@@ -1,0 +1,16 @@
+{
+  "id": "01acc3e5-0af7-49e6-ad7a-a760bd12dc40",
+  "name": "Learner",
+  "description": "An avid learner who is eager to learn and acquire knowledge",
+  "iconUrl": "https://cdn-icons-png.flaticon.com/512/4578/4578413.png",
+  "type": "task",
+  "createdDateTime": "2024-07-17T00:00:00Z",
+  "updatedDateTime": "2024-07-17T00:00:00Z",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "tool" ],
+  "llmConfig": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20240620"
+  }
+}

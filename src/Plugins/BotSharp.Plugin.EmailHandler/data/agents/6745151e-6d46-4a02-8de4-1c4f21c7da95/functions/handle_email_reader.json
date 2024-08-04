@@ -1,0 +1,22 @@
+{
+  "name": "handle_email_reader",
+  "description": "If the user wants to read messages from email inbox or user wants to mark an email message as read.If message id is provided, capture it but it is not required. Then call this function to read the email message or mark any message as read.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "mark_as_read": {
+        "to_read": "boolean",
+        "description": "Mark the boolean as true if the user wants to mark the message as read."
+      },
+      "is_email_summarize": {
+        "to_read": "boolean",
+        "description": "Mark the boolean as true only if the user explicitly mentions that they want to summarize the particular message."
+      },
+      "message_Id": {
+        "type": "string",
+        "description": "The message id of a particular email message."
+      }
+    },
+    "required": [ "mark_as_read", "is_email_summarize" ]
+  }
+}

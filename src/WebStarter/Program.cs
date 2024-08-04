@@ -7,18 +7,6 @@ using BotSharp.Abstraction.Messaging.JsonConverters;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Use Serilog
-Log.Logger = new LoggerConfiguration()
-#if DEBUG
-    .MinimumLevel.Information()
-#else
-    .MinimumLevel.Warning()
-#endif
-    .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", 
-        shared: true, 
-        rollingInterval: RollingInterval.Day)
-    .CreateLogger();
 builder.Host.UseSerilog();
 
 string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[]
@@ -35,6 +23,9 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
      options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
  }).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
    .AddBotSharpLogger(builder.Configuration);
+
+// Add service defaults & Aspire components.
+builder.AddServiceDefaults();
 
 // Add SignalR for WebSocket
 builder.Services.AddSignalR();

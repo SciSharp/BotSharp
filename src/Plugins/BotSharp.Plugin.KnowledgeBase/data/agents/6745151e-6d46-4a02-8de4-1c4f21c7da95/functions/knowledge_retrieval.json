@@ -1,0 +1,14 @@
+{
+  "name": "knowledge_retrieval",
+  "description": "Retrieve related domain knowledge to handle user request",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "question": {
+        "type": "string",
+        "description": "Knowledge topic with scenario detail"
+      }
+    },
+    "required": [ "question" ]
+  }
+}

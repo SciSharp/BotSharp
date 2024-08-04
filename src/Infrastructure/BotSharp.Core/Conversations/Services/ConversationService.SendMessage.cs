@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing.Settings;
-using System.Drawing;
+using BotSharp.Core.Routing.Planning;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -19,11 +19,7 @@ public partial class ConversationService
         Agent agent = await agentService.LoadAgent(agentId);
 
         var content = $"Received [{agent.Name}] {message.Role}: {message.Content}";
-#if DEBUG
-        Console.WriteLine(content, Color.GreenYellow);
-#else
         _logger.LogInformation(content);
-#endif
 
         message.CurrentAgentId = agent.Id;
         if (string.IsNullOrEmpty(message.SenderId))
@@ -43,7 +39,7 @@ public partial class ConversationService
         // Enqueue receiving agent first in case it stop completion by OnMessageReceived
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(_conversationId, message.MessageId);
-        routing.Context.Push(agent.Id);
+        routing.Context.Push(agent.Id, reason: "request started");
 
         // Save payload
         if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
@@ -80,9 +76,14 @@ public partial class ConversationService
             // Routing with reasoning
             var settings = _services.GetRequiredService<RoutingSettings>();
 
-            response = agent.Type == AgentType.Routing ?
-                await routing.InstructLoop(message, dialogs, onFunctionExecuting) :
-                await routing.InstructDirect(agent, message);
+            if (agent.Type == AgentType.Routing)
+            {
+                response = await routing.InstructLoop(message, dialogs, onFunctionExecuting);
+            }
+            else
+            {
+                response = await routing.InstructDirect(agent, message);
+            }
 
             routing.ResetRecursiveCounter();
         }
@@ -103,7 +104,7 @@ public partial class ConversationService
         response.Role = AgentRole.Assistant;
         var text = $"Sending [{agentName}] {response.Role}: {response.Content}";
 #if DEBUG
-        Console.WriteLine(text, Color.Yellow);
+        Console.WriteLine(text);
 #else
         _logger.LogInformation(text);
 #endif

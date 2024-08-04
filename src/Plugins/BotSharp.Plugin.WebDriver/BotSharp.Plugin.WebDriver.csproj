@@ -17,14 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Playwright" Version="1.44.0" />
-    <PackageReference Include="Selenium.WebDriver" Version="4.21.0" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.45.1" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.23.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\agent.json" />
-    <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions.json" />
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\change_checkbox.json" />
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\change_list_value.json" />
     <None Remove="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions\check_radio_button.json" />
@@ -47,9 +46,6 @@
 
   <ItemGroup>
     <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\agent.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\functions.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\f3ae2a0f-e6ba-4ee1-a0b9-75d7431ff32b\instruction.liquid">

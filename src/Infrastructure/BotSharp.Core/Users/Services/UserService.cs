@@ -88,6 +88,7 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
 
+        var hooks = _services.GetServices<IAuthenticationHook>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
@@ -95,9 +96,18 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        //verify password is correct or not.
+        if (record != null && !hooks.Any())
+        {
+            var hashPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
+            if (hashPassword != record.Password)
+            {
+                return default;
+            }
+        }
+
         User? user = record;
         var isAuthenticatedByHook = false;
-        var hooks = _services.GetServices<IAuthenticationHook>();
         if (record == null || record.Source != "internal")
         {
             // check 3rd party user
@@ -136,7 +146,7 @@ public class UserService : IUserService
             }
         }
 
-        if ((hooks != null && hooks.Any() && user == null) || record == null)
+        if ((hooks.Any() && user == null) || record == null)
         {
             return default;
         }
@@ -280,12 +290,16 @@ public class UserService : IUserService
     public async Task<bool> VerifyUserNameExisting(string userName)
     {
         if (string.IsNullOrEmpty(userName))
+        {
             return true;
+        }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserByUserName(userName);
         if (user != null)
+        {
             return true;
+        }
 
         return false;
     }
@@ -293,13 +307,90 @@ public class UserService : IUserService
     public async Task<bool> VerifyEmailExisting(string email)
     {
         if (string.IsNullOrEmpty(email))
+        {
             return true;
+        }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var emailName = db.GetUserByEmail(email);
         if (emailName != null)
+        {
             return true;
+        }
 
         return false;
+    }
+
+    public async Task<bool> SendVerificationCodeResetPassword(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByEmail(user.Email);
+        if (record == null)
+        {
+            return false;
+        }
+
+        record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
+
+        //update current verification code.
+        db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
+
+        //send code to user Email.
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            hook.VerificationCodeResetPassword(record);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> ResetUserPassword(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByEmail(user.Email);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        if (user.VerificationCode != record.VerificationCode)
+        {
+            return false;
+        }
+
+        var newPassword = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+        db.UpdateUserPassword(record.Id, newPassword);
+        return true;
+    }
+
+    public async Task<bool> ModifyUserEmail(string email)
+    {
+        var curUser = await GetMyProfile();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserById(curUser.Id);
+        if (record == null)
+        {
+            return false;
+        }
+
+        db.UpdateUserEmail(record.Id, email);
+        return true;
+    }
+
+    public async Task<bool> ModifyUserPhone(string phone)
+    {
+        var curUser = await GetMyProfile();
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserById(curUser.Id);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        db.UpdateUserPhone(record.Id, phone);
+        return true;
     }
 }

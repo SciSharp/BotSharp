@@ -1,5 +1,9 @@
+using Amazon.Util.Internal;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
+using System.Collections.Immutable;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -225,91 +229,77 @@ public partial class MongoRepository
 
     public PagedItems<Conversation> GetConversations(ConversationFilter filter)
     {
-        var conversations = new List<Conversation>();
-        var builder = Builders<ConversationDocument>.Filter;
-        var filters = new List<FilterDefinition<ConversationDocument>>() { builder.Empty };
+        var convBuilder = Builders<ConversationDocument>.Filter;
+        var convFilters = new List<FilterDefinition<ConversationDocument>>() { convBuilder.Empty };
 
+        // Filter conversations
         if (!string.IsNullOrEmpty(filter?.Id))
         {
-            filters.Add(builder.Eq(x => x.Id, filter.Id));
+            convFilters.Add(convBuilder.Eq(x => x.Id, filter.Id));
         }
         if (!string.IsNullOrEmpty(filter?.AgentId))
         {
-            filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
+            convFilters.Add(convBuilder.Eq(x => x.AgentId, filter.AgentId));
         }
         if (!string.IsNullOrEmpty(filter?.Status))
         {
-            filters.Add(builder.Eq(x => x.Status, filter.Status));
+            convFilters.Add(convBuilder.Eq(x => x.Status, filter.Status));
         }
         if (!string.IsNullOrEmpty(filter?.Channel))
         {
-            filters.Add(builder.Eq(x => x.Channel, filter.Channel));
+            convFilters.Add(convBuilder.Eq(x => x.Channel, filter.Channel));
         }
         if (!string.IsNullOrEmpty(filter?.UserId))
         {
-            filters.Add(builder.Eq(x => x.UserId, filter.UserId));
+            convFilters.Add(convBuilder.Eq(x => x.UserId, filter.UserId));
         }
         if (!string.IsNullOrEmpty(filter?.TaskId))
         {
-            filters.Add(builder.Eq(x => x.TaskId, filter.TaskId));
+            convFilters.Add(convBuilder.Eq(x => x.TaskId, filter.TaskId));
         }
         if (filter?.StartTime != null)
         {
-            filters.Add(builder.Gte(x => x.CreatedTime, filter.StartTime.Value));
+            convFilters.Add(convBuilder.Gte(x => x.CreatedTime, filter.StartTime.Value));
         }
 
-        // Check states
-        if (filter != null && !filter.States.IsNullOrEmpty())
+        // Filter states
+        var stateFilters = new List<FilterDefinition<ConversationStateDocument>>();
+        if (filter != null && string.IsNullOrEmpty(filter.Id) && !filter.States.IsNullOrEmpty())
         {
-            var targetConvIds = new List<string>();
-
             foreach (var pair in filter.States)
             {
-                if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
-
-                var query = _dc.ConversationStates.AsQueryable();
-                var convIds = query.AsEnumerable().Where(x => 
+                var elementFilters = new List<FilterDefinition<StateMongoElement>> { Builders<StateMongoElement>.Filter.Eq(x => x.Key, pair.Key) };
+                if (!string.IsNullOrEmpty(pair.Value))
                 {
-                    var foundState = x.States.FirstOrDefault(s => s.Key.IsEqualTo(pair.Key));
-                    if (foundState == null) return false;
-
-                    if (!string.IsNullOrWhiteSpace(pair.Value))
-                    {
-                        return pair.Value.IsEqualTo(foundState.Values.LastOrDefault()?.Data);
-                    }
-
-                    return true;
-                }).Select(x => x.ConversationId).ToList();
-
-                targetConvIds = targetConvIds.Concat(convIds).Distinct().ToList();
+                    elementFilters.Add(Builders<StateMongoElement>.Filter.Eq("Values.Data", pair.Value));
+                }
+                stateFilters.Add(Builders<ConversationStateDocument>.Filter.ElemMatch(x => x.States, Builders<StateMongoElement>.Filter.And(elementFilters)));
             }
 
-            filters.Add(builder.In(x => x.Id, targetConvIds));
+            var targetConvIds = _dc.ConversationStates.Find(Builders<ConversationStateDocument>.Filter.And(stateFilters)).ToEnumerable().Select(x => x.ConversationId).Distinct().ToList();
+            convFilters.Add(convBuilder.In(x => x.Id, targetConvIds));
         }
 
-        var filterDef = builder.And(filters);
+        // Sort and paginate
+        var filterDef = convBuilder.And(convFilters);
         var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
         var pager = filter?.Pager ?? new Pagination();
         var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDef).Skip(pager.Offset).Limit(pager.Size).ToList();
         var count = _dc.Conversations.CountDocuments(filterDef);
 
-        foreach (var conv in conversationDocs)
+        var conversations = conversationDocs.Select(x => new Conversation
         {
-            var convId = conv.Id.ToString();
-            conversations.Add(new Conversation
-            {
-                Id = convId,
-                AgentId = conv.AgentId.ToString(),
-                UserId = conv.UserId.ToString(),
-                TaskId = conv.TaskId,
-                Title = conv.Title,
-                Channel = conv.Channel,
-                Status = conv.Status,
-                DialogCount = conv.DialogCount,
-                CreatedTime = conv.CreatedTime,
-                UpdatedTime = conv.UpdatedTime
-            });
-        }
+            Id = x.Id.ToString(),
+            AgentId = x.AgentId.ToString(),
+            UserId = x.UserId.ToString(),
+            TaskId = x.TaskId,
+            Title = x.Title,
+            Channel = x.Channel,
+            Status = x.Status,
+            DialogCount = x.DialogCount,
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
 
         return new PagedItems<Conversation>
         {

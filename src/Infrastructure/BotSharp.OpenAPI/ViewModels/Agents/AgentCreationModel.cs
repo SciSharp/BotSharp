@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -43,7 +44,7 @@ public class AgentCreationModel
     /// Combine different Agents together to form a Profile.
     /// </summary>
     public List<string> Profiles { get; set; } = new List<string>();
-    public List<string> Tools { get; set; } = new List<string>();
+    public List<string> Utilities { get; set; } = new List<string>();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new List<RoutingRuleUpdateModel>();
     public AgentLlmConfig? LlmConfig { get; set; }
 
@@ -58,7 +59,7 @@ public class AgentCreationModel
             Functions = Functions,
             Responses = Responses,
             Samples = Samples,
-            Tools = Tools,
+            Utilities = Utilities,
             IsPublic = IsPublic,
             Type = Type,
             Disabled = Disabled,

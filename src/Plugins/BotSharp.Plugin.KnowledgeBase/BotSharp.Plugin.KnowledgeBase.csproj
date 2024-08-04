@@ -17,12 +17,42 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\agent.json" />
+    <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\functions\confirm_knowledge_persistence.json" />
+    <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\functions\memorize_knowledge.json" />
+    <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\instruction.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\knowledge_retrieval.fn.liquid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\functions\confirm_knowledge_persistence.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\functions\memorize_knowledge.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\knowledge_retrieval.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\knowledge_retrieval.fn.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="PdfPig" Version="0.1.8" />
     <PackageReference Include="TensorFlow.Keras" Version="0.15.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -108,6 +108,30 @@ public class UserController : ControllerBase
     {
         return await _userService.VerifyEmailExisting(email);
     }
+    [AllowAnonymous]
+    [HttpPost("/user/verifycode")]
+    public async Task<bool> SendVerificationCodeResetPassword([FromQuery] UserCreationModel user)
+    {
+        return await _userService.SendVerificationCodeResetPassword(user.ToUser());
+    }
+    [AllowAnonymous]
+    [HttpPost("/user/resetpassword")]
+    public async Task<bool> ResetUserPassword([FromBody] UserResetPasswordModel user)
+    {
+        return await _userService.ResetUserPassword(user.ToUser());
+    }
+
+    [HttpPost("/user/email/modify")]
+    public async Task<bool> ModifyUserEmail([FromQuery] string email)
+    {
+        return await _userService.ModifyUserEmail(email);
+    }
+
+    [HttpPost("/user/phone/modify")]
+    public async Task<bool> ModifyUserPhone([FromQuery] string phone)
+    {
+        return await _userService.ModifyUserPhone(phone);
+    }
 
     #region Avatar
     [HttpPost("/user/avatar")]
@@ -134,9 +158,8 @@ public class UserController : ControllerBase
     #region Private methods
     private FileContentResult BuildFileResult(string file)
     {
-        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var bytes = new byte[stream.Length];
-        stream.Read(bytes, 0, (int)stream.Length);
+        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var bytes = fileService.GetFileBytes(file);
         return File(bytes, "application/octet-stream", Path.GetFileName(file));
     }
     #endregion

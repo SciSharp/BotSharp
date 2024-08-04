@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_http_request.json" />
-    <None Remove="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_http_request.fn.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_http_request.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_http_request.fn.liquid" />
     <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\agent.json" />
     <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\functions.json" />
     <None Remove="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\instruction.liquid" />
@@ -22,16 +22,13 @@
     <Content Include="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\agent.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\functions.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="data\agents\87c458fc-ec5f-40ae-8ed6-05dda8a07523\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\functions\handle_http_request.json">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_http_request.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\00000000-0000-0000-0000-000000000000\templates\handle_http_request.fn.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_http_request.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

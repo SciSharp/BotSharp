@@ -6,7 +6,7 @@ namespace BotSharp.Core.Routing.Planning;
 /// <summary>
 /// Human feedback based planner
 /// </summary>
-public class HFPlanner : IPlaner
+public class HFPlanner : IRoutingPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
@@ -59,6 +59,9 @@ public class HFPlanner : IPlaner
             }
         }
 
+        // Fix LLM malformed response
+        PlannerHelper.FixMalformedResponse(_services, inst);
+
         return inst;
     }
 
@@ -71,7 +74,11 @@ public class HFPlanner : IPlaner
             var agent = db.GetAgents(filter).FirstOrDefault();
 
             var context = _services.GetRequiredService<IRoutingContext>();
-            context.Push(agent.Id);
+            context.Push(agent.Id, reason: inst.NextActionReason);
+
+            // Set user content as Planner's question
+            message.FunctionName = inst.Function;
+            message.FunctionArgs = inst.Arguments == null ? "{}" : JsonSerializer.Serialize(inst.Arguments);
         }
 
         return true;

@@ -6,7 +6,7 @@ namespace BotSharp.Core.Routing.Handlers;
 /// <summary>
 /// Retrieve information from specific agent
 /// </summary>
-public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
+public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase//, IRoutingHandler
 {
     public string Name => "retrieve_data_from_agent";
 

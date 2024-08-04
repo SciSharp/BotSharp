@@ -92,7 +92,7 @@ public partial class ConversationService
         return response.Content;
     }
 
-    private string GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 50)
+    private string GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 100)
     {
         var conversation = "";
 

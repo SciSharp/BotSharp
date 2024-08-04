@@ -1,14 +1,14 @@
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.Plugin.HttpHandler.Enums;
 
 namespace BotSharp.Plugin.HttpHandler.Hooks;
 
 public class HttpHandlerHook : AgentHookBase
 {
-    private static string TOOL_ASSISTANT = Guid.Empty.ToString();
+    private static string FUNCTION_NAME = "handle_http_request";
 
     public override string SelfId => string.Empty;
 
@@ -21,11 +21,11 @@ public class HttpHandlerHook : AgentHookBase
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Tools.IsNullOrEmpty() && agent.Tools.Contains(Tool.HttpHandler);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(UtilityName.HttpHandler);
 
         if (isConvMode && isEnabled)
         {
-            var (prompt, fn) = GetPromptAndFunction();
+            var (prompt, fn) = GetPromptAndFunction(FUNCTION_NAME);
             if (fn != null)
             {
                 if (!string.IsNullOrWhiteSpace(prompt))
@@ -47,13 +47,12 @@ public class HttpHandlerHook : AgentHookBase
         base.OnAgentLoaded(agent);
     }
 
-    private (string, FunctionDef?) GetPromptAndFunction()
+    private (string, FunctionDef?) GetPromptAndFunction(string functionName)
     {
-        var fn = "handle_http_request";
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.GetAgent(TOOL_ASSISTANT);
-        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{fn}.fn"))?.Content ?? string.Empty;
-        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(fn));
+        var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
+        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{functionName}.fn"))?.Content ?? string.Empty;
+        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(functionName));
         return (prompt, loadAttachmentFn);
     }
 }

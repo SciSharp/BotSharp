@@ -6,6 +6,8 @@ public class MongoDbContext
     private readonly string _mongoDbDatabaseName;
     private readonly string _collectionPrefix;
 
+    private const string DB_NAME_INDEX = "authSource";
+
     public MongoDbContext(BotSharpDatabaseSettings dbSettings)
     {
         var mongoDbConnectionString = dbSettings.BotSharpMongoDb;
@@ -17,9 +19,29 @@ public class MongoDbContext
     private string GetDatabaseName(string mongoDbConnectionString)
     {
         var databaseName = mongoDbConnectionString.Substring(mongoDbConnectionString.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) + 1);
-        if (databaseName.Contains("?"))
+
+        var symbol = "?";
+        if (databaseName.Contains(symbol))
         {
-            databaseName = databaseName.Substring(0, databaseName.IndexOf("?", StringComparison.InvariantCultureIgnoreCase));
+            var markIdx = databaseName.IndexOf(symbol, StringComparison.InvariantCultureIgnoreCase);
+            var db = databaseName.Substring(0, markIdx);
+            if (!string.IsNullOrWhiteSpace(db))
+            {
+                return db;
+            }
+
+            var queryStr = databaseName.Substring(markIdx + 1);
+            var queries = queryStr.Split("&", StringSplitOptions.RemoveEmptyEntries).Select(x => new
+            {
+                Key = x.Split("=")[0],
+                Value = x.Split("=")[1]
+            }).ToList();
+            
+            var source = queries.FirstOrDefault(x => x.Key.IsEqualTo(DB_NAME_INDEX));
+            if (source != null)
+            {
+                databaseName = source.Value;
+            }
         }
         return databaseName;
     }
@@ -36,6 +58,19 @@ public class MongoDbContext
         {
             var indexDef = Builders<ConversationDocument>.IndexKeys.Descending(x => x.CreatedTime);
             collection.Indexes.CreateOne(new CreateIndexModel<ConversationDocument>(indexDef));
+        }
+        return collection;
+    }
+
+    private IMongoCollection<ConversationStateDocument> CreateConversationStateIndex()
+    {
+        var collection = Database.GetCollection<ConversationStateDocument>($"{_collectionPrefix}_ConversationStates");
+        var indexes = collection.Indexes.List().ToList();
+        var stateIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("States.Key"));
+        if (stateIndex == null)
+        {
+            var indexDef = Builders<ConversationStateDocument>.IndexKeys.Ascending("States.Key");
+            collection.Indexes.CreateOne(new CreateIndexModel<ConversationStateDocument>(indexDef));
         }
         return collection;
     }
@@ -93,7 +128,7 @@ public class MongoDbContext
         => Database.GetCollection<ConversationDialogDocument>($"{_collectionPrefix}_ConversationDialogs");
 
     public IMongoCollection<ConversationStateDocument> ConversationStates
-        => Database.GetCollection<ConversationStateDocument>($"{_collectionPrefix}_ConversationStates");
+        => CreateConversationStateIndex();
 
     public IMongoCollection<ExecutionLogDocument> ExectionLogs
         => Database.GetCollection<ExecutionLogDocument>($"{_collectionPrefix}_ExecutionLogs");

@@ -1,5 +1,3 @@
-using BotSharp.Plugin.MongoStorage.Models;
-
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class AgentDocument : MongoBase
@@ -14,7 +12,7 @@ public class AgentDocument : MongoBase
     public List<FunctionDefMongoElement> Functions { get; set; }
     public List<AgentResponseMongoElement> Responses { get; set; }
     public List<string> Samples { get; set; }
-    public List<string> Tools { get; set; }
+    public List<string> Utilities { get; set; }
     public bool IsPublic { get; set; }
     public bool Disabled { get; set; }
     public List<string> Profiles { get; set; }

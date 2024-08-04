@@ -14,4 +14,6 @@ global using BotSharp.Abstraction.MLTasks;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Files;
 global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Abstraction.Files.Models;
+global using BotSharp.Plugin.AzureOpenAI.Models;
 global using BotSharp.Plugin.AzureOpenAI.Settings;

@@ -32,6 +32,7 @@ public class QdrantDb : IVectorDb
             _client = new QdrantClient
             (
                 host: _setting.Url,
+                https: true,
                 apiKey: _setting.ApiKey
             );
         }
@@ -41,7 +42,7 @@ public class QdrantDb : IVectorDb
     public async Task<List<string>> GetCollections()
     {
         // List all the collections
-        var collections = await _client.ListCollectionsAsync();
+        var collections = await GetClient().ListCollectionsAsync();
         return collections.ToList();
     }
 
@@ -56,11 +57,6 @@ public class QdrantDb : IVectorDb
                 Size = (ulong)dim,
                 Distance = Distance.Cosine
             });
-
-            var agentService = _services.GetRequiredService<IAgentService>();
-            var agentDataDir = agentService.GetAgentDataDir(collectionName);
-            var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
-            File.WriteAllLines(knowledgePath, new string[0]);
         }
 
         // Get collection info
@@ -71,37 +67,48 @@ public class QdrantDb : IVectorDb
         }
     }
 
-    public async Task Upsert(string collectionName, int id, float[] vector, string text)
+    public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         // Insert vectors
-        await GetClient().UpsertAsync(collectionName, points: new List<PointStruct>
+        var point = new PointStruct()
         {
-            new PointStruct() 
+            Id = new PointId()
             {
-                Id = new PointId()
-                {
-                    Num = (ulong)id,
-                },
-                Vectors = vector
+                Uuid = id
+            },
+            Vectors = vector,
+
+            Payload = 
+            {
+                { "text", text }
             }
+        };
+
+        if (payload != null)
+        {
+            foreach (var item in payload)
+            {
+                point.Payload.Add(item.Key, item.Value);
+            }
+        }
+
+        var client = GetClient();
+
+        var result = await client.UpsertAsync(collectionName, points: new List<PointStruct>
+        {
+            point
         });
 
-        // Store chunks in local file system
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agentDataDir = agentService.GetAgentDataDir(collectionName);
-        var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
-        File.AppendAllLines(knowledgePath, new[] { text });
+        return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
+    public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
     {
-        var result = await GetClient().SearchAsync(collectionName, vector, limit: (ulong)limit);
+        var client = GetClient();
+        var points = await client.SearchAsync(collectionName, vector, 
+            limit: (ulong)limit,
+            scoreThreshold: confidence);
 
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agentDataDir = agentService.GetAgentDataDir(collectionName);
-        var knowledgePath = Path.Combine(agentDataDir, "knowledge.txt");
-        var texts = File.ReadAllLines(knowledgePath);
-
-        return result.Select(x => texts[x.Id.Num]).ToList();
+        return points.Select(x => x.Payload[returnFieldName].StringValue).ToList();
     }
 }

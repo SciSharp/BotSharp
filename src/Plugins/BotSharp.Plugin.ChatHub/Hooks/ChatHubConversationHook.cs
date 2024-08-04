@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Messaging.Enums;
-using BotSharp.Abstraction.Options;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;
@@ -9,8 +7,18 @@ public class ChatHubConversationHook : ConversationHookBase
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IUserIdentity _user;
-    private readonly BotSharpOptions _options; 
-    public ChatHubConversationHook(IServiceProvider services,
+    private readonly BotSharpOptions _options;
+
+    #region Event
+    private const string INIT_CLIENT_CONVERSATION = "OnConversationInitFromClient";
+    private const string RECEIVE_CLIENT_MESSAGE = "OnMessageReceivedFromClient";
+    private const string RECEIVE_ASSISTANT_MESSAGE = "OnMessageReceivedFromAssistant";
+    private const string GENERATE_SENDER_ACTION = "OnSenderActionGenerated";
+    private const string DELETE_MESSAGE = "OnMessageDeleted";
+    #endregion
+
+    public ChatHubConversationHook(
+        IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         BotSharpOptions options,
         IUserIdentity user)
@@ -29,8 +37,7 @@ public class ChatHubConversationHook : ConversationHookBase
         var user = await userService.GetUser(conv.User.Id);
         conv.User = UserViewModel.FromUser(user);
 
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnConversationInitFromClient", conv);
-
+        await InitClientConversation(conv);
         await base.OnConversationInitialized(conversation);
     }
 
@@ -41,35 +48,36 @@ public class ChatHubConversationHook : ConversationHookBase
         var sender = await userService.GetMyProfile();
 
         // Update console conversation UI for CSR
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromClient", new ChatResponseModel()
+        
+        var model = new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
             Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Sender = UserViewModel.FromUser(sender)
-        });
+        };
+        await ReceiveClientMessage(model);
 
         // Send typing-on to client
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        var action = new ConversationSenderActionModel
         {
             ConversationId = conv.ConversationId,
             SenderAction = SenderActionEnum.TypingOn
-        });
-
+        };
+        await GenerateSenderAction(action);
         await base.OnMessageReceived(message);
     }
 
     public override async Task OnFunctionExecuting(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        var action = new ConversationSenderActionModel
         {
             ConversationId = conv.ConversationId,
             SenderAction = SenderActionEnum.TypingOn,
             Indication = message.Indication
-        });
-
+        };
+        await GenerateSenderAction(action);
         await base.OnFunctionExecuting(message);
     }
 
@@ -98,23 +106,52 @@ public class ChatHubConversationHook : ConversationHookBase
         }, _options.JsonSerializerOptions);
 
         // Send typing-off to client
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnSenderActionGenerated", new ConversationSenderActionModel
+        var action = new ConversationSenderActionModel
         {
             ConversationId = conv.ConversationId,
             SenderAction = SenderActionEnum.TypingOff
-        });
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
+        };
 
+        await GenerateSenderAction(action);
+        await ReceiveAssistantMessage(json);
         await base.OnResponseGenerated(message);
     }
 
     public override async Task OnMessageDeleted(string conversationId, string messageId)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageDeleted", new ChatResponseModel
+        var model = new ChatResponseModel
         {
             ConversationId = conversationId,
             MessageId = messageId
-        });
+        };
+        await DeleteMessage(model);
         await base.OnMessageDeleted(conversationId, messageId);
     }
+
+    #region Private methods
+    private async Task InitClientConversation(ConversationViewModel conversation)
+    {
+        await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+    }
+
+    private async Task ReceiveClientMessage(ChatResponseModel model)
+    {
+        await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+    }
+
+    private async Task ReceiveAssistantMessage(string? json)
+    {
+        await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+    }
+
+    private async Task GenerateSenderAction(ConversationSenderActionModel action)
+    {
+        await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
+    }
+
+    private async Task DeleteMessage(ChatResponseModel model)
+    {
+        await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
+    }
+    #endregion
 }

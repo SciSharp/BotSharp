@@ -1,4 +1,5 @@
-using BotSharp.Core.Files.Hooks;
+using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Core.Files.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Files;
@@ -14,9 +15,12 @@ public class FilePlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<IBotSharpFileService, BotSharpFileService>();
+        var myFileStorageSettings = new FileStorageSettings();
+        config.Bind("FileStorage", myFileStorageSettings);
 
-        services.AddScoped<IAgentHook, AttachmentProcessingHook>();
-        services.AddScoped<IAgentToolHook, FileAnalyzerToolHook>();
+        if (myFileStorageSettings.Default == FileStorageEnum.LocalFileStorage)
+        {
+            services.AddScoped<IBotSharpFileService, BotSharpFileService>();
+        }
     }
 }

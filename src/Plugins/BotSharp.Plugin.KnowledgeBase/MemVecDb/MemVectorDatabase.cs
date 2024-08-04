@@ -18,7 +18,7 @@ public class MemVectorDatabase : IVectorDb
         return _collections.Select(x => x.Key).ToList();
     }
 
-    public async Task<List<string>> Search(string collectionName, float[] vector, int limit = 5)
+    public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
     {
         if (!_vectors.ContainsKey(collectionName))
         {
@@ -37,7 +37,7 @@ public class MemVectorDatabase : IVectorDb
         return texts;
     }
 
-    public async Task Upsert(string collectionName, int id, float[] vector, string text)
+    public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         _vectors[collectionName].Add(new VecRecord
         {
@@ -45,6 +45,8 @@ public class MemVectorDatabase : IVectorDb
             Vector = vector,
             Text = text
         });
+
+        return true;
     }
 
     private float[] CalEuclideanDistance(float[] vec, List<VecRecord> records)

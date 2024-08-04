@@ -7,7 +7,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     private LLamaEmbedder _embedder;
     private readonly LlamaSharpSettings _settings;
     private readonly IServiceProvider _services;
-    public int Dimension => 4096;
+    public int Dimension { get; set; } = 4096;
 
     public string Provider => "llama-sharp";
 
@@ -34,4 +34,6 @@ public class TextEmbeddingProvider : ITextEmbedding
     {
         throw new NotImplementedException();
     }
+
+    public void SetModelName(string model) { }
 }

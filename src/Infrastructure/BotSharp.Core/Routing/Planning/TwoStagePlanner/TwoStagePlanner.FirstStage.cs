@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Templating;
 
@@ -13,11 +12,12 @@ public partial class TwoStagePlanner
         var plan = new FirstStagePlan[0];
 
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var model = llmProviderService.GetProviderModel("azure-openai", "gpt-4");
+        var provider = router.LlmConfig.Provider ?? "openai";
+        var model = llmProviderService.GetProviderModel(provider, router.LlmConfig.Model ?? "gpt-4o");
 
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: "azure-openai",
+            provider: provider,
             model: model.Name);
 
         string text = string.Empty;

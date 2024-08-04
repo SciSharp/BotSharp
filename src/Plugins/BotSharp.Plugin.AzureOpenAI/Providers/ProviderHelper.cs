@@ -1,19 +1,15 @@
 using Azure.AI.OpenAI;
 using Azure;
-using OpenAI;
-using System.ClientModel;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers;
 
 public class ProviderHelper
 {
-    public static OpenAIClient GetClient(string provider, string model, IServiceProvider services)
+    public static AzureOpenAIClient GetClient(string provider, string model, IServiceProvider services)
     {
         var settingsService = services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(provider, model);
-        var client = provider == "openai" ?
-            new OpenAIClient(new ApiKeyCredential(settings.ApiKey)) :
-            new AzureOpenAIClient(new Uri(settings.Endpoint), new AzureKeyCredential(settings.ApiKey));
+        var client = new AzureOpenAIClient(new Uri(settings.Endpoint), new AzureKeyCredential(settings.ApiKey));
         return client;
     }
 
