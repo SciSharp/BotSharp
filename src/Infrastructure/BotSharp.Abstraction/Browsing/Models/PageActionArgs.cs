@@ -14,4 +14,9 @@ public class PageActionArgs
 
     public bool WaitForNetworkIdle { get; set; } = true;
     public float? Timeout { get; set; }
+
+    /// <summary>
+    /// Wait time in seconds after page is opened
+    /// </summary>
+    public int WaitTime { get; set; }
 }

@@ -81,4 +81,9 @@ public partial class SeleniumWebDriver : IWebBrowser
     {
         throw new NotImplementedException();
     }
+
+    public void SetServiceProvider(IServiceProvider services)
+    {
+        throw new NotImplementedException();
+    }
 }

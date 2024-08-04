@@ -18,9 +18,22 @@ public class PlaywrightInstance : IDisposable
     /// </summary>
     public Dictionary<string, List<IPage>> Pages => _pages;
 
-    public IPage GetPage(string id, string? pattern = null)
+    public IPage GetPage(string contextId, string? pattern = null)
     {
-        return _contexts[id].Pages.LastOrDefault();
+        if (string.IsNullOrEmpty(pattern))
+        {
+            return _contexts[contextId].Pages.LastOrDefault();
+        }
+
+        foreach (var page in _contexts[contextId].Pages)
+        {
+            if (page.Url.ToLower() == pattern.ToLower())
+            {
+                return page;
+            }
+        }
+
+        return _contexts[contextId].Pages.LastOrDefault();
     }
 
     public async Task<IBrowserContext> GetContext(string ctxId)
@@ -102,38 +115,6 @@ public class PlaywrightInstance : IDisposable
         // 当使用 Playwright 打开浏览器时，该属性会被设置为 true，从而被网站识别为自动化工具。通过以下方式屏蔽这个属性，让网站无法识别是否使用了 Playwright
         var js = @"Object.defineProperties(navigator, {webdriver:{get:()=>false}});";
         await page.AddInitScriptAsync(js);
-
-        page.Response += async (sender, e) =>
-        {
-            if (e.Headers.ContainsKey("content-type") &&
-                e.Headers["content-type"].Contains("application/json") &&
-                (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr"))
-            {
-                Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
-                JsonElement? json = null;
-                try
-                {
-                    if (e.Status == 200 && e.Ok)
-                    {
-                        json = await e.JsonAsync();
-                    }
-                    else
-                    {
-                        Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
-                    }
-
-                    var webPageResponseHooks = services.GetServices<IWebPageResponseHook>();
-                    foreach (var hook in webPageResponseHooks)
-                    {
-                        hook.OnDataFetched(message, e.Url.ToLower(), e.Request?.PostData ?? string.Empty, JsonSerializer.Serialize(json));
-                    }
-                }
-                catch(Exception ex)
-                {
-                    Serilog.Log.Error(ex.ToString());
-                }
-            }
-        };
 
         return page;
     }
