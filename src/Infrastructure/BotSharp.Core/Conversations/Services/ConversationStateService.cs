@@ -360,9 +360,28 @@ public class ConversationStateService : IConversationStateService, IDisposable
                         stateValue = stateValue?.ToLower();
                     }
 
-                    SetState(property.Name, stateValue, source: StateSource.Application);
+                    if (CheckArgType(property.Name, stateValue))
+                    {
+                        SetState(property.Name, stateValue, source: StateSource.Application);
+                    }
                 }
             }
         }
+    }
+
+    private bool CheckArgType(string name, string value)
+    {
+        var agentTypes = AgentService.AgentParameterTypes.SelectMany(p => p.Value).ToList();
+        var filed = agentTypes.FirstOrDefault(t => t.Key == name); 
+        if (filed.Key != null)
+        {
+            return filed.Value switch
+            {
+                "boolean" => bool.TryParse(value, out _),
+                "number" => long.TryParse(value, out _),
+                _ => true,
+            };
+        }
+        return true;
     }
 }
