@@ -192,7 +192,8 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.FamilyName, user?.LastName ?? string.Empty),
             new Claim("source", user.Source),
             new Claim("external_id", user.ExternalId ?? string.Empty),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("phone", user.Phone ?? string.Empty)
         };
 
         var validators = _services.GetServices<IAuthenticationHook>();
