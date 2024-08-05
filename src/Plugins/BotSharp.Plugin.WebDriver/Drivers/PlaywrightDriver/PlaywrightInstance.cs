@@ -5,6 +5,8 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 public class PlaywrightInstance : IDisposable
 {
     IPlaywright _playwright;
+    IServiceProvider _services;
+    public IServiceProvider Services => _services;
     Dictionary<string, IBrowserContext> _contexts = new Dictionary<string, IBrowserContext>();
     Dictionary<string, List<IPage>> _pages = new Dictionary<string, List<IPage>>();
 
@@ -17,6 +19,11 @@ public class PlaywrightInstance : IDisposable
     /// ContextId and Pages
     /// </summary>
     public Dictionary<string, List<IPage>> Pages => _pages;
+
+    public void SetServiceProvider(IServiceProvider services)
+    {
+        _services = services;
+    }
 
     public IPage GetPage(string contextId, string? pattern = null)
     {
@@ -106,7 +113,7 @@ public class PlaywrightInstance : IDisposable
         return _contexts[ctxId];
     }
 
-    public async Task<IPage> NewPage(MessageInfo message, IServiceProvider services)
+    public async Task<IPage> NewPage(MessageInfo message)
     {
         var context = await GetContext(message.ContextId);
         var page = await context.NewPageAsync();
@@ -115,6 +122,43 @@ public class PlaywrightInstance : IDisposable
         // 当使用 Playwright 打开浏览器时，该属性会被设置为 true，从而被网站识别为自动化工具。通过以下方式屏蔽这个属性，让网站无法识别是否使用了 Playwright
         var js = @"Object.defineProperties(navigator, {webdriver:{get:()=>false}});";
         await page.AddInitScriptAsync(js);
+
+        page.Response += async (sender, e) =>
+        {
+            if (e.Status != 204 &&
+                e.Headers.ContainsKey("content-type") &&
+                e.Headers["content-type"].Contains("application/json") &&
+                (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr"))
+            {
+                Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
+                JsonElement? json = null;
+                try
+                {
+                    if (e.Status == 200 && e.Ok)
+                    {
+                        json = await e.JsonAsync();
+                    }
+                    else
+                    {
+                        Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
+                    }
+
+                    var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
+                    foreach (var hook in webPageResponseHooks)
+                    {
+                        hook.OnDataFetched(message, e.Url.ToLower(), e.Request?.PostData ?? string.Empty, JsonSerializer.Serialize(json));
+                    }
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    Serilog.Log.Information(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex.ToString());
+                }
+            }
+        };
 
         return page;
     }

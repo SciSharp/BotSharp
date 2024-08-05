@@ -10,7 +10,12 @@ public class PageActionArgs
     public string? Direction { get; set; }
 
     public string Url { get; set; } = null!;
+
+    /// <summary>
+    /// This value has to be set to true if you want to get the page XHR/ Fetch responses
+    /// </summary>
     public bool OpenNewTab { get; set; } = false;
+    public bool UseExistingPage { get; set; } = false;
 
     public bool WaitForNetworkIdle { get; set; } = true;
     public float? Timeout { get; set; }

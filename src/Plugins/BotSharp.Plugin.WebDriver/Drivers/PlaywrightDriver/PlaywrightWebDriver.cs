@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver : IWebBrowser
 {
-    private IServiceProvider _services;
+    private IServiceProvider _services => _instance.Services;
     private readonly PlaywrightInstance _instance;
     private readonly ILogger _logger;
     public PlaywrightInstance Instance => _instance;
@@ -12,9 +12,9 @@ public partial class PlaywrightWebDriver : IWebBrowser
 
     public PlaywrightWebDriver(IServiceProvider services, PlaywrightInstance instance, ILogger<PlaywrightWebDriver> logger)
     {
-        _services = services;
         _instance = instance;
         _logger = logger;
+        _instance.SetServiceProvider(services);
     }
 
     public void SetAgent(Agent agent)
@@ -66,6 +66,6 @@ public partial class PlaywrightWebDriver : IWebBrowser
 
     public void SetServiceProvider(IServiceProvider services)
     {
-        _services = services;
+        _instance.SetServiceProvider(_services);
     }
 }
