@@ -26,6 +26,10 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         new ParameterPropertyDef("user_goal_agent",
             "agent who can acheive user initial task,  must align with user_goal_description.", 
             required: true),
+        new ParameterPropertyDef("conversation_end",
+            "user is ending the conversation.",
+            type: "boolean",
+            required: true),
         new ParameterPropertyDef("is_new_task",
             "whether the user is requesting a new task that is different from the previous topic.", 
             type: "boolean")
