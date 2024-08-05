@@ -10,7 +10,7 @@ public partial class PlaywrightWebDriver
         {
             var page = args.UseExistingPage ? 
                 _instance.GetPage(message.ContextId, pattern: args.Url) :
-                await _instance.NewPage(message);
+                await _instance.NewPage(message, excludeResponseUrls: args.ExcludeResponseUrls);
 
             if (args.UseExistingPage && page != null && page.Url != "about:blank")
             {
@@ -23,7 +23,7 @@ public partial class PlaywrightWebDriver
 
             if (args.UseExistingPage && args.OpenNewTab && page != null && page.Url == "about:blank")
             {
-                page = await _instance.NewPage(message);
+                page = await _instance.NewPage(message, excludeResponseUrls: args.ExcludeResponseUrls);
             }
 
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
