@@ -11,4 +11,8 @@ public interface IKnowledgeService
     Task EmbedKnowledge(KnowledgeCreationModel knowledge);
     Task<string> GetKnowledges(KnowledgeRetrievalModel retrievalModel);
     Task<List<RetrievedResult>> GetAnswer(KnowledgeRetrievalModel retrievalModel);
+
+    #region List
+    Task<KnowledgeCollectionInfo> GetKnowledgeCollectionInfo(string collectionName);
+    #endregion
 }

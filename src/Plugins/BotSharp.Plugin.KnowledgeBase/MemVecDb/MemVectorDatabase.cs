@@ -18,6 +18,20 @@ public class MemVectorDatabase : IVectorDb
         return _collections.Select(x => x.Key).ToList();
     }
 
+    public async Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
+    {
+        if (_vectors.TryGetValue(collectionName, out var info))
+        {
+            info = new List<VecRecord>();
+        }
+
+        return new KnowledgeCollectionInfo
+        {
+            DataCount = (ulong)(info?.Count ?? 0),
+            VectorCount = (ulong)(info?.Count(x => x.Vector != null && x.Vector.Length > 0) ?? 0)
+        };
+    }
+
     public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
     {
         if (!_vectors.ContainsKey(collectionName))

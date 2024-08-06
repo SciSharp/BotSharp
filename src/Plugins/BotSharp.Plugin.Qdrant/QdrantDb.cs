@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges.Models;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -36,6 +37,16 @@ public class QdrantDb : IVectorDb
         // List all the collections
         var collections = await GetClient().ListCollectionsAsync();
         return collections.ToList();
+    }
+
+    public async Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
+    {
+        var info = await GetClient().GetCollectionInfoAsync(collectionName);
+        return new KnowledgeCollectionInfo
+        {
+            DataCount = info.PointsCount,
+            VectorCount = info.VectorsCount
+        };
     }
 
     public async Task CreateCollection(string collectionName, int dim)

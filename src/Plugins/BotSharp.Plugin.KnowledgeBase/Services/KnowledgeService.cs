@@ -5,14 +5,17 @@ public partial class KnowledgeService : IKnowledgeService
     private readonly IServiceProvider _services;
     private readonly KnowledgeBaseSettings _settings;
     private readonly ITextChopper _textChopper;
+    private readonly ILogger<KnowledgeService> _logger;
 
     public KnowledgeService(IServiceProvider services,
         KnowledgeBaseSettings settings,
-        ITextChopper textChopper)
+        ITextChopper textChopper,
+        ILogger<KnowledgeService> logger)
     {
         _services = services;
         _settings = settings;
         _textChopper = textChopper;
+        _logger = logger;
     }
 
     public async Task EmbedKnowledge(KnowledgeCreationModel knowledge)

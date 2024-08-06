@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Knowledges.Settings;
+using BotSharp.OpenAPI.ViewModels.Knowledges;
 using Microsoft.AspNetCore.Http;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -90,4 +91,12 @@ public class KnowledgeBaseController : ControllerBase
 
         return Ok(new { count = files.Count, size });
     }
+
+    [HttpGet("/knowledge/info")]
+    public async Task<KnowledgeCollectionInfoViewModel> GetKnowledgeCollectionInfo([FromQuery] string collectionName)
+    {
+        var info = await _knowledgeService.GetKnowledgeCollectionInfo(collectionName);
+        return KnowledgeCollectionInfoViewModel.ToViewModel(info);
+    }
+
 }

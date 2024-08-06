@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,11 @@ namespace BotSharp.Plugin.MetaAI.Providers;
 public class FaissDb : IVectorDb
 {
     public Task CreateCollection(string collectionName, int dim)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
     {
         throw new NotImplementedException();
     }
