@@ -92,11 +92,25 @@ public class KnowledgeBaseController : ControllerBase
         return Ok(new { count = files.Count, size });
     }
 
-    [HttpGet("/knowledge/info")]
+    [HttpGet("/knowledge/collection/info")]
     public async Task<KnowledgeCollectionInfoViewModel> GetKnowledgeCollectionInfo([FromQuery] string collectionName)
     {
         var info = await _knowledgeService.GetKnowledgeCollectionInfo(collectionName);
         return KnowledgeCollectionInfoViewModel.ToViewModel(info);
     }
 
+    [HttpPost("/knowledge/collection/data")]
+    public async Task<UuidPagedItems<KnowledgeCollectionDataViewModel>> GetKnowledgeCollectionData([FromBody] KnowledgeFilter filter)
+    {
+        var data = await _knowledgeService.GetKnowledgeCollectionData(filter);
+        var items = data.Items?.Select(x => KnowledgeCollectionDataViewModel.ToViewModel(x))?
+                               .ToList() ?? new List<KnowledgeCollectionDataViewModel>();
+
+        return new UuidPagedItems<KnowledgeCollectionDataViewModel>
+        {
+            Count = data.Count,
+            NextId = data.NextId,
+            Items = items
+        };
+    }
 }

@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Utilities;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -41,11 +41,45 @@ public class QdrantDb : IVectorDb
 
     public async Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
     {
-        var info = await GetClient().GetCollectionInfoAsync(collectionName);
+        var client = GetClient();
+
+        var exists = await client.CollectionExistsAsync(collectionName);
+        if (!exists) return new KnowledgeCollectionInfo();
+
+        var info = await client.GetCollectionInfoAsync(collectionName);
         return new KnowledgeCollectionInfo
         {
             DataCount = info.PointsCount,
             VectorCount = info.VectorsCount
+        };
+    }
+
+    public async Task<UuidPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
+    {
+        var client = GetClient();
+        var exists = await client.CollectionExistsAsync(filter.CollectionName);
+        if (!exists)
+        {
+            return new UuidPagedItems<KnowledgeCollectionData>();
+        }
+
+        var totalPointCount = await client.CountAsync(filter.CollectionName);
+        var response = await client.ScrollAsync(filter.CollectionName, limit: (uint)filter.Size, 
+            offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : 0,
+            vectorsSelector: filter.WithVector);
+        var points = response?.Result?.Select(x => new KnowledgeCollectionData
+        {
+            Id = x.Id?.Uuid ?? string.Empty,
+            Text = x.Payload.ContainsKey(KnowledgePayloadName.Text) ? x.Payload[KnowledgePayloadName.Text].StringValue : string.Empty,
+            Answer = x.Payload.ContainsKey(KnowledgePayloadName.Answer) ? x.Payload[KnowledgePayloadName.Answer].StringValue : string.Empty,
+            Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
+        })?.ToList() ?? new List<KnowledgeCollectionData>();
+
+        return new UuidPagedItems<KnowledgeCollectionData>
+        {
+            Count = totalPointCount,
+            NextId = response?.NextPageOffset?.Uuid,
+            Items = points
         };
     }
 
@@ -81,7 +115,7 @@ public class QdrantDb : IVectorDb
             },
             Vectors = vector,
 
-            Payload = 
+            Payload =
             {
                 { KnowledgePayloadName.Text, text }
             }

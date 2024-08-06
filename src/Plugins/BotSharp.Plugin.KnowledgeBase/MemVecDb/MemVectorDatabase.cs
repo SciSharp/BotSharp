@@ -32,6 +32,11 @@ public class MemVectorDatabase : IVectorDb
         };
     }
 
+    public Task<UuidPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
     {
         if (!_vectors.ContainsKey(collectionName))

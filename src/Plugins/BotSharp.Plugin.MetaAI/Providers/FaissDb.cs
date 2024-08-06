@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,11 @@ public class FaissDb : IVectorDb
     }
 
     public Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<UuidPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
     {
         throw new NotImplementedException();
     }

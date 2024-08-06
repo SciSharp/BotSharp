@@ -4,3 +4,4 @@ global using System.Linq;
 global using System.Threading.Tasks;
 global using BotSharp.Abstraction.VectorStorage;
 global using BotSharp.Abstraction.Knowledges.Enums;
+global using BotSharp.Abstraction.Knowledges.Models;
