@@ -1,13 +1,5 @@
-using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.VectorStorage;
-using Microsoft.Extensions.DependencyInjection;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.Qdrant;
 
@@ -80,7 +72,7 @@ public class QdrantDb : IVectorDb
 
             Payload = 
             {
-                { "text", text }
+                { KnowledgePayloadName.Text, text }
             }
         };
 

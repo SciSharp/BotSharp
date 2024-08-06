@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Functions;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
@@ -30,10 +29,10 @@ public class MemorizeKnowledgeFn : IFunctionCallback
 
         var vectorDb = _services.GetRequiredService<IVectorDb>();
 
-        await vectorDb.CreateCollection("lessen", vector[0].Length);
+        await vectorDb.CreateCollection(KnowledgeCollectionName.BotSharp, vector[0].Length);
 
         var id = Utilities.HashTextMd5(args.Question);
-        var result = await vectorDb.Upsert("lessen", id, vector[0], 
+        var result = await vectorDb.Upsert(KnowledgeCollectionName.BotSharp, id, vector[0], 
             args.Question, 
             new Dictionary<string, string> 
             { 

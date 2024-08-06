@@ -28,11 +28,11 @@ public partial class KnowledgeService : IKnowledgeService
         var db = GetVectorDb();
         var textEmbedding = GetTextEmbedding();
 
-        await db.CreateCollection("shared", textEmbedding.Dimension);
+        await db.CreateCollection(KnowledgeCollectionName.BotSharp, textEmbedding.Dimension);
         foreach (var line in lines)
         {
             var vec = await textEmbedding.GetVectorAsync(line);
-            await db.Upsert("shared", idStart.ToString(), vec, line);
+            await db.Upsert(KnowledgeCollectionName.BotSharp, idStart.ToString(), vec, line);
             idStart++;
             Console.WriteLine($"Saved vector {idStart}/{lines.Count}: {line}\n");
         }
@@ -68,7 +68,7 @@ public partial class KnowledgeService : IKnowledgeService
 
         // Vector search
         var db = GetVectorDb();
-        var result = await db.Search("shared", vector, "answer", limit: 10);
+        var result = await db.Search(KnowledgeCollectionName.BotSharp, vector, KnowledgePayloadName.Answer, limit: 10);
 
         // Restore 
         return string.Join("\n\n", result.Select((x, i) => $"### Paragraph {i + 1} ###\n{x.Trim()}"));
