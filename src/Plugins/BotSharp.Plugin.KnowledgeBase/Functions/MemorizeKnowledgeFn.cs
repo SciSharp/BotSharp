@@ -36,7 +36,7 @@ public class MemorizeKnowledgeFn : IFunctionCallback
             args.Question, 
             new Dictionary<string, string> 
             { 
-                { "answer", args.Answer } 
+                { KnowledgePayloadName.Answer, args.Answer } 
             });
 
         message.Content = result ? "Saved to my brain" : "I forgot it";
