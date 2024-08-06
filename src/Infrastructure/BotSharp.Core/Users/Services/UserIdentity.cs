@@ -40,7 +40,7 @@ public class UserIdentity : IUserIdentity
     }
 
     [JsonPropertyName("last_name")]
-    public string LastName 
+    public string LastName
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value!;
 
     [JsonPropertyName("full_name")]
@@ -66,4 +66,7 @@ public class UserIdentity : IUserIdentity
             return languages.FirstOrDefault();
         }
     }
+
+    [JsonPropertyName("phone")]
+    public string? Phone => _claims?.FirstOrDefault(x => x.Type == "phone")?.Value;
 }
