@@ -12,7 +12,7 @@ public partial class PlaywrightWebDriver
                 _instance.GetPage(message.ContextId, pattern: args.Url) :
                 await _instance.NewPage(message, excludeResponseUrls: args.ExcludeResponseUrls);
 
-            if (args.UseExistingPage && page != null && page.Url != "about:blank")
+            if (args.UseExistingPage && page != null && page.Url == args.Url)
             {
                 Serilog.Log.Information($"goto existing page: {args.Url}");
                 result.IsSuccess = true;

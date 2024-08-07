@@ -9,6 +9,7 @@ public class PlaywrightInstance : IDisposable
     public IServiceProvider Services => _services;
     Dictionary<string, IBrowserContext> _contexts = new Dictionary<string, IBrowserContext>();
     Dictionary<string, List<IPage>> _pages = new Dictionary<string, List<IPage>>();
+    IPage? _activePage = null;
 
     /// <summary>
     /// ContextId and BrowserContext
@@ -25,17 +26,19 @@ public class PlaywrightInstance : IDisposable
         _services = services;
     }
 
-    public IPage GetPage(string contextId, string? pattern = null)
+    public IPage? GetPage(string contextId, string? pattern = null)
     {
         if (string.IsNullOrEmpty(pattern))
         {
-            return _contexts[contextId].Pages.LastOrDefault();
+            return _activePage ?? _contexts[contextId].Pages.LastOrDefault();
         }
 
         foreach (var page in _contexts[contextId].Pages)
         {
             if (page.Url.ToLower() == pattern.ToLower())
             {
+                _activePage = page;
+                page.BringToFrontAsync().Wait();
                 return page;
             }
         }
@@ -84,6 +87,7 @@ public class PlaywrightInstance : IDisposable
 
         _contexts[ctxId].Page += async (sender, page) =>
         {
+            _activePage = page;
             _pages[ctxId].Add(page);
             page.Close += async (sender, e) =>
             {
@@ -200,6 +204,7 @@ public class PlaywrightInstance : IDisposable
             if (page != null)
             {
                 await page.CloseAsync();
+                _activePage = _pages[ctxId].LastOrDefault();
             }
         }
     }
