@@ -13,7 +13,6 @@ public interface IKnowledgeService
     Task<List<RetrievedResult>> GetAnswer(KnowledgeRetrievalModel retrievalModel);
 
     #region List
-    Task<KnowledgeCollectionInfo> GetKnowledgeCollectionInfo(string collectionName);
     Task<StringIdPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(string collectionName, KnowledgeFilter filter);
     #endregion
 }

@@ -39,24 +39,10 @@ public class QdrantDb : IVectorDb
         return collections.ToList();
     }
 
-    public async Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
-    {
-        var client = GetClient();
-
-        var exists = await client.CollectionExistsAsync(collectionName);
-        if (!exists) return new KnowledgeCollectionInfo();
-
-        var info = await client.GetCollectionInfoAsync(collectionName);
-        return new KnowledgeCollectionInfo
-        {
-            DataCount = info.PointsCount,
-            VectorCount = info.VectorsCount
-        };
-    }
-
     public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
     {
         var client = GetClient();
+        
         var exists = await client.CollectionExistsAsync(collectionName);
         if (!exists)
         {

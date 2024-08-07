@@ -14,11 +14,6 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
     {
         throw new NotImplementedException();

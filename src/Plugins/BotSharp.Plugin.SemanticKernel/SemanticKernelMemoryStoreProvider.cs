@@ -29,11 +29,6 @@ namespace BotSharp.Plugin.SemanticKernel
             throw new System.NotImplementedException();
         }
 
-        public Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public async Task<List<string>> GetCollections()
         {
             var result = new List<string>();
