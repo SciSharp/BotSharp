@@ -7,7 +7,7 @@ namespace BotSharp.Core.Files.Services;
 public partial class FileBasicService
 {
     public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        IEnumerable<RoleDialogModel> conversations, IEnumerable<string>? contentTypes = null,
         bool includeScreenShot = false, int? offset = null)
     {
         var files = new List<MessageFileModel>();
@@ -30,7 +30,10 @@ public partial class FileBasicService
                 if (file == null) continue;
 
                 var contentType = FileUtility.GetFileContentType(file);
-                if (contentTypes?.Contains(contentType) != true) continue;
+                if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
+                {
+                    continue;
+                }
 
                 var foundFiles = await GetMessageFiles(file, subDir, contentType, messageId, source, includeScreenShot);
                 if (foundFiles.IsNullOrEmpty()) continue;
@@ -63,7 +66,7 @@ public partial class FileBasicService
                 foreach (var file in Directory.GetFiles(subDir))
                 {
                     var contentType = FileUtility.GetFileContentType(file);
-                    if (!contentTypes.IsNullOrEmpty() && contentTypes.Contains(contentType))
+                    if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
                     {
                         continue;
                     }

@@ -17,7 +17,7 @@ public interface IFileBasicService
     /// <param name="offset"></param>
     /// <returns></returns>
     Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        IEnumerable<RoleDialogModel> conversations, IEnumerable<string>? contentTypes,
         bool includeScreenShot = false, int? offset = null);
 
     /// <summary>

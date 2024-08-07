@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.TencentCos.Services;
 public partial class TencentCosService
 {
     public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        IEnumerable<RoleDialogModel> conversations, IEnumerable<string>? contentTypes = null,
         bool includeScreenShot = false, int? offset = null)
     {
         var files = new List<MessageFileModel>();
@@ -30,7 +30,10 @@ public partial class TencentCosService
                 if (file == null) continue;
 
                 var contentType = FileUtility.GetFileContentType(file);
-                if (contentTypes?.Contains(contentType) != true) continue;
+                if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
+                {
+                    continue;
+                }
 
                 var foundFiles = await GetMessageFiles(file, subDir, contentType, messageId, source, includeScreenShot);
                 if (foundFiles.IsNullOrEmpty()) continue;
@@ -61,7 +64,7 @@ public partial class TencentCosService
                 foreach (var file in _cosClient.BucketClient.GetDirFiles(subDir))
                 {
                     var contentType = FileUtility.GetFileContentType(file);
-                    if (!contentTypes.IsNullOrEmpty() && contentTypes.Contains(contentType))
+                    if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
                     {
                         continue;
                     }
