@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
-using NetTopologySuite.IO;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -87,18 +86,8 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: input.Provider ?? "openai",
-                model: input.Model ?? "gpt-4o", multiModal: true);
-            var message = await completion.GetChatCompletions(new Agent()
-            {
-                Id = Guid.Empty.ToString(),
-            }, new List<RoleDialogModel>
-            {
-                new RoleDialogModel(AgentRole.User, input.Text)
-                {
-                    Files = input.Files
-                }
-            });
+            var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+            var message = await fileInstruct.ReadImages(input.Provider, input.Model, input.Text, input.Files);
             return message.Content;
         }
         catch (Exception ex)
@@ -114,14 +103,14 @@ public class InstructModeController : ControllerBase
     [HttpPost("/instruct/image-generation")]
     public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] IncomingMessageModel input)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
 
         try
         {
-            var message = await fileService.GenerateImage(input.Provider, input.Model, input.Text);
+            var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+            var message = await fileInstruct.GenerateImage(input.Provider, input.Model, input.Text);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -140,7 +129,6 @@ public class InstructModeController : ControllerBase
     [HttpPost("/instruct/image-variation")]
     public async Task<ImageGenerationViewModel> ImageVariation([FromBody] IncomingMessageModel input)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
@@ -152,7 +140,9 @@ public class InstructModeController : ControllerBase
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
             }
-            var message = await fileService.VaryImage(input.Provider, input.Model, image);
+
+            var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+            var message = await fileInstruct.VaryImage(input.Provider, input.Model, image);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -169,7 +159,7 @@ public class InstructModeController : ControllerBase
     [HttpPost("/instruct/image-edit")]
     public async Task<ImageGenerationViewModel> ImageEdit([FromBody] IncomingMessageModel input)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
@@ -181,7 +171,7 @@ public class InstructModeController : ControllerBase
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
             }
-            var message = await fileService.EditImage(input.Provider, input.Model, input.Text, image);
+            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, image);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -198,7 +188,7 @@ public class InstructModeController : ControllerBase
     [HttpPost("/instruct/image-mask-edit")]
     public async Task<ImageGenerationViewModel> ImageMaskEdit([FromBody] IncomingMessageModel input)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
         var imageViewModel = new ImageGenerationViewModel();
@@ -211,7 +201,7 @@ public class InstructModeController : ControllerBase
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find an image or mask!" };
             }
-            var message = await fileService.EditImage(input.Provider, input.Model, input.Text, image, mask);
+            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, image, mask);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -236,8 +226,8 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var fileService = _services.GetRequiredService<IBotSharpFileService>();
-            var content = await fileService.ReadPdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
+            var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+            var content = await fileInstruct.ReadPdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
             viewModel.Content = content;
             return viewModel;
         }

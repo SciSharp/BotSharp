@@ -74,13 +74,11 @@ public class HandleEmailSenderFn : IFunctionCallback
     private async Task<IEnumerable<MessageFileModel>> GetConversationFiles()
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var conversationId = convService.ConversationId;
-        var dialogs = convService.GetDialogHistory(fromBreakpoint: false);
-        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var userFiles = fileService.GetMessageFiles(conversationId, messageIds, FileSourceType.User);
-        var botFiles = fileService.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot);
-        return await SelectFiles(userFiles.Concat(botFiles), dialogs);
+
+        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, includeBotFile: true);
+        return selecteds;
     }
 
     private async Task<IEnumerable<MessageFileModel>> SelectFiles(IEnumerable<MessageFileModel> files, List<RoleDialogModel> dialogs)

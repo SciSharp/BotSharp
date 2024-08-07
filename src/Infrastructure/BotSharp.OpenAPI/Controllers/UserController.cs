@@ -137,14 +137,14 @@ public class UserController : ControllerBase
     [HttpPost("/user/avatar")]
     public bool UploadUserAvatar([FromBody] BotSharpFile file)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         return fileService.SaveUserAvatar(file);
     }
 
     [HttpGet("/user/avatar")]
     public IActionResult GetUserAvatar()
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var file = fileService.GetUserAvatar();
         if (string.IsNullOrEmpty(file))
         {
@@ -158,7 +158,7 @@ public class UserController : ControllerBase
     #region Private methods
     private FileContentResult BuildFileResult(string file)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var bytes = fileService.GetFileBytes(file);
         return File(bytes, "application/octet-stream", Path.GetFileName(file));
     }

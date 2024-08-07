@@ -5,8 +5,9 @@ using System.Net.Mime;
 
 namespace BotSharp.Plugin.TencentCos.Services;
 
-public partial class TencentCosService : IBotSharpFileService
+public partial class TencentCosService : IFileBasicService
 {
+    private readonly TencentCosClient _cosClient;
     private readonly TencentCosSettings _settings;
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
@@ -27,10 +28,6 @@ public partial class TencentCosService : IBotSharpFileService
     private const string USER_AVATAR_FOLDER = "avatar";
     private const string SESSION_FOLDER = "sessions";
 
-    private const int MIN_OFFSET = 1;
-    private const int MAX_OFFSET = 5;
-
-    private readonly TencentCosClient _cosClient;
 
     public TencentCosService(
         TencentCosSettings settings,
@@ -46,11 +43,4 @@ public partial class TencentCosService : IBotSharpFileService
         _fullBuketName = $"{_settings.BucketName}-{_settings.AppId}";
         _cosClient = cosClient;
     }
-
-    #region Private methods
-    private bool ExistDirectory(string? dir)
-    {
-        return !string.IsNullOrEmpty(dir) && _cosClient.BucketClient.DirExists(dir);
-    }
-    #endregion
 }
