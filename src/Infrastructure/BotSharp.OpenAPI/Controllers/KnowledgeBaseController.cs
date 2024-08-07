@@ -100,13 +100,13 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     [HttpPost("/knowledge/collection/data")]
-    public async Task<UuidPagedItems<KnowledgeCollectionDataViewModel>> GetKnowledgeCollectionData([FromBody] KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<KnowledgeCollectionDataViewModel>> GetKnowledgeCollectionData([FromBody] KnowledgeFilter filter)
     {
         var data = await _knowledgeService.GetKnowledgeCollectionData(filter);
         var items = data.Items?.Select(x => KnowledgeCollectionDataViewModel.ToViewModel(x))?
                                .ToList() ?? new List<KnowledgeCollectionDataViewModel>();
 
-        return new UuidPagedItems<KnowledgeCollectionDataViewModel>
+        return new StringIdPagedItems<KnowledgeCollectionDataViewModel>
         {
             Count = data.Count,
             NextId = data.NextId,

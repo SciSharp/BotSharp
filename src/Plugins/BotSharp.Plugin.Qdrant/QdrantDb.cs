@@ -54,13 +54,13 @@ public class QdrantDb : IVectorDb
         };
     }
 
-    public async Task<UuidPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
     {
         var client = GetClient();
         var exists = await client.CollectionExistsAsync(filter.CollectionName);
         if (!exists)
         {
-            return new UuidPagedItems<KnowledgeCollectionData>();
+            return new StringIdPagedItems<KnowledgeCollectionData>();
         }
 
         var totalPointCount = await client.CountAsync(filter.CollectionName);
@@ -70,12 +70,12 @@ public class QdrantDb : IVectorDb
         var points = response?.Result?.Select(x => new KnowledgeCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Text = x.Payload.ContainsKey(KnowledgePayloadName.Text) ? x.Payload[KnowledgePayloadName.Text].StringValue : string.Empty,
+            Question = x.Payload.ContainsKey(KnowledgePayloadName.Text) ? x.Payload[KnowledgePayloadName.Text].StringValue : string.Empty,
             Answer = x.Payload.ContainsKey(KnowledgePayloadName.Answer) ? x.Payload[KnowledgePayloadName.Answer].StringValue : string.Empty,
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
         })?.ToList() ?? new List<KnowledgeCollectionData>();
 
-        return new UuidPagedItems<KnowledgeCollectionData>
+        return new StringIdPagedItems<KnowledgeCollectionData>
         {
             Count = totalPointCount,
             NextId = response?.NextPageOffset?.Uuid,

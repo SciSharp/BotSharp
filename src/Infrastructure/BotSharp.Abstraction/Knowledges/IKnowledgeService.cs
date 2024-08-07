@@ -14,6 +14,6 @@ public interface IKnowledgeService
 
     #region List
     Task<KnowledgeCollectionInfo> GetKnowledgeCollectionInfo(string collectionName);
-    Task<UuidPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(KnowledgeFilter filter);
+    Task<StringIdPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(KnowledgeFilter filter);
     #endregion
 }

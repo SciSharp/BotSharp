@@ -8,8 +8,8 @@ public class KnowledgeCollectionDataViewModel
     [JsonPropertyName("id")]
     public string Id { get; set; }
 
-    [JsonPropertyName("text")]
-    public string Text { get; set; }
+    [JsonPropertyName("question")]
+    public string Question { get; set; }
 
     [JsonPropertyName("answer")]
     public string Answer { get; set; }
@@ -23,7 +23,7 @@ public class KnowledgeCollectionDataViewModel
         return new KnowledgeCollectionDataViewModel
         {
             Id = data.Id,
-            Text = data.Text,
+            Question = data.Question,
             Answer = data.Answer,
             Vector = data.Vector
         };

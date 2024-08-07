@@ -1,12 +1,12 @@
 namespace BotSharp.Abstraction.Utilities;
 
-public class UuidPagination : Pagination
+public class StringIdPagination : Pagination
 {
     [JsonPropertyName("start_id")]
     public string? StartId { get; set; }
 }
 
-public class UuidPagedItems<T> : PagedItems<T>
+public class StringIdPagedItems<T> : PagedItems<T>
 {
     public new ulong Count { get; set; }
 

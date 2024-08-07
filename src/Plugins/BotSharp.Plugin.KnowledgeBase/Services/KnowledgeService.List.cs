@@ -16,7 +16,7 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<UuidPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(KnowledgeFilter filter)
     {
         try
         {
@@ -26,7 +26,7 @@ public partial class KnowledgeService
         catch (Exception ex)
         {
             _logger.LogWarning($"Error when getting knowledge collectio data. {ex.Message}\r\n{ex.InnerException}");
-            return new UuidPagedItems<KnowledgeCollectionData>();
+            return new StringIdPagedItems<KnowledgeCollectionData>();
         }
     }
 }
