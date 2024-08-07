@@ -1,8 +1,8 @@
+using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
 using Microsoft.SemanticKernel.Memory;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.SemanticKernel
@@ -22,6 +22,16 @@ namespace BotSharp.Plugin.SemanticKernel
         public async Task CreateCollection(string collectionName, int dim)
         {
             await _memoryStore.CreateCollectionAsync(collectionName);
+        }
+
+        public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<KnowledgeCollectionInfo> GetCollectionInfo(string collectionName)
+        {
+            throw new System.NotImplementedException();
         }
 
         public async Task<List<string>> GetCollections()
