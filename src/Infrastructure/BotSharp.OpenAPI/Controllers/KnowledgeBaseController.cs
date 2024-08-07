@@ -92,17 +92,17 @@ public class KnowledgeBaseController : ControllerBase
         return Ok(new { count = files.Count, size });
     }
 
-    [HttpGet("/knowledge/collection/info")]
-    public async Task<KnowledgeCollectionInfoViewModel> GetKnowledgeCollectionInfo([FromQuery] string collectionName)
+    [HttpGet("/knowledge/{collection}/info")]
+    public async Task<KnowledgeCollectionInfoViewModel> GetKnowledgeCollectionInfo([FromRoute] string collection)
     {
-        var info = await _knowledgeService.GetKnowledgeCollectionInfo(collectionName);
+        var info = await _knowledgeService.GetKnowledgeCollectionInfo(collection);
         return KnowledgeCollectionInfoViewModel.ToViewModel(info);
     }
 
-    [HttpPost("/knowledge/collection/data")]
-    public async Task<StringIdPagedItems<KnowledgeCollectionDataViewModel>> GetKnowledgeCollectionData([FromBody] KnowledgeFilter filter)
-    {
-        var data = await _knowledgeService.GetKnowledgeCollectionData(filter);
+    [HttpPost("/knowledge/{collection}/data")]
+    public async Task<StringIdPagedItems<KnowledgeCollectionDataViewModel>> GetKnowledgeCollectionData([FromRoute] string collection, [FromBody] KnowledgeFilter filter)
+    {;
+        var data = await _knowledgeService.GetKnowledgeCollectionData(collection, filter);
         var items = data.Items?.Select(x => KnowledgeCollectionDataViewModel.ToViewModel(x))?
                                .ToList() ?? new List<KnowledgeCollectionDataViewModel>();
 

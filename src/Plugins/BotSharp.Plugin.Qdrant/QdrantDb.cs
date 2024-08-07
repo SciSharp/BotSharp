@@ -54,17 +54,17 @@ public class QdrantDb : IVectorDb
         };
     }
 
-    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
     {
         var client = GetClient();
-        var exists = await client.CollectionExistsAsync(filter.CollectionName);
+        var exists = await client.CollectionExistsAsync(collectionName);
         if (!exists)
         {
             return new StringIdPagedItems<KnowledgeCollectionData>();
         }
 
-        var totalPointCount = await client.CountAsync(filter.CollectionName);
-        var response = await client.ScrollAsync(filter.CollectionName, limit: (uint)filter.Size, 
+        var totalPointCount = await client.CountAsync(collectionName);
+        var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : 0,
             vectorsSelector: filter.WithVector);
         var points = response?.Result?.Select(x => new KnowledgeCollectionData

@@ -24,7 +24,7 @@ namespace BotSharp.Plugin.SemanticKernel
             await _memoryStore.CreateCollectionAsync(collectionName);
         }
 
-        public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
+        public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
         {
             throw new System.NotImplementedException();
         }

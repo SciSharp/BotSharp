@@ -16,12 +16,12 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(string collectionName, KnowledgeFilter filter)
     {
         try
         {
             var db = GetVectorDb();
-            return await db.GetCollectionData(filter);
+            return await db.GetCollectionData(collectionName, filter);
         }
         catch (Exception ex)
         {

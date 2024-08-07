@@ -32,7 +32,7 @@ public class MemVectorDatabase : IVectorDb
         };
     }
 
-    public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(KnowledgeFilter filter)
+    public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
     {
         throw new NotImplementedException();
     }
