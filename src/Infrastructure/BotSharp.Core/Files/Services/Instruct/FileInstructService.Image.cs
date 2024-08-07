@@ -2,8 +2,24 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class BotSharpFileService
+public partial class FileInstructService
 {
+    public async Task<RoleDialogModel> ReadImages(string? provider, string? model, string text, IEnumerable<BotSharpFile> images)
+    {
+        var completion = CompletionProvider.GetChatCompletion(_services, provider: provider ?? "openai", model: model ?? "gpt-4o", multiModal: true);
+        var message = await completion.GetChatCompletions(new Agent()
+        {
+            Id = Guid.Empty.ToString(),
+        }, new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, text)
+            {
+                Files = images?.ToList() ?? new List<BotSharpFile>()
+            }
+        });
+        return message;
+    }
+
     public async Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text)
     {
         var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-3");
@@ -31,7 +47,7 @@ public partial class BotSharpFileService
         {
             Id = Guid.Empty.ToString()
         }, new RoleDialogModel(AgentRole.User, string.Empty), stream, image.FileName ?? string.Empty);
-        
+
         stream.Close();
         return message;
     }
@@ -53,7 +69,7 @@ public partial class BotSharpFileService
         {
             Id = Guid.Empty.ToString()
         }, new RoleDialogModel(AgentRole.User, text), stream, image.FileName ?? string.Empty);
-        
+
         stream.Close();
         return message;
     }
@@ -82,7 +98,7 @@ public partial class BotSharpFileService
         {
             Id = Guid.Empty.ToString()
         }, new RoleDialogModel(AgentRole.User, text), imageStream, image.FileName ?? string.Empty, maskStream, mask.FileName ?? string.Empty);
-        
+
         imageStream.Close();
         maskStream.Close();
         return message;
@@ -100,7 +116,7 @@ public partial class BotSharpFileService
         }
         else if (!string.IsNullOrEmpty(file.FileData))
         {
-            (_, bytes) = GetFileInfoFromData(file.FileData);
+            (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
         }
 
         return bytes;

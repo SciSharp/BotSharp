@@ -31,7 +31,7 @@ public class TencentCosPlugin : IBotSharpPlugin
 
             services.AddScoped<TencentCosClient>();
 
-            services.AddScoped<IBotSharpFileService, TencentCosService>();
+            services.AddScoped<IFileBasicService, TencentCosService>();
         }
     }
 }

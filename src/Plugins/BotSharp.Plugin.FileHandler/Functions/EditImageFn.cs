@@ -28,7 +28,7 @@ public class EditImageFn : IFunctionCallback
         Init(message);
         SetImageOptions();
 
-        var image = await SelectConversationImage(descrpition);
+        var image = await SelectImage(descrpition);
         var response = await GetImageEditGeneration(message, descrpition, image);
         message.Content = response;
         return true;
@@ -48,64 +48,11 @@ public class EditImageFn : IFunctionCallback
         state.SetState("image_count", "1");
     }
 
-    private async Task<MessageFileModel?> SelectConversationImage(string? description)
+    private async Task<MessageFileModel?> SelectImage(string? description)
     {
-        var convService = _services.GetRequiredService<IConversationService>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var dialogs = convService.GetDialogHistory();
-        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var userImages = fileService.GetMessageFiles(_conversationId, messageIds, FileSourceType.User, imageOnly: true);
-        return await SelectImage(userImages, dialogs.LastOrDefault(), description);
-    }
-
-    private async Task<MessageFileModel?> SelectImage(IEnumerable<MessageFileModel> images, RoleDialogModel message, string? description)
-    {
-        if (images.IsNullOrEmpty()) return null;
-
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var render = _services.GetRequiredService<ITemplateRender>();
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-
-        try
-        {
-            var promptImages = images.Where(x => x.ContentType == MediaTypeNames.Image.Png).Select((x, idx) =>
-            {
-                return $"id: {idx + 1}, image_name: {x.FileName}.{x.FileType}";
-            }).ToList();
-            
-            if (promptImages.IsNullOrEmpty()) return null;
-
-            var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "select_edit_image_prompt");
-            prompt = render.Render(prompt, new Dictionary<string, object>
-            {
-                { "image_list", promptImages }
-            });
-
-            var agent = new Agent
-            {
-                Id = BuiltInAgentId.UtilityAssistant,
-                Name = "Utility Assistant",
-                Instruction = prompt
-            };
-
-            var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-            var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4");
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
-
-            var text = !string.IsNullOrWhiteSpace(description) ? description : message.Content;
-            var dialog = RoleDialogModel.From(message, AgentRole.User, text);
-
-            var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { dialog });
-            var content = response?.Content ?? string.Empty;
-            var selected = JsonSerializer.Deserialize<LlmContextOut>(content);
-            var fid = selected?.Selected ?? -1;
-            return fid > 0 ? images.Where((x, idx) => idx == fid - 1).FirstOrDefault() : null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning($"Error when getting the image edit response. {ex.Message}\r\n{ex.InnerException}");
-            return null;
-        }
+        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, description: description, contentTypes: new List<string> { MediaTypeNames.Image.Png });
+        return selecteds?.FirstOrDefault();
     }
 
     private async Task<string> GetImageEditGeneration(RoleDialogModel message, string description, MessageFileModel? image)
@@ -154,7 +101,7 @@ public class EditImageFn : IFunctionCallback
             }
         };
 
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         fileService.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
     }
 }

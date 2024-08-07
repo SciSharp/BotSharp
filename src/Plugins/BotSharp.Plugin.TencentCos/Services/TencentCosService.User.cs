@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Files.Utilities;
+
 namespace BotSharp.Plugin.TencentCos.Services;
 
 public partial class TencentCosService
@@ -26,10 +28,8 @@ public partial class TencentCosService
 
             if (string.IsNullOrEmpty(dir)) return false;
 
-            var (_, bytes) = GetFileInfoFromData(file.FileData);
-
+            var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
             var extension = Path.GetExtension(file.FileName);
-
             var fileName = user?.Id == null ? file.FileName : $"{user?.Id}{extension}";
 
             return _cosClient.BucketClient.UploadBytes($"{dir}/{fileName}", bytes);

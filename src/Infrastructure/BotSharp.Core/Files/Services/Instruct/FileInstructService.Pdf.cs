@@ -1,6 +1,9 @@
-namespace BotSharp.Plugin.TencentCos.Services;
+using BotSharp.Abstraction.Files.Converters;
+using System.IO;
 
-public partial class TencentCosService
+namespace BotSharp.Core.Files.Services;
+
+public partial class FileInstructService
 {
     public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files)
     {
@@ -12,7 +15,9 @@ public partial class TencentCosService
         }
 
         var guid = Guid.NewGuid().ToString();
-        var sessionDir = GetSessionDirectory(guid);
+
+        var sessionDir = _fileBasic.BuildDirectory(SESSION_FOLDER, guid);
+        DeleteIfExistDirectory(sessionDir);
 
         try
         {
@@ -32,9 +37,7 @@ public partial class TencentCosService
                     Files = images.Select(x => new BotSharpFile { FileStorageUrl = x }).ToList()
                 }
             });
-
-            content = message.Content;
-            return content;
+            return message.Content;
         }
         catch (Exception ex)
         {
@@ -43,17 +46,11 @@ public partial class TencentCosService
         }
         finally
         {
-            Directory.Delete(sessionDir, true);
+            _fileBasic.DeleteDirectory(sessionDir);
         }
     }
 
     #region Private methods
-    private string GetSessionDirectory(string id)
-    {
-        var dir = $"{SESSION_FOLDER}/{id}";
-        return dir;
-    }
-
     private async Task<IEnumerable<string>> DownloadFiles(string dir, List<BotSharpFile> files, string extension = "pdf")
     {
         if (string.IsNullOrWhiteSpace(dir) || files.IsNullOrEmpty())
@@ -75,18 +72,17 @@ public partial class TencentCosService
                 }
                 else if (!string.IsNullOrEmpty(file.FileData))
                 {
-                    (_, bytes) = GetFileInfoFromData(file.FileData);
+                    (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
                 }
 
                 if (!bytes.IsNullOrEmpty())
                 {
                     var guid = Guid.NewGuid().ToString();
-                    var fileDir = $"{dir}/{guid}";
+                    var fileDir = _fileBasic.BuildDirectory(dir, guid);
+                    DeleteIfExistDirectory(fileDir);
 
-                    var pdfDir = $"{fileDir}/{guid}.{extension}";
-
-
-                    _cosClient.BucketClient.UploadBytes(pdfDir, bytes);
+                    var pdfDir = _fileBasic.BuildDirectory(fileDir, $"{guid}.{extension}");
+                    _fileBasic.SaveFileBytesToPath(pdfDir, bytes);
                     locs.Add(pdfDir);
                 }
             }
@@ -102,7 +98,7 @@ public partial class TencentCosService
     private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files)
     {
         var images = new List<string>();
-        var converter = GetPdf2ImageConverter();
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault();
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;
@@ -112,9 +108,8 @@ public partial class TencentCosService
         {
             try
             {
-                var segs = file.Split(Path.DirectorySeparatorChar);
-                var dir = string.Join(Path.DirectorySeparatorChar, segs.SkipLast(1));
-                var folder = Path.Combine(dir, "screenshots");
+                var dir = _fileBasic.GetParentDir(file);
+                var folder = _fileBasic.BuildDirectory(dir, "screenshots");
                 var urls = await converter.ConvertPdfToImages(file, folder);
                 images.AddRange(urls);
             }

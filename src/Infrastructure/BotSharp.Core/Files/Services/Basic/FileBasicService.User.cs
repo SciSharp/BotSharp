@@ -2,7 +2,7 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class BotSharpFileService
+public partial class FileBasicService
 {
     public string GetUserAvatar()
     {
@@ -30,11 +30,11 @@ public partial class BotSharpFileService
 
             if (Directory.Exists(dir))
             {
-                Directory.Delete(dir, true);
+                DeleteDirectory(dir);
             }
 
             dir = GetUserAvatarDir(user?.Id, createNewDir: true);
-            var (_, bytes) = GetFileInfoFromData(file.FileData);
+            var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
             File.WriteAllBytes(Path.Combine(dir, file.FileName), bytes);
             return true;
         }

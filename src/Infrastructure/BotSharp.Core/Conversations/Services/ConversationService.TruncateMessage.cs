@@ -5,7 +5,7 @@ public partial class ConversationService : IConversationService
     public async Task<bool> TruncateConversation(string conversationId, string messageId, string? newMessageId = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var deleteMessageIds = db.TruncateConversation(conversationId, messageId, cleanLog: true);
 
         fileService.DeleteMessageFiles(conversationId, deleteMessageIds, messageId, newMessageId);
