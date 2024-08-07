@@ -28,9 +28,6 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_sender.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_attachment_prompt.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_email_reader.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

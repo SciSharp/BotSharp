@@ -51,7 +51,7 @@ public class ReadImageFn : IFunctionCallback
             return new List<RoleDialogModel>();
         }
 
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var images = await fileService.GetChatFiles(conversationId, FileSourceType.User, dialogs, _imageContentTypes);
 
         foreach (var dialog in dialogs)

@@ -4,19 +4,19 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class BotSharpFileService
+public partial class FileBasicService
 {
     public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes = null,
         bool includeScreenShot = false, int? offset = null)
     {
         var files = new List<MessageFileModel>();
-        if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(conversationId) || dialogs.IsNullOrEmpty())
         {
             return files;
         }
 
-        var messageIds = GetMessageIds(conversations, offset);
+        var messageIds = GetMessageIds(dialogs, offset);
         var pathPrefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
 
         foreach (var messageId in messageIds)
@@ -29,8 +29,11 @@ public partial class BotSharpFileService
                 var file = Directory.GetFiles(subDir).FirstOrDefault();
                 if (file == null) continue;
 
-                var contentType = GetFileContentType(file);
-                if (contentTypes?.Contains(contentType) != true) continue;
+                var contentType = FileUtility.GetFileContentType(file);
+                if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
+                {
+                    continue;
+                }
 
                 var foundFiles = await GetMessageFiles(file, subDir, contentType, messageId, source, includeScreenShot);
                 if (foundFiles.IsNullOrEmpty()) continue;
@@ -43,7 +46,7 @@ public partial class BotSharpFileService
     }
 
     public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds,
-        string source, bool imageOnly = false)
+        string source, IEnumerable<string>? contentTypes = null)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return files;
@@ -62,8 +65,8 @@ public partial class BotSharpFileService
 
                 foreach (var file in Directory.GetFiles(subDir))
                 {
-                    var contentType = GetFileContentType(file);
-                    if (imageOnly && !_imageTypes.Contains(contentType))
+                    var contentType = FileUtility.GetFileContentType(file);
+                    if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
                     {
                         continue;
                     }
@@ -141,7 +144,7 @@ public partial class BotSharpFileService
 
             try
             {
-                var (_, bytes) = GetFileInfoFromData(file.FileData);
+                var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
                 var subDir = Path.Combine(dir, source, $"{i + 1}");
                 if (!ExistDirectory(subDir))
                 {
@@ -180,7 +183,7 @@ public partial class BotSharpFileService
             {
                 if (ExistDirectory(newDir))
                 {
-                    Directory.Delete(newDir, true);
+                    DeleteDirectory(newDir);
                 }
 
                 Directory.Move(prevDir, newDir);
@@ -189,7 +192,7 @@ public partial class BotSharpFileService
                 var botDir = Path.Combine(newDir, BOT_FILE_FOLDER);
                 if (ExistDirectory(botDir))
                 {
-                    Directory.Delete(botDir, true);
+                    DeleteDirectory(botDir);
                 }
             }
         }
@@ -200,7 +203,7 @@ public partial class BotSharpFileService
             if (!ExistDirectory(dir)) continue;
 
             Thread.Sleep(100);
-            Directory.Delete(dir, true);
+            DeleteDirectory(dir);
         }
 
         return true;
@@ -215,7 +218,7 @@ public partial class BotSharpFileService
             var convDir = GetConversationDirectory(conversationId);
             if (!ExistDirectory(convDir)) continue;
 
-            Directory.Delete(convDir, true);
+            DeleteDirectory(convDir);
         }
         return true;
     }
@@ -244,27 +247,23 @@ public partial class BotSharpFileService
         return dir;
     }
 
-    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> conversations, int? offset = null)
+    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> dialogs, int? offset = null)
     {
-        if (conversations.IsNullOrEmpty()) return Enumerable.Empty<string>();
+        if (dialogs.IsNullOrEmpty()) return Enumerable.Empty<string>();
 
-        if (offset <= 0)
+        if (offset.HasValue && offset < 1)
         {
-            offset = MIN_OFFSET;
-        }
-        else if (offset > MAX_OFFSET)
-        {
-            offset = MAX_OFFSET;
+            offset = 1;
         }
 
         var messageIds = new List<string>();
         if (offset.HasValue)
         {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
+            messageIds = dialogs.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
         }
         else
         {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().ToList();
+            messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
         }
 
         return messageIds;
@@ -285,7 +284,7 @@ public partial class BotSharpFileService
                 {
                     foreach (var screenShot in Directory.GetFiles(screenShotDir))
                     {
-                        contentType = GetFileContentType(screenShot);
+                        contentType = FileUtility.GetFileContentType(screenShot);
                         if (!_imageTypes.Contains(contentType)) continue;
 
                         var fileName = Path.GetFileNameWithoutExtension(screenShot);
@@ -307,7 +306,7 @@ public partial class BotSharpFileService
                     var images = await ConvertPdfToImages(file, screenShotDir);
                     foreach (var image in images)
                     {
-                        contentType = GetFileContentType(image);
+                        contentType = FileUtility.GetFileContentType(image);
                         var fileName = Path.GetFileNameWithoutExtension(image);
                         var fileType = Path.GetExtension(image).Substring(1);
                         var model = new MessageFileModel()

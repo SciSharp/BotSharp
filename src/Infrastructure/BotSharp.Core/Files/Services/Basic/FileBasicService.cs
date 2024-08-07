@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.StaticFiles;
 using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class BotSharpFileService : IBotSharpFileService
+public partial class FileBasicService : IFileBasicService
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
-    private readonly ILogger<BotSharpFileService> _logger;
+    private readonly ILogger<FileBasicService> _logger;
     private readonly string _baseDir;
     private readonly IEnumerable<string> _imageTypes = new List<string>
     {
@@ -25,13 +24,10 @@ public partial class BotSharpFileService : IBotSharpFileService
     private const string USER_AVATAR_FOLDER = "avatar";
     private const string SESSION_FOLDER = "sessions";
 
-    private const int MIN_OFFSET = 1;
-    private const int MAX_OFFSET = 5;
-
-    public BotSharpFileService(
+    public FileBasicService(
         BotSharpDatabaseSettings dbSettings,
         IUserIdentity user,
-        ILogger<BotSharpFileService> logger,
+        ILogger<FileBasicService> logger,
         IServiceProvider services)
     {
         _dbSettings = dbSettings;
@@ -40,11 +36,4 @@ public partial class BotSharpFileService : IBotSharpFileService
         _services = services;
         _baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbSettings.FileRepository);
     }
-
-    #region Private methods
-    private bool ExistDirectory(string? dir)
-    {
-        return !string.IsNullOrEmpty(dir) && Directory.Exists(dir);
-    }
-    #endregion
 }

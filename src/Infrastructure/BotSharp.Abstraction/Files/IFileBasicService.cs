@@ -2,7 +2,7 @@ using System.IO;
 
 namespace BotSharp.Abstraction.Files;
 
-public interface IBotSharpFileService
+public interface IFileBasicService
 {
     #region Conversation
     /// <summary>
@@ -11,13 +11,13 @@ public interface IBotSharpFileService
     /// </summary>
     /// <param name="conversationId"></param>
     /// <param name="source"></param>
-    /// <param name="conversations"></param>
+    /// <param name="dialogs"></param>
     /// <param name="contentTypes"></param>
     /// <param name="includeScreenShot"></param>
     /// <param name="offset"></param>
     /// <returns></returns>
     Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes,
         bool includeScreenShot = false, int? offset = null);
 
     /// <summary>
@@ -28,7 +28,7 @@ public interface IBotSharpFileService
     /// <param name="source"></param>
     /// <param name="imageOnly"></param>
     /// <returns></returns>
-    IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, bool imageOnly = false);
+    IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, IEnumerable<string>? contentTypes = null);
     string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName);
     IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds);
     bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files);
@@ -45,38 +45,20 @@ public interface IBotSharpFileService
     bool DeleteConversationFiles(IEnumerable<string> conversationIds);
     #endregion
 
-    #region Image
-    Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text);
-    Task<RoleDialogModel> VaryImage(string? provider, string? model, BotSharpFile image);
-    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image);
-    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image, BotSharpFile mask);
-    #endregion
-
-    #region Pdf
-    /// <summary>
-    /// Take screenshots of pdf pages and get response from llm
-    /// </summary>
-    /// <param name="prompt"></param>
-    /// <param name="files">Pdf files</param>
-    /// <returns></returns>
-    Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files);
-    #endregion
-
     #region User
     string GetUserAvatar();
     bool SaveUserAvatar(BotSharpFile file);
     #endregion
 
     #region Common
-    /// <summary>
-    /// Get file bytes and content type from data, e.g., "data:image/png;base64,aaaaaaaaa"
-    /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    (string, byte[]) GetFileInfoFromData(string data);
     string GetDirectory(string conversationId);
-    string GetFileContentType(string filePath);
     byte[] GetFileBytes(string fileStorageUrl);
-    bool SavefileToPath(string filePath, Stream stream);
+    bool SaveFileStreamToPath(string filePath, Stream stream);
+    bool SaveFileBytesToPath(string filePath, byte[] bytes);
+    string GetParentDir(string dir, int level = 1);
+    bool ExistDirectory(string? dir);
+    void CreateDirectory(string dir);
+    void DeleteDirectory(string dir);
+    string BuildDirectory(params string[] segments);
     #endregion
 }

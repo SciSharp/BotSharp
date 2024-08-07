@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Utilities;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
@@ -197,7 +198,6 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
@@ -271,13 +271,13 @@ public class ChatCompletionProvider : IChatCompletion
                         }
                         else if (!string.IsNullOrEmpty(file.FileData))
                         {
-                            var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
+                            var (contentType, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
                             var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromBytes(bytes), contentType, ImageChatMessageContentPartDetail.Low);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
-                            var contentType = fileService.GetFileContentType(file.FileStorageUrl);
+                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
                             using var stream = File.OpenRead(file.FileStorageUrl);
                             var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromStream(stream), contentType, ImageChatMessageContentPartDetail.Low);
                             contentParts.Add(contentPart);

@@ -39,6 +39,6 @@ public class MessageFileModel
 
     public override string ToString()
     {
-        return $"File name: {FileName}, File type: {FileType}, Content type: {ContentType}";
+        return $"File name: {FileName}, File type: {FileType}, Content type: {ContentType}, Source: {FileSource}";
     }
 }
