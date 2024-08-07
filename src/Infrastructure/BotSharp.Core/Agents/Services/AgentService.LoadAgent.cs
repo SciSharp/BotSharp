@@ -1,7 +1,12 @@
+using BotSharp.Abstraction.Routing.Models;
+using System.Collections.Concurrent;
+
 namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
+    public static ConcurrentDictionary<string, Dictionary<string,string>> AgentParameterTypes = new();
+
     [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id)
     {
@@ -49,6 +54,7 @@ public partial class AgentService
                 agent.Instruction = inheritedAgent.Instruction;
             }
         }
+        AddOrUpdateParameters(agent);
 
         agent.TemplateDict = new Dictionary<string, object>();
 
@@ -95,5 +101,44 @@ public partial class AgentService
         {
             dict[t.Key] = t.Value;
         }
+    }
+
+    private void AddOrUpdateParameters(Agent agent)
+    {
+        var agentId = agent.Id ?? agent.Name;
+        if (AgentParameterTypes.ContainsKey(agentId)) return;
+        
+        AddOrUpdateRoutesParameters(agentId, agent.RoutingRules);
+        AddOrUpdateFunctionsParameters(agentId, agent.Functions);
+    }
+
+    private void AddOrUpdateRoutesParameters(string agentId, List<RoutingRule> routingRules)
+    {
+        if(!AgentParameterTypes.TryGetValue(agentId, out var parameterTypes)) parameterTypes = new();
+        foreach (var rule in routingRules.Where(x => x.Required))
+        {
+            if (string.IsNullOrEmpty(rule.FieldType)) continue;
+            parameterTypes.TryAdd(rule.Field, rule.FieldType);
+        }
+        AgentParameterTypes.TryAdd(agentId, parameterTypes);
+    }
+
+    private void AddOrUpdateFunctionsParameters(string agentId, List<FunctionDef> functions)
+    {
+        if (!AgentParameterTypes.TryGetValue(agentId, out var parameterTypes)) parameterTypes = new(); 
+        var parameters = functions.Select(p => p.Parameters);
+        foreach (var param in parameters)
+        {
+            foreach (JsonProperty prop in param.Properties.RootElement.EnumerateObject())
+            {
+                var name = prop.Name;
+                var node = prop.Value;
+                if (node.TryGetProperty("type", out var type))
+                {
+                    parameterTypes.TryAdd(name, type.GetString());
+                }
+            }
+        }
+        AgentParameterTypes.TryAdd(agentId, parameterTypes);
     }
 }
