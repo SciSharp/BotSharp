@@ -82,13 +82,8 @@ public partial class FileInstructService
                     DeleteIfExistDirectory(fileDir);
 
                     var pdfDir = _fileBasic.BuildDirectory(fileDir, $"{guid}.{extension}");
-                    using (var fs = new FileStream(pdfDir, FileMode.Create))
-                    {
-                        fs.Write(bytes, 0, bytes.Length);
-                        fs.Close();
-                        locs.Add(pdfDir);
-                        Thread.Sleep(100);
-                    }
+                    _fileBasic.SaveFileBytesToPath(pdfDir, bytes);
+                    locs.Add(pdfDir);
                 }
             }
             catch (Exception ex)
@@ -113,8 +108,7 @@ public partial class FileInstructService
         {
             try
             {
-                var segs = file.Split(Path.DirectorySeparatorChar);
-                var dir = string.Join(Path.DirectorySeparatorChar, segs.SkipLast(1));
+                var dir = _fileBasic.GetParentDir(file);
                 var folder = _fileBasic.BuildDirectory(dir, "screenshots");
                 var urls = await converter.ConvertPdfToImages(file, folder);
                 images.AddRange(urls);

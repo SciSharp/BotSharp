@@ -53,7 +53,9 @@ public interface IFileBasicService
     #region Common
     string GetDirectory(string conversationId);
     byte[] GetFileBytes(string fileStorageUrl);
-    bool SavefileToPath(string filePath, Stream stream);
+    bool SaveFileStreamToPath(string filePath, Stream stream);
+    bool SaveFileBytesToPath(string filePath, byte[] bytes);
+    string GetParentDir(string dir, int level = 1);
     bool ExistDirectory(string? dir);
     void CreateDirectory(string dir);
     void DeleteDirectory(string dir);

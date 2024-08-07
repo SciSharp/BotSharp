@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace BotSharp.Plugin.TencentCos.Services;
 
 public partial class TencentCosService
@@ -21,7 +23,7 @@ public partial class TencentCosService
         return Array.Empty<byte>();
     }
 
-    public bool SavefileToPath(string filePath, Stream stream)
+    public bool SaveFileStreamToPath(string filePath, Stream stream)
     {
         if (string.IsNullOrEmpty(filePath)) return false;
 
@@ -31,9 +33,30 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when saving file to path: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when saving file stream to path: {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
+    }
+
+    public bool SaveFileBytesToPath(string filePath, byte[] bytes)
+    {
+        if (string.IsNullOrEmpty(filePath)) return false;
+
+        try
+        {
+            return _cosClient.BucketClient.UploadBytes(filePath, bytes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when saving file bytes to path: {ex.Message}\r\n{ex.InnerException}");
+            return false;
+        }
+    }
+
+    public string GetParentDir(string dir, int level = 1)
+    {
+        var segs = dir.Split("/");
+        return string.Join("/", segs.SkipLast(level));
     }
 
     public string BuildDirectory(params string[] segments)
