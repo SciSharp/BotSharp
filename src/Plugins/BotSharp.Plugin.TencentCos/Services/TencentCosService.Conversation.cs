@@ -8,16 +8,16 @@ namespace BotSharp.Plugin.TencentCos.Services;
 public partial class TencentCosService
 {
     public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string>? contentTypes = null,
+        IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes = null,
         bool includeScreenShot = false, int? offset = null)
     {
         var files = new List<MessageFileModel>();
-        if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(conversationId) || dialogs.IsNullOrEmpty())
         {
             return files;
         }
 
-        var messageIds = GetMessageIds(conversations, offset);
+        var messageIds = GetMessageIds(dialogs, offset);
         var pathPrefix = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}";
 
         foreach (var messageId in messageIds)

@@ -11,13 +11,13 @@ public interface IFileBasicService
     /// </summary>
     /// <param name="conversationId"></param>
     /// <param name="source"></param>
-    /// <param name="conversations"></param>
+    /// <param name="dialogs"></param>
     /// <param name="contentTypes"></param>
     /// <param name="includeScreenShot"></param>
     /// <param name="offset"></param>
     /// <returns></returns>
     Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string>? contentTypes,
+        IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes,
         bool includeScreenShot = false, int? offset = null);
 
     /// <summary>

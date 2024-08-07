@@ -22,7 +22,8 @@ public interface IFileInstructService
 
     #region Select file
     Task<IEnumerable<MessageFileModel>> SelectMessageFiles(string conversationId,
-        string? agentId = null, string? template = null, bool includeBotFile = false, bool fromBreakpoint = false,
+        string? agentId = null, string? template = null, string? description = null,
+        bool includeBotFile = false, bool fromBreakpoint = false,
         int? offset = null, IEnumerable<string>? contentTypes = null);
     #endregion
 }

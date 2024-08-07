@@ -6,7 +6,8 @@ namespace BotSharp.Core.Files.Services;
 public partial class FileInstructService
 {
     public async Task<IEnumerable<MessageFileModel>> SelectMessageFiles(string conversationId,
-        string? agentId = null, string? template = null, bool includeBotFile = false, bool fromBreakpoint = false,
+        string? agentId = null, string? template = null, string? description = null,
+        bool includeBotFile = false, bool fromBreakpoint = false,
         int? offset = null, IEnumerable<string>? contentTypes = null)
     {
         if (string.IsNullOrEmpty(conversationId))
@@ -30,10 +31,11 @@ public partial class FileInstructService
             return Enumerable.Empty<MessageFileModel>();
         }
 
-        return await SelectFiles(agentId, template, files, dialogs);
+        return await SelectFiles(agentId, template, description, files, dialogs);
     }
 
-    private async Task<IEnumerable<MessageFileModel>> SelectFiles(string? agentId, string? template, IEnumerable<MessageFileModel> files, List<RoleDialogModel> dialogs)
+    private async Task<IEnumerable<MessageFileModel>> SelectFiles(string? agentId, string? template, string? description,
+        IEnumerable<MessageFileModel> files, List<RoleDialogModel> dialogs)
     {
         if (files.IsNullOrEmpty()) return new List<MessageFileModel>();
 
@@ -52,7 +54,7 @@ public partial class FileInstructService
             template = !string.IsNullOrWhiteSpace(template) ? template : "select_file_prompt";
 
             var foundAgent = db.GetAgent(agentId);
-            var prompt = db.GetAgentTemplate(agentId, template);
+            var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, template);
             prompt = render.Render(prompt, new Dictionary<string, object>
             {
                 { "file_list", promptFiles }
@@ -68,8 +70,14 @@ public partial class FileInstructService
             var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
             var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4");
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
-            var latest = dialogs.Last();
-            var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { latest });
+
+            var message = dialogs.Last();
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                message = RoleDialogModel.From(message, AgentRole.User, description);
+            }
+            
+            var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { message });
             var content = response?.Content ?? string.Empty;
             var selecteds = JsonSerializer.Deserialize<FileSelectContext>(content);
             var fids = selecteds?.Selecteds ?? new List<int>();

@@ -7,16 +7,16 @@ namespace BotSharp.Core.Files.Services;
 public partial class FileBasicService
 {
     public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string>? contentTypes = null,
+        IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes = null,
         bool includeScreenShot = false, int? offset = null)
     {
         var files = new List<MessageFileModel>();
-        if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(conversationId) || dialogs.IsNullOrEmpty())
         {
             return files;
         }
 
-        var messageIds = GetMessageIds(conversations, offset);
+        var messageIds = GetMessageIds(dialogs, offset);
         var pathPrefix = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, FILE_FOLDER);
 
         foreach (var messageId in messageIds)
@@ -247,9 +247,9 @@ public partial class FileBasicService
         return dir;
     }
 
-    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> conversations, int? offset = null)
+    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> dialogs, int? offset = null)
     {
-        if (conversations.IsNullOrEmpty()) return Enumerable.Empty<string>();
+        if (dialogs.IsNullOrEmpty()) return Enumerable.Empty<string>();
 
         if (offset.HasValue && offset < 1)
         {
@@ -259,11 +259,11 @@ public partial class FileBasicService
         var messageIds = new List<string>();
         if (offset.HasValue)
         {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
+            messageIds = dialogs.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
         }
         else
         {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().ToList();
+            messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
         }
 
         return messageIds;
