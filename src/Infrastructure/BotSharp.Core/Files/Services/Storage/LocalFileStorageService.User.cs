@@ -2,7 +2,7 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class FileBasicService
+public partial class LocalFileStorageService
 {
     public string GetUserAvatar()
     {

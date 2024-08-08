@@ -5,10 +5,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<IEnumerable<MessageFileModel>> SelectMessageFiles(string conversationId,
-        string? agentId = null, string? template = null, string? description = null,
-        bool includeBotFile = false, bool fromBreakpoint = false,
-        int? offset = null, IEnumerable<string>? contentTypes = null)
+    public async Task<IEnumerable<MessageFileModel>> SelectMessageFiles(string conversationId, SelectFileOptions options)
     {
         if (string.IsNullOrEmpty(conversationId))
         {
@@ -16,14 +13,14 @@ public partial class FileInstructService
         }
 
         var convService = _services.GetRequiredService<IConversationService>();
-        var dialogs = convService.GetDialogHistory(fromBreakpoint: fromBreakpoint);
-        var messageIds = GetMessageIds(dialogs, offset);
+        var dialogs = convService.GetDialogHistory(fromBreakpoint: options.FromBreakpoint);
+        var messageIds = GetMessageIds(dialogs, options.Offset);
 
-        var files = _fileBasic.GetMessageFiles(conversationId, messageIds, FileSourceType.User, contentTypes);
-        if  (includeBotFile)
+        var files = _fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.User, options.ContentTypes);
+        if  (options.IncludeBotFile)
         {
-            var botFiles = _fileBasic.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot, contentTypes);
-            files = files.Concat(botFiles);
+            var botFiles = _fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot, options.ContentTypes);
+            files = MergeMessageFiles(messageIds, files, botFiles);
         }
 
         if (files.IsNullOrEmpty())
@@ -31,11 +28,28 @@ public partial class FileInstructService
             return Enumerable.Empty<MessageFileModel>();
         }
 
-        return await SelectFiles(agentId, template, description, files, dialogs);
+        return await SelectFiles(files, dialogs, options);
     }
 
-    private async Task<IEnumerable<MessageFileModel>> SelectFiles(string? agentId, string? template, string? description,
-        IEnumerable<MessageFileModel> files, List<RoleDialogModel> dialogs)
+    private IEnumerable<MessageFileModel> MergeMessageFiles(IEnumerable<string> messageIds, IEnumerable<MessageFileModel> userFiles, IEnumerable<MessageFileModel> botFiles)
+    {
+        var files = new List<MessageFileModel>();
+
+        if (messageIds.IsNullOrEmpty()) return files;
+
+        foreach (var messageId in messageIds)
+        {
+            var users = userFiles.Where(x => x.MessageId == messageId).ToList();
+            var bots = botFiles.Where(x => x.MessageId == messageId).ToList();
+            
+            if (!users.IsNullOrEmpty()) files.AddRange(users);
+            if (!bots.IsNullOrEmpty()) files.AddRange(bots);
+        }
+
+        return files;
+    }
+
+    private async Task<IEnumerable<MessageFileModel>> SelectFiles(IEnumerable<MessageFileModel> files, IEnumerable<RoleDialogModel> dialogs, SelectFileOptions options)
     {
         if (files.IsNullOrEmpty()) return new List<MessageFileModel>();
 
@@ -47,11 +61,11 @@ public partial class FileInstructService
         {
             var promptFiles = files.Select((x, idx) =>
             {
-                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, content_type: {x.ContentType}, author: {x.FileSource}";
+                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileExtension}, content_type: {x.ContentType}, author: {x.FileSource}";
             }).ToList();
 
-            agentId = !string.IsNullOrWhiteSpace(agentId) ? agentId : BuiltInAgentId.UtilityAssistant;
-            template = !string.IsNullOrWhiteSpace(template) ? template : "select_file_prompt";
+            var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.UtilityAssistant;
+            var template = !string.IsNullOrWhiteSpace(options.Template) ? options.Template : "select_file_prompt";
 
             var foundAgent = db.GetAgent(agentId);
             var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, template);
@@ -67,19 +81,29 @@ public partial class FileInstructService
                 Instruction = prompt
             };
 
-            var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-            var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4");
+            var message = dialogs.LastOrDefault();
+            var text = !string.IsNullOrWhiteSpace(options.Description) ? options.Description : message?.Content;
+            if (message == null)
+            {
+                message = new RoleDialogModel(AgentRole.User, text);
+            }
+            else
+            {
+                message = RoleDialogModel.From(message, AgentRole.User, text);
+            }
+
+            var providerName = options.Provider ?? "openai";
+            var modelId = options?.ModelId ?? "gpt-4";
+            var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == providerName);
+            var model = llmProviderService.GetProviderModel(provider: provider, id: modelId);
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
 
-            var message = dialogs.Last();
-            if (!string.IsNullOrWhiteSpace(description))
-            {
-                message = RoleDialogModel.From(message, AgentRole.User, description);
-            }
-            
             var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { message });
             var content = response?.Content ?? string.Empty;
-            var selecteds = JsonSerializer.Deserialize<FileSelectContext>(content);
+            var selecteds = JsonSerializer.Deserialize<FileSelectContext>(content, new JsonSerializerOptions
+            {
+                AllowTrailingCommas = true
+            });
             var fids = selecteds?.Selecteds ?? new List<int>();
             return files.Where((x, idx) => fids.Contains(idx + 1)).ToList();
         }

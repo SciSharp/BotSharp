@@ -2,18 +2,13 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class FileBasicService : IFileBasicService
+public partial class LocalFileStorageService : IFileStorageService
 {
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly IServiceProvider _services;
     private readonly IUserIdentity _user;
-    private readonly ILogger<FileBasicService> _logger;
+    private readonly ILogger<LocalFileStorageService> _logger;
     private readonly string _baseDir;
-    private readonly IEnumerable<string> _imageTypes = new List<string>
-    {
-        MediaTypeNames.Image.Png,
-        MediaTypeNames.Image.Jpeg
-    };
 
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
@@ -24,10 +19,10 @@ public partial class FileBasicService : IFileBasicService
     private const string USER_AVATAR_FOLDER = "avatar";
     private const string SESSION_FOLDER = "sessions";
 
-    public FileBasicService(
+    public LocalFileStorageService(
         BotSharpDatabaseSettings dbSettings,
         IUserIdentity user,
-        ILogger<FileBasicService> logger,
+        ILogger<LocalFileStorageService> logger,
         IServiceProvider services)
     {
         _dbSettings = dbSettings;

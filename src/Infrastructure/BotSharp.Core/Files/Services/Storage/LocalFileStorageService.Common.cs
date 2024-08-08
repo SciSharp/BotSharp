@@ -2,11 +2,11 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class FileBasicService
+public partial class LocalFileStorageService
 {
     public string GetDirectory(string conversationId)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, CONVERSATION_FOLDER, conversationId, "attachments");
+        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, "attachments");
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);

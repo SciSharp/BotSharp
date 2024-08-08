@@ -51,7 +51,6 @@ public partial class TencentCosService
         }
 
         var dir = $"{USERS_FOLDER}/{userId}/{USER_AVATAR_FOLDER}/";
-
         return dir;
     }
     #endregion
