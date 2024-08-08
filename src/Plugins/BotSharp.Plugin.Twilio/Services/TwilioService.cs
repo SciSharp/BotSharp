@@ -64,6 +64,46 @@ public class TwilioService
         return response;
     }
 
+    public VoiceResponse ReturnInstructions(string speechPath, string callbackPath, bool actionOnEmptyResult)
+    {
+        var response = new VoiceResponse();
+        var gather = new Gather()
+        {
+            Input = new List<Gather.InputEnum>()
+            {
+                Gather.InputEnum.Speech
+            },
+            Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
+            ActionOnEmptyResult = actionOnEmptyResult
+        };
+        if (!string.IsNullOrEmpty(speechPath))
+        {
+            gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+        }
+        response.Append(gather);
+        return response;
+    }
+
+    public VoiceResponse DummyInstructions(string message, string callbackPath, bool actionOnEmptyResult)
+    {
+        var response = new VoiceResponse();
+        var gather = new Gather()
+        {
+            Input = new List<Gather.InputEnum>()
+            {
+                Gather.InputEnum.Speech
+            },
+            Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
+            ActionOnEmptyResult = actionOnEmptyResult
+        };
+        if (!string.IsNullOrEmpty(message))
+        {
+            gather.Say(message);
+        }
+        response.Append(gather);
+        return response;
+    }
+
     public VoiceResponse HangUp(string message)
     {
         var response = new VoiceResponse();
