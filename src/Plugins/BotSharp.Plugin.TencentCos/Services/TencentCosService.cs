@@ -40,7 +40,7 @@ public partial class TencentCosService : IFileStorageService
         _user = user;
         _logger = logger;
         _services = services;
-        _fullBuketName = $"{_settings.BucketName}-{_settings.AppId}";
+        _fullBuketName = $"{settings.BucketName}-{settings.AppId}";
         _cosClient = cosClient;
     }
 }

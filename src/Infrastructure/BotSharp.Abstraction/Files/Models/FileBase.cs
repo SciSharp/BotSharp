@@ -40,7 +40,7 @@ public class FileBase
     /// <summary>
     /// File extension without dot
     /// </summary>
-    [JsonPropertyName("file_type")]
+    [JsonPropertyName("file_extension")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? FileType { get; set; } = string.Empty;
+    public string? FileExtension { get; set; } = string.Empty;
 }

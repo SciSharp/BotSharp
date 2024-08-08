@@ -1,8 +1,6 @@
-using BotSharp.Abstraction.Files.Utilities;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using System.IO;
 
 namespace BotSharp.Plugin.EmailHandler.Functions;
 
@@ -92,7 +90,7 @@ public class HandleEmailSenderFn : IFunctionCallback
 
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBytes = fileStorage.GetFileBytes(file.FileStorageUrl);
-            builder.Attachments.Add($"{file.FileName}.{file.FileType}", fileBytes, ContentType.Parse(file.ContentType));
+            builder.Attachments.Add($"{file.FileName}.{file.FileExtension}", fileBytes, ContentType.Parse(file.ContentType));
             Thread.Sleep(100);
         }
     }

@@ -43,7 +43,7 @@ public partial class FileInstructService
         {
             var promptFiles = files.Select((x, idx) =>
             {
-                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, content_type: {x.ContentType}, author: {x.FileSource}";
+                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileExtension}, content_type: {x.ContentType}, author: {x.FileSource}";
             }).ToList();
 
             var agentId = !string.IsNullOrWhiteSpace(options.AgentId) ? options.AgentId : BuiltInAgentId.UtilityAssistant;

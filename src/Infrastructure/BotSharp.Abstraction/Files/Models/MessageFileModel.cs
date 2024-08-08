@@ -15,6 +15,6 @@ public class MessageFileModel : FileBase
 
     public override string ToString()
     {
-        return $"File name: {FileName}, File type: {FileType}, Content type: {ContentType}, Source: {FileSource}";
+        return $"File name: {FileName}, File extension: {FileExtension}, Content type: {ContentType}, Source: {FileSource}";
     }
 }
