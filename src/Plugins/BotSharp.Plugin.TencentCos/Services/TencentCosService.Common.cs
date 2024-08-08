@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace BotSharp.Plugin.TencentCos.Services;
 
 public partial class TencentCosService
@@ -9,11 +7,11 @@ public partial class TencentCosService
         return $"{CONVERSATION_FOLDER}/{conversationId}/attachments/";
     }
 
-    public byte[] GetFileBytes(string fileStorageUrl)
+    public byte[] GetFileBytes(string filePath)
     {
         try
         {
-            var fileData = _cosClient.BucketClient.DownloadFileBytes(fileStorageUrl);
+            var fileData = _cosClient.BucketClient.DownloadFileBytes(filePath);
             return fileData;
         }
         catch (Exception ex)

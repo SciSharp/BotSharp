@@ -6,7 +6,7 @@ public partial class LocalFileStorageService
 {
     public string GetDirectory(string conversationId)
     {
-        var dir = Path.Combine(_dbSettings.FileRepository, CONVERSATION_FOLDER, conversationId, "attachments");
+        var dir = Path.Combine(_baseDir, CONVERSATION_FOLDER, conversationId, "attachments");
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
@@ -14,9 +14,9 @@ public partial class LocalFileStorageService
         return dir;
     }
 
-    public byte[] GetFileBytes(string fileStorageUrl)
+    public byte[] GetFileBytes(string filePath)
     {
-        using var stream = File.OpenRead(fileStorageUrl);
+        using var stream = File.OpenRead(filePath);
         var bytes = new byte[stream.Length];
         stream.Read(bytes, 0, (int)stream.Length);
         return bytes;

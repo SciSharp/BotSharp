@@ -43,25 +43,4 @@ public static class FileUtility
 
         return contentType;
     }
-
-    public static async Task<byte[]> GetFileBytes(IServiceProvider services, FileBase file)
-    {
-        var bytes = new byte[0];
-        var settings = services.GetRequiredService<FileStorageSettings>();
-
-        if (settings.Default == FileStorageEnum.LocalFileStorage)
-        {
-            using var fs = File.OpenRead(file.FileStorageUrl);
-            var binary = BinaryData.FromStream(fs);
-            bytes = binary.ToArray();
-            fs.Close();
-        }
-        else
-        {
-            var http = services.GetRequiredService<IHttpClientFactory>();
-            using var client = http.CreateClient();
-            bytes = await client.GetByteArrayAsync(file.FileUrl);
-        }
-        return bytes;
-    }
 }

@@ -87,7 +87,6 @@ public partial class LocalFileStorageService
                 }
             }
         }
-
         return files;
     }
 
@@ -202,8 +201,8 @@ public partial class LocalFileStorageService
             var dir = GetConversationFileDirectory(conversationId, messageId);
             if (!ExistDirectory(dir)) continue;
 
-            Thread.Sleep(100);
             DeleteDirectory(dir);
+            Thread.Sleep(100);
         }
 
         return true;

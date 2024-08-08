@@ -223,11 +223,11 @@ public partial class TencentCosService
         return dir;
     }
 
-    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> conversations, int? offset = null)
+    private IEnumerable<string> GetMessageIds(IEnumerable<RoleDialogModel> dialogs, int? offset = null)
     {
-        if (conversations.IsNullOrEmpty()) return Enumerable.Empty<string>();
+        if (dialogs.IsNullOrEmpty()) return Enumerable.Empty<string>();
 
-        if (offset <= 1)
+        if (offset.HasValue && offset < 1)
         {
             offset = 1;
         }
@@ -235,11 +235,11 @@ public partial class TencentCosService
         var messageIds = new List<string>();
         if (offset.HasValue)
         {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
+            messageIds = dialogs.Select(x => x.MessageId).Distinct().TakeLast(offset.Value).ToList();
         }
         else
         {
-            messageIds = conversations.Select(x => x.MessageId).Distinct().ToList();
+            messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
         }
 
         return messageIds;
