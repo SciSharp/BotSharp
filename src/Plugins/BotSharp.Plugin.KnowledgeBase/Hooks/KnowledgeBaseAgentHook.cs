@@ -1,9 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
-using BotSharp.Plugin.KnowledgeBase.Enum;
-
 namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeBaseAgentHook : AgentHookBase, IAgentHook

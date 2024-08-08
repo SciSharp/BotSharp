@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Functions;
-using BotSharp.Core.Infrastructures;
-
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class KnowledgeRetrievalFn : IFunctionCallback
@@ -23,15 +20,9 @@ public class KnowledgeRetrievalFn : IFunctionCallback
         var embedding =  _services.GetServices<ITextEmbedding>()
             .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.TextEmbedding));
 
-        var vector = await embedding.GetVectorsAsync(new List<string>
-        {
-            args.Question
-        });
-
+        var vector = await embedding.GetVectorAsync(args.Question);
         var vectorDb = _services.GetRequiredService<IVectorDb>();
-
-        var id = Utilities.HashTextMd5(args.Question);
-        var knowledges = await vectorDb.Search("lessen", vector[0], "answer");
+        var knowledges = await vectorDb.Search(KnowledgeCollectionName.BotSharp, vector, KnowledgePayloadName.Answer);
 
         if (knowledges.Count > 0)
         {

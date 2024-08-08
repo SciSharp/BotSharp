@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace BotSharp.Abstraction.Knowledges.Models;
 
 public class RetrievedResult

@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Templating;
 using System.IO;
 
 namespace BotSharp.Plugin.FileHandler.Functions;
