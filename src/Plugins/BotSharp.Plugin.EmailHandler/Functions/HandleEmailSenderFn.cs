@@ -77,7 +77,7 @@ public class HandleEmailSenderFn : IFunctionCallback
         var conversationId = convService.ConversationId;
 
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, includeBotFile: true);
+        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, new SelectFileOptions { IncludeBotFile = true });
         return selecteds;
     }
 

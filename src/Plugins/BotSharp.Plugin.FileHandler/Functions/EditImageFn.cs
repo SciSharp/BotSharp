@@ -51,7 +51,11 @@ public class EditImageFn : IFunctionCallback
     private async Task<MessageFileModel?> SelectImage(string? description)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, description: description, contentTypes: new List<string> { MediaTypeNames.Image.Png });
+        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
+        {
+            Description = description,
+            ContentTypes = new List<string> { MediaTypeNames.Image.Png }
+        });
         return selecteds?.FirstOrDefault();
     }
 
