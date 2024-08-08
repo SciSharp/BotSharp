@@ -74,7 +74,7 @@ public partial class TencentCosService
                     var model = new MessageFileModel()
                     {
                         MessageId = messageId,
-                        FileUrl = $"https://{_fullBuketName}.cos.{_settings.Region}.myqcloud.com/{file}",
+                        FileUrl = BuilFileUrl(file),
                         FileStorageUrl = file,
                         FileName = fileName,
                         FileType = fileType,
@@ -140,9 +140,7 @@ public partial class TencentCosService
             try
             {
                 var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
-
                 var subDir = $"{dir}/{source}/{i + 1}";
-
                 _cosClient.BucketClient.UploadBytes($"{subDir}/{file.FileName}", bytes);
             }
             catch (Exception ex)
@@ -257,7 +255,6 @@ public partial class TencentCosService
             if (!_imageTypes.Contains(contentType) && includeScreenShot)
             {
                 var screenShotDir = $"{fileDir}/{SCREENSHOT_FILE_FOLDER}/";
-
                 var fileList = _cosClient.BucketClient.GetDirFiles(screenShotDir);
 
                 if (!fileList.IsNullOrEmpty())
@@ -274,6 +271,7 @@ public partial class TencentCosService
                             MessageId = messageId,
                             FileName = fileName,
                             FileType = fileType,
+                            FileUrl = BuilFileUrl(screenShot),
                             FileStorageUrl = screenShot,
                             ContentType = contentType,
                             FileSource = source
@@ -294,6 +292,7 @@ public partial class TencentCosService
                             MessageId = messageId,
                             FileName = fileName,
                             FileType = fileType,
+                            FileUrl = BuilFileUrl(image),
                             FileStorageUrl = image,
                             ContentType = contentType,
                             FileSource = source
@@ -311,6 +310,7 @@ public partial class TencentCosService
                     MessageId = messageId,
                     FileName = fileName,
                     FileType = fileType,
+                    FileUrl = BuilFileUrl(file),
                     FileStorageUrl = file,
                     ContentType = contentType,
                     FileSource = source
@@ -345,6 +345,11 @@ public partial class TencentCosService
     {
         var converters = _services.GetServices<IPdf2ImageConverter>();
         return converters.FirstOrDefault();
+    }
+
+    private string BuilFileUrl(string file)
+    {
+        return $"https://{_fullBuketName}.cos.{_settings.Region}.myqcloud.com/{file}";
     }
     #endregion
 }

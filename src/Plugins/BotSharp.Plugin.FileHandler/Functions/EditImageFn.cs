@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Templating;
 using System.IO;
 
@@ -51,7 +52,11 @@ public class EditImageFn : IFunctionCallback
     private async Task<MessageFileModel?> SelectImage(string? description)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, description: description, contentTypes: new List<string> { MediaTypeNames.Image.Png });
+        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
+        {
+            Description = description,
+            ContentTypes = new List<string> { MediaTypeNames.Image.Png }
+        });
         return selecteds?.FirstOrDefault();
     }
 
@@ -73,7 +78,10 @@ public class EditImageFn : IFunctionCallback
                 Name = "Utility Assistant"
             };
 
-            using var stream = File.OpenRead(image.FileStorageUrl);
+            var fileBytes = await FileUtility.GetFileBytes(_services, image);
+            using var stream = new MemoryStream();
+            stream.Write(fileBytes);
+            stream.Position = 0;
             var result = await completion.GetImageEdits(agent, dialog, stream, image.FileName ?? string.Empty);
             stream.Close();
             SaveGeneratedImage(result?.GeneratedImages?.FirstOrDefault());
@@ -101,7 +109,7 @@ public class EditImageFn : IFunctionCallback
             }
         };
 
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        fileService.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
     }
 }

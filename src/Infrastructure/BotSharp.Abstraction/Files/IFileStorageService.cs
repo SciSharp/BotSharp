@@ -2,7 +2,7 @@ using System.IO;
 
 namespace BotSharp.Abstraction.Files;
 
-public interface IFileBasicService
+public interface IFileStorageService
 {
     #region Conversation
     /// <summary>

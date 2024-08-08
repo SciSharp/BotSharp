@@ -5,7 +5,7 @@ using System.Net.Mime;
 
 namespace BotSharp.Plugin.TencentCos.Services;
 
-public partial class TencentCosService : IFileBasicService
+public partial class TencentCosService : IFileStorageService
 {
     private readonly TencentCosClient _cosClient;
     private readonly TencentCosSettings _settings;

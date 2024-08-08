@@ -137,15 +137,15 @@ public class UserController : ControllerBase
     [HttpPost("/user/avatar")]
     public bool UploadUserAvatar([FromBody] BotSharpFile file)
     {
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        return fileService.SaveUserAvatar(file);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        return fileStorage.SaveUserAvatar(file);
     }
 
     [HttpGet("/user/avatar")]
     public IActionResult GetUserAvatar()
     {
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        var file = fileService.GetUserAvatar();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var file = fileStorage.GetUserAvatar();
         if (string.IsNullOrEmpty(file))
         {
             return NotFound();
@@ -158,8 +158,8 @@ public class UserController : ControllerBase
     #region Private methods
     private FileContentResult BuildFileResult(string file)
     {
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        var bytes = fileService.GetFileBytes(file);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var bytes = fileStorage.GetFileBytes(file);
         return File(bytes, "application/octet-stream", Path.GetFileName(file));
     }
     #endregion

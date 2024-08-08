@@ -51,8 +51,8 @@ public class ReadImageFn : IFunctionCallback
             return new List<RoleDialogModel>();
         }
 
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        var images = await fileService.GetChatFiles(conversationId, FileSourceType.User, dialogs, _imageContentTypes);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var images = await fileStorage.GetChatFiles(conversationId, FileSourceType.User, dialogs, _imageContentTypes);
 
         foreach (var dialog in dialogs)
         {
@@ -62,6 +62,7 @@ public class ReadImageFn : IFunctionCallback
             dialog.Files = found.Select(x => new BotSharpFile
             {
                 ContentType = x.ContentType,
+                FileUrl = x.FileUrl,
                 FileStorageUrl = x.FileStorageUrl
             }).ToList();
         }

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
-public partial class FileBasicService
+public partial class LocalFileStorageService
 {
     public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
         IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes = null,

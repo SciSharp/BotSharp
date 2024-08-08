@@ -1,23 +1,7 @@
 
 namespace BotSharp.Abstraction.Files.Models;
 
-public class BotSharpFile
+public class BotSharpFile : FileBase
 {
-    [JsonPropertyName("file_name")]
-    public string FileName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// File data, e.g., "data:image/png;base64,aaaaaaaa"
-    /// </summary>
-    [JsonPropertyName("file_data")]
-    public string FileData { get; set; } = string.Empty;
-
-    [JsonPropertyName("file_url")]
-    public string FileUrl { get; set; } = string.Empty;
-
-    [JsonPropertyName("content_type")]
-    public string ContentType { get; set; } = string.Empty;
-
-    [JsonPropertyName("file_storage_url")]
-    public string FileStorageUrl { get; set; } = string.Empty;
+    
 }
