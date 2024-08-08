@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
 using Microsoft.SemanticKernel.Memory;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace BotSharp.Plugin.SemanticKernel
             throw new System.NotImplementedException();
         }
 
-        public async Task<List<string>> GetCollections()
+        public async Task<IEnumerable<string>> GetCollections()
         {
             var result = new List<string>();
             await foreach (var collection in _memoryStore.GetCollectionsAsync())
@@ -39,7 +40,7 @@ namespace BotSharp.Plugin.SemanticKernel
             return result;
         }
 
-        public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
+        public async Task<IEnumerable<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
         {
             var results = _memoryStore.GetNearestMatchesAsync(collectionName, vector, limit);
 
@@ -59,6 +60,11 @@ namespace BotSharp.Plugin.SemanticKernel
             await _memoryStore.UpsertAsync(collectionName, MemoryRecord.LocalRecord(id.ToString(), text, null, vector));
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             return true;
+        }
+
+        public Task<bool> DeleteCollectionData(string collectionName, string id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

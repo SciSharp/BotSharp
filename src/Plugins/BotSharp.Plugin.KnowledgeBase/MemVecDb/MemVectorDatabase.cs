@@ -7,13 +7,14 @@ public class MemVectorDatabase : IVectorDb
 {
     private readonly Dictionary<string, int> _collections = new Dictionary<string, int>();
     private readonly Dictionary<string, List<VecRecord>> _vectors = new Dictionary<string, List<VecRecord>>();
+
     public async Task CreateCollection(string collectionName, int dim)
     {
         _collections[collectionName] = dim;
         _vectors[collectionName] = new List<VecRecord>();
     }
 
-    public async Task<List<string>> GetCollections()
+    public async Task<IEnumerable<string>> GetCollections()
     {
         return _collections.Select(x => x.Key).ToList();
     }
@@ -23,7 +24,7 @@ public class MemVectorDatabase : IVectorDb
         throw new NotImplementedException();
     }
 
-    public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
+    public async Task<IEnumerable<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
     {
         if (!_vectors.ContainsKey(collectionName))
         {
@@ -54,6 +55,12 @@ public class MemVectorDatabase : IVectorDb
         return true;
     }
 
+    public Task<bool> DeleteCollectionData(string collectionName, string id)
+    {
+        throw new NotImplementedException();
+    }
+
+    #region Private methods
     private float[] CalEuclideanDistance(float[] vec, List<VecRecord> records)
     {
         var a = np.zeros((records.Count, vec.Length), np.float32);
@@ -69,7 +76,7 @@ public class MemVectorDatabase : IVectorDb
         return c.ToArray<float>();
     }
 
-    public NDArray CalCosineSimilarity(float[] vec, List<VecRecord> records)
+    private NDArray CalCosineSimilarity(float[] vec, List<VecRecord> records)
     {
         var recordsArray = np.zeros((records.Count, records[0].Vector.Length), dtype: np.float32);
 
@@ -113,7 +120,7 @@ public class MemVectorDatabase : IVectorDb
         return resIndex.ToArray();
     }
 
-    public (NDArray, NDArray) SafeNormalize(NDArray x, double eps = 2.223E-15)
+    private (NDArray, NDArray) SafeNormalize(NDArray x, double eps = 2.223E-15)
     {
         var squaredX = np.sum(np.multiply(x, x), axis: 1);
         var normX = np.sqrt(squaredX);
@@ -128,4 +135,5 @@ public class MemVectorDatabase : IVectorDb
 
         return (x / normX, normX);
     }
+    #endregion
 }

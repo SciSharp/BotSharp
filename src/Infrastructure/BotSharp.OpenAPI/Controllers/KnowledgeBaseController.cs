@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
-using Microsoft.AspNetCore.Http;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -95,7 +94,7 @@ public class KnowledgeBaseController : ControllerBase
 
     [HttpPost("/knowledge/{collection}/data")]
     public async Task<StringIdPagedItems<KnowledgeCollectionDataViewModel>> GetKnowledgeCollectionData([FromRoute] string collection, [FromBody] KnowledgeFilter filter)
-    {;
+    {
         var data = await _knowledgeService.GetKnowledgeCollectionData(collection, filter);
         var items = data.Items?.Select(x => KnowledgeCollectionDataViewModel.ToViewModel(x))?
                                .ToList() ?? new List<KnowledgeCollectionDataViewModel>();
@@ -106,5 +105,21 @@ public class KnowledgeBaseController : ControllerBase
             NextId = data.NextId,
             Items = items
         };
+    }
+
+    [HttpPost("/knowledge/{collection}/similar")]
+    public async Task<IEnumerable<KnowledgeCollectionDataViewModel>> GetSimilarKnowledgeData([FromRoute] string collection, [FromBody] KnowledgeFilter filter)
+    {
+        var data = await _knowledgeService.GetKnowledgeCollectionData(collection, filter);
+        var items = data.Items?.Select(x => KnowledgeCollectionDataViewModel.ToViewModel(x))?
+                               .ToList() ?? new List<KnowledgeCollectionDataViewModel>();
+
+        return
+    }
+
+    [HttpDelete("/knowledge/{collection}/data/{id}")]
+    public async Task<bool> DeleteKnowledgeCollectionData([FromRoute] string collection, [FromRoute] string id)
+    {
+        return await _knowledgeService.DeleteKnowledgeCollectionData(collection, id);
     }
 }

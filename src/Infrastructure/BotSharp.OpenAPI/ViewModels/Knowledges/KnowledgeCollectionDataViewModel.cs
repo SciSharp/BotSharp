@@ -9,9 +9,11 @@ public class KnowledgeCollectionDataViewModel
     public string Id { get; set; }
 
     [JsonPropertyName("question")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Question { get; set; }
 
     [JsonPropertyName("answer")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Answer { get; set; }
 
     [JsonPropertyName("vector")]

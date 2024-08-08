@@ -14,5 +14,7 @@ public interface IKnowledgeService
 
     #region List
     Task<StringIdPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(string collectionName, KnowledgeFilter filter);
+    Task<IEnumerable<KnowledgeCollectionData>> GetSimilarKnowledgeData(string collectionName, KnowledgeFilter filter);
+    Task<bool> DeleteKnowledgeCollectionData(string collectionName, string id);
     #endregion
 }

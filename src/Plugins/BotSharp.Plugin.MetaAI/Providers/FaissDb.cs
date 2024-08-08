@@ -19,17 +19,22 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<List<string>> GetCollections()
+    public Task<IEnumerable<string>> GetCollections()
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 10, float confidence = 0.5f)
+    public Task<IEnumerable<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 10, float confidence = 0.5f)
     {
         throw new NotImplementedException();
     }
 
     public Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteCollectionData(string collectionName, string id)
     {
         throw new NotImplementedException();
     }

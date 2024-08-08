@@ -32,7 +32,7 @@ public class QdrantDb : IVectorDb
         return _client;
     }
 
-    public async Task<List<string>> GetCollections()
+    public async Task<IEnumerable<string>> GetCollections()
     {
         // List all the collections
         var collections = await GetClient().ListCollectionsAsync();
@@ -100,7 +100,6 @@ public class QdrantDb : IVectorDb
                 Uuid = id
             },
             Vectors = vector,
-
             Payload =
             {
                 { KnowledgePayloadName.Text, text }
@@ -125,13 +124,19 @@ public class QdrantDb : IVectorDb
         return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
+    public async Task<IEnumerable<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
     {
         var client = GetClient();
-        var points = await client.SearchAsync(collectionName, vector, 
-            limit: (ulong)limit,
-            scoreThreshold: confidence);
+        var points = await client.SearchAsync(collectionName, vector, limit: (ulong)limit, scoreThreshold: confidence);
 
         return points.Select(x => x.Payload[returnFieldName].StringValue).ToList();
+    }
+
+    public async Task<bool> DeleteCollectionData(string collectionName, string id)
+    {
+        var client = GetClient();
+        var guid = Guid.Parse(id);
+        var result = await client.DeleteAsync(collectionName, guid);
+        return result.Status == UpdateStatus.Completed;
     }
 }
