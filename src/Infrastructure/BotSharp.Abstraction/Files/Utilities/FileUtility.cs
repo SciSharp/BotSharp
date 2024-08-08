@@ -1,10 +1,4 @@
-using BotSharp.Abstraction.Repositories.Enums;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Net.Mime;
 
 namespace BotSharp.Abstraction.Files.Utilities;
 

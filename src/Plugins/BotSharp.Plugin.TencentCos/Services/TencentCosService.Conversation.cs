@@ -1,4 +1,3 @@
-using AspectInjector.Broker;
 using BotSharp.Abstraction.Files.Converters;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
