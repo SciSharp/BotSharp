@@ -16,10 +16,10 @@ public partial class FileInstructService
         var dialogs = convService.GetDialogHistory(fromBreakpoint: options.FromBreakpoint);
         var messageIds = GetMessageIds(dialogs, options.Offset);
 
-        var files = _fileBasic.GetMessageFiles(conversationId, messageIds, FileSourceType.User, options.ContentTypes);
+        var files = _fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.User, options.ContentTypes);
         if  (options.IncludeBotFile)
         {
-            var botFiles = _fileBasic.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot, options.ContentTypes);
+            var botFiles = _fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot, options.ContentTypes);
             files = files.Concat(botFiles);
         }
 

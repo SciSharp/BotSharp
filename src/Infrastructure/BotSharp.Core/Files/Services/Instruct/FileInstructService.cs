@@ -2,31 +2,31 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService : IFileInstructService
 {
-    private readonly IFileStorageService _fileBasic;
+    private readonly IFileStorageService _fileStorage;
     private readonly IServiceProvider _services;
     private readonly ILogger<FileInstructService> _logger;
 
     private const string SESSION_FOLDER = "sessions";
 
     public FileInstructService(
-        IFileStorageService fileBasic,
+        IFileStorageService fileStorate,
         ILogger<FileInstructService> logger,
         IServiceProvider services)
     {
-        _fileBasic = fileBasic;
+        _fileStorage = fileStorate;
         _logger = logger;
         _services = services;
     }
 
-    private void DeleteIfExistDirectory(string? dir)
+    private void DeleteIfExistDirectory(string? dir, bool createNew = false)
     {
-        if (_fileBasic.ExistDirectory(dir))
+        if (_fileStorage.ExistDirectory(dir))
         {
-            _fileBasic.DeleteDirectory(dir);
+            _fileStorage.DeleteDirectory(dir);
         }
-        else
+        else if (createNew)
         {
-            _fileBasic.CreateDirectory(dir);
+            _fileStorage.CreateDirectory(dir);
         }
     }
 }
