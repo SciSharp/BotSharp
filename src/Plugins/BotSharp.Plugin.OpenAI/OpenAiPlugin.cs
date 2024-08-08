@@ -5,6 +5,7 @@ using BotSharp.Plugin.OpenAI.Providers.Image;
 using BotSharp.Plugin.OpenAI.Providers.Text;
 using BotSharp.Plugin.OpenAI.Providers.Chat;
 using Microsoft.Extensions.Configuration;
+using BotSharp.Plugin.OpenAI.Providers.Audio;
 
 namespace BotSharp.Plugin.OpenAI;
 
@@ -30,5 +31,6 @@ public class OpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
         services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
         services.AddScoped<IImageCompletion, ImageCompletionProvider>();
+        services.AddScoped<ITextToSpeech, TextToSpeechProvider>();
     }
 }

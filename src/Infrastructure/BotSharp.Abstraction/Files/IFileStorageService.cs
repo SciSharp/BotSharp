@@ -61,4 +61,9 @@ public interface IFileStorageService
     void DeleteDirectory(string dir);
     string BuildDirectory(params string[] segments);
     #endregion
+
+    #region Speech
+    Task SaveSpeechFileAsync(string conversationId, string fileName, BinaryData data);
+    Task<BinaryData> RetrieveSpeechFileAsync(string conversationId, string fileName);
+    #endregion
 }
