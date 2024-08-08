@@ -14,9 +14,9 @@ public partial class LocalFileStorageService
         return dir;
     }
 
-    public byte[] GetFileBytes(string filePath)
+    public byte[] GetFileBytes(string fileStorageUrl)
     {
-        using var stream = File.OpenRead(filePath);
+        using var stream = File.OpenRead(fileStorageUrl);
         var bytes = new byte[stream.Length];
         stream.Read(bytes, 0, (int)stream.Length);
         return bytes;

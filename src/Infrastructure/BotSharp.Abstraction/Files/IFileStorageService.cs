@@ -4,6 +4,19 @@ namespace BotSharp.Abstraction.Files;
 
 public interface IFileStorageService
 {
+    #region Common
+    string GetDirectory(string conversationId);
+    byte[] GetFileBytes(string fileStorageUrl);
+    bool SaveFileStreamToPath(string filePath, Stream stream);
+    bool SaveFileBytesToPath(string filePath, byte[] bytes);
+    string GetParentDir(string dir, int level = 1);
+    bool ExistDirectory(string? dir);
+    void CreateDirectory(string dir);
+    void DeleteDirectory(string dir);
+    string BuildDirectory(params string[] segments);
+    #endregion
+
+
     #region Conversation
     /// <summary>
     /// Get the message file screenshots for specific content types, e.g., pdf
@@ -38,20 +51,9 @@ public interface IFileStorageService
     bool DeleteConversationFiles(IEnumerable<string> conversationIds);
     #endregion
 
+
     #region User
     string GetUserAvatar();
     bool SaveUserAvatar(BotSharpFile file);
-    #endregion
-
-    #region Common
-    string GetDirectory(string conversationId);
-    byte[] GetFileBytes(string filePath);
-    bool SaveFileStreamToPath(string filePath, Stream stream);
-    bool SaveFileBytesToPath(string filePath, byte[] bytes);
-    string GetParentDir(string dir, int level = 1);
-    bool ExistDirectory(string? dir);
-    void CreateDirectory(string dir);
-    void DeleteDirectory(string dir);
-    string BuildDirectory(params string[] segments);
     #endregion
 }

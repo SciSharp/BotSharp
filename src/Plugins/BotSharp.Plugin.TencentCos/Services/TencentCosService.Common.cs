@@ -7,12 +7,11 @@ public partial class TencentCosService
         return $"{CONVERSATION_FOLDER}/{conversationId}/attachments/";
     }
 
-    public byte[] GetFileBytes(string filePath)
+    public byte[] GetFileBytes(string fileStorageUrl)
     {
         try
         {
-            var fileData = _cosClient.BucketClient.DownloadFileBytes(filePath);
-            return fileData;
+            return _cosClient.BucketClient.DownloadFileBytes(fileStorageUrl);
         }
         catch (Exception ex)
         {
