@@ -81,10 +81,10 @@ public class ConversationController : ControllerBase
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();
-        var fileService = _services.GetRequiredService<IFileBasicService>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
 
         var messageIds = history.Select(x => x.MessageId).Distinct().ToList();
-        var fileMessages = fileService.GetMessagesWithFile(conversationId, messageIds);
+        var fileMessages = fileStorage.GetMessagesWithFile(conversationId, messageIds);
 
         var dialogs = new List<ChatResponseModel>();
         foreach (var message in history)
@@ -349,15 +349,15 @@ public class ConversationController : ControllerBase
     {
         if (files != null && files.Length > 0)
         {
-            var fileService = _services.GetRequiredService<IFileBasicService>();
-            var dir = fileService.GetDirectory(conversationId);
+            var fileStorage = _services.GetRequiredService<IFileStorageService>();
+            var dir = fileStorage.GetDirectory(conversationId);
             foreach (var file in files)
             {
                 // Save the file, process it, etc.
                 var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
                 var filePath = Path.Combine(dir, fileName);
 
-                fileService.SaveFileStreamToPath(filePath, file.OpenReadStream());
+                fileStorage.SaveFileStreamToPath(filePath, file.OpenReadStream());
             }
 
             return Ok(new { message = "File uploaded successfully." });
@@ -372,25 +372,25 @@ public class ConversationController : ControllerBase
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, input.States);
         var conv = await convService.GetConversationRecordOrCreateNew(agentId);
-        var fileService = _services.GetRequiredService<IFileBasicService>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var messageId = Guid.NewGuid().ToString();
-        var isSaved = fileService.SaveMessageFiles(conv.Id, messageId, FileSourceType.User, input.Files);
+        var isSaved = fileStorage.SaveMessageFiles(conv.Id, messageId, FileSourceType.User, input.Files);
         return isSaved ? messageId : string.Empty;
     }
 
     [HttpGet("/conversation/{conversationId}/files/{messageId}/{source}")]
     public IEnumerable<MessageFileViewModel> GetConversationMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source)
     {
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId }, source);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var files = fileStorage.GetMessageFiles(conversationId, new List<string> { messageId }, source);
         return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? new List<MessageFileViewModel>();
     }
 
     [HttpGet("/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}")]
     public IActionResult GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source, [FromRoute] string index, [FromRoute] string fileName)
     {
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        var file = fileService.GetMessageFile(conversationId, messageId, source, index, fileName);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var file = fileStorage.GetMessageFile(conversationId, messageId, source, index, fileName);
         if (string.IsNullOrEmpty(file))
         {
             return NotFound();

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Utilities;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
@@ -52,7 +53,7 @@ public class HandleEmailSenderFn : IFunctionCallback
             if (isNeedAttachments)
             {
                 var files = await GetConversationFiles();
-                BuildEmailAttachments(bodyBuilder, files);
+                await BuildEmailAttachments(bodyBuilder, files);
             }
 
             mailMessage.Body = bodyBuilder.ToMessageBody();
@@ -65,7 +66,7 @@ public class HandleEmailSenderFn : IFunctionCallback
         catch (Exception ex)
         {
             var msg = $"Failed to send the email. {ex.Message}";
-            _logger.LogError($"{msg}\n(Error: {ex.Message})");
+            _logger.LogError($"{msg}\n(Error: {ex.Message}\r\n{ex.InnerException})");
             message.Content = msg;
             return false;
         }
@@ -81,7 +82,7 @@ public class HandleEmailSenderFn : IFunctionCallback
         return selecteds;
     }
 
-    private void BuildEmailAttachments(BodyBuilder builder, IEnumerable<MessageFileModel> files)
+    private async Task BuildEmailAttachments(BodyBuilder builder, IEnumerable<MessageFileModel> files)
     {
         if (files.IsNullOrEmpty()) return;
 
@@ -89,10 +90,8 @@ public class HandleEmailSenderFn : IFunctionCallback
         {
             if (string.IsNullOrEmpty(file.FileStorageUrl)) continue;
 
-            using var fs = File.OpenRead(file.FileStorageUrl);
-            var binary = BinaryData.FromStream(fs);
-            builder.Attachments.Add($"{file.FileName}.{file.FileType}", binary.ToArray(), ContentType.Parse(file.ContentType));
-            fs.Close();
+            var fileBytes = await FileUtility.GetFileBytes(_services, file);
+            builder.Attachments.Add($"{file.FileName}.{file.FileType}", fileBytes, ContentType.Parse(file.ContentType));
             Thread.Sleep(100);
         }
     }

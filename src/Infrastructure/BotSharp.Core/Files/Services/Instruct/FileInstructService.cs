@@ -2,14 +2,14 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService : IFileInstructService
 {
-    private readonly IFileBasicService _fileBasic;
+    private readonly IFileStorageService _fileBasic;
     private readonly IServiceProvider _services;
     private readonly ILogger<FileInstructService> _logger;
 
     private const string SESSION_FOLDER = "sessions";
 
     public FileInstructService(
-        IFileBasicService fileBasic,
+        IFileStorageService fileBasic,
         ILogger<FileInstructService> logger,
         IServiceProvider services)
     {

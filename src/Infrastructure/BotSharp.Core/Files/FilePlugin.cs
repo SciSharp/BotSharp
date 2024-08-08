@@ -20,7 +20,7 @@ public class FilePlugin : IBotSharpPlugin
 
         if (myFileStorageSettings.Default == FileStorageEnum.LocalFileStorage)
         {
-            services.AddScoped<IFileBasicService, FileBasicService>();
+            services.AddScoped<IFileStorageService, LocalFileStorageService>();
         }
         services.AddScoped<IFileInstructService, FileInstructService>();
     }

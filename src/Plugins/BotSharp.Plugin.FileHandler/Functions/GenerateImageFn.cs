@@ -83,7 +83,7 @@ public class GenerateImageFn : IFunctionCallback
             FileData = $"data:{MediaTypeNames.Image.Png};base64,{x.ImageData}"
         }).ToList();
 
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        fileService.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
     }
 }
