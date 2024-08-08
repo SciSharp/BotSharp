@@ -50,7 +50,7 @@ public class ReadPdfFn : IFunctionCallback
             return new List<RoleDialogModel>();
         }
 
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var files = await fileService.GetChatFiles(conversationId, FileSourceType.User, dialogs, _pdfContentTypes, includeScreenShot: true);
 
         foreach (var dialog in dialogs)

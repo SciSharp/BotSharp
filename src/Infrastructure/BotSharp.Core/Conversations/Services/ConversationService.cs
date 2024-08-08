@@ -37,7 +37,7 @@ public partial class ConversationService : IConversationService
     public async Task<bool> DeleteConversations(IEnumerable<string> ids)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var isDeleted = db.DeleteConversations(ids);
         fileService.DeleteConversationFiles(ids);
         return await Task.FromResult(isDeleted);

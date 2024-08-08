@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
@@ -80,7 +81,7 @@ public class ConversationController : ControllerBase
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
 
         var messageIds = history.Select(x => x.MessageId).Distinct().ToList();
         var fileMessages = fileService.GetMessagesWithFile(conversationId, messageIds);
@@ -348,7 +349,7 @@ public class ConversationController : ControllerBase
     {
         if (files != null && files.Length > 0)
         {
-            var fileService = _services.GetRequiredService<IBotSharpFileService>();
+            var fileService = _services.GetRequiredService<IFileBasicService>();
             var dir = fileService.GetDirectory(conversationId);
             foreach (var file in files)
             {
@@ -356,7 +357,7 @@ public class ConversationController : ControllerBase
                 var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
                 var filePath = Path.Combine(dir, fileName);
 
-                fileService.SavefileToPath(filePath, file.OpenReadStream());
+                fileService.SaveFileStreamToPath(filePath, file.OpenReadStream());
             }
 
             return Ok(new { message = "File uploaded successfully." });
@@ -371,7 +372,7 @@ public class ConversationController : ControllerBase
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, input.States);
         var conv = await convService.GetConversationRecordOrCreateNew(agentId);
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var messageId = Guid.NewGuid().ToString();
         var isSaved = fileService.SaveMessageFiles(conv.Id, messageId, FileSourceType.User, input.Files);
         return isSaved ? messageId : string.Empty;
@@ -380,15 +381,15 @@ public class ConversationController : ControllerBase
     [HttpGet("/conversation/{conversationId}/files/{messageId}/{source}")]
     public IEnumerable<MessageFileViewModel> GetConversationMessageFiles([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId }, source, imageOnly: false);
+        var fileService = _services.GetRequiredService<IFileBasicService>();
+        var files = fileService.GetMessageFiles(conversationId, new List<string> { messageId }, source);
         return files?.Select(x => MessageFileViewModel.Transform(x))?.ToList() ?? new List<MessageFileViewModel>();
     }
 
     [HttpGet("/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}")]
     public IActionResult GetMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source, [FromRoute] string index, [FromRoute] string fileName)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileService = _services.GetRequiredService<IFileBasicService>();
         var file = fileService.GetMessageFile(conversationId, messageId, source, index, fileName);
         if (string.IsNullOrEmpty(file))
         {
@@ -413,7 +414,9 @@ public class ConversationController : ControllerBase
         using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
         var bytes = new byte[stream.Length];
         stream.Read(bytes, 0, (int)stream.Length);
-        return File(bytes, "application/octet-stream", Path.GetFileName(file));
+        var fileExtension = Path.GetExtension(file).ToLower();
+        var enableRangeProcessing = FileConstants.AudioExtensions.Contains(fileExtension);
+        return File(bytes, "application/octet-stream", Path.GetFileName(file), enableRangeProcessing: enableRangeProcessing);
     }
 
     private async Task OnChunkReceived(HttpResponse response, ChatResponseModel message)

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files.Converters;
 using BotSharp.Abstraction.Files.Enums;
+using BotSharp.Abstraction.Files.Utilities;
 using System.Net.Mime;
 
 namespace BotSharp.Plugin.TencentCos.Services;
@@ -7,16 +8,16 @@ namespace BotSharp.Plugin.TencentCos.Services;
 public partial class TencentCosService
 {
     public async Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> conversations, IEnumerable<string> contentTypes,
+        IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes = null,
         bool includeScreenShot = false, int? offset = null)
     {
         var files = new List<MessageFileModel>();
-        if (string.IsNullOrEmpty(conversationId) || conversations.IsNullOrEmpty())
+        if (string.IsNullOrEmpty(conversationId) || dialogs.IsNullOrEmpty())
         {
             return files;
         }
 
-        var messageIds = GetMessageIds(conversations, offset);
+        var messageIds = GetMessageIds(dialogs, offset);
         var pathPrefix = $"{CONVERSATION_FOLDER}/{conversationId}/{FILE_FOLDER}";
 
         foreach (var messageId in messageIds)
@@ -28,8 +29,11 @@ public partial class TencentCosService
                 var file = _cosClient.BucketClient.GetDirFiles(subDir).FirstOrDefault();
                 if (file == null) continue;
 
-                var contentType = GetFileContentType(file);
-                if (contentTypes?.Contains(contentType) != true) continue;
+                var contentType = FileUtility.GetFileContentType(file);
+                if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
+                {
+                    continue;
+                }
 
                 var foundFiles = await GetMessageFiles(file, subDir, contentType, messageId, source, includeScreenShot);
                 if (foundFiles.IsNullOrEmpty()) continue;
@@ -42,7 +46,7 @@ public partial class TencentCosService
     }
 
     public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds,
-        string source, bool imageOnly = false)
+        string source, IEnumerable<string>? contentTypes = null)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrWhiteSpace(conversationId) || messageIds.IsNullOrEmpty()) return files;
@@ -59,8 +63,8 @@ public partial class TencentCosService
             {
                 foreach (var file in _cosClient.BucketClient.GetDirFiles(subDir))
                 {
-                    var contentType = GetFileContentType(file);
-                    if (imageOnly && !_imageTypes.Contains(contentType))
+                    var contentType = FileUtility.GetFileContentType(file);
+                    if (!contentTypes.IsNullOrEmpty() && !contentTypes.Contains(contentType))
                     {
                         continue;
                     }
@@ -135,7 +139,7 @@ public partial class TencentCosService
 
             try
             {
-                var (_, bytes) = GetFileInfoFromData(file.FileData);
+                var (_, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
 
                 var subDir = $"{dir}/{source}/{i + 1}";
 
@@ -225,13 +229,9 @@ public partial class TencentCosService
     {
         if (conversations.IsNullOrEmpty()) return Enumerable.Empty<string>();
 
-        if (offset <= 0)
+        if (offset <= 1)
         {
-            offset = MIN_OFFSET;
-        }
-        else if (offset > MAX_OFFSET)
-        {
-            offset = MAX_OFFSET;
+            offset = 1;
         }
 
         var messageIds = new List<string>();
@@ -264,7 +264,7 @@ public partial class TencentCosService
                 {
                     foreach (var screenShot in fileList)
                     {
-                        contentType = GetFileContentType(screenShot);
+                        contentType = FileUtility.GetFileContentType(screenShot);
                         if (!_imageTypes.Contains(contentType)) continue;
 
                         var fileName = Path.GetFileNameWithoutExtension(screenShot);
@@ -286,7 +286,7 @@ public partial class TencentCosService
                     var images = await ConvertPdfToImages(file, screenShotDir);
                     foreach (var image in images)
                     {
-                        contentType = GetFileContentType(image);
+                        contentType = FileUtility.GetFileContentType(image);
                         var fileName = Path.GetFileNameWithoutExtension(image);
                         var fileType = Path.GetExtension(image).Substring(1);
                         var model = new MessageFileModel()

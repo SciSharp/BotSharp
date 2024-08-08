@@ -74,57 +74,11 @@ public class HandleEmailSenderFn : IFunctionCallback
     private async Task<IEnumerable<MessageFileModel>> GetConversationFiles()
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var conversationId = convService.ConversationId;
-        var dialogs = convService.GetDialogHistory(fromBreakpoint: false);
-        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var userFiles = fileService.GetMessageFiles(conversationId, messageIds, FileSourceType.User);
-        var botFiles = fileService.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot);
-        return await SelectFiles(userFiles.Concat(botFiles), dialogs);
-    }
 
-    private async Task<IEnumerable<MessageFileModel>> SelectFiles(IEnumerable<MessageFileModel> files, List<RoleDialogModel> dialogs)
-    {
-        if (files.IsNullOrEmpty()) return new List<MessageFileModel>();
-
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var render = _services.GetRequiredService<ITemplateRender>();
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-
-        try
-        {
-            var promptFiles = files.Select((x, idx) =>
-            {
-                return $"id: {idx + 1}, file_name: {x.FileName}.{x.FileType}, content_type: {x.ContentType}, author: {x.FileSource}";
-            }).ToList();
-            var prompt = db.GetAgentTemplate(BuiltInAgentId.UtilityAssistant, "select_attachment_prompt");
-            prompt = render.Render(prompt, new Dictionary<string, object>
-            {
-                { "file_list", promptFiles }
-            });
-
-            var agent = new Agent
-            {
-                Id = BuiltInAgentId.UtilityAssistant,
-                Name = "Utility Assistant",
-                Instruction = prompt
-            };
-
-            var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-            var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4");
-            var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model.Name);
-            var latest = dialogs.LastOrDefault();
-            var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { latest });
-            var content = response?.Content ?? string.Empty;
-            var selecteds = JsonSerializer.Deserialize<LlmContextOut>(content);
-            var fids = selecteds?.Selecteds ?? new List<int>();
-            return files.Where((x, idx) => fids.Contains(idx + 1)).ToList();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning($"Error when getting the email file response. {ex.Message}\r\n{ex.InnerException}");
-            return new List<MessageFileModel>();
-        }
+        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, includeBotFile: true);
+        return selecteds;
     }
 
     private void BuildEmailAttachments(BodyBuilder builder, IEnumerable<MessageFileModel> files)
