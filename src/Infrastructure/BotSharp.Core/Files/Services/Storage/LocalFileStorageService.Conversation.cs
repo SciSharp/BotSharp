@@ -27,52 +27,15 @@ public partial class LocalFileStorageService
                 var file = Directory.GetFiles(subDir).FirstOrDefault();
                 if (file == null) continue;
 
-                var contentType = FileUtility.GetFileContentType(file);
-                var screenshotDir = Path.Combine(subDir, SCREENSHOT_FILE_FOLDER);
+                var screenshots = await GetScreenshots(file, subDir, messageId, source);
+                if (screenshots.IsNullOrEmpty()) continue;
 
-                if (ExistDirectory(screenshotDir) && !Directory.GetFiles(screenshotDir).IsNullOrEmpty())
-                {
-                    foreach (var screenshot in Directory.GetFiles(screenshotDir))
-                    {
-                        var fileName = Path.GetFileNameWithoutExtension(screenshot);
-                        var fileExtension = Path.GetExtension(screenshot).Substring(1);
-                        var screenshotContentType = FileUtility.GetFileContentType(screenshot);
-                        var model = new MessageFileModel()
-                        {
-                            MessageId = messageId,
-                            FileName = fileName,
-                            FileExtension = fileExtension,
-                            FileStorageUrl = screenshot,
-                            ContentType = screenshotContentType,
-                            FileSource = source
-                        };
-                        files.Add(model);
-                    }
-                }
-                else if (contentType == MediaTypeNames.Application.Pdf)
-                {
-                    var images = await ConvertPdfToImages(file, screenshotDir);
-                    foreach (var image in images)
-                    {
-                        var fileName = Path.GetFileNameWithoutExtension(image);
-                        var fileExtension = Path.GetExtension(image).Substring(1);
-                        var screenshotContentType = FileUtility.GetFileContentType(image);
-                        var model = new MessageFileModel()
-                        {
-                            MessageId = messageId,
-                            FileName = fileName,
-                            FileExtension = fileExtension,
-                            FileStorageUrl = image,
-                            ContentType = screenshotContentType,
-                            FileSource = source
-                        };
-                        files.Add(model);
-                    }
-                }
+                files.AddRange(screenshots);
             }
         }
         return files;
     }
+
 
     public IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds,
         string source, IEnumerable<string>? contentTypes = null)
@@ -314,6 +277,63 @@ public partial class LocalFileStorageService
     {
         var converters = _services.GetServices<IPdf2ImageConverter>();
         return converters.FirstOrDefault();
+    }
+
+    private async Task<IEnumerable<MessageFileModel>> GetScreenshots(string file, string parentDir, string messageId, string source)
+    {
+        var files = new List<MessageFileModel>();
+
+        try
+        {
+            var contentType = FileUtility.GetFileContentType(file);
+            var screenshotDir = Path.Combine(parentDir, SCREENSHOT_FILE_FOLDER);
+
+            if (ExistDirectory(screenshotDir) && !Directory.GetFiles(screenshotDir).IsNullOrEmpty())
+            {
+                foreach (var screenshot in Directory.GetFiles(screenshotDir))
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(screenshot);
+                    var fileExtension = Path.GetExtension(screenshot).Substring(1);
+                    var screenshotContentType = FileUtility.GetFileContentType(screenshot);
+                    var model = new MessageFileModel()
+                    {
+                        MessageId = messageId,
+                        FileName = fileName,
+                        FileExtension = fileExtension,
+                        FileStorageUrl = screenshot,
+                        ContentType = screenshotContentType,
+                        FileSource = source
+                    };
+                    files.Add(model);
+                }
+            }
+            else if (contentType == MediaTypeNames.Application.Pdf)
+            {
+                var images = await ConvertPdfToImages(file, screenshotDir);
+                foreach (var image in images)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(image);
+                    var fileExtension = Path.GetExtension(image).Substring(1);
+                    var screenshotContentType = FileUtility.GetFileContentType(image);
+                    var model = new MessageFileModel()
+                    {
+                        MessageId = messageId,
+                        FileName = fileName,
+                        FileExtension = fileExtension,
+                        FileStorageUrl = image,
+                        ContentType = screenshotContentType,
+                        FileSource = source
+                    };
+                    files.Add(model);
+                }
+            }
+            return files;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when getting message file screenshots {file} (messageId: {messageId}), Error: {ex.Message}\r\n{ex.InnerException}");
+            return files;
+        }
     }
     #endregion
 }

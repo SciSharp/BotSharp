@@ -26,50 +26,10 @@ public partial class TencentCosService
                 var file = _cosClient.BucketClient.GetDirFiles(subDir).FirstOrDefault();
                 if (file == null) continue;
 
-                var contentType = FileUtility.GetFileContentType(file);
-                var screenshotDir = $"{subDir}/{SCREENSHOT_FILE_FOLDER}/";
-                var screenshots = _cosClient.BucketClient.GetDirFiles(screenshotDir);
-                if (!screenshots.IsNullOrEmpty())
-                {
-                    foreach (var screenshot in screenshots)
-                    {
-                        var screenshotContentType = FileUtility.GetFileContentType(screenshot);
-                        var fileName = Path.GetFileNameWithoutExtension(screenshot);
-                        var fileExtension = Path.GetExtension(screenshot).Substring(1);
-                        var model = new MessageFileModel
-                        {
-                            MessageId = messageId,
-                            FileName = fileName,
-                            FileExtension = fileExtension,
-                            FileUrl = BuilFileUrl(screenshot),
-                            FileStorageUrl = screenshot,
-                            ContentType = contentType,
-                            FileSource = source
-                        };
-                        files.Add(model);
-                    }
-                }
-                else if (contentType == MediaTypeNames.Application.Pdf)
-                {
-                    var images = await ConvertPdfToImages(file, screenshotDir);
-                    foreach (var image in images)
-                    {
-                        var fileName = Path.GetFileNameWithoutExtension(image);
-                        var fileExtension = Path.GetExtension(image).Substring(1);
-                        var screenshotContentType = FileUtility.GetFileContentType(image);
-                        var model = new MessageFileModel
-                        {
-                            MessageId = messageId,
-                            FileName = fileName,
-                            FileExtension = fileExtension,
-                            FileUrl = BuilFileUrl(image),
-                            FileStorageUrl = image,
-                            ContentType = contentType,
-                            FileSource = source
-                        };
-                        files.Add(model);
-                    }
-                }
+                var screenshots = await GetScreenshots(file, subDir, messageId, source);
+                if (screenshots.IsNullOrEmpty()) continue;
+
+                files.AddRange(screenshots);
             }
         }
 
@@ -119,6 +79,8 @@ public partial class TencentCosService
 
         return files;
     }
+
+    
 
     public string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName)
     {
@@ -298,6 +260,65 @@ public partial class TencentCosService
     private string BuilFileUrl(string file)
     {
         return $"https://{_fullBuketName}.cos.{_settings.Region}.myqcloud.com/{file}";
+    }
+
+    private async Task<IEnumerable<MessageFileModel>> GetScreenshots(string file, string parentDir, string messageId, string source)
+    {
+        var files = new List<MessageFileModel>();
+
+        try
+        {
+            var contentType = FileUtility.GetFileContentType(file);
+            var screenshotDir = $"{parentDir}/{SCREENSHOT_FILE_FOLDER}/";
+            var screenshots = _cosClient.BucketClient.GetDirFiles(screenshotDir);
+            if (!screenshots.IsNullOrEmpty())
+            {
+                foreach (var screenshot in screenshots)
+                {
+                    var screenshotContentType = FileUtility.GetFileContentType(screenshot);
+                    var fileName = Path.GetFileNameWithoutExtension(screenshot);
+                    var fileExtension = Path.GetExtension(screenshot).Substring(1);
+                    var model = new MessageFileModel
+                    {
+                        MessageId = messageId,
+                        FileName = fileName,
+                        FileExtension = fileExtension,
+                        FileUrl = BuilFileUrl(screenshot),
+                        FileStorageUrl = screenshot,
+                        ContentType = contentType,
+                        FileSource = source
+                    };
+                    files.Add(model);
+                }
+            }
+            else if (contentType == MediaTypeNames.Application.Pdf)
+            {
+                var images = await ConvertPdfToImages(file, screenshotDir);
+                foreach (var image in images)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(image);
+                    var fileExtension = Path.GetExtension(image).Substring(1);
+                    var screenshotContentType = FileUtility.GetFileContentType(image);
+                    var model = new MessageFileModel
+                    {
+                        MessageId = messageId,
+                        FileName = fileName,
+                        FileExtension = fileExtension,
+                        FileUrl = BuilFileUrl(image),
+                        FileStorageUrl = image,
+                        ContentType = contentType,
+                        FileSource = source
+                    };
+                    files.Add(model);
+                }
+            }
+            return files;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when getting message file screenshots {file} (messageId: {messageId}), Error: {ex.Message}\r\n{ex.InnerException}");
+            return files;
+        }
     }
     #endregion
 }
