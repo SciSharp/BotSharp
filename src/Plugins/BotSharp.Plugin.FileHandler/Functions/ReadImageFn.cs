@@ -8,12 +8,6 @@ public class ReadImageFn : IFunctionCallback
     private readonly IServiceProvider _services;
     private readonly ILogger<ReadImageFn> _logger;
 
-    private readonly IEnumerable<string> _imageContentTypes = new List<string>
-    {
-        MediaTypeNames.Image.Png,
-        MediaTypeNames.Image.Jpeg,
-    };
-
     public ReadImageFn(
         IServiceProvider services,
         ILogger<ReadImageFn> logger)
@@ -29,7 +23,7 @@ public class ReadImageFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
 
         var wholeDialogs = conv.GetDialogHistory();
-        var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs);
+        var dialogs = AssembleFiles(conv.ConversationId, wholeDialogs);
         var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
         var fileAgent = new Agent
         {
@@ -44,7 +38,7 @@ public class ReadImageFn : IFunctionCallback
         return true;
     }
 
-    private async Task<List<RoleDialogModel>> AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
+    private List<RoleDialogModel> AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
     {
         if (dialogs.IsNullOrEmpty())
         {
@@ -52,7 +46,12 @@ public class ReadImageFn : IFunctionCallback
         }
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var images = await fileStorage.GetChatFiles(conversationId, FileSourceType.User, dialogs, _imageContentTypes);
+        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
+        var images = fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.User, new List<string>
+        {
+            MediaTypeNames.Image.Png,
+            MediaTypeNames.Image.Jpeg
+        });
 
         foreach (var dialog in dialogs)
         {

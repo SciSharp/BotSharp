@@ -51,11 +51,14 @@ public class ReadPdfFn : IFunctionCallback
         }
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var files = await fileStorage.GetChatFiles(conversationId, FileSourceType.User, dialogs, _pdfContentTypes, includeScreenShot: true);
+        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
+        var screenshots = await fileStorage.GetMessageFileScreenshots(conversationId, messageIds);
+
+        if (screenshots.IsNullOrEmpty()) return dialogs;
 
         foreach (var dialog in dialogs)
         {
-            var found = files.Where(x => x.MessageId == dialog.MessageId).ToList();
+            var found = screenshots.Where(x => x.MessageId == dialog.MessageId).ToList();
             if (found.IsNullOrEmpty()) continue;
 
             dialog.Files = found.Select(x => new BotSharpFile

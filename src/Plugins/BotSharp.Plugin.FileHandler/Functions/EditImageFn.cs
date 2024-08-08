@@ -87,7 +87,7 @@ public class EditImageFn : IFunctionCallback
             stream.Close();
             SaveGeneratedImage(result?.GeneratedImages?.FirstOrDefault());
 
-            return $"Image \"{image.FileName}.{image.FileType}\" is successfylly editted.";
+            return $"Image \"{image.FileName}.{image.FileExtension}\" is successfylly editted.";
         }
         catch (Exception ex)
         {
