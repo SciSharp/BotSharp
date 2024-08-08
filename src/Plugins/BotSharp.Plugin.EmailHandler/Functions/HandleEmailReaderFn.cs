@@ -1,17 +1,7 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.EmailHandler.Models;
 using BotSharp.Plugin.EmailHandler.Providers;
 using MailKit;
-using MailKit.Net.Imap;
-using MailKit.Search;
-using MailKit.Security;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using MimeKit;
 
 namespace BotSharp.Plugin.EmailReader.Functions;
 
@@ -31,13 +21,14 @@ public class HandleEmailReaderFn : IFunctionCallback
     private readonly IConversationStateService _state;
     private readonly IEmailReader _emailProvider;
 
-    public HandleEmailReaderFn(IServiceProvider services,
-                ILogger<HandleEmailReaderFn> logger,
-                IHttpContextAccessor context,
-                BotSharpOptions options,
-                EmailReaderSettings emailPluginSettings,
-                IConversationStateService state,
-                IEmailReader emailProvider)
+    public HandleEmailReaderFn(
+        IServiceProvider services,
+        ILogger<HandleEmailReaderFn> logger,
+        IHttpContextAccessor context,
+        BotSharpOptions options,
+        EmailReaderSettings emailPluginSettings,
+        IConversationStateService state,
+        IEmailReader emailProvider)
     {
         _services = services;
         _logger = logger;

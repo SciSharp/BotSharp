@@ -82,7 +82,10 @@ public partial class FileInstructService
 
             var response = await completion.GetChatCompletions(agent, new List<RoleDialogModel> { message });
             var content = response?.Content ?? string.Empty;
-            var selecteds = JsonSerializer.Deserialize<FileSelectContext>(content);
+            var selecteds = JsonSerializer.Deserialize<FileSelectContext>(content, new JsonSerializerOptions
+            {
+                AllowTrailingCommas = true
+            });
             var fids = selecteds?.Selecteds ?? new List<int>();
             return files.Where((x, idx) => fids.Contains(idx + 1)).ToList();
         }

@@ -10,13 +10,14 @@ public class FilePlugin : IBotSharpPlugin
 
     public string Name => "File";
 
-    public string Description => "Provides file analysis.";
+    public string Description => "Provides file storage and analysis.";
 
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var myFileStorageSettings = new FileStorageSettings();
         config.Bind("FileStorage", myFileStorageSettings);
+        services.AddSingleton(myFileStorageSettings);
 
         if (myFileStorageSettings.Default == FileStorageEnum.LocalFileStorage)
         {
