@@ -23,7 +23,7 @@ public class ReadImageFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
 
         var wholeDialogs = conv.GetDialogHistory();
-        var dialogs = await AssembleFiles(conv.ConversationId, wholeDialogs);
+        var dialogs = AssembleFiles(conv.ConversationId, wholeDialogs);
         var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
         var fileAgent = new Agent
         {
@@ -38,7 +38,7 @@ public class ReadImageFn : IFunctionCallback
         return true;
     }
 
-    private async Task<List<RoleDialogModel>> AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
+    private List<RoleDialogModel> AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
     {
         if (dialogs.IsNullOrEmpty())
         {
@@ -46,8 +46,6 @@ public class ReadImageFn : IFunctionCallback
         }
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-
         var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
         var images = fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.User, new List<string>
         {

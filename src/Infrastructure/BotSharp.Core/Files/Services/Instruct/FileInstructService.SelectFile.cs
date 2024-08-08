@@ -20,7 +20,7 @@ public partial class FileInstructService
         if  (options.IncludeBotFile)
         {
             var botFiles = _fileStorage.GetMessageFiles(conversationId, messageIds, FileSourceType.Bot, options.ContentTypes);
-            files = files.Concat(botFiles);
+            files = MergeMessageFiles(messageIds, files, botFiles);
         }
 
         if (files.IsNullOrEmpty())
@@ -29,6 +29,24 @@ public partial class FileInstructService
         }
 
         return await SelectFiles(files, dialogs, options);
+    }
+
+    private IEnumerable<MessageFileModel> MergeMessageFiles(IEnumerable<string> messageIds, IEnumerable<MessageFileModel> userFiles, IEnumerable<MessageFileModel> botFiles)
+    {
+        var files = new List<MessageFileModel>();
+
+        if (messageIds.IsNullOrEmpty()) return files;
+
+        foreach (var messageId in messageIds)
+        {
+            var users = userFiles.Where(x => x.MessageId == messageId).ToList();
+            var bots = botFiles.Where(x => x.MessageId == messageId).ToList();
+            
+            if (!users.IsNullOrEmpty()) files.AddRange(users);
+            if (!bots.IsNullOrEmpty()) files.AddRange(bots);
+        }
+
+        return files;
     }
 
     private async Task<IEnumerable<MessageFileModel>> SelectFiles(IEnumerable<MessageFileModel> files, IEnumerable<RoleDialogModel> dialogs, SelectFileOptions options)

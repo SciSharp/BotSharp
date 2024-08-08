@@ -51,8 +51,6 @@ public class ReadPdfFn : IFunctionCallback
         }
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-
         var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
         var screenshots = await fileStorage.GetMessageFileScreenshots(conversationId, messageIds);
 
