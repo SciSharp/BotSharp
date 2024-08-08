@@ -52,7 +52,7 @@ public interface IFileStorageService
 
     #region Common
     string GetDirectory(string conversationId);
-    byte[] GetFileBytes(string fileStorageUrl);
+    byte[] GetFileBytes(string filePath);
     bool SaveFileStreamToPath(string filePath, Stream stream);
     bool SaveFileBytesToPath(string filePath, byte[] bytes);
     string GetParentDir(string dir, int level = 1);

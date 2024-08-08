@@ -78,7 +78,8 @@ public class EditImageFn : IFunctionCallback
                 Name = "Utility Assistant"
             };
 
-            var fileBytes = await FileUtility.GetFileBytes(_services, image);
+            var fileStorage = _services.GetRequiredService<IFileStorageService>();
+            var fileBytes = fileStorage.GetFileBytes(image.FileStorageUrl);
             using var stream = new MemoryStream();
             stream.Write(fileBytes);
             stream.Position = 0;

@@ -53,7 +53,7 @@ public class HandleEmailSenderFn : IFunctionCallback
             if (isNeedAttachments)
             {
                 var files = await GetConversationFiles();
-                await BuildEmailAttachments(bodyBuilder, files);
+                BuildEmailAttachments(bodyBuilder, files);
             }
 
             mailMessage.Body = bodyBuilder.ToMessageBody();
@@ -82,7 +82,7 @@ public class HandleEmailSenderFn : IFunctionCallback
         return selecteds;
     }
 
-    private async Task BuildEmailAttachments(BodyBuilder builder, IEnumerable<MessageFileModel> files)
+    private void BuildEmailAttachments(BodyBuilder builder, IEnumerable<MessageFileModel> files)
     {
         if (files.IsNullOrEmpty()) return;
 
@@ -90,7 +90,8 @@ public class HandleEmailSenderFn : IFunctionCallback
         {
             if (string.IsNullOrEmpty(file.FileStorageUrl)) continue;
 
-            var fileBytes = await FileUtility.GetFileBytes(_services, file);
+            var fileStorage = _services.GetRequiredService<IFileStorageService>();
+            var fileBytes = fileStorage.GetFileBytes(file.FileStorageUrl);
             builder.Attachments.Add($"{file.FileName}.{file.FileType}", fileBytes, ContentType.Parse(file.ContentType));
             Thread.Sleep(100);
         }

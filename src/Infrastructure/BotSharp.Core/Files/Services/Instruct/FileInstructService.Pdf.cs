@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Files.Converters;
-using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
