@@ -56,4 +56,8 @@ public interface IFileStorageService
     string GetUserAvatar();
     bool SaveUserAvatar(BotSharpFile file);
     #endregion
+    #region Speech
+    Task SaveSpeechFileAsync(string conversationId, string fileName, BinaryData data);
+    Task<BinaryData> RetrieveSpeechFileAsync(string conversationId, string fileName);
+    #endregion
 }
