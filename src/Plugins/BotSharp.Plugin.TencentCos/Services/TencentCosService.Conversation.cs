@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Converters;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Utilities;
@@ -252,8 +253,9 @@ public partial class TencentCosService
 
     private IPdf2ImageConverter? GetPdf2ImageConverter()
     {
-        var converters = _services.GetServices<IPdf2ImageConverter>();
-        return converters.FirstOrDefault();
+        var settings = _services.GetRequiredService<FileCoreSettings>();
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
+        return converter;
     }
 
     private string BuilFileUrl(string file)

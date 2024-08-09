@@ -19,14 +19,17 @@ using BotSharp.Plugin.PaddleSharp.Settings;
 namespace BotSharp.Plugin.PaddleSharp.Providers;
 
 public class Pdf2TextConverter : IPdf2TextConverter
-{    
+{
     private Dictionary<int, string> _mappings = new Dictionary<int, string>();
     private FullOcrModel _model;
     private PaddleSharpSettings _paddleSharpSettings;
+
     public Pdf2TextConverter(PaddleSharpSettings paddleSharpSettings)
     {
         _paddleSharpSettings = paddleSharpSettings;
     }
+
+    public string Name => "Paddle";
 
     public async Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
     {

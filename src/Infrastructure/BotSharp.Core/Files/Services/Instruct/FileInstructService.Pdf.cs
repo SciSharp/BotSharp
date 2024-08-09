@@ -97,7 +97,8 @@ public partial class FileInstructService
     private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files)
     {
         var images = new List<string>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault();
+        var settings = _services.GetRequiredService<FileCoreSettings>();
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;
