@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
-using Microsoft.Extensions.Options;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -19,7 +17,7 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     [HttpPost("/knowledge/{collection}/search")]
-    public async Task<IEnumerable<KnowledgeRetrivalViewModel>> SearchKnowledge([FromQuery] string collection, [FromBody] SearchKnowledgeModel model)
+    public async Task<IEnumerable<KnowledgeRetrivalViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeModel model)
     {
         var options = new KnowledgeRetrievalOptions
         {
