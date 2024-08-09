@@ -16,16 +16,15 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<IEnumerable<KnowledgeRetrievalResult>> SearchKnowledge(KnowledgeRetrievalModel model)
+    public async Task<IEnumerable<KnowledgeRetrievalResult>> SearchKnowledge(string collectionName, KnowledgeRetrievalOptions options)
     {
         var textEmbedding = GetTextEmbedding();
-        var vector = await textEmbedding.GetVectorAsync(model.Text);
+        var vector = await textEmbedding.GetVectorAsync(options.Text);
 
         // Vector search
         var db = GetVectorDb();
-        var collection = !string.IsNullOrWhiteSpace(model.Collection) ? model.Collection : KnowledgeCollectionName.BotSharp;
-        var fields = !model.Fields.IsNullOrEmpty() ? model.Fields : new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer };
-        var found = await db.Search(collection, vector, fields, limit: model.Limit ?? 5, confidence: model.Confidence ?? 0.5f, withVector: model.WithVector);
+        var fields = !options.Fields.IsNullOrEmpty() ? options.Fields : new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer };
+        var found = await db.Search(collectionName, vector, fields, limit: options.Limit ?? 5, confidence: options.Confidence ?? 0.5f, withVector: options.WithVector);
 
         var results = found.Select(x => new KnowledgeRetrievalResult
         {

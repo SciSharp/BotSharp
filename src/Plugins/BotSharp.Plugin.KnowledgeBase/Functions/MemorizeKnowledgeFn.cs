@@ -37,7 +37,6 @@ public class MemorizeKnowledgeFn : IFunctionCallback
             });
 
         message.Content = result ? "Saved to my brain" : "I forgot it";
-
         return true;
     }
 }
