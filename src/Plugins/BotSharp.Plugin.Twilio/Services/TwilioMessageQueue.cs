@@ -25,6 +25,7 @@ namespace BotSharp.Plugin.Twilio.Services
 
         internal void Stop()
         {
+            Console.WriteLine($"[{DateTime.UtcNow}] Complete queue");
             _queue.Writer.TryComplete();
         }
     }

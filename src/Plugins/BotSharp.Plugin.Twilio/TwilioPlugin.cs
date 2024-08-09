@@ -19,7 +19,7 @@ public class TwilioPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<TwilioService>();
-        var conn = ConnectionMultiplexer.Connect("10.2.3.227");
+        var conn = ConnectionMultiplexer.Connect(config["Twilio:RedisConnectionString"]);
         var sessionManager = new TwilioSessionManager(conn);
         services.AddSingleton<ITwilioSessionManager>(sessionManager);
         services.AddSingleton<TwilioMessageQueue>();

@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.Twilio.Models;
 using Microsoft.Extensions.Hosting;
-using System.Security.Cryptography;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -31,12 +30,12 @@ namespace BotSharp.Plugin.Twilio.Services
                 {
                     try
                     {
-                        Console.WriteLine("Processing {message}.", message);
+                        Console.WriteLine($"Start processing {message}.");
                         await ProcessUserMessageAsync(message);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Processing {message} failed due to {ex}.", message, ex.Message);
+                        Console.WriteLine($"Processing {message} failed due to {ex.Message}.");
                     }
                     finally
                     {
@@ -57,18 +56,17 @@ namespace BotSharp.Plugin.Twilio.Services
             using var scope = _serviceProvider.CreateScope();
             var sp = scope.ServiceProvider;
             string reply = null;
-            //await Task.Delay(2000);
-            //reply = $"response for sequence number {message.SeqNumber}";
             var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
             var conv = sp.GetRequiredService<IConversationService>();
             var routing = sp.GetRequiredService<IRoutingService>();
+            var config = sp.GetRequiredService<TwilioSetting>();
             routing.Context.SetMessageId(message.SessionId, inputMsg.MessageId);
             conv.SetConversationId(message.SessionId, new List<MessageState>
             {
                 new MessageState("channel", ConversationChannel.Phone),
                 new MessageState("calling_phone", message.From)
             });
-            var result = await conv.SendMessage("2cd4b805-7078-4405-87e9-2ec9aadf8a11",
+            var result = await conv.SendMessage(config.AgentId,
                 inputMsg,
                 replyMessage: null,
                 async msg =>
@@ -82,7 +80,7 @@ namespace BotSharp.Plugin.Twilio.Services
             );
             if (string.IsNullOrWhiteSpace(reply))
             {
-                reply = "Bye.";
+                reply = "Sorry, something was wrong.";
             }
             var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
             await sessionManager.SetAssistantReplyAsync(message.SessionId, message.SeqNumber, reply);
