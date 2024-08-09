@@ -26,7 +26,8 @@ public class KnowledgeRetrievalFn : IFunctionCallback
 
         if (!knowledges.IsNullOrEmpty())
         {
-            message.Content = string.Join("\r\n\r\n=====\r\n", knowledges);
+            var answers = knowledges.Select(x => x.Data[KnowledgePayloadName.Answer]).ToList();
+            message.Content = string.Join("\r\n\r\n=====\r\n", answers);
         }
         else
         {
