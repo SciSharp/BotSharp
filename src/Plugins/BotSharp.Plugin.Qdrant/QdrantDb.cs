@@ -10,13 +10,15 @@ public class QdrantDb : IVectorDb
     private readonly QdrantSetting _setting;
     private readonly IServiceProvider _services;
 
-    public QdrantDb(QdrantSetting setting,
+    public QdrantDb(
+        QdrantSetting setting,
         IServiceProvider services)
     {
         _setting = setting;
         _services = services;
-
     }
+
+    public string Name => "Qdrant";
 
     private QdrantClient GetClient()
     {
@@ -42,9 +44,8 @@ public class QdrantDb : IVectorDb
     public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
     {
         var client = GetClient();
-        
-        var exists = await client.CollectionExistsAsync(collectionName);
-        if (!exists)
+        var exist = await DoesCollectionExist(client, collectionName);
+        if (!exist)
         {
             return new StringIdPagedItems<KnowledgeCollectionData>();
         }
@@ -71,11 +72,12 @@ public class QdrantDb : IVectorDb
 
     public async Task CreateCollection(string collectionName, int dim)
     {
-        var collections = await GetCollections();
-        if (!collections.Contains(collectionName))
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+        if (!exist)
         {
             // Create a new collection
-            await GetClient().CreateCollectionAsync(collectionName, new VectorParams()
+            await client.CreateCollectionAsync(collectionName, new VectorParams()
             {
                 Size = (ulong)dim,
                 Distance = Distance.Cosine
@@ -83,7 +85,7 @@ public class QdrantDb : IVectorDb
         }
 
         // Get collection info
-        var collectionInfo = await _client.GetCollectionInfoAsync(collectionName);
+        var collectionInfo = await client.GetCollectionInfoAsync(collectionName);
         if (collectionInfo == null)
         {
             throw new Exception($"Create {collectionName} failed.");
@@ -115,7 +117,6 @@ public class QdrantDb : IVectorDb
         }
 
         var client = GetClient();
-
         var result = await client.UpsertAsync(collectionName, points: new List<PointStruct>
         {
             point
@@ -124,19 +125,54 @@ public class QdrantDb : IVectorDb
         return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<IEnumerable<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
+    public async Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
+        IEnumerable<string> fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
     {
         var client = GetClient();
         var points = await client.SearchAsync(collectionName, vector, limit: (ulong)limit, scoreThreshold: confidence);
 
-        return points.Select(x => x.Payload[returnFieldName].StringValue).ToList();
+        var results = new List<KnowledgeSearchResult>();
+        foreach (var point in points)
+        {
+            var data = new Dictionary<string, string>();
+            foreach (var field in fields)
+            {
+                if (point.Payload.ContainsKey(field))
+                {
+                    data[field] = point.Payload[field].StringValue;
+                }
+                else
+                {
+                    data[field] = "";
+                }
+            }
+
+            results.Add(new KnowledgeSearchResult
+            {
+                Data = data,
+                Score = point.Score,
+                Vector = withVector ? point.Vectors?.Vector?.Data?.ToArray() : null
+            });
+        }
+
+        return results;
     }
 
     public async Task<bool> DeleteCollectionData(string collectionName, string id)
     {
+        if (!Guid.TryParse(id, out var guid))
+        {
+            return false;
+        }
+
         var client = GetClient();
-        var guid = Guid.Parse(id);
         var result = await client.DeleteAsync(collectionName, guid);
         return result.Status == UpdateStatus.Completed;
+    }
+
+
+    private async Task<bool> DoesCollectionExist(QdrantClient client, string collectionName)
+    {
+        return await client.CollectionExistsAsync(collectionName);
     }
 }

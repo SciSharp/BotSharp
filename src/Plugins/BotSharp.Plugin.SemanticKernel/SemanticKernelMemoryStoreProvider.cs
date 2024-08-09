@@ -20,6 +20,10 @@ namespace BotSharp.Plugin.SemanticKernel
         {
             this._memoryStore = memoryStore;
         }
+
+
+        public string Name => "SemanticKernel";
+
         public async Task CreateCollection(string collectionName, int dim)
         {
             await _memoryStore.CreateCollectionAsync(collectionName);
@@ -40,18 +44,23 @@ namespace BotSharp.Plugin.SemanticKernel
             return result;
         }
 
-        public async Task<IEnumerable<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
+        public async Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
+            IEnumerable<string> fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
         {
             var results = _memoryStore.GetNearestMatchesAsync(collectionName, vector, limit);
 
-            var resultTexts = new List<string>();
-            await foreach (var (record, _) in results)
+            var resultTexts = new List<KnowledgeSearchResult>();
+            await foreach (var (record, score) in results)
             {
-                resultTexts.Add(record.Metadata.Text);
+                resultTexts.Add(new KnowledgeSearchResult
+                {
+                    Data = new Dictionary<string, string> { { "text", record.Metadata.Text } },
+                    Score = score,
+                    Vector = withVector ? record.Embedding.ToArray() : null
+                });
             }
 
             return resultTexts;
-
         }
 
         public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload)
@@ -62,9 +71,16 @@ namespace BotSharp.Plugin.SemanticKernel
             return true;
         }
 
-        public Task<bool> DeleteCollectionData(string collectionName, string id)
+        public async Task<bool> DeleteCollectionData(string collectionName, string id)
         {
-            throw new NotImplementedException();
+            var exist = await _memoryStore.DoesCollectionExistAsync(collectionName);
+
+            if (exist)
+            {
+                await _memoryStore.RemoveAsync(collectionName, id);
+                return true;
+            }
+            return false;
         }
     }
 }

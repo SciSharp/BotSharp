@@ -57,8 +57,8 @@ public class IntentClassifier
             return;
         }
 
-        var vector = _services.GetServices<ITextEmbedding>()
-            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_knowledgeBaseSettings.TextEmbedding));
+        var vector = _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _knowledgeBaseSettings.TextEmbedding.Provider);
+        vector.SetModelName(_knowledgeBaseSettings.TextEmbedding.Model);
 
         var layers = new List<ILayer>
         {
@@ -136,8 +136,8 @@ public class IntentClassifier
     public NDArray GetTextEmbedding(string text)
     {
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        var embedding = _services.GetServices<ITextEmbedding>()
-            .FirstOrDefault(x => x.GetType().FullName.EndsWith(knowledgeSettings.TextEmbedding));
+        var embedding = _services.GetServices<ITextEmbedding>() .FirstOrDefault(x => x.Provider == knowledgeSettings.TextEmbedding.Provider);
+        embedding.SetModelName(knowledgeSettings.TextEmbedding.Model);
 
         var x = np.zeros((1, embedding.Dimension), dtype: np.float32);
         x[0] = embedding.GetVectorAsync(text).GetAwaiter().GetResult();

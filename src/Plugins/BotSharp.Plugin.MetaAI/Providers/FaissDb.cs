@@ -9,6 +9,8 @@ namespace BotSharp.Plugin.MetaAI.Providers;
 
 public class FaissDb : IVectorDb
 {
+    public string Name => "Faiss";
+
     public Task CreateCollection(string collectionName, int dim)
     {
         throw new NotImplementedException();
@@ -24,7 +26,8 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 10, float confidence = 0.5f)
+    public Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
+        IEnumerable<string> fields, int limit = 10, float confidence = 0.5f, bool withVector = false)
     {
         throw new NotImplementedException();
     }

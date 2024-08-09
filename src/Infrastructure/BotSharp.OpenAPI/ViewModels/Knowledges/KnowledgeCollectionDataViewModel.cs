@@ -20,7 +20,7 @@ public class KnowledgeCollectionDataViewModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public float[]? Vector { get; set; }
 
-    public static KnowledgeCollectionDataViewModel ToViewModel(KnowledgeCollectionData data)
+    public static KnowledgeCollectionDataViewModel From(KnowledgeCollectionData data)
     {
         return new KnowledgeCollectionDataViewModel
         {

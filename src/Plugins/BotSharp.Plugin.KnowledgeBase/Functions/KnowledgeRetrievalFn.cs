@@ -17,14 +17,14 @@ public class KnowledgeRetrievalFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
-        var embedding =  _services.GetServices<ITextEmbedding>()
-            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.TextEmbedding));
+        var embedding =  _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _settings.TextEmbedding.Provider);
+        embedding.SetModelName(_settings.TextEmbedding.Model);
 
         var vector = await embedding.GetVectorAsync(args.Question);
         var vectorDb = _services.GetRequiredService<IVectorDb>();
-        var knowledges = await vectorDb.Search(KnowledgeCollectionName.BotSharp, vector, KnowledgePayloadName.Answer);
+        var knowledges = await vectorDb.Search(KnowledgeCollectionName.BotSharp, vector, new List<string> { KnowledgePayloadName.Answer });
 
-        if (knowledges.Count > 0)
+        if (!knowledges.IsNullOrEmpty())
         {
             message.Content = string.Join("\r\n\r\n=====\r\n", knowledges);
         }

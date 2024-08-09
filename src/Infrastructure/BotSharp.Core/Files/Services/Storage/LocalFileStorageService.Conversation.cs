@@ -275,8 +275,9 @@ public partial class LocalFileStorageService
 
     private IPdf2ImageConverter? GetPdf2ImageConverter()
     {
-        var converters = _services.GetServices<IPdf2ImageConverter>();
-        return converters.FirstOrDefault();
+        var settings = _services.GetRequiredService<FileCoreSettings>();
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
+        return converter;
     }
 
     private async Task<IEnumerable<MessageFileModel>> GetScreenshots(string file, string parentDir, string messageId, string source)
