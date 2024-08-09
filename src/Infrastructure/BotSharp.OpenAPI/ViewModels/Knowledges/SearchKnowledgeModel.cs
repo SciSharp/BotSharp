@@ -5,9 +5,6 @@ namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
 public class SearchKnowledgeModel
 {
-    [JsonPropertyName("collection")]
-    public string Collection { get; set; } = KnowledgeCollectionName.BotSharp;
-
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
