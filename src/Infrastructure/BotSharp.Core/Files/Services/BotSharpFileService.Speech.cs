@@ -2,7 +2,7 @@ using System.IO;
 
 namespace BotSharp.Core.Files.Services
 {
-    public partial class BotSharpFileService
+    public partial class LocalFileStorageService
     {
         public async Task SaveSpeechFileAsync(string conversationId, string fileName, BinaryData data)
         {

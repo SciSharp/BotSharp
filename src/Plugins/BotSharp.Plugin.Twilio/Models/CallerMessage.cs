@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.Twilio.Models
 
         public override string ToString()
         {
-            return $"({SessionId}-{SeqNumber}) {Content}";
+            return $"{SessionId}-{SeqNumber}";
         }
     }
 }
