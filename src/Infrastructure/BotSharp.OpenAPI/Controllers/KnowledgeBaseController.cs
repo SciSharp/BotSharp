@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.Knowledges.Models;
-using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
+using Microsoft.Extensions.Options;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -18,12 +18,11 @@ public class KnowledgeBaseController : ControllerBase
         _services = services;
     }
 
-    [HttpPost("/knowledge/search")]
-    public async Task<IEnumerable<KnowledgeRetrivalViewModel>> SearchKnowledge([FromBody] SearchKnowledgeModel model)
+    [HttpPost("/knowledge/{collection}/search")]
+    public async Task<IEnumerable<KnowledgeRetrivalViewModel>> SearchKnowledge([FromQuery] string collection, [FromBody] SearchKnowledgeModel model)
     {
-        var searchModel = new KnowledgeRetrievalModel
+        var options = new KnowledgeRetrievalOptions
         {
-            Collection = model.Collection,
             Text = model.Text,
             Fields = model.Fields,
             Limit = model.Limit ?? 5,
@@ -31,7 +30,7 @@ public class KnowledgeBaseController : ControllerBase
             WithVector = model.WithVector
         };
 
-        var results = await _knowledgeService.SearchKnowledge(searchModel);
+        var results = await _knowledgeService.SearchKnowledge(collection, options);
         return results.Select(x => KnowledgeRetrivalViewModel.From(x)).ToList();
     }
 
@@ -56,8 +55,8 @@ public class KnowledgeBaseController : ControllerBase
         return await _knowledgeService.DeleteKnowledgeCollectionData(collection, id);
     }
 
-    [HttpPost("/knowledge/upload")]
-    public async Task<IActionResult> UploadKnowledge(IFormFile file, [FromQuery] string? collection, [FromQuery] int? startPageNum, [FromQuery] int? endPageNum)
+    [HttpPost("/knowledge/{collection}/upload")]
+    public async Task<IActionResult> UploadKnowledge([FromRoute] string collection, [FromForm] IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
     {
         var setttings = _services.GetRequiredService<FileCoreSettings>();
         var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Name == setttings.Pdf2TextConverter);
@@ -70,9 +69,8 @@ public class KnowledgeBaseController : ControllerBase
         }
 
         var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
-        await _knowledgeService.FeedKnowledge(new KnowledgeCreationModel
+        await _knowledgeService.FeedKnowledge(collection, new KnowledgeCreationModel
         {
-            Collection = collection ?? KnowledgeCollectionName.BotSharp,
             Content = content
         });
 
