@@ -4,7 +4,6 @@ public class KnowledgeBaseSettings
 {
     public string VectorDb { get; set; }
     public KnowledgeModelSetting TextEmbedding { get; set; }
-    public string Pdf2TextConverter { get; set; }
 }
 
 public class KnowledgeModelSetting
