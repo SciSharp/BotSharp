@@ -192,7 +192,8 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.FamilyName, user?.LastName ?? string.Empty),
             new Claim("source", user.Source),
             new Claim("external_id", user.ExternalId ?? string.Empty),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("phone", user.Phone ?? string.Empty)
         };
 
         var validators = _services.GetServices<IAuthenticationHook>();
@@ -204,11 +205,12 @@ public class UserService : IUserService
         var config = _services.GetRequiredService<IConfiguration>();
         var issuer = config["Jwt:Issuer"];
         var audience = config["Jwt:Audience"];
+        var expireInMinutes = int.Parse(config["Jwt:ExpireInMinutes"] ?? "120");
         var key = Encoding.ASCII.GetBytes(config["Jwt:Key"]);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(2),
+            Expires = DateTime.UtcNow.AddMinutes(expireInMinutes),
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),

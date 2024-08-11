@@ -5,8 +5,11 @@ namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 public class PlaywrightInstance : IDisposable
 {
     IPlaywright _playwright;
+    IServiceProvider _services;
+    public IServiceProvider Services => _services;
     Dictionary<string, IBrowserContext> _contexts = new Dictionary<string, IBrowserContext>();
     Dictionary<string, List<IPage>> _pages = new Dictionary<string, List<IPage>>();
+    IPage? _activePage = null;
 
     /// <summary>
     /// ContextId and BrowserContext
@@ -18,9 +21,29 @@ public class PlaywrightInstance : IDisposable
     /// </summary>
     public Dictionary<string, List<IPage>> Pages => _pages;
 
-    public IPage GetPage(string id, string? pattern = null)
+    public void SetServiceProvider(IServiceProvider services)
     {
-        return _contexts[id].Pages.LastOrDefault();
+        _services = services;
+    }
+
+    public IPage? GetPage(string contextId, string? pattern = null)
+    {
+        if (string.IsNullOrEmpty(pattern))
+        {
+            return _activePage ?? _contexts[contextId].Pages.LastOrDefault();
+        }
+
+        foreach (var page in _contexts[contextId].Pages)
+        {
+            if (page.Url.ToLower() == pattern.ToLower())
+            {
+                _activePage = page;
+                page.BringToFrontAsync().Wait();
+                return page;
+            }
+        }
+
+        return _contexts[contextId].Pages.LastOrDefault();
     }
 
     public async Task<IBrowserContext> GetContext(string ctxId)
@@ -64,6 +87,7 @@ public class PlaywrightInstance : IDisposable
 
         _contexts[ctxId].Page += async (sender, page) =>
         {
+            _activePage = page;
             _pages[ctxId].Add(page);
             page.Close += async (sender, e) =>
             {
@@ -93,7 +117,7 @@ public class PlaywrightInstance : IDisposable
         return _contexts[ctxId];
     }
 
-    public async Task<IPage> NewPage(MessageInfo message, IServiceProvider services)
+    public async Task<IPage> NewPage(MessageInfo message, string[]? excludeResponseUrls = null)
     {
         var context = await GetContext(message.ContextId);
         var page = await context.NewPageAsync();
@@ -105,9 +129,11 @@ public class PlaywrightInstance : IDisposable
 
         page.Response += async (sender, e) =>
         {
-            if (e.Headers.ContainsKey("content-type") &&
+            if (e.Status != 204 &&
+                e.Headers.ContainsKey("content-type") &&
                 e.Headers["content-type"].Contains("application/json") &&
-                (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr"))
+                (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr") &&
+                (excludeResponseUrls == null || !excludeResponseUrls.Any(url => e.Url.ToLower().Contains(url))))
             {
                 Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
                 JsonElement? json = null;
@@ -122,13 +148,17 @@ public class PlaywrightInstance : IDisposable
                         Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
                     }
 
-                    var webPageResponseHooks = services.GetServices<IWebPageResponseHook>();
+                    var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
                     foreach (var hook in webPageResponseHooks)
                     {
                         hook.OnDataFetched(message, e.Url.ToLower(), e.Request?.PostData ?? string.Empty, JsonSerializer.Serialize(json));
                     }
                 }
-                catch(Exception ex)
+                catch (ObjectDisposedException ex)
+                {
+                    Serilog.Log.Information(ex.Message);
+                }
+                catch (Exception ex)
                 {
                     Serilog.Log.Error(ex.ToString());
                 }
@@ -174,6 +204,7 @@ public class PlaywrightInstance : IDisposable
             if (page != null)
             {
                 await page.CloseAsync();
+                _activePage = _pages[ctxId].LastOrDefault();
             }
         }
     }

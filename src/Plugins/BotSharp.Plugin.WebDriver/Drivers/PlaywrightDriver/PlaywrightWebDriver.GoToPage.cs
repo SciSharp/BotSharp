@@ -8,26 +8,24 @@ public partial class PlaywrightWebDriver
         var context = await _instance.GetContext(message.ContextId);
         try
         {
-            // Check if the page is already open
-            /*if (!args.OpenNewTab && context.Pages.Count > 0)
-            {
-                foreach (var p in context.Pages)
-                {
-                    if (p.Url == args.Url)
-                    {
-                        // Disable this due to performance issue, some page is too large
-                        // result.Body = await p.ContentAsync();
-                        result.IsSuccess = true;
-                        // await p.BringToFrontAsync();
-                        return result;
-                    }
-                }
-            }*/
+            var page = args.UseExistingPage ? 
+                _instance.GetPage(message.ContextId, pattern: args.Url) :
+                await _instance.NewPage(message, excludeResponseUrls: args.ExcludeResponseUrls);
 
-            var page = args.OpenNewTab ? await _instance.NewPage(message, _services) : 
-                _instance.GetPage(message.ContextId);
+            if (args.UseExistingPage && page != null && page.Url == args.Url)
+            {
+                Serilog.Log.Information($"goto existing page: {args.Url}");
+                result.IsSuccess = true;
+                return result;
+            }
 
             Serilog.Log.Information($"goto page: {args.Url}");
+
+            if (args.UseExistingPage && args.OpenNewTab && page != null && page.Url == "about:blank")
+            {
+                page = await _instance.NewPage(message, excludeResponseUrls: args.ExcludeResponseUrls);
+            }
+
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
             {
                 Timeout = args.Timeout
@@ -40,6 +38,11 @@ public partial class PlaywrightWebDriver
                 {
                     Timeout = args.Timeout
                 });
+            }
+
+            if (args.WaitTime > 0)
+            {
+                await Task.Delay(args.WaitTime * 1000);
             }
 
             if (response.Status == 200)
