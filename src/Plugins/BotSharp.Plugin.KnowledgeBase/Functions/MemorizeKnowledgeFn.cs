@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Functions;
-using BotSharp.Core.Infrastructures;
-
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class MemorizeKnowledgeFn : IFunctionCallback
@@ -20,8 +17,8 @@ public class MemorizeKnowledgeFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
-        var embedding = _services.GetServices<ITextEmbedding>()
-            .First(x => x.GetType().FullName.EndsWith(_settings.TextEmbedding));
+        var embedding = _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _settings.TextEmbedding.Provider);
+        embedding.SetModelName(_settings.TextEmbedding.Model);
 
         var vector = await embedding.GetVectorsAsync(new List<string>
         {
@@ -29,19 +26,17 @@ public class MemorizeKnowledgeFn : IFunctionCallback
         });
 
         var vectorDb = _services.GetRequiredService<IVectorDb>();
+        await vectorDb.CreateCollection(KnowledgeCollectionName.BotSharp, vector[0].Length);
 
-        await vectorDb.CreateCollection("lessen", vector[0].Length);
-
-        var id = Utilities.HashTextMd5(args.Question);
-        var result = await vectorDb.Upsert("lessen", id, vector[0], 
+        var id = Guid.NewGuid().ToString();
+        var result = await vectorDb.Upsert(KnowledgeCollectionName.BotSharp, id, vector[0], 
             args.Question, 
             new Dictionary<string, string> 
             { 
-                { "answer", args.Answer } 
+                { KnowledgePayloadName.Answer, args.Answer } 
             });
 
         message.Content = result ? "Saved to my brain" : "I forgot it";
-
         return true;
     }
 }

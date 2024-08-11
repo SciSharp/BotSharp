@@ -50,17 +50,21 @@ public class ReadPdfFn : IFunctionCallback
             return new List<RoleDialogModel>();
         }
 
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        var files = await fileService.GetChatFiles(conversationId, FileSourceType.User, dialogs, _pdfContentTypes, includeScreenShot: true);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var messageIds = dialogs.Select(x => x.MessageId).Distinct().ToList();
+        var screenshots = await fileStorage.GetMessageFileScreenshots(conversationId, messageIds);
+
+        if (screenshots.IsNullOrEmpty()) return dialogs;
 
         foreach (var dialog in dialogs)
         {
-            var found = files.Where(x => x.MessageId == dialog.MessageId).ToList();
+            var found = screenshots.Where(x => x.MessageId == dialog.MessageId).ToList();
             if (found.IsNullOrEmpty()) continue;
 
             dialog.Files = found.Select(x => new BotSharpFile
             {
                 ContentType = x.ContentType,
+                FileUrl = x.FileUrl,
                 FileStorageUrl = x.FileStorageUrl
             }).ToList();
         }

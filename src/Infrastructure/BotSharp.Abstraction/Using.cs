@@ -18,3 +18,4 @@ global using BotSharp.Abstraction.Translation.Attributes;
 global using BotSharp.Abstraction.Messaging.Enums;
 global using BotSharp.Abstraction.Files.Models;
 global using BotSharp.Abstraction.Files.Enums;
+global using BotSharp.Abstraction.Knowledges.Models;

@@ -21,9 +21,6 @@ public interface IFileInstructService
     #endregion
 
     #region Select file
-    Task<IEnumerable<MessageFileModel>> SelectMessageFiles(string conversationId,
-        string? agentId = null, string? template = null, string? description = null,
-        bool includeBotFile = false, bool fromBreakpoint = false,
-        int? offset = null, IEnumerable<string>? contentTypes = null);
+    Task<IEnumerable<MessageFileModel>> SelectMessageFiles(string conversationId, SelectFileOptions options);
     #endregion
 }

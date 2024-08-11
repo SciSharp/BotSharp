@@ -1,55 +1,12 @@
+using BotSharp.Plugin.KnowledgeBase.MemVecDb;
 using Tensorflow.NumPy;
 using static Tensorflow.Binding;
 
-namespace BotSharp.Plugin.KnowledgeBase.MemVecDb;
+namespace BotSharp.Plugin.KnowledgeBase.Utilities;
 
-public class MemVectorDatabase : IVectorDb
+public static class VectorUtility
 {
-    private readonly Dictionary<string, int> _collections = new Dictionary<string, int>();
-    private readonly Dictionary<string, List<VecRecord>> _vectors = new Dictionary<string, List<VecRecord>>();
-    public async Task CreateCollection(string collectionName, int dim)
-    {
-        _collections[collectionName] = dim;
-        _vectors[collectionName] = new List<VecRecord>();
-    }
-
-    public async Task<List<string>> GetCollections()
-    {
-        return _collections.Select(x => x.Key).ToList();
-    }
-
-    public async Task<List<string>> Search(string collectionName, float[] vector, string returnFieldName, int limit = 5, float confidence = 0.5f)
-    {
-        if (!_vectors.ContainsKey(collectionName))
-        {
-            return new List<string>();
-        }
-
-        var similarities = CalCosineSimilarity(vector, _vectors[collectionName]);
-        // var similarities2 = CalEuclideanDistance(vector, _vectors[collectionName]);
-
-        var texts = np.argsort(similarities).ToArray<int>()
-            .Reverse()
-            .Take(limit)
-            .Select(i => _vectors[collectionName][i].Text)
-            .ToList();
-
-        return texts;
-    }
-
-    public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
-    {
-        _vectors[collectionName].Add(new VecRecord
-        {
-            Id = id,
-            Vector = vector,
-            Text = text
-        });
-
-        return true;
-    }
-
-    private float[] CalEuclideanDistance(float[] vec, List<VecRecord> records)
+    public static float[] CalEuclideanDistance(float[] vec, List<VecRecord> records)
     {
         var a = np.zeros((records.Count, vec.Length), np.float32);
         var b = np.zeros((records.Count, vec.Length), np.float32);
@@ -64,7 +21,7 @@ public class MemVectorDatabase : IVectorDb
         return c.ToArray<float>();
     }
 
-    public NDArray CalCosineSimilarity(float[] vec, List<VecRecord> records)
+    public static NDArray CalCosineSimilarity(float[] vec, List<VecRecord> records)
     {
         var recordsArray = np.zeros((records.Count, records[0].Vector.Length), dtype: np.float32);
 
@@ -85,7 +42,7 @@ public class MemVectorDatabase : IVectorDb
         return simiMatix;
     }
 
-    public (int, float)[] CalCosineSimilarityTopK(float[] vec, List<VecRecord> records, int topK = 10, float filterProb = 0.75f)
+    public static (int, float)[] CalCosineSimilarityTopK(float[] vec, List<VecRecord> records, int topK = 10, float filterProb = 0.75f)
     {
         var simiMatix = CalCosineSimilarity(vec, records);
 
@@ -108,7 +65,7 @@ public class MemVectorDatabase : IVectorDb
         return resIndex.ToArray();
     }
 
-    public (NDArray, NDArray) SafeNormalize(NDArray x, double eps = 2.223E-15)
+    private static (NDArray, NDArray) SafeNormalize(NDArray x, double eps = 2.223E-15)
     {
         var squaredX = np.sum(np.multiply(x, x), axis: 1);
         var normX = np.sqrt(squaredX);

@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Templating;
 using System.IO;
 
 namespace BotSharp.Plugin.FileHandler.Functions;
@@ -51,7 +50,11 @@ public class EditImageFn : IFunctionCallback
     private async Task<MessageFileModel?> SelectImage(string? description)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, description: description, contentTypes: new List<string> { MediaTypeNames.Image.Png });
+        var selecteds = await fileInstruct.SelectMessageFiles(_conversationId, new SelectFileOptions
+        {
+            Description = description,
+            ContentTypes = new List<string> { MediaTypeNames.Image.Png }
+        });
         return selecteds?.FirstOrDefault();
     }
 
@@ -73,12 +76,16 @@ public class EditImageFn : IFunctionCallback
                 Name = "Utility Assistant"
             };
 
-            using var stream = File.OpenRead(image.FileStorageUrl);
+            var fileStorage = _services.GetRequiredService<IFileStorageService>();
+            var fileBytes = fileStorage.GetFileBytes(image.FileStorageUrl);
+            using var stream = new MemoryStream();
+            stream.Write(fileBytes);
+            stream.Position = 0;
             var result = await completion.GetImageEdits(agent, dialog, stream, image.FileName ?? string.Empty);
             stream.Close();
             SaveGeneratedImage(result?.GeneratedImages?.FirstOrDefault());
 
-            return $"Image \"{image.FileName}.{image.FileType}\" is successfylly editted.";
+            return $"Image \"{image.FileName}.{image.FileExtension}\" is successfylly editted.";
         }
         catch (Exception ex)
         {
@@ -101,7 +108,7 @@ public class EditImageFn : IFunctionCallback
             }
         };
 
-        var fileService = _services.GetRequiredService<IFileBasicService>();
-        fileService.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        fileStorage.SaveMessageFiles(_conversationId, _messageId, FileSourceType.Bot, files);
     }
 }

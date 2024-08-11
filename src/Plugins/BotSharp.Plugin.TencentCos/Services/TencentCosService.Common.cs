@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace BotSharp.Plugin.TencentCos.Services;
 
 public partial class TencentCosService
@@ -13,8 +11,7 @@ public partial class TencentCosService
     {
         try
         {
-            var fileData = _cosClient.BucketClient.DownloadFileBytes(fileStorageUrl);
-            return fileData;
+            return _cosClient.BucketClient.DownloadFileBytes(fileStorageUrl);
         }
         catch (Exception ex)
         {

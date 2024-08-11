@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Files.Converters;
-using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -16,8 +15,8 @@ public partial class FileInstructService
 
         var guid = Guid.NewGuid().ToString();
 
-        var sessionDir = _fileBasic.BuildDirectory(SESSION_FOLDER, guid);
-        DeleteIfExistDirectory(sessionDir);
+        var sessionDir = _fileStorage.BuildDirectory(SESSION_FOLDER, guid);
+        DeleteIfExistDirectory(sessionDir, true);
 
         try
         {
@@ -46,7 +45,7 @@ public partial class FileInstructService
         }
         finally
         {
-            _fileBasic.DeleteDirectory(sessionDir);
+            _fileStorage.DeleteDirectory(sessionDir);
         }
     }
 
@@ -78,11 +77,11 @@ public partial class FileInstructService
                 if (!bytes.IsNullOrEmpty())
                 {
                     var guid = Guid.NewGuid().ToString();
-                    var fileDir = _fileBasic.BuildDirectory(dir, guid);
-                    DeleteIfExistDirectory(fileDir);
+                    var fileDir = _fileStorage.BuildDirectory(dir, guid);
+                    DeleteIfExistDirectory(fileDir, true);
 
-                    var pdfDir = _fileBasic.BuildDirectory(fileDir, $"{guid}.{extension}");
-                    _fileBasic.SaveFileBytesToPath(pdfDir, bytes);
+                    var pdfDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
+                    _fileStorage.SaveFileBytesToPath(pdfDir, bytes);
                     locs.Add(pdfDir);
                 }
             }
@@ -98,7 +97,8 @@ public partial class FileInstructService
     private async Task<IEnumerable<string>> ConvertPdfToImages(IEnumerable<string> files)
     {
         var images = new List<string>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault();
+        var settings = _services.GetRequiredService<FileCoreSettings>();
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;
@@ -108,8 +108,8 @@ public partial class FileInstructService
         {
             try
             {
-                var dir = _fileBasic.GetParentDir(file);
-                var folder = _fileBasic.BuildDirectory(dir, "screenshots");
+                var dir = _fileStorage.GetParentDir(file);
+                var folder = _fileStorage.BuildDirectory(dir, "screenshots");
                 var urls = await converter.ConvertPdfToImages(file, folder);
                 images.AddRange(urls);
             }

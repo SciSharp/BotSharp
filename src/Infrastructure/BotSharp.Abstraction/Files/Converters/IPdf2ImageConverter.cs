@@ -2,6 +2,8 @@ namespace BotSharp.Abstraction.Files.Converters;
 
 public interface IPdf2ImageConverter
 {
+    public string Name { get; }
+
     /// <summary>
     /// Convert pdf pages to images, and return a list of image file paths
     /// </summary>

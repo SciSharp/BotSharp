@@ -2,23 +2,29 @@ using System.IO;
 
 namespace BotSharp.Abstraction.Files;
 
-public interface IFileBasicService
+public interface IFileStorageService
 {
+    #region Common
+    string GetDirectory(string conversationId);
+    byte[] GetFileBytes(string fileStorageUrl);
+    bool SaveFileStreamToPath(string filePath, Stream stream);
+    bool SaveFileBytesToPath(string filePath, byte[] bytes);
+    string GetParentDir(string dir, int level = 1);
+    bool ExistDirectory(string? dir);
+    void CreateDirectory(string dir);
+    void DeleteDirectory(string dir);
+    string BuildDirectory(params string[] segments);
+    #endregion
+
+
     #region Conversation
     /// <summary>
-    /// Get the files that have been uploaded in the chat.
-    /// If includeScreenShot is true, it will take the screenshots of non-image files, such as pdf, and return the screenshots instead of the original file.
+    /// Get the message file screenshots for specific content types, e.g., pdf
     /// </summary>
     /// <param name="conversationId"></param>
-    /// <param name="source"></param>
-    /// <param name="dialogs"></param>
-    /// <param name="contentTypes"></param>
-    /// <param name="includeScreenShot"></param>
-    /// <param name="offset"></param>
+    /// <param name="messageIds"></param>
     /// <returns></returns>
-    Task<IEnumerable<MessageFileModel>> GetChatFiles(string conversationId, string source,
-        IEnumerable<RoleDialogModel> dialogs, IEnumerable<string>? contentTypes,
-        bool includeScreenShot = false, int? offset = null);
+    Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshots(string conversationId, IEnumerable<string> messageIds);
 
     /// <summary>
     /// Get the files that have been uploaded in the chat. No screenshot images are included.
@@ -45,20 +51,13 @@ public interface IFileBasicService
     bool DeleteConversationFiles(IEnumerable<string> conversationIds);
     #endregion
 
+
     #region User
     string GetUserAvatar();
     bool SaveUserAvatar(BotSharpFile file);
     #endregion
-
-    #region Common
-    string GetDirectory(string conversationId);
-    byte[] GetFileBytes(string fileStorageUrl);
-    bool SaveFileStreamToPath(string filePath, Stream stream);
-    bool SaveFileBytesToPath(string filePath, byte[] bytes);
-    string GetParentDir(string dir, int level = 1);
-    bool ExistDirectory(string? dir);
-    void CreateDirectory(string dir);
-    void DeleteDirectory(string dir);
-    string BuildDirectory(params string[] segments);
+    #region Speech
+    Task SaveSpeechFileAsync(string conversationId, string fileName, BinaryData data);
+    Task<BinaryData> RetrieveSpeechFileAsync(string conversationId, string fileName);
     #endregion
 }

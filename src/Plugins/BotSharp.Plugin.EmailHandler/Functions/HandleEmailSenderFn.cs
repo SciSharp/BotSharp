@@ -1,7 +1,6 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using System.IO;
 
 namespace BotSharp.Plugin.EmailHandler.Functions;
 
@@ -65,7 +64,7 @@ public class HandleEmailSenderFn : IFunctionCallback
         catch (Exception ex)
         {
             var msg = $"Failed to send the email. {ex.Message}";
-            _logger.LogError($"{msg}\n(Error: {ex.Message})");
+            _logger.LogError($"{msg}\n(Error: {ex.Message}\r\n{ex.InnerException})");
             message.Content = msg;
             return false;
         }
@@ -77,7 +76,7 @@ public class HandleEmailSenderFn : IFunctionCallback
         var conversationId = convService.ConversationId;
 
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, includeBotFile: true);
+        var selecteds = await fileInstruct.SelectMessageFiles(conversationId, new SelectFileOptions { IncludeBotFile = true });
         return selecteds;
     }
 
@@ -89,10 +88,9 @@ public class HandleEmailSenderFn : IFunctionCallback
         {
             if (string.IsNullOrEmpty(file.FileStorageUrl)) continue;
 
-            using var fs = File.OpenRead(file.FileStorageUrl);
-            var binary = BinaryData.FromStream(fs);
-            builder.Attachments.Add($"{file.FileName}.{file.FileType}", binary.ToArray(), ContentType.Parse(file.ContentType));
-            fs.Close();
+            var fileStorage = _services.GetRequiredService<IFileStorageService>();
+            var fileBytes = fileStorage.GetFileBytes(file.FileStorageUrl);
+            builder.Attachments.Add($"{file.FileName}.{file.FileExtension}", fileBytes, ContentType.Parse(file.ContentType));
             Thread.Sleep(100);
         }
     }
