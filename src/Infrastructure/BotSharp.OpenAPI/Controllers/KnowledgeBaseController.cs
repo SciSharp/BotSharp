@@ -54,7 +54,7 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     [HttpPost("/knowledge/{collection}/upload")]
-    public async Task<IActionResult> UploadKnowledge([FromRoute] string collection, [FromForm] IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
+    public async Task<IActionResult> UploadKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
     {
         var setttings = _services.GetRequiredService<FileCoreSettings>();
         var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Name == setttings.Pdf2TextConverter);
