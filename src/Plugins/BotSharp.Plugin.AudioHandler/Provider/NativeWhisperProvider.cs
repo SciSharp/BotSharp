@@ -1,3 +1,4 @@
+using BotSharp.Core.Agents.Services;
 using Whisper.net;
 using Whisper.net.Ggml;
 
@@ -10,12 +11,17 @@ public class NativeWhisperProvider : ISpeechToText
 {
     private readonly IAudioProcessUtilities _audioProcessUtilities;
     private static WhisperProcessor _processor;
+    private readonly ILogger _logger;
 
     private string _modelName;
+    private GgmlType _modelType = GgmlType.Tiny;
 
-    public NativeWhisperProvider(IAudioProcessUtilities audioProcessUtilities)
+    public NativeWhisperProvider(
+        IAudioProcessUtilities audioProcessUtilities,
+        ILogger<NativeWhisperProvider> logger)
     {
         _audioProcessUtilities = audioProcessUtilities;
+        _logger = logger;
     }
 
     public async Task<string> AudioToTextTranscript(string filePath)
@@ -70,13 +76,22 @@ public class NativeWhisperProvider : ISpeechToText
     {
         if (_processor == null)
         {
-
             await LoadWhisperModel(modelType);
             _processor = WhisperFactory
                 .FromPath(_modelName)
                 .CreateBuilder()
-                .WithLanguage("en")
+                .WithLanguage("auto")
                 .Build();
         }
+    }
+
+    public void SetModelType(string modelType)
+    {
+        if (Enum.TryParse<GgmlType>(modelType, true, out GgmlType ggmlType))
+        {
+            _modelType = ggmlType;
+            return;
+        }
+        _logger.LogWarning($"Unsupported model type: {modelType}");
     }
 }

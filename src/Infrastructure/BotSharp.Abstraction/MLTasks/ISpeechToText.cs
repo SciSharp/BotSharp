@@ -11,4 +11,5 @@ public interface ISpeechToText
 {
     Task<string> AudioToTextTranscript(string filePath);
     // Task<string> AudioToTextTranscript(Stream stream);
+    void SetModelType(string modelType);
 }

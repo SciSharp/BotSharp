@@ -17,18 +17,23 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
     {
         private readonly ISpeechToText _nativeWhisperProvider;
 
-        public AudioController(ISpeechToText audioService)
+        public AudioController(ISpeechToText nativeWhisperProvider)
         {
-            _nativeWhisperProvider = audioService;
+            _nativeWhisperProvider = nativeWhisperProvider;
         }
 
         [HttpGet("audio/transcript")]
-        public async Task<IActionResult> GetTextFromAudioController(string audioInputString)
+        public async Task<IActionResult> GetTextFromAudioController(string audioInputString, string modelType = "")
         {
 #if DEBUG
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 #endif
+            if (!string.IsNullOrEmpty(audioInputString))
+            {
+                _nativeWhisperProvider.SetModelType(modelType);
+            }
+
             var result = await _nativeWhisperProvider.AudioToTextTranscript(audioInputString);
 #if DEBUG
             stopWatch.Stop();
