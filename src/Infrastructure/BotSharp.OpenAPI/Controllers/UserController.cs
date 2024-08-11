@@ -121,19 +121,31 @@ public class UserController : ControllerBase
         return await _userService.ResetUserPassword(user.ToUser());
     }
 
+    [HttpPost("/user/email/modify")]
+    public async Task<bool> ModifyUserEmail([FromQuery] string email)
+    {
+        return await _userService.ModifyUserEmail(email);
+    }
+
+    [HttpPost("/user/phone/modify")]
+    public async Task<bool> ModifyUserPhone([FromQuery] string phone)
+    {
+        return await _userService.ModifyUserPhone(phone);
+    }
+
     #region Avatar
     [HttpPost("/user/avatar")]
     public bool UploadUserAvatar([FromBody] BotSharpFile file)
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        return fileService.SaveUserAvatar(file);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        return fileStorage.SaveUserAvatar(file);
     }
 
     [HttpGet("/user/avatar")]
     public IActionResult GetUserAvatar()
     {
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
-        var file = fileService.GetUserAvatar();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var file = fileStorage.GetUserAvatar();
         if (string.IsNullOrEmpty(file))
         {
             return NotFound();
@@ -146,9 +158,8 @@ public class UserController : ControllerBase
     #region Private methods
     private FileContentResult BuildFileResult(string file)
     {
-        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var bytes = new byte[stream.Length];
-        stream.Read(bytes, 0, (int)stream.Length);
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var bytes = fileStorage.GetFileBytes(file);
         return File(bytes, "application/octet-stream", Path.GetFileName(file));
     }
     #endregion

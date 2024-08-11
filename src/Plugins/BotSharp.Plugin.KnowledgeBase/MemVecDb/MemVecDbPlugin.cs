@@ -9,6 +9,6 @@ public class MemVecDbPlugin : IBotSharpPlugin
     public string Description => "Store text embedding, search similar text from memory.";
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddSingleton<IVectorDb, MemVectorDatabase>();
+        services.AddSingleton<IVectorDb, MemoryVectorDb>();
     }
 }

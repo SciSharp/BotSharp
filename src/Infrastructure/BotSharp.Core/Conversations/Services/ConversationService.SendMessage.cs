@@ -1,7 +1,7 @@
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing.Settings;
-using System.Drawing;
+using BotSharp.Core.Routing.Planning;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -76,9 +76,14 @@ public partial class ConversationService
             // Routing with reasoning
             var settings = _services.GetRequiredService<RoutingSettings>();
 
-            response = agent.Type == AgentType.Routing ?
-                await routing.InstructLoop(message, dialogs, onFunctionExecuting) :
-                await routing.InstructDirect(agent, message);
+            if (agent.Type == AgentType.Routing)
+            {
+                response = await routing.InstructLoop(message, dialogs, onFunctionExecuting);
+            }
+            else
+            {
+                response = await routing.InstructDirect(agent, message);
+            }
 
             routing.ResetRecursiveCounter();
         }
@@ -145,6 +150,7 @@ public partial class ConversationService
                 await HookEmitter.Emit<IConversationHook>(_services, async hook =>
                     await hook.OnConversationEnding(response)
                 );
+                response.FunctionName = "conversation_end";
             }
         }
 

@@ -93,9 +93,9 @@ public class PlaywrightInstance : IDisposable
         return _contexts[ctxId];
     }
 
-    public async Task<IPage> NewPage(string ctxId, DataFetched? fetched)
+    public async Task<IPage> NewPage(MessageInfo message, IServiceProvider services)
     {
-        var context = await GetContext(ctxId);
+        var context = await GetContext(message.ContextId);
         var page = await context.NewPageAsync();
 
         // 许多网站为了防止信息被爬取，会添加一些防护手段。其中之一是检测 window.navigator.webdriver 属性。
@@ -103,35 +103,37 @@ public class PlaywrightInstance : IDisposable
         var js = @"Object.defineProperties(navigator, {webdriver:{get:()=>false}});";
         await page.AddInitScriptAsync(js);
 
-        if (fetched != null)
+        page.Response += async (sender, e) =>
         {
-            page.Response += async (sender, e) =>
+            if (e.Headers.ContainsKey("content-type") &&
+                e.Headers["content-type"].Contains("application/json") &&
+                (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr"))
             {
-                if (e.Headers.ContainsKey("content-type") &&
-                    e.Headers["content-type"].Contains("application/json") &&
-                    e.Request.ResourceType == "fetch")
+                Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
+                JsonElement? json = null;
+                try
                 {
-                    Serilog.Log.Information($"fetched: {e.Url}");
-                    JsonElement? json = null;
-                    try
+                    if (e.Status == 200 && e.Ok)
                     {
-                        if (e.Status == 200 && e.Ok)
-                        {
-                            json = await e.JsonAsync();
-                        }
-                        else
-                        {
-                            Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
-                        }
-                        fetched(e.Url.ToLower(), JsonSerializer.Serialize(json));
+                        json = await e.JsonAsync();
                     }
-                    catch(Exception ex)
+                    else
                     {
-                        Serilog.Log.Error(ex.ToString());
+                        Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
+                    }
+
+                    var webPageResponseHooks = services.GetServices<IWebPageResponseHook>();
+                    foreach (var hook in webPageResponseHooks)
+                    {
+                        hook.OnDataFetched(message, e.Url.ToLower(), e.Request?.PostData ?? string.Empty, JsonSerializer.Serialize(json));
                     }
                 }
-            };
-        }
+                catch(Exception ex)
+                {
+                    Serilog.Log.Error(ex.ToString());
+                }
+            }
+        };
 
         return page;
     }

@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -26,7 +24,7 @@ public partial class PlaywrightWebDriver
                 }
             }*/
 
-            var page = args.OpenNewTab ? await _instance.NewPage(message.ContextId, fetched: args.OnDataFetched) : 
+            var page = args.OpenNewTab ? await _instance.NewPage(message, _services) : 
                 _instance.GetPage(message.ContextId);
 
             Serilog.Log.Information($"goto page: {args.Url}");
@@ -63,15 +61,5 @@ public partial class PlaywrightWebDriver
         }
         
         return result;
-    }
-
-    private void Page_Response1(object sender, IResponse e)
-    {
-        throw new NotImplementedException();
-    }
-
-    private void Page_Response(object sender, IResponse e)
-    {
-        throw new NotImplementedException();
     }
 }

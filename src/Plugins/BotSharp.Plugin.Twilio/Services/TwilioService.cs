@@ -1,4 +1,3 @@
-using BotSharp.Plugin.Twilio.Settings;
 using Twilio.Jwt.AccessToken;
 using Token = Twilio.Jwt.AccessToken.Token;
 
@@ -64,12 +63,33 @@ public class TwilioService
         return response;
     }
 
-    public VoiceResponse HangUp(string message)
+    public VoiceResponse ReturnInstructions(string speechPath, string callbackPath, bool actionOnEmptyResult)
     {
         var response = new VoiceResponse();
-        if (!string.IsNullOrEmpty(message))
+        var gather = new Gather()
         {
-            response.Say(message);
+            Input = new List<Gather.InputEnum>()
+            {
+                Gather.InputEnum.Speech
+            },
+            Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
+            SpeechTimeout = "3",
+            ActionOnEmptyResult = actionOnEmptyResult
+        };
+        if (!string.IsNullOrEmpty(speechPath))
+        {
+            gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+        }
+        response.Append(gather);
+        return response;
+    }
+
+    public VoiceResponse HangUp(string speechPath)
+    {
+        var response = new VoiceResponse();
+        if (!string.IsNullOrEmpty(speechPath))
+        {
+            response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
         }
         response.Hangup();
         return response;

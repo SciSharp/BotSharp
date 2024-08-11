@@ -25,6 +25,8 @@ public interface IBotSharpRepository
     void UpdateUserVerified(string userId) => throw new NotImplementedException();
     void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
     void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
+    void UpdateUserEmail(string userId, string email)=> throw new NotImplementedException();
+    void UpdateUserPhone(string userId, string Iphone) => throw new NotImplementedException();
     #endregion
 
     #region Agent

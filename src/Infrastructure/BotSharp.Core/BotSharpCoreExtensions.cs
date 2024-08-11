@@ -28,7 +28,7 @@ public static class BotSharpCoreExtensions
         services.AddScoped<IBotSharpRepository>(sp =>
         {
             var myDatabaseSettings = sp.GetRequiredService<BotSharpDatabaseSettings>();
-            return DataContextHelper.GetDbContext<BotSharpDbContext, DbContext4SqlServer>(myDatabaseSettings, sp);
+            return DataContextHelper.GetSqlServerDbContext<BotSharpDbContext>(myDatabaseSettings, sp);
         });
 
         return services;

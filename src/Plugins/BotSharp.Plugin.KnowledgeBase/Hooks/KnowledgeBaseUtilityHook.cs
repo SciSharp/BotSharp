@@ -1,5 +1,3 @@
-using BotSharp.Plugin.KnowledgeBase.Enum;
-
 namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeBaseUtilityHook : IAgentUtilityHook

@@ -37,9 +37,9 @@ public partial class ConversationService : IConversationService
     public async Task<bool> DeleteConversations(IEnumerable<string> ids)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var isDeleted = db.DeleteConversations(ids);
-        fileService.DeleteConversationFiles(ids);
+        fileStorage.DeleteConversationFiles(ids);
         return await Task.FromResult(isDeleted);
     }
 
@@ -106,7 +106,7 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(int lastCount = 50, bool fromBreakpoint = true)
+    public List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true)
     {
         if (string.IsNullOrEmpty(_conversationId))
         {

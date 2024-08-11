@@ -2,7 +2,7 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<string> GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 50)
+    public async Task<string> GetConversationContent(List<RoleDialogModel> dialogs, int maxDialogCount = 100)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var conversation = "";

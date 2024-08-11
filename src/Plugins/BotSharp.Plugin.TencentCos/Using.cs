@@ -1,0 +1,17 @@
+global using BotSharp.Abstraction.Agents.Enums;
+global using BotSharp.Abstraction.Agents.Models;
+global using BotSharp.Abstraction.Conversations.Models;
+global using BotSharp.Abstraction.Files.Models;
+global using BotSharp.Abstraction.Plugins;
+global using BotSharp.Abstraction.Repositories;
+global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Core.Infrastructures;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Threading.Tasks;

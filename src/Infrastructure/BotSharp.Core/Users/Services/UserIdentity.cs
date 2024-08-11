@@ -20,7 +20,7 @@ public class UserIdentity : IUserIdentity
 
     [JsonPropertyName("user_name")]
     public string UserName
-        => _claims?.FirstOrDefault(x => x.Type == "name")?.Value!;
+        => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value!;
 
     public string Email
         => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value!;
