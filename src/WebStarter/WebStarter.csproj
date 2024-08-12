@@ -30,6 +30,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Dashboard\BotSharp.Plugin.Dashboard.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaGLM\BotSharp.Plugin.MetaGLM.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Planner\BotSharp.Plugin.Planner.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.PythonInterpreter\BotSharp.Plugin.PythonInterpreter.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SparkDesk\BotSharp.Plugin.SparkDesk.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TencentCos\BotSharp.Plugin.TencentCos.csproj" />
   </ItemGroup>
