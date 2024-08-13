@@ -25,7 +25,7 @@ public class MemorizeKnowledgeFn : IFunctionCallback
             args.Question
         });
 
-        var vectorDb = _services.GetRequiredService<IVectorDb>();
+        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
         await vectorDb.CreateCollection(KnowledgeCollectionName.BotSharp, vector[0].Length);
 
         var id = Guid.NewGuid().ToString();

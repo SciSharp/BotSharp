@@ -21,7 +21,7 @@ public class KnowledgeRetrievalFn : IFunctionCallback
         embedding.SetModelName(_settings.TextEmbedding.Model);
 
         var vector = await embedding.GetVectorAsync(args.Question);
-        var vectorDb = _services.GetRequiredService<IVectorDb>();
+        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
         var knowledges = await vectorDb.Search(KnowledgeCollectionName.BotSharp, vector, new List<string> { KnowledgePayloadName.Answer });
 
         if (!knowledges.IsNullOrEmpty())
