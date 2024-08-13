@@ -43,6 +43,11 @@ public class PlaywrightInstance : IDisposable
             }
         }
 
+        if (!string.IsNullOrEmpty(pattern))
+        {
+            return null;
+        }
+
         return _contexts[contextId].Pages.LastOrDefault();
     }
 

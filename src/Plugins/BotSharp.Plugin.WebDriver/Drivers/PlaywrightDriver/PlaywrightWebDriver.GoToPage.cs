@@ -30,6 +30,13 @@ public partial class PlaywrightWebDriver
                     includeResponseUrls: args.IncludeResponseUrls);
             }
 
+            if (page == null)
+            {
+                page = await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback,
+                    excludeResponseUrls: args.ExcludeResponseUrls,
+                    includeResponseUrls: args.IncludeResponseUrls);
+            }
+
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
             {
                 Timeout = args.Timeout
