@@ -128,10 +128,17 @@ public class QdrantDb : IVectorDb
     public async Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
         IEnumerable<string> fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
     {
-        var client = GetClient();
-        var points = await client.SearchAsync(collectionName, vector, limit: (ulong)limit, scoreThreshold: confidence);
-
         var results = new List<KnowledgeSearchResult>();
+
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+        if (!exist)
+        {
+            return results;
+        }
+
+        var points = await client.SearchAsync(collectionName, vector, limit: (ulong)limit, scoreThreshold: confidence);
+        
         foreach (var point in points)
         {
             var data = new Dictionary<string, string>();
