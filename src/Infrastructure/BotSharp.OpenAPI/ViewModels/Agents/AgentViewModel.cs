@@ -13,6 +13,8 @@ public class AgentViewModel
     public string Description { get; set; }
     public string Type { get; set; } = AgentType.Task;
     public string Instruction { get; set; }
+
+    [JsonPropertyName("channel_instructions")]
     public List<ChannelInstruction> ChannelInstructions { get; set; }
     public List<AgentTemplate> Templates { get; set; }
     public List<FunctionDef> Functions { get; set; }
