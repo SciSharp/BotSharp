@@ -20,7 +20,7 @@
     <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\agent.json" />
     <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\functions\confirm_knowledge_persistence.json" />
     <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\functions\memorize_knowledge.json" />
-    <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\instruction.liquid" />
+    <None Remove="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\instructions\instruction.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\knowledge_retrieval.fn.liquid" />
   </ItemGroup>
 
@@ -34,7 +34,7 @@
     <Content Include="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\functions\memorize_knowledge.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\instruction.liquid">
+    <Content Include="data\agents\01acc3e5-0af7-49e6-ad7a-a760bd12dc40\instructions\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\knowledge_retrieval.json">
