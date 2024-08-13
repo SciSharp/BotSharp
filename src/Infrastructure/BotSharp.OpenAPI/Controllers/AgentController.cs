@@ -42,7 +42,9 @@ public class AgentController : ControllerBase
 
         var redirectAgentIds = targetAgent.RoutingRules
                                           .Where(x => !string.IsNullOrEmpty(x.RedirectTo))
-                                          .Select(x => x.RedirectTo).ToList();
+                                          .Select(x => x.RedirectTo)
+                                          .ToList();
+
         var redirectAgents = await _agentService.GetAgents(new AgentFilter
         {
             AgentIds = redirectAgentIds
