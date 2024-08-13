@@ -20,6 +20,13 @@ public interface IAgentService
     /// <returns></returns>
     Task<Agent> LoadAgent(string id);
 
+    /// <summary>
+    /// Inherit from host agent
+    /// </summary>
+    /// <param name="agent"></param>
+    /// <returns></returns>
+    Task InheritAgent(Agent agent);
+
     string RenderedInstruction(Agent agent);
 
     string RenderedTemplate(Agent agent, string templateName);

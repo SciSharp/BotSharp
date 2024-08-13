@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -28,13 +27,18 @@ public class AgentController : ControllerBase
     [HttpGet("/agent/{id}")]
     public async Task<AgentViewModel?> GetAgent([FromRoute] string id)
     {
-        var agents = await GetAgents(new AgentFilter
+        var pagedAgents = await _agentService.GetAgents(new AgentFilter
         {
             AgentIds = new List<string> { id }
-        }, useHook: true);
+        });
 
-        var targetAgent = agents.Items.FirstOrDefault();
-        if (targetAgent == null) return null;
+        var foundAgent = pagedAgents.Items.FirstOrDefault();
+        if (foundAgent == null) return null;
+
+        await _agentService.InheritAgent(foundAgent);
+        var targetAgent = AgentViewModel.FromAgent(foundAgent);
+        var agentSetting = _services.GetRequiredService<AgentSettings>();
+        targetAgent.IsHost = targetAgent.Id == agentSetting.HostAgentId;
 
         var redirectAgentIds = targetAgent.RoutingRules
                                           .Where(x => !string.IsNullOrEmpty(x.RedirectTo))
@@ -65,39 +69,16 @@ public class AgentController : ControllerBase
     }
 
     [HttpGet("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter, [FromQuery] bool useHook = false)
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
     {
         var agentSetting = _services.GetRequiredService<AgentSettings>();
         var pagedAgents = await _agentService.GetAgents(filter);
-
-        var items = new List<Agent>();
-        var agents = new List<AgentViewModel>();
-        if (useHook)
-        {
-            // prerender agent
-            foreach (var agent in pagedAgents.Items)
-            {
-                var renderedAgent = await _agentService.LoadAgent(agent.Id);
-                items.Add(renderedAgent);
-            }
-
-            // Set IsHost
-            agents = items.Select(x => AgentViewModel.FromAgent(x)).ToList();
-            foreach (var agent in agents)
-            {
-                agent.IsHost = agentSetting.HostAgentId == agent.Id;
-            }
-        }
-        else
-        {
-            items = pagedAgents.Items.ToList();
-            agents = items.Select(x => AgentViewModel.FromAgent(x)).ToList();
-        }
+        var agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? new List<AgentViewModel>();
 
         return new PagedItems<AgentViewModel>
         {
             Items = agents,
-            Count = pagedAgents.Count
+            Count = pagedAgents?.Count ?? 0
         };
     }
 

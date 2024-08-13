@@ -13,6 +13,7 @@ public class AgentViewModel
     public string Description { get; set; }
     public string Type { get; set; } = AgentType.Task;
     public string Instruction { get; set; }
+    public List<ChannelInstruction> ChannelInstructions { get; set; }
     public List<AgentTemplate> Templates { get; set; }
     public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
@@ -60,6 +61,7 @@ public class AgentViewModel
             Description = agent.Description,
             Type = agent.Type,
             Instruction = agent.Instruction,
+            ChannelInstructions = agent.ChannelInstructions,
             Templates = agent.Templates,
             Functions = agent.Functions,
             Responses = agent.Responses,

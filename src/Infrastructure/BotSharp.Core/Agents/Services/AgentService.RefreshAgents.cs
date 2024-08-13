@@ -42,12 +42,13 @@ public partial class AgentService
                     continue;
                 }
 
+                var (defaultInstruction, channelInstructions) = FetchInstructionsFromFile(dir);
                 var functions = FetchFunctionsFromFile(dir);
-                var instruction = FetchInstructionFromFile(dir);
                 var responses = FetchResponsesFromFile(dir);
                 var templates = FetchTemplatesFromFile(dir);
                 var samples = FetchSamplesFromFile(dir);
-                agent.SetInstruction(instruction)
+                agent.SetInstruction(defaultInstruction)
+                     .SetChannelInstructions(channelInstructions)
                      .SetTemplates(templates)
                      .SetFunctions(functions)
                      .SetResponses(responses)

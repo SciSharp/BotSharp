@@ -41,41 +41,49 @@ public partial class AgentService
         });
 
         Utilities.ClearCache();
-
         return await Task.FromResult(agentRecord);
     }
 
-    private Agent FetchAgentFileByName(string agentName, string filePath)
+    private (string, List<ChannelInstruction>) FetchInstructionsFromFile(string fileDir)
     {
-        foreach (var dir in Directory.GetDirectories(filePath))
+        var defaultInstruction = string.Empty;
+        var channelInstructions = new List<ChannelInstruction>();
+
+        var instructionDir = Path.Combine(fileDir, "instructions");
+        if (!Directory.Exists(instructionDir))
         {
-            var agentJson = File.ReadAllText(Path.Combine(dir, "agent.json"));
-            var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
-            if (agent != null && agent.Name.IsEqualTo(agentName))
-            {
-                var functions = FetchFunctionsFromFile(dir);
-                var instruction = FetchInstructionFromFile(dir);
-                var responses = FetchResponsesFromFile(dir);
-                var templates = FetchTemplatesFromFile(dir);
-                var samples = FetchSamplesFromFile(dir);
-                return agent.SetInstruction(instruction)
-                            .SetTemplates(templates)
-                            .SetFunctions(functions)
-                            .SetResponses(responses)
-                            .SetSamples(samples);
-            }
+            return (defaultInstruction, channelInstructions);
         }
 
-        return null;
-    }
+        foreach (var file in Directory.GetFiles(instructionDir))
+        {
+            var extension = Path.GetExtension(file).Substring(1);
+            if (!extension.IsEqualTo(_agentSettings.TemplateFormat))
+            {
+                continue;
+            }
 
-    private string FetchInstructionFromFile(string fileDir)
-    {
-        var file = Path.Combine(fileDir, $"instruction.{_agentSettings.TemplateFormat}");
-        if (!File.Exists(file)) return null;
+            var segments = Path.GetFileName(file).Split(".", StringSplitOptions.RemoveEmptyEntries);
+            if (segments.IsNullOrEmpty() || !segments[0].IsEqualTo("instruction"))
+            {
+                continue;
+            }
 
-        var instruction = File.ReadAllText(file);
-        return instruction;
+            if (segments.Length == 2)
+            {
+                defaultInstruction = File.ReadAllText(file);
+            }
+            else if (segments.Length == 3)
+            {
+                var item = new ChannelInstruction
+                {
+                    Channel = segments[1],
+                    Instruction = File.ReadAllText(file)
+                };
+                channelInstructions.Add(item);
+            }
+        }
+        return (defaultInstruction, channelInstructions);
     }
 
     private List<AgentTemplate> FetchTemplatesFromFile(string fileDir)
@@ -86,10 +94,10 @@ public partial class AgentService
 
         foreach (var file in Directory.GetFiles(templateDir))
         {
-            var name = Path.GetFileNameWithoutExtension(file);
             var extension = Path.GetExtension(file).Substring(1);
             if (extension.IsEqualTo(_agentSettings.TemplateFormat))
             {
+                var name = Path.GetFileNameWithoutExtension(file);
                 var content = File.ReadAllText(file);
                 templates.Add(new AgentTemplate(name, content));
             }

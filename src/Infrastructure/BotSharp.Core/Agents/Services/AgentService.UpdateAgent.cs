@@ -28,6 +28,7 @@ public partial class AgentService
         record.Profiles = agent.Profiles ?? new List<string>();
         record.RoutingRules = agent.RoutingRules ?? new List<RoutingRule>();
         record.Instruction = agent.Instruction ?? string.Empty;
+        record.ChannelInstructions = agent.ChannelInstructions ?? new List<ChannelInstruction>();
         record.Functions = agent.Functions ?? new List<FunctionDef>();
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
@@ -41,7 +42,6 @@ public partial class AgentService
         _db.UpdateAgent(record, updateField);
 
         Utilities.ClearCache();
-
         await Task.CompletedTask;
     }
 
@@ -90,6 +90,7 @@ public partial class AgentService
                        .SetProfiles(foundAgent.Profiles)
                        .SetRoutingRules(foundAgent.RoutingRules)
                        .SetInstruction(foundAgent.Instruction)
+                       .SetChannelInstructions(foundAgent.ChannelInstructions)
                        .SetTemplates(foundAgent.Templates)
                        .SetFunctions(foundAgent.Functions)
                        .SetResponses(foundAgent.Responses)
@@ -175,12 +176,13 @@ public partial class AgentService
             var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
             if (agent != null && agent.Id == agentId)
             {
+                var (defaultInstruction, channelInstructions) = FetchInstructionsFromFile(dir);
                 var functions = FetchFunctionsFromFile(dir);
-                var instruction = FetchInstructionFromFile(dir);
                 var responses = FetchResponsesFromFile(dir);
                 var templates = FetchTemplatesFromFile(dir);
                 var samples = FetchSamplesFromFile(dir);
-                return agent.SetInstruction(instruction)
+                return agent.SetInstruction(defaultInstruction)
+                            .SetChannelInstructions(channelInstructions)
                             .SetTemplates(templates)
                             .SetFunctions(functions)
                             .SetResponses(responses)
