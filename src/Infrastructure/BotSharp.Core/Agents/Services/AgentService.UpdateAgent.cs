@@ -71,7 +71,7 @@ public partial class AgentService
                                     agentSettings.DataDir);
 
         var clonedAgent = Agent.Clone(agent);
-        var foundAgent = FetchAgentFileById(agent.Id, filePath);
+        var foundAgent = GetAgentFileById(agent.Id, filePath);
         if (foundAgent == null)
         {
             updateResult = $"Cannot find agent {agent.Name} in file directory: {filePath}";
@@ -166,7 +166,7 @@ public partial class AgentService
         return patchResult;
     }
 
-    private Agent? FetchAgentFileById(string agentId, string filePath)
+    private Agent? GetAgentFileById(string agentId, string filePath)
     {
         if (!Directory.Exists(filePath)) return null;
 
@@ -176,11 +176,11 @@ public partial class AgentService
             var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
             if (agent != null && agent.Id == agentId)
             {
-                var (defaultInstruction, channelInstructions) = FetchInstructionsFromFile(dir);
-                var functions = FetchFunctionsFromFile(dir);
-                var responses = FetchResponsesFromFile(dir);
-                var templates = FetchTemplatesFromFile(dir);
-                var samples = FetchSamplesFromFile(dir);
+                var (defaultInstruction, channelInstructions) = GetInstructionsFromFile(dir);
+                var functions = GetFunctionsFromFile(dir);
+                var responses = GetResponsesFromFile(dir);
+                var templates = GetTemplatesFromFile(dir);
+                var samples = GetSamplesFromFile(dir);
                 return agent.SetInstruction(defaultInstruction)
                             .SetChannelInstructions(channelInstructions)
                             .SetTemplates(templates)

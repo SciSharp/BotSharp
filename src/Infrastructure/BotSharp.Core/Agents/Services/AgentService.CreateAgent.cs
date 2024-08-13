@@ -44,7 +44,7 @@ public partial class AgentService
         return await Task.FromResult(agentRecord);
     }
 
-    private (string, List<ChannelInstruction>) FetchInstructionsFromFile(string fileDir)
+    private (string, List<ChannelInstruction>) GetInstructionsFromFile(string fileDir)
     {
         var defaultInstruction = string.Empty;
         var channelInstructions = new List<ChannelInstruction>();
@@ -86,7 +86,7 @@ public partial class AgentService
         return (defaultInstruction, channelInstructions);
     }
 
-    private List<AgentTemplate> FetchTemplatesFromFile(string fileDir)
+    private List<AgentTemplate> GetTemplatesFromFile(string fileDir)
     {
         var templates = new List<AgentTemplate>();
         var templateDir = Path.Combine(fileDir, "templates");
@@ -106,7 +106,7 @@ public partial class AgentService
         return templates;
     }
 
-    private List<FunctionDef> FetchFunctionsFromFile(string fileDir)
+    private List<FunctionDef> GetFunctionsFromFile(string fileDir)
     {
         var functions = new List<FunctionDef>();
         var functionDir = Path.Combine(fileDir, "functions");
@@ -133,7 +133,7 @@ public partial class AgentService
         return functions;
     }
 
-    private List<AgentResponse> FetchResponsesFromFile(string fileDir)
+    private List<AgentResponse> GetResponsesFromFile(string fileDir)
     {
         var responses = new List<AgentResponse>();
         var responseDir = Path.Combine(fileDir, "responses");
@@ -151,7 +151,7 @@ public partial class AgentService
         return responses;
     }
 
-    private List<string> FetchSamplesFromFile(string fileDir)
+    private List<string> GetSamplesFromFile(string fileDir)
     {
         var file = Path.Combine(fileDir, "samples.txt");
         if (!File.Exists(file)) return new List<string>();
@@ -160,7 +160,7 @@ public partial class AgentService
         return samples?.ToList() ?? new List<string>();
     }
 
-    private List<AgentTask> FetchTasksFromFile(string fileDir)
+    private List<AgentTask> GetTasksFromFile(string fileDir)
     {
         var tasks = new List<AgentTask>();
         var taskDir = Path.Combine(fileDir, "tasks");

@@ -42,11 +42,11 @@ public partial class AgentService
                     continue;
                 }
 
-                var (defaultInstruction, channelInstructions) = FetchInstructionsFromFile(dir);
-                var functions = FetchFunctionsFromFile(dir);
-                var responses = FetchResponsesFromFile(dir);
-                var templates = FetchTemplatesFromFile(dir);
-                var samples = FetchSamplesFromFile(dir);
+                var (defaultInstruction, channelInstructions) = GetInstructionsFromFile(dir);
+                var functions = GetFunctionsFromFile(dir);
+                var responses = GetResponsesFromFile(dir);
+                var templates = GetTemplatesFromFile(dir);
+                var samples = GetSamplesFromFile(dir);
                 agent.SetInstruction(defaultInstruction)
                      .SetChannelInstructions(channelInstructions)
                      .SetTemplates(templates)
@@ -55,7 +55,7 @@ public partial class AgentService
                      .SetSamples(samples);
 
                 var userAgent = BuildUserAgent(agent.Id, user.Id);
-                var tasks = FetchTasksFromFile(dir);
+                var tasks = GetTasksFromFile(dir);
 
                 var isAgentDeleted = _db.DeleteAgent(agent.Id);
                 if (isAgentDeleted)
