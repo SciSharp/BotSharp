@@ -63,7 +63,7 @@ public class TwilioService
         return response;
     }
 
-    public VoiceResponse ReturnInstructions(string speechPath, string callbackPath, bool actionOnEmptyResult)
+    public VoiceResponse ReturnInstructions(string speechPath, string callbackPath, bool actionOnEmptyResult, int timeout = 3)
     {
         var response = new VoiceResponse();
         var gather = new Gather()
@@ -73,7 +73,9 @@ public class TwilioService
                 Gather.InputEnum.Speech
             },
             Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
-            SpeechTimeout = "3",
+            SpeechModel = Gather.SpeechModelEnum.PhoneCall,
+            SpeechTimeout = timeout > 0 ? timeout.ToString() : "3",
+            Timeout = timeout > 0 ? timeout : 3,
             ActionOnEmptyResult = actionOnEmptyResult
         };
         if (!string.IsNullOrEmpty(speechPath))

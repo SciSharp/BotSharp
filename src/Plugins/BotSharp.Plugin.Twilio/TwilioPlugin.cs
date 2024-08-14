@@ -17,7 +17,6 @@ public class TwilioPlugin : IBotSharpPlugin
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<TwilioSetting>("Twilio");
         });
-
         services.AddScoped<TwilioService>();
         var conn = ConnectionMultiplexer.Connect(config["Twilio:RedisConnectionString"]);
         var sessionManager = new TwilioSessionManager(conn);
