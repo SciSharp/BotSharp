@@ -298,7 +298,7 @@ namespace BotSharp.Core.Repository
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
 
-            UpdateAgentInstructions(inputAgent.Id, inputAgent.Instruction, agent.ChannelInstructions);
+            UpdateAgentInstructions(inputAgent.Id, inputAgent.Instruction, inputAgent.ChannelInstructions);
             UpdateAgentResponses(inputAgent.Id, inputAgent.Responses);
             UpdateAgentTemplates(inputAgent.Id, inputAgent.Templates);
             UpdateAgentFunctions(inputAgent.Id, inputAgent.Functions);
