@@ -26,10 +26,11 @@ public class MemorizeKnowledgeFn : IFunctionCallback
         });
 
         var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
-        await vectorDb.CreateCollection(KnowledgeCollectionName.BotSharp, vector[0].Length);
+        var collectionName = !string.IsNullOrWhiteSpace(_settings.DefaultCollection) ? _settings.DefaultCollection : KnowledgeCollectionName.BotSharp;
+        await vectorDb.CreateCollection(collectionName, vector[0].Length);
 
         var id = Guid.NewGuid().ToString();
-        var result = await vectorDb.Upsert(KnowledgeCollectionName.BotSharp, id, vector[0], 
+        var result = await vectorDb.Upsert(collectionName, id, vector[0], 
             args.Question, 
             new Dictionary<string, string> 
             { 
