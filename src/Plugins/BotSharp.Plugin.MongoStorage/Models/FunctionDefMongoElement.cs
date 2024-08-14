@@ -8,6 +8,7 @@ public class FunctionDefMongoElement
 {
     public string Name { get; set; }
     public string Description { get; set; }
+    public List<string>? Channels { get; set; }
     public string? VisibilityExpression { get; set; }
     public string? Impact { get; set; }
     public FunctionParametersDefMongoElement Parameters { get; set; } = new FunctionParametersDefMongoElement();
@@ -23,6 +24,7 @@ public class FunctionDefMongoElement
         {
             Name = function.Name,
             Description = function.Description,
+            Channels = function.Channels,
             VisibilityExpression = function.VisibilityExpression,
             Impact = function.Impact,
             Parameters = new FunctionParametersDefMongoElement
@@ -34,19 +36,20 @@ public class FunctionDefMongoElement
         };
     }
 
-    public static FunctionDef ToDomainElement(FunctionDefMongoElement mongoFunction)
+    public static FunctionDef ToDomainElement(FunctionDefMongoElement function)
     {
         return new FunctionDef
         {
-            Name = mongoFunction.Name,
-            Description = mongoFunction.Description,
-            VisibilityExpression = mongoFunction.VisibilityExpression,
-            Impact = mongoFunction.Impact,
+            Name = function.Name,
+            Description = function.Description,
+            Channels = function.Channels,
+            VisibilityExpression = function.VisibilityExpression,
+            Impact = function.Impact,
             Parameters = new FunctionParametersDef
             {
-                Type = mongoFunction.Parameters.Type,
-                Properties = JsonSerializer.Deserialize<JsonDocument>(mongoFunction.Parameters.Properties.IfNullOrEmptyAs("{}")),
-                Required = mongoFunction.Parameters.Required,
+                Type = function.Parameters.Type,
+                Properties = JsonSerializer.Deserialize<JsonDocument>(function.Parameters.Properties.IfNullOrEmptyAs("{}")),
+                Required = function.Parameters.Required,
             }
         };
     }
