@@ -16,6 +16,12 @@ public class AgentUpdateModel
     public string Instruction { get; set; } = string.Empty;
 
     /// <summary>
+    /// Channel instructions
+    /// </summary>
+    [JsonPropertyName("channel_instructions")]
+    public List<ChannelInstruction>? ChannelInstructions { get; set; }
+
+    /// <summary>
     /// Templates
     /// </summary>
     public List<AgentTemplate>? Templates { get; set; }
@@ -39,11 +45,11 @@ public class AgentUpdateModel
     /// Routes
     /// </summary>
     public List<AgentResponse>? Responses { get; set; }
+
     [JsonPropertyName("is_public")]
-
     public bool IsPublic { get; set; }
-    [JsonPropertyName("allow_routing")]
 
+    [JsonPropertyName("allow_routing")]
     public bool AllowRouting { get; set; }
 
     public bool Disabled { get; set; }
@@ -52,8 +58,8 @@ public class AgentUpdateModel
     /// Profile by channel
     /// </summary>
     public List<string>? Profiles { get; set; }
-    [JsonPropertyName("routing_rules")]
 
+    [JsonPropertyName("routing_rules")]
     public List<RoutingRuleUpdateModel>? RoutingRules { get; set; }
 
     [JsonPropertyName("llm_config")]
@@ -69,10 +75,9 @@ public class AgentUpdateModel
             Disabled = Disabled,
             Type = Type,
             Profiles = Profiles ?? new List<string>(),
-            RoutingRules = RoutingRules?
-                            .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?
-                            .ToList() ?? new List<RoutingRule>(),
+            RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),
             Instruction = Instruction ?? string.Empty,
+            ChannelInstructions = ChannelInstructions ?? new List<ChannelInstruction>(),
             Templates = Templates ?? new List<AgentTemplate>(),
             Functions = Functions ?? new List<FunctionDef>(),
             Responses = Responses ?? new List<AgentResponse>(),

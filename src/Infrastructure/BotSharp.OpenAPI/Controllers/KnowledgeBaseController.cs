@@ -16,6 +16,12 @@ public class KnowledgeBaseController : ControllerBase
         _services = services;
     }
 
+    [HttpGet("knowledge/collections")]
+    public async Task<IEnumerable<string>> GetKnowledgeCollections()
+    {
+        return await _knowledgeService.GetKnowledgeCollections();
+    }
+
     [HttpPost("/knowledge/{collection}/search")]
     public async Task<IEnumerable<KnowledgeRetrivalViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeModel model)
     {

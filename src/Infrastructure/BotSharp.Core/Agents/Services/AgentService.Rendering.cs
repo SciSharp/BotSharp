@@ -20,17 +20,32 @@ public partial class AgentService
 
     public bool RenderFunction(Agent agent, FunctionDef def)
     {
-        if (!string.IsNullOrEmpty(def.VisibilityExpression))
+        var isRender = true;
+
+        var channels = def.Channels;
+        if (channels != null)
+        {
+            var state = _services.GetRequiredService<IConversationStateService>();
+            var channel = state.GetState("channel");
+            if (!string.IsNullOrWhiteSpace(channel))
+            {
+                isRender = isRender && channels.Contains(channel);
+            }
+        }
+
+        if (!isRender) return false;
+
+        if (!string.IsNullOrWhiteSpace(def.VisibilityExpression))
         {
             var render = _services.GetRequiredService<ITemplateRender>();
             var result = render.Render(def.VisibilityExpression, new Dictionary<string, object>
             {
                 { "states", agent.TemplateDict }
             });
-            return result == "visible";
+            isRender = isRender && result == "visible";
         }
 
-        return true;
+        return isRender;
     }
 
     public FunctionParametersDef? RenderFunctionProperty(Agent agent, FunctionDef def)

@@ -8,6 +8,7 @@ public class AgentDocument : MongoBase
     public string? InheritAgentId { get; set; }
     public string? IconUrl { get; set; }
     public string Instruction { get; set; }
+    public List<ChannelInstructionMongoElement> ChannelInstructions { get; set; }
     public List<AgentTemplateMongoElement> Templates { get; set; }
     public List<FunctionDefMongoElement> Functions { get; set; }
     public List<AgentResponseMongoElement> Responses { get; set; }

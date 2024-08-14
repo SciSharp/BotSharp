@@ -38,7 +38,7 @@ public partial class MongoRepository
                 UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
                 break;
             case AgentField.Instruction:
-                UpdateAgentInstruction(agent.Id, agent.Instruction);
+                UpdateAgentInstructions(agent.Id, agent.Instruction, agent.ChannelInstructions);
                 break;
             case AgentField.Function:
                 UpdateAgentFunctions(agent.Id, agent.Functions);
@@ -156,13 +156,17 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentInstruction(string agentId, string instruction)
+    private void UpdateAgentInstructions(string agentId, string instruction, List<ChannelInstruction>? channelInstructions)
     {
-        if (string.IsNullOrWhiteSpace(instruction)) return;
+        if (string.IsNullOrWhiteSpace(agentId)) return;
+
+        var instructionElements = channelInstructions?.Select(x => ChannelInstructionMongoElement.ToMongoElement(x))?
+                                                      .ToList() ?? new List<ChannelInstructionMongoElement>();
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.Instruction, instruction)
+            .Set(x => x.ChannelInstructions, instructionElements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -253,6 +257,7 @@ public partial class MongoRepository
             .Set(x => x.Profiles, agent.Profiles)
             .Set(x => x.RoutingRules, agent.RoutingRules.Select(r => RoutingRuleMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Instruction, agent.Instruction)
+            .Set(x => x.ChannelInstructions, agent.ChannelInstructions.Select(i => ChannelInstructionMongoElement.ToMongoElement(i)).ToList())
             .Set(x => x.Templates, agent.Templates.Select(t => AgentTemplateMongoElement.ToMongoElement(t)).ToList())
             .Set(x => x.Functions, agent.Functions.Select(f => FunctionDefMongoElement.ToMongoElement(f)).ToList())
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
@@ -373,6 +378,9 @@ public partial class MongoRepository
             IconUrl = x.IconUrl,
             Description = x.Description,
             Instruction = x.Instruction,
+            ChannelInstructions = x.ChannelInstructions?
+                            .Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?
+                            .ToList() ?? new List<ChannelInstructionMongoElement>(),
             Templates = x.Templates?
                             .Select(t => AgentTemplateMongoElement.ToMongoElement(t))?
                             .ToList() ?? new List<AgentTemplateMongoElement>(),
@@ -463,6 +471,9 @@ public partial class MongoRepository
             IconUrl = agentDoc.IconUrl,
             Description = agentDoc.Description,
             Instruction = agentDoc.Instruction,
+            ChannelInstructions = !agentDoc.ChannelInstructions.IsNullOrEmpty() ? agentDoc.ChannelInstructions
+                              .Select(i => ChannelInstructionMongoElement.ToDomainElement(i))
+                              .ToList() : new List<ChannelInstruction>(),
             Templates = !agentDoc.Templates.IsNullOrEmpty() ? agentDoc.Templates
                              .Select(t => AgentTemplateMongoElement.ToDomainElement(t))
                              .ToList() : new List<AgentTemplate>(),
@@ -472,6 +483,10 @@ public partial class MongoRepository
             Responses = !agentDoc.Responses.IsNullOrEmpty() ? agentDoc.Responses
                              .Select(r => AgentResponseMongoElement.ToDomainElement(r))
                              .ToList() : new List<AgentResponse>(),
+            RoutingRules = !agentDoc.RoutingRules.IsNullOrEmpty() ? agentDoc.RoutingRules
+                                .Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))
+                                .ToList() : new List<RoutingRule>(),
+            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig),
             Samples = agentDoc.Samples ?? new List<string>(),
             Utilities = agentDoc.Utilities ?? new List<string>(),
             IsPublic = agentDoc.IsPublic,
@@ -479,10 +494,6 @@ public partial class MongoRepository
             Type = agentDoc.Type,
             InheritAgentId = agentDoc.InheritAgentId,
             Profiles = agentDoc.Profiles,
-            RoutingRules = !agentDoc.RoutingRules.IsNullOrEmpty() ? agentDoc.RoutingRules
-                                .Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))
-                                .ToList() : new List<RoutingRule>(),
-            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig)
         };
     }
 }
