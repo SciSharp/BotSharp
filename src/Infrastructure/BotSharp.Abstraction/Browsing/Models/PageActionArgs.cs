@@ -28,6 +28,12 @@ public class PageActionArgs
     /// </summary>
     public string[]? IncludeResponseUrls { get; set; }
 
+    /// <summary>
+    /// If set to true, the response will be stored in memory
+    /// </summary>
+    public bool ResponseInMemory { get; set; } = false;
+    public List<WebPageResponseData>? ResponseContainer { get; set; }
+
     public bool UseExistingPage { get; set; } = false;
 
     public bool WaitForNetworkIdle { get; set; } = true;

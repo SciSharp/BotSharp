@@ -122,7 +122,12 @@ public class PlaywrightInstance : IDisposable
         return _contexts[ctxId];
     }
 
-    public async Task<IPage> NewPage(MessageInfo message, bool enableResponseCallback = false, string[]? excludeResponseUrls = null, string[]? includeResponseUrls = null)
+    public async Task<IPage> NewPage(MessageInfo message, 
+        bool enableResponseCallback = false, 
+        bool responseInMemory = false,
+        List<WebPageResponseData>? responseContainer = null,
+        string[]? excludeResponseUrls = null, 
+        string[]? includeResponseUrls = null)
     {
         var context = await GetContext(message.ContextId);
         var page = await context.NewPageAsync();
@@ -162,7 +167,20 @@ public class PlaywrightInstance : IDisposable
                     var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
                     foreach (var hook in webPageResponseHooks)
                     {
-                        hook.OnDataFetched(message, e.Url.ToLower(), e.Request?.PostData ?? string.Empty, JsonSerializer.Serialize(json));
+                        var result = new WebPageResponseData
+                        {
+                            Url = e.Url.ToLower(),
+                            PostData = e.Request?.PostData ?? string.Empty,
+                            ResponseData = JsonSerializer.Serialize(json),
+                            ResponseInMemory = responseInMemory
+                        };
+
+                        if (responseContainer != null && responseInMemory)
+                        {
+                            responseContainer.Add(result);
+                        }
+                        
+                        hook.OnDataFetched(message, result);
                     }
                 }
                 catch (ObjectDisposedException ex)
