@@ -16,7 +16,7 @@ public class GraphPlugin : IBotSharpPlugin
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<GraphDbSettings>("GraphDb");
+            return settingService.Bind<GraphDbSettings>("Graph");
         });
 
         services.AddScoped<IGraphDb, GraphDb>();
