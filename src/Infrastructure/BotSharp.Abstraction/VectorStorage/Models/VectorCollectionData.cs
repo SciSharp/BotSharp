@@ -1,6 +1,6 @@
-namespace BotSharp.Abstraction.Knowledges.Models;
+namespace BotSharp.Abstraction.VectorStorage.Models;
 
-public class KnowledgeCollectionData
+public class VectorCollectionData
 {
     public string Id { get; set; }
     public Dictionary<string, string> Data { get; set; } = new();

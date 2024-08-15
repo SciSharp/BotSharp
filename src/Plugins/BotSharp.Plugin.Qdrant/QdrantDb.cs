@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Abstraction.VectorStorage.Models;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -41,27 +42,27 @@ public class QdrantDb : IVectorDb
         return collections.ToList();
     }
 
-    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
     {
         var client = GetClient();
         var exist = await DoesCollectionExist(client, collectionName);
         if (!exist)
         {
-            return new StringIdPagedItems<KnowledgeCollectionData>();
+            return new StringIdPagedItems<VectorCollectionData>();
         }
 
         var totalPointCount = await client.CountAsync(collectionName);
         var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : 0,
             vectorsSelector: filter.WithVector);
-        var points = response?.Result?.Select(x => new KnowledgeCollectionData
+        var points = response?.Result?.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
             Data = x.Payload.ToDictionary(x => x.Key, x => x.Value.StringValue),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
-        })?.ToList() ?? new List<KnowledgeCollectionData>();
+        })?.ToList() ?? new List<VectorCollectionData>();
 
-        return new StringIdPagedItems<KnowledgeCollectionData>
+        return new StringIdPagedItems<VectorCollectionData>
         {
             Count = totalPointCount,
             NextId = response?.NextPageOffset?.Uuid,
@@ -124,10 +125,10 @@ public class QdrantDb : IVectorDb
         return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
         IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
     {
-        var results = new List<KnowledgeCollectionData>();
+        var results = new List<VectorCollectionData>();
 
         var client = GetClient();
         var exist = await DoesCollectionExist(client, collectionName);
@@ -161,7 +162,7 @@ public class QdrantDb : IVectorDb
                 data = point.Payload.ToDictionary(k => k.Key, v => v.Value.StringValue);
             }
 
-            results.Add(new KnowledgeCollectionData
+            results.Add(new VectorCollectionData
             {
                 Id = point.Id.Uuid,
                 Data = data,
