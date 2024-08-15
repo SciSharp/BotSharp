@@ -15,7 +15,7 @@ global using BotSharp.Abstraction.Users;
 global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Agents.Settings;
-global using BotSharp.Abstraction.Conversations.Settings;
+global using BotSharp.Abstraction.Graph;
 global using BotSharp.Abstraction.Knowledges.Settings;
 global using BotSharp.Abstraction.Knowledges.Enums;
 global using BotSharp.Abstraction.VectorStorage;

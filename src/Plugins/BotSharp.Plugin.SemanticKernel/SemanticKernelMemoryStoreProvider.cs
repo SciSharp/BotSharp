@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
+using BotSharp.Abstraction.VectorStorage.Models;
 using Microsoft.SemanticKernel.Memory;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -28,7 +28,7 @@ namespace BotSharp.Plugin.SemanticKernel
             await _memoryStore.CreateCollectionAsync(collectionName);
         }
 
-        public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
+        public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
         {
             throw new System.NotImplementedException();
         }
@@ -43,15 +43,15 @@ namespace BotSharp.Plugin.SemanticKernel
             return result;
         }
 
-        public async Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+        public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
             IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
         {
             var results = _memoryStore.GetNearestMatchesAsync(collectionName, vector, limit);
 
-            var resultTexts = new List<KnowledgeCollectionData>();
+            var resultTexts = new List<VectorCollectionData>();
             await foreach (var (record, score) in results)
             {
-                resultTexts.Add(new KnowledgeCollectionData
+                resultTexts.Add(new VectorCollectionData
                 {
                     Data = new Dictionary<string, string> { { "text", record.Metadata.Text } },
                     Score = score,
