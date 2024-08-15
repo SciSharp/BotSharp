@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class SearchKnowledgeModel
+public class SearchKnowledgeRequest
 {
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;

@@ -27,12 +27,12 @@ public class MemoryVectorDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
-        IEnumerable<string> fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
+    public async Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+        IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
     {
         if (!_vectors.ContainsKey(collectionName))
         {
-            return new List<KnowledgeSearchResult>();
+            return new List<KnowledgeCollectionData>();
         }
 
         var similarities = VectorUtility.CalCosineSimilarity(vector, _vectors[collectionName]);
@@ -41,7 +41,7 @@ public class MemoryVectorDb : IVectorDb
         var results = np.argsort(similarities).ToArray<int>()
                         .Reverse()
                         .Take(limit)
-                        .Select(i => new KnowledgeSearchResult
+                        .Select(i => new KnowledgeCollectionData
                         {
                             Data = new Dictionary<string, string> { { "text", _vectors[collectionName][i].Text } },
                             Score = similarities[i],
@@ -64,8 +64,8 @@ public class MemoryVectorDb : IVectorDb
         return true;
     }
 
-    public Task<bool> DeleteCollectionData(string collectionName, string id)
+    public async Task<bool> DeleteCollectionData(string collectionName, string id)
     {
-        throw new NotImplementedException();
+        return await Task.FromResult(false);
     }
 }

@@ -57,8 +57,7 @@ public class QdrantDb : IVectorDb
         var points = response?.Result?.Select(x => new KnowledgeCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Question = x.Payload.ContainsKey(KnowledgePayloadName.Text) ? x.Payload[KnowledgePayloadName.Text].StringValue : string.Empty,
-            Answer = x.Payload.ContainsKey(KnowledgePayloadName.Answer) ? x.Payload[KnowledgePayloadName.Answer].StringValue : string.Empty,
+            Data = x.Payload.ToDictionary(x => x.Key, x => x.Value.StringValue),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
         })?.ToList() ?? new List<KnowledgeCollectionData>();
 
@@ -125,10 +124,10 @@ public class QdrantDb : IVectorDb
         return result.Status == UpdateStatus.Completed;
     }
 
-    public async Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
-        IEnumerable<string> fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
+    public async Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+        IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
     {
-        var results = new List<KnowledgeSearchResult>();
+        var results = new List<KnowledgeCollectionData>();
 
         var client = GetClient();
         var exist = await DoesCollectionExist(client, collectionName);
@@ -138,24 +137,33 @@ public class QdrantDb : IVectorDb
         }
 
         var points = await client.SearchAsync(collectionName, vector, limit: (ulong)limit, scoreThreshold: confidence);
-        
+
+        var pickFields = fields != null;
         foreach (var point in points)
         {
             var data = new Dictionary<string, string>();
-            foreach (var field in fields)
+            if (pickFields)
             {
-                if (point.Payload.ContainsKey(field))
+                foreach (var field in fields)
                 {
-                    data[field] = point.Payload[field].StringValue;
-                }
-                else
-                {
-                    data[field] = "";
+                    if (point.Payload.ContainsKey(field))
+                    {
+                        data[field] = point.Payload[field].StringValue;
+                    }
+                    else
+                    {
+                        data[field] = "";
+                    }
                 }
             }
-
-            results.Add(new KnowledgeSearchResult
+            else
             {
+                data = point.Payload.ToDictionary(k => k.Key, v => v.Value.StringValue);
+            }
+
+            results.Add(new KnowledgeCollectionData
+            {
+                Id = point.Id.Uuid,
                 Data = data,
                 Score = point.Score,
                 Vector = withVector ? point.Vectors?.Vector?.Data?.ToArray() : null
