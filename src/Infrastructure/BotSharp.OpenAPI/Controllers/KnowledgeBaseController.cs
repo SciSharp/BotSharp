@@ -16,30 +16,36 @@ public class KnowledgeBaseController : ControllerBase
         _services = services;
     }
 
-    [HttpPost("/knowledge/{collection}/search")]
-    public async Task<IEnumerable<KnowledgeRetrivalViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeModel model)
+    [HttpGet("knowledge/collections")]
+    public async Task<IEnumerable<string>> GetKnowledgeCollections()
     {
-        var options = new KnowledgeRetrievalOptions
+        return await _knowledgeService.GetKnowledgeCollections();
+    }
+
+    [HttpPost("/knowledge/{collection}/search")]
+    public async Task<IEnumerable<KnowledgeSearchResultViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeRequest request)
+    {
+        var options = new KnowledgeSearchOptions
         {
-            Text = model.Text,
-            Fields = model.Fields,
-            Limit = model.Limit ?? 5,
-            Confidence = model.Confidence ?? 0.5f,
-            WithVector = model.WithVector
+            Text = request.Text,
+            Fields = request.Fields,
+            Limit = request.Limit ?? 5,
+            Confidence = request.Confidence ?? 0.5f,
+            WithVector = request.WithVector
         };
 
         var results = await _knowledgeService.SearchKnowledge(collection, options);
-        return results.Select(x => KnowledgeRetrivalViewModel.From(x)).ToList();
+        return results.Select(x => KnowledgeSearchResultViewModel.From(x)).ToList();
     }
 
     [HttpPost("/knowledge/{collection}/data")]
-    public async Task<StringIdPagedItems<KnowledgeCollectionDataViewModel>> GetKnowledgeCollectionData([FromRoute] string collection, [FromBody] KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<KnowledgeSearchResultViewModel>> GetKnowledgeCollectionData([FromRoute] string collection, [FromBody] KnowledgeFilter filter)
     {
         var data = await _knowledgeService.GetKnowledgeCollectionData(collection, filter);
-        var items = data.Items?.Select(x => KnowledgeCollectionDataViewModel.From(x))?
-                               .ToList() ?? new List<KnowledgeCollectionDataViewModel>();
+        var items = data.Items?.Select(x => KnowledgeSearchResultViewModel.From(x))?
+                               .ToList() ?? new List<KnowledgeSearchResultViewModel>();
 
-        return new StringIdPagedItems<KnowledgeCollectionDataViewModel>
+        return new StringIdPagedItems<KnowledgeSearchResultViewModel>
         {
             Count = data.Count,
             NextId = data.NextId,

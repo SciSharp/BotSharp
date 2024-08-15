@@ -34,6 +34,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string AGENT_TASK_PREFIX = "#metadata";
     private const string AGENT_TASK_SUFFIX = "/metadata";
     private const string TRANSLATION_MEMORY_FILE = "memory.json";
+    private const string AGENT_INSTRUCTIONS_FOLDER = "instructions";
     private const string AGENT_FUNCTIONS_FOLDER = "functions";
     private const string AGENT_TEMPLATES_FOLDER = "templates";
     private const string AGENT_RESPONSES_FOLDER = "responses";
@@ -123,7 +124,9 @@ public partial class FileRepository : IBotSharpRepository
                     var agent = JsonSerializer.Deserialize<Agent>(json, _options);
                     if (agent != null)
                     {
-                        agent = agent.SetInstruction(FetchInstruction(d))
+                        var (defaultInstruction, channelInstructions) = FetchInstructions(d);
+                        agent = agent.SetInstruction(defaultInstruction)
+                                     .SetChannelInstructions(channelInstructions)
                                      .SetFunctions(FetchFunctions(d))
                                      .SetTemplates(FetchTemplates(d))
                                      .SetResponses(FetchResponses(d))
@@ -165,6 +168,17 @@ public partial class FileRepository : IBotSharpRepository
 
 
     #region Private methods
+    private void DeleteBeforeCreateDirectory(string dir)
+    {
+        if (string.IsNullOrWhiteSpace(dir)) return;
+
+        if (Directory.Exists(dir))
+        {
+            Directory.Delete(dir, true);
+        }
+        Directory.CreateDirectory(dir);
+    }
+
     private string GetAgentDataDir(string agentId)
     {
         var dir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId);
@@ -186,13 +200,46 @@ public partial class FileRepository : IBotSharpRepository
         return (agent, agentFile);
     }
 
-    private string? FetchInstruction(string fileDir)
+    private (string, List<ChannelInstruction>) FetchInstructions(string fileDir)
     {
-        var file = Path.Combine(fileDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
-        if (!File.Exists(file)) return null;
+        var defaultInstruction = string.Empty;
+        var channelInstructions = new List<ChannelInstruction>();
 
-        var instruction = File.ReadAllText(file);
-        return instruction;
+        var instructionDir = Path.Combine(fileDir, AGENT_INSTRUCTIONS_FOLDER);
+        if (!Directory.Exists(instructionDir))
+        {
+            return (defaultInstruction, channelInstructions);
+        }
+
+        foreach (var file in Directory.GetFiles(instructionDir))
+        {
+            var extension = Path.GetExtension(file).Substring(1);
+            if (!extension.IsEqualTo(_agentSettings.TemplateFormat))
+            {
+                continue;
+            }
+
+            var segments = Path.GetFileName(file).Split(".", StringSplitOptions.RemoveEmptyEntries);
+            if (segments.IsNullOrEmpty() || !segments[0].IsEqualTo(AGENT_INSTRUCTION_FILE))
+            {
+                continue;
+            }
+
+            if (segments.Length == 2)
+            {
+                defaultInstruction = File.ReadAllText(file);
+            }
+            else if (segments.Length == 3)
+            {
+                var item = new ChannelInstruction
+                {
+                    Channel = segments[1],
+                    Instruction = File.ReadAllText(file)
+                };
+                channelInstructions.Add(item);
+            }
+        }
+        return (defaultInstruction, channelInstructions);
     }
 
     private List<FunctionDef> FetchFunctions(string fileDir)
@@ -298,13 +345,14 @@ public partial class FileRepository : IBotSharpRepository
         var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
         if (agent == null) return null;
 
-        var instruction = FetchInstruction(agentDir);
+        var (defaultInstruction, channelInstructions) = FetchInstructions(agentDir);
         var functions = FetchFunctions(agentDir);
         var samples = FetchSamples(agentDir);
         var templates = FetchTemplates(agentDir);
         var responses = FetchResponses(agentDir);
 
-        return agent.SetInstruction(instruction)
+        return agent.SetInstruction(defaultInstruction)
+                    .SetChannelInstructions(channelInstructions)
                     .SetFunctions(functions)
                     .SetTemplates(templates)
                     .SetSamples(samples)
