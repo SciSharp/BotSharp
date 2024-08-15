@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\python_interpreter.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\python_interpreter.fn.liquid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\python_interpreter.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\python_interpreter.fn.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="pythonnet" Version="3.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+
+</Project>
