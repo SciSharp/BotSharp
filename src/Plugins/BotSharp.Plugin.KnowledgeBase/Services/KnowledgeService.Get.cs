@@ -16,21 +16,27 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<StringIdPagedItems<KnowledgeCollectionData>> GetKnowledgeCollectionData(string collectionName, KnowledgeFilter filter)
+    public async Task<StringIdPagedItems<KnowledgeSearchResult>> GetKnowledgeCollectionData(string collectionName, KnowledgeFilter filter)
     {
         try
         {
             var db = GetVectorDb();
-            return await db.GetCollectionData(collectionName, filter);
+            var pagedResult =  await db.GetCollectionData(collectionName, filter);
+            return new StringIdPagedItems<KnowledgeSearchResult>
+            {
+                Count = pagedResult.Count,
+                Items = pagedResult.Items.Select(x => KnowledgeSearchResult.CopyFrom(x)),
+                NextId = pagedResult.NextId,
+            };
         }
         catch (Exception ex)
         {
             _logger.LogWarning($"Error when getting knowledge collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
-            return new StringIdPagedItems<KnowledgeCollectionData>();
+            return new StringIdPagedItems<KnowledgeSearchResult>();
         }
     }
 
-    public async Task<IEnumerable<KnowledgeRetrievalResult>> SearchKnowledge(string collectionName, KnowledgeRetrievalOptions options)
+    public async Task<IEnumerable<KnowledgeSearchResult>> SearchKnowledge(string collectionName, KnowledgeSearchOptions options)
     {
         try
         {
@@ -39,21 +45,15 @@ public partial class KnowledgeService
 
             // Vector search
             var db = GetVectorDb();
-            var fields = !options.Fields.IsNullOrEmpty() ? options.Fields : new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer };
-            var found = await db.Search(collectionName, vector, fields, limit: options.Limit ?? 5, confidence: options.Confidence ?? 0.5f, withVector: options.WithVector);
+            var found = await db.Search(collectionName, vector, options.Fields, limit: options.Limit ?? 5, confidence: options.Confidence ?? 0.5f, withVector: options.WithVector);
 
-            var results = found.Select(x => new KnowledgeRetrievalResult
-            {
-                Data = x.Data,
-                Score = x.Score,
-                Vector = x.Vector
-            }).ToList();
+            var results = found.Select(x => KnowledgeSearchResult.CopyFrom(x)).ToList();
             return results;
         }
         catch (Exception ex)
         {
             _logger.LogWarning($"Error when searching knowledge ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
-            return new List<KnowledgeRetrievalResult>();
+            return new List<KnowledgeSearchResult>();
         }
     }
 }

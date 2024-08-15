@@ -26,8 +26,8 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
-        IEnumerable<string> fields, int limit = 10, float confidence = 0.5f, bool withVector = false)
+    public Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+        IEnumerable<string>? fields, int limit = 10, float confidence = 0.5f, bool withVector = false)
     {
         throw new NotImplementedException();
     }

@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
 using Microsoft.SemanticKernel.Memory;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -44,15 +43,15 @@ namespace BotSharp.Plugin.SemanticKernel
             return result;
         }
 
-        public async Task<IEnumerable<KnowledgeSearchResult>> Search(string collectionName, float[] vector,
-            IEnumerable<string> fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
+        public async Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+            IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
         {
             var results = _memoryStore.GetNearestMatchesAsync(collectionName, vector, limit);
 
-            var resultTexts = new List<KnowledgeSearchResult>();
+            var resultTexts = new List<KnowledgeCollectionData>();
             await foreach (var (record, score) in results)
             {
-                resultTexts.Add(new KnowledgeSearchResult
+                resultTexts.Add(new KnowledgeCollectionData
                 {
                     Data = new Dictionary<string, string> { { "text", record.Metadata.Text } },
                     Score = score,
