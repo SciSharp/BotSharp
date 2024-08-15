@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Knowledges.Enums;
 
 namespace BotSharp.Abstraction.Knowledges.Models;
 
-public class KnowledgeRetrievalOptions
+public class KnowledgeSearchOptions
 {
     public string Text { get; set; } = string.Empty;
     public IEnumerable<string>? Fields { get; set; } = new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer };

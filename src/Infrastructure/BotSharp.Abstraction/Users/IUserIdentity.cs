@@ -9,4 +9,5 @@ public interface IUserIdentity
     string LastName { get; }
     string FullName { get; }
     string? UserLanguage { get; }
+    string? Phone { get; }
 }

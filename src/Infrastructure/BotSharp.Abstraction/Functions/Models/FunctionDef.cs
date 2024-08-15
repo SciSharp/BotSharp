@@ -8,7 +8,12 @@ public class FunctionDef
     [JsonPropertyName("description")]
     public string Description { get; set; } = null!;
 
+    [JsonPropertyName("channels")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? Channels { get; set; }
+
     [JsonPropertyName("visibility_expression")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? VisibilityExpression { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

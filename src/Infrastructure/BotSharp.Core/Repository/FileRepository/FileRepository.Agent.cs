@@ -1,6 +1,6 @@
+using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
-using System.Threading;
 
 namespace BotSharp.Core.Repository
 {
@@ -37,7 +37,7 @@ namespace BotSharp.Core.Repository
                     UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
                     break;
                 case AgentField.Instruction:
-                    UpdateAgentInstruction(agent.Id, agent.Instruction);
+                    UpdateAgentInstructions(agent.Id, agent.Instruction, agent.ChannelInstructions);
                     break;
                 case AgentField.Function:
                     UpdateAgentFunctions(agent.Id, agent.Functions);
@@ -175,17 +175,30 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentInstruction(string agentId, string instruction)
+        private void UpdateAgentInstructions(string agentId, string instruction, List<ChannelInstruction> channelInstructions)
         {
             if (string.IsNullOrWhiteSpace(instruction)) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var instructionFile = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
-                                            agentId, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
+            var instructionDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_INSTRUCTIONS_FOLDER);
+            DeleteBeforeCreateDirectory(instructionDir);
 
-            File.WriteAllText(instructionFile, instruction);
+            // Save default instructions
+            var instructionFile = Path.Combine(instructionDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
+            File.WriteAllText(instructionFile, instruction ?? string.Empty);
+            Thread.Sleep(100);
+
+            // Save channel instructions
+            foreach (var ci in channelInstructions)
+            {
+                if (string.IsNullOrWhiteSpace(ci.Channel)) continue;
+
+                var file = Path.Combine(instructionDir, $"{AGENT_INSTRUCTION_FILE}.{ci.Channel}.{_agentSettings.TemplateFormat}");
+                File.WriteAllText(file, ci.Instruction ?? string.Empty);
+                Thread.Sleep(100);
+            }
         }
 
         private void UpdateAgentFunctions(string agentId, List<FunctionDef> inputFunctions)
@@ -195,14 +208,8 @@ namespace BotSharp.Core.Repository
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            var functionDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir,
-                                            agentId, AGENT_FUNCTIONS_FOLDER);
-
-            if (Directory.Exists(functionDir))
-            {
-                Directory.Delete(functionDir, true);
-            }
-            Directory.CreateDirectory(functionDir);
+            var functionDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_FUNCTIONS_FOLDER);
+            DeleteBeforeCreateDirectory(functionDir);
 
             foreach (var func in inputFunctions)
             {
@@ -211,7 +218,7 @@ namespace BotSharp.Core.Repository
                 var text = JsonSerializer.Serialize(func, _options);
                 var file = Path.Combine(functionDir, $"{func.Name}.json");
                 File.WriteAllText(file, text);
-                Thread.Sleep(200);
+                Thread.Sleep(100);
             }
         }
 
@@ -223,16 +230,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             var templateDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_TEMPLATES_FOLDER);
-
-            if (!Directory.Exists(templateDir))
-            {
-                Directory.CreateDirectory(templateDir);
-            }
-
-            foreach (var file in Directory.GetFiles(templateDir))
-            {
-                File.Delete(file);
-            }
+            DeleteBeforeCreateDirectory(templateDir);
 
             foreach (var template in templates)
             {
@@ -249,15 +247,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             var responseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir, agentId, AGENT_RESPONSES_FOLDER);
-            if (!Directory.Exists(responseDir))
-            {
-                Directory.CreateDirectory(responseDir);
-            }
-
-            foreach (var file in Directory.GetFiles(responseDir))
-            {
-                File.Delete(file);
-            }
+            DeleteBeforeCreateDirectory(responseDir);
 
             for (int i = 0; i < responses.Count; i++)
             {
@@ -308,7 +298,7 @@ namespace BotSharp.Core.Repository
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
 
-            UpdateAgentInstruction(inputAgent.Id, inputAgent.Instruction);
+            UpdateAgentInstructions(inputAgent.Id, inputAgent.Instruction, inputAgent.ChannelInstructions);
             UpdateAgentResponses(inputAgent.Id, inputAgent.Responses);
             UpdateAgentTemplates(inputAgent.Id, inputAgent.Templates);
             UpdateAgentFunctions(inputAgent.Id, inputAgent.Functions);
@@ -348,12 +338,13 @@ namespace BotSharp.Core.Repository
                 var record = JsonSerializer.Deserialize<Agent>(json, _options);
                 if (record == null) return null;
 
-                var instruction = FetchInstruction(dir);
+                var (defaultInstruction, channelInstructions) = FetchInstructions(dir);
                 var functions = FetchFunctions(dir);
                 var samples = FetchSamples(dir);
                 var templates = FetchTemplates(dir);
                 var responses = FetchResponses(dir);
-                return record.SetInstruction(instruction)
+                return record.SetInstruction(defaultInstruction)
+                             .SetChannelInstructions(channelInstructions)
                              .SetFunctions(functions)
                              .SetTemplates(templates)
                              .SetSamples(samples)
@@ -451,13 +442,9 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
-        public void BulkInsertAgents(List<Agent> agents)
-        {
-        }
+        public void BulkInsertAgents(List<Agent> agents) { }
 
-        public void BulkInsertUserAgents(List<UserAgent> userAgents)
-        {
-        }
+        public void BulkInsertUserAgents(List<UserAgent> userAgents) { }
 
         public bool DeleteAgents()
         {
