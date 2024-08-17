@@ -20,11 +20,15 @@ BotSharp offers support for the following Whisper model types through the use of
 - LargeV2
 - LargeV3
 
-The `NativeWhisperProvider` is designed to process all input audio files using the local Whisper model. Users have the ability to set the file path for audio files, with current support for mp3 and wav formats only, and specify the corresponding Whisper model type. By default, the TinyEn model type is used for transcribing audio into text, but this can be customized based on the user's requirements. This flexibility allows BotSharp to efficiently handle various transcription needs, ensuring accurate and reliable text outputs from audio inputs.
+The `NativeWhisperProvider` is designed to process all input audio files using the local Whisper model. Users have the ability to set the file path for audio files, with current support for mp3 and wav formats only. By default, the TinyEn model type is used for transcribing audio into text, but this can be customized based on the user's requirements. This flexibility allows BotSharp to efficiently handle various transcription needs, ensuring accurate and reliable text outputs from audio inputs.
 
-Once program starts, you can define audio file path: `{{BotSharpLocalHost}}/audio/transcript?audioInputString=YOUR_OWN_AUDIO_PATH`.
+Once program starts, you can upload your audio file in the ChatUI.
 
-![Postman](assets/Postman-Local-Whisper.png)
+![Upload Audio in the ChatUI](assets/Steps-Local-Whisper.png)
+
+The transcript will be displayed in the response.
+
+![Response of Whisper Model](assets/Result-Local-Whisper.png)
 
 ### Response Time
 When using a CPU locally, the response time is impressively fast. For instance, it can transcribe a 10-minute audio clip into text in approximately 30 seconds. For shorter audio files, ranging from 3 to 5 minutes, the transcription response is even quicker.
