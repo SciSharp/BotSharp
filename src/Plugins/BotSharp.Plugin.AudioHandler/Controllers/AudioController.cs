@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Plugin.AudioHandler.Models;
 using BotSharp.Plugin.AudioHandler.Provider;
+using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Plugin.AudioHandler.Controllers
 {
@@ -16,10 +17,12 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
     public class AudioController : ControllerBase
     {
         private readonly ISpeechToText _nativeWhisperProvider;
+        private readonly IServiceProvider _services;
 
-        public AudioController(ISpeechToText nativeWhisperProvider)
+        public AudioController(ISpeechToText nativeWhisperProvider, IServiceProvider service)
         {
             _nativeWhisperProvider = nativeWhisperProvider;
+            _services = service;
         }
 
         [HttpGet("audio/transcript")]
@@ -31,10 +34,30 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
 #endif
             if (!string.IsNullOrEmpty(audioInputString))
             {
-                _nativeWhisperProvider.SetModelType(modelType);
+                _nativeWhisperProvider.SetModelName(modelType);
             }
 
-            var result = await _nativeWhisperProvider.AudioToTextTranscript(audioInputString);
+            var result = await _nativeWhisperProvider.GenerateTextFromAudioAsync(audioInputString);
+#if DEBUG
+            stopWatch.Stop();
+            TimeSpan ts = stopWatch.Elapsed;
+            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+            ts.Hours, ts.Minutes, ts.Seconds,
+            ts.Milliseconds / 10);
+            Console.WriteLine("RunTime " + elapsedTime);
+#endif
+            return Ok(result);
+        }
+
+        [HttpPost("openai/audio/transcript")]
+        public async Task<IActionResult> GetTextFromAudioOpenAiController(string filePath)
+        {
+#if DEBUG
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+#endif
+            var client = CompletionProvider.GetSpeechToText(_services, "openai", "whisper-1");
+            var result = await client.GenerateTextFromAudioAsync(filePath);
 #if DEBUG
             stopWatch.Stop();
             TimeSpan ts = stopWatch.Elapsed;

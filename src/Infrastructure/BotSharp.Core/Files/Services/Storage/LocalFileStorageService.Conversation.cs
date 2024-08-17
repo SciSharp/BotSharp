@@ -336,24 +336,5 @@ public partial class LocalFileStorageService
             return files;
         }
     }
-
-    private async Task<IEnumerable<string>> ConvertPdfToImages(string pdfLoc, string imageLoc)
-    {
-        var converters = _services.GetServices<IPdf2ImageConverter>();
-        if (converters.IsNullOrEmpty()) return Enumerable.Empty<string>();
-
-        var converter = GetPdf2ImageConverter();
-        if (converter == null)
-        {
-            return Enumerable.Empty<string>();
-        }
-        return await converter.ConvertPdfToImages(pdfLoc, imageLoc);
-    }
-
-    private IPdf2ImageConverter? GetPdf2ImageConverter()
-    {
-        var converters = _services.GetServices<IPdf2ImageConverter>();
-        return converters.FirstOrDefault();
-    }
     #endregion
 }

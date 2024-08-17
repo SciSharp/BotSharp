@@ -9,6 +9,7 @@ namespace BotSharp.Plugin.AudioHandler.Provider;
 /// </summary>
 public class NativeWhisperProvider : ISpeechToText
 {
+    public string Provider => "whisper";
     private readonly IAudioProcessUtilities _audioProcessUtilities;
     private static WhisperProcessor _processor;
     private readonly ILogger _logger;
@@ -24,7 +25,7 @@ public class NativeWhisperProvider : ISpeechToText
         _logger = logger;
     }
 
-    public async Task<string> AudioToTextTranscript(string filePath)
+    public async Task<string> GenerateTextFromAudioAsync(string filePath)
     {
         string fileExtension = Path.GetExtension(filePath);
         if (!Enum.TryParse<AudioType>(fileExtension.TrimStart('.').ToLower(), out AudioType audioType))
@@ -85,7 +86,7 @@ public class NativeWhisperProvider : ISpeechToText
         }
     }
 
-    public void SetModelType(string modelType)
+    public void SetModelName(string modelType)
     {
         if (Enum.TryParse<GgmlType>(modelType, true, out GgmlType ggmlType))
         {
