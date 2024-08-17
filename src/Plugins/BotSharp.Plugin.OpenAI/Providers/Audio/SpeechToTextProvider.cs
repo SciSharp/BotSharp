@@ -27,12 +27,9 @@ public class SpeechToTextProvider : ISpeechToText
         return transcription.Value.Text;
     }
 
-    public void SetModelName(string modelName)
+    public async Task SetModelName(string modelName)
     {
-        if (string.IsNullOrEmpty(_modelName))
-        {
-            _modelName = modelName;
-        }
+        _modelName = modelName;
     }
 
     public void SetOptions(AudioTranscriptionOptions? options = null)

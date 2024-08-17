@@ -6,5 +6,5 @@ public interface ISpeechToText
 
     Task<string> GenerateTextFromAudioAsync(string filePath);
     // Task<string> AudioToTextTranscript(Stream stream);
-    void SetModelName(string modelType);
+    Task SetModelName(string modelType);
 }

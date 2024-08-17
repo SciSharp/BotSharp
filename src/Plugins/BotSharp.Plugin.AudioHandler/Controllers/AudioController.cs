@@ -32,10 +32,7 @@ namespace BotSharp.Plugin.AudioHandler.Controllers
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 #endif
-            if (!string.IsNullOrEmpty(audioInputString))
-            {
-                _nativeWhisperProvider.SetModelName(modelType);
-            }
+            await _nativeWhisperProvider.SetModelName(modelType);
 
             var result = await _nativeWhisperProvider.GenerateTextFromAudioAsync(audioInputString);
 #if DEBUG
