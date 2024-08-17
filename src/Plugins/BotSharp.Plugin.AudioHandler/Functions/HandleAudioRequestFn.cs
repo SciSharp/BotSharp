@@ -44,37 +44,6 @@ public class HandleAudioRequestFn : IFunctionCallback
         var response = await GetResponeFromDialogs(dialogs); // isNeedSummary ? await SummarizeAudioText : TranscribeAudioToText;
         message.Content = response;
         return true;
-
-        //for ( int i = 0; i <dialogs.Count; i++)
-        //{
-        //    var dialog = dialogs[i];
-        //    var updatedFiles = new List<BotSharpFile>();
-        //    foreach (var file in dialog.Files) 
-        //    {
-        //        if (Enum.TryParse<AudioType>(file.ContentType.ToLower(), out var fileType) 
-        //            && !string.IsNullOrWhiteSpace(file?.FileUrl))
-        //        {
-        //            var transcribeText = await nativeWhisperService.AudioToTextTranscript(file?.FileUrl);
-
-        //            if (isNeedSummary) 
-        //            {
-        //                var fileAgent = new Agent
-        //                {
-        //                    Id = _agent?.Id ?? Guid.Empty.ToString(),
-        //                    Name = _agent?.Name ?? "Unkown",
-        //                    Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please summarize the those content.",
-        //                    TemplateDict = new Dictionary<string, object>()
-        //                };
-        //                var response = await GetChatCompletion(fileAgent, dialogs);
-
-        //            }
-        //        }
-        //        updatedFiles.Add(file);
-        //    }
-        //    dialog.Files = updatedFiles;
-        //}
-
-        //throw new NotImplementedException();
     }
 
     private async Task<List<RoleDialogModel>> AssembleFiles(string convId, List<RoleDialogModel> dialogs)
@@ -135,20 +104,6 @@ public class HandleAudioRequestFn : IFunctionCallback
         {
             throw new FileNotFoundException($"No audio files found in the dialog. MessageId: {dialog.MessageId}");
         }
-
-        //if (isNeedSummary) 
-        //{
-        //    await LoadAgent();
-
-        //    var llmProviderService = _serviceProvider.GetRequiredService<ILlmProviderService>();
-        //    var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-        //    var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4", multiModal: false);
-        //    var completion = CompletionProvider.GetChatCompletion(_serviceProvider, provider: provider, model: model.Name);
-
-        //    var response = await completion.GetChatCompletions(_agent, new List<RoleDialogModel> { dialog });
-        //}
-
-        //PostProcessingText();
         var resList = dialog.Files.Select(x => $"{x.FileName} \r\n {x.FileData}").ToList();
         return string.Join("\n\r", resList);
     }
@@ -167,43 +122,4 @@ public class HandleAudioRequestFn : IFunctionCallback
         }
         return whisperService;
     }
-
-    /*
-    private async Task LoadAgent()
-    {
-        if (_agent == null)
-        {
-            var agentService = _serviceProvider.GetRequiredService<IAgentService>();
-            var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
-
-            var fileAgent = new Agent
-            {
-                Id = agent?.Id ?? Guid.Empty.ToString(),
-                Name = agent?.Name ?? "Unkown",
-                Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please generate a short summary based on the text. \r\n",
-                TemplateDict = new Dictionary<string, object>()
-            };
-            _agent = fileAgent;
-        }
-    }
-    */
-
-    //private async Task<string> GetChatCompletion(Agent agent, List<RoleDialogModel> roleDialogs)
-    //{
-    //    try
-    //    {
-    //        var llmProviderService = _serviceProvider.GetRequiredService<ILlmProviderService>();
-    //        var provider = llmProviderService.GetProviders().FirstOrDefault(x => x == "openai");
-    //        var model = llmProviderService.GetProviderModel(provider: provider, id: "gpt-4", multiModal: false);
-    //        var completion = CompletionProvider.GetChatCompletion(_serviceProvider, provider: provider, model: model.Name);
-    //        var response = await completion.GetChatCompletions(agent, dialogs);
-
-
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogWarning($"Error when summarizing the audio text. {ex.Message}\r\n{ex.InnerException}");
-    //        return string.Empty;
-    //    }
-    //}
 }
