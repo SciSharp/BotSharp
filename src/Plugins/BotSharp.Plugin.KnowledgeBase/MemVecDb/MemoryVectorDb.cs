@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.Plugin.KnowledgeBase.Utilities;
 using Tensorflow.NumPy;
 
@@ -22,17 +23,17 @@ public class MemoryVectorDb : IVectorDb
         return _collections.Select(x => x.Key).ToList();
     }
 
-    public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
+    public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+    public async Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
         IEnumerable<string>? fields, int limit = 5, float confidence = 0.5f, bool withVector = false)
     {
         if (!_vectors.ContainsKey(collectionName))
         {
-            return new List<KnowledgeCollectionData>();
+            return new List<VectorCollectionData>();
         }
 
         var similarities = VectorUtility.CalCosineSimilarity(vector, _vectors[collectionName]);
@@ -41,7 +42,7 @@ public class MemoryVectorDb : IVectorDb
         var results = np.argsort(similarities).ToArray<int>()
                         .Reverse()
                         .Take(limit)
-                        .Select(i => new KnowledgeCollectionData
+                        .Select(i => new VectorCollectionData
                         {
                             Data = new Dictionary<string, string> { { "text", _vectors[collectionName][i].Text } },
                             Score = similarities[i],

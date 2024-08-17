@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -16,36 +18,35 @@ public class KnowledgeBaseController : ControllerBase
         _services = services;
     }
 
-    [HttpGet("knowledge/collections")]
-    public async Task<IEnumerable<string>> GetKnowledgeCollections()
+    [HttpGet("knowledge/vector/collections")]
+    public async Task<IEnumerable<string>> GetVectorCollections()
     {
-        return await _knowledgeService.GetKnowledgeCollections();
+        return await _knowledgeService.GetVectorCollections();
     }
 
-    [HttpPost("/knowledge/{collection}/search")]
-    public async Task<IEnumerable<KnowledgeSearchResultViewModel>> SearchKnowledge([FromRoute] string collection, [FromBody] SearchKnowledgeRequest request)
+    [HttpPost("/knowledge/vector/{collection}/search")]
+    public async Task<IEnumerable<VectorKnowledgeViewModel>> SearchVectorKnowledge([FromRoute] string collection, [FromBody] SearchVectorKnowledgeRequest request)
     {
-        var options = new KnowledgeSearchOptions
+        var options = new VectorSearchOptions
         {
-            Text = request.Text,
             Fields = request.Fields,
             Limit = request.Limit ?? 5,
             Confidence = request.Confidence ?? 0.5f,
             WithVector = request.WithVector
         };
 
-        var results = await _knowledgeService.SearchKnowledge(collection, options);
-        return results.Select(x => KnowledgeSearchResultViewModel.From(x)).ToList();
+        var results = await _knowledgeService.SearchVectorKnowledge(request.Text, collection, options);
+        return results.Select(x => VectorKnowledgeViewModel.From(x)).ToList();
     }
 
-    [HttpPost("/knowledge/{collection}/data")]
-    public async Task<StringIdPagedItems<KnowledgeSearchResultViewModel>> GetKnowledgeCollectionData([FromRoute] string collection, [FromBody] KnowledgeFilter filter)
+    [HttpPost("/knowledge/vector/{collection}/data")]
+    public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
     {
-        var data = await _knowledgeService.GetKnowledgeCollectionData(collection, filter);
-        var items = data.Items?.Select(x => KnowledgeSearchResultViewModel.From(x))?
-                               .ToList() ?? new List<KnowledgeSearchResultViewModel>();
+        var data = await _knowledgeService.GetVectorCollectionData(collection, filter);
+        var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?
+                               .ToList() ?? new List<VectorKnowledgeViewModel>();
 
-        return new StringIdPagedItems<KnowledgeSearchResultViewModel>
+        return new StringIdPagedItems<VectorKnowledgeViewModel>
         {
             Count = data.Count,
             NextId = data.NextId,
@@ -53,14 +54,14 @@ public class KnowledgeBaseController : ControllerBase
         };
     }
 
-    [HttpDelete("/knowledge/{collection}/data/{id}")]
-    public async Task<bool> DeleteKnowledgeCollectionData([FromRoute] string collection, [FromRoute] string id)
+    [HttpDelete("/knowledge/vector/{collection}/data/{id}")]
+    public async Task<bool> DeleteVectorCollectionData([FromRoute] string collection, [FromRoute] string id)
     {
-        return await _knowledgeService.DeleteKnowledgeCollectionData(collection, id);
+        return await _knowledgeService.DeleteVectorCollectionData(collection, id);
     }
 
-    [HttpPost("/knowledge/{collection}/upload")]
-    public async Task<IActionResult> UploadKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
+    [HttpPost("/knowledge/vector/{collection}/upload")]
+    public async Task<IActionResult> UploadVectorKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
     {
         var setttings = _services.GetRequiredService<FileCoreSettings>();
         var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Name == setttings.Pdf2TextConverter);
@@ -73,12 +74,51 @@ public class KnowledgeBaseController : ControllerBase
         }
 
         var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
-        await _knowledgeService.FeedKnowledge(collection, new KnowledgeCreationModel
+        await _knowledgeService.FeedVectorKnowledge(collection, new KnowledgeCreationModel
         {
             Content = content
         });
 
         System.IO.File.Delete(filePath);
         return Ok(new { count = 1, file.Length });
+    }
+
+    [HttpPost("/knowledge/graph/search")]
+    public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
+    {
+        var options = new GraphSearchOptions
+        {
+            Method = request.Method
+        };
+
+        var result = await _knowledgeService.SearchGraphKnowledge(request.Query, options);
+        return new GraphKnowledgeViewModel
+        {
+            Result = result.Result
+        };
+    }
+
+    [HttpPost("/knowledge/search")]
+    public async Task<KnowledgeSearchViewModel> SearchKnowledge([FromBody] SearchKnowledgeRequest request)
+    {
+        var vectorOptions = new VectorSearchOptions
+        {
+            Fields = request.VectorParams.Fields,
+            Limit = request.VectorParams.Limit ?? 5,
+            Confidence = request.VectorParams.Confidence ?? 0.5f,
+            WithVector = request.VectorParams.WithVector
+        };
+
+        var graphOptions = new GraphSearchOptions
+        {
+            Method = request.GraphParams.Method
+        };
+
+        var result = await _knowledgeService.SearchKnowledge(request.Text, request.VectorParams.Collection, vectorOptions, graphOptions);
+        return new KnowledgeSearchViewModel
+        {
+            VectorResult = result?.VectorResult?.Select(x => VectorKnowledgeViewModel.From(x)),
+            GraphResult = result?.GraphResult != null ? new GraphKnowledgeViewModel { Result = result.GraphResult.Result } : null
+        };
     }
 }

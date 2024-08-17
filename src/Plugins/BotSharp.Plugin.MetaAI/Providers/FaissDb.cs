@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
+using BotSharp.Abstraction.VectorStorage.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,7 +16,7 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<StringIdPagedItems<KnowledgeCollectionData>> GetCollectionData(string collectionName, KnowledgeFilter filter)
+    public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
     {
         throw new NotImplementedException();
     }
@@ -26,7 +26,7 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<KnowledgeCollectionData>> Search(string collectionName, float[] vector,
+    public Task<IEnumerable<VectorCollectionData>> Search(string collectionName, float[] vector,
         IEnumerable<string>? fields, int limit = 10, float confidence = 0.5f, bool withVector = false)
     {
         throw new NotImplementedException();

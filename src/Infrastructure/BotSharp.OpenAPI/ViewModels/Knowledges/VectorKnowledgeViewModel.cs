@@ -1,9 +1,9 @@
-using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 
-public class KnowledgeSearchResultViewModel
+public class VectorKnowledgeViewModel
 {
     [JsonPropertyName("id")]
     public string Id { get; set; }
@@ -20,9 +20,9 @@ public class KnowledgeSearchResultViewModel
     public float[]? Vector { get; set; }
 
 
-    public static KnowledgeSearchResultViewModel From(KnowledgeSearchResult result)
+    public static VectorKnowledgeViewModel From(VectorSearchResult result)
     {
-        return new KnowledgeSearchResultViewModel
+        return new VectorKnowledgeViewModel
         {
             Id = result.Id,
             Data = result.Data,
