@@ -25,6 +25,12 @@ public partial class KnowledgeService : IKnowledgeService
         return db;
     }
 
+    private IGraphDb GetGraphDb()
+    {
+        var db = _services.GetServices<IGraphDb>().FirstOrDefault(x => x.Name == _settings.GraphDb);
+        return db;
+    }
+
     private ITextEmbedding GetTextEmbedding()
     {
         var embedding = _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _settings.TextEmbedding.Provider);

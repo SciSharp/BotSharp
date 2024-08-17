@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
 {
-    public async Task<bool> DeleteKnowledgeCollectionData(string collectionName, string id)
+    public async Task<bool> DeleteVectorCollectionData(string collectionName, string id)
     {
         try
         {

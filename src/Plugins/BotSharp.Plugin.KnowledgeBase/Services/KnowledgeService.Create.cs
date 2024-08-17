@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
 {
-    public async Task FeedKnowledge(string collectionName, KnowledgeCreationModel knowledge)
+    public async Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel knowledge)
     {
         var index = 0;
         var lines = _textChopper.Chop(knowledge.Content, new ChunkOption
