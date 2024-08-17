@@ -5,8 +5,22 @@
 Whisper, an advanced automatic speech recognition (ASR) system developed by OpenAI, represents a significant leap forward in speech technology. This system was trained on an enormous dataset comprising 680,000 hours of supervised data, which includes a wide range of languages and tasks, all sourced from the web. The diversity and scale of this dataset play a crucial role in enhancing Whisper's ability to accurately recognize and transcribe speech. As a result, it exhibits improved robustness in dealing with various accents, background noise, and complex technical language, making it a versatile and reliable tool for a broad spectrum of applications.
 
 ### Get started with Local Whisper
+To begin using the local Whisper model, the Whisper.net library must be added as a dependency. This can be achieved through: 
+- NuGet Manager
+    <br/>
+    ![NuGet Manager](assets/NuGet-Local-Whisper.png)
+- Package Manager Console
+```powershell
+Install-Package Whisper.net
+Install-Package Whisper.net.Runtime
+```
+- Add a package reference in your csproj
+```
+    <PackageReference Include="Whisper.net" Version="1.5.0" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.5.0" />
+```
 
-BotSharp offers support for the following Whisper model types through the use of plug-ins:
+The following Whisper model types would be available through the use of plug-ins:
 
 - Tiny
 - TinyEn
@@ -31,4 +45,4 @@ The transcript will be displayed in the response.
 ![Response of Whisper Model](assets/Result-Local-Whisper.png)
 
 ### Response Time
-When using a CPU locally, the response time is impressively fast. For instance, it can transcribe a 10-minute audio clip into text in approximately 30 seconds. For shorter audio files, ranging from 3 to 5 minutes, the transcription response is even quicker.
+When using a CPU locally, the response time is impressively fast. For instance, it can transcribe a 10-minute audio clip into text in approximately 30 seconds. For shorter audio files, ranging from 3 to 5 minutes in duration, the transcription response is around a few seconds or even quicker.
