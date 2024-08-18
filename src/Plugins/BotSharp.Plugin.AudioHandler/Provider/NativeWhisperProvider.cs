@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.AudioHandler.Provider;
 /// </summary>
 public class NativeWhisperProvider : ISpeechToText
 {
-    public string Provider => "whisper";
+    public string Provider => "native";
     private readonly IAudioProcessUtilities _audioProcessUtilities;
     private static WhisperProcessor _processor;
     private readonly ILogger _logger;

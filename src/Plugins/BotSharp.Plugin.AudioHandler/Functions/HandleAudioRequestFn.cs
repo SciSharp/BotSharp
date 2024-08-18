@@ -84,7 +84,7 @@ public class HandleAudioRequestFn : IFunctionCallback
 
     private async Task<string> GetResponeFromDialogs(List<RoleDialogModel> dialogs)
     {
-        var whisperService = PrepareModel("openai");
+        var whisperService = await PrepareModel("native"); // openai, native
         var dialog = dialogs.Where(x => !x.Files.IsNullOrEmpty()).Last();
         int transcribedCount = 0;
         foreach (var file in dialog.Files)
@@ -108,7 +108,7 @@ public class HandleAudioRequestFn : IFunctionCallback
         return string.Join("\n\r", resList);
     }
 
-    private ISpeechToText PrepareModel(string modelName = "native")
+    private async Task<ISpeechToText> PrepareModel(string modelName = "native")
     {
         var whisperService = _serviceProvider.GetServices<ISpeechToText>().FirstOrDefault(x => x.Provider == modelName.ToLower());
         if (whisperService == null)
@@ -120,6 +120,7 @@ public class HandleAudioRequestFn : IFunctionCallback
         {
             return CompletionProvider.GetSpeechToText(_serviceProvider, provider: "openai", model: "whisper-1");
         }
+        await whisperService.SetModelName("Tiny");
         return whisperService;
     }
 }
