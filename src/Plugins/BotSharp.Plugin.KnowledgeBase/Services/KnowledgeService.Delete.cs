@@ -6,8 +6,13 @@ public partial class KnowledgeService
     {
         try
         {
+            if (!Guid.TryParse(id, out var guid))
+            {
+                return false;
+            }
+
             var db = GetVectorDb();
-            return await db.DeleteCollectionData(collectionName, id);
+            return await db.DeleteCollectionData(collectionName, guid);
         }
         catch (Exception ex)
         {

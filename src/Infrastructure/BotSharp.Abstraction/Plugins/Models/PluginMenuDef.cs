@@ -25,9 +25,9 @@ public class PluginMenuDef
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<PluginMenuDef>? SubMenu {  get; set; }
 
-    public PluginMenuDef(string lable, string? link = null, string? icon = null, int weight = 0) 
+    public PluginMenuDef(string label, string? link = null, string? icon = null, int weight = 0) 
     { 
-        Label = lable;
+        Label = label;
         Link = link;
         Icon = icon;
         Weight = weight;

@@ -19,8 +19,7 @@ public partial class KnowledgeService
         foreach (var line in lines)
         {
             var vec = await textEmbedding.GetVectorAsync(line);
-            var id = Guid.NewGuid().ToString();
-            await db.Upsert(collectionName, id, vec, line);
+            await db.Upsert(collectionName, Guid.NewGuid(), vec, line);
             index++;
             Console.WriteLine($"Saved vector {index}/{lines.Count}: {line}\n");
         }
