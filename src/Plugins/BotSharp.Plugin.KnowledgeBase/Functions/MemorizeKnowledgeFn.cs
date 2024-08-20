@@ -29,9 +29,8 @@ public class MemorizeKnowledgeFn : IFunctionCallback
         var collectionName = !string.IsNullOrWhiteSpace(_settings.DefaultCollection) ? _settings.DefaultCollection : KnowledgeCollectionName.BotSharp;
         await vectorDb.CreateCollection(collectionName, vector[0].Length);
 
-        var id = Guid.NewGuid().ToString();
-        var result = await vectorDb.Upsert(collectionName, id, vector[0], 
-            args.Question, 
+        var result = await vectorDb.Upsert(collectionName, Guid.NewGuid(), vector[0], 
+            args.Question,
             new Dictionary<string, string> 
             { 
                 { KnowledgePayloadName.Answer, args.Answer } 

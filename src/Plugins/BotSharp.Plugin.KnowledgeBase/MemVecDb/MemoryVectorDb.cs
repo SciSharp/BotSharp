@@ -53,11 +53,11 @@ public class MemoryVectorDb : IVectorDb
         return await Task.FromResult(results);
     }
 
-    public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         _vectors[collectionName].Add(new VecRecord
         {
-            Id = id,
+            Id = id.ToString(),
             Vector = vector,
             Text = text
         });
@@ -65,7 +65,7 @@ public class MemoryVectorDb : IVectorDb
         return true;
     }
 
-    public async Task<bool> DeleteCollectionData(string collectionName, string id)
+    public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
     {
         return await Task.FromResult(false);
     }

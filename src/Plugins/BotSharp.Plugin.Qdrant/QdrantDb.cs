@@ -92,14 +92,14 @@ public class QdrantDb : IVectorDb
         }
     }
 
-    public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         // Insert vectors
         var point = new PointStruct()
         {
             Id = new PointId()
             {
-                Uuid = id
+                Uuid = id.ToString()
             },
             Vectors = vector,
             Payload =
@@ -137,7 +137,11 @@ public class QdrantDb : IVectorDb
             return results;
         }
 
-        var points = await client.SearchAsync(collectionName, vector, limit: (ulong)limit, scoreThreshold: confidence);
+        var points = await client.SearchAsync(collectionName,
+            vector,
+            limit: (ulong)limit,
+            scoreThreshold: confidence,
+            vectorsSelector: new WithVectorsSelector { Enable = withVector });
 
         var pickFields = fields != null;
         foreach (var point in points)
@@ -174,15 +178,10 @@ public class QdrantDb : IVectorDb
         return results;
     }
 
-    public async Task<bool> DeleteCollectionData(string collectionName, string id)
+    public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
     {
-        if (!Guid.TryParse(id, out var guid))
-        {
-            return false;
-        }
-
         var client = GetClient();
-        var result = await client.DeleteAsync(collectionName, guid);
+        var result = await client.DeleteAsync(collectionName, id);
         return result.Status == UpdateStatus.Completed;
     }
 

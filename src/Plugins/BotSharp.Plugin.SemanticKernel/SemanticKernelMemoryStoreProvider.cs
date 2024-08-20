@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage;
 using BotSharp.Abstraction.VectorStorage.Models;
 using Microsoft.SemanticKernel.Memory;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -62,7 +63,7 @@ namespace BotSharp.Plugin.SemanticKernel
             return resultTexts;
         }
 
-        public async Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload)
+        public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload)
         {
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             await _memoryStore.UpsertAsync(collectionName, MemoryRecord.LocalRecord(id.ToString(), text, null, vector));
@@ -70,13 +71,13 @@ namespace BotSharp.Plugin.SemanticKernel
             return true;
         }
 
-        public async Task<bool> DeleteCollectionData(string collectionName, string id)
+        public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
         {
             var exist = await _memoryStore.DoesCollectionExistAsync(collectionName);
 
             if (exist)
             {
-                await _memoryStore.RemoveAsync(collectionName, id);
+                await _memoryStore.RemoveAsync(collectionName, id.ToString());
                 return true;
             }
             return false;

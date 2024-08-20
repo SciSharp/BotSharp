@@ -32,12 +32,12 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<bool> Upsert(string collectionName, string id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    public Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> DeleteCollectionData(string collectionName, string id)
+    public Task<bool> DeleteCollectionData(string collectionName, Guid id)
     {
         throw new NotImplementedException();
     }
