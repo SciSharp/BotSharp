@@ -6,6 +6,7 @@ namespace BotSharp.Core.Infrastructures;
 public class DistributedLocker
 {
     private readonly BotSharpDatabaseSettings _settings;
+    private ConnectionMultiplexer connection;
 
     public DistributedLocker(BotSharpDatabaseSettings settings)
     {
@@ -16,7 +17,11 @@ public class DistributedLocker
     {
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        var connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
+        if (connection == null)
+        {
+            connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
+        }
+        
         var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
         await using (var handle = await @lock.TryAcquireAsync(timeout))
         {
@@ -33,7 +38,11 @@ public class DistributedLocker
     {
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        var connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
+        if (connection == null)
+        {
+            connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
+        }
+
         var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
         await using (var handle = await @lock.TryAcquireAsync(timeout))
         {
