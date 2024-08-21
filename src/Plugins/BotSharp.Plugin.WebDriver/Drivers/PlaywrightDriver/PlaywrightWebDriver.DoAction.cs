@@ -11,7 +11,7 @@ public partial class PlaywrightWebDriver
             return;
         }
 
-        ILocator locator = page.Locator(result.Selector).First;// 匹配到多个时取第一个，否则当await locator.ClickAsync();匹配到多个就会抛异常。
+        ILocator locator = page.Locator(result.Selector);
         var count = await locator.CountAsync();
         if (count == 0)
         {
