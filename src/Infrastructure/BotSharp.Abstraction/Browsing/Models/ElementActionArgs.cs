@@ -12,6 +12,8 @@ public class ElementActionArgs
 
     public string? PressKey { get; set; }
 
+    public bool? IsFirst { get; set; }
+
     /// <summary>
     /// Wait time in seconds
     /// </summary>
