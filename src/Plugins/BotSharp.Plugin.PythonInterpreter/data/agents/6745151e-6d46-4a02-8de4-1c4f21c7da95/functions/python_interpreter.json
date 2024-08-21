@@ -1,0 +1,19 @@
+{
+  "name": "python_interpreter",
+  "description": "write and execute python code, print the result in Console",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "script": {
+        "type": "string",
+        "description": "python code"
+      },
+      "language": {
+        "type": "string",
+        "enum": [ "python" ],
+        "description": "python code"
+      }
+    },
+    "required": [ "language", "script" ]
+  }
+}

@@ -19,7 +19,6 @@ namespace BotSharp.Plugin.TencentCos
                  settings.SecretId, settings.SecretKey, settings.KeyDurationSecond);
 
             var cosXml = new CosXmlServer(cosXmlConfig, cosCredentialProvider);
-
             BucketClient = new BucketClient(cosXml, $"{settings.BucketName}-{settings.AppId}", settings.AppId, settings.Region);
         }
     }

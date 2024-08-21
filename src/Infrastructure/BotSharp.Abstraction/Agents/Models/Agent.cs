@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Tasks.Models;
 
 namespace BotSharp.Abstraction.Agents.Models;
@@ -21,8 +20,7 @@ public class Agent
     /// Default LLM settings
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AgentLlmConfig LlmConfig { get; set; }
-        = new AgentLlmConfig();
+    public AgentLlmConfig LlmConfig { get; set; } = new();
 
     /// <summary>
     /// Instruction
@@ -31,32 +29,34 @@ public class Agent
     public string? Instruction { get; set; }
 
     /// <summary>
+    /// Channel instructions
+    /// </summary>
+    [JsonIgnore]
+    public List<ChannelInstruction> ChannelInstructions { get; set; } = new();
+
+    /// <summary>
     /// Templates
     /// </summary>
     [JsonIgnore]
-    public List<AgentTemplate> Templates { get; set; }
-        = new List<AgentTemplate>();
+    public List<AgentTemplate> Templates { get; set; } = new();
 
     /// <summary>
     /// Agent tasks
     /// </summary>
     [JsonIgnore]
-    public List<AgentTask> Tasks { get; set; }
-        = new List<AgentTask>();
+    public List<AgentTask> Tasks { get; set; } = new();
 
     /// <summary>
     /// Samples
     /// </summary>
     [JsonIgnore]
-    public List<string> Samples { get; set; }
-        = new List<string>();
+    public List<string> Samples { get; set; } = new();
 
     /// <summary>
     /// Functions
     /// </summary>
     [JsonIgnore]
-    public List<FunctionDef> Functions { get; set; } 
-        = new List<FunctionDef>();
+    public List<FunctionDef> Functions { get; set; } = new();
 
     /// <summary>
     /// Responses
@@ -93,23 +93,20 @@ public class Agent
     /// <summary>
     /// Agent utilities
     /// </summary>
-    public List<string> Utilities { get; set; }
-        = new List<string>();
+    public List<string> Utilities { get; set; } = new();
 
     /// <summary>
     /// Inherit from agent
     /// </summary>
     public string? InheritAgentId { get; set; }
 
-    public List<RoutingRule> RoutingRules { get; set; }
-        = new List<RoutingRule>();
+    public List<RoutingRule> RoutingRules { get; set; } = new();
 
     /// <summary>
     /// For rendering deferral
     /// </summary>
     [JsonIgnore]
-    public Dictionary<string, object> TemplateDict { get; set; }
-        = new Dictionary<string, object>();
+    public Dictionary<string, object> TemplateDict { get; set; } = new();
 
     public override string ToString()
         => $"{Name} {Id}";
@@ -124,6 +121,7 @@ public class Agent
             Description = agent.Description,
             Type = agent.Type,
             Instruction = agent.Instruction,
+            ChannelInstructions = agent.ChannelInstructions,
             Functions = agent.Functions,
             Responses = agent.Responses,
             Samples = agent.Samples,
@@ -142,6 +140,12 @@ public class Agent
     public Agent SetInstruction(string instruction)
     {
         Instruction = instruction;
+        return this;
+    }
+
+    public Agent SetChannelInstructions(List<ChannelInstruction> instructions)
+    {
+        ChannelInstructions = instructions ?? new List<ChannelInstruction>();
         return this;
     }
 

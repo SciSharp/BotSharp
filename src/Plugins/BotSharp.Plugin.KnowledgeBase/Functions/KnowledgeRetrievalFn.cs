@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Functions;
-using BotSharp.Core.Infrastructures;
-
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class KnowledgeRetrievalFn : IFunctionCallback
@@ -20,22 +17,18 @@ public class KnowledgeRetrievalFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
-        var embedding =  _services.GetServices<ITextEmbedding>()
-            .FirstOrDefault(x => x.GetType().FullName.EndsWith(_settings.TextEmbedding));
+        var embedding =  _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _settings.TextEmbedding.Provider);
+        embedding.SetModelName(_settings.TextEmbedding.Model);
 
-        var vector = await embedding.GetVectorsAsync(new List<string>
+        var vector = await embedding.GetVectorAsync(args.Question);
+        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
+        var collectionName = !string.IsNullOrWhiteSpace(_settings.DefaultCollection) ? _settings.DefaultCollection : KnowledgeCollectionName.BotSharp;
+        var knowledges = await vectorDb.Search(collectionName, vector, new List<string> { KnowledgePayloadName.Answer });
+
+        if (!knowledges.IsNullOrEmpty())
         {
-            args.Question
-        });
-
-        var vectorDb = _services.GetRequiredService<IVectorDb>();
-
-        var id = Utilities.HashTextMd5(args.Question);
-        var knowledges = await vectorDb.Search("lessen", vector[0], "answer");
-
-        if (knowledges.Count > 0)
-        {
-            message.Content = string.Join("\r\n\r\n=====\r\n", knowledges);
+            var answers = knowledges.Select(x => x.Data[KnowledgePayloadName.Answer]).ToList();
+            message.Content = string.Join("\r\n\r\n=====\r\n", answers);
         }
         else
         {

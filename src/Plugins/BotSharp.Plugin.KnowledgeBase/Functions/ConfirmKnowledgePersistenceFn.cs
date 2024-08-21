@@ -1,9 +1,3 @@
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Messaging.Enums;
-using BotSharp.Abstraction.Messaging.Models.RichContent.Template;
-using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.Messaging;
-
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class ConfirmKnowledgePersistenceFn : IFunctionCallback

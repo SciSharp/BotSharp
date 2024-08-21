@@ -53,7 +53,29 @@ public partial class AgentService
         }
 
         profile.Plugin = GetPlugin(profile.Id);
-
         return profile;
+    }
+
+    public async Task InheritAgent(Agent agent)
+    {
+        if (string.IsNullOrWhiteSpace(agent?.InheritAgentId)) return;
+
+        var inheritedAgent = await GetAgent(agent.InheritAgentId);
+        agent.Templates.AddRange(inheritedAgent.Templates
+            // exclude private template
+            .Where(x => !x.Name.StartsWith("."))
+            // exclude duplicate name
+            .Where(x => !agent.Templates.Exists(t => t.Name == x.Name)));
+
+        agent.Functions.AddRange(inheritedAgent.Functions
+            // exclude private template
+            .Where(x => !x.Name.StartsWith("."))
+            // exclude duplicate name
+            .Where(x => !agent.Functions.Exists(t => t.Name == x.Name)));
+
+        if (string.IsNullOrWhiteSpace(agent.Instruction))
+        {
+            agent.Instruction = inheritedAgent.Instruction;
+        }
     }
 }

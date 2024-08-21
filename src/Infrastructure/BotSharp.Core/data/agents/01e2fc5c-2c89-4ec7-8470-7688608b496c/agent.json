@@ -7,5 +7,11 @@
   "updatedDateTime": "2024-01-15T14:39:32Z",
   "iconUrl": "/images/logo.png",
   "disabled": false,
-  "isPublic": true
+  "isPublic": true,
+  "llmConfig": {
+    "is_inherit": false,
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "max_recursion_depth": 3
+  }
 }

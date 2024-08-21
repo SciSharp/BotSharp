@@ -31,6 +31,7 @@ public class SettingService : ISettingService
         var plugins = pluginService.GetPlugins(_services);
         var plugin = plugins.First(x => x.Module.Settings.Name == settingName);
         var instance = plugin.Module.GetNewSettingsInstance();
+
         _config.Bind(settingName, instance);
         if (mask)
         {

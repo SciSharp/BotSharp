@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Utilities;
 using OpenAI.Chat;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Chat;
@@ -196,8 +197,8 @@ public class ChatCompletionProvider : IChatCompletion
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var fileService = _services.GetRequiredService<IBotSharpFileService>();
         var state = _services.GetRequiredService<IConversationStateService>();
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
@@ -262,23 +263,23 @@ public class ChatCompletionProvider : IChatCompletion
                 {
                     foreach (var file in message.Files)
                     {
-                        if (!string.IsNullOrEmpty(file.FileUrl))
+                        if (!string.IsNullOrEmpty(file.FileData))
                         {
-                            var uri = new Uri(file.FileUrl);
-                            var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(uri, ImageChatMessageContentPartDetail.Low);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, bytes) = fileService.GetFileInfoFromData(file.FileData);
+                            var (contentType, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
                             var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromBytes(bytes), contentType, ImageChatMessageContentPartDetail.Low);
                             contentParts.Add(contentPart);
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
-                            var contentType = fileService.GetFileContentType(file.FileStorageUrl);
-                            using var stream = File.OpenRead(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromStream(stream), contentType, ImageChatMessageContentPartDetail.Low);
+                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
+                            var bytes = fileStorage.GetFileBytes(file.FileStorageUrl);
+                            var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(BinaryData.FromBytes(bytes), contentType, ImageChatMessageContentPartDetail.Low);
+                            contentParts.Add(contentPart);
+                        }
+                        else if (!string.IsNullOrEmpty(file.FileUrl))
+                        {
+                            var uri = new Uri(file.FileUrl);
+                            var contentPart = ChatMessageContentPart.CreateImageMessageContentPart(uri, ImageChatMessageContentPartDetail.Low);
                             contentParts.Add(contentPart);
                         }
                     }
