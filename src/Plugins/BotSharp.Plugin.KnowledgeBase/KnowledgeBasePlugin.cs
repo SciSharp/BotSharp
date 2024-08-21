@@ -34,7 +34,7 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         {
             SubMenu = new List<PluginMenuDef>
             {
-                new PluginMenuDef("Vector", link: "page/knowledge-base/vector"),
+                new PluginMenuDef("Q & A", link: "page/knowledge-base/vector"),
                 new PluginMenuDef("Graph", link: "page/knowledge-base/graph")
             }
         });
