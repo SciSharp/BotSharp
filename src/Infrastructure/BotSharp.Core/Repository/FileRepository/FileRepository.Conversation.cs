@@ -293,6 +293,10 @@ namespace BotSharp.Core.Repository
                 {
                     matched = matched && record.Id == filter.Id;
                 }
+                if (filter?.Title != null)
+                {
+                    matched = matched && record.Title.Contains(filter.Title);
+                }
                 if (filter?.AgentId != null)
                 {
                     matched = matched && record.AgentId == filter.AgentId;
