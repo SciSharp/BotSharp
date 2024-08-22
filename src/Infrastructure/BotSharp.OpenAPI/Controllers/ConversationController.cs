@@ -52,7 +52,7 @@ public class ConversationController : ControllerBase
             return new PagedItems<ConversationViewModel>();
         }
 
-        filter.UserId = user.Role != UserRole.Admin ? user.Id : null;
+        filter.UserId = user.Role != UserRole.Admin ? user.Id : filter.UserId;
         var conversations = await convService.GetConversations(filter);
         var agentService = _services.GetRequiredService<IAgentService>();
         var list = conversations.Items.Select(x => ConversationViewModel.FromSession(x)).ToList();
@@ -154,6 +154,7 @@ public class ConversationController : ControllerBase
         var result = ConversationViewModel.FromSession(conversations.Items.First());
         var state = _services.GetRequiredService<IConversationStateService>();
         result.States = state.Load(conversationId, isReadOnly: true);
+        user = await userService.GetUser(result.User.Id);
         result.User = UserViewModel.FromUser(user);
 
         return result;
@@ -193,6 +194,29 @@ public class ConversationController : ControllerBase
         }
 
         return UserViewModel.FromUser(user);
+    }
+
+    [HttpPut("/conversation/{conversationId}/update-title")]
+    public async Task<bool> UpdateConversationTitle([FromRoute] string conversationId, [FromBody] UpdateConversationTitleModel newTile)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var conversationService = _services.GetRequiredService<IConversationService>();
+
+        var user = await userService.GetUser(_user.Id);
+        var filter = new ConversationFilter
+        {
+            Id = conversationId,
+            UserId = user.Role != UserRole.Admin ? user.Id : null
+        };
+        var conversations = await conversationService.GetConversations(filter);
+
+        if (conversations.Items.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var response = await conversationService.UpdateConversationTitle(conversationId, newTile.NewTitle);
+        return response != null;
     }
 
     [HttpDelete("/conversation/{conversationId}")]
