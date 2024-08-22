@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
-using System.Collections;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -10,8 +9,8 @@ public partial class KnowledgeService
     {
         try
         {
-            var db = GetVectorDb();
-            return await db.GetCollections();
+            var collections = _settings.Collections.Select(x => x.Name).ToList();
+            return collections;
         }
         catch (Exception ex)
         {
