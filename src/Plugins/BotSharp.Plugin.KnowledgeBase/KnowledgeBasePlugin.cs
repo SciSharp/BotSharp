@@ -20,8 +20,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             return settingService.Bind<KnowledgeBaseSettings>("KnowledgeBase");
         });
 
-        var a = config["KnowledgeBase"];
-
         services.AddScoped<ITextChopper, TextChopperService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
@@ -32,7 +30,14 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
     public bool AttachMenu(List<PluginMenuDef> menu)
     {
         var section = menu.First(x => x.Label == "Apps");
-        menu.Add(new PluginMenuDef("Knowledge Base", link: "/page/knowledge-base", icon: "bx bx-book-open", weight: section.Weight + 1));
+        menu.Add(new PluginMenuDef("Knowledge Base", icon: "bx bx-book-open", weight: section.Weight + 1)
+        {
+            SubMenu = new List<PluginMenuDef>
+            {
+                new PluginMenuDef("Q & A", link: "page/knowledge-base/vector"),
+                new PluginMenuDef("Relations", link: "page/knowledge-base/graph")
+            }
+        });
         return true;
     }
 }
