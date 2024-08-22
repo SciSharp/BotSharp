@@ -7,6 +7,7 @@ public class ConversationFilter
     /// Conversation Id
     /// </summary>
     public string? Id { get; set; }
+    public string? Title { get; set; }
     public string? AgentId { get; set; }
     public string? Status { get; set; }
     public string? Channel { get; set; }
