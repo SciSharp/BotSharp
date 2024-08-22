@@ -31,7 +31,6 @@ public class TwilioVoiceController : TwilioController
     [HttpPost("twilio/voice/welcome")]
     public TwiMLResult InitiateConversation(VoiceRequest request, [FromQuery] string states)
     {
-        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         if (request?.CallSid == null) throw new ArgumentNullException(nameof(VoiceRequest.CallSid));
         string conversationId = $"TwilioVoice_{request.CallSid}";
         var twilio = _services.GetRequiredService<TwilioService>();
@@ -44,7 +43,6 @@ public class TwilioVoiceController : TwilioController
     [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
     public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, VoiceRequest request)
     {
-        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
@@ -93,7 +91,6 @@ public class TwilioVoiceController : TwilioController
     [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
     public async Task<TwiMLResult> ReplyCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, VoiceRequest request)
     {
-        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         var nextSeqNum = seqNum + 1;
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
         var twilio = _services.GetRequiredService<TwilioService>();
@@ -153,7 +150,6 @@ public class TwilioVoiceController : TwilioController
     [HttpGet("twilio/voice/speeches/{conversationId}/{fileName}")]
     public async Task<FileContentResult> RetrieveSpeechFile([FromRoute] string conversationId, [FromRoute] string fileName)
     {
-        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         var fileService = _services.GetRequiredService<IFileStorageService>();
         var data = await fileService.RetrieveSpeechFileAsync(conversationId, fileName);
         var result = new FileContentResult(data.ToArray(), "audio/mpeg");
