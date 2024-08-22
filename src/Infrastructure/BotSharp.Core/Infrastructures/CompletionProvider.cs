@@ -131,6 +131,23 @@ public class CompletionProvider
         return completer;
     }
 
+    public static ISpeechToText GetSpeechToText(
+        IServiceProvider services,
+        string provider,
+        string model
+        )
+    {
+        var completions = services.GetServices<ISpeechToText>();
+        var completer = completions.FirstOrDefault(x => x.Provider == provider);
+        if (completer == null)
+        {
+            var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
+            logger.LogError($"Can't resolve speech2text provider by {provider}");
+        }
+        completer.SetModelName(model);
+        return completer;
+    }
+
     private static (string, string) GetProviderAndModel(IServiceProvider services,
         string? provider = null,
         string? model = null,

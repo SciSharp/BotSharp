@@ -23,6 +23,8 @@ namespace BotSharp.Plugin.AudioHandler
 
             services.AddScoped<ISpeechToText, NativeWhisperProvider>();
             services.AddScoped<IAudioProcessUtilities, AudioProcessUtilities>();
+            services.AddScoped<IAgentHook, AudioHandlerHook>();
+            services.AddScoped<IAgentUtilityHook, AudioHandlerUtilityHook>();
         }
     }
 }
