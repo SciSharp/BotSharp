@@ -26,12 +26,8 @@ public class AddDatabaseKnowledgeFn : IFunctionCallback
         var dictionary = new Dictionary<string, object>();
 
         List<string> allTables = new List<string>();
-        //var sql = $"select table_name from information_schema.tables where table_schema='GSMPMetaData' and (table_name like 'affiliate_%' or table_name like 'client_%' or table_name like 'data_%' or table_name like 'sms_%') limit 10";
-        var sql = $"select * from GSMPMetaData.joanna_knowledgebase where id>1057;";
-        //var sql = $"select table_name from information_schema.tables where table_schema='GSMPMetaData' and table_name like 'data_%'";
-        //var sql = $"select table_name from information_schema.tables where table_schema='GSMPMetaData' and (table_name like 'client_%Reactive%' or table_name like 'data_%' or table_name like 'sms_%');";
+        var sql = $"select table_name from information_schema.tables;";
         var result = connection.Query(sql: sql,dictionary);
-        //var result2 = new string[] { "client_ServiceCategory", "client_ServiceCode", "client_ServiceCodeNTE", "client_ServiceType" };
         foreach (var item in result)
         {
             allTables.Add(item.TABLE_NAME);
@@ -81,7 +77,6 @@ public class AddDatabaseKnowledgeFn : IFunctionCallback
                 note += $"Error processing table {item}: {e.Message}\r\n{e.InnerException}";
             }
         }
-        //message.Data = allTables.Distinct().ToList();
         return true;
     }
     private async Task<RoleDialogModel> GetAIResponse(Agent plannerAgent)
@@ -91,7 +86,6 @@ public class AddDatabaseKnowledgeFn : IFunctionCallback
         var completion = CompletionProvider.GetChatCompletion(_services,
             provider: plannerAgent.LlmConfig.Provider,
             model: plannerAgent.LlmConfig.Model);
-        //wholeDialogs.Last().Content += "\n\n=========\n\nthe summarized question/answer should:\n1. help user to identify the location of tables to find further information\n2. identify the table structure and data relationship based on the task description\n3. summarize all the table to table relationship  information based on the FOREIGN KEY, and include both table in the answer";
 
         return await completion.GetChatCompletions(plannerAgent, wholeDialogs);
     }
@@ -101,7 +95,6 @@ public class AddDatabaseKnowledgeFn : IFunctionCallback
         var aiAssistant = await agentService.GetAgent(BuiltInAgentId.AIAssistant);
         var render = _services.GetRequiredService<ITemplateRender>();
         var template = aiAssistant.Templates.First(x => x.Name == "database_knowledge").Content;
-        //var responseFormat = JsonSerializer.Serialize(new JsonDocument[] { JsonDocument.Parse("{}") });
         var responseFormat = JsonSerializer.Serialize(new ExtractedKnowledge
         {
             Question = "question",
