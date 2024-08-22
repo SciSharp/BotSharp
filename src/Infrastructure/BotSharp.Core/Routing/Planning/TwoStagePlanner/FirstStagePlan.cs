@@ -13,7 +13,7 @@ public class FirstStagePlan
     [JsonPropertyName("step")]
     public int Step { get; set; } = -1;
 
-    [JsonPropertyName("contain_multiple_steps")]
+    [JsonPropertyName("need_additional_information")]
     public bool ContainMultipleSteps { get; set; } = false;
 
     [JsonPropertyName("related_tables")]

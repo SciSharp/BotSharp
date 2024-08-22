@@ -1,6 +1,17 @@
-Reference to "Task Solutions". Breakdown task into multiple steps. 
-The step should contains all needed parameters.                                                                    
-The parameters can be extracted from the original task.
-Output all the steps as much detail as possible in JSON: [{{ response_format }}]
+Reference to "Primary Planning" and the additional knowledge included. Breakdown task into multiple steps. 
+* the step should contains all needed parameters.                                                                    
+* The parameters can be extracted from the original task.
+* You need to list all the steps in detail. Finding relationships should also be a step.
+* When generate the steps, you should find the relationships between data structure based on the provided knowledge strictly.
+* Output all the steps as much detail as possible in JSON: [{{ response_format }}]
 
+
+Additional Requirements:
+* "output_results" is variable name that needed to be used in the next step.
+
+=====
 TASK: {{ task_description }}
+
+=====
+Primary Planning: 
+{{ primary_plan }}

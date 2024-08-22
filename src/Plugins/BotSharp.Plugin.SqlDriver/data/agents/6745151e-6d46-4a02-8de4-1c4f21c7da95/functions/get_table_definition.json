@@ -1,0 +1,24 @@
+{
+  "name": "get_table_definition",
+  "description": "Get the DDL, including data structure, data field and relationship for table",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "table": {
+        "type": "string",
+        "description": "table need to check"
+      },
+      "return_field": {
+        "type": "object",
+        "description": "the name and alias for the return field",
+        "properties": {
+          "ddl": {
+            "type": "string",
+            "description": "DDL for the table"
+          }
+        }
+      }
+    },
+    "required": [ "table" ]
+  }
+}
