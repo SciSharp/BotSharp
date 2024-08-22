@@ -284,6 +284,22 @@ public partial class MongoRepository
         var filterDef = convBuilder.And(convFilters);
         var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
         var pager = filter?.Pager ?? new Pagination();
+
+        // Apply sorting based on sort and order fields
+        if (!string.IsNullOrEmpty(pager?.Sort))
+        {
+            var sortField = ConvertSnakeCaseToPascalCase(pager.Sort);
+
+            if (pager.Order == "asc")
+            {
+                sortDef = Builders<ConversationDocument>.Sort.Ascending(sortField);
+            }
+            else if (pager.Order == "desc")
+            {
+                sortDef = Builders<ConversationDocument>.Sort.Descending(sortField);
+            }
+        }
+
         var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDef).Skip(pager.Offset).Limit(pager.Size).ToList();
         var count = _dc.Conversations.CountDocuments(filterDef);
 
@@ -478,5 +494,23 @@ public partial class MongoRepository
         }
         
         return deletedMessageIds;
+    }
+
+    private string ConvertSnakeCaseToPascalCase(string snakeCase)
+    {
+        string[] words = snakeCase.Split('_');
+        StringBuilder pascalCase = new();
+
+        foreach (string word in words)
+        {
+            if (!string.IsNullOrEmpty(word))
+            {
+                string firstLetter = word[..1].ToUpper();
+                string restOfWord = word[1..].ToLower();
+                pascalCase.Append(firstLetter + restOfWord);
+            }
+        }
+
+        return pascalCase.ToString();
     }
 }
