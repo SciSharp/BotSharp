@@ -18,7 +18,7 @@ public class TextEmbeddingController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("/text-embedding/generation")]
+    [HttpPost("/text-embedding/generate")]
     public async Task<List<float[]>> GenerateTextEmbeddings(EmbeddingInputModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -27,7 +27,10 @@ public class TextEmbeddingController : ControllerBase
         try
         {
             var completion = CompletionProvider.GetTextEmbedding(_services, provider: input.Provider ?? "openai", model: input.Model ?? "text-embedding-3-large");
-            completion.Dimension = input.Dimension;
+            if (input.Dimension.HasValue && input.Dimension.Value > 0)
+            {
+                completion.SetDimension(input.Dimension.Value);
+            }
 
             var embeddings = await completion.GetVectorsAsync(input.Texts?.ToList() ?? []);
             return embeddings;

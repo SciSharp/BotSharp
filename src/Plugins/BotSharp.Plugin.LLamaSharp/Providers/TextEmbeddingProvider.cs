@@ -7,7 +7,9 @@ public class TextEmbeddingProvider : ITextEmbedding
     private LLamaEmbedder _embedder;
     private readonly LlamaSharpSettings _settings;
     private readonly IServiceProvider _services;
-    public int Dimension { get; set; } = 4096;
+    private const int DEFAULT_DIMENSION = 4096;
+
+    protected int _dimension = DEFAULT_DIMENSION;
 
     public string Provider => "llama-sharp";
 
@@ -36,4 +38,14 @@ public class TextEmbeddingProvider : ITextEmbedding
     }
 
     public void SetModelName(string model) { }
+
+    public void SetDimension(int dimension)
+    {
+        _dimension = dimension > 0 ? dimension : DEFAULT_DIMENSION;
+    }
+
+    public int GetDimension()
+    {
+        return _dimension;
+    }
 }

@@ -13,9 +13,9 @@ public partial class KnowledgeService
         });
 
         var db = GetVectorDb();
-        var textEmbedding = GetTextEmbedding();
+        var textEmbedding = GetTextEmbedding(collectionName);
 
-        await db.CreateCollection(collectionName, textEmbedding.Dimension);
+        await db.CreateCollection(collectionName, textEmbedding.GetDimension());
         foreach (var line in lines)
         {
             var vec = await textEmbedding.GetVectorAsync(line);

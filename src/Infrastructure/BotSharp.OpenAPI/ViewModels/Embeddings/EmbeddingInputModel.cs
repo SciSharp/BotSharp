@@ -8,6 +8,6 @@ public class EmbeddingInputModel : MessageConfig
     public IEnumerable<string> Texts { get; set; } = new List<string>();
 
     [JsonPropertyName("dimension")]
-    public int Dimension { get; set; } = 3072;
+    public int? Dimension { get; set; } = 3072;
 
 }

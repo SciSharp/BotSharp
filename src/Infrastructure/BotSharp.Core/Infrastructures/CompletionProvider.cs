@@ -111,7 +111,12 @@ public class CompletionProvider
             logger.LogError($"Can't resolve completion provider by {provider}");
         }
 
+
+        var llmProviderService = services.GetRequiredService<ILlmProviderService>();
+        var found = llmProviderService.GetSetting(provider, model);
+
         completer.SetModelName(model);
+        completer.SetDimension(found.Dimension);
         return completer;
     }
 

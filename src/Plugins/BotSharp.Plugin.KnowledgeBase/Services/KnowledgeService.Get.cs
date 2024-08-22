@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
+using System.Collections;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -43,7 +44,7 @@ public partial class KnowledgeService
     {
         try
         {
-            var textEmbedding = GetTextEmbedding();
+            var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(query);
 
             // Vector search
@@ -82,7 +83,7 @@ public partial class KnowledgeService
     {
         try
         {
-            var textEmbedding = GetTextEmbedding();
+            var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(query);
 
             var vectorDb = GetVectorDb();
