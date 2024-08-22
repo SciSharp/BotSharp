@@ -2,44 +2,36 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
 
-[AllowAnonymous]
-[Route("twilio/voice")]
 public class TwilioVoiceController : TwilioController
 {
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
+    private readonly IHttpContextAccessor _context;
 
-    public TwilioVoiceController(TwilioSetting settings, IServiceProvider services)
+    public TwilioVoiceController(TwilioSetting settings, IServiceProvider services, IHttpContextAccessor context)
     {
         _settings = settings;
         _services = services;
+        _context = context;
     }
 
-    [Authorize]
-    [HttpGet("/twilio/token")]
-    public Token GetAccessToken()
-    {
-        var twilio = _services.GetRequiredService<TwilioService>();
-        var accessToken = twilio.GetAccessToken();
-        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-        return new Token
-        {
-            AccessToken = accessToken,
-            ExpireTime = jwt.Payload.Exp.Value,
-            TokenType = "Bearer",
-            Scope = "api"
-        };
-    }
-
-    [HttpPost("welcome")]
+    /// <summary>
+    /// https://github.com/twilio-labs/twilio-aspnet?tab=readme-ov-file#validate-twilio-http-requests
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="states"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    [ValidateRequest]
+    [HttpPost("twilio/voice/welcome")]
     public TwiMLResult InitiateConversation(VoiceRequest request, [FromQuery] string states)
     {
+        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         if (request?.CallSid == null) throw new ArgumentNullException(nameof(VoiceRequest.CallSid));
         string conversationId = $"TwilioVoice_{request.CallSid}";
         var twilio = _services.GetRequiredService<TwilioService>();
@@ -48,9 +40,11 @@ public class TwilioVoiceController : TwilioController
         return TwiML(response);
     }
 
-    [HttpPost("{conversationId}/receive/{seqNum}")]
+    [ValidateRequest]
+    [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
     public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, VoiceRequest request)
     {
+        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
@@ -88,14 +82,18 @@ public class TwilioVoiceController : TwilioController
                 }
             }
             await messageQueue.EnqueueAsync(callerMessage);
-            response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true, 1);
+
+            int audioIndex = Random.Shared.Next(1, 5);
+            response = twilio.ReturnInstructions($"twilio/hold-on-{audioIndex}.mp3", $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true, 1);
         }
         return TwiML(response);
     }
 
-    [HttpPost("{conversationId}/reply/{seqNum}")]
+    [ValidateRequest]
+    [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
     public async Task<TwiMLResult> ReplyCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, VoiceRequest request)
     {
+        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         var nextSeqNum = seqNum + 1;
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
         var twilio = _services.GetRequiredService<TwilioService>();
@@ -151,9 +149,11 @@ public class TwilioVoiceController : TwilioController
         return TwiML(response);
     }
 
-    [HttpGet("speeches/{conversationId}/{fileName}")]
+    [ValidateRequest]
+    [HttpGet("twilio/voice/speeches/{conversationId}/{fileName}")]
     public async Task<FileContentResult> RetrieveSpeechFile([FromRoute] string conversationId, [FromRoute] string fileName)
     {
+        _context.HttpContext.Request.Headers["auth-schema"] = "twilio";
         var fileService = _services.GetRequiredService<IFileStorageService>();
         var data = await fileService.RetrieveSpeechFileAsync(conversationId, fileName);
         var result = new FileContentResult(data.ToArray(), "audio/mpeg");
