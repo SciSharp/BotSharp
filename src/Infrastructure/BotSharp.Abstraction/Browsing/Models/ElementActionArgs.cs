@@ -12,7 +12,10 @@ public class ElementActionArgs
 
     public string? PressKey { get; set; }
 
-    public bool? IsFirst { get; set; }
+    /// <summary>
+    /// Locator option
+    /// </summary>
+    public bool FirstIfMultipleFound { get; set; } = false;
 
     /// <summary>
     /// Wait time in seconds

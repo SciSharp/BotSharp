@@ -10,8 +10,8 @@ public class MessageFileViewModel
     [JsonPropertyName("file_name")]
     public string FileName { get; set; }
 
-    [JsonPropertyName("file_type")]
-    public string FileType { get; set; }
+    [JsonPropertyName("file_extension")]
+    public string FileExtension { get; set; }
 
     [JsonPropertyName("content_type")]
     public string ContentType { get; set; }
@@ -30,7 +30,7 @@ public class MessageFileViewModel
         {
             FileUrl = model.FileUrl,
             FileName = model.FileName,
-            FileType = model.FileType,
+            FileExtension = model.FileExtension,
             ContentType = model.ContentType,
             FileSource = model.FileSource
         };

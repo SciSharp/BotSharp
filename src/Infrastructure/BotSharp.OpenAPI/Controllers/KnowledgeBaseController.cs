@@ -1,6 +1,7 @@
+using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Knowledges.Models;
-using BotSharp.Abstraction.Knowledges.Settings;
-using Microsoft.AspNetCore.Http;
+using BotSharp.Abstraction.VectorStorage.Models;
+using BotSharp.OpenAPI.ViewModels.Knowledges;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -17,77 +18,107 @@ public class KnowledgeBaseController : ControllerBase
         _services = services;
     }
 
-    [HttpGet("/knowledge/{agentId}")]
-    public async Task<List<RetrievedResult>> RetrieveKnowledge([FromRoute] string agentId, [FromQuery(Name = "q")] string question)
+    [HttpGet("knowledge/vector/collections")]
+    public async Task<IEnumerable<string>> GetVectorCollections()
     {
-        return await _knowledgeService.GetAnswer(new KnowledgeRetrievalModel
-        {
-            AgentId = agentId,
-            Question = question
-        });
+        return await _knowledgeService.GetVectorCollections();
     }
 
-    [HttpPost("/knowledge-base/upload")]
-    public async Task<IActionResult> UploadKnowledge(IFormFile file, [FromQuery] int? startPageNum, [FromQuery] int? endPageNum)
+    [HttpPost("/knowledge/vector/{collection}/search")]
+    public async Task<IEnumerable<VectorKnowledgeViewModel>> SearchVectorKnowledge([FromRoute] string collection, [FromBody] SearchVectorKnowledgeRequest request)
     {
-        var setttings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        var textConverter = _services.GetServices<IPdf2TextConverter>()
-            .First(x => x.GetType().FullName.EndsWith(setttings.Pdf2TextConverter));
+        var options = new VectorSearchOptions
+        {
+            Fields = request.Fields,
+            Limit = request.Limit ?? 5,
+            Confidence = request.Confidence ?? 0.5f,
+            WithVector = request.WithVector
+        };
+
+        var results = await _knowledgeService.SearchVectorKnowledge(request.Text, collection, options);
+        return results.Select(x => VectorKnowledgeViewModel.From(x)).ToList();
+    }
+
+    [HttpPost("/knowledge/vector/{collection}/data")]
+    public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
+    {
+        var data = await _knowledgeService.GetVectorCollectionData(collection, filter);
+        var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?
+                               .ToList() ?? new List<VectorKnowledgeViewModel>();
+
+        return new StringIdPagedItems<VectorKnowledgeViewModel>
+        {
+            Count = data.Count,
+            NextId = data.NextId,
+            Items = items
+        };
+    }
+
+    [HttpDelete("/knowledge/vector/{collection}/data/{id}")]
+    public async Task<bool> DeleteVectorCollectionData([FromRoute] string collection, [FromRoute] string id)
+    {
+        return await _knowledgeService.DeleteVectorCollectionData(collection, id);
+    }
+
+    [HttpPost("/knowledge/vector/{collection}/upload")]
+    public async Task<IActionResult> UploadVectorKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
+    {
+        var setttings = _services.GetRequiredService<FileCoreSettings>();
+        var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Name == setttings.Pdf2TextConverter);
 
         var filePath = Path.GetTempFileName();
-        using (var stream = System.IO.File.Create(filePath))
+        using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
         {
             await file.CopyToAsync(stream);
+            await stream.FlushAsync();
         }
 
         var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
-
-        // Process uploaded files
-        // Don't rely on or trust the FileName property without validation.
-
-        // Add FeedWithMetaData
-        await _knowledgeService.EmbedKnowledge(new KnowledgeCreationModel
+        await _knowledgeService.FeedVectorKnowledge(collection, new KnowledgeCreationModel
         {
             Content = content
         });
 
+        System.IO.File.Delete(filePath);
         return Ok(new { count = 1, file.Length });
     }
 
-    [HttpPost("/knowledge/{agentId}")]
-    public async Task<IActionResult> FeedKnowledge([FromRoute] string agentId, List<IFormFile> files, [FromQuery] int? startPageNum, [FromQuery] int? endPageNum, [FromQuery] bool? paddleModel)
+    [HttpPost("/knowledge/graph/search")]
+    public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
     {
-        var setttings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        var textConverter = _services.GetServices<IPdf2TextConverter>().First(x => x.GetType().FullName.EndsWith(setttings.Pdf2TextConverter));
-        long size = files.Sum(f => f.Length);
-
-        foreach (var formFile in files)
+        var options = new GraphSearchOptions
         {
-            var filePath = Path.GetTempFileName();
+            Method = request.Method
+        };
 
+        var result = await _knowledgeService.SearchGraphKnowledge(request.Query, options);
+        return new GraphKnowledgeViewModel
+        {
+            Result = result.Result
+        };
+    }
 
-            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                await formFile.CopyToAsync(stream);
-                await stream.FlushAsync(); // Ensure all data is written to the file
-            }
+    [HttpPost("/knowledge/search")]
+    public async Task<KnowledgeSearchViewModel> SearchKnowledge([FromBody] SearchKnowledgeRequest request)
+    {
+        var vectorOptions = new VectorSearchOptions
+        {
+            Fields = request.VectorParams.Fields,
+            Limit = request.VectorParams.Limit ?? 5,
+            Confidence = request.VectorParams.Confidence ?? 0.5f,
+            WithVector = request.VectorParams.WithVector
+        };
 
-            var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
+        var graphOptions = new GraphSearchOptions
+        {
+            Method = request.GraphParams.Method
+        };
 
-            // Process uploaded files
-            // Don't rely on or trust the FileName property without validation.
-
-            // Add FeedWithMetaData
-            await _knowledgeService.Feed(new KnowledgeFeedModel
-            {
-                AgentId = agentId,
-                Content = content
-            });
-
-            // Delete the temp file after processing to clean up
-            System.IO.File.Delete(filePath);
-        }
-
-        return Ok(new { count = files.Count, size });
+        var result = await _knowledgeService.SearchKnowledge(request.Text, request.VectorParams.Collection, vectorOptions, graphOptions);
+        return new KnowledgeSearchViewModel
+        {
+            VectorResult = result?.VectorResult?.Select(x => VectorKnowledgeViewModel.From(x)),
+            GraphResult = result?.GraphResult != null ? new GraphKnowledgeViewModel { Result = result.GraphResult.Result } : null
+        };
     }
 }

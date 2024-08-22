@@ -1,14 +1,15 @@
-using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Knowledges;
 
 public interface IKnowledgeService
 {
-    Task<List<KnowledgeChunk>> CollectChunkedKnowledge();
-    Task EmbedKnowledge(List<KnowledgeChunk> chunks);
-
-    Task Feed(KnowledgeFeedModel knowledge);
-    Task EmbedKnowledge(KnowledgeCreationModel knowledge);
-    Task<string> GetKnowledges(KnowledgeRetrievalModel retrievalModel);
-    Task<List<RetrievedResult>> GetAnswer(KnowledgeRetrievalModel retrievalModel);
+    Task<IEnumerable<string>> GetVectorCollections();
+    Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
+    Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel model);
+    Task<StringIdPagedItems<VectorSearchResult>> GetVectorCollectionData(string collectionName, VectorFilter filter);
+    Task<bool> DeleteVectorCollectionData(string collectionName, string id);
+    Task<GraphSearchResult> SearchGraphKnowledge(string query, GraphSearchOptions options);
+    Task<KnowledgeSearchResult> SearchKnowledge(string query, string collectionName, VectorSearchOptions vectorOptions, GraphSearchOptions graphOptions);
 }

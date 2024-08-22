@@ -5,6 +5,8 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public class PigPdf2TextConverter : IPdf2TextConverter
 {
+    public string Name => "Pig";
+
     public Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
     {
         // since PdfDocument.Open is not async, we dont need to make this method async

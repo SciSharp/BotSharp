@@ -30,6 +30,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Dashboard\BotSharp.Plugin.Dashboard.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaGLM\BotSharp.Plugin.MetaGLM.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Planner\BotSharp.Plugin.Planner.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.PythonInterpreter\BotSharp.Plugin.PythonInterpreter.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.SparkDesk\BotSharp.Plugin.SparkDesk.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TencentCos\BotSharp.Plugin.TencentCos.csproj" />
   </ItemGroup>
@@ -47,6 +48,7 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.ChatbotUI\BotSharp.Plugin.ChatbotUI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.HuggingFace\BotSharp.Plugin.HuggingFace.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.KnowledgeBase\BotSharp.Plugin.KnowledgeBase.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.Graph\BotSharp.Plugin.Graph.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaAI\BotSharp.Plugin.MetaAI.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaMessenger\BotSharp.Plugin.MetaMessenger.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Qdrant\BotSharp.Plugin.Qdrant.csproj" />

@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -17,20 +16,25 @@ public class AgentCreationModel
     public string Instruction { get; set; } = string.Empty;
 
     /// <summary>
+    /// 
+    /// </summary>
+    public List<ChannelInstruction> ChannelInstructions { get; set; } = new();
+
+    /// <summary>
     /// LLM extensible Instructions in addition to the default Instructions
     /// </summary>
-    public List<AgentTemplate> Templates { get; set; } = new List<AgentTemplate>();
+    public List<AgentTemplate> Templates { get; set; } = new();
 
     /// <summary>
     /// LLM callable function definition
     /// </summary>
-    public List<FunctionDef> Functions { get; set; } = new List<FunctionDef>();
+    public List<FunctionDef> Functions { get; set; } = new();
 
     /// <summary>
     /// Response template
     /// </summary>
-    public List<AgentResponse> Responses { get; set; } = new List<AgentResponse>();
-    public List<string> Samples { get; set; } = new List<string>();
+    public List<AgentResponse> Responses { get; set; } = new();
+    public List<string> Samples { get; set; } = new();
 
     public bool IsPublic { get; set; }
 
@@ -43,9 +47,9 @@ public class AgentCreationModel
     /// <summary>
     /// Combine different Agents together to form a Profile.
     /// </summary>
-    public List<string> Profiles { get; set; } = new List<string>();
-    public List<string> Utilities { get; set; } = new List<string>();
-    public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new List<RoutingRuleUpdateModel>();
+    public List<string> Profiles { get; set; } = new();
+    public List<string> Utilities { get; set; } = new();
+    public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new();
     public AgentLlmConfig? LlmConfig { get; set; }
 
     public Agent ToAgent()
@@ -55,6 +59,7 @@ public class AgentCreationModel
             Name = Name,
             Description = Description,
             Instruction = Instruction,
+            ChannelInstructions = ChannelInstructions,
             Templates = Templates,
             Functions = Functions,
             Responses = Responses,
@@ -64,9 +69,7 @@ public class AgentCreationModel
             Type = Type,
             Disabled = Disabled,
             Profiles = Profiles,
-            RoutingRules = RoutingRules?
-                .Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?
-                .ToList() ?? new List<RoutingRule>(),
+            RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),
             LlmConfig = LlmConfig
         };
     }

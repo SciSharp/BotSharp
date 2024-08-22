@@ -37,9 +37,12 @@ public partial class MongoRepository
                 {
                     Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
                     Name = x.Name,
+                    IconUrl = x.IconUrl,
                     Description = x.Description,
                     Instruction = x.Instruction,
-                    IconUrl = x.IconUrl,
+                    ChannelInstructions = x.ChannelInstructions?
+                                 .Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?
+                                 .ToList() ?? new List<ChannelInstructionMongoElement>(),
                     Templates = x.Templates?
                                  .Select(t => AgentTemplateMongoElement.ToMongoElement(t))?
                                  .ToList() ?? new List<AgentTemplateMongoElement>(),
@@ -71,6 +74,7 @@ public partial class MongoRepository
                         .Set(x => x.Name, agent.Name)
                         .Set(x => x.Description, agent.Description)
                         .Set(x => x.Instruction, agent.Instruction)
+                        .Set(x => x.ChannelInstructions, agent.ChannelInstructions)
                         .Set(x => x.Templates, agent.Templates)
                         .Set(x => x.Functions, agent.Functions)
                         .Set(x => x.Responses, agent.Responses)

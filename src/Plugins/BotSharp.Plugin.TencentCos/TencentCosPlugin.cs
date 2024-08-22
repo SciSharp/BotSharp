@@ -18,10 +18,10 @@ public class TencentCosPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        var myFileStorageSettings = new FileStorageSettings();
-        config.Bind("FileStorage", myFileStorageSettings);
+        var fileCoreSettings = new FileCoreSettings();
+        config.Bind("FileCore", fileCoreSettings);
 
-        if (myFileStorageSettings.Default == FileStorageEnum.TencentCosStorage)
+        if (fileCoreSettings.Storage == FileStorageEnum.TencentCosStorage)
         {
             services.AddScoped(provider =>
             {
@@ -30,8 +30,7 @@ public class TencentCosPlugin : IBotSharpPlugin
             });
 
             services.AddScoped<TencentCosClient>();
-
-            services.AddScoped<IBotSharpFileService, TencentCosService>();
+            services.AddScoped<IFileStorageService, TencentCosService>();
         }
     }
 }

@@ -150,6 +150,7 @@ public partial class ConversationService
                 await HookEmitter.Emit<IConversationHook>(_services, async hook =>
                     await hook.OnConversationEnding(response)
                 );
+                response.FunctionName = "conversation_end";
             }
         }
 

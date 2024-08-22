@@ -16,7 +16,7 @@ public class TextChopperService : ITextChopper
         var chunks = new List<string>();
 
         var words = content.Split(' ')
-            .Where(x => !string.IsNullOrEmpty(x))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
             .ToList();
 
         var chunk = "";
