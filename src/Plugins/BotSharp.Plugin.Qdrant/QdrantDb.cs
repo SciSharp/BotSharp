@@ -76,7 +76,6 @@ public class QdrantDb : IVectorDb
     {
         if (ids.IsNullOrEmpty()) return Enumerable.Empty<VectorCollectionData>();
 
-
         var client = GetClient();
         var exist = await DoesCollectionExist(client, collectionName);
         if (!exist)
