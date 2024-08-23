@@ -81,6 +81,11 @@ public class TwilioService
         if (!string.IsNullOrEmpty(speechPath))
         {
             gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+            if (speechPath.Contains("hold-on-"))
+            {
+                int audioIndex = Random.Shared.Next(1, 4);
+                gather.Play(new Uri($"{_settings.CallbackHost}/twilio/typing-{audioIndex}.mp3"));
+            }
         }
         response.Append(gather);
         return response;

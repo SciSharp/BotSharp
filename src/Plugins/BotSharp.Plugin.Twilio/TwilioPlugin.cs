@@ -23,6 +23,6 @@ public class TwilioPlugin : IBotSharpPlugin
         services.AddSingleton<ITwilioSessionManager>(sessionManager);
         services.AddSingleton<TwilioMessageQueue>();
         services.AddHostedService<TwilioMessageQueueService>();
-
+        services.AddTwilioRequestValidation();
     }
 }
