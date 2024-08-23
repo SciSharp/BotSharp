@@ -43,7 +43,7 @@ public class SharpCacheAttribute : MoAttribute
 
     private string GetCacheKey(MethodContext context)
     {
-        var key = _prefix;
+        var key = _prefix + "-" + context.Method.Name;
         foreach (var arg in context.Arguments)
         {
             if (arg is null)

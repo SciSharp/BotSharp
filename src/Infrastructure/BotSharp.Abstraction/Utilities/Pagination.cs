@@ -43,7 +43,7 @@ public class Pagination : ICacheKey
     public bool ReturnTotal { get; set; } = true;
 
     public string GetCacheKey()
-        => $"{_page}_{_size}_{Sort}_{Order}";
+        => $"{nameof(Pagination)}_{_page}_{_size}_{Sort}_{Order}";
 }
 
 public class PagedItems<T>
