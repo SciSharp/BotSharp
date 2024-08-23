@@ -16,7 +16,13 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
+    public Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
+        bool withPayload = false, bool withVector = false)
     {
         throw new NotImplementedException();
     }

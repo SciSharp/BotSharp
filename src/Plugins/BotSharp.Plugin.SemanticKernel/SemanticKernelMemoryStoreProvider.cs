@@ -29,9 +29,15 @@ namespace BotSharp.Plugin.SemanticKernel
             await _memoryStore.CreateCollectionAsync(collectionName);
         }
 
-        public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
+        public Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
         {
             throw new System.NotImplementedException();
+        }
+
+        public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
+        bool withPayload = false, bool withVector = false)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<string>> GetCollections()
