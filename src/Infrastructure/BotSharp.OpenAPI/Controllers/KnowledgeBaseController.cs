@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -52,6 +53,20 @@ public class KnowledgeBaseController : ControllerBase
             NextId = data.NextId,
             Items = items
         };
+    }
+
+    [HttpPut("/knowledge/vector/{collection}/update")]
+    public async Task<bool> UpdateVectorKnowledge([FromRoute] string collection, [FromBody] VectorKnowledgeUpdateRequest request)
+    {
+        var update = new VectorUpdateModel
+        {
+            Id = request.Id,
+            Text = request.Text,
+            Payload = request.Payload
+        };
+
+        var updated = await _knowledgeService.UpdateVectorCollectionData(collection, update);
+        return updated;
     }
 
     [HttpDelete("/knowledge/vector/{collection}/data/{id}")]

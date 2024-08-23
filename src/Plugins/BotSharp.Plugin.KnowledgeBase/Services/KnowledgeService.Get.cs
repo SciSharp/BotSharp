@@ -9,12 +9,12 @@ public partial class KnowledgeService
     {
         try
         {
-            var collections = _settings.Collections.Select(x => x.Name).ToList();
-            return collections;
+            var db = GetVectorDb();
+            return await db.GetCollections();
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting knowledge collections. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when getting vector db collections. {ex.Message}\r\n{ex.InnerException}");
             return Enumerable.Empty<string>();
         }
     }
@@ -34,7 +34,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting knowledge collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when getting vector knowledge collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
             return new StringIdPagedItems<VectorSearchResult>();
         }
     }
@@ -55,7 +55,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when searching knowledge ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when searching vector knowledge ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
             return new List<VectorSearchResult>();
         }
     }
@@ -73,7 +73,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when searching graph {query}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when searching graph knowledge (Query: {query}). {ex.Message}\r\n{ex.InnerException}");
             return new GraphSearchResult();
         }
     }
@@ -99,7 +99,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when searching knowledge (vector collection: {collectionName}) {query}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when searching knowledge (Vector collection: {collectionName}) (Query: {query}). {ex.Message}\r\n{ex.InnerException}");
             return new KnowledgeSearchResult();
         }
     }
