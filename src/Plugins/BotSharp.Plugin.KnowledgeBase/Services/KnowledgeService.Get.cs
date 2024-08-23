@@ -18,7 +18,7 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<StringIdPagedItems<VectorSearchResult>> GetVectorCollectionData(string collectionName, VectorFilter filter)
+    public async Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter)
     {
         try
         {

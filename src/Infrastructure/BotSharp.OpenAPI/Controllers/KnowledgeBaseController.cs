@@ -39,10 +39,10 @@ public class KnowledgeBaseController : ControllerBase
         return results.Select(x => VectorKnowledgeViewModel.From(x)).ToList();
     }
 
-    [HttpPost("/knowledge/vector/{collection}/data")]
-    public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
+    [HttpPost("/knowledge/vector/{collection}/page")]
+    public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetPagedVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
     {
-        var data = await _knowledgeService.GetVectorCollectionData(collection, filter);
+        var data = await _knowledgeService.GetPagedVectorCollectionData(collection, filter);
         var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?
                                .ToList() ?? new List<VectorKnowledgeViewModel>();
 
