@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.VectorStorage.Models;
-
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
@@ -13,10 +11,15 @@ public partial class KnowledgeService
                 return false;
             }
 
+            var db = GetVectorDb();
+            var found = await db.GetCollectionData(collectionName, new List<Guid> { guid });
+            if (found.IsNullOrEmpty())
+            {
+                return false;
+            }
+
             var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(update.Text);
-
-            var db = GetVectorDb();
             return await db.Upsert(collectionName, guid, vector, update.Text, update.Payload);
         }
         catch (Exception ex)

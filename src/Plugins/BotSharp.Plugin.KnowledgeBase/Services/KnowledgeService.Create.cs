@@ -24,4 +24,27 @@ public partial class KnowledgeService
             Console.WriteLine($"Saved vector {index}/{lines.Count}: {line}\n");
         }
     }
+
+    public async Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(create.Text))
+            {
+                return false;
+            }
+
+            var textEmbedding = GetTextEmbedding(collectionName);
+            var vector = await textEmbedding.GetVectorAsync(create.Text);
+
+            var db = GetVectorDb();
+            var guid = Guid.NewGuid();
+            return await db.Upsert(collectionName, guid, vector, create.Text, create.Payload);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when creating vector collection data. {ex.Message}\r\n{ex.InnerException}");
+            return false;
+        }
+    }
 }

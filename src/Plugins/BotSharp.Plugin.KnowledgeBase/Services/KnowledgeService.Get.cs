@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Graph.Models;
-using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -24,7 +23,7 @@ public partial class KnowledgeService
         try
         {
             var db = GetVectorDb();
-            var pagedResult =  await db.GetCollectionData(collectionName, filter);
+            var pagedResult =  await db.GetPagedCollectionData(collectionName, filter);
             return new StringIdPagedItems<VectorSearchResult>
             {
                 Count = pagedResult.Count,

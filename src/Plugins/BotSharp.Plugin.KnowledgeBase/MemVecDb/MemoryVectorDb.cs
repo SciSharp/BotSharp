@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.VectorStorage.Models;
-using BotSharp.Plugin.KnowledgeBase.Utilities;
 using Tensorflow.NumPy;
 
 namespace BotSharp.Plugin.KnowledgeBase.MemVecDb;
@@ -23,7 +21,13 @@ public class MemoryVectorDb : IVectorDb
         return _collections.Select(x => x.Key).ToList();
     }
 
-    public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
+    public Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
+        bool withPayload = false, bool withVector = false)
     {
         throw new NotImplementedException();
     }

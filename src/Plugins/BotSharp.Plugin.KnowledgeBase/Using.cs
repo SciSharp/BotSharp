@@ -19,6 +19,7 @@ global using BotSharp.Abstraction.Graph;
 global using BotSharp.Abstraction.Knowledges.Settings;
 global using BotSharp.Abstraction.Knowledges.Enums;
 global using BotSharp.Abstraction.VectorStorage;
+global using BotSharp.Abstraction.VectorStorage.Models;
 global using BotSharp.Abstraction.Knowledges.Models;
 global using BotSharp.Abstraction.MLTasks;
 global using BotSharp.Abstraction.Functions;
