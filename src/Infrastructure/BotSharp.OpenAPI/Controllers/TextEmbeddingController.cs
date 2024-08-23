@@ -26,7 +26,7 @@ public class TextEmbeddingController : ControllerBase
 
         try
         {
-            var completion = CompletionProvider.GetTextEmbedding(_services, provider: input.Provider ?? "openai", model: input.Model ?? "text-embedding-3-small");
+            var completion = CompletionProvider.GetTextEmbedding(_services, provider: input.Provider ?? "openai", model: input.Model ?? "text-embedding-3-large");
             completion.Dimension = input.Dimension;
 
             var embeddings = await completion.GetVectorsAsync(input.Texts?.ToList() ?? []);

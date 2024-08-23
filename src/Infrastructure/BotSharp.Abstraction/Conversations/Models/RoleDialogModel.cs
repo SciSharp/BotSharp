@@ -94,7 +94,7 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("generated_images")]
     public List<ImageGeneration> GeneratedImages { get; set; } = new List<ImageGeneration>();
-
+    public float KnowledgeConfidence { get; set; } = 0.5f;
     private RoleDialogModel()
     {
     }
@@ -134,7 +134,8 @@ public class RoleDialogModel : ITrackableMessage
             Payload = source.Payload,
             StopCompletion = source.StopCompletion,
             Instruction = source.Instruction,
-            Data = source.Data
+            Data = source.Data,
+            KnowledgeConfidence = source.KnowledgeConfidence
         };
     }
 }

@@ -55,6 +55,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\database_knowledge.liquid" />
+    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.summarize.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\agent.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\instructions\instruction.liquid" />
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\agent.json" />
@@ -114,6 +116,9 @@
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\instructions\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\database_knowledge.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.1st.plan.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -133,6 +138,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.naive.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.summarize.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\response_with_function.liquid">

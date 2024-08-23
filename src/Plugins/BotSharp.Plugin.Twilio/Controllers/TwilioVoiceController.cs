@@ -54,17 +54,24 @@ public class TwilioVoiceController : TwilioController
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
-        var url = $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}";
         var messages = await sessionManager.RetrieveStagedCallerMessagesAsync(conversationId, seqNum);
         if (!string.IsNullOrWhiteSpace(request.SpeechResult))
         {
             messages.Add(request.SpeechResult);
+            await sessionManager.StageCallerMessageAsync(conversationId, seqNum, request.SpeechResult);
         }
-        var messageContent = string.Join("\r\n", messages);
         VoiceResponse response;
-        if (!string.IsNullOrWhiteSpace(messageContent))
+        if (messages.Count == 0 && seqNum == 0)
+        { 
+            response = twilio.ReturnInstructions("twilio/welcome.mp3", $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true);
+        }
+        else
         {
-
+            if (messages.Count == 0)
+            {
+                messages = await sessionManager.RetrieveStagedCallerMessagesAsync(conversationId, seqNum - 1);
+            }
+            var messageContent = string.Join("\r\n", messages);
             var callerMessage = new CallerMessage()
             {
                 ConversationId = conversationId,
@@ -81,12 +88,7 @@ public class TwilioVoiceController : TwilioController
                 }
             }
             await messageQueue.EnqueueAsync(callerMessage);
-            response = twilio.ReturnInstructions(null, url, true, 1);
-        }
-        else
-        {
-            var speechPath = seqNum > 0 ? $"twilio/voice/speeches/{conversationId}/{seqNum - 1}.mp3" : "twilio/welcome.mp3";
-            response = twilio.ReturnInstructions(speechPath, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true);
+            response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true, 1);
         }
         return TwiML(response);
     }
@@ -108,12 +110,21 @@ public class TwilioVoiceController : TwilioController
             var indication = await sessionManager.GetReplyIndicationAsync(conversationId, seqNum);
             if (indication != null)
             {
-                var textToSpeechService = CompletionProvider.GetTextToSpeech(_services, "openai", "tts-1");
-                var fileService = _services.GetRequiredService<IFileStorageService>();
-                var data = await textToSpeechService.GenerateSpeechFromTextAsync(indication);
-                var fileName = $"indication_{seqNum}.mp3";
-                await fileService.SaveSpeechFileAsync(conversationId, fileName, data);
-                response = twilio.ReturnInstructions($"twilio/voice/speeches/{conversationId}/{fileName}", $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true, 2);
+                string speechPath;
+                if (indication.StartsWith('#'))
+                {
+                    speechPath = $"twilio/{indication.Substring(1)}";
+                }
+                else
+                {
+                    var textToSpeechService = CompletionProvider.GetTextToSpeech(_services, "openai", "tts-1");
+                    var fileService = _services.GetRequiredService<IFileStorageService>();
+                    var data = await textToSpeechService.GenerateSpeechFromTextAsync(indication);
+                    var fileName = $"indication_{seqNum}.mp3";
+                    await fileService.SaveSpeechFileAsync(conversationId, fileName, data);
+                    speechPath = $"twilio/voice/speeches/{conversationId}/{fileName}";
+                }
+                response = twilio.ReturnInstructions(speechPath, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true, 2);
             }
             else
             {
@@ -125,7 +136,7 @@ public class TwilioVoiceController : TwilioController
             var textToSpeechService = CompletionProvider.GetTextToSpeech(_services, "openai", "tts-1");
             var fileService = _services.GetRequiredService<IFileStorageService>();
             var data = await textToSpeechService.GenerateSpeechFromTextAsync(reply.Content);
-            var fileName = $"reply_{seqNum}.mp3";
+            var fileName = $"reply_{reply.MessageId ?? seqNum.ToString()}.mp3";
             await fileService.SaveSpeechFileAsync(conversationId, fileName, data);
             if (reply.ConversationEnd)
             {

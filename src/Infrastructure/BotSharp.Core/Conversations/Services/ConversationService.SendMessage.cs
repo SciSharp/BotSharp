@@ -44,7 +44,7 @@ public partial class ConversationService
         // Save payload
         if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
         {
-            message.Payload =  replyMessage.Payload;
+            message.Payload = replyMessage.Payload;
         }
 
         // Before chat completion hook
