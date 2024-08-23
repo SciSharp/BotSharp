@@ -23,11 +23,11 @@ public class KnowledgeRetrievalFn : IFunctionCallback
         var vector = await embedding.GetVectorAsync(args.Question);
         var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
         var collectionName = !string.IsNullOrWhiteSpace(_settings.DefaultCollection) ? _settings.DefaultCollection : KnowledgeCollectionName.BotSharp;
-        var knowledges = await vectorDb.Search(collectionName, vector, new List<string> { KnowledgePayloadName.Answer });
+        var knowledges = await vectorDb.Search(collectionName, vector, new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer });
 
         if (!knowledges.IsNullOrEmpty())
         {
-            var answers = knowledges.Select(x => x.Data[KnowledgePayloadName.Answer]).ToList();
+            var answers = knowledges.Select(x => $"Question: {x.Data[KnowledgePayloadName.Text]}\r\nAnswer: {x.Data[KnowledgePayloadName.Answer]}").ToList();
             message.Content = string.Join("\r\n\r\n=====\r\n", answers);
         }
         else

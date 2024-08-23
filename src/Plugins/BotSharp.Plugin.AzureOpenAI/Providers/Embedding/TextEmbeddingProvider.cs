@@ -8,7 +8,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     protected readonly IServiceProvider _services;
     protected readonly ILogger<TextEmbeddingProvider> _logger;
 
-    private const int DEFAULT_DIMENSION = 1536;
+    private const int DEFAULT_DIMENSION = 3072;
     protected string _model;
 
     public virtual string Provider => "azure-openai";
