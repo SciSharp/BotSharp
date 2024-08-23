@@ -1,9 +1,5 @@
-using Amazon.Util.Internal;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
-using System.Collections.Immutable;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -66,7 +62,7 @@ public partial class MongoRepository
         var statesDeleted = _dc.ConversationStates.DeleteMany(filterSates);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
-        
+
         return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
             || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
             || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0;
@@ -237,6 +233,10 @@ public partial class MongoRepository
         {
             convFilters.Add(convBuilder.Eq(x => x.Id, filter.Id));
         }
+        if (!string.IsNullOrEmpty(filter?.Title))
+        {
+            convFilters.Add(convBuilder.Regex(x => x.Title, new BsonRegularExpression(filter.Title, "i")));
+        }
         if (!string.IsNullOrEmpty(filter?.AgentId))
         {
             convFilters.Add(convBuilder.Eq(x => x.AgentId, filter.AgentId));
@@ -284,6 +284,22 @@ public partial class MongoRepository
         var filterDef = convBuilder.And(convFilters);
         var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.CreatedTime);
         var pager = filter?.Pager ?? new Pagination();
+
+        // Apply sorting based on sort and order fields
+        if (!string.IsNullOrEmpty(pager?.Sort))
+        {
+            var sortField = ConvertSnakeCaseToPascalCase(pager.Sort);
+
+            if (pager.Order == "asc")
+            {
+                sortDef = Builders<ConversationDocument>.Sort.Ascending(sortField);
+            }
+            else if (pager.Order == "desc")
+            {
+                sortDef = Builders<ConversationDocument>.Sort.Descending(sortField);
+            }
+        }
+
         var conversationDocs = _dc.Conversations.Find(filterDef).Sort(sortDef).Skip(pager.Offset).Limit(pager.Size).ToList();
         var count = _dc.Conversations.CountDocuments(filterDef);
 
@@ -364,7 +380,7 @@ public partial class MongoRepository
             {
                 break;
             }
-            
+
             conversationIds = conversationIds.Concat(candidates).Distinct().ToList();
             if (conversationIds.Count >= batchSize)
             {
@@ -403,7 +419,7 @@ public partial class MongoRepository
 
         // Handle truncated dialogs
         var truncatedDialogs = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
-        
+
         // Handle truncated states
         var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreateTime;
         var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
@@ -441,7 +457,7 @@ public partial class MongoRepository
                 var truncatedBreakpoints = breakpoints.Where(x => x.CreatedTime < refTime).ToList();
                 foundStates.Breakpoints = truncatedBreakpoints;
             }
-            
+
             // Update
             _dc.ConversationStates.ReplaceOne(stateFilter, foundStates);
         }
@@ -476,7 +492,25 @@ public partial class MongoRepository
             _dc.ContentLogs.DeleteMany(contentLogBuilder.And(contentLogFilters));
             _dc.StateLogs.DeleteMany(stateLogBuilder.And(stateLogFilters));
         }
-        
+
         return deletedMessageIds;
+    }
+
+    private string ConvertSnakeCaseToPascalCase(string snakeCase)
+    {
+        string[] words = snakeCase.Split('_');
+        StringBuilder pascalCase = new();
+
+        foreach (string word in words)
+        {
+            if (!string.IsNullOrEmpty(word))
+            {
+                string firstLetter = word[..1].ToUpper();
+                string restOfWord = word[1..].ToLower();
+                pascalCase.Append(firstLetter + restOfWord);
+            }
+        }
+
+        return pascalCase.ToString();
     }
 }

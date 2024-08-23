@@ -1,0 +1,18 @@
+{
+    "name": "handle_audio_request",
+    "description": "If the user requests to transcribe or summarize audio content, you need to call this function to transcribe the audio content to raw texts or provide sunmmary based on raw texts transcribed from audio",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "user_request": {
+                "type": "string",
+                "description": "The request posted by user, which is related to trascribe a aduio based on the inputted audio file"
+            },
+            "is_need_summary": {
+                "type": "boolean",
+                "description": "If the user request is to summarize the audio content, set this value to true, otherwise, set it to false"
+            }
+        },
+        "required": [ "user_request" ]
+    }
+}
