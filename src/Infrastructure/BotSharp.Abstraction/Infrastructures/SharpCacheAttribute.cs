@@ -10,9 +10,12 @@ public class SharpCacheAttribute : MoAttribute
     public static IServiceProvider Services { get; set; } = null!;
 
     private int _minutes;
-    public SharpCacheAttribute(int minutes)
+    private string _prefix;
+
+    public SharpCacheAttribute(int minutes, string prefix = "cache")
     {
         _minutes = minutes;
+        _prefix = prefix;
     }
 
     public override void OnEntry(MethodContext context)
@@ -40,8 +43,7 @@ public class SharpCacheAttribute : MoAttribute
 
     private string GetCacheKey(MethodContext context)
     {
-        // 根据用户级别生成缓存key
-        var key = string.Empty;
+        var key = _prefix;
         foreach (var arg in context.Arguments)
         {
             if (arg is null)
