@@ -3,7 +3,7 @@ namespace BotSharp.Abstraction.Routing.Models;
 public class RoutingArgs
 {
     [JsonPropertyName("function")]
-    public string Function { get; set; } = string.Empty;
+    public string Function { get; set; } = "route_to_agent";
 
     /// <summary>
     /// The reason why you select this function or agent
