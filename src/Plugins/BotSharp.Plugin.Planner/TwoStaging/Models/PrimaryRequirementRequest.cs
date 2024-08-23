@@ -7,4 +7,7 @@ public class PrimaryRequirementRequest
 
     [JsonPropertyName("has_knowledge_reference")]
     public bool HasKnowledgeReference { get; set; }
+
+    [JsonPropertyName("question")]
+    public string Question { get; set; } = null!;
 }

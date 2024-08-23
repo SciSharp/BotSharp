@@ -80,7 +80,8 @@ namespace BotSharp.Plugin.Twilio.Services
                     reply = new AssistantMessage()
                     {
                         ConversationEnd = msg.Instruction.ConversationEnd,
-                        Content = msg.Content
+                        Content = msg.Content,
+                        MessageId = msg.MessageId
                     };
                 },
                 async msg =>
