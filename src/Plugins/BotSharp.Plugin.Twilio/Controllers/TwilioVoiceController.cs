@@ -128,18 +128,13 @@ public class TwilioVoiceController : TwilioController
         }
         else
         {
-            var textToSpeechService = CompletionProvider.GetTextToSpeech(_services, "openai", "tts-1");
-            var fileService = _services.GetRequiredService<IFileStorageService>();
-            var data = await textToSpeechService.GenerateSpeechFromTextAsync(reply.Content);
-            var fileName = $"reply_{reply.MessageId ?? seqNum.ToString()}.mp3";
-            await fileService.SaveSpeechFileAsync(conversationId, fileName, data);
             if (reply.ConversationEnd)
             {
-                response = twilio.HangUp($"twilio/voice/speeches/{conversationId}/{fileName}");
+                response = twilio.HangUp($"twilio/voice/speeches/{conversationId}/{reply.SpeechFileName}");
             }
             else
             {
-                response = twilio.ReturnInstructions($"twilio/voice/speeches/{conversationId}/{fileName}", $"twilio/voice/{conversationId}/receive/{nextSeqNum}?states={states}", true);
+                response = twilio.ReturnInstructions($"twilio/voice/speeches/{conversationId}/{reply.SpeechFileName}", $"twilio/voice/{conversationId}/receive/{nextSeqNum}?states={states}", true);
             }
 
         }
