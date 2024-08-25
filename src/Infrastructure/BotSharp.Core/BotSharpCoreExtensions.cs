@@ -16,9 +16,15 @@ public static class BotSharpCoreExtensions
     {
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IUserService, UserService>();
-        services.AddSingleton<ICacheService, CacheService>();
+
         services.AddSingleton<DistributedLocker>();
 
+        // Register cache service
+        var cacheSettings = new SharpCacheSettings();
+        config.Bind("SharpCache", cacheSettings);
+        services.AddSingleton(x => cacheSettings);
+        services.AddSingleton<ICacheService, CacheService>();
+        
         RegisterPlugins(services, config);
         ConfigureBotSharpOptions(services, configOptions);
 

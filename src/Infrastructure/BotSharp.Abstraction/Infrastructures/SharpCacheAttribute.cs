@@ -10,19 +10,23 @@ public class SharpCacheAttribute : MoAttribute
     public static IServiceProvider Services { get; set; } = null!;
 
     private int _minutes;
-    private string _prefix;
 
-    public SharpCacheAttribute(int minutes, string prefix = "cache")
+    public SharpCacheAttribute(int minutes = 60)
     {
         _minutes = minutes;
-        _prefix = prefix;
     }
 
     public override void OnEntry(MethodContext context)
     {
+        var settings = Services.GetRequiredService<SharpCacheSettings>();
+        if (!settings.Enabled)
+        {
+            return;
+        }
+
         var cache = Services.GetRequiredService<ICacheService>();
 
-        var key = GetCacheKey(context);
+        var key = GetCacheKey(settings, context);
         var value = cache.GetAsync(key, context.TaskReturnType).Result;
         if (value != null)
         {
@@ -32,18 +36,24 @@ public class SharpCacheAttribute : MoAttribute
 
     public override void OnSuccess(MethodContext context)
     {
+        var settings = Services.GetRequiredService<SharpCacheSettings>();
+        if (!settings.Enabled)
+        {
+            return;
+        }
+
         var cache = Services.GetRequiredService<ICacheService>();
 
         if (context.ReturnValue != null)
         {
-            var key = GetCacheKey(context);
+            var key = GetCacheKey(settings, context);
             cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0)).Wait();
         }
     }
 
-    private string GetCacheKey(MethodContext context)
+    private string GetCacheKey(SharpCacheSettings settings, MethodContext context)
     {
-        var key = _prefix + "-" + context.Method.Name;
+        var key = settings.Prefix + "-" + context.Method.Name;
         foreach (var arg in context.Arguments)
         {
             if (arg is null)
