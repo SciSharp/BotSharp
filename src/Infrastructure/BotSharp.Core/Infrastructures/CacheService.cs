@@ -16,9 +16,6 @@ public class CacheService : ICacheService
 
     public async Task<T?> GetAsync<T>(string key)
     {
-#if DEBUG
-        return default;
-#endif
         if (string.IsNullOrEmpty(_settings.Redis))
         {
             return default;
@@ -42,9 +39,6 @@ public class CacheService : ICacheService
 
     public async Task<object> GetAsync(string key, Type type)
     {
-#if DEBUG
-        return default;
-#endif
         if (string.IsNullOrEmpty(_settings.Redis))
         {
             return default;
@@ -69,9 +63,6 @@ public class CacheService : ICacheService
 
     public async Task SetAsync<T>(string key, T value, TimeSpan? expiry)
     {
-#if DEBUG
-        return;
-#endif
         if (string.IsNullOrEmpty(_settings.Redis))
         {
             return;
