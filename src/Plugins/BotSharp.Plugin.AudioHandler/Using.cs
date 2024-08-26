@@ -20,7 +20,7 @@ global using BotSharp.Abstraction.Plugins;
 global using BotSharp.Abstraction.Utilities;
 
 global using BotSharp.Plugin.AudioHandler.Enums;
-global using BotSharp.Plugin.AudioHandler.Functions;
+global using BotSharp.Plugin.AudioHandler.Helpers;
 global using BotSharp.Plugin.AudioHandler.Hooks;
 global using BotSharp.Plugin.AudioHandler.Models;
 global using BotSharp.Plugin.AudioHandler.LlmContexts;

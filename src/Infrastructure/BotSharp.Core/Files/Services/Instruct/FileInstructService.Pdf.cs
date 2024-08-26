@@ -80,9 +80,9 @@ public partial class FileInstructService
                     var fileDir = _fileStorage.BuildDirectory(dir, guid);
                     DeleteIfExistDirectory(fileDir, true);
 
-                    var pdfDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
-                    _fileStorage.SaveFileBytesToPath(pdfDir, bytes);
-                    locs.Add(pdfDir);
+                    var outputDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
+                    _fileStorage.SaveFileBytesToPath(outputDir, bytes);
+                    locs.Add(outputDir);
                 }
             }
             catch (Exception ex)

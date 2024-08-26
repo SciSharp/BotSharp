@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -87,8 +88,8 @@ public class InstructModeController : ControllerBase
         try
         {
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var message = await fileInstruct.ReadImages(input.Provider, input.Model, input.Text, input.Files);
-            return message.Content;
+            var content = await fileInstruct.ReadImages(input.Provider, input.Model, input.Text, input.Files);
+            return content;
         }
         catch (Exception ex)
         {
@@ -169,7 +170,7 @@ public class InstructModeController : ControllerBase
             var image = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
             if (image == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
+                return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image file!" };
             }
             var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, image);
             imageViewModel.Content = message.Content;
@@ -199,7 +200,7 @@ public class InstructModeController : ControllerBase
             var mask = input.Mask;
             if (image == null || mask == null)
             {
-                return new ImageGenerationViewModel { Message = "Error! Cannot find an image or mask!" };
+                return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image or mask!" };
             }
             var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, image, mask);
             imageViewModel.Content = message.Content;
@@ -234,6 +235,36 @@ public class InstructModeController : ControllerBase
         catch (Exception ex)
         {
             var error = $"Error in pdf completion. {ex.Message}";
+            _logger.LogError(error);
+            viewModel.Message = error;
+            return viewModel;
+        }
+    }
+    #endregion
+
+    #region Audio
+    [HttpPost("/instruct/audio-completion")]
+    public async Task<AudioCompletionViewModel> AudioCompletion([FromBody] IncomingMessageModel input)
+    {
+        var fileInstruct = _services.GetRequiredService<IFileInstructService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+        var viewModel = new AudioCompletionViewModel();
+
+        try
+        {
+            var audio = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
+            if (audio == null)
+            {
+                return new AudioCompletionViewModel { Message = "Error! Cannot find a valid audio file!" };
+            }
+            var content = await fileInstruct.ReadAudio(input.Provider, input.Model, audio);
+            viewModel.Content = content;
+            return viewModel;
+        }
+        catch (Exception ex)
+        {
+            var error = $"Error in audio completion. {ex.Message}";
             _logger.LogError(error);
             viewModel.Message = error;
             return viewModel;

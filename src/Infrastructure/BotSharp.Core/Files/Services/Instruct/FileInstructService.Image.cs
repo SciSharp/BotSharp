@@ -4,7 +4,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<RoleDialogModel> ReadImages(string? provider, string? model, string text, IEnumerable<BotSharpFile> images)
+    public async Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<BotSharpFile> images)
     {
         var completion = CompletionProvider.GetChatCompletion(_services, provider: provider ?? "openai", model: model ?? "gpt-4o", multiModal: true);
         var message = await completion.GetChatCompletions(new Agent()
@@ -17,7 +17,7 @@ public partial class FileInstructService
                 Files = images?.ToList() ?? new List<BotSharpFile>()
             }
         });
-        return message;
+        return message.Content;
     }
 
     public async Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text)

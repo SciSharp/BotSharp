@@ -1,14 +1,13 @@
-using System.Text;
 using OpenAI.Audio;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Audio;
 
 public class SpeechToTextProvider : ISpeechToText
 {
-    public string Provider => "openai";
     private readonly IServiceProvider _services;
-    private string? _modelName;
-    private AudioTranscriptionOptions? _options;
+
+    public string Provider => "openai";
+    private string? _model;
 
     public SpeechToTextProvider(IServiceProvider service)
     {
@@ -17,30 +16,35 @@ public class SpeechToTextProvider : ISpeechToText
 
     public async Task<string> GenerateTextFromAudioAsync(string filePath)
     {
-        var client = ProviderHelper
-            .GetClient(Provider, _modelName, _services)
-            .GetAudioClient(_modelName);
-        SetOptions();
-        
-        var transcription = await client.TranscribeAudioAsync(filePath);
-        
-        return transcription.Value.Text;
+        var client = ProviderHelper.GetClient(Provider, _model, _services)
+                                   .GetAudioClient(_model);
+
+        var options = PrepareOptions();
+        var result = await client.TranscribeAudioAsync(filePath, options);
+        return result.Value.Text;
     }
 
-    public async Task SetModelName(string modelName)
+    public async Task<string> GenerateTextFromAudioAsync(Stream audio, string audioFileName)
     {
-        _modelName = modelName;
+        var audioClient = ProviderHelper.GetClient(Provider, _model, _services)
+                                        .GetAudioClient(_model);
+
+        var options = PrepareOptions();
+        var result = await audioClient.TranscribeAudioAsync(audio, audioFileName, options);
+        return result.Value.Text;
     }
 
-    public void SetOptions(AudioTranscriptionOptions? options = null)
+    public async Task SetModelName(string model)
     {
-        if (_options == null)
+        _model = model;
+    }
+
+    private AudioTranscriptionOptions PrepareOptions()
+    {
+        return new AudioTranscriptionOptions
         {
-            _options = options ?? new AudioTranscriptionOptions
-            {
-                ResponseFormat = AudioTranscriptionFormat.Verbose,
-                Granularities = AudioTimestampGranularities.Word | AudioTimestampGranularities.Segment,
-            };
-        }
+            ResponseFormat = AudioTranscriptionFormat.Verbose,
+            Granularities = AudioTimestampGranularities.Word | AudioTimestampGranularities.Segment,
+        };
     }
 }

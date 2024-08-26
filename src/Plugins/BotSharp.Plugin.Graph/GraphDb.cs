@@ -35,7 +35,7 @@ public class GraphDb : IGraphDb
         _settings = settings;
     }
 
-    public string Name => "Default";
+    public string Name => "Neo4j";
 
     public async Task<GraphSearchData> Search(string query, GraphSearchOptions options)
     {

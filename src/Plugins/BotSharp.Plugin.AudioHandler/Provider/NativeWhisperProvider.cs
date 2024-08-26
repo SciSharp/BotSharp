@@ -1,4 +1,3 @@
-using BotSharp.Core.Agents.Services;
 using Whisper.net;
 using Whisper.net.Ggml;
 
@@ -9,47 +8,47 @@ namespace BotSharp.Plugin.AudioHandler.Provider;
 /// </summary>
 public class NativeWhisperProvider : ISpeechToText
 {
+    private readonly IAudioHelper _audioProcessor;
+    private static WhisperProcessor _whisperProcessor;
+    private readonly ILogger<NativeWhisperProvider> _logger;
+
     public string Provider => "native";
-    private readonly IAudioProcessUtilities _audioProcessUtilities;
-    private static WhisperProcessor _processor;
-    private readonly ILogger _logger;
 
     private string MODEL_DIR = "model";
     private string? _currentModelPath;
+
     private Dictionary<GgmlType, string> _modelPathDict = new Dictionary<GgmlType, string>();
     private GgmlType? _modelType;
 
     public NativeWhisperProvider(
-        IAudioProcessUtilities audioProcessUtilities,
+        IAudioHelper audioProcessor,
         ILogger<NativeWhisperProvider> logger)
     {
-        _audioProcessUtilities = audioProcessUtilities;
+        _audioProcessor = audioProcessor;
         _logger = logger;
     }
 
     public async Task<string> GenerateTextFromAudioAsync(string filePath)
     {
         string fileExtension = Path.GetExtension(filePath);
-        if (!Enum.TryParse<AudioType>(fileExtension.TrimStart('.').ToLower(), out AudioType audioType))
+        if (!Enum.TryParse(fileExtension.TrimStart('.').ToLower(), out AudioType audioType))
         {
             throw new Exception($"Unsupported audio type: {fileExtension}");
         }
 
-        using var stream = _audioProcessUtilities.ConvertToStream(filePath);
-
+        using var stream = _audioProcessor.ConvertToStream(filePath);
         if (stream == null)
         {
             throw new Exception($"Failed to convert {fileExtension} to stream");
         }
 
         var textResult = new List<SegmentData>();
-
-        await foreach (var result in _processor.ProcessAsync((Stream)stream).ConfigureAwait(false))
+        await foreach (var result in _whisperProcessor.ProcessAsync(stream).ConfigureAwait(false))
         {
             textResult.Add(result);
         }
 
-        _processor.Dispose();
+        _whisperProcessor.Dispose();
 
         var audioOutput = new AudioOutput
         {
@@ -57,17 +56,35 @@ public class NativeWhisperProvider : ISpeechToText
         };
         return audioOutput.ToString();
     }
+
+    public Task<string> GenerateTextFromAudioAsync(Stream audio, string audioFileName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task SetModelName(string model)
+    {
+        if (Enum.TryParse(model, true, out GgmlType ggmlType))
+        {
+            await LoadWhisperModel(ggmlType);
+            return;
+        }
+
+        _logger.LogWarning($"Unsupported model type: {model}. Use Tiny model instead!");
+        await LoadWhisperModel(GgmlType.Tiny);
+    }
+
     private async Task LoadWhisperModel(GgmlType modelType)
     {
         try
         {
             if (!Directory.Exists(MODEL_DIR))
+            {
                 Directory.CreateDirectory(MODEL_DIR);
+            }
 
-            var availableModelPaths = Directory.GetFiles(MODEL_DIR, "*.bin")
-                .ToArray();
-
-            if (!availableModelPaths.Any())
+            var availableModelPaths = Directory.GetFiles(MODEL_DIR, "*.bin").ToArray();
+            if (availableModelPaths.IsNullOrEmpty())
             {
                 _currentModelPath = SetModelPath(MODEL_DIR, modelType);
                 await DownloadModel(modelType, _currentModelPath);
@@ -86,17 +103,14 @@ public class NativeWhisperProvider : ISpeechToText
                 }
             }
 
-            _processor = WhisperFactory
-             .FromPath(path: _currentModelPath)
-             .CreateBuilder()
-             .WithLanguage("auto")
-             .Build();
-
+            _whisperProcessor = WhisperFactory.FromPath(path: _currentModelPath).CreateBuilder().WithLanguage("auto").Build();
             _modelType = modelType;
         }
         catch (Exception ex)
         {
-            throw new Exception($"Failed to load whisper model: {ex.Message}");
+            var error = "Failed to load whisper model";
+            _logger.LogWarning($"${error}: {ex.Message}\r\n{ex.InnerException}");
+            throw new Exception($"{error}: {ex.Message}");
         }
     }
 
@@ -111,17 +125,5 @@ public class NativeWhisperProvider : ISpeechToText
     {
         string currentModelPath = Path.Combine(rootPath, $"ggml-{modelType}.bin");
         return currentModelPath;
-    }
-
-    public async Task SetModelName(string modelType)
-    {
-        if (Enum.TryParse<GgmlType>(modelType, true, out GgmlType ggmlType))
-        {
-            await LoadWhisperModel(ggmlType);
-            return;
-        }
-
-        _logger.LogWarning($"Unsupported model type: {modelType}. Use Tiny model instead!");
-        await LoadWhisperModel(GgmlType.Tiny);
     }
 }
