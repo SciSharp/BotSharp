@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Infrastructures;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Rougamo;
 using Rougamo.Context;
@@ -38,6 +39,12 @@ public class SharpCacheAttribute : MoAttribute
     {
         var settings = Services.GetRequiredService<SharpCacheSettings>();
         if (!settings.Enabled)
+        {
+            return;
+        }
+
+        var httpContext = Services.GetRequiredService<IHttpContextAccessor>();
+        if (httpContext.HttpContext.Response.Headers["Cache-Control"].ToString().Contains("no-store"))
         {
             return;
         }
