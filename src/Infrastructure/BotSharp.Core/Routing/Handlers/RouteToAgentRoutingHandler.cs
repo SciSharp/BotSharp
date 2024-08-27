@@ -11,18 +11,18 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
 
     public List<ParameterPropertyDef> Parameters => new List<ParameterPropertyDef>
     {
-        /*new ParameterPropertyDef("next_action_reason", 
+        new ParameterPropertyDef("next_action_reason", 
             "the reason why route to this virtual agent.", 
-            required: true),*/
+            required: true),
         new ParameterPropertyDef("next_action_agent", 
             "agent for next action based on user latest response, if user is replying last agent's question, you must route to this agent.", 
             required: true),
         new ParameterPropertyDef("args",
             "useful parameters of next action agent, format: { }",
             type: "object"),
-        /*new ParameterPropertyDef("user_goal_description", 
+        new ParameterPropertyDef("user_goal_description", 
             "user goal based on user initial task.", 
-            required: true),*/
+            required: true),
         new ParameterPropertyDef("user_goal_agent",
             "agent who can acheive user initial task.", 
             required: true),

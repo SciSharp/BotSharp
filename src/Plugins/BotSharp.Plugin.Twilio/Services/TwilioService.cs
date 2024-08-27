@@ -54,7 +54,8 @@ public class TwilioService
         {
             Input = new List<Gather.InputEnum>()
             {
-                Gather.InputEnum.Speech
+                Gather.InputEnum.Speech,
+                Gather.InputEnum.Dtmf
             },
             Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}")
         };
@@ -70,7 +71,8 @@ public class TwilioService
         {
             Input = new List<Gather.InputEnum>()
             {
-                Gather.InputEnum.Speech
+                Gather.InputEnum.Speech,
+                Gather.InputEnum.Dtmf
             },
             Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
@@ -109,7 +111,11 @@ public class TwilioService
         var response = new VoiceResponse();
         var gather = new Gather()
         {
-            Input = new List<Gather.InputEnum>() { Gather.InputEnum.Speech },
+            Input = new List<Gather.InputEnum>() 
+            { 
+                Gather.InputEnum.Speech,
+                Gather.InputEnum.Dtmf
+            },
             Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
             ActionOnEmptyResult = true
         };

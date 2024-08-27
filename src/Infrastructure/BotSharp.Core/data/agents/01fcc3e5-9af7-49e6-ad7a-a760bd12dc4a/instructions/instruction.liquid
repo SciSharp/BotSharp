@@ -19,6 +19,7 @@ Follow these steps to handle user request:
 # {{ handler.description}}
 {% if handler.parameters and handler.parameters != empty -%}
 Parameters: 
+    - function: {{ handler.name }}
     {% for p in handler.parameters -%}
     - {{ p.name }} {% if p.required -%}(required){%- endif %}: {{ p.description }}{{ "\r\n    " }}
     {%- endfor %}
