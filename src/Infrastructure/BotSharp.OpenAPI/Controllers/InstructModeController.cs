@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.OpenAPI.ViewModels.Instructs;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -21,8 +20,7 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/{agentId}")]
-    public async Task<InstructResult> InstructCompletion([FromRoute] string agentId,
-        [FromBody] InstructMessageModel input)
+    public async Task<InstructResult> InstructCompletion([FromRoute] string agentId, [FromBody] InstructMessageModel input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -80,7 +78,7 @@ public class InstructModeController : ControllerBase
 
     #region Read image
     [HttpPost("/instruct/multi-modal")]
-    public async Task<string> MultiModalCompletion([FromBody] IncomingMessageModel input)
+    public async Task<string> MultiModalCompletion([FromBody] MultiModalRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -102,7 +100,7 @@ public class InstructModeController : ControllerBase
 
     #region Generate image
     [HttpPost("/instruct/image-generation")]
-    public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] IncomingMessageModel input)
+    public async Task<ImageGenerationViewModel> ImageGeneration([FromBody] ImageGenerationRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -128,7 +126,7 @@ public class InstructModeController : ControllerBase
 
     #region Edit image
     [HttpPost("/instruct/image-variation")]
-    public async Task<ImageGenerationViewModel> ImageVariation([FromBody] IncomingMessageModel input)
+    public async Task<ImageGenerationViewModel> ImageVariation([FromBody] ImageVariationRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -136,14 +134,13 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var image = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
-            if (image == null)
+            if (input.File == null)
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find an image!" };
             }
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var message = await fileInstruct.VaryImage(input.Provider, input.Model, image);
+            var message = await fileInstruct.VaryImage(input.Provider, input.Model, input.File);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -158,7 +155,7 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/image-edit")]
-    public async Task<ImageGenerationViewModel> ImageEdit([FromBody] IncomingMessageModel input)
+    public async Task<ImageGenerationViewModel> ImageEdit([FromBody] ImageEditRequest input)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -167,12 +164,11 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var image = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
-            if (image == null)
+            if (input.File == null)
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image file!" };
             }
-            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, image);
+            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, input.File);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -187,7 +183,7 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/image-mask-edit")]
-    public async Task<ImageGenerationViewModel> ImageMaskEdit([FromBody] IncomingMessageModel input)
+    public async Task<ImageGenerationViewModel> ImageMaskEdit([FromBody] ImageMaskEditRequest input)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -196,7 +192,7 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var image = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
+            var image = input.File;
             var mask = input.Mask;
             if (image == null || mask == null)
             {
@@ -219,7 +215,7 @@ public class InstructModeController : ControllerBase
 
     #region Pdf
     [HttpPost("/instruct/pdf-completion")]
-    public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] IncomingMessageModel input)
+    public async Task<PdfCompletionViewModel> PdfCompletion([FromBody] MultiModalRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -244,7 +240,7 @@ public class InstructModeController : ControllerBase
 
     #region Audio
     [HttpPost("/instruct/audio-completion")]
-    public async Task<AudioCompletionViewModel> AudioCompletion([FromBody] IncomingMessageModel input)
+    public async Task<AudioCompletionViewModel> AudioCompletion([FromBody] AudioCompletionRequest input)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -253,7 +249,7 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var audio = input.Files.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.FileUrl) || !string.IsNullOrWhiteSpace(x.FileData));
+            var audio = input.File;
             if (audio == null)
             {
                 return new AudioCompletionViewModel { Message = "Error! Cannot find a valid audio file!" };
