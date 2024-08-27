@@ -118,7 +118,7 @@ public partial class LocalFileStorageService
         return foundMsgs;
     }
 
-    public bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files)
+    public bool SaveMessageFiles(string conversationId, string messageId, string source, List<InputFileModel> files)
     {
         if (files.IsNullOrEmpty()) return false;
 

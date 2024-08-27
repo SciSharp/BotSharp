@@ -16,7 +16,7 @@ public partial class LocalFileStorageService
         return found;
     }
 
-    public bool SaveUserAvatar(BotSharpFile file)
+    public bool SaveUserAvatar(InputFileModel file)
     {
         if (file == null || string.IsNullOrEmpty(file.FileData)) return false;
 

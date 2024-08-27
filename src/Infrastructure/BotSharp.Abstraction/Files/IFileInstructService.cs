@@ -3,11 +3,11 @@ namespace BotSharp.Abstraction.Files;
 public interface IFileInstructService
 {
     #region Image
-    Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<BotSharpFile> images);
+    Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<InstructFileModel> images);
     Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text);
-    Task<RoleDialogModel> VaryImage(string? provider, string? model, BotSharpFile image);
-    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image);
-    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image, BotSharpFile mask);
+    Task<RoleDialogModel> VaryImage(string? provider, string? model, InstructFileModel image);
+    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image);
+    Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image, InstructFileModel mask);
     #endregion
 
     #region Pdf
@@ -17,11 +17,11 @@ public interface IFileInstructService
     /// <param name="prompt"></param>
     /// <param name="files">Pdf files</param>
     /// <returns></returns>
-    Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files);
+    Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<InstructFileModel> files);
     #endregion
 
     #region Audio
-    Task<string> ReadAudio(string? provider, string? model, BotSharpFile audio);
+    Task<string> ReadAudio(string? provider, string? model, InstructFileModel audio);
     #endregion
 
     #region Select file

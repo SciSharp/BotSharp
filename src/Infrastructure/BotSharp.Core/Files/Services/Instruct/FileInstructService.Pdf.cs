@@ -4,7 +4,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files)
+    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<InstructFileModel> files)
     {
         var content = string.Empty;
 
@@ -50,7 +50,7 @@ public partial class FileInstructService
     }
 
     #region Private methods
-    private async Task<IEnumerable<string>> DownloadFiles(string dir, List<BotSharpFile> files, string extension = "pdf")
+    private async Task<IEnumerable<string>> DownloadFiles(string dir, List<InstructFileModel> files, string extension = "pdf")
     {
         if (string.IsNullOrWhiteSpace(dir) || files.IsNullOrEmpty())
         {

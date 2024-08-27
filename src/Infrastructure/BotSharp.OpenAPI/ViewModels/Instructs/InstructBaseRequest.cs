@@ -23,7 +23,7 @@ public class MultiModalRequest : InstructBaseRequest
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("files")]
-    public List<BotSharpFile> Files { get; set; } = new();
+    public List<InstructFileModel> Files { get; set; } = new();
 }
 
 public class ImageGenerationRequest : InstructBaseRequest
@@ -35,7 +35,7 @@ public class ImageGenerationRequest : InstructBaseRequest
 public class ImageVariationRequest : InstructBaseRequest
 {
     [JsonPropertyName("file")]
-    public BotSharpFile File { get; set; }
+    public InstructFileModel File { get; set; }
 }
 
 public class ImageEditRequest : InstructBaseRequest
@@ -44,7 +44,7 @@ public class ImageEditRequest : InstructBaseRequest
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("file")]
-    public BotSharpFile File { get; set; }
+    public InstructFileModel File { get; set; }
 }
 
 public class ImageMaskEditRequest : InstructBaseRequest
@@ -53,14 +53,14 @@ public class ImageMaskEditRequest : InstructBaseRequest
     public string Text { get; set; } = string.Empty;
 
     [JsonPropertyName("file")]
-    public BotSharpFile File { get; set; }
+    public InstructFileModel File { get; set; }
 
     [JsonPropertyName("mask")]
-    public BotSharpFile Mask { get; set; }
+    public InstructFileModel Mask { get; set; }
 }
 
 public class AudioCompletionRequest : InstructBaseRequest
 {
     [JsonPropertyName("file")]
-    public BotSharpFile File { get; set; }
+    public InstructFileModel File { get; set; }
 }

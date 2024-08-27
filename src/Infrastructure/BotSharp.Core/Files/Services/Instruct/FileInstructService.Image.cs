@@ -4,7 +4,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<BotSharpFile> images)
+    public async Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<InstructFileModel> images)
     {
         var completion = CompletionProvider.GetChatCompletion(_services, provider: provider ?? "openai", model: model ?? "gpt-4o", multiModal: true);
         var message = await completion.GetChatCompletions(new Agent()
@@ -14,7 +14,7 @@ public partial class FileInstructService
         {
             new RoleDialogModel(AgentRole.User, text)
             {
-                Files = images?.ToList() ?? new List<BotSharpFile>()
+                Files = images?.Select(x => new BotSharpFile { FileUrl = x.FileUrl, FileData = x.FileData }).ToList() ?? new List<BotSharpFile>()
             }
         });
         return message.Content;
@@ -30,7 +30,7 @@ public partial class FileInstructService
         return message;
     }
 
-    public async Task<RoleDialogModel> VaryImage(string? provider, string? model, BotSharpFile image)
+    public async Task<RoleDialogModel> VaryImage(string? provider, string? model, InstructFileModel image)
     {
         if (string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData))
         {
@@ -43,16 +43,17 @@ public partial class FileInstructService
         stream.Write(bytes, 0, bytes.Length);
         stream.Position = 0;
 
+        var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
         var message = await completion.GetImageVariation(new Agent()
         {
             Id = Guid.Empty.ToString()
-        }, new RoleDialogModel(AgentRole.User, string.Empty), stream, image.FileName ?? string.Empty);
+        }, new RoleDialogModel(AgentRole.User, string.Empty), stream, fileName);
 
         stream.Close();
         return message;
     }
 
-    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image)
+    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image)
     {
         if (string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData))
         {
@@ -65,16 +66,17 @@ public partial class FileInstructService
         stream.Write(bytes, 0, bytes.Length);
         stream.Position = 0;
 
+        var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = Guid.Empty.ToString()
-        }, new RoleDialogModel(AgentRole.User, text), stream, image.FileName ?? string.Empty);
+        }, new RoleDialogModel(AgentRole.User, text), stream, fileName);
 
         stream.Close();
         return message;
     }
 
-    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, BotSharpFile image, BotSharpFile mask)
+    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image, InstructFileModel mask)
     {
         if ((string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData)) ||
             (string.IsNullOrWhiteSpace(mask?.FileUrl) && string.IsNullOrWhiteSpace(mask?.FileData)))
@@ -94,10 +96,12 @@ public partial class FileInstructService
         maskStream.Write(maskBytes, 0, maskBytes.Length);
         maskStream.Position = 0;
 
+        var imageName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
+        var maskName = $"{mask.FileName ?? "mask"}.{mask.FileExtension ?? "png"}";
         var message = await completion.GetImageEdits(new Agent()
         {
             Id = Guid.Empty.ToString()
-        }, new RoleDialogModel(AgentRole.User, text), imageStream, image.FileName ?? string.Empty, maskStream, mask.FileName ?? string.Empty);
+        }, new RoleDialogModel(AgentRole.User, text), imageStream, imageName, maskStream, maskName);
 
         imageStream.Close();
         maskStream.Close();
@@ -105,7 +109,7 @@ public partial class FileInstructService
     }
 
     #region Private methods
-    private async Task<byte[]> DownloadFile(BotSharpFile file)
+    private async Task<byte[]> DownloadFile(InstructFileModel file)
     {
         var bytes = new byte[0];
         if (!string.IsNullOrEmpty(file.FileUrl))

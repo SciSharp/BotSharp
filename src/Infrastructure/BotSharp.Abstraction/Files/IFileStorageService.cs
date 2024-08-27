@@ -16,7 +16,6 @@ public interface IFileStorageService
     string BuildDirectory(params string[] segments);
     #endregion
 
-
     #region Conversation
     /// <summary>
     /// Get the message file screenshots for specific content types, e.g., pdf
@@ -37,7 +36,7 @@ public interface IFileStorageService
     IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, IEnumerable<string>? contentTypes = null);
     string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName);
     IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds);
-    bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files);
+    bool SaveMessageFiles(string conversationId, string messageId, string source, List<InputFileModel> files);
 
     /// <summary>
     /// Delete files under messages
@@ -54,8 +53,9 @@ public interface IFileStorageService
 
     #region User
     string GetUserAvatar();
-    bool SaveUserAvatar(BotSharpFile file);
+    bool SaveUserAvatar(InputFileModel file);
     #endregion
+
     #region Speech
     Task SaveSpeechFileAsync(string conversationId, string fileName, BinaryData data);
     Task<BinaryData> RetrieveSpeechFileAsync(string conversationId, string fileName);

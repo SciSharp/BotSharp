@@ -99,9 +99,9 @@ public class EditImageFn : IFunctionCallback
     {
         if (image == null) return;
 
-        var files = new List<BotSharpFile>()
+        var files = new List<InputFileModel>()
         {
-            new BotSharpFile
+            new InputFileModel
             {
                 FileName = $"{Guid.NewGuid()}.png",
                 FileData = $"data:{MediaTypeNames.Image.Png};base64,{image.ImageData}"
