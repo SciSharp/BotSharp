@@ -17,37 +17,73 @@ public partial class AudioCompletionProvider
     private AudioTranscriptionOptions PrepareTranscriptionOptions(string? text)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
+        var format = GetTranscriptionResponseFormat(state.GetState("audio_response_format"));
+        var granularity = GetGranularity(state.GetState("audio_granularity"));
+        var temperature = GetTemperature(state.GetState("audio_temperature"));
+
         var options = new AudioTranscriptionOptions
         {
-            ResponseFormat = AudioTranscriptionFormat.Verbose,
-            Granularities = AudioTimestampGranularities.Word | AudioTimestampGranularities.Segment,
+            ResponseFormat = format,
+            Granularities = granularity,
+            Temperature = temperature,
             Prompt = text
         };
 
         return options;
     }
 
-    private AudioTranscriptionFormat GetTranscriptionResponseFormat(string format)
+    private AudioTranscriptionFormat GetTranscriptionResponseFormat(string input)
     {
-        var value = !string.IsNullOrEmpty(format) ? format : "verbose";
+        var value = !string.IsNullOrEmpty(input) ? input : "verbose";
 
-        AudioTranscriptionFormat retFormat;
+        AudioTranscriptionFormat format;
         switch (value)
         {
             case "json":
-                retFormat = AudioTranscriptionFormat.Simple;
+                format = AudioTranscriptionFormat.Simple;
                 break;
             case "srt":
-                retFormat = AudioTranscriptionFormat.Srt;
+                format = AudioTranscriptionFormat.Srt;
                 break;
             case "vtt":
-                retFormat = AudioTranscriptionFormat.Vtt;
+                format = AudioTranscriptionFormat.Vtt;
                 break;
             default:
-                retFormat = AudioTranscriptionFormat.Verbose;
+                format = AudioTranscriptionFormat.Verbose;
                 break;
         }
 
-        return retFormat;
+        return format;
+    }
+
+    private AudioTimestampGranularities GetGranularity(string input)
+    {
+        var value = !string.IsNullOrEmpty(input) ? input : "default";
+
+        AudioTimestampGranularities granularity;
+        switch (value)
+        {
+            case "word":
+                granularity = AudioTimestampGranularities.Word;
+                break;
+            case "segment":
+                granularity = AudioTimestampGranularities.Segment;
+                break;
+            default:
+                granularity = AudioTimestampGranularities.Default;
+                break;
+        }
+
+        return granularity;
+    }
+
+    private float GetTemperature(string input)
+    {
+        if (!float.TryParse(input, out var temperature))
+        {
+            return 0.0f;
+        }
+
+        return temperature;
     }
 }

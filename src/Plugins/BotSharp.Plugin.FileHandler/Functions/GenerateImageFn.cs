@@ -50,7 +50,7 @@ public class GenerateImageFn : IFunctionCallback
     private void SetImageOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        state.SetState("image_format", "bytes");
+        state.SetState("image_response_format", "bytes");
         state.SetState("image_count", "1");
     }
 
