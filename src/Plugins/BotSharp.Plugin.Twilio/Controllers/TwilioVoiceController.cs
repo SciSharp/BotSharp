@@ -76,8 +76,9 @@ public class TwilioVoiceController : TwilioController
             }
             await messageQueue.EnqueueAsync(callerMessage);
 
+            int audioIndex = Random.Shared.Next(2, 5);
             response = new VoiceResponse()
-                .Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}"), HttpMethod.Post);
+                .Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}&play=%23hold-on-{audioIndex}%7c%23typing-2"), HttpMethod.Post);
         }
         else
         {
@@ -89,7 +90,8 @@ public class TwilioVoiceController : TwilioController
 
     [ValidateRequest]
     [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
-    public async Task<TwiMLResult> ReplyCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, VoiceRequest request)
+    public async Task<TwiMLResult> ReplyCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, 
+        [FromQuery] string states, [FromQuery] string play, VoiceRequest request)
     {
         var nextSeqNum = seqNum + 1;
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
@@ -102,7 +104,9 @@ public class TwilioVoiceController : TwilioController
         VoiceResponse response;
         if (reply == null)
         {
-            var indication = await sessionManager.GetReplyIndicationAsync(conversationId, seqNum);
+            var indication = string.IsNullOrEmpty(play) ? 
+                await sessionManager.GetReplyIndicationAsync(conversationId, seqNum) :
+                play;
             if (indication != null)
             {
                 var speechPaths = new List<string>();
