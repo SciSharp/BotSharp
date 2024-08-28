@@ -24,7 +24,7 @@ public interface IFileStorageService
     /// <param name="conversationId"></param>
     /// <param name="messageIds"></param>
     /// <returns></returns>
-    Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshots(string conversationId, IEnumerable<string> messageIds);
+    Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds);
 
     /// <summary>
     /// Get the files that have been uploaded in the chat. No screenshot images are included.
@@ -58,7 +58,7 @@ public interface IFileStorageService
     #endregion
 
     #region Speech
-    Task SaveSpeechFileAsync(string conversationId, string fileName, BinaryData data);
-    Task<BinaryData> RetrieveSpeechFileAsync(string conversationId, string fileName);
+    bool SaveSpeechFile(string conversationId, string fileName, BinaryData data);
+    BinaryData GetSpeechFile(string conversationId, string fileName);
     #endregion
 }

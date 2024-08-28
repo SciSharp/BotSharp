@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.TencentCos.Services;
 
 public partial class TencentCosService
 {
-    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshots(string conversationId, IEnumerable<string> messageIds)
+    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrEmpty(conversationId) || messageIds.IsNullOrEmpty())

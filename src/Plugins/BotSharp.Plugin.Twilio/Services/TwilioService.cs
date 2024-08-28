@@ -59,6 +59,7 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}")
         };
+
         gather.Say(message);
         response.Append(gather);
         return response;
@@ -80,6 +81,7 @@ public class TwilioService
             Timeout = timeout > 0 ? timeout : 3,
             ActionOnEmptyResult = actionOnEmptyResult
         };
+
         if (!string.IsNullOrEmpty(speechPath))
         {
             gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
@@ -119,6 +121,7 @@ public class TwilioService
             Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
             ActionOnEmptyResult = true
         };
+
         if (!string.IsNullOrEmpty(message))
         {
             gather.Say(message);

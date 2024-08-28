@@ -6,7 +6,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class LocalFileStorageService
 {
-    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshots(string conversationId, IEnumerable<string> messageIds)
+    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrEmpty(conversationId) || messageIds.IsNullOrEmpty())
