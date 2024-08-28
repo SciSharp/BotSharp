@@ -36,7 +36,7 @@ public class TwilioVoiceController : TwilioController
         string conversationId = $"TwilioVoice_{request.CallSid}";
         var twilio = _services.GetRequiredService<TwilioService>();
         var url = $"twilio/voice/{conversationId}/receive/0?states={states}";
-        var response = twilio.ReturnInstructions(new List<string> { "twilio/welcome.mp3" }, url, true, timeout: 1);
+        var response = twilio.ReturnInstructions(new List<string> { "twilio/welcome.mp3" }, url, true);
         return TwiML(response);
     }
 
@@ -132,7 +132,7 @@ public class TwilioVoiceController : TwilioController
             else
             {
                 int audioIndex = Random.Shared.Next(1, 4);
-                response = twilio.ReturnInstructions(new List<string> { $"{_settings.CallbackHost}/twilio/typing-{audioIndex}.mp3" }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true, 1);
+                response = twilio.ReturnInstructions(new List<string> { $"{_settings.CallbackHost}/twilio/typing-{audioIndex}.mp3" }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
             }
         }
         else
