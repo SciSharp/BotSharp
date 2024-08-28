@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users;
 
@@ -47,20 +48,26 @@ public class RateLimitConversationHook : ConversationHookBase
             }
         }
 
-        // Check the number of conversations
-        var user = _services.GetRequiredService<IUserIdentity>();
-        var convService = _services.GetRequiredService<IConversationService>();
-        var results = await convService.GetConversations(new ConversationFilter
-        {
-            UserId = user.Id,
-            StartTime = DateTime.UtcNow.AddHours(-24),
-        });
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var channel = states.GetState("channel");
 
-        if (results.Count > rateLimit.MaxConversationPerDay)
+        // Check the number of conversations
+        if (channel != ConversationChannel.Phone && channel != ConversationChannel.Email)
         {
-            message.Content = $"The number of conversations you have exceeds the system maximum of {rateLimit.MaxConversationPerDay}";
-            message.StopCompletion = true;
-            return;
+            var user = _services.GetRequiredService<IUserIdentity>();
+            var convService = _services.GetRequiredService<IConversationService>();
+            var results = await convService.GetConversations(new ConversationFilter
+            {
+                UserId = user.Id,
+                StartTime = DateTime.UtcNow.AddHours(-24),
+            });
+
+            if (results.Count > rateLimit.MaxConversationPerDay)
+            {
+                message.Content = $"The number of conversations you have exceeds the system maximum of {rateLimit.MaxConversationPerDay}";
+                message.StopCompletion = true;
+                return;
+            }
         }
     }
 }
