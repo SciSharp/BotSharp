@@ -40,7 +40,7 @@ public class MemoryVectorDb : IVectorDb
             return new List<VectorCollectionData>();
         }
 
-        var similarities = VectorUtility.CalCosineSimilarity(vector, _vectors[collectionName]);
+        var similarities = VectorHelper.CalCosineSimilarity(vector, _vectors[collectionName]);
         // var similarities = VectorUtility.CalEuclideanDistance(vector, _vectors[collectionName]);
 
         var results = np.argsort(similarities).ToArray<int>()

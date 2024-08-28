@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
+using System.IO;
 
 namespace BotSharp.Abstraction.Files.Utilities;
 
@@ -24,6 +26,25 @@ public static class FileUtility
         var base64Str = data.Substring(base64startIdx + 1);
 
         return (contentType, Convert.FromBase64String(base64Str));
+    }
+
+    public static string BuildFileDataFromFile(string fileName, byte[] bytes)
+    {
+        var contentType = GetFileContentType(fileName);
+        var base64 = Convert.ToBase64String(bytes);
+        return $"data:{contentType};base64,{base64}";
+    }
+
+    public static string BuildFileDataFromFile(IFormFile file)
+    {
+        using var stream = new MemoryStream();
+        file.CopyTo(stream);
+        stream.Position = 0;
+        var contentType = GetFileContentType(file.FileName);
+        var base64 = Convert.ToBase64String(stream.ToArray());
+        stream.Close();
+
+        return $"data:{contentType};base64,{base64}";
     }
 
     public static string GetFileContentType(string filePath)

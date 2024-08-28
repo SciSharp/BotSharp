@@ -33,6 +33,6 @@ public partial class KnowledgeService : IKnowledgeService
 
     private ITextEmbedding GetTextEmbedding(string collection)
     {
-        return KnowledgeSettingUtility.GetTextEmbeddingSetting(_services, collection);
+        return KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collection);
     }
 }

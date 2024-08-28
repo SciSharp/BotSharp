@@ -18,7 +18,7 @@ public class KnowledgeRetrievalFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
         var collectionName = _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-        var embedding = KnowledgeSettingUtility.GetTextEmbeddingSetting(_services, collectionName);
+        var embedding = KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
 
         var vector = await embedding.GetVectorAsync(args.Question);
         var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);

@@ -35,7 +35,7 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             SubMenu = new List<PluginMenuDef>
             {
                 new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
-                new PluginMenuDef("Relations", link: "page/knowledge-base/relations")
+                new PluginMenuDef("Relationships", link: "page/knowledge-base/relationships")
             }
         });
         return true;

@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.Plugin.AudioHandler.Hooks;
 
@@ -22,17 +21,16 @@ public class AudioHandlerHook : AgentHookBase, IAgentHook
 
         if (isEnabled && isConvMode)
         {
-            AddUtility(agent, UtilityName.AudioHandler, HANDLER_AUDIO);
+            AddUtility(agent, HANDLER_AUDIO);
         }
 
         base.OnAgentLoaded(agent);
     }
 
-    private void AddUtility(Agent agent, string utility, string functionName)
+    private void AddUtility(Agent agent, string functionName)
     {
-        if (!IsEnableUtility(agent, utility)) return;
-
         var (prompt, fn) = GetPromptAndFunction(functionName);
+
         if (fn != null)
         {
             if (!string.IsNullOrWhiteSpace(prompt))
@@ -49,11 +47,6 @@ public class AudioHandlerHook : AgentHookBase, IAgentHook
                 agent.Functions.Add(fn);
             }
         }
-    }
-
-    private bool IsEnableUtility(Agent agent, string utility)
-    {
-        return !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(utility);
     }
 
     private (string, FunctionDef?) GetPromptAndFunction(string functionName)

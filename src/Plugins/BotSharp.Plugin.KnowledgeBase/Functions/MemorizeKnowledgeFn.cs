@@ -18,7 +18,7 @@ public class MemorizeKnowledgeFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
         var collectionName = _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-        var embedding = KnowledgeSettingUtility.GetTextEmbeddingSetting(_services, collectionName);
+        var embedding = KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
 
         var vector = await embedding.GetVectorsAsync(new List<string>
         {

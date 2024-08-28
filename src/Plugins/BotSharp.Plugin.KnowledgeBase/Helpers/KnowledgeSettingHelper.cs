@@ -1,6 +1,6 @@
-namespace BotSharp.Plugin.KnowledgeBase.Utilities;
+namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
-public static class KnowledgeSettingUtility
+public static class KnowledgeSettingHelper
 {
     public static ITextEmbedding GetTextEmbeddingSetting(IServiceProvider services, string collectionName)
     {

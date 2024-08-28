@@ -4,7 +4,7 @@ namespace BotSharp.Abstraction.Files.Models;
 public class BotSharpFile : FileInfo
 {
     /// <summary>
-    /// File data, e.g., "data:image/png;base64,aaaaaaaa"
+    /// File data => format: "data:image/png;base64,aaaaaaaa"
     /// </summary>
     [JsonPropertyName("file_data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

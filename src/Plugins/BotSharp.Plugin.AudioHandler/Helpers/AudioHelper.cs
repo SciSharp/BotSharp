@@ -3,78 +3,83 @@ using NAudio.Wave.SampleProviders;
 
 namespace BotSharp.Plugin.AudioHandler.Helpers;
 
-public class AudioHelper : IAudioHelper
+public static class AudioHelper
 {
-    private readonly IServiceProvider _services;
-    private readonly ILogger<AudioHelper> _logger;
+    private const int DEFAULT_SAMPLE_RATE = 16000;
 
-    public AudioHelper(
-        IServiceProvider services,
-        ILogger<AudioHelper> logger)
-    {
-        _services = services;
-        _logger = logger;
-    }
-
-    public Stream ConvertToStream(string fileName)
+    public static Stream ConvertToStream(string fileName)
     {
         if (string.IsNullOrEmpty(fileName))
         {
-            var error = "fileName is Null when converting to stream in audio processor";
-            _logger.LogWarning(error);
-            throw new ArgumentNullException(error);
+            throw new ArgumentNullException("fileName is Null when converting to stream in audio processor");
         }
 
         var fileExtension = Path.GetExtension(fileName).ToLower().TrimStart('.');
         if (!Enum.TryParse(fileExtension, out AudioType fileType))
         {
-            var error = $"File extension: '{fileExtension}' is not supported!";
-            _logger.LogWarning(error);
-            throw new NotSupportedException(error);
+            throw new NotSupportedException($"File extension: '{fileExtension}' is not supported!");
         }
 
         var stream = fileType switch
         {
             AudioType.mp3 => ConvertMp3ToStream(fileName),
-            AudioType.wav => ConvertWavToStream(fileName),
-            _ => throw new NotSupportedException("File extension not supported"),
+            _ => ConvertWavToStream(fileName)
         };
 
         return stream;
     }
 
-
-    private Stream ConvertMp3ToStream(string fileName)
+    public static Stream Transform(Stream stream, string fileName)
     {
-        var fileStream = File.OpenRead(fileName);
-        using var reader = new Mp3FileReader(fileStream);
-        if (reader.WaveFormat.SampleRate != 16000)
+        var fileExtension = Path.GetExtension(fileName).ToLower().TrimStart('.');
+        if (!Enum.TryParse(fileExtension, out AudioType fileType))
         {
-            var wavStream = new MemoryStream();
-            var resampler = new WdlResamplingSampleProvider(reader.ToSampleProvider(), 16000);
-            WaveFileWriter.WriteWavFileToStream(wavStream, resampler.ToWaveProvider16());
-            wavStream.Seek(0, SeekOrigin.Begin);
-            return wavStream;
+            throw new NotSupportedException($"File extension: '{fileExtension}' is not supported!");
         }
 
-        fileStream.Seek(0, SeekOrigin.Begin);
-        return fileStream;
+        Stream resultStream = new MemoryStream();
+        stream.CopyTo(resultStream);
+        resultStream.Seek(0, SeekOrigin.Begin);
+
+        WaveStream reader = fileType switch
+        {
+            AudioType.mp3 => new Mp3FileReader(resultStream),
+            _ => new WaveFileReader(resultStream)
+        };
+
+        resultStream = ChangeSampleRate(reader);
+        reader.Close();
+        return resultStream;
     }
 
-    private Stream ConvertWavToStream(string fileName)
+    private static Stream ConvertMp3ToStream(string fileName)
     {
-        var fileStream = File.OpenRead(fileName);
+        using var fileStream = File.OpenRead(fileName);
+        using var reader = new Mp3FileReader(fileStream);
+        return ChangeSampleRate(reader);
+    }
+
+    private static Stream ConvertWavToStream(string fileName)
+    {
+        using var fileStream = File.OpenRead(fileName);
         using var reader = new WaveFileReader(fileStream);
-        if (reader.WaveFormat.SampleRate != 16000)
+        return ChangeSampleRate(reader);
+    }
+
+    private static Stream ChangeSampleRate(WaveStream ws)
+    {
+        var ms = new MemoryStream();
+        if (ws.WaveFormat.SampleRate != DEFAULT_SAMPLE_RATE)
         {
-            var wavStream = new MemoryStream();
-            var resampler = new WdlResamplingSampleProvider(reader.ToSampleProvider(), 16000);
-            WaveFileWriter.WriteWavFileToStream(wavStream, resampler.ToWaveProvider16());
-            wavStream.Seek(0, SeekOrigin.Begin);
-            return wavStream;
+            var resampler = new WdlResamplingSampleProvider(ws.ToSampleProvider(), DEFAULT_SAMPLE_RATE);
+            WaveFileWriter.WriteWavFileToStream(ms, resampler.ToWaveProvider16());
+        }
+        else
+        {
+            ws.CopyTo(ms);
         }
 
-        fileStream.Seek(0, SeekOrigin.Begin);
-        return fileStream;
+        ms.Seek(0, SeekOrigin.Begin);
+        return ms;
     }
 }

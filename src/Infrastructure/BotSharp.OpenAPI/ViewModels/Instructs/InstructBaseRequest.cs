@@ -59,8 +59,11 @@ public class ImageMaskEditRequest : InstructBaseRequest
     public InstructFileModel Mask { get; set; }
 }
 
-public class AudioCompletionRequest : InstructBaseRequest
+public class SpeechToTextRequest : InstructBaseRequest
 {
+    [JsonPropertyName("text")]
+    public string? Text { get; set; }
+
     [JsonPropertyName("file")]
     public InstructFileModel File { get; set; }
 }

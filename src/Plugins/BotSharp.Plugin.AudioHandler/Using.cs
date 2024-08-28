@@ -5,6 +5,7 @@ global using System.Linq;
 global using System.Text.Json;
 global using System.Threading.Tasks;
 
+global using BotSharp.Abstraction.Repositories;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Agents.Models;

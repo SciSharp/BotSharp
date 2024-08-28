@@ -16,8 +16,7 @@ public class AudioHandlerPlugin : IBotSharpPlugin
             return settingService.Bind<AudioHandlerSettings>("AudioHandler");
         });
 
-        services.AddScoped<ISpeechToText, NativeWhisperProvider>();
-        services.AddScoped<IAudioHelper, AudioHelper>();
+        services.AddScoped<IAudioCompletion, NativeWhisperProvider>();
         services.AddScoped<IAgentHook, AudioHandlerHook>();
         services.AddScoped<IAgentUtilityHook, AudioHandlerUtilityHook>();
     }

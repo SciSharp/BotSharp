@@ -9,6 +9,7 @@ public class HandleAudioRequestFn : IFunctionCallback
     public string Indication => "Handling audio request";
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly IFileStorageService _fileStorage;
     private readonly ILogger<HandleAudioRequestFn> _logger;
     private readonly BotSharpOptions _options;
 
@@ -19,10 +20,12 @@ public class HandleAudioRequestFn : IFunctionCallback
     };
 
     public HandleAudioRequestFn(
+        IFileStorageService fileStorage,
         IServiceProvider serviceProvider,
         ILogger<HandleAudioRequestFn> logger,
         BotSharpOptions options)
     {
+        _fileStorage = fileStorage;
         _serviceProvider = serviceProvider;
         _logger = logger;
         _options = options;
@@ -43,11 +46,13 @@ public class HandleAudioRequestFn : IFunctionCallback
 
     private List<RoleDialogModel> AssembleFiles(string convId, List<RoleDialogModel> dialogs)
     {
-        if (dialogs.IsNullOrEmpty()) return new List<RoleDialogModel>();
+        if (dialogs.IsNullOrEmpty())
+        {
+            return new List<RoleDialogModel>();
+        }
 
-        var fileService = _serviceProvider.GetRequiredService<IFileStorageService>();
         var messageId = dialogs.Select(x => x.MessageId).Distinct().ToList();
-        var audioMessageFiles = fileService.GetMessageFiles(convId, messageId, FileSourceType.User, _audioContentType);
+        var audioMessageFiles = _fileStorage.GetMessageFiles(convId, messageId, FileSourceType.User, _audioContentType);
 
         audioMessageFiles = audioMessageFiles.Where(x => x.ContentType.Contains("audio")).ToList();
 
@@ -69,53 +74,46 @@ public class HandleAudioRequestFn : IFunctionCallback
 
     private async Task<string> GetResponeFromDialogs(List<RoleDialogModel> dialogs)
     {
-        var speech2Text = await PrepareModel("native");
+        var audioCompletion = PrepareModel();
         var dialog = dialogs.Where(x => !x.Files.IsNullOrEmpty()).Last();
-        int transcribedCount = 0;
+        var transcripts = new List<string>();
 
         foreach (var file in dialog.Files)
         {
-            if (file == null) continue;
+            if (file == null || string.IsNullOrWhiteSpace(file.FileStorageUrl)) continue;
 
-            string extension = Path.GetExtension(file?.FileStorageUrl);
-            if (ParseAudioFileType(extension) && File.Exists(file.FileStorageUrl))
-            {
-                file.FileData = await speech2Text.GenerateTextFromAudioAsync(file.FileStorageUrl);
-                transcribedCount++;
-            }
+            var extension = Path.GetExtension(file.FileStorageUrl);
+
+            var fileName = Path.GetFileName(file.FileStorageUrl);
+            if (!ParseAudioFileType(fileName)) continue;
+
+            var bytes = _fileStorage.GetFileBytes(file.FileStorageUrl);
+            using var stream = new MemoryStream(bytes);
+            stream.Position = 0;
+
+            var result = await audioCompletion.GenerateTextFromAudioAsync(stream, fileName);
+            transcripts.Add(result);
+            stream.Close();
         }
 
-        if (transcribedCount == 0)
+        if (transcripts.IsNullOrEmpty())
         {
             throw new FileNotFoundException($"No audio files found in the dialog. MessageId: {dialog.MessageId}");
         }
 
-        var resList = dialog.Files.Select(x => $"{x.FileName} \r\n {x.FileData}").ToList();
-        return string.Join("\n\r", resList);
+        return string.Join("\r\n\r\n", transcripts);
     }
 
-    private async Task<ISpeechToText> PrepareModel(string provider = "native")
+    private IAudioCompletion PrepareModel()
     {
-        var speech2Text = _serviceProvider.GetServices<ISpeechToText>().FirstOrDefault(x => x.Provider == provider.ToLower());
-        if (speech2Text == null)
-        {
-            throw new Exception($"Can't resolve speech2text provider by {provider}");
-        }
-
-        if (provider.IsEqualTo("openai"))
-        {
-            return CompletionProvider.GetSpeechToText(_serviceProvider, provider: "openai", model: "whisper-1");
-        }
-
-        await speech2Text.SetModelName("Tiny");
-        return speech2Text;
+        return CompletionProvider.GetAudioCompletion(_serviceProvider, provider: "openai", model: "whisper-1");
     }
 
-    private bool ParseAudioFileType(string fileType)
+    private bool ParseAudioFileType(string fileName)
     {
-        fileType = fileType.ToLower();
+        var extension = Path.GetExtension(fileName).TrimStart('.').ToLower();
         var provider = new FileExtensionContentTypeProvider();
-        bool canParse = Enum.TryParse<AudioType>(fileType, out _) || provider.TryGetContentType(fileType, out _);
+        bool canParse = Enum.TryParse<AudioType>(extension, out _) || provider.TryGetContentType(fileName, out _);
         return canParse;
     }
 }

@@ -35,7 +35,7 @@ public class GraphDb : IGraphDb
         _settings = settings;
     }
 
-    public string Name => "Neo4j";
+    public string Name => "Remote";
 
     public async Task<GraphSearchData> Search(string query, GraphSearchOptions options)
     {

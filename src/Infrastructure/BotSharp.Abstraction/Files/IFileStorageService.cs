@@ -6,6 +6,7 @@ public interface IFileStorageService
 {
     #region Common
     string GetDirectory(string conversationId);
+    IEnumerable<string> GetFiles(string relativePath, string? searchQuery = null);
     byte[] GetFileBytes(string fileStorageUrl);
     bool SaveFileStreamToPath(string filePath, Stream stream);
     bool SaveFileBytesToPath(string filePath, byte[] bytes);

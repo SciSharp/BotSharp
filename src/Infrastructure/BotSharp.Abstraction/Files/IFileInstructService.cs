@@ -21,7 +21,7 @@ public interface IFileInstructService
     #endregion
 
     #region Audio
-    Task<string> ReadAudio(string? provider, string? model, InstructFileModel audio);
+    Task<string> SpeechToText(string? provider, string? model, InstructFileModel audio, string? text = null);
     #endregion
 
     #region Select file
