@@ -67,3 +67,9 @@ public class SpeechToTextRequest : InstructBaseRequest
     [JsonPropertyName("file")]
     public InstructFileModel File { get; set; }
 }
+
+public class TextToSpeechRequest : InstructBaseRequest
+{
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
+}

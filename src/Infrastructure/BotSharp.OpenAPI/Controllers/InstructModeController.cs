@@ -469,5 +469,19 @@ public class InstructModeController : ControllerBase
             return viewModel;
         }
     }
+
+    [HttpPost("/instruct/text-to-speech")]
+    public async Task<IActionResult> TextToSpeech([FromBody] TextToSpeechRequest input)
+    {
+        var state = _services.GetRequiredService<IConversationStateService>();
+        input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
+
+        var completion = CompletionProvider.GetAudioCompletion(_services, provider: input.Provider ?? "openai", model: input.Model ?? "tts-1");
+        var binaryData = await completion.GenerateAudioFromTextAsync(input.Text);
+        var stream = binaryData.ToStream();
+        stream.Position = 0;
+
+        return new FileStreamResult(stream, "audio/mpeg") { FileDownloadName = "output.mp3" };
+    }
     #endregion
 }

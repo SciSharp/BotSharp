@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Files.Models;
 
-public class FileInfo
+public class FileInformation
 {
     /// <summary>
     /// External file url

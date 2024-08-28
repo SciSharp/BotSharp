@@ -7,7 +7,7 @@ public interface IAudioCompletion
     string Provider { get; }
 
     Task<string> GenerateTextFromAudioAsync(Stream audio, string audioFileName, string? text = null);
-    Task<BinaryData> GenerateSpeechFromTextAsync(string text);
+    Task<BinaryData> GenerateAudioFromTextAsync(string text);
 
     void SetModelName(string model);
 }

@@ -77,11 +77,11 @@ public partial class AudioCompletionProvider
         return granularity;
     }
 
-    private float GetTemperature(string input)
+    private float? GetTemperature(string input)
     {
         if (!float.TryParse(input, out var temperature))
         {
-            return 0.0f;
+            return null;
         }
 
         return temperature;

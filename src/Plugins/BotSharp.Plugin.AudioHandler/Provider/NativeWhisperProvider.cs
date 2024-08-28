@@ -47,7 +47,7 @@ public class NativeWhisperProvider : IAudioCompletion
         return audioOutput.ToString();
     }
 
-    public async Task<BinaryData> GenerateSpeechFromTextAsync(string text)
+    public async Task<BinaryData> GenerateAudioFromTextAsync(string text)
     {
         throw new NotImplementedException();
     }

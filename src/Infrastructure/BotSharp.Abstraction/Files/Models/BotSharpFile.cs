@@ -1,7 +1,7 @@
 
 namespace BotSharp.Abstraction.Files.Models;
 
-public class BotSharpFile : FileInfo
+public class BotSharpFile : FileInformation
 {
     /// <summary>
     /// File data => format: "data:image/png;base64,aaaaaaaa"

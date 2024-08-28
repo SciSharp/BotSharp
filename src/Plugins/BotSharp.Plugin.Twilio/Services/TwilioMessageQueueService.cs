@@ -98,7 +98,7 @@ namespace BotSharp.Plugin.Twilio.Services
             );
             var completion = CompletionProvider.GetAudioCompletion(sp, "openai", "tts-1");
             var fileStorage = sp.GetRequiredService<IFileStorageService>();
-            var data = await completion.GenerateSpeechFromTextAsync(reply.Content);
+            var data = await completion.GenerateAudioFromTextAsync(reply.Content);
             var fileName = $"reply_{reply.MessageId}.mp3";
             await fileStorage.SaveSpeechFileAsync(message.ConversationId, fileName, data);
             reply.SpeechFileName = fileName;
