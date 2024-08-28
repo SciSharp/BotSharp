@@ -47,15 +47,16 @@ public class TwilioVoiceController : TwilioController
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
         var messages = await sessionManager.RetrieveStagedCallerMessagesAsync(conversationId, seqNum);
-        if (!string.IsNullOrWhiteSpace(request.SpeechResult))
+        string text = (request.SpeechResult + "\r\n" + request.Digits).Trim();
+        if (!string.IsNullOrWhiteSpace(text))
         {
-            messages.Add(request.SpeechResult);
-            await sessionManager.StageCallerMessageAsync(conversationId, seqNum, request.SpeechResult);
+            messages.Add(text);
+            await sessionManager.StageCallerMessageAsync(conversationId, seqNum, text);
         }
         VoiceResponse response;
         if (messages.Count == 0 && seqNum == 0)
         { 
-            response = twilio.ReturnInstructions("twilio/welcome.mp3", $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true);
+            response = twilio.ReturnInstructions("twilio/welcome.mp3", $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true, timeout: 2);
         }
         else
         {
