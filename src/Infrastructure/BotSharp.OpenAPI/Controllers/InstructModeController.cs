@@ -173,6 +173,7 @@ public class InstructModeController : ControllerBase
             var message = await fileInstruct.VaryImage(input.Provider, input.Model, input.File);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+
             return imageViewModel;
         }
         catch (Exception ex)
@@ -194,17 +195,20 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var data = FileUtility.BuildFileDataFromFile(file);
-            var image = new InstructFileModel
+            using var stream = new MemoryStream();
+            file.CopyTo(stream);
+            stream.Position = 0;
+
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
+            var message = await completion.GetImageVariation(new Agent()
             {
-                FileName = Path.GetFileNameWithoutExtension(file.FileName),
-                FileExtension = Path.GetExtension(file.FileName).Substring(1),
-                FileData = data
-            };
-            var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var message = await fileInstruct.VaryImage(provider, model, image);
+                Id = Guid.Empty.ToString()
+            }, new RoleDialogModel(AgentRole.User, string.Empty), stream, file.FileName);
+
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            stream.Close();
+
             return imageViewModel;
         }
         catch (Exception ex)
@@ -255,16 +259,20 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var data = FileUtility.BuildFileDataFromFile(file);
-            var image = new InstructFileModel
+            using var stream = new MemoryStream();
+            file.CopyTo(stream);
+            stream.Position = 0;
+
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
+            var message = await completion.GetImageEdits(new Agent()
             {
-                FileName = Path.GetFileNameWithoutExtension(file.FileName),
-                FileExtension = Path.GetExtension(file.FileName).Substring(1),
-                FileData = data
-            };
-            var message = await fileInstruct.EditImage(provider, model, text, image);
+                Id = Guid.Empty.ToString()
+            }, new RoleDialogModel(AgentRole.User, text), stream, file.FileName);
+
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            stream.Close();
+
             return imageViewModel;
         }
         catch (Exception ex)
@@ -317,25 +325,25 @@ public class InstructModeController : ControllerBase
 
         try
         {
-            var imageData = FileUtility.BuildFileDataFromFile(image);
-            var imageFile = new InstructFileModel
-            {
-                FileName = Path.GetFileNameWithoutExtension(image.FileName),
-                FileExtension = Path.GetExtension(image.FileName).Substring(1),
-                FileData = imageData
-            };
+            using var imageStream = new MemoryStream();
+            image.CopyTo(imageStream);
+            imageStream.Position = 0;
 
-            var maskData = FileUtility.BuildFileDataFromFile(mask);
-            var maskFile = new InstructFileModel
-            {
-                FileName = Path.GetFileNameWithoutExtension(mask.FileName),
-                FileExtension = Path.GetExtension(mask.FileName).Substring(1),
-                FileData = maskData
-            };
+            using var maskStream = new MemoryStream();
+            mask.CopyTo(maskStream);
+            maskStream.Position = 0;
 
-            var message = await fileInstruct.EditImage(provider, model, text, imageFile, maskFile);
+            var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
+            var message = await completion.GetImageEdits(new Agent()
+            {
+                Id = Guid.Empty.ToString()
+            }, new RoleDialogModel(AgentRole.User, text), imageStream, image.FileName, maskStream, mask.FileName);
+
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
+            imageStream.Close();
+            maskStream.Close();
+
             return imageViewModel;
         }
         catch (Exception ex)

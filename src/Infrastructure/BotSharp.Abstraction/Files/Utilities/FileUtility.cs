@@ -47,11 +47,11 @@ public static class FileUtility
         return $"data:{contentType};base64,{base64}";
     }
 
-    public static string GetFileContentType(string filePath)
+    public static string GetFileContentType(string fileName)
     {
         string contentType;
         var provider = new FileExtensionContentTypeProvider();
-        if (!provider.TryGetContentType(filePath, out contentType))
+        if (!provider.TryGetContentType(fileName, out contentType))
         {
             contentType = string.Empty;
         }
