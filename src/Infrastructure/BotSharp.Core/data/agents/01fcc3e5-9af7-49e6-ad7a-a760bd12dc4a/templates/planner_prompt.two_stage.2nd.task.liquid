@@ -1,8 +1,0 @@
-{{ task_description }} 
-
-{% if related_tables != empty -%}
-Relevant tables:
-{% for t in related_tables -%}
-- {{ t }}{{ "\r\n" }}
-{%- endfor %}
-{%- endif %}

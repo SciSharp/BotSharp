@@ -8,15 +8,11 @@
         "type": "string",
         "description": "User original requirements in detail, don't miss any information especially for those line items, values and numbers."
       },
-      "has_knowledge_reference": {
-        "type": "boolean",
-        "description": "If there is knowledge retrieved from memory"
-      },
       "question": {
         "type": "string",
         "description": "Question convert from requirement and reference tables for knowledge search. The question should contain all the detailed information in the requirement"
       }
     },
-    "required": [ "requirement_detail", "has_knowledge_reference", "question" ]
+    "required": [ "requirement_detail", "question" ]
   }
 }
