@@ -76,9 +76,8 @@ public class TwilioVoiceController : TwilioController
             }
             await messageQueue.EnqueueAsync(callerMessage);
 
-            int audioIndex = Random.Shared.Next(2, 5);
             response = new VoiceResponse()
-                .Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}&play=%23hold-on-{audioIndex}%7c%23typing-2"), HttpMethod.Post);
+                .Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}"), HttpMethod.Post);
         }
         else
         {
@@ -104,9 +103,7 @@ public class TwilioVoiceController : TwilioController
         VoiceResponse response;
         if (reply == null)
         {
-            var indication = string.IsNullOrEmpty(play) ? 
-                await sessionManager.GetReplyIndicationAsync(conversationId, seqNum) :
-                play;
+            var indication = await sessionManager.GetReplyIndicationAsync(conversationId, seqNum);
             if (indication != null)
             {
                 var speechPaths = new List<string>();
@@ -131,8 +128,11 @@ public class TwilioVoiceController : TwilioController
             }
             else
             {
-                int audioIndex = Random.Shared.Next(1, 4);
-                response = twilio.ReturnInstructions(new List<string> { $"{_settings.CallbackHost}/twilio/typing-{audioIndex}.mp3" }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
+                response = twilio.ReturnInstructions(new List<string> 
+                {
+                    $"twilio/hold-on-{Random.Shared.Next(1, 5)}.mp3",
+                    $"twilio/typing-{Random.Shared.Next(2, 4)}.mp3" 
+                }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
             }
         }
         else
