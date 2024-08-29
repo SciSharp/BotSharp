@@ -44,7 +44,7 @@ public partial class TwoStagePlanner
 
     private async Task<string> GetFirstStagePlanPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "planner_prompt.two_stage.1st.plan").Content;
+        var template = router.Templates.First(x => x.Name == "two_stage.1st.plan").Content;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
             Parameters = new JsonDocument[]{ JsonDocument.Parse("{}") },
@@ -69,7 +69,7 @@ public partial class TwoStagePlanner
 
     private string GetFirstStageNextPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "planner_prompt.first_stage.next").Content;
+        var template = router.Templates.First(x => x.Name == "first_stage.next").Content;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
         });

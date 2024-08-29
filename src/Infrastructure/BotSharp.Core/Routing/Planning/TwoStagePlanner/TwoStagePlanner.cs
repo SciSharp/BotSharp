@@ -1,9 +1,4 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Routing.Planning;
-using System.IO;
 
 namespace BotSharp.Core.Routing.Planning;
 
@@ -28,25 +23,9 @@ public partial class TwoStagePlanner : IRoutingPlaner
 
     public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), "botsharp", "cache");
         if (_plan1st.IsNullOrEmpty() && _plan2nd.IsNullOrEmpty())
         {
-            Directory.CreateDirectory(tempDir);
-            _md5 = Utilities.HashTextMd5($"{string.Join(".", dialogs.Where(x => x.Role == AgentRole.User))}{"botsharp"}");
-            var filePath = Path.Combine(tempDir, $"{_md5}-1st.json");
-            FirstStagePlan[] items = new FirstStagePlan[0];
-            if (File.Exists(filePath))
-            {
-                var cache = File.ReadAllText(filePath);
-                items = JsonSerializer.Deserialize<FirstStagePlan[]>(cache);
-            }
-            else
-            {
-                items = await GetFirstStagePlanAsync(router, messageId, dialogs);
-
-                var cache = JsonSerializer.Serialize(items);
-                File.WriteAllText(filePath, cache);
-            }
+            FirstStagePlan[] items = await GetFirstStagePlanAsync(router, messageId, dialogs);
 
             foreach (var item in items)
             {
@@ -61,20 +40,7 @@ public partial class TwoStagePlanner : IRoutingPlaner
 
             if (plan1.ContainMultipleSteps)
             {
-                var filePath = Path.Combine(tempDir, $"{_md5}-2nd-{plan1.Step}.json");
-                SecondStagePlan[] items = new SecondStagePlan[0];
-                if (File.Exists(filePath))
-                {
-                    var cache = File.ReadAllText(filePath);
-                    items = JsonSerializer.Deserialize<SecondStagePlan[]>(cache);
-                }
-                else
-                {
-                    items = await GetSecondStagePlanAsync(router, messageId, plan1, dialogs);
-
-                    var cache = JsonSerializer.Serialize(items);
-                    File.WriteAllText(filePath, cache);
-                }
+                SecondStagePlan[] items = await GetSecondStagePlanAsync(router, messageId, plan1, dialogs);
 
                 foreach (var item in items)
                 {

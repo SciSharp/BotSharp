@@ -1,0 +1,10 @@
+{
+  "name": "plan_summary",
+  "description": "Based on the planning steps, summarize the planning steps and output final steps.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+    },
+    "required": []
+  }
+}

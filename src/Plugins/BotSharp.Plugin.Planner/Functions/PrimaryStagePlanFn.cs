@@ -3,10 +3,8 @@ using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Templating;
 using System.Threading.Tasks;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using BotSharp.Abstraction.Knowledges;
 using Microsoft.Extensions.Logging;
 using BotSharp.Abstraction.Knowledges.Models;
 
@@ -55,7 +53,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var firstPlanningPrompt = await GetFirstStagePlanPrompt(task, message);
         var plannerAgent = new Agent
         {
-            Id = "",
+            Id = BuiltInAgentId.Planner,
             Name = "planning_1st",
             Instruction = firstPlanningPrompt,
             TemplateDict = new Dictionary<string, object>(),
@@ -64,7 +62,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var response = await GetAIResponse(plannerAgent);
         message.Content = response.Content; 
 
-        await fn.InvokeFunction("plan_secondary_stage", message);
+        /*await fn.InvokeFunction("plan_secondary_stage", message);
         var items = message.Content.JsonArrayContent<SecondStagePlan>();
 
         //get all the related tables
@@ -85,7 +83,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         _logger.LogInformation(summaryPlanningPrompt);
         plannerAgent = new Agent
         {
-            Id = "",
+            Id = BuiltInAgentId.Planner,
             Name = "planner_summary",
             Instruction = summaryPlanningPrompt,
             TemplateDict = new Dictionary<string, object>(),
@@ -95,19 +93,19 @@ public class PrimaryStagePlanFn : IFunctionCallback
         _logger.LogInformation(response_summary.Content);
 
         message.Content = response_summary.Content;
-        message.StopCompletion = true;
+        message.StopCompletion = true;*/
         return true;
     }
     private async Task<string> GetFirstStagePlanPrompt(PrimaryRequirementRequest task, RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.AIAssistant);
+        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.Planner);
         var render = _services.GetRequiredService<ITemplateRender>();
-        var template = aiAssistant.Templates.First(x => x.Name == "planner_prompt.two_stage.1st.plan").Content;
+        var template = aiAssistant.Templates.First(x => x.Name == "two_stage.1st.plan").Content;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
-            Parameters = new JsonDocument[] { JsonDocument.Parse("{}") },
-            Results = new string[] { "" }
+            Parameters = [JsonDocument.Parse("{}")],
+            Results = [""]
         });
 
         return render.Render(template, new Dictionary<string, object>
@@ -126,8 +124,8 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var template = aiAssistant.Templates.First(x => x.Name == "planner_prompt.two_stage.summarize").Content;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
-            Parameters = new JsonDocument[] { JsonDocument.Parse("{}") },
-            Results = new string[] { "" }
+            Parameters = [JsonDocument.Parse("{}")],
+            Results = [""]
         });
 
         return render.Render(template, new Dictionary<string, object>
