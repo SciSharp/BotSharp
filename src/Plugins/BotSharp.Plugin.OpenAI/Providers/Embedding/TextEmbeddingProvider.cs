@@ -8,7 +8,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     protected readonly IServiceProvider _services;
     protected readonly ILogger<TextEmbeddingProvider> _logger;
 
-    private const int DEFAULT_DIMENSION = 3072;
+    private const int DEFAULT_DIMENSION = 1536;
     protected string _model = "text-embedding-3-large";
     protected int _dimension = DEFAULT_DIMENSION;
 

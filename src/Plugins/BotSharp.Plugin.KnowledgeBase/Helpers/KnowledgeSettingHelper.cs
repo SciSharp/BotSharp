@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Settings;
+
 namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
 public static class KnowledgeSettingHelper
@@ -12,8 +14,22 @@ public static class KnowledgeSettingHelper
         }
 
         var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == found.Provider);
+        var dimension = found.Dimension;
+
+        if (found.Dimension <= 0)
+        {
+            dimension = GetLlmTextEmbeddingDimension(services, found.Provider, found.Model);
+        }
+
         embedding.SetModelName(found.Model);
-        embedding.SetDimension(found.Dimension);
+        embedding.SetDimension(dimension);
         return embedding;
+    }
+
+    private static int GetLlmTextEmbeddingDimension(IServiceProvider services, string provider, string model)
+    {
+        var settings = services.GetRequiredService<ILlmProviderService>();
+        var found = settings.GetSetting(provider, model);
+        return found?.Dimension ?? 0;
     }
 }
