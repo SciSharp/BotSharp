@@ -76,8 +76,8 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
-            SpeechTimeout = timeout > 0 ? timeout.ToString() : "3",
-            Timeout = timeout > 0 ? timeout : 3,
+            SpeechTimeout = timeout > 0 ? timeout.ToString() : "2",
+            Timeout = timeout > 0 ? timeout : 2,
             ActionOnEmptyResult = actionOnEmptyResult
         };
         if (speechPaths != null && speechPaths.Any())
@@ -87,6 +87,33 @@ public class TwilioService
                 gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
             }
         }
+        response.Append(gather);
+        return response;
+    }
+
+    public VoiceResponse ReturnNoninterruptedInstructions(List<string> speechPaths, string callbackPath, bool actionOnEmptyResult, int timeout = 2)
+    {
+        var response = new VoiceResponse();
+        if (speechPaths != null && speechPaths.Any())
+        {
+            foreach (var speechPath in speechPaths)
+            {
+                response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+            }
+        }
+        var gather = new Gather()
+        {
+            Input = new List<Gather.InputEnum>()
+            {
+                Gather.InputEnum.Speech,
+                Gather.InputEnum.Dtmf
+            },
+            Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
+            SpeechModel = Gather.SpeechModelEnum.PhoneCall,
+            SpeechTimeout = timeout > 0 ? timeout.ToString() : "2",
+            Timeout = timeout > 0 ? timeout : 2,
+            ActionOnEmptyResult = actionOnEmptyResult
+        };
         response.Append(gather);
         return response;
     }
