@@ -128,11 +128,6 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
 
     public async Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
-        dialogs.Add(new RoleDialogModel(AgentRole.User, inst.Response)
-        {
-            MessageId = message.MessageId,
-            CurrentAgentId = router.Id
-        });
         return true;
     }
 
