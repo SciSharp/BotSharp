@@ -64,7 +64,7 @@ public class TwilioService
         return response;
     }
 
-    public VoiceResponse ReturnInstructions(string speechPath, string callbackPath, bool actionOnEmptyResult, int timeout = 3)
+    public VoiceResponse ReturnInstructions(List<string> speechPaths, string callbackPath, bool actionOnEmptyResult, int timeout = 2)
     {
         var response = new VoiceResponse();
         var gather = new Gather()
@@ -80,13 +80,11 @@ public class TwilioService
             Timeout = timeout > 0 ? timeout : 3,
             ActionOnEmptyResult = actionOnEmptyResult
         };
-        if (!string.IsNullOrEmpty(speechPath))
+        if (speechPaths != null && speechPaths.Any())
         {
-            gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
-            if (speechPath.Contains("hold-on-"))
+            foreach (var speechPath in speechPaths)
             {
-                int audioIndex = Random.Shared.Next(1, 4);
-                gather.Play(new Uri($"{_settings.CallbackHost}/twilio/typing-{audioIndex}.mp3"));
+                gather.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
             }
         }
         response.Append(gather);
