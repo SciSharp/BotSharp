@@ -35,6 +35,34 @@ public class QdrantDb : IVectorDb
         return _client;
     }
 
+    public async Task<bool> CreateCollection(string collectionName, int dim)
+    {
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+
+        if (exist) return false;
+
+        // Create a new collection
+        await client.CreateCollectionAsync(collectionName, new VectorParams()
+        {
+            Size = (ulong)dim,
+            Distance = Distance.Cosine
+        });
+
+        return true;
+    }
+
+    public async Task<bool> DeleteCollection(string collectionName)
+    {
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+
+        if (!exist) return false;
+
+        await client.DeleteCollectionAsync(collectionName);
+        return true;
+    }
+
     public async Task<IEnumerable<string>> GetCollections()
     {
         // List all the collections
@@ -117,27 +145,7 @@ public class QdrantDb : IVectorDb
         });
     }
 
-    public async Task CreateCollection(string collectionName, int dim)
-    {
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
-        if (!exist)
-        {
-            // Create a new collection
-            await client.CreateCollectionAsync(collectionName, new VectorParams()
-            {
-                Size = (ulong)dim,
-                Distance = Distance.Cosine
-            });
-        }
-
-        // Get collection info
-        var collectionInfo = await client.GetCollectionInfoAsync(collectionName);
-        if (collectionInfo == null)
-        {
-            throw new Exception($"Create {collectionName} failed.");
-        }
-    }
+    
 
     public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {

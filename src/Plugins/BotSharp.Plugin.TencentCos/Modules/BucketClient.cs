@@ -155,28 +155,7 @@ namespace BotSharp.Plugin.TencentCos.Modules
 
         public string? GetDirFile(string dir, string key)
         {
-            try
-            {
-                var request = new GetBucketRequest(_fullBucketName);
-                request.SetPrefix($"{dir.TrimEnd('/')}/");
-                request.SetDelimiter("/");
-
-                var result = _cosXml.GetBucket(request);
-
-                var info = result.listBucket;
-
-                var objects = info.contentsList;
-
-                return objects.Where(o => o.size > 0).FirstOrDefault(o => o.key == key)?.key;
-            }
-            catch (CosClientException clientEx)
-            {
-                throw new Exception(clientEx.Message);
-            }
-            catch (CosServerException serverEx)
-            {
-                throw new Exception(serverEx.Message);
-            }
+            return GetDirFiles(dir).FirstOrDefault(x => x == key);
         }
 
         public List<string> GetDirectories(string dir)

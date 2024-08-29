@@ -10,10 +10,16 @@ public class MemoryVectorDb : IVectorDb
 
     public string Name => "MemoryVector";
 
-    public async Task CreateCollection(string collectionName, int dim)
+    public async Task<bool> CreateCollection(string collectionName, int dimension)
     {
-        _collections[collectionName] = dim;
+        _collections[collectionName] = dimension;
         _vectors[collectionName] = new List<VecRecord>();
+        return true;
+    }
+
+    public async Task<bool> DeleteCollection(string collectionName)
+    {
+        return false;
     }
 
     public async Task<IEnumerable<string>> GetCollections()

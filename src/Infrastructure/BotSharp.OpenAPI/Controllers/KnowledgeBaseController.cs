@@ -18,10 +18,23 @@ public class KnowledgeBaseController : ControllerBase
         _services = services;
     }
 
+    #region Vector
     [HttpGet("knowledge/vector/collections")]
     public async Task<IEnumerable<string>> GetVectorCollections()
     {
         return await _knowledgeService.GetVectorCollections();
+    }
+
+    [HttpPost("knowledge/vector/{collection}/create-collection/{dimension}")]
+    public async Task<bool> CreateVectorCollection([FromRoute] string collection, [FromRoute] int dimension)
+    {
+        return await _knowledgeService.CreateVectorCollection(collection, dimension);
+    }
+
+    [HttpDelete("knowledge/vector/{collection}/delete-collection")]
+    public async Task<bool> GetVectorCollections([FromRoute] string collection)
+    {
+        return await _knowledgeService.DeleteVectorCollection(collection);
     }
 
     [HttpPost("/knowledge/vector/{collection}/search")]
@@ -109,7 +122,10 @@ public class KnowledgeBaseController : ControllerBase
         System.IO.File.Delete(filePath);
         return Ok(new { count = 1, file.Length });
     }
+    #endregion
 
+
+    #region Graph
     [HttpPost("/knowledge/graph/search")]
     public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
     {
@@ -124,7 +140,9 @@ public class KnowledgeBaseController : ControllerBase
             Result = result.Result
         };
     }
+    #endregion
 
+    #region Knowledge
     [HttpPost("/knowledge/search")]
     public async Task<KnowledgeSearchViewModel> SearchKnowledge([FromBody] SearchKnowledgeRequest request)
     {
@@ -148,4 +166,5 @@ public class KnowledgeBaseController : ControllerBase
             GraphResult = result?.GraphResult != null ? new GraphKnowledgeViewModel { Result = result.GraphResult.Result } : null
         };
     }
+    #endregion
 }

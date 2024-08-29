@@ -24,9 +24,16 @@ namespace BotSharp.Plugin.SemanticKernel
 
         public string Name => "SemanticKernel";
 
-        public async Task CreateCollection(string collectionName, int dim)
+        public async Task<bool> CreateCollection(string collectionName, int dimension)
         {
             await _memoryStore.CreateCollectionAsync(collectionName);
+            return true;
+        }
+
+        public async Task<bool> DeleteCollection(string collectionName)
+        {
+            await _memoryStore.DeleteCollectionAsync(collectionName);
+            return false;
         }
 
         public Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)

@@ -25,6 +25,25 @@ public partial class KnowledgeService
         }
     }
 
+    public async Task<bool> CreateVectorCollection(string collectionName, int dimension)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(collectionName))
+            {
+                return false;
+            }
+
+            var db = GetVectorDb();
+            return await db.CreateCollection(collectionName, dimension);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when creating a vector collection ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            return false;
+        }
+    }
+
     public async Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create)
     {
         try
