@@ -1,5 +1,3 @@
-using BotSharp.Plugin.SqlDriver.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MySqlConnector;
 using static Dapper.SqlMapper;
 
@@ -17,37 +15,31 @@ public class GetTableDefinitionFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        // get agent service
         var agentService = _services.GetRequiredService<IAgentService>();
-
-        // var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
         var sqlDriver = _services.GetRequiredService<SqlDriverService>();
-
-        //get table DDL from database
         var settings = _services.GetRequiredService<SqlDriverSetting>();
+
+        // Get table DDL from database
         using var connection = new MySqlConnection(settings.MySqlConnectionString);
         var dictionary = new Dictionary<string, object>();
+        var tableDdls = new List<string>();
 
-        var table_ddl = "";
         foreach (var p in (List<string>)message.Data)
         {
-            dictionary["@" + "table_name"] = p;
             var escapedTableName = MySqlHelper.EscapeString(p);
+            dictionary["@" + "table_name"] = p;
             dictionary["table_name"] = escapedTableName;
-            // can you replace this with a parameterized query?
-            var sql = $"select * from information_schema.tables where table_name ='{dictionary["table_name"]}'";
 
+            var sql = $"select * from information_schema.tables where table_name ='{escapedTableName}'";
             var result = connection.QueryFirstOrDefault(sql: sql, dictionary);
-            if (result != null)
-            {
-                sql = $"SHOW CREATE TABLE `{dictionary["table_name"]}`";
-                result = connection.QueryFirstOrDefault(sql: sql, dictionary);
-                table_ddl += "\r\n" + result;
-            }
-            
-        }
-        message.Content = table_ddl;
+            if (result == null) continue;
 
+            sql = $"SHOW CREATE TABLE `{escapedTableName}`";
+            result = connection.QueryFirstOrDefault(sql: sql, dictionary);
+            tableDdls.Add(result);
+        }
+
+        message.Content = string.Join("\r\n", tableDdls);
         return true;
     }
 }
