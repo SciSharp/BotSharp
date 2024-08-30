@@ -57,5 +57,12 @@ namespace BotSharp.Plugin.Twilio.Services
             var key = $"{conversationId}:Indication:{seqNum}";
             return await db.StringGetAsync(key);
         }
+
+        public async Task RemoveReplyIndicationAsync(string conversationId, int seqNum)
+        {
+            var db = _redis.GetDatabase();
+            var key = $"{conversationId}:Indication:{seqNum}";
+            await db.KeyDeleteAsync(key);
+        }
     }
 }

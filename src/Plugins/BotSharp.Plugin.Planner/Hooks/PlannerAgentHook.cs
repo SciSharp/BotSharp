@@ -52,6 +52,24 @@ public class PlannerAgentHook : AgentHookBase
                     agent.Functions.Add(fn);
                 }
             }
+
+            (prompt, fn) = GetPromptAndFunction("plan_summary");
+            if (fn != null)
+            {
+                if (!string.IsNullOrWhiteSpace(prompt))
+                {
+                    agent.Instruction += $"\r\n\r\n{prompt}\r\n\r\n";
+                }
+
+                if (agent.Functions == null)
+                {
+                    agent.Functions = new List<FunctionDef> { fn };
+                }
+                else
+                {
+                    agent.Functions.Add(fn);
+                }
+            }
         }
 
         base.OnAgentLoaded(agent);

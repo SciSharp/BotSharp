@@ -11,5 +11,6 @@ namespace BotSharp.Plugin.Twilio.Services
         Task<List<string>> RetrieveStagedCallerMessagesAsync(string conversationId, int seqNum);
         Task SetReplyIndicationAsync(string conversationId, int seqNum, string indication);
         Task<string> GetReplyIndicationAsync(string conversationId, int seqNum);
+        Task RemoveReplyIndicationAsync(string conversationId, int seqNum);
     }
 }

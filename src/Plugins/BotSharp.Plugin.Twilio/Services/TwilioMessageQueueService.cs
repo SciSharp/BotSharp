@@ -85,7 +85,7 @@ namespace BotSharp.Plugin.Twilio.Services
                 {
                     reply = new AssistantMessage()
                     {
-                        ConversationEnd = msg.Instruction.ConversationEnd,
+                        ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
                         Content = msg.Content,
                         MessageId = msg.MessageId
                     };
