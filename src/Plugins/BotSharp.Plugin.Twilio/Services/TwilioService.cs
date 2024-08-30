@@ -76,7 +76,7 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
-            SpeechTimeout = timeout > 0 ? timeout.ToString() : "2",
+            SpeechTimeout = "auto", // timeout > 0 ? timeout.ToString() : "2",
             Timeout = timeout > 0 ? timeout : 2,
             ActionOnEmptyResult = actionOnEmptyResult
         };
@@ -110,7 +110,7 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
-            SpeechTimeout = timeout > 0 ? timeout.ToString() : "2",
+            SpeechTimeout = "auto", // timeout > 0 ? timeout.ToString() : "2",
             Timeout = timeout > 0 ? timeout : 2,
             ActionOnEmptyResult = actionOnEmptyResult
         };
