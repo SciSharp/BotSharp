@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Utilities;
 using Twilio.Jwt.AccessToken;
 using Token = Twilio.Jwt.AccessToken.Token;
 
@@ -81,7 +82,8 @@ public class TwilioService
             Timeout = timeout > 0 ? timeout : 2,
             ActionOnEmptyResult = actionOnEmptyResult
         };
-        if (speechPaths != null && speechPaths.Any())
+
+        if (!speechPaths.IsNullOrEmpty())
         {
             foreach (var speechPath in speechPaths)
             {
