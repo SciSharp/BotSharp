@@ -41,8 +41,8 @@ public class TwilioVoiceController : TwilioController
     }
 
     [ValidateRequest]
-    [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
-    public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, [FromQuery] int attempts, VoiceRequest request)
+    [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}/{attemptCount:int=0}")]
+    public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromRoute] int attemptCount, [FromQuery] string states, VoiceRequest request)
     {
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
@@ -81,7 +81,7 @@ public class TwilioVoiceController : TwilioController
         }
         else
         {
-            if (attempts >= 3)
+            if (attemptCount >= 3)
             {
                 var speechPaths = new List<string>();
                 if (seqNum == 0)
@@ -95,7 +95,10 @@ public class TwilioVoiceController : TwilioController
                 }
                 response = twilio.ReturnInstructions(speechPaths, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true);
             }
-            response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}&attempts={++attempts}", true);
+            else
+            {
+                response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/receive/{seqNum}/{++attemptCount}?states={states}", true);
+            }           
         }
 
         return TwiML(response);
