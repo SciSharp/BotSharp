@@ -95,9 +95,11 @@ public class TwilioVoiceController : TwilioController
                 }
                 response = twilio.ReturnInstructions(speechPaths, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true);
             }
-            response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}&attempts={++attempts}", true);
+            else
+            {
+                response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}&attempts={++attempts}", true);
+            }          
         }
-
         return TwiML(response);
     }
 
