@@ -3,11 +3,16 @@ namespace BotSharp.Abstraction.Agents.Enums;
 public class AgentType
 {
     /// <summary>
-    /// Routing Agent
+    /// Routing agent
     /// </summary>
     public const string Routing = "routing";
 
-    public const string Evaluating = "evaluating";
+    /// <summary>
+    /// Planning agent
+    /// </summary>
+    public const string Planning = "plan";
+
+    public const string Evaluating = "evaluation";
 
     /// <summary>
     /// Routable task agent with capability of interaction with external environment

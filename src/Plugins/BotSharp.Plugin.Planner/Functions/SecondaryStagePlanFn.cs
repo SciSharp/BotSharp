@@ -24,6 +24,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
         _services = services;
         _logger = logger;
     }
+
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var fn = _services.GetRequiredService<IRoutingService>();
@@ -36,7 +37,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var task_secondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msg_secondary.FunctionArgs);
         var items = msg_secondary.Content.JsonArrayContent<FirstStagePlan>();
 
-        msg_secondary.KnowledgeConfidence = 0.5f; 
+        msg_secondary.KnowledgeConfidence = 0.5f;
         foreach (var item in items)
         {
             if (item.NeedAdditionalInformation)
@@ -73,9 +74,9 @@ public class SecondaryStagePlanFn : IFunctionCallback
     private async Task<string> GetSecondStagePlanPrompt(SecondaryBreakdownTask task, RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.AIAssistant);
+        var planner = await agentService.GetAgent(message.CurrentAgentId);
         var render = _services.GetRequiredService<ITemplateRender>();
-        var template = aiAssistant.Templates.First(x => x.Name == "planner_prompt.two_stage.2nd.plan").Content;
+        var template = planner.Templates.First(x => x.Name == "two_stage.2nd.plan").Content;
         var responseFormat = JsonSerializer.Serialize(new SecondStagePlan
         {
             Tool = "tool name if task solution provided", 
