@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
+using BotSharp.Core.Knowledges.Helpers;
 
 namespace BotSharp.Core.Knowledges.Services;
 
@@ -8,9 +9,7 @@ public partial class KnowledgeService
     public async Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel knowledge)
     {
         var index = 0;
-
-        var textChopper = _services.GetRequiredService<ITextChopper>();
-        var lines = textChopper.Chop(knowledge.Content, new ChunkOption
+        var lines = TextChopper.Chop(knowledge.Content, new ChunkOption
         {
             Size = 1024,
             Conjunction = 32,

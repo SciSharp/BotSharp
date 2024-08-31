@@ -20,7 +20,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             return settingService.Bind<KnowledgeBaseSettings>("KnowledgeBase");
         });
 
-        services.AddScoped<ITextChopper, TextChopperService>();
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
         services.AddScoped<IAgentUtilityHook, KnowledgeBaseUtilityHook>();
         services.AddScoped<IAgentHook, KnowledgeBaseAgentHook>();
