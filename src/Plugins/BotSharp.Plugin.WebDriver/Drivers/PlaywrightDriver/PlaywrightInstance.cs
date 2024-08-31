@@ -43,6 +43,11 @@ public class PlaywrightInstance : IDisposable
             }
         }
 
+        if (!string.IsNullOrEmpty(pattern))
+        {
+            return null;
+        }
+
         return _contexts[contextId].Pages.LastOrDefault();
     }
 
@@ -117,7 +122,12 @@ public class PlaywrightInstance : IDisposable
         return _contexts[ctxId];
     }
 
-    public async Task<IPage> NewPage(MessageInfo message, string[]? excludeResponseUrls = null)
+    public async Task<IPage> NewPage(MessageInfo message, 
+        bool enableResponseCallback = false, 
+        bool responseInMemory = false,
+        List<WebPageResponseData>? responseContainer = null,
+        string[]? excludeResponseUrls = null, 
+        string[]? includeResponseUrls = null)
     {
         var context = await GetContext(message.ContextId);
         var page = await context.NewPageAsync();
@@ -127,13 +137,19 @@ public class PlaywrightInstance : IDisposable
         var js = @"Object.defineProperties(navigator, {webdriver:{get:()=>false}});";
         await page.AddInitScriptAsync(js);
 
+        if (!enableResponseCallback)
+        {
+            return page;
+        }
+
         page.Response += async (sender, e) =>
         {
             if (e.Status != 204 &&
                 e.Headers.ContainsKey("content-type") &&
                 e.Headers["content-type"].Contains("application/json") &&
                 (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr") &&
-                (excludeResponseUrls == null || !excludeResponseUrls.Any(url => e.Url.ToLower().Contains(url))))
+                (excludeResponseUrls == null || !excludeResponseUrls.Any(url => e.Url.ToLower().Contains(url))) &&
+                (includeResponseUrls == null || includeResponseUrls.Any(url => e.Url.ToLower().Contains(url))))
             {
                 Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
                 JsonElement? json = null;
@@ -148,10 +164,23 @@ public class PlaywrightInstance : IDisposable
                         Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
                     }
 
+                    var result = new WebPageResponseData
+                    {
+                        Url = e.Url.ToLower(),
+                        PostData = e.Request?.PostData ?? string.Empty,
+                        ResponseData = JsonSerializer.Serialize(json),
+                        ResponseInMemory = responseInMemory
+                    };
+
+                    if (responseContainer != null && responseInMemory)
+                    {
+                        responseContainer.Add(result);
+                    }
+
                     var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
                     foreach (var hook in webPageResponseHooks)
                     {
-                        hook.OnDataFetched(message, e.Url.ToLower(), e.Request?.PostData ?? string.Empty, JsonSerializer.Serialize(json));
+                        hook.OnDataFetched(message, result);
                     }
                 }
                 catch (ObjectDisposedException ex)
@@ -160,7 +189,7 @@ public class PlaywrightInstance : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Serilog.Log.Error(ex.ToString());
+                    Serilog.Log.Error($"{e.Url}\r\n" + ex.ToString());
                 }
             }
         };

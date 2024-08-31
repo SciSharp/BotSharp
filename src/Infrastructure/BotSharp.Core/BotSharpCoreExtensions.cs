@@ -1,12 +1,13 @@
-using BotSharp.Abstraction.Functions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+using BotSharp.Abstraction.Functions;
 using BotSharp.Core.Plugins;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Users.Settings;
 using BotSharp.Abstraction.Interpreters.Settings;
+using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core;
 
@@ -22,8 +23,15 @@ public static class BotSharpCoreExtensions
 
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IUserService, UserService>();
+
         services.AddSingleton<DistributedLocker>();
 
+        // Register cache service
+        var cacheSettings = new SharpCacheSettings();
+        config.Bind("SharpCache", cacheSettings);
+        services.AddSingleton(x => cacheSettings);
+        services.AddSingleton<ICacheService, CacheService>();
+        
         RegisterPlugins(services, config);
         ConfigureBotSharpOptions(services, configOptions);
 
@@ -60,6 +68,9 @@ public static class BotSharpCoreExtensions
         }
 
         app.ApplicationServices.GetRequiredService<PluginLoader>().Configure(app);
+
+        // Set root services for SharpCacheAttribute
+        SharpCacheAttribute.Services = app.ApplicationServices;
 
         return app;
     }

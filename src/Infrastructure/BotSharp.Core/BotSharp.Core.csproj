@@ -46,10 +46,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="packages\**" />
     <Compile Remove="Planning\**" />
     <Compile Remove="Translation\Models\**" />
+    <EmbeddedResource Remove="packages\**" />
     <EmbeddedResource Remove="Planning\**" />
     <EmbeddedResource Remove="Translation\Models\**" />
+    <None Remove="packages\**" />
     <None Remove="Planning\**" />
     <None Remove="Translation\Models\**" />
   </ItemGroup>
