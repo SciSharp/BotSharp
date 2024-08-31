@@ -164,22 +164,22 @@ public class PlaywrightInstance : IDisposable
                         Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
                     }
 
+                    var result = new WebPageResponseData
+                    {
+                        Url = e.Url.ToLower(),
+                        PostData = e.Request?.PostData ?? string.Empty,
+                        ResponseData = JsonSerializer.Serialize(json),
+                        ResponseInMemory = responseInMemory
+                    };
+
+                    if (responseContainer != null && responseInMemory)
+                    {
+                        responseContainer.Add(result);
+                    }
+
                     var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
                     foreach (var hook in webPageResponseHooks)
                     {
-                        var result = new WebPageResponseData
-                        {
-                            Url = e.Url.ToLower(),
-                            PostData = e.Request?.PostData ?? string.Empty,
-                            ResponseData = JsonSerializer.Serialize(json),
-                            ResponseInMemory = responseInMemory
-                        };
-
-                        if (responseContainer != null && responseInMemory)
-                        {
-                            responseContainer.Add(result);
-                        }
-                        
                         hook.OnDataFetched(message, result);
                     }
                 }
