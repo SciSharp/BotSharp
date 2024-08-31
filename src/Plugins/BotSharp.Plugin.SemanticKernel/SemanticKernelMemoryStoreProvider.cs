@@ -22,7 +22,7 @@ namespace BotSharp.Plugin.SemanticKernel
         }
 
 
-        public string Name => "SemanticKernel";
+        public string Provider => "SemanticKernel";
 
         public async Task<bool> CreateCollection(string collectionName, int dimension)
         {

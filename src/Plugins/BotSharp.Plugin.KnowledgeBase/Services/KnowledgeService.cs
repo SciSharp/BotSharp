@@ -22,13 +22,13 @@ public partial class KnowledgeService : IKnowledgeService
 
     private IVectorDb GetVectorDb()
     {
-        var db = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
+        var db = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Provider == _settings.VectorDb.Provider);
         return db;
     }
 
     private IGraphDb GetGraphDb()
     {
-        var db = _services.GetServices<IGraphDb>().FirstOrDefault(x => x.Name == _settings.GraphDb);
+        var db = _services.GetServices<IGraphDb>().FirstOrDefault(x => x.Provider == _settings.GraphDb.Provider);
         return db;
     }
 

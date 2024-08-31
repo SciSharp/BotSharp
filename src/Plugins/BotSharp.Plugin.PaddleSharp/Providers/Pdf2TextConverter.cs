@@ -29,7 +29,7 @@ public class Pdf2TextConverter : IPdf2TextConverter
         _paddleSharpSettings = paddleSharpSettings;
     }
 
-    public string Name => "Paddle";
+    public string Provider => "Paddle";
 
     public async Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
     {

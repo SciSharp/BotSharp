@@ -98,7 +98,7 @@ public partial class FileInstructService
     {
         var images = new List<string>();
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;

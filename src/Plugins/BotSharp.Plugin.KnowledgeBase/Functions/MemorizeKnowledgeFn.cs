@@ -25,7 +25,7 @@ public class MemorizeKnowledgeFn : IFunctionCallback
             args.Question
         });
 
-        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
+        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Provider == _settings.VectorDb.Provider);
         await vectorDb.CreateCollection(collectionName, vector[0].Length);
 
         var result = await vectorDb.Upsert(collectionName, Guid.NewGuid(), vector[0], 

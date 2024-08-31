@@ -19,7 +19,7 @@ public class QdrantDb : IVectorDb
         _services = services;
     }
 
-    public string Name => "Qdrant";
+    public string Provider => "Qdrant";
 
     private QdrantClient GetClient()
     {

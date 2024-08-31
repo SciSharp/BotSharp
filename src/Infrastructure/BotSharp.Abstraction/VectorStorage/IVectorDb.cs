@@ -4,7 +4,7 @@ namespace BotSharp.Abstraction.VectorStorage;
 
 public interface IVectorDb
 {
-    string Name { get; }
+    string Provider { get; }
     
     Task<IEnumerable<string>> GetCollections();
     Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter);

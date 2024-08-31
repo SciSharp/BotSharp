@@ -254,7 +254,7 @@ public partial class TencentCosService
     private IPdf2ImageConverter? GetPdf2ImageConverter()
     {
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
         return converter;
     }
 

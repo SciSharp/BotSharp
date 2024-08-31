@@ -104,7 +104,7 @@ public class KnowledgeBaseController : ControllerBase
     public async Task<IActionResult> UploadVectorKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
     {
         var setttings = _services.GetRequiredService<FileCoreSettings>();
-        var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Name == setttings.Pdf2TextConverter);
+        var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Provider == setttings.Pdf2TextConverter.Provider);
 
         var filePath = Path.GetTempFileName();
         using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))

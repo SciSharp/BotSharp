@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Settings;
-
 namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
 public static class KnowledgeSettingHelper

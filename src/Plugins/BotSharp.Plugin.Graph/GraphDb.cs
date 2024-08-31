@@ -35,7 +35,7 @@ public class GraphDb : IGraphDb
         _settings = settings;
     }
 
-    public string Name => "Remote";
+    public string Provider => "Remote";
 
     public async Task<GraphSearchData> Search(string query, GraphSearchOptions options)
     {

@@ -8,7 +8,7 @@ public class MemoryVectorDb : IVectorDb
     private readonly Dictionary<string, List<VecRecord>> _vectors = new Dictionary<string, List<VecRecord>>();
 
 
-    public string Name => "MemoryVector";
+    public string Provider => "MemoryVector";
 
     public async Task<bool> CreateCollection(string collectionName, int dimension)
     {

@@ -21,7 +21,7 @@ public class KnowledgeRetrievalFn : IFunctionCallback
         var embedding = KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
 
         var vector = await embedding.GetVectorAsync(args.Question);
-        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
+        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Provider == _settings.VectorDb.Provider);
         var knowledges = await vectorDb.Search(collectionName, vector, new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer });
 
         if (!knowledges.IsNullOrEmpty())

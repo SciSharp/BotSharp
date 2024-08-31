@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public class PigPdf2TextConverter : IPdf2TextConverter
 {
-    public string Name => "Pig";
+    public string Provider => "Pig";
 
     public Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
     {
