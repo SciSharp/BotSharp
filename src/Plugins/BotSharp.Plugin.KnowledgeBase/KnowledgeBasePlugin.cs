@@ -21,7 +21,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         });
 
         services.AddScoped<ITextChopper, TextChopperService>();
-        services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
         services.AddScoped<IAgentUtilityHook, KnowledgeBaseUtilityHook>();
         services.AddScoped<IAgentHook, KnowledgeBaseAgentHook>();

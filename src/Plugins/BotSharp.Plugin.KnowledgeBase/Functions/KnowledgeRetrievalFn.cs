@@ -1,3 +1,5 @@
+using BotSharp.Core.Knowledges.Helpers;
+
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class KnowledgeRetrievalFn : IFunctionCallback

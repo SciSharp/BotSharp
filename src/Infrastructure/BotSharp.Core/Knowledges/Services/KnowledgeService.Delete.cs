@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.KnowledgeBase.Services;
+namespace BotSharp.Core.Knowledges.Services;
 
 public partial class KnowledgeService
 {
