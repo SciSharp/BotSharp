@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Graph.Models;
-using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -14,17 +13,17 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting knowledge collections. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when getting vector db collections. {ex.Message}\r\n{ex.InnerException}");
             return Enumerable.Empty<string>();
         }
     }
 
-    public async Task<StringIdPagedItems<VectorSearchResult>> GetVectorCollectionData(string collectionName, VectorFilter filter)
+    public async Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter)
     {
         try
         {
             var db = GetVectorDb();
-            var pagedResult =  await db.GetCollectionData(collectionName, filter);
+            var pagedResult =  await db.GetPagedCollectionData(collectionName, filter);
             return new StringIdPagedItems<VectorSearchResult>
             {
                 Count = pagedResult.Count,
@@ -34,7 +33,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when getting knowledge collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when getting vector knowledge collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
             return new StringIdPagedItems<VectorSearchResult>();
         }
     }
@@ -43,7 +42,7 @@ public partial class KnowledgeService
     {
         try
         {
-            var textEmbedding = GetTextEmbedding();
+            var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(query);
 
             // Vector search
@@ -55,7 +54,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when searching knowledge ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when searching vector knowledge ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
             return new List<VectorSearchResult>();
         }
     }
@@ -73,7 +72,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when searching graph {query}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when searching graph knowledge (Query: {query}). {ex.Message}\r\n{ex.InnerException}");
             return new GraphSearchResult();
         }
     }
@@ -82,7 +81,7 @@ public partial class KnowledgeService
     {
         try
         {
-            var textEmbedding = GetTextEmbedding();
+            var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(query);
 
             var vectorDb = GetVectorDb();
@@ -99,7 +98,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when searching knowledge (vector collection: {collectionName}) {query}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when searching knowledge (Vector collection: {collectionName}) (Query: {query}). {ex.Message}\r\n{ex.InnerException}");
             return new KnowledgeSearchResult();
         }
     }

@@ -17,12 +17,11 @@ public class KnowledgeRetrievalFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
-        var embedding =  _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _settings.TextEmbedding.Provider);
-        embedding.SetModelName(_settings.TextEmbedding.Model);
+        var collectionName = _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
+        var embedding = KnowledgeSettingUtility.GetTextEmbeddingSetting(_services, collectionName);
 
         var vector = await embedding.GetVectorAsync(args.Question);
         var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
-        var collectionName = !string.IsNullOrWhiteSpace(_settings.DefaultCollection) ? _settings.DefaultCollection : KnowledgeCollectionName.BotSharp;
         var knowledges = await vectorDb.Search(collectionName, vector, new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer });
 
         if (!knowledges.IsNullOrEmpty())

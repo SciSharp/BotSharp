@@ -52,6 +52,11 @@ public class LlmModelSetting
     /// </summary>
     public float CompletionCost { get; set; }
 
+    /// <summary>
+    /// Embedding dimension
+    /// </summary>
+    public int Dimension { get; set; }
+
     public override string ToString()
     {
         return $"[{Type}] {Name} {Endpoint}";

@@ -4,7 +4,6 @@ using BotSharp.Logger;
 using BotSharp.Plugin.ChatHub;
 using Serilog;
 using BotSharp.Abstraction.Messaging.JsonConverters;
-using Python.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,11 +41,4 @@ app.UseBotSharp()
     .UseBotSharpOpenAPI(app.Environment)
     .UseBotSharpUI();
 
-Runtime.PythonDLL = @"C:\Users\xxx\AppData\Local\Programs\Python\Python311\python311.dll";
-PythonEngine.Initialize();
-PythonEngine.BeginAllowThreads();
-
 app.Run();
-
-// Shut down the Python engine
-PythonEngine.Shutdown();

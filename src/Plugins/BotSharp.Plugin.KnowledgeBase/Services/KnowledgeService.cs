@@ -31,13 +31,8 @@ public partial class KnowledgeService : IKnowledgeService
         return db;
     }
 
-    private ITextEmbedding GetTextEmbedding()
+    private ITextEmbedding GetTextEmbedding(string collection)
     {
-        var embedding = _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _settings.TextEmbedding.Provider);
-        if (embedding != null)
-        {
-            embedding.SetModelName(_settings.TextEmbedding.Model);
-        }
-        return embedding;
+        return KnowledgeSettingUtility.GetTextEmbeddingSetting(_services, collection);
     }
 }

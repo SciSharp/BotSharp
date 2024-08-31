@@ -42,7 +42,7 @@ public class QdrantDb : IVectorDb
         return collections.ToList();
     }
 
-    public async Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
+    public async Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
     {
         var client = GetClient();
         var exist = await DoesCollectionExist(client, collectionName);
@@ -68,6 +68,29 @@ public class QdrantDb : IVectorDb
             NextId = response?.NextPageOffset?.Uuid,
             Items = points
         };
+    }
+
+
+    public async Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
+        bool withPayload = false, bool withVector = false)
+    {
+        if (ids.IsNullOrEmpty()) return Enumerable.Empty<VectorCollectionData>();
+
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+        if (!exist)
+        {
+            return Enumerable.Empty<VectorCollectionData>();
+        }
+
+        var pointIds = ids.Select(x => new PointId { Uuid = x.ToString() }).Distinct().ToList();
+        var points = await client.RetrieveAsync(collectionName, pointIds, withPayload, withVector);
+        return points.Select(x => new VectorCollectionData
+        {
+            Id = x.Id?.Uuid ?? string.Empty,
+            Data = x.Payload?.ToDictionary(x => x.Key, x => x.Value.StringValue) ?? new(),
+            Vector = x.Vectors?.Vector?.Data?.ToArray()
+        });
     }
 
     public async Task CreateCollection(string collectionName, int dim)

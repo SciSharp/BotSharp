@@ -1,6 +1,9 @@
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Models;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -79,7 +82,7 @@ namespace BotSharp.Plugin.Twilio.Services
                 {
                     reply = new AssistantMessage()
                     {
-                        ConversationEnd = msg.Instruction.ConversationEnd,
+                        ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
                         Content = msg.Content,
                         MessageId = msg.MessageId
                     };
@@ -94,14 +97,13 @@ namespace BotSharp.Plugin.Twilio.Services
                 async functionExecuted =>
                 { }
             );
-            if (reply == null || string.IsNullOrWhiteSpace(reply.Content))
-            {
-                reply = new AssistantMessage()
-                {
-                    ConversationEnd = true,
-                    Content = "Sorry, something was wrong."
-                };
-            }           
+            var textToSpeechService = CompletionProvider.GetTextToSpeech(sp, "openai", "tts-1");
+            var fileService = sp.GetRequiredService<IFileStorageService>();
+            var data = await textToSpeechService.GenerateSpeechFromTextAsync(reply.Content);
+            var fileName = $"reply_{reply.MessageId}.mp3";
+            await fileService.SaveSpeechFileAsync(message.ConversationId, fileName, data);
+            reply.SpeechFileName = fileName;
+            reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
         }
     }

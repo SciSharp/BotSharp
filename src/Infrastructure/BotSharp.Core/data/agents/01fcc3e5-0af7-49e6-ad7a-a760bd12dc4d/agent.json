@@ -7,5 +7,9 @@
   "updatedDateTime": "2024-05-07T10:00:00Z",
   "disabled": false,
   "isPublic": true,
+  "llmConfig": {
+    "provider": "openai",
+    "model": "gpt-4o-mini"
+  },
   "profiles": [ "fallback" ]
 }

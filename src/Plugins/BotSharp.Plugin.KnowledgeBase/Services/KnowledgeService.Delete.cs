@@ -16,7 +16,7 @@ public partial class KnowledgeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when deleting knowledge collection data ({collectionName}-{id}). {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when deleting vector collection data ({collectionName}-{id}). {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }

@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Users.Settings;
+using BotSharp.Abstraction.Interpreters.Settings;
 using BotSharp.Abstraction.Infrastructures;
 
 namespace BotSharp.Core;
@@ -14,6 +15,12 @@ public static class BotSharpCoreExtensions
 {
     public static IServiceCollection AddBotSharpCore(this IServiceCollection services, IConfiguration config, Action<BotSharpOptions>? configOptions = null)
     {
+        var interpreterSettings = new InterpreterSettings();
+        config.Bind("Interpreter", interpreterSettings);
+        services.AddSingleton(x => interpreterSettings);
+
+        services.AddSingleton<DistributedLocker>();
+
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IUserService, UserService>();
 

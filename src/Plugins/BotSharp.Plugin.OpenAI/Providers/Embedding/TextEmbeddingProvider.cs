@@ -10,10 +10,9 @@ public class TextEmbeddingProvider : ITextEmbedding
 
     private const int DEFAULT_DIMENSION = 3072;
     protected string _model = "text-embedding-3-large";
+    protected int _dimension = DEFAULT_DIMENSION;
 
     public virtual string Provider => "openai";
-
-    public int Dimension { get; set; }
 
     public TextEmbeddingProvider(
         OpenAiSettings settings,
@@ -50,24 +49,26 @@ public class TextEmbeddingProvider : ITextEmbedding
         _model = model;
     }
 
+    public void SetDimension(int dimension)
+    {
+        _dimension = dimension > 0 ? dimension : DEFAULT_DIMENSION;
+    }
+
+    public int GetDimension()
+    {
+        return _dimension;
+    }
+
     private EmbeddingGenerationOptions PrepareOptions()
     {
         return new EmbeddingGenerationOptions
         {
-            Dimensions = GetDimension()
+            Dimensions = GetDimensionOption()
         };
     }
 
-    private int GetDimension()
+    private int GetDimensionOption()
     {
-        var state = _services.GetRequiredService<IConversationStateService>();
-        var stateDimension = state.GetState("embedding_dimension");
-        var defaultDimension = Dimension > 0 ? Dimension : DEFAULT_DIMENSION;
-
-        if (int.TryParse(stateDimension, out var dimension))
-        {
-            return dimension > 0 ? dimension : defaultDimension;
-        }
-        return defaultDimension;
+        return _dimension > 0 ? _dimension : DEFAULT_DIMENSION;
     }
 }

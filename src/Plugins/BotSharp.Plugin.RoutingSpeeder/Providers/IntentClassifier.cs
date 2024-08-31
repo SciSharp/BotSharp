@@ -57,12 +57,13 @@ public class IntentClassifier
             return;
         }
 
-        var vector = _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _knowledgeBaseSettings.TextEmbedding.Provider);
-        vector.SetModelName(_knowledgeBaseSettings.TextEmbedding.Model);
+        var embedding = _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == _knowledgeBaseSettings.Default.TextEmbedding.Provider);
+        embedding.SetModelName(_knowledgeBaseSettings.Default.TextEmbedding.Model);
+        embedding.SetDimension(_knowledgeBaseSettings.Default.TextEmbedding.Dimension);
 
         var layers = new List<ILayer>
         {
-            keras.layers.InputLayer((vector.Dimension), name: "Input"),
+            keras.layers.InputLayer((embedding.GetDimension()), name: "Input"),
             keras.layers.Dense(256, activation:"relu"),
             keras.layers.Dense(256, activation:"relu"),
             keras.layers.Dense(GetLabels().Length, activation: keras.activations.Softmax)
@@ -136,10 +137,11 @@ public class IntentClassifier
     public NDArray GetTextEmbedding(string text)
     {
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        var embedding = _services.GetServices<ITextEmbedding>() .FirstOrDefault(x => x.Provider == knowledgeSettings.TextEmbedding.Provider);
-        embedding.SetModelName(knowledgeSettings.TextEmbedding.Model);
+        var embedding = _services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == knowledgeSettings.Default.TextEmbedding.Provider);
+        embedding.SetModelName(knowledgeSettings.Default.TextEmbedding.Model);
+        embedding.SetDimension(_knowledgeBaseSettings.Default.TextEmbedding.Dimension);
 
-        var x = np.zeros((1, embedding.Dimension), dtype: np.float32);
+        var x = np.zeros((1, embedding.GetDimension()), dtype: np.float32);
         x[0] = embedding.GetVectorAsync(text).GetAwaiter().GetResult();
         return x;
     }
@@ -186,7 +188,7 @@ public class IntentClassifier
         // Sort label to keep the same order
         var uniqueLabelList = labelList.Distinct().OrderBy(x => x).ToArray();
 
-        var x = np.zeros((vectorList.Count, vector.Dimension), dtype: np.float32);
+        var x = np.zeros((vectorList.Count, vector.GetDimension()), dtype: np.float32);
         var y = np.zeros((vectorList.Count, 1), dtype: np.float32);
 
         for (int i = 0; i < vectorList.Count; i++)

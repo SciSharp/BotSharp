@@ -24,7 +24,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
             "user goal based on user initial task.", 
             required: true),
         new ParameterPropertyDef("user_goal_agent",
-            "agent who can acheive user initial task,  must align with user_goal_description.", 
+            "agent who can acheive user initial task.", 
             required: true),
         new ParameterPropertyDef("conversation_end",
             "user is ending the conversation.",

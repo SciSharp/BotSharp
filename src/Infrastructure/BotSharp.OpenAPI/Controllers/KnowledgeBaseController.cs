@@ -39,10 +39,10 @@ public class KnowledgeBaseController : ControllerBase
         return results.Select(x => VectorKnowledgeViewModel.From(x)).ToList();
     }
 
-    [HttpPost("/knowledge/vector/{collection}/data")]
-    public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
+    [HttpPost("/knowledge/vector/{collection}/page")]
+    public async Task<StringIdPagedItems<VectorKnowledgeViewModel>> GetPagedVectorCollectionData([FromRoute] string collection, [FromBody] VectorFilter filter)
     {
-        var data = await _knowledgeService.GetVectorCollectionData(collection, filter);
+        var data = await _knowledgeService.GetPagedVectorCollectionData(collection, filter);
         var items = data.Items?.Select(x => VectorKnowledgeViewModel.From(x))?
                                .ToList() ?? new List<VectorKnowledgeViewModel>();
 
@@ -52,6 +52,33 @@ public class KnowledgeBaseController : ControllerBase
             NextId = data.NextId,
             Items = items
         };
+    }
+
+    [HttpPost("/knowledge/vector/{collection}/create")]
+    public async Task<bool> CreateVectorKnowledge([FromRoute] string collection, [FromBody] VectorKnowledgeCreateRequest request)
+    {
+        var create = new VectorCreateModel
+        {
+            Text = request.Text,
+            Payload = request.Payload
+        };
+
+        var created = await _knowledgeService.CreateVectorCollectionData(collection, create);
+        return created;
+    }
+
+    [HttpPut("/knowledge/vector/{collection}/update")]
+    public async Task<bool> UpdateVectorKnowledge([FromRoute] string collection, [FromBody] VectorKnowledgeUpdateRequest request)
+    {
+        var update = new VectorUpdateModel
+        {
+            Id = request.Id,
+            Text = request.Text,
+            Payload = request.Payload
+        };
+
+        var updated = await _knowledgeService.UpdateVectorCollectionData(collection, update);
+        return updated;
     }
 
     [HttpDelete("/knowledge/vector/{collection}/data/{id}")]
