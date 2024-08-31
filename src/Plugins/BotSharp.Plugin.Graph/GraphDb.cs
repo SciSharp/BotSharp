@@ -44,7 +44,7 @@ public class GraphDb : IGraphDb
             return new GraphSearchData();
         }
 
-        var url = $"{_settings.BaseUrl}/query";
+        var url = $"{_settings.BaseUrl}{_settings.SearchPath}";
         var request = new GraphQueryRequest
         {
             Query = query,
