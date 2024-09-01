@@ -1,7 +1,6 @@
-using BotSharp.Abstraction.Knowledges.Models;
 using System.Text.RegularExpressions;
 
-namespace BotSharp.Core.Knowledges.Helpers;
+namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
 public static class TextChopper
 {

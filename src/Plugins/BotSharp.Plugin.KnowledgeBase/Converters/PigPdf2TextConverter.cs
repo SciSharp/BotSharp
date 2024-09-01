@@ -1,7 +1,7 @@
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
-namespace BotSharp.Plugin.KnowledgeBase.Services;
+namespace BotSharp.Plugin.KnowledgeBase.Converters;
 
 public class PigPdf2TextConverter : IPdf2TextConverter
 {
