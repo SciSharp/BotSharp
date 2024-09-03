@@ -142,6 +142,7 @@ public class KnowledgeBaseController : ControllerBase
     }
     #endregion
 
+
     #region Knowledge
     [HttpPost("/knowledge/search")]
     public async Task<KnowledgeSearchViewModel> SearchKnowledge([FromBody] SearchKnowledgeRequest request)

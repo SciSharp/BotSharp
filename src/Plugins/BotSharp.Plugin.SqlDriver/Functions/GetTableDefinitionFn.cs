@@ -20,25 +20,36 @@ public class GetTableDefinitionFn : IFunctionCallback
         var settings = _services.GetRequiredService<SqlDriverSetting>();
 
         // Get table DDL from database
-        using var connection = new MySqlConnection(settings.MySqlConnectionString);
-        var dictionary = new Dictionary<string, object>();
         var tableDdls = new List<string>();
+        using var connection = new MySqlConnection(settings.MySqlConnectionString);
+        connection.Open();
 
-        foreach (var p in (List<string>)message.Data)
+        foreach (var table in (List<string>)message.Data)
         {
-            var escapedTableName = MySqlHelper.EscapeString(p);
-            dictionary["@" + "table_name"] = p;
-            dictionary["table_name"] = escapedTableName;
+            var escapedTableName = MySqlHelper.EscapeString(table);
 
-            var sql = $"select * from information_schema.tables where table_name ='{escapedTableName}'";
-            var result = connection.QueryFirstOrDefault(sql: sql, dictionary);
+            var sql = $"select * from information_schema.tables where table_name = @tableName";
+            var result = connection.QueryFirstOrDefault(sql, new
+            {
+                tableName = escapedTableName
+            });
+
             if (result == null) continue;
 
             sql = $"SHOW CREATE TABLE `{escapedTableName}`";
-            result = connection.QueryFirstOrDefault(sql: sql, dictionary);
-            tableDdls.Add(result);
+            using var command = new MySqlCommand(sql, connection);
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                result = reader.GetString(1);
+                tableDdls.Add(result);
+            }
+
+            reader.Close();
+            command.Dispose();
         }
 
+        connection.Close();
         message.Content = string.Join("\r\n", tableDdls);
         return true;
     }
