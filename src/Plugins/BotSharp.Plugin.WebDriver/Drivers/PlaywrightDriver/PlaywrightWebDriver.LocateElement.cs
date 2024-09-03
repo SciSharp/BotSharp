@@ -68,8 +68,17 @@ public partial class PlaywrightWebDriver
 
         if (count == 0)
         {
-            result.Message = $"Can't locate element by keyword {location.Text}";
-            _logger.LogError(result.Message);
+            if (location.IgnoreIfNotFound)
+            {
+                result.Message = $"Can't locate element by keyword {location.Text} and Ignored";
+                _logger.LogWarning(result.Message);
+            }
+            else
+            {
+                result.Message = $"Can't locate element by keyword {location.Text}";
+                _logger.LogError(result.Message);
+            }
+
         }
         else if (count == 1)
         {

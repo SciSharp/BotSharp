@@ -26,6 +26,7 @@ public class ElementLocatingArgs
     public bool Parent { get; set; }
 
     public bool FailIfMultiple { get; set; }
+    public bool IgnoreIfNotFound { get; set; }
 
     /// <summary>
     /// Draw outline around the element
