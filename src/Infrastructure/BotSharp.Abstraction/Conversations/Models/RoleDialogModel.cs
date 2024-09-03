@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Abstraction.Conversations.Models;
 

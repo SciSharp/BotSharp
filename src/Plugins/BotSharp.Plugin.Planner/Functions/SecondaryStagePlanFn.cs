@@ -1,12 +1,4 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Knowledges.Models;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Templating;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -26,6 +18,9 @@ public class SecondaryStagePlanFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var fn = _services.GetRequiredService<IRoutingService>();
+        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
+        var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
         var msgSecondary = RoleDialogModel.From(message);
         var taskPrimary = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
@@ -38,18 +33,15 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var taskSecondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msgSecondary.FunctionArgs);
         var items = msgSecondary.Content.JsonArrayContent<FirstStagePlan>();
 
-        msgSecondary.KnowledgeConfidence = 0.5f;
         foreach (var item in items)
         {
-            if (item.NeedAdditionalInformation)
+            if (!item.NeedAdditionalInformation) continue;
+
+            var knowledges = await knowledgeService.SearchVectorKnowledge(item.Task, collectionName, new VectorSearchOptions
             {
-                msgSecondary.FunctionArgs = JsonSerializer.Serialize(new ExtractedKnowledge
-                {
-                    Question = item.Task
-                });
-                await fn.InvokeFunction("knowledge_retrieval", msgSecondary);
-                message.Content += msgSecondary.Content;
-            }
+                Confidence = 0.5f
+            });
+            message.Content += string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
         }
 
         // load agent

@@ -1,12 +1,4 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Templating;
-using System.Threading.Tasks;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using Microsoft.Extensions.Logging;
-using BotSharp.Abstraction.Knowledges.Models;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -27,26 +19,20 @@ public class PrimaryStagePlanFn : IFunctionCallback
     {
         // Debug
         var state = _services.GetRequiredService<IConversationStateService>();
+        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
+        var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
+        var fn = _services.GetRequiredService<IRoutingService>();
+
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
         
-        // Get knowledge from vectordb
-        var fn = _services.GetRequiredService<IRoutingService>();
-
-        var msg = new ExtractedKnowledge
+        // Get knowledge from vectordb        
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp; ;
+        var knowledges = await knowledgeService.SearchVectorKnowledge(task.Question, collectionName, new VectorSearchOptions
         {
-            Question = task.Question,
-        };
-
-        var retrievalMessage = new RoleDialogModel(AgentRole.User, task.Requirements)
-        {
-            FunctionArgs = JsonSerializer.Serialize(msg),
-            KnowledgeConfidence = 0.1f,
-            Content = string.Empty
-        };
-
-        await fn.InvokeFunction("knowledge_retrieval", retrievalMessage);
-        message.Content = retrievalMessage.Content;
+            Confidence = 0.1f
+        });
+        message.Content = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
