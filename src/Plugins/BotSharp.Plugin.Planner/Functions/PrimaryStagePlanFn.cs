@@ -18,6 +18,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         // Debug
+        var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
@@ -28,16 +29,14 @@ public class PrimaryStagePlanFn : IFunctionCallback
         
         // Get knowledge from vectordb        
         var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp; ;
-        var knowledges = await knowledgeService.SearchVectorKnowledge(task.Question, collectionName, new VectorSearchOptions
+        var knowledges = await knowledgeService.SearchVectorKnowledge(task.Requirements, collectionName, new VectorSearchOptions
         {
             Confidence = 0.1f
         });
         message.Content = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
 
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-
         // Send knowledge to AI to refine and summarize the primary planning
+        var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
         var firstPlanningPrompt = await GetFirstStagePlanPrompt(task, message);
         var plannerAgent = new Agent
         {

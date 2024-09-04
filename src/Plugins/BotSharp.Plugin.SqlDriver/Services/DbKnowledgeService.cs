@@ -94,7 +94,7 @@ public class DbKnowledgeService
         using var connection = new MySqlConnection(settings.MySqlConnectionString);
         connection.Open();
 
-        var result = string.Empty;
+        var ddl = string.Empty;
         var escapedTableName = MySqlHelper.EscapeString(table);
         var sql = $"SHOW CREATE TABLE `{escapedTableName}`";
 
@@ -102,13 +102,13 @@ public class DbKnowledgeService
         using var reader = command.ExecuteReader();
         if (reader.Read())
         {
-            result = reader.GetString(1);
+            ddl = reader.GetString(1);
         }
 
         reader.Close();
         command.Dispose();
         connection.Close();
-        return result;
+        return ddl;
     }
 
     private async Task<string> GetPrompt(string content)
