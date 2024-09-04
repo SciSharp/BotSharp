@@ -100,12 +100,6 @@ public class RoleDialogModel : ITrackableMessage
     [JsonPropertyName("generated_images")]
     public List<ImageGeneration> GeneratedImages { get; set; } = new List<ImageGeneration>();
 
-    /// <summary>
-    /// Knowledge confidence
-    /// </summary>
-    [JsonPropertyName("knowledge_confidence")]
-    public float KnowledgeConfidence { get; set; } = 0.5f;
-
 
     private RoleDialogModel()
     {
@@ -146,8 +140,7 @@ public class RoleDialogModel : ITrackableMessage
             Payload = source.Payload,
             StopCompletion = source.StopCompletion,
             Instruction = source.Instruction,
-            Data = source.Data,
-            KnowledgeConfidence = source.KnowledgeConfidence
+            Data = source.Data
         };
     }
 }
