@@ -14,6 +14,13 @@ Thinking process:
 
 Note:If the task includes repeat steps,e.g.same steps for multiple elements, only generate a single detailed solution without repeating steps for each elements. You can add multiple items in the input and output args.
 
+{% if global_knowledges != empty -%}
+=====
+Global Knowledge:
+{% for k in global_knowledges %}
+{{ k }}
+{% endfor %}
+{%- endif %}
 
 {% if relevant_knowledges != empty -%}
 =====

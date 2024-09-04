@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 
 namespace BotSharp.Plugin.Planner.Functions;
@@ -49,38 +50,6 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var response = await GetAiResponse(plannerAgent);
         message.Content = response.Content; 
 
-        /*await fn.InvokeFunction("plan_secondary_stage", message);
-        var items = message.Content.JsonArrayContent<SecondStagePlan>();
-
-        //get all the related tables
-        List<string> allTables = new List<string>();
-        foreach (var item in items)
-        {
-            allTables.AddRange(item.Tables);
-        }
-        message.Data = allTables.Distinct().ToList();
-
-        //get table DDL and stores in content
-        var msg2 = RoleDialogModel.From(message);
-        await fn.InvokeFunction("get_table_definition", msg2);
-        message.SecondaryContent = msg2.Content;
-
-        //summarize and generate query
-        var summaryPlanningPrompt = await GetPlanSummaryPrompt(task, message);
-        _logger.LogInformation(summaryPlanningPrompt);
-        plannerAgent = new Agent
-        {
-            Id = BuiltInAgentId.Planner,
-            Name = "planner_summary",
-            Instruction = summaryPlanningPrompt,
-            TemplateDict = new Dictionary<string, object>(),
-            LlmConfig = currentAgent.LlmConfig
-        };
-        var response_summary = await GetAIResponse(plannerAgent);
-        _logger.LogInformation(response_summary.Content);
-
-        message.Content = response_summary.Content;
-        message.StopCompletion = true;*/
         return true;
     }
 
@@ -97,33 +66,19 @@ public class PrimaryStagePlanFn : IFunctionCallback
             Results = [""]
         });
 
+        var globalKnowledges = new List<string>();
+        var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
+        foreach (var hook in knowledgeHooks)
+        {
+            var k = await hook.GetGlobalKnowledges();
+            globalKnowledges.AddRange(k);
+        }
+
         return render.Render(template, new Dictionary<string, object>
         {
             { "task_description", task.Requirements },
+            { "global_knowledges", globalKnowledges },
             { "relevant_knowledges", new[]{ message.Content } },
-            { "response_format", responseFormat }
-        });
-    }
-
-    private async Task<string> GetPlanSummaryPrompt(PrimaryRequirementRequest task, RoleDialogModel message)
-    {
-        // save to knowledge base
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var render = _services.GetRequiredService<ITemplateRender>();
-
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.AIAssistant);
-        var template = aiAssistant.Templates.FirstOrDefault(x => x.Name == "planner_prompt.two_stage.summarize")?.Content ?? string.Empty;
-        var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
-        {
-            Parameters = [JsonDocument.Parse("{}")],
-            Results = [""]
-        });
-
-        return render.Render(template, new Dictionary<string, object>
-        {
-            { "table_structure", message.SecondaryContent }, ////check
-            { "task_description", task.Requirements},
-            { "relevant_knowledges", message.Content },
             { "response_format", responseFormat }
         });
     }
