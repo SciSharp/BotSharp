@@ -1,9 +1,11 @@
+using Azure.Messaging;
 using BotSharp.Abstraction.Files;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
 using Twilio.Http;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
@@ -36,7 +38,7 @@ public class TwilioVoiceController : TwilioController
         string conversationId = $"TwilioVoice_{request.CallSid}";
         var twilio = _services.GetRequiredService<TwilioService>();
         var url = $"twilio/voice/{conversationId}/receive/0?states={states}";
-        var response = twilio.ReturnNoninterruptedInstructions(new List<string> { "twilio/welcome.mp3" }, url, true);
+        var response = twilio.ReturnNoninterruptedInstructions(new List<string> { "twilio/welcome.mp3" }, url, true, timeout: 2);
         return TwiML(response);
     }
 
@@ -81,9 +83,10 @@ public class TwilioVoiceController : TwilioController
         }
         else
         {
-            if (attempts >= 3)
+            if (attempts >= 2)
             {
                 var speechPaths = new List<string>();
+
                 if (seqNum == 0)
                 {
                     speechPaths.Add("twilio/welcome.mp3");
@@ -91,6 +94,7 @@ public class TwilioVoiceController : TwilioController
                 else
                 {
                     var lastRepy = await sessionManager.GetAssistantReplyAsync(conversationId, seqNum - 1);
+                    speechPaths.Add($"twilio/say-it-again-{Random.Shared.Next(1, 5)}.mp3");
                     speechPaths.Add($"twilio/voice/speeches/{conversationId}/{lastRepy.SpeechFileName}");
                 }
                 response = twilio.ReturnInstructions(speechPaths, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true);
@@ -139,6 +143,8 @@ public class TwilioVoiceController : TwilioController
                         var fileName = $"indication_{seqNum}_{segIndex}.mp3";
                         await fileService.SaveSpeechFileAsync(conversationId, fileName, data);
                         speechPaths.Add($"twilio/voice/speeches/{conversationId}/{fileName}");
+                        // add typing
+                        speechPaths.Add($"twilio/typing-{Random.Shared.Next(1, 4)}.mp3");
                         segIndex++;
                     }
                 }
@@ -149,8 +155,8 @@ public class TwilioVoiceController : TwilioController
             {
                 response = twilio.ReturnInstructions(new List<string> 
                 {
-                    $"twilio/hold-on-{Random.Shared.Next(1, 5)}.mp3",
-                    $"twilio/typing-{Random.Shared.Next(2, 4)}.mp3" 
+                    $"twilio/hold-on-{Random.Shared.Next(1, 6)}.mp3",
+                    $"twilio/typing-{Random.Shared.Next(1, 4)}.mp3" 
                 }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
             }
         }
