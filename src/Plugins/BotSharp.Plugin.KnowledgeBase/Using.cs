@@ -31,6 +31,5 @@ global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.Functions.Models;
 global using BotSharp.Abstraction.Repositories;
-global using BotSharp.Plugin.KnowledgeBase.Services;
 global using BotSharp.Plugin.KnowledgeBase.Enum;
 global using BotSharp.Plugin.KnowledgeBase.Helpers;

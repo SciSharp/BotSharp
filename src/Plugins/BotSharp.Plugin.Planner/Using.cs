@@ -28,7 +28,7 @@ global using BotSharp.Abstraction.Knowledges;
 global using BotSharp.Abstraction.Knowledges.Settings;
 global using BotSharp.Abstraction.Knowledges.Enums;
 global using BotSharp.Abstraction.VectorStorage.Models;
-global using BotSharp.Abstraction.VectorStorage.Helpers;
+global using BotSharp.Abstraction.VectorStorage.Extensions;
 
 global using BotSharp.Plugin.Planner.Hooks;
 global using BotSharp.Plugin.Planner.Enums;

@@ -1,9 +1,9 @@
 using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.VectorStorage.Models;
 
-namespace BotSharp.Abstraction.VectorStorage.Helpers;
+namespace BotSharp.Abstraction.VectorStorage.Extensions;
 
-public static class VectorStorageHelper
+public static class VectorStorageExtension
 {
     public static string ToQuestionAnswer(this VectorSearchResult data)
     {

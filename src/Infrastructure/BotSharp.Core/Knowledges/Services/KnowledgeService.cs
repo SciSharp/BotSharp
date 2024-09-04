@@ -1,4 +1,10 @@
-namespace BotSharp.Plugin.KnowledgeBase.Services;
+using BotSharp.Abstraction.Graph;
+using BotSharp.Abstraction.Knowledges.Settings;
+using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.VectorStorage;
+using BotSharp.Core.Knowledges.Helpers;
+
+namespace BotSharp.Core.Knowledges.Services;
 
 public partial class KnowledgeService : IKnowledgeService
 {

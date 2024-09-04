@@ -82,8 +82,7 @@ public class TwilioVoiceController : TwilioController
                 }
             }
 
-            response = new VoiceResponse()
-                .Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}"), HttpMethod.Post);
+            response = new VoiceResponse().Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}"), HttpMethod.Post);
         }
         else
         {
