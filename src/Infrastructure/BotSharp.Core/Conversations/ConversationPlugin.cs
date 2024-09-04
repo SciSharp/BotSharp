@@ -6,6 +6,7 @@ using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
+using BotSharp.Core.Knowledges.Services;
 using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Planning;
 using BotSharp.Core.Templating;
@@ -54,6 +55,8 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<IExecutor, InstructExecutor>();
         services.AddScoped<IInstructService, InstructService>();
         services.AddScoped<ITokenStatistics, TokenStatistics>();
+
+        services.AddScoped<IKnowledgeService, KnowledgeService>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)

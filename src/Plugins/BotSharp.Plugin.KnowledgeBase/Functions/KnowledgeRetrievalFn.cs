@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.VectorStorage.Helpers;
+using BotSharp.Abstraction.VectorStorage.Extensions;
 
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
