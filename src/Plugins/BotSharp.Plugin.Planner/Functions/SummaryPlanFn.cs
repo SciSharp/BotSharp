@@ -43,6 +43,7 @@ public class SummaryPlanFn : IFunctionCallback
         var msgCopy = RoleDialogModel.From(message);
         await fn.InvokeFunction("get_table_definition", msgCopy);
         var ddlStatements = msgCopy.Content;
+        message.Data = null;
 
         // Summarize and generate query
         var summaryPlanPrompt = await GetPlanSummaryPrompt(task, message.Content, ddlStatements);
