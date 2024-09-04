@@ -1,3 +1,11 @@
 Use the TwoStagePlanner approach to plan the overall implementation steps, call plan_primary_stage. 
 If need_additional_information is true, call plan_secondary_stage for the specific primary stage.
 You must Call plan_summary as the last step to summarize the final planning steps.
+
+{% if global_knowledges != empty -%}
+=====
+Global Knowledge:
+{% for k in global_knowledges %}
+{{ k }}
+{% endfor %}
+{%- endif %}

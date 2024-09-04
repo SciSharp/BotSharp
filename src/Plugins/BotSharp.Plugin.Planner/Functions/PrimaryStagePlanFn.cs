@@ -1,4 +1,8 @@
+using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Knowledges;
+using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 
 namespace BotSharp.Plugin.Planner.Functions;
@@ -27,18 +31,26 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
-        
-        // Get knowledge from vectordb        
-        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp; ;
-        var knowledges = await knowledgeService.SearchVectorKnowledge(task.Requirements, collectionName, new VectorSearchOptions
+
+        //get knowledge from vectordb
+        var knowledges = new List<string>();
+        foreach (var question in task.Questions)
         {
-            Confidence = 0.1f
-        });
-        message.Content = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
+            var retrievalMessage = new RoleDialogModel(AgentRole.User, question)
+            {
+                FunctionArgs = JsonSerializer.Serialize(new ExtractedKnowledge
+                {
+                    Question = question
+                }),
+                Content = ""
+            };
+            await fn.InvokeFunction("knowledge_retrieval", retrievalMessage);
+            knowledges.Add(retrievalMessage.Content);
+        }
 
         // Send knowledge to AI to refine and summarize the primary planning
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var firstPlanningPrompt = await GetFirstStagePlanPrompt(task, message);
+        var firstPlanningPrompt = await GetFirstStagePlanPrompt(task, knowledges);
         var plannerAgent = new Agent
         {
             Id = BuiltInAgentId.Planner,
@@ -53,7 +65,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetFirstStagePlanPrompt(PrimaryRequirementRequest task, RoleDialogModel message)
+    private async Task<string> GetFirstStagePlanPrompt(PrimaryRequirementRequest task, List<string> relevantKnowledges)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -78,7 +90,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         {
             { "task_description", task.Requirements },
             { "global_knowledges", globalKnowledges },
-            { "relevant_knowledges", new[]{ message.Content } },
+            { "relevant_knowledges", relevantKnowledges },
             { "response_format", responseFormat }
         });
     }
