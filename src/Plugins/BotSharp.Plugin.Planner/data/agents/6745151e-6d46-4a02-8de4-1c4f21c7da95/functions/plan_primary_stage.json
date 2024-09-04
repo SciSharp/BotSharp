@@ -1,6 +1,6 @@
 {
   "name": "plan_primary_stage",
-  "description": "Extract user's original requirements with detail specifications to make the primary plan, you have to include every important informations.",
+  "description": "Plan the high level steps to finish the task",
   "parameters": {
     "type": "object",
     "properties": {
@@ -8,11 +8,15 @@
         "type": "string",
         "description": "User original requirements in detail, don't miss any information especially for those line items, values and numbers."
       },
-      "question": {
-        "type": "string",
-        "description": "Question convert from requirement and reference tables for knowledge search. The question should contain all the detailed information in the requirement"
+      "questions": {
+        "type": "array",
+        "description": "User requirements in detail, don't miss any information especially for those line items, values and numbers.",
+        "items": {
+          "type": "string",
+          "description": "Question converted from requirement in different ways to search in the knowledge base, be short"
+        }
       }
     },
-    "required": [ "requirement_detail", "question" ]
+    "required": [ "requirement_detail", "questions" ]
   }
 }

@@ -63,7 +63,7 @@ public class RoleDialogModel : ITrackableMessage
     /// It's ideal to render in rich content in UI.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public object Data { get; set; }
+    public object? Data { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public string ImageUrl { get; set; }
