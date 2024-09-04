@@ -131,7 +131,6 @@ public class RoleDialogModel : ITrackableMessage
             ToolCallId = source.ToolCallId,
             PostbackFunctionName = source.PostbackFunctionName,
             RichContent = source.RichContent,
-            Payload = source.Payload,
             StopCompletion = source.StopCompletion,
             Instruction = source.Instruction,
             Data = source.Data,
