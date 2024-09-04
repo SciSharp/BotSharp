@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Infrastructures;
+
 namespace BotSharp.Abstraction.Browsing.Models;
 
-public class MessageInfo
+public class MessageInfo : ICacheKey
 {
     public string AgentId { get; set; } = null!;
     public string UserId { get; set; } = null!;
@@ -8,4 +10,7 @@ public class MessageInfo
     public string? MessageId { get; set; }
     public string? TaskId { get; set; }
     public string StepId { get; set; } = Guid.NewGuid().ToString();
+
+    public string GetCacheKey()
+        => $"{nameof(MessageInfo)}-{ContextId}";
 }
