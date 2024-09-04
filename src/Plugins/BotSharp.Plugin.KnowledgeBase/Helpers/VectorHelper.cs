@@ -2,9 +2,9 @@ using BotSharp.Plugin.KnowledgeBase.MemVecDb;
 using Tensorflow.NumPy;
 using static Tensorflow.Binding;
 
-namespace BotSharp.Plugin.KnowledgeBase.Utilities;
+namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
-public static class VectorUtility
+public static class VectorHelper
 {
     public static float[] CalEuclideanDistance(float[] vec, List<VecRecord> records)
     {

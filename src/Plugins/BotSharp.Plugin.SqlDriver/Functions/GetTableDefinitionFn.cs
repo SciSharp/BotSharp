@@ -1,5 +1,4 @@
-using BotSharp.Plugin.SqlDriver.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using static Dapper.SqlMapper;
 
@@ -9,45 +8,64 @@ public class GetTableDefinitionFn : IFunctionCallback
 {
     public string Name => "get_table_definition";
     private readonly IServiceProvider _services;
+    private readonly ILogger<GetTableDefinitionFn> _logger;
 
-    public GetTableDefinitionFn(IServiceProvider services)
+    public GetTableDefinitionFn(
+        IServiceProvider services,
+        ILogger<GetTableDefinitionFn> logger)
     {
         _services = services;
+        _logger = logger;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        // get agent service
         var agentService = _services.GetRequiredService<IAgentService>();
-
-        // var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
         var sqlDriver = _services.GetRequiredService<SqlDriverService>();
-
-        //get table DDL from database
         var settings = _services.GetRequiredService<SqlDriverSetting>();
+
+        // Get table DDL from database
+        var tables = message.Data as List<string>;
+        if (tables.IsNullOrEmpty()) return false;
+
+        var tableDdls = new List<string>();
         using var connection = new MySqlConnection(settings.MySqlConnectionString);
-        var dictionary = new Dictionary<string, object>();
+        connection.Open();
 
-        var table_ddl = "";
-        foreach (var p in (List<string>)message.Data)
+        foreach (var table in tables)
         {
-            dictionary["@" + "table_name"] = p;
-            var escapedTableName = MySqlHelper.EscapeString(p);
-            dictionary["table_name"] = escapedTableName;
-            // can you replace this with a parameterized query?
-            var sql = $"select * from information_schema.tables where table_name ='{dictionary["table_name"]}'";
-
-            var result = connection.QueryFirstOrDefault(sql: sql, dictionary);
-            if (result != null)
+            try
             {
-                sql = $"SHOW CREATE TABLE `{dictionary["table_name"]}`";
-                result = connection.QueryFirstOrDefault(sql: sql, dictionary);
-                table_ddl += "\r\n" + result;
-            }
-            
-        }
-        message.Content = table_ddl;
+                var escapedTableName = MySqlHelper.EscapeString(table);
 
+                var sql = $"select * from information_schema.tables where table_name = @tableName";
+                var result = connection.QueryFirstOrDefault(sql, new
+                {
+                    tableName = escapedTableName
+                });
+
+                if (result == null) continue;
+
+                sql = $"SHOW CREATE TABLE `{escapedTableName}`";
+                using var command = new MySqlCommand(sql, connection);
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    result = reader.GetString(1);
+                    tableDdls.Add(result);
+                }
+
+                reader.Close();
+                command.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error when getting ddl statement of table {table}.");
+            }
+        }
+
+        connection.Close();
+        message.Content = string.Join("\r\n\r\n", tableDdls);
         return true;
     }
 }

@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Models;
 using Microsoft.Extensions.Hosting;
-using System;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -58,22 +57,26 @@ namespace BotSharp.Plugin.Twilio.Services
         {
             using var scope = _serviceProvider.CreateScope();
             var sp = scope.ServiceProvider;
+
             AssistantMessage reply = null;
             var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
             var conv = sp.GetRequiredService<IConversationService>();
             var routing = sp.GetRequiredService<IRoutingService>();
             var config = sp.GetRequiredService<TwilioSetting>();
+
             routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
             var states = new List<MessageState>
             {
                 new MessageState("channel", ConversationChannel.Phone),
                 new MessageState("calling_phone", message.From)
             };
+
             foreach (var kvp in message.States)
             {
                 states.Add(new MessageState(kvp.Key, kvp.Value));
             }
             conv.SetConversationId(message.ConversationId, states);
+
             var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
             var result = await conv.SendMessage(config.AgentId,
                 inputMsg,
@@ -94,14 +97,15 @@ namespace BotSharp.Plugin.Twilio.Services
                         await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
                     }
                 },
-                async functionExecuted =>
-                { }
+                async functionExecuted => { }
             );
-            var textToSpeechService = CompletionProvider.GetTextToSpeech(sp, "openai", "tts-1");
-            var fileService = sp.GetRequiredService<IFileStorageService>();
-            var data = await textToSpeechService.GenerateSpeechFromTextAsync(reply.Content);
+
+            var completion = CompletionProvider.GetAudioCompletion(sp, "openai", "tts-1");
+            var fileStorage = sp.GetRequiredService<IFileStorageService>();
+            var data = await completion.GenerateAudioFromTextAsync(reply.Content);
             var fileName = $"reply_{reply.MessageId}.mp3";
-            await fileService.SaveSpeechFileAsync(message.ConversationId, fileName, data);
+            fileStorage.SaveSpeechFile(message.ConversationId, fileName, data);
+
             reply.SpeechFileName = fileName;
             reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);

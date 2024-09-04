@@ -19,7 +19,7 @@ public class QdrantDb : IVectorDb
         _services = services;
     }
 
-    public string Name => "Qdrant";
+    public string Provider => "Qdrant";
 
     private QdrantClient GetClient()
     {
@@ -33,6 +33,34 @@ public class QdrantDb : IVectorDb
             );
         }
         return _client;
+    }
+
+    public async Task<bool> CreateCollection(string collectionName, int dim)
+    {
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+
+        if (exist) return false;
+
+        // Create a new collection
+        await client.CreateCollectionAsync(collectionName, new VectorParams()
+        {
+            Size = (ulong)dim,
+            Distance = Distance.Cosine
+        });
+
+        return true;
+    }
+
+    public async Task<bool> DeleteCollection(string collectionName)
+    {
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+
+        if (!exist) return false;
+
+        await client.DeleteCollectionAsync(collectionName);
+        return true;
     }
 
     public async Task<IEnumerable<string>> GetCollections()
@@ -51,10 +79,34 @@ public class QdrantDb : IVectorDb
             return new StringIdPagedItems<VectorCollectionData>();
         }
 
-        var totalPointCount = await client.CountAsync(collectionName);
+        // Build query filter
+        Filter? queryFilter = null;
+        if (!filter.SearchPairs.IsNullOrEmpty())
+        {
+            var conditions = filter.SearchPairs.Select(x => new Condition
+            {
+                Field = new FieldCondition
+                {
+                    Key = x.Key,
+                    Match = new Match { Text = x.Value },
+                }
+            });
+
+            queryFilter = new Filter
+            {
+                Should =
+                {
+                    conditions
+                }
+            };
+        }
+
+        var totalPointCount = await client.CountAsync(collectionName, filter: queryFilter);
         var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
-            offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : 0,
+            offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : null,
+            filter: queryFilter,
             vectorsSelector: filter.WithVector);
+
         var points = response?.Result?.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
@@ -93,27 +145,7 @@ public class QdrantDb : IVectorDb
         });
     }
 
-    public async Task CreateCollection(string collectionName, int dim)
-    {
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
-        if (!exist)
-        {
-            // Create a new collection
-            await client.CreateCollectionAsync(collectionName, new VectorParams()
-            {
-                Size = (ulong)dim,
-                Distance = Distance.Cosine
-            });
-        }
-
-        // Get collection info
-        var collectionInfo = await client.GetCollectionInfoAsync(collectionName);
-        if (collectionInfo == null)
-        {
-            throw new Exception($"Create {collectionName} failed.");
-        }
-    }
+    
 
     public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
@@ -160,43 +192,26 @@ public class QdrantDb : IVectorDb
             return results;
         }
 
-        var points = await client.SearchAsync(collectionName,
-            vector,
-            limit: (ulong)limit,
-            scoreThreshold: confidence,
-            vectorsSelector: new WithVectorsSelector { Enable = withVector });
-
-        var pickFields = fields != null;
-        foreach (var point in points)
+        var payloadSelector = new WithPayloadSelector { Enable = true };
+        if (fields != null)
         {
-            var data = new Dictionary<string, string>();
-            if (pickFields)
-            {
-                foreach (var field in fields)
-                {
-                    if (point.Payload.ContainsKey(field))
-                    {
-                        data[field] = point.Payload[field].StringValue;
-                    }
-                    else
-                    {
-                        data[field] = "";
-                    }
-                }
-            }
-            else
-            {
-                data = point.Payload.ToDictionary(k => k.Key, v => v.Value.StringValue);
-            }
-
-            results.Add(new VectorCollectionData
-            {
-                Id = point.Id.Uuid,
-                Data = data,
-                Score = point.Score,
-                Vector = withVector ? point.Vectors?.Vector?.Data?.ToArray() : null
-            });
+            payloadSelector.Include = new PayloadIncludeSelector { Fields = { fields.ToArray() } };
         }
+        
+        var points = await client.SearchAsync(collectionName,
+                                            vector,
+                                            limit: (ulong)limit,
+                                            scoreThreshold: confidence,
+                                            payloadSelector: payloadSelector,
+                                            vectorsSelector: withVector);
+
+        results = points.Select(x => new VectorCollectionData
+        {
+            Id = x.Id.Uuid,
+            Data = x.Payload.ToDictionary(x => x.Key, x => x.Value.StringValue),
+            Score = x.Score,
+            Vector = x.Vectors?.Vector?.Data?.ToArray()
+        }).ToList();
 
         return results;
     }

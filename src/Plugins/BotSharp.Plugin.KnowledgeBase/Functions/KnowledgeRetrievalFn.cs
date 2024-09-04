@@ -1,8 +1,12 @@
+using BotSharp.Abstraction.VectorStorage.Extensions;
+
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class KnowledgeRetrievalFn : IFunctionCallback
 {
     public string Name => "knowledge_retrieval";
+
+    public string Indication => "searching my brain";
 
     private readonly IServiceProvider _services;
     private readonly KnowledgeBaseSettings _settings;
@@ -18,15 +22,16 @@ public class KnowledgeRetrievalFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
         var collectionName = _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-        var embedding = KnowledgeSettingUtility.GetTextEmbeddingSetting(_services, collectionName);
-
-        var vector = await embedding.GetVectorAsync(args.Question);
-        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
-        var knowledges = await vectorDb.Search(collectionName, vector, new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer });
+        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
+        var knowledges = await knowledgeService.SearchVectorKnowledge(args.Question, collectionName, new VectorSearchOptions
+        {
+            Fields = new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer },
+            Confidence = 0.2f
+        });
 
         if (!knowledges.IsNullOrEmpty())
         {
-            var answers = knowledges.Select(x => $"Question: {x.Data[KnowledgePayloadName.Text]}\r\nAnswer: {x.Data[KnowledgePayloadName.Answer]}").ToList();
+            var answers = knowledges.Select(x => x.ToQuestionAnswer()).ToList();
             message.Content = string.Join("\r\n\r\n=====\r\n", answers);
         }
         else

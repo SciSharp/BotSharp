@@ -1,21 +1,13 @@
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Templating;
-using System.Threading.Tasks;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using Microsoft.Extensions.Logging;
-using BotSharp.Abstraction.Knowledges.Models;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
 public class PrimaryStagePlanFn : IFunctionCallback
 {
     public string Name => "plan_primary_stage";
+
     private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
-    private object aiAssistant;
+    private readonly ILogger<PrimaryStagePlanFn> _logger;
 
     public PrimaryStagePlanFn(IServiceProvider services, ILogger<PrimaryStagePlanFn> logger)
     {
@@ -25,34 +17,26 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        //debug
+        // Debug
+        var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
+        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
+        var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
+        var fn = _services.GetRequiredService<IRoutingService>();
+
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
         
-        //get knowledge from vectordb
-        var fn = _services.GetRequiredService<IRoutingService>();
-
-        var msg = new ExtractedKnowledge
+        // Get knowledge from vectordb        
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp; ;
+        var knowledges = await knowledgeService.SearchVectorKnowledge(task.Requirements, collectionName, new VectorSearchOptions
         {
-            Question = task.Question,
-        };
-        var retrievalMessage = new RoleDialogModel(AgentRole.User, task.Requirements)
-        {
-            FunctionArgs = JsonSerializer.Serialize(new ExtractedKnowledge 
-            { 
-                Question = task.Requirements
-            }),
-            KnowledgeConfidence = 0.1f,
-            Content = ""
-        };
-        await fn.InvokeFunction("knowledge_retrieval", retrievalMessage);
-        message.Content = retrievalMessage.Content;
+            Confidence = 0.1f
+        });
+        message.Content = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
 
-        var agentService = _services.GetRequiredService<IAgentService>();
+        // Send knowledge to AI to refine and summarize the primary planning
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-
-        //send knowledge to AI to refine and summarize the primary planning
         var firstPlanningPrompt = await GetFirstStagePlanPrompt(task, message);
         var plannerAgent = new Agent
         {
@@ -62,7 +46,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
-        var response = await GetAIResponse(plannerAgent);
+        var response = await GetAiResponse(plannerAgent);
         message.Content = response.Content; 
 
         /*await fn.InvokeFunction("plan_secondary_stage", message);
@@ -99,12 +83,14 @@ public class PrimaryStagePlanFn : IFunctionCallback
         message.StopCompletion = true;*/
         return true;
     }
+
     private async Task<string> GetFirstStagePlanPrompt(PrimaryRequirementRequest task, RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.Planner);
         var render = _services.GetRequiredService<ITemplateRender>();
-        var template = aiAssistant.Templates.First(x => x.Name == "two_stage.1st.plan").Content;
+
+        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.Planner);
+        var template = aiAssistant.Templates.FirstOrDefault(x => x.Name == "two_stage.1st.plan")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
             Parameters = [JsonDocument.Parse("{}")],
@@ -118,13 +104,15 @@ public class PrimaryStagePlanFn : IFunctionCallback
             { "response_format", responseFormat }
         });
     }
+
     private async Task<string> GetPlanSummaryPrompt(PrimaryRequirementRequest task, RoleDialogModel message)
     {
         // save to knowledge base
         var agentService = _services.GetRequiredService<IAgentService>();
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.AIAssistant);
         var render = _services.GetRequiredService<ITemplateRender>();
-        var template = aiAssistant.Templates.First(x => x.Name == "planner_prompt.two_stage.summarize").Content;
+
+        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.AIAssistant);
+        var template = aiAssistant.Templates.FirstOrDefault(x => x.Name == "planner_prompt.two_stage.summarize")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
             Parameters = [JsonDocument.Parse("{}")],
@@ -139,10 +127,12 @@ public class PrimaryStagePlanFn : IFunctionCallback
             { "response_format", responseFormat }
         });
     }
-    private async Task<RoleDialogModel> GetAIResponse(Agent plannerAgent)
+
+    private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var wholeDialogs = conv.GetDialogHistory();
+
         //add "test" to wholeDialogs' last element
         if(plannerAgent.Name == "planner_summary")
         {
@@ -150,6 +140,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
             wholeDialogs.Last().Content += "\n\nIf the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id) instead of LAST_INSERT_ID function.\nFor example, you should use SET @id = select max(id) from table;";
             wholeDialogs.Last().Content += "\n\nTry if you can generate a single query to fulfill the needs";
         }
+
         if (plannerAgent.Name == "planning_1st")
         {
             //add "test" to wholeDialogs' last element in a new paragraph

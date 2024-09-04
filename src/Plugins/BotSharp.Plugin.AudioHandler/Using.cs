@@ -5,6 +5,7 @@ global using System.Linq;
 global using System.Text.Json;
 global using System.Threading.Tasks;
 
+global using BotSharp.Abstraction.Repositories;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Agents.Models;
@@ -20,7 +21,7 @@ global using BotSharp.Abstraction.Plugins;
 global using BotSharp.Abstraction.Utilities;
 
 global using BotSharp.Plugin.AudioHandler.Enums;
-global using BotSharp.Plugin.AudioHandler.Functions;
+global using BotSharp.Plugin.AudioHandler.Helpers;
 global using BotSharp.Plugin.AudioHandler.Hooks;
 global using BotSharp.Plugin.AudioHandler.Models;
 global using BotSharp.Plugin.AudioHandler.LlmContexts;

@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Models;
 
-public class MessageConfig : InputMessageFiles
+public class MessageConfig
 {
     /// <summary>
     /// Completion Provider
@@ -15,7 +15,7 @@ public class MessageConfig : InputMessageFiles
     public virtual string? Model { get; set; } = null;
 
     /// <summary>
-    /// Model name
+    /// Model id
     /// </summary>
     [JsonPropertyName("model_id")]
     public virtual string? ModelId { get; set; } = null;
@@ -34,7 +34,7 @@ public class MessageConfig : InputMessageFiles
     /// <summary>
     /// Conversation states from input
     /// </summary>
-    public List<MessageState> States { get; set; } = new List<MessageState>();
+    public List<MessageState> States { get; set; } = new();
 
     /// <summary>
     /// Agent task id

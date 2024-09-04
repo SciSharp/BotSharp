@@ -10,12 +10,6 @@ public partial class LocalFileStorageService : IFileStorageService
     private readonly ILogger<LocalFileStorageService> _logger;
     private readonly string _baseDir;
 
-    private readonly IEnumerable<string> _audioTypes = new List<string>
-    {
-        "mp3",
-        "wav"
-    };
-
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
     private const string USER_FILE_FOLDER = "user";
