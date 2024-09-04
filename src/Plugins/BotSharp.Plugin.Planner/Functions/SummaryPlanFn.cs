@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 using Microsoft.Extensions.Logging;
+using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Agents.Services;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -23,11 +25,30 @@ public class SummaryPlanFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var fn = _services.GetRequiredService<IRoutingService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
         //debug
         var state = _services.GetRequiredService<IConversationStateService>();
         state.SetState("max_tokens", "4096");
 
         var task = state.GetState("requirement_detail");
+
+        //get DDL
+        var steps = message.Content.JsonArrayContent<SecondStagePlan>();
+
+        //get all the related tables
+        List<string> allTables = new List<string>();
+        foreach (var step in steps)
+        {
+            allTables.AddRange(step.Tables);
+        }
+        message.Data = allTables.Distinct().ToList();
+
+        //get table DDL and stores in content
+        var msg2 = RoleDialogModel.From(message);
+        await fn.InvokeFunction("get_table_definition", msg2);
+        message.SecondaryContent = msg2.Content;
 
         // summarize and generate query
         var summaryPlanningPrompt = await GetPlanSummaryPrompt(task, message);
@@ -37,7 +58,8 @@ public class SummaryPlanFn : IFunctionCallback
             Id = BuiltInAgentId.Planner,
             Name = "planner_summary",
             Instruction = summaryPlanningPrompt,
-            TemplateDict = new Dictionary<string, object>()
+            TemplateDict = new Dictionary<string, object>(),
+            LlmConfig = currentAgent.LlmConfig
         };
         var response_summary = await GetAIResponse(plannerAgent);
 

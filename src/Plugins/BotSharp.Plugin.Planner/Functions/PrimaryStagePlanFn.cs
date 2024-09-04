@@ -39,7 +39,10 @@ public class PrimaryStagePlanFn : IFunctionCallback
         };
         var retrievalMessage = new RoleDialogModel(AgentRole.User, task.Requirements)
         {
-            FunctionArgs = JsonSerializer.Serialize(msg),
+            FunctionArgs = JsonSerializer.Serialize(new ExtractedKnowledge 
+            { 
+                Question = task.Requirements
+            }),
             KnowledgeConfidence = 0.1f,
             Content = ""
         };
