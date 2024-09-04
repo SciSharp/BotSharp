@@ -30,7 +30,7 @@ public class RoleDialogModel : ITrackableMessage
     public string? SecondaryContent { get; set; }
 
     /// <summary>
-    /// Postback content
+    /// Postback of previous round payload
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("payload")]
@@ -131,6 +131,7 @@ public class RoleDialogModel : ITrackableMessage
             ToolCallId = source.ToolCallId,
             PostbackFunctionName = source.PostbackFunctionName,
             RichContent = source.RichContent,
+            Payload = source.Payload,
             StopCompletion = source.StopCompletion,
             Instruction = source.Instruction,
             Data = source.Data,
