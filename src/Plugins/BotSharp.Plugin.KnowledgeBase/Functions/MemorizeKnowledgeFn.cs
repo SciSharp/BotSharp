@@ -4,6 +4,8 @@ public class MemorizeKnowledgeFn : IFunctionCallback
 {
     public string Name => "memorize_knowledge";
 
+    public string Indication => "remembering knowledge";
+
     private readonly IServiceProvider _services;
     private readonly KnowledgeBaseSettings _settings;
 
@@ -18,22 +20,15 @@ public class MemorizeKnowledgeFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
         var collectionName = _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-        var embedding = KnowledgeSettingUtility.GetTextEmbeddingSetting(_services, collectionName);
-
-        var vector = await embedding.GetVectorsAsync(new List<string>
+        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
+        var result = await knowledgeService.CreateVectorCollectionData(collectionName, new VectorCreateModel
         {
-            args.Question
+            Text = args.Question,
+            Payload = new Dictionary<string, string>
+            {
+                { KnowledgePayloadName.Answer, args.Answer }
+            }
         });
-
-        var vectorDb = _services.GetServices<IVectorDb>().FirstOrDefault(x => x.Name == _settings.VectorDb);
-        await vectorDb.CreateCollection(collectionName, vector[0].Length);
-
-        var result = await vectorDb.Upsert(collectionName, Guid.NewGuid(), vector[0], 
-            args.Question,
-            new Dictionary<string, string> 
-            { 
-                { KnowledgePayloadName.Answer, args.Answer } 
-            });
 
         message.Content = result ? "Saved to my brain" : "I forgot it";
         return true;

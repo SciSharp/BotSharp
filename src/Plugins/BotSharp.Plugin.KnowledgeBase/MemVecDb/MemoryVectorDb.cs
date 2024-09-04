@@ -8,12 +8,18 @@ public class MemoryVectorDb : IVectorDb
     private readonly Dictionary<string, List<VecRecord>> _vectors = new Dictionary<string, List<VecRecord>>();
 
 
-    public string Name => "MemoryVector";
+    public string Provider => "MemoryVector";
 
-    public async Task CreateCollection(string collectionName, int dim)
+    public async Task<bool> CreateCollection(string collectionName, int dimension)
     {
-        _collections[collectionName] = dim;
+        _collections[collectionName] = dimension;
         _vectors[collectionName] = new List<VecRecord>();
+        return true;
+    }
+
+    public async Task<bool> DeleteCollection(string collectionName)
+    {
+        return false;
     }
 
     public async Task<IEnumerable<string>> GetCollections()
@@ -40,8 +46,7 @@ public class MemoryVectorDb : IVectorDb
             return new List<VectorCollectionData>();
         }
 
-        var similarities = VectorUtility.CalCosineSimilarity(vector, _vectors[collectionName]);
-        // var similarities = VectorUtility.CalEuclideanDistance(vector, _vectors[collectionName]);
+        var similarities = VectorHelper.CalCosineSimilarity(vector, _vectors[collectionName]);
 
         var results = np.argsort(similarities).ToArray<int>()
                         .Reverse()

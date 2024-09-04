@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Utilities;
 using Twilio.Jwt.AccessToken;
 using Token = Twilio.Jwt.AccessToken.Token;
 
@@ -59,6 +60,7 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}")
         };
+
         gather.Say(message);
         response.Append(gather);
         return response;
@@ -81,7 +83,8 @@ public class TwilioService
             ActionOnEmptyResult = actionOnEmptyResult,
             Hints = "Yes, No, Correct"
         };
-        if (speechPaths != null && speechPaths.Any())
+
+        if (!speechPaths.IsNullOrEmpty())
         {
             foreach (var speechPath in speechPaths)
             {
@@ -145,6 +148,7 @@ public class TwilioService
             Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
             ActionOnEmptyResult = true
         };
+
         if (!string.IsNullOrEmpty(message))
         {
             gather.Say(message);

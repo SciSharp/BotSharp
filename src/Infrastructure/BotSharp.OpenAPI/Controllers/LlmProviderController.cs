@@ -25,6 +25,6 @@ public class LlmProviderController : ControllerBase
     public IEnumerable<LlmModelSetting> GetLlmProviderModels([FromRoute] string provider)
     {
         var list = _llmProvider.GetProviderModels(provider);
-        return list.Where(x => !x.ImageGeneration);
+        return list.Where(x => x.Type == LlmModelType.Chat);
     }
 }

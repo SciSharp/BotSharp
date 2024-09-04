@@ -187,7 +187,7 @@ public class UserService : IUserService
         {
             new Claim(JwtRegisteredClaimNames.NameId, user.Id),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Email, user?.Email ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.GivenName, user?.FirstName ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.FamilyName, user?.LastName ?? string.Empty),
             new Claim("source", user.Source),

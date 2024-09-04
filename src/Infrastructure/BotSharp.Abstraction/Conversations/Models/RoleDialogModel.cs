@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
-using BotSharp.Abstraction.MLTasks;
 
 namespace BotSharp.Abstraction.Conversations.Models;
 
@@ -30,7 +29,7 @@ public class RoleDialogModel : ITrackableMessage
     public string? SecondaryContent { get; set; }
 
     /// <summary>
-    /// Postback content
+    /// Postback of previous round payload
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("payload")]
@@ -75,6 +74,9 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RichContent<IRichMessage>? RichContent { get; set; }
 
+    /// <summary>
+    /// Rich content for secondary language
+    /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RichContent<IRichMessage>? SecondaryRichContent { get; set; }
 
@@ -86,6 +88,9 @@ public class RoleDialogModel : ITrackableMessage
 
     public FunctionCallFromLlm Instruction { get; set; }
 
+    /// <summary>
+    /// Files to be used in conversation
+    /// </summary>
     public List<BotSharpFile> Files { get; set; } = new List<BotSharpFile>();
 
     /// <summary>
@@ -94,7 +99,8 @@ public class RoleDialogModel : ITrackableMessage
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("generated_images")]
     public List<ImageGeneration> GeneratedImages { get; set; } = new List<ImageGeneration>();
-    public float KnowledgeConfidence { get; set; } = 0.5f;
+
+
     private RoleDialogModel()
     {
     }
@@ -134,8 +140,7 @@ public class RoleDialogModel : ITrackableMessage
             Payload = source.Payload,
             StopCompletion = source.StopCompletion,
             Instruction = source.Instruction,
-            Data = source.Data,
-            KnowledgeConfidence = source.KnowledgeConfidence
+            Data = source.Data
         };
     }
 }

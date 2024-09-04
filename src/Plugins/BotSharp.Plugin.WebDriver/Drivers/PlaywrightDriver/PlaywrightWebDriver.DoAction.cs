@@ -13,10 +13,23 @@ public partial class PlaywrightWebDriver
 
         ILocator locator = page.Locator(result.Selector);
         var count = await locator.CountAsync();
+
         if (count == 0)
         {
             Serilog.Log.Error($"Element not found: {result.Selector}");
             return;
+        }
+        else if (count > 1)
+        {
+            if(!action.FirstIfMultipleFound)
+            {
+                Serilog.Log.Error($"Multiple eElements were found: {result.Selector}");
+                return;
+            }
+            else
+            {
+                locator = page.Locator(result.Selector).First;// 匹配到多个时取第一个，否则当await locator.ClickAsync();匹配到多个就会抛异常。
+            }
         }
 
         if (action.Action == BroswerActionEnum.Click)

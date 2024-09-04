@@ -1,14 +1,7 @@
 using BotSharp.Abstraction.Agents;
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Plugin.EmailHandler.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.EmailHandler.Hooks;
 

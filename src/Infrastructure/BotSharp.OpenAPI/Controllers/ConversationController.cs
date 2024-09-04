@@ -294,9 +294,7 @@ public class ConversationController : ControllerBase
     }
 
     [HttpPost("/conversation/{agentId}/{conversationId}/sse")]
-    public async Task SendMessageSse([FromRoute] string agentId,
-        [FromRoute] string conversationId,
-        [FromBody] NewMessageModel input)
+    public async Task SendMessageSse([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
@@ -391,7 +389,7 @@ public class ConversationController : ControllerBase
     }
 
     [HttpPost("/agent/{agentId}/conversation/{conversationId}/upload")]
-    public async Task<string> UploadConversationMessageFiles([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] NewMessageModel input)
+    public async Task<string> UploadConversationMessageFiles([FromRoute] string agentId, [FromRoute] string conversationId, [FromBody] InputMessageFiles input)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, input.States);

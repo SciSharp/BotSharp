@@ -43,7 +43,7 @@ public class EditImageFn : IFunctionCallback
     private void SetImageOptions()
     {
         var state = _services.GetRequiredService<IConversationStateService>();
-        state.SetState("image_format", "bytes");
+        state.SetState("image_response_format", "bytes");
         state.SetState("image_count", "1");
     }
 
@@ -99,9 +99,9 @@ public class EditImageFn : IFunctionCallback
     {
         if (image == null) return;
 
-        var files = new List<BotSharpFile>()
+        var files = new List<InputFileModel>()
         {
-            new BotSharpFile
+            new InputFileModel
             {
                 FileName = $"{Guid.NewGuid()}.png",
                 FileData = $"data:{MediaTypeNames.Image.Png};base64,{image.ImageData}"

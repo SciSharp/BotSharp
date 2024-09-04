@@ -23,10 +23,13 @@ public class VerboseLogHook : IContentGeneratingHook
     {
         if (!_convSettings.ShowVerboseLog) return;
 
-        var dialog = conversations.Last();
-        var log = $"{dialog.Role}: {dialog.Content} [msg_id: {dialog.MessageId}] ==>";
-        _logger.LogInformation(log);
-
+        var dialog = conversations.LastOrDefault();
+        if (dialog != null)
+        {
+            var log = $"{dialog.Role}: {dialog.Content} [msg_id: {dialog.MessageId}] ==>";
+            _logger.LogInformation(log);
+        }
+        
         await Task.CompletedTask;
     }
 

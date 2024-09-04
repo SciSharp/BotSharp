@@ -49,7 +49,7 @@ public class ChatCompletionProvider : IChatCompletion
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
-                MessageId = conversations.Last().MessageId,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 FunctionName = value.FunctionCall.FunctionName,
                 FunctionArgs = value.FunctionCall.FunctionArguments
             };
@@ -66,7 +66,7 @@ public class ChatCompletionProvider : IChatCompletion
             responseMessage = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
-                MessageId = conversations.Last().MessageId,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 FunctionName = toolCall?.FunctionName,
                 FunctionArgs = toolCall?.FunctionArguments
             };
@@ -76,7 +76,7 @@ public class ChatCompletionProvider : IChatCompletion
             responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
             {
                 CurrentAgentId = agent.Id,
-                MessageId = conversations.Last().MessageId
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
             };
         }
 
