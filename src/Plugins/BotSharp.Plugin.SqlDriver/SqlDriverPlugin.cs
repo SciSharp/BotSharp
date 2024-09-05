@@ -16,6 +16,7 @@ public class SqlDriverPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<SqlDriverService>();
+        services.AddScoped<DbKnowledgeService>();
         services.AddScoped<IKnowledgeHook, SqlDriverKnowledgeHook>();
         services.AddScoped<IAgentHook, SqlExecutorHook>();
         services.AddScoped<IAgentUtilityHook, SqlExecutorUtilityHook>();

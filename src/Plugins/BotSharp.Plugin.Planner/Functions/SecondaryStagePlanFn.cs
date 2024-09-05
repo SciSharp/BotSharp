@@ -1,23 +1,13 @@
-using Azure;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Knowledges.Models;
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Templating;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using NetTopologySuite.Index.HPRtree;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
 public class SecondaryStagePlanFn : IFunctionCallback
 {
     public string Name => "plan_secondary_stage";
+
     private readonly IServiceProvider _services;
-    private readonly ILogger _logger;
+    private readonly ILogger<SecondaryStagePlanFn> _logger;
 
     public SecondaryStagePlanFn(IServiceProvider services, ILogger<SecondaryStagePlanFn> logger)
     {
@@ -28,70 +18,77 @@ public class SecondaryStagePlanFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var fn = _services.GetRequiredService<IRoutingService>();
-        var msg_secondary = RoleDialogModel.From(message);
-        var task_primary = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
-        msg_secondary.FunctionArgs = JsonSerializer.Serialize(new SecondaryBreakdownTask
-        {
-            TaskDescription = task_primary.Requirements
-        });
-        var task_secondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msg_secondary.FunctionArgs);
-        var items = msg_secondary.Content.JsonArrayContent<FirstStagePlan>();
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
+        var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
+        
+        var msgSecondary = RoleDialogModel.From(message);
+        var taskPrimary = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
-        msg_secondary.KnowledgeConfidence = 0.5f;
+        msgSecondary.FunctionArgs = JsonSerializer.Serialize(new SecondaryBreakdownTask
+        {
+            TaskDescription = taskPrimary.Requirements
+        });
+
+        var taskSecondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msgSecondary.FunctionArgs);
+        var items = msgSecondary.Content.JsonArrayContent<FirstStagePlan>();
+
+        // Search knowledgebase
         foreach (var item in items)
         {
-            if (item.NeedAdditionalInformation)
-            {
-                msg_secondary.FunctionArgs = JsonSerializer.Serialize(new ExtractedKnowledge
-                {
-                    Question = item.Task
-                });
-                await fn.InvokeFunction("knowledge_retrieval", msg_secondary);
-                message.Content += msg_secondary.Content;
-            }
-        }
-        // load agent
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
+            if (!item.NeedAdditionalInformation) continue;
 
-        var secondPlanningPrompt = await GetSecondStagePlanPrompt(task_secondary, message);
+            var knowledges = await knowledgeService.SearchVectorKnowledge(item.Task, collectionName, new VectorSearchOptions
+            {
+                Confidence = 0.5f
+            });
+            message.Content += string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
+        }
+
+        // Get second stage planning prompt
+        var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
+        var secondPlanningPrompt = await GetSecondStagePlanPrompt(taskSecondary.TaskDescription, message);
         _logger.LogInformation(secondPlanningPrompt);
 
         var plannerAgent = new Agent
         {
-            Id = "",
-            Name = "test",
+            Id = string.Empty,
+            Name = "planning_2nd",
             Instruction = secondPlanningPrompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
 
-        var response = await GetAIResponse(plannerAgent);
+        var response = await GetAiResponse(plannerAgent);
         message.Content = response.Content;
         _logger.LogInformation(response.Content);
         return true;
     }
-    private async Task<string> GetSecondStagePlanPrompt(SecondaryBreakdownTask task, RoleDialogModel message)
+
+    private async Task<string> GetSecondStagePlanPrompt(string taskDescription, RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var planner = await agentService.GetAgent(message.CurrentAgentId);
         var render = _services.GetRequiredService<ITemplateRender>();
-        var template = planner.Templates.First(x => x.Name == "two_stage.2nd.plan").Content;
+
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.2nd.plan")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new SecondStagePlan
         {
             Tool = "tool name if task solution provided", 
-            Parameters = new JsonDocument[] { JsonDocument.Parse("{}") },
-            Results = new string[] { "" }
+            Parameters = [ JsonDocument.Parse("{}") ],
+            Results = [ string.Empty ]
         });
 
         return render.Render(template, new Dictionary<string, object>
         {
-            { "task_description", task.TaskDescription },
+            { "task_description", taskDescription },
             { "primary_plan", new[]{ message.Content } },
             { "response_format",  responseFormat }
         });
     }
-    private async Task<RoleDialogModel> GetAIResponse(Agent plannerAgent)
+
+    private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var wholeDialogs = conv.GetDialogHistory();

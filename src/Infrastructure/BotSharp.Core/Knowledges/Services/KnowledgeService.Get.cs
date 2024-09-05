@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Graph.Models;
+using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
 
-namespace BotSharp.Plugin.KnowledgeBase.Services;
+namespace BotSharp.Core.Knowledges.Services;
 
 public partial class KnowledgeService
 {

@@ -9,9 +9,14 @@ namespace BotSharp.Plugin.MetaAI.Providers;
 
 public class FaissDb : IVectorDb
 {
-    public string Name => "Faiss";
+    public string Provider => "Faiss";
 
-    public Task CreateCollection(string collectionName, int dim)
+    public Task<bool> CreateCollection(string collectionName, int dimension)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteCollection(string collectionName)
     {
         throw new NotImplementedException();
     }

@@ -1,4 +1,6 @@
-namespace BotSharp.Plugin.KnowledgeBase.Services;
+using BotSharp.Abstraction.VectorStorage.Models;
+
+namespace BotSharp.Core.Knowledges.Services;
 
 public partial class KnowledgeService
 {

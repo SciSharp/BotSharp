@@ -84,11 +84,12 @@ public class HandleEmailSenderFn : IFunctionCallback
     {
         if (files.IsNullOrEmpty()) return;
 
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+
         foreach (var file in files)
         {
             if (string.IsNullOrEmpty(file.FileStorageUrl)) continue;
 
-            var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var fileBytes = fileStorage.GetFileBytes(file.FileStorageUrl);
             builder.Attachments.Add($"{file.FileName}.{file.FileExtension}", fileBytes, ContentType.Parse(file.ContentType));
             Thread.Sleep(100);

@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Files.Models;
 
-public class MessageFileModel : FileBase
+public class MessageFileModel : FileInformation
 {
     [JsonPropertyName("message_id")]
     public string MessageId { get; set; }

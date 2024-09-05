@@ -4,7 +4,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<BotSharpFile> files)
+    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<InstructFileModel> files)
     {
         var content = string.Empty;
 
@@ -50,7 +50,7 @@ public partial class FileInstructService
     }
 
     #region Private methods
-    private async Task<IEnumerable<string>> DownloadFiles(string dir, List<BotSharpFile> files, string extension = "pdf")
+    private async Task<IEnumerable<string>> DownloadFiles(string dir, List<InstructFileModel> files, string extension = "pdf")
     {
         if (string.IsNullOrWhiteSpace(dir) || files.IsNullOrEmpty())
         {
@@ -80,9 +80,9 @@ public partial class FileInstructService
                     var fileDir = _fileStorage.BuildDirectory(dir, guid);
                     DeleteIfExistDirectory(fileDir, true);
 
-                    var pdfDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
-                    _fileStorage.SaveFileBytesToPath(pdfDir, bytes);
-                    locs.Add(pdfDir);
+                    var outputDir = _fileStorage.BuildDirectory(fileDir, $"{guid}.{extension}");
+                    _fileStorage.SaveFileBytesToPath(outputDir, bytes);
+                    locs.Add(outputDir);
                 }
             }
             catch (Exception ex)
@@ -98,7 +98,7 @@ public partial class FileInstructService
     {
         var images = new List<string>();
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
         if (converter == null || files.IsNullOrEmpty())
         {
             return images;

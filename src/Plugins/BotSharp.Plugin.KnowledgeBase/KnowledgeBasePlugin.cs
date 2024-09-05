@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Plugin.KnowledgeBase.Converters;
 using BotSharp.Plugin.KnowledgeBase.Hooks;
 using Microsoft.Extensions.Configuration;
 
@@ -20,8 +21,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             return settingService.Bind<KnowledgeBaseSettings>("KnowledgeBase");
         });
 
-        services.AddScoped<ITextChopper, TextChopperService>();
-        services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
         services.AddScoped<IAgentUtilityHook, KnowledgeBaseUtilityHook>();
         services.AddScoped<IAgentHook, KnowledgeBaseAgentHook>();
@@ -35,7 +34,7 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
             SubMenu = new List<PluginMenuDef>
             {
                 new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
-                new PluginMenuDef("Relations", link: "page/knowledge-base/relations")
+                new PluginMenuDef("Relationships", link: "page/knowledge-base/relationships")
             }
         });
         return true;
