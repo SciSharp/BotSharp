@@ -9,7 +9,11 @@ public static class VectorStorageExtension
     {
         if (data?.Data == null) return string.Empty;
 
-        return $"Question: {data.Data[KnowledgePayloadName.Text]}\r\nAnswer: {data.Data[KnowledgePayloadName.Answer]}";
+        if (data.Data.TryGetValue(KnowledgePayloadName.Text, out var question)) { }
+
+        if (data.Data.TryGetValue(KnowledgePayloadName.Answer, out var answer)) { }
+
+        return $"Question: {question}\r\nAnswer: {answer}";
     }
 
     public static string ToPayloadPair(this VectorSearchResult data, IList<string> payloads)
