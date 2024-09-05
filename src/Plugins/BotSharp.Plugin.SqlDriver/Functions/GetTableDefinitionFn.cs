@@ -36,22 +36,14 @@ public class GetTableDefinitionFn : IFunctionCallback
         {
             try
             {
-                var sql = $"select * from information_schema.tables where table_name = @tableName";
                 var escapedTableName = MySqlHelper.EscapeString(table);
+                var sql = $"SHOW CREATE TABLE `{escapedTableName}`";
 
-                var result = connection.QueryFirstOrDefault(sql, new
-                {
-                    tableName = escapedTableName
-                });
-
-                if (result == null) continue;
-
-                sql = $"SHOW CREATE TABLE `{escapedTableName}`";
                 using var command = new MySqlCommand(sql, connection);
                 using var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    result = reader.GetString(1);
+                    var result = reader.GetString(1);
                     tableDdls.Add(result);
                 }
 

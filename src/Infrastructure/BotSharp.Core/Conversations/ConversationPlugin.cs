@@ -6,7 +6,6 @@ using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
-using BotSharp.Core.Knowledges.Services;
 using BotSharp.Core.Messaging;
 using BotSharp.Core.Routing.Planning;
 using BotSharp.Core.Templating;
