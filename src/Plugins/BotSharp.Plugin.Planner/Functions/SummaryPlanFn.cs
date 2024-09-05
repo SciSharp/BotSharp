@@ -67,8 +67,8 @@ public class SummaryPlanFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
 
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.Planner);
-        var template = aiAssistant.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
+        var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
             Parameters = [JsonDocument.Parse("{}")],

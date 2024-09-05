@@ -71,8 +71,8 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
 
-        var planner = await agentService.GetAgent(message.CurrentAgentId);
-        var template = planner.Templates.FirstOrDefault(x => x.Name == "two_stage.2nd.plan")?.Content ?? string.Empty;
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.2nd.plan")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new SecondStagePlan
         {
             Tool = "tool name if task solution provided", 
