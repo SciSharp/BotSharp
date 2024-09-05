@@ -8,7 +8,7 @@
   "iconUrl": "https://e7.pngegg.com/pngimages/775/350/png-clipart-action-plan-computer-icons-plan-miscellaneous-text-thumbnail.png",
   "disabled": false,
   "isPublic": true,
-  "profiles": [ "tool" ],
+  "profiles": [ "planning" ],
   "utilities": [ "two-stage-planner" ],
   "llmConfig": {
     "provider": "openai",

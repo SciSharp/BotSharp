@@ -80,7 +80,8 @@ public class TwilioService
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
             SpeechTimeout = "auto", // timeout > 0 ? timeout.ToString() : "3",
             Timeout = timeout > 0 ? timeout : 3,
-            ActionOnEmptyResult = actionOnEmptyResult
+            ActionOnEmptyResult = actionOnEmptyResult,
+            Hints = "Yes, No, Correct"
         };
 
         if (!speechPaths.IsNullOrEmpty())
@@ -113,7 +114,7 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/{callbackPath}"),
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
-            SpeechTimeout = "auto", // timeout > 0 ? timeout.ToString() : "3",
+            SpeechTimeout = timeout > 0 ? timeout.ToString() : "3",
             Timeout = timeout > 0 ? timeout : 3,
             ActionOnEmptyResult = actionOnEmptyResult
         };
