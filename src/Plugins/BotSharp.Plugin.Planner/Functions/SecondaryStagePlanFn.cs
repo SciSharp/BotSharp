@@ -18,12 +18,13 @@ public class SecondaryStagePlanFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var fn = _services.GetRequiredService<IRoutingService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-
+        
         var msgSecondary = RoleDialogModel.From(message);
         var taskPrimary = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
         msgSecondary.FunctionArgs = JsonSerializer.Serialize(new SecondaryBreakdownTask
         {
@@ -33,6 +34,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var taskSecondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msgSecondary.FunctionArgs);
         var items = msgSecondary.Content.JsonArrayContent<FirstStagePlan>();
 
+        // Search knowledgebase
         foreach (var item in items)
         {
             if (!item.NeedAdditionalInformation) continue;
@@ -44,17 +46,15 @@ public class SecondaryStagePlanFn : IFunctionCallback
             message.Content += string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
         }
 
-        // load agent
-        var agentService = _services.GetRequiredService<IAgentService>();
+        // Get second stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-
-        var secondPlanningPrompt = await GetSecondStagePlanPrompt(taskSecondary, message);
+        var secondPlanningPrompt = await GetSecondStagePlanPrompt(taskSecondary.TaskDescription, message);
         _logger.LogInformation(secondPlanningPrompt);
 
         var plannerAgent = new Agent
         {
             Id = string.Empty,
-            Name = "test",
+            Name = "planning_2nd",
             Instruction = secondPlanningPrompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
@@ -65,27 +65,29 @@ public class SecondaryStagePlanFn : IFunctionCallback
         _logger.LogInformation(response.Content);
         return true;
     }
-    private async Task<string> GetSecondStagePlanPrompt(SecondaryBreakdownTask task, RoleDialogModel message)
+
+    private async Task<string> GetSecondStagePlanPrompt(string taskDescription, RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
 
-        var planner = await agentService.GetAgent(message.CurrentAgentId);
-        var template = planner.Templates.FirstOrDefault(x => x.Name == "two_stage.2nd.plan")?.Content ?? string.Empty;
+        var agent = await agentService.GetAgent(message.CurrentAgentId);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.2nd.plan")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new SecondStagePlan
         {
             Tool = "tool name if task solution provided", 
-            Parameters = new JsonDocument[] { JsonDocument.Parse("{}") },
-            Results = new string[] { "" }
+            Parameters = [ JsonDocument.Parse("{}") ],
+            Results = [ string.Empty ]
         });
 
         return render.Render(template, new Dictionary<string, object>
         {
-            { "task_description", task.TaskDescription },
+            { "task_description", taskDescription },
             { "primary_plan", new[]{ message.Content } },
             { "response_format",  responseFormat }
         });
     }
+
     private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
     {
         var conv = _services.GetRequiredService<IConversationService>();

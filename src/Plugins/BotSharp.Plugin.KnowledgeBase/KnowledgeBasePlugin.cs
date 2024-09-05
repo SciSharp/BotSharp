@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Core.Knowledges.Services;
 using BotSharp.Plugin.KnowledgeBase.Converters;
 using BotSharp.Plugin.KnowledgeBase.Hooks;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +25,8 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
         services.AddScoped<IAgentUtilityHook, KnowledgeBaseUtilityHook>();
         services.AddScoped<IAgentHook, KnowledgeBaseAgentHook>();
+
+        services.AddScoped<IKnowledgeService, KnowledgeService>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)

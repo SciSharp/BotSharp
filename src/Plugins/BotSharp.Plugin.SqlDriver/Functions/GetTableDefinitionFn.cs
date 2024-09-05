@@ -25,7 +25,7 @@ public class GetTableDefinitionFn : IFunctionCallback
         var settings = _services.GetRequiredService<SqlDriverSetting>();
 
         // Get table DDL from database
-        var tables = message.Data as List<string>;
+        var tables = message.Data as IEnumerable<string>;
         if (tables.IsNullOrEmpty()) return false;
 
         var tableDdls = new List<string>();
@@ -36,9 +36,9 @@ public class GetTableDefinitionFn : IFunctionCallback
         {
             try
             {
+                var sql = $"select * from information_schema.tables where table_name = @tableName";
                 var escapedTableName = MySqlHelper.EscapeString(table);
 
-                var sql = $"select * from information_schema.tables where table_name = @tableName";
                 var result = connection.QueryFirstOrDefault(sql, new
                 {
                     tableName = escapedTableName
@@ -60,7 +60,7 @@ public class GetTableDefinitionFn : IFunctionCallback
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when getting ddl statement of table {table}.");
+                _logger.LogWarning($"Error when getting ddl statement of table {table}. {ex.Message}\r\n{ex.InnerException}");
             }
         }
 
