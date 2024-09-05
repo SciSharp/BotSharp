@@ -55,8 +55,6 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<IExecutor, InstructExecutor>();
         services.AddScoped<IInstructService, InstructService>();
         services.AddScoped<ITokenStatistics, TokenStatistics>();
-
-        services.AddScoped<IKnowledgeService, KnowledgeService>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
