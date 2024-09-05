@@ -41,7 +41,7 @@ public partial class AgentService : IAgentService
     public string GetAgentDataDir(string agentId)
     {
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
-        var dir = Path.Combine(dbSettings.FileRepository, _agentSettings.DataDir, agentId);
+        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbSettings.FileRepository, _agentSettings.DataDir, agentId);
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
