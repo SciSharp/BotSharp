@@ -151,6 +151,8 @@ public class TwilioVoiceController : TwilioController
                         var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
                         var data = await completion.GenerateAudioFromTextAsync(seg);
 
+                        // add hold-on
+                        speechPaths.Add($"twilio/hold-on-short-{Random.Shared.Next(1, 7)}.mp3");
                         var fileName = $"indication_{seqNum}_{segIndex}.mp3";
                         fileStorage.SaveSpeechFile(conversationId, fileName, data);
                         speechPaths.Add($"twilio/voice/speeches/{conversationId}/{fileName}");
@@ -166,7 +168,7 @@ public class TwilioVoiceController : TwilioController
             {
                 response = twilio.ReturnInstructions(new List<string> 
                 {
-                    $"twilio/hold-on-{Random.Shared.Next(1, 6)}.mp3",
+                    $"twilio/hold-on-long-{Random.Shared.Next(1, 9)}.mp3",
                     $"twilio/typing-{Random.Shared.Next(1, 4)}.mp3" 
                 }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
             }
