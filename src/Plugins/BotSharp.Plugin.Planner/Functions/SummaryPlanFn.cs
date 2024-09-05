@@ -26,12 +26,10 @@ public class SummaryPlanFn : IFunctionCallback
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
         state.SetState("max_tokens", "4096");
 
-        var task = state.GetState("requirement_detail");
+        var taskRequirement = state.GetState("requirement_detail");
 
-        // Get DDL
+        // Get table names
         var steps = message.Content.JsonArrayContent<SecondStagePlan>();
-
-        // Get all the related tables
         var allTables = new List<string>();
         foreach (var step in steps)
         {
@@ -39,14 +37,15 @@ public class SummaryPlanFn : IFunctionCallback
         }
         message.Data = allTables.Distinct().ToList();
 
-        // Get table DDL and stores in content
+        // Get table DDL statements
         var msgCopy = RoleDialogModel.From(message);
         await fn.InvokeFunction("get_table_definition", msgCopy);
         var ddlStatements = msgCopy.Content;
+        var relevantKnowledge = message.Content;
         message.Data = null;
 
         // Summarize and generate query
-        var summaryPlanPrompt = await GetPlanSummaryPrompt(task, message.Content, ddlStatements);
+        var summaryPlanPrompt = await GetPlanSummaryPrompt(taskRequirement, relevantKnowledge, ddlStatements);
         _logger.LogInformation($"Summary plan prompt:\r\n{summaryPlanPrompt}");
 
         var plannerAgent = new Agent
@@ -64,9 +63,8 @@ public class SummaryPlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetPlanSummaryPrompt(string task, string knowledge, string ddlStatement)
+    private async Task<string> GetPlanSummaryPrompt(string taskDescription, string relevantKnowledge, string ddlStatement)
     {
-        // save to knowledge base
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
 
@@ -81,8 +79,8 @@ public class SummaryPlanFn : IFunctionCallback
         return render.Render(template, new Dictionary<string, object>
         {
             { "table_structure", ddlStatement },
-            { "task_description", task },
-            { "relevant_knowledges", knowledge },
+            { "task_description", taskDescription },
+            { "relevant_knowledges", relevantKnowledge },
             { "response_format", responseFormat }
         });
     }
@@ -91,19 +89,9 @@ public class SummaryPlanFn : IFunctionCallback
         var conv = _services.GetRequiredService<IConversationService>();
         var wholeDialogs = conv.GetDialogHistory();
 
-        // Add "test" to wholeDialogs' last element
-        if (plannerAgent.Name == "planner_summary")
-        {
-            // Add "test" to wholeDialogs' last element in a new paragraph
-            wholeDialogs.Last().Content += "\n\nIf the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id) instead of LAST_INSERT_ID function.\nFor example, you should use SET @id = select max(id) from table;";
-            wholeDialogs.Last().Content += "\n\nTry if you can generate a single query to fulfill the needs";
-        }
-
-        if (plannerAgent.Name == "planning_1st")
-        {
-            // Add "test" to wholeDialogs' last element in a new paragraph
-            wholeDialogs.Last().Content += "\n\nYou must analyze the table description to infer the table relations.";
-        }
+        // Append text
+        wholeDialogs.Last().Content += "\n\nIf the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id) instead of LAST_INSERT_ID function.\nFor example, you should use SET @id = select max(id) from table;";
+        wholeDialogs.Last().Content += "\n\nTry if you can generate a single query to fulfill the needs";
 
         var completion = CompletionProvider.GetChatCompletion(_services, 
             provider: plannerAgent.LlmConfig.Provider, 
