@@ -23,9 +23,8 @@ public class SummaryPlanFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
 
-        var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
         state.SetState("max_tokens", "4096");
-
+        var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
         var taskRequirement = state.GetState("requirement_detail");
 
         // Get table names
@@ -45,7 +44,7 @@ public class SummaryPlanFn : IFunctionCallback
         message.Data = null;
 
         // Summarize and generate query
-        var summaryPlanPrompt = await GetPlanSummaryPrompt(taskRequirement, relevantKnowledge, ddlStatements);
+        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, ddlStatements);
         _logger.LogInformation($"Summary plan prompt:\r\n{summaryPlanPrompt}");
 
         var plannerAgent = new Agent
@@ -63,13 +62,13 @@ public class SummaryPlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetPlanSummaryPrompt(string taskDescription, string relevantKnowledge, string ddlStatement)
+    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, string ddlStatement)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
 
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.Planner);
-        var template = aiAssistant.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
+        var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
             Parameters = [JsonDocument.Parse("{}")],

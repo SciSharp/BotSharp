@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 
 namespace BotSharp.Plugin.Planner.Functions;
@@ -26,21 +25,18 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
-        //get knowledge from vectordb
+        // Get knowledge from vectordb
         var knowledges = new List<string>();
         foreach (var question in task.Questions)
         {
-            var retrievalMessage = new RoleDialogModel(AgentRole.User, question)
+            var list = await knowledgeService.SearchVectorKnowledge(question, collectionName, new VectorSearchOptions
             {
-                FunctionArgs = JsonSerializer.Serialize(new ExtractedKnowledge
-                {
-                    Question = question
-                }),
-                Content = ""
-            };
-            await fn.InvokeFunction("knowledge_retrieval", retrievalMessage);
-            knowledges.Add(retrievalMessage.Content);
+                Confidence = 0.2f
+            });
+
+            knowledges.Add(string.Join("\r\n\r\n=====\r\n", list.Select(x => x.ToQuestionAnswer())));
         }
 
         // Get first stage planning prompt
@@ -66,8 +62,8 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var render = _services.GetRequiredService<ITemplateRender>();
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
-        var aiAssistant = await agentService.GetAgent(BuiltInAgentId.Planner);
-        var template = aiAssistant.Templates.FirstOrDefault(x => x.Name == "two_stage.1st.plan")?.Content ?? string.Empty;
+        var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.1st.plan")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
         {
             Parameters = [ JsonDocument.Parse("{}") ],
