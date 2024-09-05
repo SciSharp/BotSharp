@@ -21,10 +21,10 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-
+        
         var msgSecondary = RoleDialogModel.From(message);
         var taskPrimary = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
         msgSecondary.FunctionArgs = JsonSerializer.Serialize(new SecondaryBreakdownTask
         {
