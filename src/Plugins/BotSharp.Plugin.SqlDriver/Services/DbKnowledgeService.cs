@@ -91,13 +91,13 @@ public class DbKnowledgeService
     private string GetTableStructure(string table)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new MySqlConnection(settings.MySqlConnectionString);
-        connection.Open();
-
+        
         var ddl = string.Empty;
         var escapedTableName = MySqlHelper.EscapeString(table);
         var sql = $"SHOW CREATE TABLE `{escapedTableName}`";
 
+        using var connection = new MySqlConnection(settings.MySqlConnectionString);
+        connection.Open();
         using var command = new MySqlCommand(sql, connection);
         using var reader = command.ExecuteReader();
         if (reader.Read())

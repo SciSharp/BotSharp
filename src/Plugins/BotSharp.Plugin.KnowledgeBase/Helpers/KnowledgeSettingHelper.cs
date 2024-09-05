@@ -1,7 +1,4 @@
-using BotSharp.Abstraction.Knowledges.Settings;
-using BotSharp.Abstraction.MLTasks;
-
-namespace BotSharp.Core.Knowledges.Helpers;
+namespace BotSharp.Plugin.KnowledgeBase.Helpers;
 
 public static class KnowledgeSettingHelper
 {
