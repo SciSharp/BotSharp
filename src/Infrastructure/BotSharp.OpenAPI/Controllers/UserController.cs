@@ -135,9 +135,14 @@ public class UserController : ControllerBase
 
     #region Avatar
     [HttpPost("/user/avatar")]
-    public bool UploadUserAvatar([FromBody] BotSharpFile file)
+    public bool UploadUserAvatar([FromBody] UserAvatarModel input)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var file = new InputFileModel
+        {
+            FileName = input.FileName,
+            FileData = input.FileData,
+        };
         return fileStorage.SaveUserAvatar(file);
     }
 

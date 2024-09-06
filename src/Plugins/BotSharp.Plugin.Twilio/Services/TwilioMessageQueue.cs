@@ -7,6 +7,7 @@ namespace BotSharp.Plugin.Twilio.Services
     {
         private readonly Channel<CallerMessage> _queue;
         internal ChannelReader<CallerMessage> Reader => _queue.Reader;
+
         public TwilioMessageQueue()
         {
             BoundedChannelOptions options = new(100)
@@ -18,7 +19,11 @@ namespace BotSharp.Plugin.Twilio.Services
 
         public async ValueTask EnqueueAsync(CallerMessage request)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             Console.WriteLine($"[{DateTime.UtcNow}] Enqueue {request}");
             await _queue.Writer.WriteAsync(request);
         }

@@ -1,11 +1,11 @@
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
-namespace BotSharp.Plugin.KnowledgeBase.Services;
+namespace BotSharp.Plugin.KnowledgeBase.Converters;
 
 public class PigPdf2TextConverter : IPdf2TextConverter
 {
-    public string Name => "Pig";
+    public string Provider => "Pig";
 
     public Task<string> ConvertPdfToText(string filePath, int? startPageNum, int? endPageNum)
     {

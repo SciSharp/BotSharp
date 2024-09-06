@@ -7,4 +7,7 @@ public interface IKnowledgeHook
 
     Task<List<string>> GetRelevantKnowledges()
         => Task.FromResult(new List<string>());
+
+    Task<List<string>> GetGlobalKnowledges()
+        => Task.FromResult(new List<string>());
 }

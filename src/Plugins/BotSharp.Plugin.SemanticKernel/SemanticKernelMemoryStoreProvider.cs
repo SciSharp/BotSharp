@@ -22,16 +22,23 @@ namespace BotSharp.Plugin.SemanticKernel
         }
 
 
-        public string Name => "SemanticKernel";
+        public string Provider => "SemanticKernel";
 
-        public async Task CreateCollection(string collectionName, int dim)
+        public async Task<bool> CreateCollection(string collectionName, int dimension)
         {
             await _memoryStore.CreateCollectionAsync(collectionName);
+            return true;
+        }
+
+        public async Task<bool> DeleteCollection(string collectionName)
+        {
+            await _memoryStore.DeleteCollectionAsync(collectionName);
+            return false;
         }
 
         public Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,

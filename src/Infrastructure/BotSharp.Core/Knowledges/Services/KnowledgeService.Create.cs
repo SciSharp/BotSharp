@@ -1,11 +1,15 @@
-namespace BotSharp.Plugin.KnowledgeBase.Services;
+using BotSharp.Abstraction.Knowledges.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
+using BotSharp.Core.Knowledges.Helpers;
+
+namespace BotSharp.Core.Knowledges.Services;
 
 public partial class KnowledgeService
 {
     public async Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel knowledge)
     {
         var index = 0;
-        var lines = _textChopper.Chop(knowledge.Content, new ChunkOption
+        var lines = TextChopper.Chop(knowledge.Content, new ChunkOption
         {
             Size = 1024,
             Conjunction = 32,
@@ -22,6 +26,25 @@ public partial class KnowledgeService
             await db.Upsert(collectionName, Guid.NewGuid(), vec, line);
             index++;
             Console.WriteLine($"Saved vector {index}/{lines.Count}: {line}\n");
+        }
+    }
+
+    public async Task<bool> CreateVectorCollection(string collectionName, int dimension)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(collectionName))
+            {
+                return false;
+            }
+
+            var db = GetVectorDb();
+            return await db.CreateCollection(collectionName, dimension);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when creating a vector collection ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
+            return false;
         }
     }
 

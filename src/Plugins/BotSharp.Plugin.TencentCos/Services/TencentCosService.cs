@@ -27,7 +27,7 @@ public partial class TencentCosService : IFileStorageService
     private const string USERS_FOLDER = "users";
     private const string USER_AVATAR_FOLDER = "avatar";
     private const string SESSION_FOLDER = "sessions";
-
+    private const string TEXT_TO_SPEECH_FOLDER = "speeches";
 
     public TencentCosService(
         TencentCosSettings settings,

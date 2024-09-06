@@ -6,7 +6,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class LocalFileStorageService
 {
-    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshots(string conversationId, IEnumerable<string> messageIds)
+    public async Task<IEnumerable<MessageFileModel>> GetMessageFileScreenshotsAsync(string conversationId, IEnumerable<string> messageIds)
     {
         var files = new List<MessageFileModel>();
         if (string.IsNullOrEmpty(conversationId) || messageIds.IsNullOrEmpty())
@@ -118,7 +118,7 @@ public partial class LocalFileStorageService
         return foundMsgs;
     }
 
-    public bool SaveMessageFiles(string conversationId, string messageId, string source, List<BotSharpFile> files)
+    public bool SaveMessageFiles(string conversationId, string messageId, string source, List<InputFileModel> files)
     {
         if (files.IsNullOrEmpty()) return false;
 
@@ -276,7 +276,7 @@ public partial class LocalFileStorageService
     private IPdf2ImageConverter? GetPdf2ImageConverter()
     {
         var settings = _services.GetRequiredService<FileCoreSettings>();
-        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Name == settings.Pdf2ImageConverter);
+        var converter = _services.GetServices<IPdf2ImageConverter>().FirstOrDefault(x => x.Provider == settings.Pdf2ImageConverter.Provider);
         return converter;
     }
 

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Plugin.AzureOpenAI.Providers.Audio;
 using BotSharp.Plugin.AzureOpenAI.Providers.Chat;
 using BotSharp.Plugin.AzureOpenAI.Providers.Embedding;
 using BotSharp.Plugin.AzureOpenAI.Providers.Image;
@@ -30,5 +31,6 @@ public class AzureOpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IChatCompletion, ChatCompletionProvider>();
         services.AddScoped<ITextEmbedding, TextEmbeddingProvider>();
         services.AddScoped<IImageCompletion, ImageCompletionProvider>();
+        services.AddScoped<IAudioCompletion, AudioCompletionProvider>();
     }
 }
