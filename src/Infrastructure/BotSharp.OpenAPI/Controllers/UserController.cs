@@ -110,7 +110,7 @@ public class UserController : ControllerBase
     }
     [AllowAnonymous]
     [HttpPost("/user/verifycode")]
-    public async Task<bool> SendVerificationCodeResetPassword([FromQuery] UserCreationModel user)
+    public async Task<bool> SendVerificationCodeResetPassword([FromBody] UserCreationModel user)
     {
         return await _userService.SendVerificationCodeResetPassword(user.ToUser());
     }
