@@ -86,6 +86,7 @@ namespace BotSharp.Plugin.Twilio.Services
                     reply = new AssistantMessage()
                     {
                         ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
+                        HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
                         Content = msg.Content,
                         MessageId = msg.MessageId
                     };
