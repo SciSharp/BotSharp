@@ -1,11 +1,9 @@
-using Azure.Messaging;
 using BotSharp.Abstraction.Files;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
 using Twilio.Http;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
@@ -109,14 +107,14 @@ public class TwilioVoiceController : TwilioController
             else
             {
                 response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}&attempts={++attempts}", true);
-            }          
+            }
         }
         return TwiML(response);
     }
 
     [ValidateRequest]
     [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
-    public async Task<TwiMLResult> ReplyCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, 
+    public async Task<TwiMLResult> ReplyCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum,
         [FromQuery] string states, VoiceRequest request)
     {
         var nextSeqNum = seqNum + 1;
@@ -164,16 +162,20 @@ public class TwilioVoiceController : TwilioController
             }
             else
             {
-                response = twilio.ReturnInstructions(new List<string> 
+                response = twilio.ReturnInstructions(new List<string>
                 {
                     $"twilio/hold-on-{Random.Shared.Next(1, 6)}.mp3",
-                    $"twilio/typing-{Random.Shared.Next(1, 4)}.mp3" 
+                    $"twilio/typing-{Random.Shared.Next(1, 4)}.mp3"
                 }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
             }
         }
         else
         {
-            if (reply.ConversationEnd)
+            if (reply.HumanIntervationNeeded)
+            {
+                response = twilio.DialCsrAgent($"twilio/voice/speeches/{conversationId}/{reply.SpeechFileName}");
+            }
+            else if (reply.ConversationEnd)
             {
                 response = twilio.HangUp($"twilio/voice/speeches/{conversationId}/{reply.SpeechFileName}");
             }
