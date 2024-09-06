@@ -4,12 +4,12 @@ using StackExchange.Redis;
 
 namespace BotSharp.Core.Infrastructures;
 
-public class CacheService : ICacheService
+public class RedisCacheService : ICacheService
 {
     private readonly BotSharpDatabaseSettings _settings;
     private static ConnectionMultiplexer redis = null!;
 
-    public CacheService(BotSharpDatabaseSettings settings)
+    public RedisCacheService(BotSharpDatabaseSettings settings)
     {
         _settings = settings;
     }
@@ -66,6 +66,11 @@ public class CacheService : ICacheService
         if (string.IsNullOrEmpty(_settings.Redis))
         {
             return;
+        }
+
+        if (redis == null)
+        {
+            redis = ConnectionMultiplexer.Connect(_settings.Redis);
         }
 
         var db = redis.GetDatabase();

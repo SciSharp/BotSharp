@@ -30,8 +30,10 @@ public static class BotSharpCoreExtensions
         var cacheSettings = new SharpCacheSettings();
         config.Bind("SharpCache", cacheSettings);
         services.AddSingleton(x => cacheSettings);
-        services.AddSingleton<ICacheService, CacheService>();
-        
+        services.AddSingleton<ICacheService, RedisCacheService>();
+
+        services.AddMemoryCache();
+
         RegisterPlugins(services, config);
         ConfigureBotSharpOptions(services, configOptions);
 
