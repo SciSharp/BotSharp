@@ -18,6 +18,18 @@ public class UserRole
     public const string Client = "client";
 
     /// <summary>
+    /// Back office operations
+    /// </summary>
+    public const string Operation = "operation";
+
+    public const string Technician = "technician";
+
+    /// <summary>
+    /// Software Developers, Data Engineer, Business Analyst
+    /// </summary>
+    public const string Engineer = "engineer";
+
+    /// <summary>
     /// AI Assistant
     /// </summary>
     public const string Assistant = "assistant";

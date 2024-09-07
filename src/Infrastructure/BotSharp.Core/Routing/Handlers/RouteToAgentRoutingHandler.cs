@@ -64,7 +64,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         if (message.FunctionName != null)
         {
             var msg = RoleDialogModel.From(message, role: AgentRole.Function);
-            var ret = await routing.InvokeFunction(message.FunctionName, msg);
+            await routing.InvokeFunction(message.FunctionName, msg);
         }
 
         var agentId = routing.Context.GetCurrentAgentId();
@@ -83,9 +83,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             var content = $"This agent ({agent.Name}) is disabled, please install the corresponding plugin ({agent.Plugin.Name}) to activate this agent.";
 
-            message = RoleDialogModel.From(message,
-                role: AgentRole.Assistant,
-                content: content);
+            message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: content);
             _dialogs.Add(message);
         }
         else

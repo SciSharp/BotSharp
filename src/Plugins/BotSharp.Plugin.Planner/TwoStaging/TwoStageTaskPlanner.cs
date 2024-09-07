@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Core.Routing.Planning;
+using Microsoft.EntityFrameworkCore;
 
 namespace BotSharp.Plugin.Planner.TwoStaging;
 
@@ -8,7 +9,7 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
-    public int MaxLoopCount => 100;
+    public int MaxLoopCount => 10;
     private bool _isTaskCompleted;
 
     private Queue<FirstStagePlan> _plan1st = new Queue<FirstStagePlan>();
@@ -16,7 +17,7 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
 
     private List<string> _executionContext = new List<string>();
 
-    public TwoStageTaskPlanner(IServiceProvider services, ILogger<TwoStagePlanner> logger)
+    public TwoStageTaskPlanner(IServiceProvider services, ILogger<TwoStageTaskPlanner> logger)
     {
         _services = services;
         _logger = logger;
@@ -27,15 +28,14 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
         // push agent to routing context
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.Push(BuiltInAgentId.Planner, "Make plan in TwoStage planner");
-
         return new FunctionCallFromLlm
         {
-            AgentName = "Planner",
-            UserGoal = "",
-            Response = "",
+            AgentName = router.Name,
+            Response = dialogs.Last().Content,
             Function = "route_to_agent"
         };
 
+        
         /*FirstStagePlan[] items = await GetFirstStagePlanAsync(router, messageId, dialogs);
 
         foreach (var item in items)
@@ -130,7 +130,13 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
 
         if (message.StopCompletion || _isTaskCompleted)
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(TwoStagePlanner)}");
+            context.Empty(reason: $"Agent queue is cleared by {nameof(TwoStageTaskPlanner)}");
+            return false;
+        }
+
+        if (dialogs.Last().Role == AgentRole.Assistant)
+        {
+            context.Empty();
             return false;
         }
 
@@ -147,47 +153,6 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
             content += $"* {c}\r\n";
         }
         return content;
-    }
-
-    private async Task<FirstStagePlan[]> GetFirstStagePlanAsync(Agent router, string messageId, List<RoleDialogModel> dialogs)
-    {
-        /*var fn = _services.GetRequiredService<IRoutingService>();
-        await fn.InvokeFunction("plan_primary_stage", message);
-        var items = message.Content.JsonArrayContent<SecondStagePlan>();*/
-
-        var firstStagePlanPrompt = await GetFirstStagePlanPrompt(router);
-
-        var plan = new FirstStagePlan[0];
-
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var provider = router.LlmConfig.Provider ?? "openai";
-        var model = llmProviderService.GetProviderModel(provider, router.LlmConfig.Model ?? "gpt-4o");
-
-        // chat completion
-        var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: provider,
-            model: model.Name);
-
-        string text = string.Empty;
-
-        try
-        {
-            var response = await completion.GetChatCompletions(new Agent
-            {
-                Id = router.Id,
-                Name = nameof(TwoStagePlanner),
-                Instruction = firstStagePlanPrompt
-            }, dialogs);
-
-            text = response.Content;
-            plan = response.Content.JsonArrayContent<FirstStagePlan>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"{ex.Message}: {text}");
-        }
-
-        return plan;
     }
 
     private async Task<string> GetFirstStagePlanPrompt(Agent router)
@@ -257,7 +222,7 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
             var response = await completion.GetChatCompletions(new Agent
             {
                 Id = router.Id,
-                Name = nameof(TwoStagePlanner),
+                Name = nameof(TwoStageTaskPlanner),
                 Instruction = firstStageSystemPrompt
             }, conversations);
 

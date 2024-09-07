@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Core.Knowledges.Services;
 using BotSharp.Plugin.KnowledgeBase.Converters;
 using BotSharp.Plugin.KnowledgeBase.Hooks;
+using BotSharp.Plugin.KnowledgeBase.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Plugin.KnowledgeBase;
