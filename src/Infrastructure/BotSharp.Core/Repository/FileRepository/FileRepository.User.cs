@@ -11,6 +11,11 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.Email == email.ToLower());
     }
 
+    public User? GetUserByPhone(string phone)
+    {
+        return Users.FirstOrDefault(x => x.Phone == phone);
+    }
+
     public User? GetUserById(string id = null)
     {
         return Users.FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
