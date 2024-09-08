@@ -24,14 +24,3 @@ public class ConversationFilter
     /// </summary>
     public IEnumerable<KeyValue> States { get; set; } = new List<KeyValue>();
 }
-
-public class KeyValue
-{
-    public string Key { get; set; }
-    public string? Value { get; set; }
-
-    public override string ToString()
-    {
-        return $"Key: {Key}, Value: {Value}";
-    }
-}

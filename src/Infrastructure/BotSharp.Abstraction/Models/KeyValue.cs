@@ -7,4 +7,9 @@ public class KeyValue
 
     [JsonPropertyName("value")]
     public string Value { get; set; }
+
+    public override string ToString()
+    {
+        return $"Key: {Key}, Value: {Value}";
+    }
 }
