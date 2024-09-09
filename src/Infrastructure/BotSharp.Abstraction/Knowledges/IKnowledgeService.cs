@@ -23,4 +23,8 @@ public interface IKnowledgeService
 
     #region Document
     #endregion
+
+    #region Common
+    Task<bool> RefreshVectorKnowledgeConfigs(VectorCollectionConfigsModel configs);
+    #endregion
 }

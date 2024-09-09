@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Repositories;
 
@@ -98,5 +99,10 @@ public interface IBotSharpRepository
     IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries);
     bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs);
 
+    #endregion
+
+    #region Knowledge
+    bool SaveKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs);
+    VectorCollectionConfig? GetKnowledgeCollectionConfig(string collectionName);
     #endregion
 }

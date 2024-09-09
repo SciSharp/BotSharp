@@ -144,6 +144,15 @@ public class KnowledgeBaseController : ControllerBase
 
 
     #region Document
-    
+
+    #endregion
+
+    #region Common
+    [HttpPost("/knowledge/vector/refresh-configs")]
+    public async Task<string> RefreshVectorCollectionConfigs([FromBody] VectorCollectionConfigsModel request)
+    {
+        var saved = await _knowledgeService.RefreshVectorKnowledgeConfigs(request);
+        return saved ? "Success" : "Fail";
+    }
     #endregion
 }

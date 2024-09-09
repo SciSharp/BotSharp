@@ -4,22 +4,29 @@ public static class KnowledgeSettingHelper
 {
     public static ITextEmbedding GetTextEmbeddingSetting(IServiceProvider services, string collectionName)
     {
-        var settings = services.GetRequiredService<KnowledgeBaseSettings>();
-        var found = settings.Collections.FirstOrDefault(x => x.Name == collectionName)?.TextEmbedding;
+        var db = services.GetRequiredService<IBotSharpRepository>();
+        var config = db.GetKnowledgeCollectionConfig(collectionName);
+        var found = config?.TextEmbedding;
+        var provider = found?.Provider;
+        var model = found?.Model;
+        var dimension = found?.Dimension ?? 0;
+
         if (found == null)
         {
-            found = settings.Default.TextEmbedding;
+            var settings = services.GetRequiredService<KnowledgeBaseSettings>();
+            provider = settings.Default.TextEmbedding.Provider;
+            model = settings.Default.TextEmbedding.Model;
+            dimension = settings.Default.TextEmbedding.Dimension;
         }
 
-        var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == found.Provider);
-        var dimension = found.Dimension;
+        var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == provider);
 
-        if (found.Dimension <= 0)
+        if (dimension <= 0)
         {
-            dimension = GetLlmTextEmbeddingDimension(services, found.Provider, found.Model);
+            dimension = GetLlmTextEmbeddingDimension(services, provider, model);
         }
 
-        embedding.SetModelName(found.Model);
+        embedding.SetModelName(model);
         embedding.SetDimension(dimension);
         return embedding;
     }
