@@ -106,8 +106,27 @@ namespace BotSharp.Plugin.Twilio.Services
             var data = await completion.GenerateAudioFromTextAsync(reply.Content);
             var fileName = $"reply_{reply.MessageId}.mp3";
             fileStorage.SaveSpeechFile(message.ConversationId, fileName, data);
-
             reply.SpeechFileName = fileName;
+            var phrases = reply.Content.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            int capcity = 100;
+            var hints = new List<string>(capcity);
+            for (int i = phrases.Length - 1; i >= 0; i--)
+            {
+                var words = phrases[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                for (int j = words.Length - 1; j >= 0; j--)
+                {
+                    hints.Add(words[j]);
+                    if (hints.Count >= capcity)
+                    {
+                        break;
+                    }
+                }
+                if (hints.Count >= capcity)
+                {
+                    break;
+                }
+            }
+            reply.Hints = string.Join(',', hints);
             reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
         }
