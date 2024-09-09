@@ -213,7 +213,7 @@ public class TwilioVoiceController : TwilioController
                 response = twilio.ReturnInstructions(new List<string>
                 {
                     $"twilio/voice/speeches/{conversationId}/{reply.SpeechFileName}"
-                }, $"twilio/voice/{conversationId}/receive/{nextSeqNum}?states={states}", true);
+                }, $"twilio/voice/{conversationId}/receive/{nextSeqNum}?states={states}", true, hints:reply.Hints);
             }
         }
 
