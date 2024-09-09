@@ -235,7 +235,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     #endregion
 
     #region Knowledge
-    public bool SaveKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs) =>
+    public bool ResetKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs) =>
         throw new NotImplementedException();
 
     public VectorCollectionConfig? GetKnowledgeCollectionConfig(string collectionName) =>

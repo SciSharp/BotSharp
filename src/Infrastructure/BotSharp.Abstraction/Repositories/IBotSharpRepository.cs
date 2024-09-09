@@ -102,7 +102,7 @@ public interface IBotSharpRepository
     #endregion
 
     #region Knowledge
-    bool SaveKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs);
+    bool ResetKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs);
     VectorCollectionConfig? GetKnowledgeCollectionConfig(string collectionName);
     #endregion
 }

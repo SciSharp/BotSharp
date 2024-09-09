@@ -3,15 +3,18 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public partial class KnowledgeService : IKnowledgeService
 {
     private readonly IServiceProvider _services;
+    private readonly IUserIdentity _user;
     private readonly KnowledgeBaseSettings _settings;
     private readonly ILogger<KnowledgeService> _logger;
 
     public KnowledgeService(
         IServiceProvider services,
+        IUserIdentity user,
         KnowledgeBaseSettings settings,
         ILogger<KnowledgeService> logger)
     {
         _services = services;
+        _user = user;
         _settings = settings;
         _logger = logger;
     }

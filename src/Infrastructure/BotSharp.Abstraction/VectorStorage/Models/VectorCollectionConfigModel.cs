@@ -16,6 +16,12 @@ public class VectorCollectionConfig
 
     [JsonPropertyName("text_embedding")]
     public KnowledgeEmbeddingConfig TextEmbedding { get; set; }
+
+    [JsonPropertyName("create_date")]
+    public DateTime CreateDate { get; set; } = DateTime.UtcNow;
+
+    [JsonPropertyName("create_user_id")]
+    public string CreateUserId { get; set; } = string.Empty;
 }
 
 public class KnowledgeEmbeddingConfig
