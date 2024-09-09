@@ -133,6 +133,17 @@ public class TwilioService
         return response;
     }
 
+    public VoiceResponse DialCsrAgent(string speechPath)
+    {
+        var response = new VoiceResponse();
+        if (!string.IsNullOrEmpty(speechPath))
+        {
+            response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+        }
+        response.Dial(_settings.CsrAgentNumber);
+        return response;
+    }
+
     public VoiceResponse HoldOn(int interval, string message = null)
     {
         var twilioSetting = _services.GetRequiredService<TwilioSetting>();
