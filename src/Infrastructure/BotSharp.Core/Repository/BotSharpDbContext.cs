@@ -145,7 +145,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public List<Conversation> GetLastConversations()
         => throw new NotImplementedException();
 
-    public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
+    public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds)
         => throw new NotImplementedException();
 
     public List<DialogElement> GetConversationDialogs(string conversationId)

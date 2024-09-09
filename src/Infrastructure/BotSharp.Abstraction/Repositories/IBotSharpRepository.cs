@@ -68,7 +68,7 @@ public interface IBotSharpRepository
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
     ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
     List<Conversation> GetLastConversations();
-    List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours);
+    List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds);
     IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
     #endregion
     

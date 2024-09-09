@@ -378,7 +378,7 @@ namespace BotSharp.Core.Repository
                           .ToList();
         }
 
-        public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
+        public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds)
         {
             var ids = new List<string>();
             var batchLimit = 100;
@@ -423,7 +423,7 @@ namespace BotSharp.Core.Repository
                     continue;
                 }
 
-                if (conv.UpdatedTime > utcNow.AddHours(-bufferHours))
+                if (excludeAgentIds.Contains(conv.AgentId) || conv.UpdatedTime > utcNow.AddHours(-bufferHours))
                 {
                     continue;
                 }
