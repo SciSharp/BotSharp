@@ -126,7 +126,7 @@ namespace BotSharp.Plugin.Twilio.Services
                     break;
                 }
             }
-            reply.Hints = string.Join(',', hints);
+            reply.Hints = string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
             reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
         }
