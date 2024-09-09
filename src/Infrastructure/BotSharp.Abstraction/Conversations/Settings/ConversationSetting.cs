@@ -12,8 +12,8 @@ public class ConversationSetting
     public bool EnableContentLog { get; set; }
     public bool EnableStateLog { get; set; }
     public bool EnableTranslationMemory { get; set; }
-    public CleanConversationSetting CleanSetting { get; set; } = new CleanConversationSetting();
-    public RateLimitSetting RateLimit { get; set; } = new RateLimitSetting();
+    public CleanConversationSetting CleanSetting { get; set; } = new();
+    public RateLimitSetting RateLimit { get; set; } = new();
 }
 
 public class CleanConversationSetting
@@ -22,5 +22,5 @@ public class CleanConversationSetting
     public int BatchSize { get; set; }
     public int MessageLimit { get; set; }
     public int BufferHours { get; set; }
-
+    public IEnumerable<string> ExcludeAgentIds { get; set; } = new List<string>();
 }
