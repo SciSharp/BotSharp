@@ -235,10 +235,13 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     #endregion
 
     #region Knowledge
-    public bool ResetKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs) =>
+    public bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false) =>
         throw new NotImplementedException();
 
-    public VectorCollectionConfig? GetKnowledgeCollectionConfig(string collectionName) =>
+    public bool DeleteKnowledgeCollectionConfig(string collectionName) =>
+        throw new NotImplementedException();
+
+    public IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter) =>
         throw new NotImplementedException();
     #endregion
 }

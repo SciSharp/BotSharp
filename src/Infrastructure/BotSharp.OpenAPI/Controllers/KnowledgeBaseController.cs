@@ -20,19 +20,19 @@ public class KnowledgeBaseController : ControllerBase
 
     #region Vector
     [HttpGet("knowledge/vector/collections")]
-    public async Task<IEnumerable<string>> GetVectorCollections()
+    public async Task<IEnumerable<string>> GetVectorCollections([FromQuery] string type)
     {
-        return await _knowledgeService.GetVectorCollections();
+        return await _knowledgeService.GetVectorCollections(type);
     }
 
-    [HttpPost("knowledge/vector/{collection}/create-collection/{dimension}")]
-    public async Task<bool> CreateVectorCollection([FromRoute] string collection, [FromRoute] int dimension)
+    [HttpPost("knowledge/vector/create-collection")]
+    public async Task<bool> CreateVectorCollection([FromBody] CreateVectorCollectionRequest request)
     {
-        return await _knowledgeService.CreateVectorCollection(collection, dimension);
+        return await _knowledgeService.CreateVectorCollection(request.CollectionName, request.CollectionType, request.Dimension, request.Provider, request.Model);
     }
 
     [HttpDelete("knowledge/vector/{collection}/delete-collection")]
-    public async Task<bool> GetVectorCollections([FromRoute] string collection)
+    public async Task<bool> DeleteVectorCollections([FromRoute] string collection)
     {
         return await _knowledgeService.DeleteVectorCollection(collection);
     }

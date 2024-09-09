@@ -35,4 +35,20 @@ public partial class KnowledgeService : IKnowledgeService
     {
         return KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collection);
     }
+
+    private VectorCollectionConfig? GetVectorCollectionConfig(string collection)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        {
+            CollectionNames = new[] { collection }
+        })?.FirstOrDefault();
+    }
+
+    private async Task<string> GetUserId()
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        return user.Id;
+    }
 }

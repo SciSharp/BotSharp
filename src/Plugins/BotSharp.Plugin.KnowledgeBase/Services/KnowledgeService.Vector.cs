@@ -3,7 +3,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public partial class KnowledgeService
 {
     #region Collection
-    public async Task<bool> CreateVectorCollection(string collectionName, int dimension)
+    public async Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model)
     {
         try
         {
@@ -12,8 +12,32 @@ public partial class KnowledgeService
                 return false;
             }
 
-            var db = GetVectorDb();
-            return await db.CreateCollection(collectionName, dimension);
+            var vectorDb = GetVectorDb();
+            var created = await vectorDb.CreateCollection(collectionName, dimension);
+            if (created)
+            {
+                var db = _services.GetRequiredService<IBotSharpRepository>();
+                var userId = await GetUserId();
+
+                db.AddKnowledgeCollectionConfigs(new List<VectorCollectionConfig>
+                {
+                    new VectorCollectionConfig
+                    {
+                        Name = collectionName,
+                        Type = collectionType,
+                        TextEmbedding = new KnowledgeEmbeddingConfig
+                        {
+                            Provider = provider,
+                            Model = model,
+                            Dimension = dimension
+                        },
+                        CreateDate = DateTime.UtcNow,
+                        CreateUserId = userId
+                    }
+                });
+            }
+
+            return created;
         }
         catch (Exception ex)
         {
@@ -22,12 +46,19 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<IEnumerable<string>> GetVectorCollections()
+    public async Task<IEnumerable<string>> GetVectorCollections(string type)
     {
         try
         {
-            var db = GetVectorDb();
-            return await db.GetCollections();
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var collectionNames = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+            {
+                CollectionTypes = new[] { type }
+            }).Select(x => x.Name).ToList();
+
+            var vectorDb = GetVectorDb();
+            var vectorCollections = await vectorDb.GetCollections();
+            return vectorCollections.Where(x => collectionNames.Contains(x));
         }
         catch (Exception ex)
         {
@@ -45,8 +76,16 @@ public partial class KnowledgeService
                 return false;
             }
 
-            var db = GetVectorDb();
-            return await db.DeleteCollection(collectionName);
+            var vectorDb = GetVectorDb();
+            var deleted = await vectorDb.DeleteCollection(collectionName);
+
+            if (deleted)
+            {
+                var db = _services.GetRequiredService<IBotSharpRepository>();
+                db.DeleteKnowledgeCollectionConfig(collectionName);
+            }
+
+            return deleted;
         }
         catch (Exception ex)
         {

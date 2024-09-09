@@ -6,16 +6,15 @@ public partial class KnowledgeService
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var collections = configs.Collections ?? new();
-        var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
+        var userId = await GetUserId();
 
         foreach (var collection in collections)
         {
             collection.CreateDate = DateTime.UtcNow;
-            collection.CreateUserId = user.Id;
+            collection.CreateUserId = userId;
         }
 
-        var saved = db.ResetKnowledgeCollectionConfigs(collections);
+        var saved = db.AddKnowledgeCollectionConfigs(collections, reset: true);
         return await Task.FromResult(saved);
     }
 }

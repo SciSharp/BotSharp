@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public bool ResetKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs)
+    public bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false)
     {
         var docs = configs?.Select(x => new KnowledgeCollectionConfigDocument
         {
@@ -16,28 +16,45 @@ public partial class MongoRepository
             CreateUserId = x.CreateUserId,
         })?.ToList() ?? new List<KnowledgeCollectionConfigDocument>();
 
-        var filter = Builders<KnowledgeCollectionConfigDocument>.Filter.Empty;
-        _dc.KnowledgeCollectionConfigs.DeleteMany(filter);
-        _dc.KnowledgeCollectionConfigs.InsertMany(docs);
+        if (reset)
+        {
+            var filter = Builders<KnowledgeCollectionConfigDocument>.Filter.Empty;
+            _dc.KnowledgeCollectionConfigs.DeleteMany(filter);
+        }
 
+        _dc.KnowledgeCollectionConfigs.InsertMany(docs);
         return true;
     }
 
-    public VectorCollectionConfig? GetKnowledgeCollectionConfig(string collectionName)
+    public bool DeleteKnowledgeCollectionConfig(string collectionName)
     {
-        if (string.IsNullOrWhiteSpace(collectionName)) return null;
+        if (string.IsNullOrWhiteSpace(collectionName)) return false;
 
         var filter = Builders<KnowledgeCollectionConfigDocument>.Filter.Eq(x => x.Name, collectionName);
-        var config = _dc.KnowledgeCollectionConfigs.Find(filter).FirstOrDefault();
-        if (config == null) return null;
+        var deleted = _dc.KnowledgeCollectionConfigs.DeleteMany(filter);
+        return deleted.DeletedCount > 0;
+    }
 
-        return new VectorCollectionConfig
+    public IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
+    {
+        if (filter == null)
         {
-            Name = config.Name,
-            Type = config.Type,
-            TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToDomainModel(config.TextEmbedding),
-            CreateDate = config.CreateDate,
-            CreateUserId = config.CreateUserId
-        };
+            return Enumerable.Empty<VectorCollectionConfig>();
+        }
+
+        var builder = Builders<KnowledgeCollectionConfigDocument>.Filter;
+        var filters = new List<FilterDefinition<KnowledgeCollectionConfigDocument>> { builder.Empty };
+
+        var configs = _dc.KnowledgeCollectionConfigs.Find(Builders<KnowledgeCollectionConfigDocument>.Filter.And(filters)).ToList();
+
+
+        return configs.Select(x => new VectorCollectionConfig
+        {
+            Name = x.Name,
+            Type = x.Type,
+            TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToDomainModel(x.TextEmbedding),
+            CreateDate = x.CreateDate,
+            CreateUserId= x.CreateUserId
+        });
     }
 }

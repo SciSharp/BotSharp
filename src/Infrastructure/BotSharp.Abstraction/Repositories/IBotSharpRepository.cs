@@ -102,7 +102,14 @@ public interface IBotSharpRepository
     #endregion
 
     #region Knowledge
-    bool ResetKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs);
-    VectorCollectionConfig? GetKnowledgeCollectionConfig(string collectionName);
+    /// <summary>
+    /// Save knowledge collection configs. If reset is true, it will remove everything and then save the new configs.
+    /// </summary>
+    /// <param name="configs"></param>
+    /// <param name="reset"></param>
+    /// <returns></returns>
+    bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false);
+    bool DeleteKnowledgeCollectionConfig(string collectionName);
+    IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter);
     #endregion
 }

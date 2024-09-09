@@ -8,9 +8,15 @@ public class VectorCollectionConfigsModel
 
 public class VectorCollectionConfig
 {
+    /// <summary>
+    /// Must be unique
+    /// </summary>
     [JsonPropertyName("name")]
     public string Name { get; set; }
 
+    /// <summary>
+    /// Collection type, e.g., question-answer, document
+    /// </summary>
     [JsonPropertyName("type")]
     public string Type { get; set; }
 

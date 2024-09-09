@@ -5,10 +5,14 @@ public static class KnowledgeSettingHelper
     public static ITextEmbedding GetTextEmbeddingSetting(IServiceProvider services, string collectionName)
     {
         var db = services.GetRequiredService<IBotSharpRepository>();
-        var config = db.GetKnowledgeCollectionConfig(collectionName);
-        var found = config?.TextEmbedding;
-        var provider = found?.Provider;
-        var model = found?.Model;
+        var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        {
+            CollectionNames = new[] { collectionName }
+        });
+
+        var found = configs?.FirstOrDefault()?.TextEmbedding;
+        var provider = found?.Provider ?? string.Empty;
+        var model = found?.Model ?? string.Empty;
         var dimension = found?.Dimension ?? 0;
 
         if (found == null)

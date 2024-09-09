@@ -6,9 +6,9 @@ namespace BotSharp.Abstraction.Knowledges;
 public interface IKnowledgeService
 {
     #region Vector
-    Task<bool> CreateVectorCollection(string collectionName, int dimension);
+    Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model);
     Task<bool> DeleteVectorCollection(string collectionName);
-    Task<IEnumerable<string>> GetVectorCollections();
+    Task<IEnumerable<string>> GetVectorCollections(string type);
     Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
     Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel model);
     Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
