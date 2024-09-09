@@ -14,7 +14,7 @@ public class NativeWhisperProvider : IAudioCompletion
     private readonly IFileStorageService _fileStorage;
     private readonly ILogger<NativeWhisperProvider> _logger;
 
-    public string Provider => "native";
+    public string Provider => "native-whisper";
 
     public NativeWhisperProvider(
         BotSharpDatabaseSettings dbSettings,

@@ -40,7 +40,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string AGENT_RESPONSES_FOLDER = "responses";
     private const string AGENT_TASKS_FOLDER = "tasks";
     private const string USERS_FOLDER = "users";
-    private const string KNOWLEDGE_FOLDER = "knowledge";
+    private const string KNOWLEDGE_FOLDER = "knowledgebase";
     private const string VECTOR_FOLDER = "vector";
     private const string COLLECTION_CONFIG_FILE = "collection-config.json";
 

@@ -19,6 +19,8 @@ public partial class LocalFileStorageService : IFileStorageService
     private const string USER_AVATAR_FOLDER = "avatar";
     private const string SESSION_FOLDER = "sessions";
     private const string TEXT_TO_SPEECH_FOLDER = "speeches";
+    private const string KNOWLEDGE_FOLDER = "knowledgebase";
+    private const string KNOWLEDGE_DOC_FOLDER = "document";
 
     public LocalFileStorageService(
         BotSharpDatabaseSettings dbSettings,

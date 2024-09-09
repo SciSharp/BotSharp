@@ -99,29 +99,6 @@ public class KnowledgeBaseController : ControllerBase
     {
         return await _knowledgeService.DeleteVectorCollectionData(collection, id);
     }
-
-    [HttpPost("/knowledge/vector/{collection}/upload")]
-    public async Task<IActionResult> UploadVectorKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
-    {
-        var setttings = _services.GetRequiredService<FileCoreSettings>();
-        var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Provider == setttings.Pdf2TextConverter.Provider);
-
-        var filePath = Path.GetTempFileName();
-        using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            await file.CopyToAsync(stream);
-            await stream.FlushAsync();
-        }
-
-        var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
-        await _knowledgeService.FeedVectorKnowledge(collection, new KnowledgeCreationModel
-        {
-            Content = content
-        });
-
-        System.IO.File.Delete(filePath);
-        return Ok(new { count = 1, file.Length });
-    }
     #endregion
 
 
@@ -144,7 +121,35 @@ public class KnowledgeBaseController : ControllerBase
 
 
     #region Document
+    //[HttpPost("/knowledge/vector/{collection}/upload")]
+    //public async Task<IActionResult> UploadVectorKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
+    //{
+    //    var setttings = _services.GetRequiredService<FileCoreSettings>();
+    //    var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Provider == setttings.Pdf2TextConverter.Provider);
 
+    //    var filePath = Path.GetTempFileName();
+    //    using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+    //    {
+    //        await file.CopyToAsync(stream);
+    //        await stream.FlushAsync();
+    //    }
+
+    //    var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
+    //    await _knowledgeService.FeedVectorKnowledge(collection, new KnowledgeCreationModel
+    //    {
+    //        Content = content
+    //    });
+
+    //    System.IO.File.Delete(filePath);
+    //    return Ok(new { count = 1, file.Length });
+    //}
+
+    [HttpPost("/knowledge/vector/{collection}/upload")]
+    public async Task<UploadKnowledgeResponse> UploadVectorKnowledge([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
+    {
+        var response = await _knowledgeService.UploadVectorKnowledge(collection, request.Files);
+        return response;
+    }
     #endregion
 
     #region Common

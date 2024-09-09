@@ -61,4 +61,8 @@ public interface IFileStorageService
     bool SaveSpeechFile(string conversationId, string fileName, BinaryData data);
     BinaryData GetSpeechFile(string conversationId, string fileName);
     #endregion
+
+    #region Knowledge
+    bool SaveKnowledgeFiles(string collectionName, string fileId, string fileName, Stream stream);
+    #endregion
 }

@@ -44,6 +44,13 @@ public static class StringExtensions
         return str1.Equals(str2, option);
     }
 
+    public static string RemoveWhiteSpaces(this string? str)
+    {
+        if (string.IsNullOrWhiteSpace(str)) return string.Empty;
+
+        return str.Replace(" ", "").Replace("\t", "").Replace("\n", "").Replace("\r", "");
+    }
+
     public static string JsonContent(this string text)
     {
         var m = Regex.Match(text, @"\{(?:[^{}]|(?<open>\{)|(?<-open>\}))+(?(open)(?!))\}");

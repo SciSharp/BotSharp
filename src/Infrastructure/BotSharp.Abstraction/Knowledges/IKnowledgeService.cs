@@ -22,6 +22,7 @@ public interface IKnowledgeService
     #endregion
 
     #region Document
+    Task<UploadKnowledgeResponse> UploadVectorKnowledge(string collectionName, IEnumerable<InputFileModel> files);
     #endregion
 
     #region Common
