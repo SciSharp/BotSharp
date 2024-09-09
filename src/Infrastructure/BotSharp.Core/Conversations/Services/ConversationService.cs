@@ -70,10 +70,10 @@ public partial class ConversationService : IConversationService
         return db.GetLastConversations();
     }
 
-    public async Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
+    public async Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetIdleConversations(batchSize, messageLimit, bufferHours);
+        return db.GetIdleConversations(batchSize, messageLimit, bufferHours, excludeAgentIds ?? new List<string>());
     }
 
     public async Task<Conversation> NewConversation(Conversation sess)
