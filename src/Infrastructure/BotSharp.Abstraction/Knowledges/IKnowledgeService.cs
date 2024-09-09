@@ -19,6 +19,8 @@ public interface IKnowledgeService
 
     #region Graph
     Task<GraphSearchResult> SearchGraphKnowledge(string query, GraphSearchOptions options);
-    Task<KnowledgeSearchResult> SearchKnowledge(string query, string collectionName, VectorSearchOptions vectorOptions, GraphSearchOptions graphOptions);
+    #endregion
+
+    #region Document
     #endregion
 }

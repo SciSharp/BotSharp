@@ -143,29 +143,7 @@ public class KnowledgeBaseController : ControllerBase
     #endregion
 
 
-    #region Knowledge
-    [HttpPost("/knowledge/search")]
-    public async Task<KnowledgeSearchViewModel> SearchKnowledge([FromBody] SearchKnowledgeRequest request)
-    {
-        var vectorOptions = new VectorSearchOptions
-        {
-            Fields = request.VectorParams.Fields,
-            Limit = request.VectorParams.Limit ?? 5,
-            Confidence = request.VectorParams.Confidence ?? 0.5f,
-            WithVector = request.VectorParams.WithVector
-        };
-
-        var graphOptions = new GraphSearchOptions
-        {
-            Method = request.GraphParams.Method
-        };
-
-        var result = await _knowledgeService.SearchKnowledge(request.Text, request.VectorParams.Collection, vectorOptions, graphOptions);
-        return new KnowledgeSearchViewModel
-        {
-            VectorResult = result?.VectorResult?.Select(x => VectorKnowledgeViewModel.From(x)),
-            GraphResult = result?.GraphResult != null ? new GraphKnowledgeViewModel { Result = result.GraphResult.Result } : null
-        };
-    }
+    #region Document
+    
     #endregion
 }
