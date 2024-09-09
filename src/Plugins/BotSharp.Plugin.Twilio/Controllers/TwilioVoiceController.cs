@@ -13,12 +13,14 @@ public class TwilioVoiceController : TwilioController
     private readonly TwilioSetting _settings;
     private readonly IServiceProvider _services;
     private readonly IHttpContextAccessor _context;
+    private readonly ILogger _logger;
 
-    public TwilioVoiceController(TwilioSetting settings, IServiceProvider services, IHttpContextAccessor context)
+    public TwilioVoiceController(TwilioSetting settings, IServiceProvider services, IHttpContextAccessor context, ILogger<TwilioVoiceController> logger)
     {
         _settings = settings;
         _services = services;
         _context = context;
+        _logger = logger;
     }
 
     /// <summary>
@@ -135,6 +137,7 @@ public class TwilioVoiceController : TwilioController
             var indication = await sessionManager.GetReplyIndicationAsync(conversationId, seqNum);
             if (indication != null)
             {
+                _logger.LogWarning($"Indication: {indication}");
                 var speechPaths = new List<string>();
                 int segIndex = 0;
                 foreach (var text in indication.Split('|'))
@@ -150,12 +153,22 @@ public class TwilioVoiceController : TwilioController
                         var data = await completion.GenerateAudioFromTextAsync(seg);
 
                         // add hold-on
-                        speechPaths.Add($"twilio/hold-on-short-{Random.Shared.Next(1, 7)}.mp3");
+                        var holdOnIndex = Random.Shared.Next(1, 10);
+                        if (holdOnIndex < 7)
+                        {
+                            speechPaths.Add($"twilio/hold-on-short-{holdOnIndex}.mp3");
+                        }
+                        
                         var fileName = $"indication_{seqNum}_{segIndex}.mp3";
                         fileStorage.SaveSpeechFile(conversationId, fileName, data);
                         speechPaths.Add($"twilio/voice/speeches/{conversationId}/{fileName}");
+
                         // add typing
-                        speechPaths.Add($"twilio/typing-{Random.Shared.Next(1, 4)}.mp3");
+                        var typingIndex = Random.Shared.Next(1, 7);
+                        if (typingIndex < 4)
+                        {
+                            speechPaths.Add($"twilio/typing-{typingIndex}.mp3");
+                        }
                         segIndex++;
                     }
                 }
@@ -164,11 +177,25 @@ public class TwilioVoiceController : TwilioController
             }
             else
             {
-                response = twilio.ReturnInstructions(new List<string>
+                var instructions = new List<string>
                 {
-                    $"twilio/hold-on-long-{Random.Shared.Next(1, 9)}.mp3",
-                    $"twilio/typing-{Random.Shared.Next(1, 4)}.mp3" 
-                }, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
+                };
+
+                // add hold-on
+                var holdOnIndex = Random.Shared.Next(1, 15);
+                if (holdOnIndex < 9)
+                {
+                    instructions.Add($"twilio/hold-on-long-{holdOnIndex}.mp3");
+                }
+
+                // add typing
+                var typingIndex = Random.Shared.Next(1, 7);
+                if (typingIndex < 4)
+                {
+                    instructions.Add($"twilio/typing-{typingIndex}.mp3");
+                }
+
+                response = twilio.ReturnInstructions(instructions, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
             }
         }
         else
