@@ -23,6 +23,7 @@ public interface IKnowledgeService
     #region Document
     Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files);
     Task<bool> DeleteKnowledgeDocument(string collectionName, string fileId);
+    Task<IEnumerable<KnowledgeFileModel>> GetKnowledgeDocuments(string collectionName);
     #endregion
 
     #region Common

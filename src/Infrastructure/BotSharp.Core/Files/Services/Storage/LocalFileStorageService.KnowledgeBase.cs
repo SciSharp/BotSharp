@@ -1,3 +1,6 @@
+using AspectInjector.Broker;
+using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Knowledges.Models;
 using System.IO;
 
@@ -89,7 +92,9 @@ public partial class LocalFileStorageService
 
     public KnowledgeDocMetaData? GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, string fileId)
     {
-        if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(fileId))
+        if (string.IsNullOrWhiteSpace(collectionName)
+            || string.IsNullOrWhiteSpace(vectorStoreProvider)
+            || string.IsNullOrWhiteSpace(fileId))
         {
             return null;
         }
@@ -106,8 +111,56 @@ public partial class LocalFileStorageService
         return metaData;
     }
 
+    public IEnumerable<KnowledgeFileModel> GetKnowledgeBaseFiles(string collectionName, string vectorStoreProvider)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)
+             || string.IsNullOrWhiteSpace(vectorStoreProvider))
+        {
+            return Enumerable.Empty<KnowledgeFileModel>();
+        }
+
+        var docDir = BuildKnowledgeCollectionDocumentDir(collectionName, vectorStoreProvider);
+        if (!ExistDirectory(docDir))
+        {
+            return Enumerable.Empty<KnowledgeFileModel>();
+        }
+
+        var files = new List<KnowledgeFileModel>();
+        foreach (var folder in Directory.GetDirectories(docDir))
+        {
+            var metaFile = Path.Combine(docDir, folder, KNOWLEDGE_DOC_META_FILE);
+            if (!File.Exists(metaFile)) continue;
+
+            var content = File.ReadAllText(metaFile);
+            var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _jsonOptions);
+            if (metaData == null) continue;
+
+            var fileName = Path.GetFileNameWithoutExtension(metaData.FileName);
+            var fileExtension = Path.GetExtension(metaData.FileName);
+
+            files.Add(new KnowledgeFileModel
+            {
+                FileId = metaData.FileId,
+                FileName = metaData.FileName,
+                FileExtension = fileExtension.Substring(1),
+                ContentType = FileUtility.GetFileContentType(metaData.FileName),
+                FileUrl = BuildKnowledgeFileUrl(collectionName, vectorStoreProvider, metaData.FileId)
+            });
+        }
+
+        return files;
+    }
+
+
+    #region Private methods
     private string BuildKnowledgeCollectionDocumentDir(string collectionName, string vectorStoreProvider)
     {
         return Path.Combine(_baseDir, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, vectorStoreProvider, collectionName);
     }
+
+    private string BuildKnowledgeFileUrl(string collectionName, string vectorProvider, string fileId)
+    {
+        return $"/knowledge/file/{vectorProvider}/{collectionName}/{fileId}";
+    }
+    #endregion
 }

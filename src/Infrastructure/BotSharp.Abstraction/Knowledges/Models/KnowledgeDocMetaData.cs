@@ -7,6 +7,9 @@ public class KnowledgeDocMetaData
     [JsonPropertyName("collection")]
     public string Collection { get; set; }
 
+    [JsonPropertyName("file_id")]
+    public string FileId { get; set; }
+
     [JsonPropertyName("file_name")]
     public string FileName { get; set; }
 

@@ -76,5 +76,7 @@ public interface IFileStorageService
     bool SaveKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider,string fileId, KnowledgeDocMetaData metaData);
 
     KnowledgeDocMetaData? GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, string fileId);
+
+    IEnumerable<KnowledgeFileModel> GetKnowledgeBaseFiles(string collectionName, string vectorStoreProvider);
     #endregion
 }

@@ -74,6 +74,7 @@ public partial class KnowledgeService
                     fileStoreage.SaveKnolwedgeBaseFileMeta(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId, new KnowledgeDocMetaData
                     {
                         Collection = collectionName,
+                        FileId = fileId,
                         FileName = file.FileName,
                         ContentType = contentType,
                         VectorDataIds = dataIds,
@@ -135,6 +136,21 @@ public partial class KnowledgeService
             return false;
         }
     }
+
+
+    public async Task<IEnumerable<KnowledgeFileModel>> GetKnowledgeDocuments(string collectionName)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName))
+        {
+            return Enumerable.Empty<KnowledgeFileModel>();
+        }
+
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var vectorStoreProvider = _settings.VectorDb.Provider;
+        var files = fileStorage.GetKnowledgeBaseFiles(collectionName.CleanStr(), vectorStoreProvider.CleanStr());
+        return files;
+    }
+
 
     public async Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel knowledge)
     {

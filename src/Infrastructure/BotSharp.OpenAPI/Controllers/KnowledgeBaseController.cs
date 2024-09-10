@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
@@ -134,7 +135,15 @@ public class KnowledgeBaseController : ControllerBase
         var response = await _knowledgeService.DeleteKnowledgeDocument(collection, fileId);
         return response;
     }
+
+    [HttpGet("/knowledge/document/{collection}/list")]
+    public async Task<IEnumerable<KnowledgeFileViewModel>> GetKnowledgeDocuments([FromRoute] string collection)
+    {
+        var files = await _knowledgeService.GetKnowledgeDocuments(collection);
+        return files.Select(x => KnowledgeFileViewModel.From(x));
+    }
     #endregion
+
 
     #region Common
     [HttpPost("/knowledge/vector/refresh-configs")]
@@ -142,6 +151,17 @@ public class KnowledgeBaseController : ControllerBase
     {
         var saved = await _knowledgeService.RefreshVectorKnowledgeConfigs(request);
         return saved ? "Success" : "Fail";
+    }
+    #endregion
+
+
+    #region Private methods
+    private FileContentResult BuildFileResult(string file)
+    {
+        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes, 0, (int)stream.Length);
+        return File(bytes, "application/octet-stream", Path.GetFileName(file));
     }
     #endregion
 }
