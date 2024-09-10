@@ -21,7 +21,6 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var state = _services.GetRequiredService<IConversationStateService>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        var fn = _services.GetRequiredService<IRoutingService>();
 
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
