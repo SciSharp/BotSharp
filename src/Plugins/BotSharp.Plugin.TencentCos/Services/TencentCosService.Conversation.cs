@@ -115,7 +115,7 @@ public partial class TencentCosService
         return foundMsgs;
     }
 
-    public bool SaveMessageFiles(string conversationId, string messageId, string source, List<InputFileModel> files)
+    public bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files)
     {
         if (files.IsNullOrEmpty()) return false;
 

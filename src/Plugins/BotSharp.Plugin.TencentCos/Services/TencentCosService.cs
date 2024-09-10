@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.Users;
 using BotSharp.Plugin.TencentCos.Settings;
 using System.Net.Mime;
