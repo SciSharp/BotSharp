@@ -7,4 +7,12 @@ public class UploadKnowledgeResponse
 
     [JsonPropertyName("failed")]
     public IEnumerable<string> Failed { get; set; } = new List<string>();
+
+    [JsonPropertyName("is_success")]
+    public bool IsSuccess {
+        get
+        {
+            return !Success.IsNullOrEmpty() && Failed.IsNullOrEmpty();
+        }
+    }
 }

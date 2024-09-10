@@ -10,7 +10,6 @@ public interface IKnowledgeService
     Task<bool> DeleteVectorCollection(string collectionName);
     Task<IEnumerable<string>> GetVectorCollections(string type);
     Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
-    Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel model);
     Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
     Task<bool> DeleteVectorCollectionData(string collectionName, string id);
     Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
@@ -22,7 +21,8 @@ public interface IKnowledgeService
     #endregion
 
     #region Document
-    Task<UploadKnowledgeResponse> UploadVectorKnowledge(string collectionName, IEnumerable<InputFileModel> files);
+    Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files);
+    Task<bool> DeleteKnowledgeDocument(string collectionName, string fileId);
     #endregion
 
     #region Common

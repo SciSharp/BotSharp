@@ -138,7 +138,7 @@ public class UserController : ControllerBase
     public bool UploadUserAvatar([FromBody] UserAvatarModel input)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-        var file = new InputFileModel
+        var file = new FileDataModel
         {
             FileName = input.FileName,
             FileData = input.FileData,

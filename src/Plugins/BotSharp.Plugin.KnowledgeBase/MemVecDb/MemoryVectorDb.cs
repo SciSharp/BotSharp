@@ -74,7 +74,7 @@ public class MemoryVectorDb : IVectorDb
         return true;
     }
 
-    public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
+    public async Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
     {
         return await Task.FromResult(false);
     }

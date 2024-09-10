@@ -101,7 +101,7 @@ public interface IBotSharpRepository
 
     #endregion
 
-    #region Knowledge
+    #region KnowledgeBase
     /// <summary>
     /// Save knowledge collection configs. If reset is true, it will remove everything and then save the new configs.
     /// </summary>

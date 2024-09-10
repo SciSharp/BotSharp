@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Files.Models;
 
-public class InputFileModel : FileBase
+public class FileDataModel : FileBase
 {
     /// <summary>
     /// File name with extension

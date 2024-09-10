@@ -32,7 +32,7 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     [HttpDelete("knowledge/vector/{collection}/delete-collection")]
-    public async Task<bool> DeleteVectorCollections([FromRoute] string collection)
+    public async Task<bool> DeleteVectorCollection([FromRoute] string collection)
     {
         return await _knowledgeService.DeleteVectorCollection(collection);
     }
@@ -121,33 +121,17 @@ public class KnowledgeBaseController : ControllerBase
 
 
     #region Document
-    //[HttpPost("/knowledge/vector/{collection}/upload")]
-    //public async Task<IActionResult> UploadVectorKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
-    //{
-    //    var setttings = _services.GetRequiredService<FileCoreSettings>();
-    //    var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Provider == setttings.Pdf2TextConverter.Provider);
-
-    //    var filePath = Path.GetTempFileName();
-    //    using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-    //    {
-    //        await file.CopyToAsync(stream);
-    //        await stream.FlushAsync();
-    //    }
-
-    //    var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
-    //    await _knowledgeService.FeedVectorKnowledge(collection, new KnowledgeCreationModel
-    //    {
-    //        Content = content
-    //    });
-
-    //    System.IO.File.Delete(filePath);
-    //    return Ok(new { count = 1, file.Length });
-    //}
-
-    [HttpPost("/knowledge/vector/{collection}/upload")]
-    public async Task<UploadKnowledgeResponse> UploadVectorKnowledge([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
+    [HttpPost("/knowledge/document/{collection}/upload")]
+    public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
     {
-        var response = await _knowledgeService.UploadVectorKnowledge(collection, request.Files);
+        var response = await _knowledgeService.UploadKnowledgeDocuments(collection, request.Files);
+        return response;
+    }
+
+    [HttpDelete("/knowledge/document/{collection}/delete/{fileId}")]
+    public async Task<bool> DeleteKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
+    {
+        var response = await _knowledgeService.DeleteKnowledgeDocument(collection, fileId);
         return response;
     }
     #endregion

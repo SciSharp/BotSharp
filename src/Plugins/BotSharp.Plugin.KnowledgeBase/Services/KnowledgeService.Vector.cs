@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Files;
+
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
@@ -25,14 +27,16 @@ public partial class KnowledgeService
                     {
                         Name = collectionName,
                         Type = collectionType,
+                        VectorStorage = new VectorStorageConfig
+                        {
+                            Provider = _settings.VectorDb.Provider
+                        },
                         TextEmbedding = new KnowledgeEmbeddingConfig
                         {
                             Provider = provider,
                             Model = model,
                             Dimension = dimension
-                        },
-                        CreateDate = DateTime.UtcNow,
-                        CreateUserId = userId
+                        }
                     }
                 });
             }
@@ -53,7 +57,8 @@ public partial class KnowledgeService
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var collectionNames = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
             {
-                CollectionTypes = new[] { type }
+                CollectionTypes = new[] { type },
+                VectorStroageProviders = new[] { _settings.VectorDb.Provider }
             }).Select(x => x.Name).ToList();
 
             var vectorDb = GetVectorDb();
@@ -82,7 +87,11 @@ public partial class KnowledgeService
             if (deleted)
             {
                 var db = _services.GetRequiredService<IBotSharpRepository>();
+                var fileStorage = _services.GetRequiredService<IFileStorageService>();
+                var vectorStoreProvider = _settings.VectorDb.Provider;
+
                 db.DeleteKnowledgeCollectionConfig(collectionName);
+                fileStorage.DeleteKnowledgeFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr());
             }
 
             return deleted;
@@ -156,7 +165,7 @@ public partial class KnowledgeService
             }
 
             var db = GetVectorDb();
-            return await db.DeleteCollectionData(collectionName, guid);
+            return await db.DeleteCollectionData(collectionName, new List<Guid> { guid });
         }
         catch (Exception ex)
         {
@@ -202,7 +211,7 @@ public partial class KnowledgeService
         catch (Exception ex)
         {
             _logger.LogWarning($"Error when searching vector knowledge ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
-            return new List<VectorSearchResult>();
+            return Enumerable.Empty<VectorSearchResult>();
         }
     }
     #endregion

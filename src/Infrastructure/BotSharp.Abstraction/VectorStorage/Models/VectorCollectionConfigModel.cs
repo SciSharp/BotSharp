@@ -20,14 +20,11 @@ public class VectorCollectionConfig
     [JsonPropertyName("type")]
     public string Type { get; set; }
 
+    [JsonPropertyName("vector_storage")]
+    public VectorStorageConfig VectorStorage { get; set; }
+
     [JsonPropertyName("text_embedding")]
     public KnowledgeEmbeddingConfig TextEmbedding { get; set; }
-
-    [JsonPropertyName("create_date")]
-    public DateTime CreateDate { get; set; } = DateTime.UtcNow;
-
-    [JsonPropertyName("create_user_id")]
-    public string CreateUserId { get; set; } = string.Empty;
 }
 
 public class KnowledgeEmbeddingConfig
@@ -40,4 +37,10 @@ public class KnowledgeEmbeddingConfig
 
     [JsonPropertyName("dimension")]
     public int Dimension { get; set; }
+}
+
+public class VectorStorageConfig
+{
+    [JsonPropertyName("provider")]
+    public string Provider { get; set; }
 }

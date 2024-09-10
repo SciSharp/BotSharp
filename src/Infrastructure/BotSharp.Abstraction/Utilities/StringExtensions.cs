@@ -44,7 +44,7 @@ public static class StringExtensions
         return str1.Equals(str2, option);
     }
 
-    public static string RemoveWhiteSpaces(this string? str)
+    public static string CleanStr(this string? str)
     {
         if (string.IsNullOrWhiteSpace(str)) return string.Empty;
 
