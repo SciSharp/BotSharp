@@ -17,39 +17,33 @@ public class SqlSelect : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
-        var sqlDriver = _services.GetRequiredService<SqlDriverService>();
+
+        if (args.GeneratedWithoutTableDefinition)
+        {
+            message.Content = $"Get the table definition first.";
+            return false;
+        }
 
         // check if need to instantely
-        var execNow = !args.Parameters.Any(x => x.Value.StartsWith("@"));
-        if (execNow)
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
+        var dictionary = new Dictionary<string, object>();
+        foreach(var p in args.Parameters)
         {
-            var settings = _services.GetRequiredService<SqlDriverSetting>();
-            using var connection = new MySqlConnection(settings.MySqlConnectionString);
-            var dictionary = new Dictionary<string, object>();
-            foreach(var p in args.Parameters)
-            {
-                dictionary["@" + p.Name] = p.Value;
-            }
-            var result = connection.QueryFirstOrDefault(args.Statement, dictionary);
+            dictionary["@" + p.Name] = p.Value;
+        }
+        var result = connection.Query(args.Statement, dictionary);
 
-            if (result == null)
-            {
-                message.Content = "Record not found";
-            }
-            else
-            {
-                message.Content = JsonSerializer.Serialize(result);
-                args.Return.Value = message.Content;
-            }
-            
-            sqlDriver.Enqueue(args);
+        if (result == null)
+        {
+            message.Content = "Record not found";
         }
         else
         {
-            sqlDriver.Enqueue(args);
-            message.Content = $"The {args.Return.Name} is saved to @{args.Return.Alias}";
+            message.Content = JsonSerializer.Serialize(result);
+            args.Return.Value = message.Content;
         }
-        
+            
         return true;
     }
 }
