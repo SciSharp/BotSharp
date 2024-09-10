@@ -66,7 +66,7 @@ public class TwilioService
         return response;
     }
 
-    public VoiceResponse ReturnInstructions(List<string> speechPaths, string callbackPath, bool actionOnEmptyResult, int timeout = 3)
+    public VoiceResponse ReturnInstructions(List<string> speechPaths, string callbackPath, bool actionOnEmptyResult, int timeout = 3, string hints = null)
     {
         var response = new VoiceResponse();
         var gather = new Gather()
@@ -81,7 +81,7 @@ public class TwilioService
             SpeechTimeout = "auto", // timeout > 0 ? timeout.ToString() : "3",
             Timeout = timeout > 0 ? timeout : 3,
             ActionOnEmptyResult = actionOnEmptyResult,
-            Hints = "Yes, No, Correct"
+            Hints = hints
         };
 
         if (!speechPaths.IsNullOrEmpty())
