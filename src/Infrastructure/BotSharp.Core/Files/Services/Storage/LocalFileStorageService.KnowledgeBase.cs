@@ -2,6 +2,7 @@ using AspectInjector.Broker;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Knowledges.Models;
+using StackExchange.Redis;
 using System.IO;
 
 namespace BotSharp.Core.Files.Services;
@@ -128,7 +129,7 @@ public partial class LocalFileStorageService
         var files = new List<KnowledgeFileModel>();
         foreach (var folder in Directory.GetDirectories(docDir))
         {
-            var metaFile = Path.Combine(docDir, folder, KNOWLEDGE_DOC_META_FILE);
+            var metaFile = Path.Combine(folder, KNOWLEDGE_DOC_META_FILE);
             if (!File.Exists(metaFile)) continue;
 
             var content = File.ReadAllText(metaFile);
@@ -144,11 +145,37 @@ public partial class LocalFileStorageService
                 FileName = metaData.FileName,
                 FileExtension = fileExtension.Substring(1),
                 ContentType = FileUtility.GetFileContentType(metaData.FileName),
-                FileUrl = BuildKnowledgeFileUrl(collectionName, vectorStoreProvider, metaData.FileId)
+                FileUrl = BuildKnowledgeFileUrl(collectionName, metaData.FileId)
             });
         }
 
         return files;
+    }
+
+    public FileBinaryDataModel? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, string fileId)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)
+            || string.IsNullOrWhiteSpace(vectorStoreProvider)
+            || string.IsNullOrWhiteSpace(fileId))
+        {
+            return null;
+        }
+
+        var docDir = BuildKnowledgeCollectionDocumentDir(collectionName, vectorStoreProvider);
+        var fileDir = Path.Combine(docDir, fileId);
+        if (!ExistDirectory(fileDir)) return null;
+
+        var metaFile = Path.Combine(fileDir, KNOWLEDGE_DOC_META_FILE);
+        var content = File.ReadAllText(metaFile);
+        var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _jsonOptions);
+        using var stream = new FileStream(fileDir, FileMode.Open, FileAccess.Read);
+        stream.Position = 0;
+
+        return new FileBinaryDataModel
+        {
+            FileName = metaData.FileName,
+            FileBinaryData = BinaryData.FromStream(stream)
+        };
     }
 
 
@@ -158,9 +185,9 @@ public partial class LocalFileStorageService
         return Path.Combine(_baseDir, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, vectorStoreProvider, collectionName);
     }
 
-    private string BuildKnowledgeFileUrl(string collectionName, string vectorProvider, string fileId)
+    private string BuildKnowledgeFileUrl(string collectionName, string fileId)
     {
-        return $"/knowledge/file/{vectorProvider}/{collectionName}/{fileId}";
+        return $"/knowledge/file/{collectionName}/file/{fileId}";
     }
     #endregion
 }

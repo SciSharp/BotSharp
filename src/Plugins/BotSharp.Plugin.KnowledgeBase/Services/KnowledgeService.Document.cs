@@ -151,6 +151,14 @@ public partial class KnowledgeService
         return files;
     }
 
+    public async Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, string fileId)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var vectorStoreProvider = _settings.VectorDb.Provider;
+        var file = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
+        return file;
+    }
+
 
     public async Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel knowledge)
     {

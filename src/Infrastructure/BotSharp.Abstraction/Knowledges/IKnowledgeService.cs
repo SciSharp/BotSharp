@@ -24,6 +24,7 @@ public interface IKnowledgeService
     Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files);
     Task<bool> DeleteKnowledgeDocument(string collectionName, string fileId);
     Task<IEnumerable<KnowledgeFileModel>> GetKnowledgeDocuments(string collectionName);
+    Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, string fileId);
     #endregion
 
     #region Common

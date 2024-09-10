@@ -78,5 +78,7 @@ public interface IFileStorageService
     KnowledgeDocMetaData? GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, string fileId);
 
     IEnumerable<KnowledgeFileModel> GetKnowledgeBaseFiles(string collectionName, string vectorStoreProvider);
+
+    FileBinaryDataModel? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, string fileId);
     #endregion
 }

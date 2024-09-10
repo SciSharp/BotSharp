@@ -142,6 +142,13 @@ public class KnowledgeBaseController : ControllerBase
         var files = await _knowledgeService.GetKnowledgeDocuments(collection);
         return files.Select(x => KnowledgeFileViewModel.From(x));
     }
+
+    [HttpGet("/knowledge/document/{collection}/file/{fileId}")]
+    public async Task<IActionResult> GetKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
+    {
+        var file = await _knowledgeService.GetKnowledgeDocumentBinaryData(collection, fileId);
+        return BuildFileResult(file);
+    }
     #endregion
 
 
@@ -156,12 +163,14 @@ public class KnowledgeBaseController : ControllerBase
 
 
     #region Private methods
-    private FileContentResult BuildFileResult(string file)
+    private FileContentResult BuildFileResult(FileBinaryDataModel? file)
     {
-        using Stream stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var bytes = new byte[stream.Length];
-        stream.Read(bytes, 0, (int)stream.Length);
-        return File(bytes, "application/octet-stream", Path.GetFileName(file));
+        if (file == null)
+        {
+            return File(new byte[0], "application/octet-stream", "error.txt");
+        }
+
+        return File(file.FileBinaryData.ToArray(), "application/octet-stream", file.FileName);
     }
     #endregion
 }
