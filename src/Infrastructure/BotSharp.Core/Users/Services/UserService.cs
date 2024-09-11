@@ -156,12 +156,10 @@ public class UserService : IUserService
             return default;
         }
 
-#if !DEBUG
         if (!isAuthenticatedByHook && Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
         {
             return default;
         }
-#endif
 
         var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
