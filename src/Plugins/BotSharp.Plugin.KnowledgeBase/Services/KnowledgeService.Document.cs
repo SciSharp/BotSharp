@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
 using System.Net.Http;
+using System.Net.Mime;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -34,43 +35,23 @@ public partial class KnowledgeService
 
             try
             {
-                var dataIds = new List<string>();
-
-                // Chop text (to do)
+                // Get document info
                 var (contentType, bytes) = await GetFileInfo(file);
-                using var stream = new MemoryStream(bytes);
-                using var reader = new StreamReader(stream);
-                var content = await reader.ReadToEndAsync();
-
-                // Save file
+                var contents = await GetFileContent(contentType, bytes);
+                
+                // Save document
                 var fileId = Guid.NewGuid().ToString();
-                var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId, file.FileName, stream);
-                reader.Close();
-                stream.Close();
-
+                var saved = SaveDocument(collectionName, vectorStoreProvider, fileId, file.FileName, bytes);
                 if (!saved)
                 {
                     failedFiles.Add(file.FileName);
                     continue;
                 }
 
-                // Text embedding
-                var vectorDb = GetVectorDb();
-                var textEmbedding = GetTextEmbedding(collectionName);
-                var vector = await textEmbedding.GetVectorAsync(content);
-
                 // Save to vector db
-                var dataId = Guid.NewGuid();
-                saved = await vectorDb.Upsert(collectionName, dataId, vector, content, new Dictionary<string, string>
+                var dataIds = await SaveToVectorDb(collectionName, fileId, file.FileName, contents);
+                if (!dataIds.IsNullOrEmpty())
                 {
-                    { "fileName", file.FileName },
-                    { "fileId", fileId },
-                    { "page", "0" }
-                });
-
-                if (saved)
-                {
-                    dataIds.Add(dataId.ToString());
                     fileStoreage.SaveKnolwedgeBaseFileMeta(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId, new KnowledgeDocMetaData
                     {
                         Collection = collectionName,
@@ -117,8 +98,8 @@ public partial class KnowledgeService
             var vectorDb = GetVectorDb();
             var vectorStoreProvider = _settings.VectorDb.Provider;
 
-            fileStorage.DeleteKnowledgeFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
             var metaData = fileStorage.GetKnowledgeBaseFileMeta(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
+            fileStorage.DeleteKnowledgeFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
 
             if (metaData != null && !metaData.VectorDataIds.IsNullOrEmpty())
             {
@@ -211,6 +192,77 @@ public partial class KnowledgeService
         }
 
         return (string.Empty, new byte[0]);
+    }
+
+    private async Task<IEnumerable<string>> GetFileContent(string contentType, byte[] bytes)
+    {
+        var results = new List<string>();
+
+        if (contentType.IsEqualTo(MediaTypeNames.Text.Plain))
+        {
+            using var stream = new MemoryStream(bytes);
+            using var reader = new StreamReader(stream);
+            var content = await reader.ReadToEndAsync();
+
+            var lines = TextChopper.Chop(content, new ChunkOption
+            {
+                Size = 1024,
+                Conjunction = 32,
+                SplitByWord = true,
+            });
+
+            reader.Close();
+            stream.Close();
+            results.AddRange(lines);
+        }
+        else if (contentType.IsEqualTo(MediaTypeNames.Application.Pdf))
+        {
+            // to do
+        }
+        
+        return results;
+    }
+
+    private bool SaveDocument(string collectionName, string vectorStoreProvider, string fileId, string fileName, byte[] bytes)
+    {
+        var fileStoreage = _services.GetRequiredService<IFileStorageService>();
+        using var stream = new MemoryStream(bytes);
+        stream.Position = 0;
+
+        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId, fileName, stream);
+        stream.Close();
+        return saved;
+    }
+
+    private async Task<IEnumerable<string>> SaveToVectorDb(string collectionName, string fileId, string fileName, IEnumerable<string> contents)
+    {
+        if (contents.IsNullOrEmpty())
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        var dataIds = new List<string>();
+        var vectorDb = GetVectorDb();
+        var textEmbedding = GetTextEmbedding(collectionName);
+
+        for (int i = 0; i < contents.Count(); i++)
+        {
+            var content = contents.ElementAt(i);
+            var vector = await textEmbedding.GetVectorAsync(content);
+            var dataId = Guid.NewGuid();
+            var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, new Dictionary<string, string>
+            {
+                { "fileName", fileName },
+                { "fileId", fileId },
+                { "textNumber", $"{i + 1}" }
+            });
+
+            if (!saved) continue;
+
+            dataIds.Add(dataId.ToString());
+        }
+
+        return dataIds;
     }
     #endregion
 }

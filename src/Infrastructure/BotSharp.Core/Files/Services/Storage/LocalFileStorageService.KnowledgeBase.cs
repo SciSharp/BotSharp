@@ -1,8 +1,4 @@
-using AspectInjector.Broker;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Knowledges.Models;
-using StackExchange.Redis;
 using System.IO;
 
 namespace BotSharp.Core.Files.Services;
@@ -29,8 +25,10 @@ public partial class LocalFileStorageService
             Directory.CreateDirectory(dir);
 
             var filePath = Path.Combine(dir, fileName);
-            using var fs = File.Create(filePath);
+            using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
             stream.CopyTo(fs);
+            fs.Flush();
+            fs.Close();
             return true;
         }
         catch (Exception ex)
