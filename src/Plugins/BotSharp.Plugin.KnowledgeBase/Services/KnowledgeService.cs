@@ -3,15 +3,18 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public partial class KnowledgeService : IKnowledgeService
 {
     private readonly IServiceProvider _services;
+    private readonly IUserIdentity _user;
     private readonly KnowledgeBaseSettings _settings;
     private readonly ILogger<KnowledgeService> _logger;
 
     public KnowledgeService(
         IServiceProvider services,
+        IUserIdentity user,
         KnowledgeBaseSettings settings,
         ILogger<KnowledgeService> logger)
     {
         _services = services;
+        _user = user;
         _settings = settings;
         _logger = logger;
     }
@@ -28,8 +31,15 @@ public partial class KnowledgeService : IKnowledgeService
         return db;
     }
 
-    private ITextEmbedding GetTextEmbedding(string collection)
+    private ITextEmbedding GetTextEmbedding(string collectionName)
     {
-        return KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collection);
+        return KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
+    }
+
+    private async Task<string> GetUserId()
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        return user.Id;
     }
 }

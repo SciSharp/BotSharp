@@ -77,7 +77,7 @@ public class GenerateImageFn : IFunctionCallback
     {
         if (images.IsNullOrEmpty()) return;
 
-        var files = images.Where(x => !string.IsNullOrEmpty(x?.ImageData)).Select(x => new InputFileModel
+        var files = images.Where(x => !string.IsNullOrEmpty(x?.ImageData)).Select(x => new FileDataModel
         {
             FileName = $"{Guid.NewGuid()}.png",
             FileData = $"data:{MediaTypeNames.Image.Png};base64,{x.ImageData}"

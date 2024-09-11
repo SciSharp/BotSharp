@@ -6,11 +6,10 @@ namespace BotSharp.Abstraction.Knowledges;
 public interface IKnowledgeService
 {
     #region Vector
-    Task<bool> CreateVectorCollection(string collectionName, int dimension);
+    Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model);
     Task<bool> DeleteVectorCollection(string collectionName);
-    Task<IEnumerable<string>> GetVectorCollections();
+    Task<IEnumerable<string>> GetVectorCollections(string type);
     Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
-    Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel model);
     Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
     Task<bool> DeleteVectorCollectionData(string collectionName, string id);
     Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
@@ -19,6 +18,16 @@ public interface IKnowledgeService
 
     #region Graph
     Task<GraphSearchResult> SearchGraphKnowledge(string query, GraphSearchOptions options);
-    Task<KnowledgeSearchResult> SearchKnowledge(string query, string collectionName, VectorSearchOptions vectorOptions, GraphSearchOptions graphOptions);
+    #endregion
+
+    #region Document
+    Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files);
+    Task<bool> DeleteKnowledgeDocument(string collectionName, string fileId);
+    Task<IEnumerable<KnowledgeFileModel>> GetKnowledgeDocuments(string collectionName);
+    Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, string fileId);
+    #endregion
+
+    #region Common
+    Task<bool> RefreshVectorKnowledgeConfigs(VectorCollectionConfigsModel configs);
     #endregion
 }

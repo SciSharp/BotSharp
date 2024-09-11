@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
@@ -20,19 +21,19 @@ public class KnowledgeBaseController : ControllerBase
 
     #region Vector
     [HttpGet("knowledge/vector/collections")]
-    public async Task<IEnumerable<string>> GetVectorCollections()
+    public async Task<IEnumerable<string>> GetVectorCollections([FromQuery] string type)
     {
-        return await _knowledgeService.GetVectorCollections();
+        return await _knowledgeService.GetVectorCollections(type);
     }
 
-    [HttpPost("knowledge/vector/{collection}/create-collection/{dimension}")]
-    public async Task<bool> CreateVectorCollection([FromRoute] string collection, [FromRoute] int dimension)
+    [HttpPost("knowledge/vector/create-collection")]
+    public async Task<bool> CreateVectorCollection([FromBody] CreateVectorCollectionRequest request)
     {
-        return await _knowledgeService.CreateVectorCollection(collection, dimension);
+        return await _knowledgeService.CreateVectorCollection(request.CollectionName, request.CollectionType, request.Dimension, request.Provider, request.Model);
     }
 
     [HttpDelete("knowledge/vector/{collection}/delete-collection")]
-    public async Task<bool> GetVectorCollections([FromRoute] string collection)
+    public async Task<bool> DeleteVectorCollection([FromRoute] string collection)
     {
         return await _knowledgeService.DeleteVectorCollection(collection);
     }
@@ -99,29 +100,6 @@ public class KnowledgeBaseController : ControllerBase
     {
         return await _knowledgeService.DeleteVectorCollectionData(collection, id);
     }
-
-    [HttpPost("/knowledge/vector/{collection}/upload")]
-    public async Task<IActionResult> UploadVectorKnowledge([FromRoute] string collection, IFormFile file, [FromForm] int? startPageNum, [FromForm] int? endPageNum)
-    {
-        var setttings = _services.GetRequiredService<FileCoreSettings>();
-        var textConverter = _services.GetServices<IPdf2TextConverter>().FirstOrDefault(x => x.Provider == setttings.Pdf2TextConverter.Provider);
-
-        var filePath = Path.GetTempFileName();
-        using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            await file.CopyToAsync(stream);
-            await stream.FlushAsync();
-        }
-
-        var content = await textConverter.ConvertPdfToText(filePath, startPageNum, endPageNum);
-        await _knowledgeService.FeedVectorKnowledge(collection, new KnowledgeCreationModel
-        {
-            Content = content
-        });
-
-        System.IO.File.Delete(filePath);
-        return Ok(new { count = 1, file.Length });
-    }
     #endregion
 
 
@@ -143,29 +121,56 @@ public class KnowledgeBaseController : ControllerBase
     #endregion
 
 
-    #region Knowledge
-    [HttpPost("/knowledge/search")]
-    public async Task<KnowledgeSearchViewModel> SearchKnowledge([FromBody] SearchKnowledgeRequest request)
+    #region Document
+    [HttpPost("/knowledge/document/{collection}/upload")]
+    public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
     {
-        var vectorOptions = new VectorSearchOptions
-        {
-            Fields = request.VectorParams.Fields,
-            Limit = request.VectorParams.Limit ?? 5,
-            Confidence = request.VectorParams.Confidence ?? 0.5f,
-            WithVector = request.VectorParams.WithVector
-        };
+        var response = await _knowledgeService.UploadKnowledgeDocuments(collection, request.Files);
+        return response;
+    }
 
-        var graphOptions = new GraphSearchOptions
-        {
-            Method = request.GraphParams.Method
-        };
+    [HttpDelete("/knowledge/document/{collection}/delete/{fileId}")]
+    public async Task<bool> DeleteKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
+    {
+        var response = await _knowledgeService.DeleteKnowledgeDocument(collection, fileId);
+        return response;
+    }
 
-        var result = await _knowledgeService.SearchKnowledge(request.Text, request.VectorParams.Collection, vectorOptions, graphOptions);
-        return new KnowledgeSearchViewModel
+    [HttpGet("/knowledge/document/{collection}/list")]
+    public async Task<IEnumerable<KnowledgeFileViewModel>> GetKnowledgeDocuments([FromRoute] string collection)
+    {
+        var files = await _knowledgeService.GetKnowledgeDocuments(collection);
+        return files.Select(x => KnowledgeFileViewModel.From(x));
+    }
+
+    [HttpGet("/knowledge/document/{collection}/file/{fileId}")]
+    public async Task<IActionResult> GetKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
+    {
+        var file = await _knowledgeService.GetKnowledgeDocumentBinaryData(collection, fileId);
+        return BuildFileResult(file);
+    }
+    #endregion
+
+
+    #region Common
+    [HttpPost("/knowledge/vector/refresh-configs")]
+    public async Task<string> RefreshVectorCollectionConfigs([FromBody] VectorCollectionConfigsModel request)
+    {
+        var saved = await _knowledgeService.RefreshVectorKnowledgeConfigs(request);
+        return saved ? "Success" : "Fail";
+    }
+    #endregion
+
+
+    #region Private methods
+    private FileContentResult BuildFileResult(FileBinaryDataModel? file)
+    {
+        if (file == null)
         {
-            VectorResult = result?.VectorResult?.Select(x => VectorKnowledgeViewModel.From(x)),
-            GraphResult = result?.GraphResult != null ? new GraphKnowledgeViewModel { Result = result.GraphResult.Result } : null
-        };
+            return File(new byte[0], "application/octet-stream", "error.txt");
+        }
+
+        return File(file.FileBinaryData.ToArray(), "application/octet-stream", file.FileName);
     }
     #endregion
 }

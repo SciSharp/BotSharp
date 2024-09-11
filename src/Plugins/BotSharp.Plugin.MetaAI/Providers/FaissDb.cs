@@ -48,7 +48,7 @@ public class FaissDb : IVectorDb
         throw new NotImplementedException();
     }
 
-    public Task<bool> DeleteCollectionData(string collectionName, Guid id)
+    public Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
     {
         throw new NotImplementedException();
     }

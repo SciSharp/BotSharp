@@ -37,7 +37,7 @@ public interface IFileStorageService
     IEnumerable<MessageFileModel> GetMessageFiles(string conversationId, IEnumerable<string> messageIds, string source, IEnumerable<string>? contentTypes = null);
     string GetMessageFile(string conversationId, string messageId, string source, string index, string fileName);
     IEnumerable<MessageFileModel> GetMessagesWithFile(string conversationId, IEnumerable<string> messageIds);
-    bool SaveMessageFiles(string conversationId, string messageId, string source, List<InputFileModel> files);
+    bool SaveMessageFiles(string conversationId, string messageId, string source, List<FileDataModel> files);
 
     /// <summary>
     /// Delete files under messages
@@ -54,11 +54,31 @@ public interface IFileStorageService
 
     #region User
     string GetUserAvatar();
-    bool SaveUserAvatar(InputFileModel file);
+    bool SaveUserAvatar(FileDataModel file);
     #endregion
 
     #region Speech
     bool SaveSpeechFile(string conversationId, string fileName, BinaryData data);
     BinaryData GetSpeechFile(string conversationId, string fileName);
+    #endregion
+
+    #region Knowledge
+    bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, Stream stream);
+
+    /// <summary>
+    /// Delete files in a knowledge collection. If fileId is null, remove all files in the collection.
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="fileId"></param>
+    /// <returns></returns>
+    bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, string? fileId = null);
+
+    bool SaveKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider,string fileId, KnowledgeDocMetaData metaData);
+
+    KnowledgeDocMetaData? GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, string fileId);
+
+    IEnumerable<KnowledgeFileModel> GetKnowledgeBaseFiles(string collectionName, string vectorStoreProvider);
+
+    FileBinaryDataModel? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, string fileId);
     #endregion
 }

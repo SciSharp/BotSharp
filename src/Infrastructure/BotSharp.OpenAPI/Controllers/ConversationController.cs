@@ -366,8 +366,7 @@ public class ConversationController : ControllerBase
 
     #region Files and attachments
     [HttpPost("/conversation/{conversationId}/attachments")]
-    public IActionResult UploadAttachments([FromRoute] string conversationId,
-        IFormFile[] files)
+    public IActionResult UploadAttachments([FromRoute] string conversationId, IFormFile[] files)
     {
         if (files != null && files.Length > 0)
         {

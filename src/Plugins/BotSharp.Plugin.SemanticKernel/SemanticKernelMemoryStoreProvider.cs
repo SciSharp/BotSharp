@@ -4,6 +4,7 @@ using BotSharp.Abstraction.VectorStorage.Models;
 using Microsoft.SemanticKernel.Memory;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.SemanticKernel
@@ -84,16 +85,15 @@ namespace BotSharp.Plugin.SemanticKernel
             return true;
         }
 
-        public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
+        public async Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
         {
-            var exist = await _memoryStore.DoesCollectionExistAsync(collectionName);
+            if (ids.IsNullOrEmpty()) return false;
 
-            if (exist)
-            {
-                await _memoryStore.RemoveAsync(collectionName, id.ToString());
-                return true;
-            }
-            return false;
+            var exist = await _memoryStore.DoesCollectionExistAsync(collectionName);
+            if (!exist) return false;
+
+            await _memoryStore.RemoveBatchAsync(collectionName, ids.Select(x => x.ToString()));
+            return true;
         }
     }
 }
