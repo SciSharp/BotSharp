@@ -13,6 +13,7 @@ public partial class MongoRepository
                 Id = Guid.NewGuid().ToString(),
                 Name = x.Name,
                 Type = x.Type,
+                VectorStorage = KnowledgeVectorStorageConfigMongoModel.ToMongoModel(x.VectorStorage),
                 TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToMongoModel(x.TextEmbedding)
             })?.ToList() ?? new List<KnowledgeCollectionConfigDocument>();
 

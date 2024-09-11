@@ -4,10 +4,12 @@ public static class KnowledgeSettingHelper
 {
     public static ITextEmbedding GetTextEmbeddingSetting(IServiceProvider services, string collectionName)
     {
+        var settings = services.GetRequiredService<KnowledgeBaseSettings>();
         var db = services.GetRequiredService<IBotSharpRepository>();
         var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
-            CollectionNames = new[] { collectionName }
+            CollectionNames = [collectionName],
+            VectorStroageProviders = [settings.VectorDb.Provider]
         });
 
         var found = configs?.FirstOrDefault()?.TextEmbedding;
@@ -17,7 +19,6 @@ public static class KnowledgeSettingHelper
 
         if (found == null)
         {
-            var settings = services.GetRequiredService<KnowledgeBaseSettings>();
             provider = settings.Default.TextEmbedding.Provider;
             model = settings.Default.TextEmbedding.Model;
             dimension = settings.Default.TextEmbedding.Dimension;

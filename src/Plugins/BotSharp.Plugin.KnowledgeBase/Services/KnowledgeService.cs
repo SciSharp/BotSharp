@@ -31,18 +31,9 @@ public partial class KnowledgeService : IKnowledgeService
         return db;
     }
 
-    private ITextEmbedding GetTextEmbedding(string collection)
+    private ITextEmbedding GetTextEmbedding(string collectionName)
     {
-        return KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collection);
-    }
-
-    private VectorCollectionConfig? GetVectorCollectionConfig(string collection)
-    {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
-        {
-            CollectionNames = new[] { collection }
-        })?.FirstOrDefault();
+        return KnowledgeSettingHelper.GetTextEmbeddingSetting(_services, collectionName);
     }
 
     private async Task<string> GetUserId()
