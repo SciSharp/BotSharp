@@ -1,6 +1,6 @@
+using BotSharp.Plugin.SqlDriver.Models;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
-using static Dapper.SqlMapper;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -20,16 +20,16 @@ public class GetTableDefinitionFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
+        var tables = new string[] { args.Table };
         var agentService = _services.GetRequiredService<IAgentService>();
         var sqlDriver = _services.GetRequiredService<SqlDriverService>();
         var settings = _services.GetRequiredService<SqlDriverSetting>();
 
         // Get table DDL from database
-        var tables = message.Data as IEnumerable<string>;
-        if (tables.IsNullOrEmpty()) return false;
 
         var tableDdls = new List<string>();
-        using var connection = new MySqlConnection(settings.MySqlConnectionString);
+        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
         connection.Open();
 
         foreach (var table in tables)

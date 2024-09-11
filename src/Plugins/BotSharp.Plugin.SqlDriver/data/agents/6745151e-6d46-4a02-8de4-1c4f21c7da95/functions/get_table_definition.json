@@ -7,16 +7,6 @@
       "table": {
         "type": "string",
         "description": "table need to check"
-      },
-      "return_field": {
-        "type": "object",
-        "description": "the name and alias for the return field",
-        "properties": {
-          "ddl": {
-            "type": "string",
-            "description": "DDL for the table"
-          }
-        }
       }
     },
     "required": [ "table" ]

@@ -14,6 +14,7 @@ public static class HookEmitter
         {
             try
             {
+                logger.LogInformation($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
                 action(hook);
             }
             catch (Exception ex)
