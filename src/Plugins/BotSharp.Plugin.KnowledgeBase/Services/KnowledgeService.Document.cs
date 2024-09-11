@@ -10,12 +10,12 @@ public partial class KnowledgeService
 {
     public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files)
     {
-        if (string.IsNullOrWhiteSpace(collectionName))
+        if (string.IsNullOrWhiteSpace(collectionName) || files.IsNullOrEmpty())
         {
             return new UploadKnowledgeResponse
             {
                 Success = [],
-                Failed = files.Select(x => x.FileName)
+                Failed = files?.Select(x => x.FileName) ?? new List<string>()
             };
         }
 
@@ -98,7 +98,9 @@ public partial class KnowledgeService
             var vectorDb = GetVectorDb();
             var vectorStoreProvider = _settings.VectorDb.Provider;
 
+            // Get doc meta data
             var metaData = fileStorage.GetKnowledgeBaseFileMeta(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
+            // Delete doc
             fileStorage.DeleteKnowledgeFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
 
             if (metaData != null && !metaData.VectorDataIds.IsNullOrEmpty())
@@ -128,6 +130,8 @@ public partial class KnowledgeService
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var vectorStoreProvider = _settings.VectorDb.Provider;
+
+        // Get doc meta data
         var files = fileStorage.GetKnowledgeBaseFiles(collectionName.CleanStr(), vectorStoreProvider.CleanStr());
         return files;
     }
@@ -136,33 +140,12 @@ public partial class KnowledgeService
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var vectorStoreProvider = _settings.VectorDb.Provider;
+
+        // Get doc binary data
         var file = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
         return file;
     }
 
-
-    public async Task FeedVectorKnowledge(string collectionName, KnowledgeCreationModel knowledge)
-    {
-        var index = 0;
-        var lines = TextChopper.Chop(knowledge.Content, new ChunkOption
-        {
-            Size = 1024,
-            Conjunction = 32,
-            SplitByWord = true,
-        });
-
-        var db = GetVectorDb();
-        var textEmbedding = GetTextEmbedding(collectionName);
-
-        await db.CreateCollection(collectionName, textEmbedding.GetDimension());
-        foreach (var line in lines)
-        {
-            var vec = await textEmbedding.GetVectorAsync(line);
-            await db.Upsert(collectionName, Guid.NewGuid(), vec, line);
-            index++;
-            Console.WriteLine($"Saved vector {index}/{lines.Count}: {line}\n");
-        }
-    }
 
     #region Private methods
     /// <summary>
@@ -203,6 +186,8 @@ public partial class KnowledgeService
             using var stream = new MemoryStream(bytes);
             using var reader = new StreamReader(stream);
             var content = await reader.ReadToEndAsync();
+            reader.Close();
+            stream.Close();
 
             var lines = TextChopper.Chop(content, new ChunkOption
             {
@@ -210,9 +195,6 @@ public partial class KnowledgeService
                 Conjunction = 32,
                 SplitByWord = true,
             });
-
-            reader.Close();
-            stream.Close();
             results.AddRange(lines);
         }
         else if (contentType.IsEqualTo(MediaTypeNames.Application.Pdf))

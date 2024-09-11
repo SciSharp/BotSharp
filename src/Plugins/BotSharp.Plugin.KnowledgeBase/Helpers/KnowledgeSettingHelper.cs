@@ -6,6 +6,8 @@ public static class KnowledgeSettingHelper
     {
         var settings = services.GetRequiredService<KnowledgeBaseSettings>();
         var db = services.GetRequiredService<IBotSharpRepository>();
+
+        // Get collection config from db
         var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
         {
             CollectionNames = [collectionName],
@@ -24,6 +26,7 @@ public static class KnowledgeSettingHelper
             dimension = settings.Default.TextEmbedding.Dimension;
         }
 
+        // Set up text embedding
         var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == provider);
 
         if (dimension <= 0)
