@@ -7,6 +7,9 @@ public class VectorKnowledgeCreateRequest
     [JsonPropertyName("text")]
     public string Text { get; set; }
 
+    [JsonPropertyName("data_source")]
+    public string DataSource { get; set; } = VectorDataSource.Api;
+
     [JsonPropertyName("payload")]
     public Dictionary<string, string>? Payload { get; set; }
 }

@@ -10,4 +10,11 @@ public class VectorFilter : StringIdPagination
     /// </summary>
     [JsonPropertyName("search_pairs")]
     public IEnumerable<KeyValue>? SearchPairs { get; set; }
+
+
+    /// <summary>
+    /// Included payload keys
+    /// </summary>
+    [JsonPropertyName("included_payloads")]
+    public IEnumerable<string>? IncludedPayloads { get; set; }
 }

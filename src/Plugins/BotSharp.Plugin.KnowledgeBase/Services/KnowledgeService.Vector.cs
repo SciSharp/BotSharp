@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.VectorStorage.Enums;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -119,7 +120,10 @@ public partial class KnowledgeService
 
             var db = GetVectorDb();
             var guid = Guid.NewGuid();
-            return await db.Upsert(collectionName, guid, vector, create.Text, create.Payload);
+            var payload = create.Payload ?? new();
+            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(create.DataSource) ? create.DataSource : VectorDataSource.Api;
+
+            return await db.Upsert(collectionName, guid, vector, create.Text, payload);
         }
         catch (Exception ex)
         {
@@ -146,7 +150,10 @@ public partial class KnowledgeService
 
             var textEmbedding = GetTextEmbedding(collectionName);
             var vector = await textEmbedding.GetVectorAsync(update.Text);
-            return await db.Upsert(collectionName, guid, vector, update.Text, update.Payload);
+            var payload = update.Payload ?? new();
+            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
+
+            return await db.Upsert(collectionName, guid, vector, update.Text, payload);
         }
         catch (Exception ex)
         {

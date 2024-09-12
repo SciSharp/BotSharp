@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage.Models;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
@@ -112,10 +113,25 @@ public class QdrantDb : IVectorDb
             };
         }
 
+        // Build payload selector
+        WithPayloadSelector? payloadSelector = null;
+        if (!filter.IncludedPayloads.IsNullOrEmpty())
+        {
+            payloadSelector = new WithPayloadSelector
+            { 
+                Enable = true,
+                Include = new PayloadIncludeSelector
+                {
+                    Fields = { filter.IncludedPayloads.ToArray() }
+                }
+            };
+        }
+
         var totalPointCount = await client.CountAsync(collectionName, filter: queryFilter);
         var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : null,
             filter: queryFilter,
+            payloadSelector: payloadSelector,
             vectorsSelector: filter.WithVector);
 
         var points = response?.Result?.Select(x => new VectorCollectionData
