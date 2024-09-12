@@ -1,8 +1,11 @@
+using Azure.Core;
 using BotSharp.Abstraction.Files.Constants;
+using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
+using System.IO;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -129,6 +132,29 @@ public class KnowledgeBaseController : ControllerBase
         return response;
     }
 
+    [HttpPost("/knowledge/document/{collection}/form-upload")]
+    public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromForm] IEnumerable<IFormFile> files)
+    {
+        if (files.IsNullOrEmpty())
+        {
+            return new UploadKnowledgeResponse();
+        }
+
+        var docs = new List<ExternalFileModel>();
+        foreach (var file in files)
+        {
+            var data = FileUtility.BuildFileDataFromFile(file);
+            docs.Add(new ExternalFileModel
+            {
+                FileName = file.FileName,
+                FileData = data
+            });
+        }
+
+        var response = await _knowledgeService.UploadKnowledgeDocuments(collection, docs);
+        return response;
+    }
+
     [HttpDelete("/knowledge/document/{collection}/delete/{fileId}")]
     public async Task<bool> DeleteKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
     {
@@ -147,7 +173,10 @@ public class KnowledgeBaseController : ControllerBase
     public async Task<IActionResult> GetKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
     {
         var file = await _knowledgeService.GetKnowledgeDocumentBinaryData(collection, fileId);
-        return BuildFileResult(file);
+        var stream = file.FileBinaryData.ToStream();
+        stream.Position = 0;
+
+        return new FileStreamResult(stream, file.ContentType) { FileDownloadName = file.FileName };
     }
     #endregion
 
@@ -158,19 +187,6 @@ public class KnowledgeBaseController : ControllerBase
     {
         var saved = await _knowledgeService.RefreshVectorKnowledgeConfigs(request);
         return saved ? "Success" : "Fail";
-    }
-    #endregion
-
-
-    #region Private methods
-    private FileContentResult BuildFileResult(FileBinaryDataModel? file)
-    {
-        if (file == null)
-        {
-            return File(new byte[0], "application/octet-stream", "error.txt");
-        }
-
-        return File(file.FileBinaryData.ToArray(), "application/octet-stream", file.FileName);
     }
     #endregion
 }

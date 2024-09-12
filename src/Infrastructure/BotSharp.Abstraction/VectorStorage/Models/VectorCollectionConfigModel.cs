@@ -15,13 +15,13 @@ public class VectorCollectionConfig
     public string Name { get; set; }
 
     /// <summary>
-    /// Collection type, e.g., question-answer, document
+    /// Collection type, e.g., question-answer, document, etc.
     /// </summary>
     [JsonPropertyName("type")]
     public string Type { get; set; }
 
-    [JsonPropertyName("vector_storage")]
-    public VectorStorageConfig VectorStorage { get; set; }
+    [JsonPropertyName("vector_store")]
+    public VectorStoreConfig VectorStore { get; set; }
 
     [JsonPropertyName("text_embedding")]
     public KnowledgeEmbeddingConfig TextEmbedding { get; set; }
@@ -39,7 +39,7 @@ public class KnowledgeEmbeddingConfig
     public int Dimension { get; set; }
 }
 
-public class VectorStorageConfig
+public class VectorStoreConfig
 {
     [JsonPropertyName("provider")]
     public string Provider { get; set; }

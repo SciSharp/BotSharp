@@ -127,24 +127,33 @@ public partial class LocalFileStorageService
         var files = new List<KnowledgeFileModel>();
         foreach (var folder in Directory.GetDirectories(docDir))
         {
-            var metaFile = Path.Combine(folder, KNOWLEDGE_DOC_META_FILE);
-            if (!File.Exists(metaFile)) continue;
-
-            var content = File.ReadAllText(metaFile);
-            var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _jsonOptions);
-            if (metaData == null) continue;
-
-            var fileName = Path.GetFileNameWithoutExtension(metaData.FileName);
-            var fileExtension = Path.GetExtension(metaData.FileName);
-
-            files.Add(new KnowledgeFileModel
+            try
             {
-                FileId = metaData.FileId,
-                FileName = metaData.FileName,
-                FileExtension = fileExtension.Substring(1),
-                ContentType = FileUtility.GetFileContentType(metaData.FileName),
-                FileUrl = BuildKnowledgeFileUrl(collectionName, metaData.FileId)
-            });
+                var metaFile = Path.Combine(folder, KNOWLEDGE_DOC_META_FILE);
+                if (!File.Exists(metaFile)) continue;
+
+                var content = File.ReadAllText(metaFile);
+                var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _jsonOptions);
+                if (metaData == null) continue;
+
+                var fileName = Path.GetFileNameWithoutExtension(metaData.FileName);
+                var fileExtension = Path.GetExtension(metaData.FileName);
+
+                files.Add(new KnowledgeFileModel
+                {
+                    FileId = metaData.FileId,
+                    FileName = metaData.FileName,
+                    FileExtension = fileExtension.Substring(1),
+                    ContentType = FileUtility.GetFileContentType(metaData.FileName),
+                    FileUrl = BuildKnowledgeFileUrl(collectionName, metaData.FileId)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error when getting knowledgebase file. ({folder})" +
+                    $"\r\n{ex.Message}\r\n{ex.InnerException}");
+                continue;
+            }
         }
 
         return files;
@@ -166,12 +175,14 @@ public partial class LocalFileStorageService
         var metaFile = Path.Combine(fileDir, KNOWLEDGE_DOC_META_FILE);
         var content = File.ReadAllText(metaFile);
         var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _jsonOptions);
-        using var stream = new FileStream(fileDir, FileMode.Open, FileAccess.Read);
+        var file = Path.Combine(fileDir, metaData.FileName);
+        using var stream = new FileStream(file, FileMode.Open, FileAccess.Read);
         stream.Position = 0;
 
         return new FileBinaryDataModel
         {
             FileName = metaData.FileName,
+            ContentType = metaData.ContentType,
             FileBinaryData = BinaryData.FromStream(stream)
         };
     }
@@ -185,7 +196,7 @@ public partial class LocalFileStorageService
 
     private string BuildKnowledgeFileUrl(string collectionName, string fileId)
     {
-        return $"/knowledge/file/{collectionName}/file/{fileId}";
+        return $"/knowledge/document/{collectionName}/file/{fileId}";
     }
     #endregion
 }
