@@ -39,9 +39,7 @@ public interface IConversationService
     Task<bool> SendMessage(string agentId,
         RoleDialogModel lastDalog, 
         PostbackMessageModel? replyMessage,
-        Func<RoleDialogModel, Task> onResponseReceived, 
-        Func<RoleDialogModel, Task> onFunctionExecuting,
-        Func<RoleDialogModel, Task> onFunctionExecuted);
+        Func<RoleDialogModel, Task> onResponseReceived);
 
     List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true);
     Task CleanHistory(string agentId);

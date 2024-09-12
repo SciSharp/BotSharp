@@ -10,9 +10,7 @@ public partial class ConversationService
     public async Task<bool> SendMessage(string agentId,
         RoleDialogModel message,
         PostbackMessageModel? replyMessage,
-        Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting,
-        Func<RoleDialogModel, Task> onFunctionExecuted)
+        Func<RoleDialogModel, Task> onMessageReceived)
     {
         var conversation = await GetConversationRecordOrCreateNew(agentId);
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -78,7 +76,7 @@ public partial class ConversationService
 
             if (agent.Type == AgentType.Routing)
             {
-                response = await routing.InstructLoop(message, dialogs, onFunctionExecuting);
+                response = await routing.InstructLoop(message, dialogs);
             }
             else
             {

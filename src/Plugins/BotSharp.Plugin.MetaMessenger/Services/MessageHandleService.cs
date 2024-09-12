@@ -113,9 +113,7 @@ public class MessageHandleService
                 {
                     replies.Add(new TextMessage(msg.Content));
                 }
-            },
-            _ => Task.CompletedTask,
-            _ => Task.CompletedTask);
+            });
 
         // Response to user
         foreach(var reply in replies)

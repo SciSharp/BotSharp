@@ -74,9 +74,7 @@ namespace BotSharp.Plugin.WeChat
                 async msg =>
                 {
                     await ReplyTextMessageAsync(openid, msg.Content);
-                }, 
-                _ => Task.CompletedTask, 
-                _ => Task.CompletedTask);
+                });
         }
 
         private async Task<User> GetWeChatAccountUserAsync(string openId, IServiceProvider service)

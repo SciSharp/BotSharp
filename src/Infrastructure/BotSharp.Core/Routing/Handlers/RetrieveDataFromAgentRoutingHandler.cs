@@ -34,7 +34,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase//, IRoutin
     {
     }
 
-    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message, Func<RoleDialogModel, Task> onFunctionExecuting)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var context = _services.GetRequiredService<IRoutingContext>();
         var agentId = context.GetCurrentAgentId();
@@ -47,7 +47,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase//, IRoutin
             }
         };
 
-        var ret = await routing.InvokeAgent(agentId, dialogs, onFunctionExecuting);
+        var ret = await routing.InvokeAgent(agentId, dialogs);
         var response = dialogs.Last();
         inst.Response = response.Content;
 
