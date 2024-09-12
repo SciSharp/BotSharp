@@ -7,4 +7,5 @@ public static class KnowledgePayloadName
     public static string Answer = "answer";
     public static string Request = "request";
     public static string Response = "response";
+    public static string DataSource = "dataSource";
 }

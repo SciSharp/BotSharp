@@ -1,11 +1,8 @@
-using Azure.Core;
-using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Graph.Models;
 using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
-using System.IO;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -77,6 +74,7 @@ public class KnowledgeBaseController : ControllerBase
         var create = new VectorCreateModel
         {
             Text = request.Text,
+            DataSource = request.DataSource,
             Payload = request.Payload
         };
 
@@ -91,6 +89,7 @@ public class KnowledgeBaseController : ControllerBase
         {
             Id = request.Id,
             Text = request.Text,
+            DataSource = request.DataSource,
             Payload = request.Payload
         };
 
@@ -102,24 +101,6 @@ public class KnowledgeBaseController : ControllerBase
     public async Task<bool> DeleteVectorCollectionData([FromRoute] string collection, [FromRoute] string id)
     {
         return await _knowledgeService.DeleteVectorCollectionData(collection, id);
-    }
-    #endregion
-
-
-    #region Graph
-    [HttpPost("/knowledge/graph/search")]
-    public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
-    {
-        var options = new GraphSearchOptions
-        {
-            Method = request.Method
-        };
-
-        var result = await _knowledgeService.SearchGraphKnowledge(request.Query, options);
-        return new GraphKnowledgeViewModel
-        {
-            Result = result.Result
-        };
     }
     #endregion
 
@@ -177,6 +158,25 @@ public class KnowledgeBaseController : ControllerBase
         stream.Position = 0;
 
         return new FileStreamResult(stream, file.ContentType) { FileDownloadName = file.FileName };
+    }
+    #endregion
+
+
+
+    #region Graph
+    [HttpPost("/knowledge/graph/search")]
+    public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
+    {
+        var options = new GraphSearchOptions
+        {
+            Method = request.Method
+        };
+
+        var result = await _knowledgeService.SearchGraphKnowledge(request.Query, options);
+        return new GraphKnowledgeViewModel
+        {
+            Result = result.Result
+        };
     }
     #endregion
 
