@@ -5,7 +5,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class LocalFileStorageService
 {
-    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, Stream stream)
+    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, BinaryData fileData)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider)
@@ -26,9 +26,9 @@ public partial class LocalFileStorageService
 
             var filePath = Path.Combine(dir, fileName);
             using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-            stream.CopyTo(fs);
+            using var ds = fileData.ToStream();
+            ds.CopyTo(fs);
             fs.Flush();
-            fs.Close();
             return true;
         }
         catch (Exception ex)

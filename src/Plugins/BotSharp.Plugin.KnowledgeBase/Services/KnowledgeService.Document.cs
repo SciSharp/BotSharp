@@ -208,11 +208,8 @@ public partial class KnowledgeService
     private bool SaveDocument(string collectionName, string vectorStoreProvider, string fileId, string fileName, byte[] bytes)
     {
         var fileStoreage = _services.GetRequiredService<IFileStorageService>();
-        using var stream = new MemoryStream(bytes);
-        stream.Position = 0;
-
-        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId, fileName, stream);
-        stream.Close();
+        var data = BinaryData.FromBytes(bytes);
+        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId, fileName, data);
         return saved;
     }
 
