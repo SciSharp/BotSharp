@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.TencentCos.Services;
 
 public partial class TencentCosService
 {
-    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, Stream stream)
+    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, BinaryData fileData)
     {
         throw new NotImplementedException();
     }

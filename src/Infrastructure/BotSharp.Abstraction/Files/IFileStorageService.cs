@@ -63,7 +63,7 @@ public interface IFileStorageService
     #endregion
 
     #region Knowledge
-    bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, Stream stream);
+    bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, BinaryData fileData);
 
     /// <summary>
     /// Delete files in a knowledge collection. If fileId is null, remove all files in the collection.
