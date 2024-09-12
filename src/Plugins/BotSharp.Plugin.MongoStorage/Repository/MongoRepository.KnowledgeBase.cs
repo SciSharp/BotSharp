@@ -13,7 +13,7 @@ public partial class MongoRepository
                 Id = Guid.NewGuid().ToString(),
                 Name = x.Name,
                 Type = x.Type,
-                VectorStorage = KnowledgeVectorStorageConfigMongoModel.ToMongoModel(x.VectorStorage),
+                VectorStore = KnowledgeVectorStoreConfigMongoModel.ToMongoModel(x.VectorStore),
                 TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToMongoModel(x.TextEmbedding)
             })?.ToList() ?? new List<KnowledgeCollectionConfigDocument>();
 
@@ -38,7 +38,7 @@ public partial class MongoRepository
             if (found != null)
             {
                 found.Type = doc.Type;
-                found.VectorStorage = doc.VectorStorage;
+                found.VectorStore = doc.VectorStore;
                 found.TextEmbedding = doc.TextEmbedding;
                 updateDocs.Add(found);
             }
@@ -97,7 +97,7 @@ public partial class MongoRepository
 
         if (!filter.VectorStroageProviders.IsNullOrEmpty())
         {
-            filters.Add(builder.In(x => x.VectorStorage.Provider, filter.VectorStroageProviders));
+            filters.Add(builder.In(x => x.VectorStore.Provider, filter.VectorStroageProviders));
         }
 
         // Get data
@@ -107,7 +107,7 @@ public partial class MongoRepository
         {
             Name = x.Name,
             Type = x.Type,
-            VectorStorage = KnowledgeVectorStorageConfigMongoModel.ToDomainModel(x.VectorStorage),
+            VectorStore = KnowledgeVectorStoreConfigMongoModel.ToDomainModel(x.VectorStore),
             TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToDomainModel(x.TextEmbedding)
         });
     }

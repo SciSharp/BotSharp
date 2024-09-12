@@ -27,7 +27,7 @@ public partial class KnowledgeService
                     {
                         Name = collectionName,
                         Type = collectionType,
-                        VectorStorage = new VectorStorageConfig
+                        VectorStore = new VectorStoreConfig
                         {
                             Provider = _settings.VectorDb.Provider
                         },

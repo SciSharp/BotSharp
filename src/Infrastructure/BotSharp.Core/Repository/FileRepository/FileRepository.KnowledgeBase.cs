@@ -97,7 +97,7 @@ public partial class FileRepository
 
         if (!filter.VectorStroageProviders.IsNullOrEmpty())
         {
-            configs = configs.Where(x => filter.VectorStroageProviders.Contains(x.VectorStorage?.Provider)).ToList();
+            configs = configs.Where(x => filter.VectorStroageProviders.Contains(x.VectorStore?.Provider)).ToList();
         }
 
         return configs;

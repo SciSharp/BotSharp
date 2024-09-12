@@ -177,33 +177,46 @@ public partial class KnowledgeService
         return (string.Empty, new byte[0]);
     }
 
+    #region Read doc content
     private async Task<IEnumerable<string>> GetFileContent(string contentType, byte[] bytes)
     {
-        var results = new List<string>();
+        IEnumerable<string> results = new List<string>();
 
         if (contentType.IsEqualTo(MediaTypeNames.Text.Plain))
         {
-            using var stream = new MemoryStream(bytes);
-            using var reader = new StreamReader(stream);
-            var content = await reader.ReadToEndAsync();
-            reader.Close();
-            stream.Close();
-
-            var lines = TextChopper.Chop(content, new ChunkOption
-            {
-                Size = 1024,
-                Conjunction = 32,
-                SplitByWord = true,
-            });
-            results.AddRange(lines);
+            results = await ReadTxt(bytes);
         }
         else if (contentType.IsEqualTo(MediaTypeNames.Application.Pdf))
         {
-            // to do
+            results = await ReadPdf(bytes);
         }
         
         return results;
     }
+
+    private async Task<IEnumerable<string>> ReadTxt(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes);
+        using var reader = new StreamReader(stream);
+        var content = await reader.ReadToEndAsync();
+        reader.Close();
+        stream.Close();
+
+        var lines = TextChopper.Chop(content, new ChunkOption
+        {
+            Size = 1024,
+            Conjunction = 32,
+            SplitByWord = true,
+        });
+        return lines;
+    }
+
+    private async Task<IEnumerable<string>> ReadPdf(byte[] bytes)
+    {
+        return Enumerable.Empty<string>();
+    }
+    #endregion
+
 
     private bool SaveDocument(string collectionName, string vectorStoreProvider, string fileId, string fileName, byte[] bytes)
     {
