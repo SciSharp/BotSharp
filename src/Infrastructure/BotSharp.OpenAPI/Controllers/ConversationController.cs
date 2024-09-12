@@ -281,9 +281,7 @@ public class ConversationController : ControllerBase
                 response.RichContent = msg.SecondaryRichContent ?? msg.RichContent;
                 response.Instruction = msg.Instruction;
                 response.Data = msg.Data;
-            },
-            _ => Task.CompletedTask,
-            _ => Task.CompletedTask);
+            });
 
         var state = _services.GetRequiredService<IConversationStateService>();
         response.States = state.GetStates();
@@ -321,6 +319,7 @@ public class ConversationController : ControllerBase
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.ContentType, "text/event-stream");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.CacheControl, "no-cache");
         Response.Headers.Append(Microsoft.Net.Http.Headers.HeaderNames.Connection, "keep-alive");
+        InitProgressService(conversationId);
 
         await conv.SendMessage(agentId, inputMsg,
             replyMessage: input.Postback,
@@ -335,25 +334,6 @@ public class ConversationController : ControllerBase
                 response.States = state.GetStates();
 
                 await OnChunkReceived(Response, response);
-            },
-            // executing
-            async msg =>
-            {
-                var indicator = new ChatResponseModel
-                {
-                    ConversationId = conversationId,
-                    MessageId = msg.MessageId,
-                    Text = msg.Indication,
-                    Function = "indicating",
-                    Instruction = msg.Instruction,
-                    States = new Dictionary<string, string>()
-                };
-                await OnChunkReceived(Response, indicator);
-            },
-            // executed
-            async msg =>
-            {
-
             });
 
         response.States = state.GetStates();
@@ -361,6 +341,25 @@ public class ConversationController : ControllerBase
         response.ConversationId = conversationId;
 
         // await OnEventCompleted(Response);
+    }
+
+    private void InitProgressService(string conversationId)
+    {
+        var progressService = _services.GetService<IConversationProgressService>();
+        progressService.OnFunctionExecuting = async msg =>
+        {
+            var indicator = new ChatResponseModel
+            {
+                ConversationId = conversationId,
+                MessageId = msg.MessageId,
+                Text = msg.Indication,
+                Function = "indicating",
+                Instruction = msg.Instruction,
+                States = new Dictionary<string, string>()
+            };
+            await OnChunkReceived(Response, indicator);
+        };
+        progressService.OnFunctionExecuted = async msg => { };
     }
     #endregion
 

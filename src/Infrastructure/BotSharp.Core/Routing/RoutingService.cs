@@ -55,7 +55,7 @@ public partial class RoutingService : IRoutingService
             ExecutingDirectly = true
         };
 
-        var result = await handler.Handle(this, inst, message, null);
+        var result = await handler.Handle(this, inst, message);
 
         var response = dialogs.Last();
         response.MessageId = message.MessageId;
@@ -64,7 +64,7 @@ public partial class RoutingService : IRoutingService
         return response;
     }
 
-    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting)
+    public async Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs)
     {
         RoleDialogModel response = default;
 
@@ -125,12 +125,12 @@ public partial class RoutingService : IRoutingService
             if (inst.HandleDialogsByPlanner)
             {
                 var dialogWithoutContext = planner.BeforeHandleContext(inst, message, dialogs);
-                response = await executor.Execute(this, inst, message, dialogWithoutContext, onFunctionExecuting);
+                response = await executor.Execute(this, inst, message, dialogWithoutContext);
                 planner.AfterHandleContext(dialogs, dialogWithoutContext);
             }
             else
             {
-                response = await executor.Execute(this, inst, message, dialogs, onFunctionExecuting);
+                response = await executor.Execute(this, inst, message, dialogs);
             }
 
             await planner.AgentExecuted(_router, inst, response, dialogs);

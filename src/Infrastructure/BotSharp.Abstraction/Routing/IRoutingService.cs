@@ -28,9 +28,9 @@ public interface IRoutingService
 
     List<RoutingHandlerDef> GetHandlers(Agent router);
     void ResetRecursiveCounter();
-    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting);
-    Task<bool> InvokeFunction(string name, RoleDialogModel messages, Func<RoleDialogModel, Task>? onFunctionExecuting = null);
-    Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs, Func<RoleDialogModel, Task> onFunctionExecuting);
+    Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs);
+    Task<bool> InvokeFunction(string name, RoleDialogModel messages);
+    Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs);
 
     /// <summary>
     /// Talk to a specific Agent directly, bypassing the Router
