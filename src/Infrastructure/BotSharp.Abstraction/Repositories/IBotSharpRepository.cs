@@ -111,5 +111,8 @@ public interface IBotSharpRepository
     bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false);
     bool DeleteKnowledgeCollectionConfig(string collectionName);
     IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter);
+
+    public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData);
+    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
     #endregion
 }

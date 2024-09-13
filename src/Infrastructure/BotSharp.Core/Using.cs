@@ -32,6 +32,7 @@ global using BotSharp.Abstraction.Files.Enums;
 global using BotSharp.Abstraction.Files.Utilities;
 global using BotSharp.Abstraction.Translation.Attributes;
 global using BotSharp.Abstraction.Messaging.Enums;
+global using BotSharp.Abstraction.Knowledges.Models;
 global using BotSharp.Core.Repository;
 global using BotSharp.Core.Routing;
 global using BotSharp.Core.Agents.Services;

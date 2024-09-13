@@ -243,5 +243,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     public IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter) =>
         throw new NotImplementedException();
+
+    public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData) =>
+        throw new NotImplementedException();
+
+    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter) =>
+        throw new NotImplementedException();
     #endregion
 }

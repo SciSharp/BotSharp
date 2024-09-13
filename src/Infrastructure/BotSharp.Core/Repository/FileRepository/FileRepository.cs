@@ -43,6 +43,8 @@ public partial class FileRepository : IBotSharpRepository
     private const string KNOWLEDGE_FOLDER = "knowledgebase";
     private const string VECTOR_FOLDER = "vector";
     private const string COLLECTION_CONFIG_FILE = "collection-config.json";
+    private const string KNOWLEDGE_DOC_FOLDER = "document";
+    private const string KNOWLEDGE_DOC_META_FILE = "meta.json";
 
     public FileRepository(
         IServiceProvider services,
