@@ -30,18 +30,23 @@ public class SummaryPlanFn : IFunctionCallback
         // Get table names
         var steps = message.Content.JsonArrayContent<SecondStagePlan>();
         var allTables = new List<string>();
+        var ddlStatements = "";
+        var relevantKnowledge = message.Content;
         foreach (var step in steps)
         {
             allTables.AddRange(step.Tables);
         }
-        message.Data = allTables.Distinct().ToList();
-
-        // Get table DDL statements
-        var msgCopy = RoleDialogModel.From(message);
-        await fn.InvokeFunction("get_table_definition", msgCopy);
-        var ddlStatements = msgCopy.Content;
-        var relevantKnowledge = message.Content;
-        message.Data = null;
+        var distinctTables = allTables.Distinct().ToList();
+        foreach (var table in distinctTables)
+        {
+            var msgCopy = RoleDialogModel.From(message);
+            msgCopy.FunctionArgs = JsonSerializer.Serialize(new  
+            { 
+                table = table,
+            });
+            await fn.InvokeFunction("get_table_definition", msgCopy);
+            ddlStatements += "\r\n" + msgCopy.Content;
+        }
 
         // Summarize and generate query
         var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, ddlStatements);
