@@ -1,9 +1,11 @@
+using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
+    #region Configs
     public bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false)
     {
         var filter = Builders<KnowledgeCollectionConfigDocument>.Filter.Empty;
@@ -111,4 +113,83 @@ public partial class MongoRepository
             TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToDomainModel(x.TextEmbedding)
         });
     }
+    #endregion
+
+    #region Documents
+    public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
+    {
+        if (metaData == null
+            || string.IsNullOrWhiteSpace(metaData.Collection)
+            || string.IsNullOrWhiteSpace(metaData.VectorStoreProvider)
+            || string.IsNullOrWhiteSpace(metaData.FileId))
+        {
+            return false;
+        }
+
+        var doc = new KnowledgeCollectionFileDocument
+        {
+            Collection = metaData.Collection,
+            FileId = metaData.FileId,
+            FileName = metaData.FileName,
+            FileSource = metaData.FileSource,
+            ContentType = metaData.ContentType,
+            VectorStoreProvider = metaData.VectorStoreProvider,
+            VectorDataIds = metaData.VectorDataIds,
+            WebUrl = metaData.WebUrl,
+            CreateDate = metaData.CreateDate,
+            CreateUserId = metaData.CreateUserId
+        };
+
+        _dc.KnowledgeCollectionFiles.InsertOne(doc);
+        return true;
+    }
+
+    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)
+            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+        {
+            return new PagedItems<KnowledgeDocMetaData>();
+        }
+
+        var builder = Builders<KnowledgeCollectionFileDocument>.Filter;
+        
+        var docFilters = new List<FilterDefinition<KnowledgeCollectionFileDocument>>()
+        {
+            builder.Eq(x => x.Collection, collectionName),
+            builder.Eq(x => x.VectorStoreProvider, vectorStoreProvider)
+        };
+        
+        // Apply filters
+        if (filter != null && !filter.FileIds.IsNullOrEmpty())
+        {
+            docFilters.Add(builder.In(x => x.FileId, filter.FileIds));
+        }
+
+        var filterDef = builder.And(docFilters);
+        var sortDef = Builders<KnowledgeCollectionFileDocument>.Sort.Descending(x => x.CreateDate);
+        var docs = _dc.KnowledgeCollectionFiles.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
+        var count = _dc.KnowledgeCollectionFiles.CountDocuments(filterDef);
+
+        var files = docs?.Select(x => new KnowledgeDocMetaData
+        {
+            Collection = x.Collection,
+            FileId = x.FileId,
+            FileName = x.FileName,
+            FileSource = x.FileSource,
+            ContentType = x.ContentType,
+            VectorStoreProvider = x.VectorStoreProvider,
+            VectorDataIds = x.VectorDataIds,
+            WebUrl = x.WebUrl,
+            CreateDate = x.CreateDate,
+            CreateUserId = x.CreateUserId
+        })?.ToList() ?? new List<KnowledgeDocMetaData>();
+
+        return new PagedItems<KnowledgeDocMetaData>
+        {
+            Items = files,
+            Count = (int)count
+        };
+    }
+    #endregion
 }

@@ -72,13 +72,7 @@ public interface IFileStorageService
     /// <param name="fileId"></param>
     /// <returns></returns>
     bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, string? fileId = null);
-
-    bool SaveKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider,string fileId, KnowledgeDocMetaData metaData);
-
-    KnowledgeDocMetaData? GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, string fileId);
-
-    IEnumerable<KnowledgeFileModel> GetKnowledgeBaseFiles(string collectionName, string vectorStoreProvider);
-
+    string GetKnowledgeBaseFileUrl(string collectionName, string fileId);
     FileBinaryDataModel? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, string fileId);
     #endregion
 }

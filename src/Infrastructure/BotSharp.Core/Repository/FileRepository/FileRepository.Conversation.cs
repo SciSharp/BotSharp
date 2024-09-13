@@ -347,6 +347,7 @@ namespace BotSharp.Core.Repository
                 }
 
                 if (!matched) continue;
+
                 records.Add(record);
             }
  

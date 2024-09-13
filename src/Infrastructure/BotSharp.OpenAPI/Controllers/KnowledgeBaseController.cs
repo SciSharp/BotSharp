@@ -143,11 +143,20 @@ public class KnowledgeBaseController : ControllerBase
         return response;
     }
 
-    [HttpGet("/knowledge/document/{collection}/list")]
-    public async Task<IEnumerable<KnowledgeFileViewModel>> GetKnowledgeDocuments([FromRoute] string collection)
+    [HttpPost("/knowledge/document/{collection}/list")]
+    public async Task<PagedItems<KnowledgeFileViewModel>> GetPagedKnowledgeDocuments([FromRoute] string collection, [FromBody] GetKnowledgeDocsRequest request)
     {
-        var files = await _knowledgeService.GetKnowledgeDocuments(collection);
-        return files.Select(x => KnowledgeFileViewModel.From(x));
+        var data = await _knowledgeService.GetPagedKnowledgeDocuments(collection, new KnowledgeFileFilter
+        {
+            Page = request.Page,
+            Size = request.Size
+        });
+
+        return new PagedItems<KnowledgeFileViewModel>
+        {
+            Items = data.Items.Select(x => KnowledgeFileViewModel.From(x)),
+            Count = data.Count
+        };
     }
 
     [HttpGet("/knowledge/document/{collection}/file/{fileId}")]

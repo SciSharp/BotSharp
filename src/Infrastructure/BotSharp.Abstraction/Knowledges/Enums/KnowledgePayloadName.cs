@@ -8,4 +8,7 @@ public static class KnowledgePayloadName
     public static string Request = "request";
     public static string Response = "response";
     public static string DataSource = "dataSource";
+    public static string FileId = "fileId";
+    public static string FileName = "fileName";
+    public static string FileSource = "fileSource";
 }

@@ -192,7 +192,7 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
-                point.Payload.Add(item.Key, item.Value);
+                point.Payload[item.Key] = item.Value;
             }
         }
 
