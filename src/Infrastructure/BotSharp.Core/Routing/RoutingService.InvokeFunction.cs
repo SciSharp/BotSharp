@@ -25,7 +25,7 @@ public partial class RoutingService
         var progressService = _services.GetService<IConversationProgressService>();
 
         // Before executing functions
-        clonedMessage.Indication = function.Indication;
+        clonedMessage.Indication = await function.GetIndication(message);
         if (progressService?.OnFunctionExecuting != null)
         {
             await progressService.OnFunctionExecuting(clonedMessage);
