@@ -128,6 +128,7 @@ public partial class MongoRepository
 
         var doc = new KnowledgeCollectionFileDocument
         {
+            Id = Guid.NewGuid().ToString(),
             Collection = metaData.Collection,
             FileId = metaData.FileId,
             FileName = metaData.FileName,
@@ -135,7 +136,6 @@ public partial class MongoRepository
             ContentType = metaData.ContentType,
             VectorStoreProvider = metaData.VectorStoreProvider,
             VectorDataIds = metaData.VectorDataIds,
-            WebUrl = metaData.WebUrl,
             CreateDate = metaData.CreateDate,
             CreateUserId = metaData.CreateUserId
         };
@@ -180,7 +180,6 @@ public partial class MongoRepository
             ContentType = x.ContentType,
             VectorStoreProvider = x.VectorStoreProvider,
             VectorDataIds = x.VectorDataIds,
-            WebUrl = x.WebUrl,
             CreateDate = x.CreateDate,
             CreateUserId = x.CreateUserId
         })?.ToList() ?? new List<KnowledgeDocMetaData>();
