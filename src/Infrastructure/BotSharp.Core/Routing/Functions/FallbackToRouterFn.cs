@@ -34,7 +34,7 @@ public class FallbackToRouterFn : IFunctionCallback
         routing.Context.Replace(targetAgent.Id);
         message.CurrentAgentId = targetAgent.Id;
 
-        var response = await routing.InstructLoop(message, dialogs, null);
+        var response = await routing.InstructLoop(message, dialogs);
 
         message.Content = response.Content;
         message.StopCompletion = true;

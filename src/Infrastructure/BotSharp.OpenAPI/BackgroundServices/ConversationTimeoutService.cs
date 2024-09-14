@@ -62,7 +62,11 @@ namespace BotSharp.OpenAPI.BackgroundServices
             if (cleanSetting == null || !cleanSetting.Enable) return;
 
             var conversationService = scope.ServiceProvider.GetRequiredService<IConversationService>();
-            var conversationIds = await conversationService.GetIdleConversations(cleanSetting.BatchSize, cleanSetting.MessageLimit, cleanSetting.BufferHours, cleanSetting.ExcludeAgentIds);
+            var batchSize = cleanSetting.BatchSize;
+            var limit = cleanSetting.MessageLimit;
+            var bufferHours = cleanSetting.BufferHours;
+            var excludeAgentIds = cleanSetting.ExcludeAgentIds ?? new List<string>();
+            var conversationIds = await conversationService.GetIdleConversations(batchSize, limit, bufferHours, excludeAgentIds);
 
             if (!conversationIds.IsNullOrEmpty())
             {

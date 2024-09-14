@@ -16,6 +16,10 @@
         "type": "string",
         "description": "related table"
       },
+      "generated_without_table_definition": {
+        "type": "boolean",
+        "description": "sql is generated before retrieving table definition"
+      },
       "parameters": {
         "type": "array",
         "description": "data criteria for the query",

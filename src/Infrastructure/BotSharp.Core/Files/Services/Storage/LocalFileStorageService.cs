@@ -19,6 +19,17 @@ public partial class LocalFileStorageService : IFileStorageService
     private const string USER_AVATAR_FOLDER = "avatar";
     private const string SESSION_FOLDER = "sessions";
     private const string TEXT_TO_SPEECH_FOLDER = "speeches";
+    private const string KNOWLEDGE_FOLDER = "knowledgebase";
+    private const string KNOWLEDGE_DOC_FOLDER = "document";
+    private const string KNOWLEDGE_DOC_META_FILE = "meta.json";
+
+    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        AllowTrailingCommas = true
+    };
 
     public LocalFileStorageService(
         BotSharpDatabaseSettings dbSettings,

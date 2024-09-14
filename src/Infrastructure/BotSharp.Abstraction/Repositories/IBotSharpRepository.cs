@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Repositories;
 
@@ -99,5 +100,20 @@ public interface IBotSharpRepository
     IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries);
     bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs);
 
+    #endregion
+
+    #region KnowledgeBase
+    /// <summary>
+    /// Save knowledge collection configs. If reset is true, it will remove everything and then save the new configs.
+    /// </summary>
+    /// <param name="configs"></param>
+    /// <param name="reset"></param>
+    /// <returns></returns>
+    bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false);
+    bool DeleteKnowledgeCollectionConfig(string collectionName);
+    IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter);
+
+    public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData);
+    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
     #endregion
 }

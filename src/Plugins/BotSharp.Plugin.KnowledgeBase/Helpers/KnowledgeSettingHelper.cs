@@ -5,21 +5,36 @@ public static class KnowledgeSettingHelper
     public static ITextEmbedding GetTextEmbeddingSetting(IServiceProvider services, string collectionName)
     {
         var settings = services.GetRequiredService<KnowledgeBaseSettings>();
-        var found = settings.Collections.FirstOrDefault(x => x.Name == collectionName)?.TextEmbedding;
+        var db = services.GetRequiredService<IBotSharpRepository>();
+
+        // Get collection config from db
+        var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        {
+            CollectionNames = [collectionName],
+            VectorStroageProviders = [settings.VectorDb.Provider]
+        });
+
+        var found = configs?.FirstOrDefault()?.TextEmbedding;
+        var provider = found?.Provider ?? string.Empty;
+        var model = found?.Model ?? string.Empty;
+        var dimension = found?.Dimension ?? 0;
+
         if (found == null)
         {
-            found = settings.Default.TextEmbedding;
+            provider = settings.Default.TextEmbedding.Provider;
+            model = settings.Default.TextEmbedding.Model;
+            dimension = settings.Default.TextEmbedding.Dimension;
         }
 
-        var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == found.Provider);
-        var dimension = found.Dimension;
+        // Set up text embedding
+        var embedding = services.GetServices<ITextEmbedding>().FirstOrDefault(x => x.Provider == provider);
 
-        if (found.Dimension <= 0)
+        if (dimension <= 0)
         {
-            dimension = GetLlmTextEmbeddingDimension(services, found.Provider, found.Model);
+            dimension = GetLlmTextEmbeddingDimension(services, provider, model);
         }
 
-        embedding.SetModelName(found.Model);
+        embedding.SetModelName(model);
         embedding.SetDimension(dimension);
         return embedding;
     }

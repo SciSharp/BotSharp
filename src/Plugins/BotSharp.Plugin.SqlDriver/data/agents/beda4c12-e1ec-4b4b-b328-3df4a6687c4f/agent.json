@@ -1,7 +1,7 @@
 {
   "id": "beda4c12-e1ec-4b4b-b328-3df4a6687c4f",
   "name": "SQL Driver",
-  "description": "Convert the requirements into corresponding SQL statements according to the table structure.",
+  "description": "Execute the sql query in database from the latest dialog.",
   "type": "task",
   "createdDateTime": "2023-11-15T13:49:00Z",
   "updatedDateTime": "2023-11-15T13:49:00Z",
@@ -9,8 +9,15 @@
   "isPublic": true,
   "profiles": [ "database" ],
   "llmConfig": {
-    "model": "gpt-4-0125",
-    "model3": "gpt-35-turbo-1106",
-    "max_recursion_depth": 10
-  }
+    "provider": "openai",
+    "model": "gpt-4o-mini"
+  },
+  "routingRules": [
+    {
+      "field": "sql_statement",
+      "required": true,
+      "field_type": "string",
+      "description": "SQL statement"
+    }
+  ]
 }

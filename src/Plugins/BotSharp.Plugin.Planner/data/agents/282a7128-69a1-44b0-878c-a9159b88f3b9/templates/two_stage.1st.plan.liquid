@@ -10,7 +10,7 @@ Thinking process:
     - You should find the relationships between data structure based on the task knowledge strictly. If lack of information, set the need_additional_information to true.
 3. Input argument must reference to corresponding variable name that retrieved by previous steps, variable name must start with '@';
 4. Output all the subtasks as much detail as possible in JSON: [{{ response_format }}]
-5. Don't organize and format the extracted data with any other language rather than sql
+5. You can NOT generate the final query before calling function plan_summary.
 
 Note:If the task includes repeat steps,e.g.same steps for multiple elements, only generate a single detailed solution without repeating steps for each elements. You can add multiple items in the input and output args.
 

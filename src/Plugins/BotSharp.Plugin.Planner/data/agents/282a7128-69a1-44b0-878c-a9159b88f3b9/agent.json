@@ -1,7 +1,7 @@
 {
   "id": "282a7128-69a1-44b0-878c-a9159b88f3b9",
   "name": "Planner",
-  "description": "Plan feasible implementation steps for complex problems",
+  "description": "Plan feasible implementation steps for user task request",
   "type": "task",
   "createdDateTime": "2023-08-27T10:39:00Z",
   "updatedDateTime": "2023-08-27T14:39:00Z",
@@ -11,7 +11,8 @@
   "profiles": [ "planning" ],
   "utilities": [ "two-stage-planner" ],
   "llmConfig": {
-    "provider": "openai",
-    "model": "gpt-4o-mini"
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20240620",
+    "max_recursion_depth": 10
   }
 }

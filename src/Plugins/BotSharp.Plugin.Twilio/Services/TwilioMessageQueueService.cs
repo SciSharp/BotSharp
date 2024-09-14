@@ -63,6 +63,9 @@ namespace BotSharp.Plugin.Twilio.Services
             var conv = sp.GetRequiredService<IConversationService>();
             var routing = sp.GetRequiredService<IRoutingService>();
             var config = sp.GetRequiredService<TwilioSetting>();
+            var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
+            var progressService = sp.GetRequiredService<IConversationProgressService>();
+            InitProgressService(message, sessionManager, progressService);
 
             routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
             var states = new List<MessageState>
@@ -77,7 +80,6 @@ namespace BotSharp.Plugin.Twilio.Services
             }
             conv.SetConversationId(message.ConversationId, states);
 
-            var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
             var result = await conv.SendMessage(config.AgentId,
                 inputMsg,
                 replyMessage: null,
@@ -90,15 +92,7 @@ namespace BotSharp.Plugin.Twilio.Services
                         Content = msg.Content,
                         MessageId = msg.MessageId
                     };
-                },
-                async msg =>
-                {
-                    if (!string.IsNullOrEmpty(msg.Indication))
-                    {
-                        await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
-                    }
-                },
-                async functionExecuted => { }
+                }
             );
 
             var completion = CompletionProvider.GetAudioCompletion(sp, "openai", "tts-1");
@@ -126,9 +120,21 @@ namespace BotSharp.Plugin.Twilio.Services
                     break;
                 }
             }
-            reply.Hints = string.Join(',', hints);
+            reply.Hints = string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
             reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
+        }
+
+        private static void InitProgressService(CallerMessage message, ITwilioSessionManager sessionManager, IConversationProgressService progressService)
+        {
+            progressService.OnFunctionExecuting = async msg =>
+            {
+                if (!string.IsNullOrEmpty(msg.Indication))
+                {
+                    await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
+                }
+            };
+            progressService.OnFunctionExecuted = async msg => { };
         }
     }
 }

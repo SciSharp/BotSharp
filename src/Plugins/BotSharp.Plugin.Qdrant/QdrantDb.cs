@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage.Models;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -10,12 +12,15 @@ public class QdrantDb : IVectorDb
     private QdrantClient _client;
     private readonly QdrantSetting _setting;
     private readonly IServiceProvider _services;
+    private readonly ILogger<QdrantDb> _logger;
 
     public QdrantDb(
         QdrantSetting setting,
+        ILogger<QdrantDb> logger,
         IServiceProvider services)
     {
         _setting = setting;
+        _logger = logger;
         _services = services;
     }
 
@@ -35,21 +40,28 @@ public class QdrantDb : IVectorDb
         return _client;
     }
 
-    public async Task<bool> CreateCollection(string collectionName, int dim)
+    public async Task<bool> CreateCollection(string collectionName, int dimension)
     {
         var client = GetClient();
         var exist = await DoesCollectionExist(client, collectionName);
 
         if (exist) return false;
 
-        // Create a new collection
-        await client.CreateCollectionAsync(collectionName, new VectorParams()
+        try
         {
-            Size = (ulong)dim,
-            Distance = Distance.Cosine
-        });
-
-        return true;
+            // Create a new collection
+            await client.CreateCollectionAsync(collectionName, new VectorParams()
+            {
+                Size = (ulong)dimension,
+                Distance = Distance.Cosine
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when create collection (Name: {collectionName}, Dimension: {dimension}).");
+            return false;
+        }
     }
 
     public async Task<bool> DeleteCollection(string collectionName)
@@ -101,10 +113,25 @@ public class QdrantDb : IVectorDb
             };
         }
 
+        // Build payload selector
+        WithPayloadSelector? payloadSelector = null;
+        if (!filter.IncludedPayloads.IsNullOrEmpty())
+        {
+            payloadSelector = new WithPayloadSelector
+            { 
+                Enable = true,
+                Include = new PayloadIncludeSelector
+                {
+                    Fields = { filter.IncludedPayloads.ToArray() }
+                }
+            };
+        }
+
         var totalPointCount = await client.CountAsync(collectionName, filter: queryFilter);
         var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : null,
             filter: queryFilter,
+            payloadSelector: payloadSelector,
             vectorsSelector: filter.WithVector);
 
         var points = response?.Result?.Select(x => new VectorCollectionData
@@ -145,8 +172,6 @@ public class QdrantDb : IVectorDb
         });
     }
 
-    
-
     public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
     {
         // Insert vectors
@@ -167,7 +192,7 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
-                point.Payload.Add(item.Key, item.Value);
+                point.Payload[item.Key] = item.Value;
             }
         }
 
@@ -216,10 +241,12 @@ public class QdrantDb : IVectorDb
         return results;
     }
 
-    public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
+    public async Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
     {
+        if (ids.IsNullOrEmpty()) return false;
+
         var client = GetClient();
-        var result = await client.DeleteAsync(collectionName, id);
+        var result = await client.DeleteAsync(collectionName, ids);
         return result.Status == UpdateStatus.Completed;
     }
 

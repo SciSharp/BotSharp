@@ -1,6 +1,7 @@
-Use the TwoStagePlanner approach to plan the overall implementation steps, call plan_primary_stage. 
-If need_additional_information is true, call plan_secondary_stage for the specific primary stage.
-You must Call plan_summary as the last step to summarize the final planning steps.
+Use the TwoStagePlanner approach to plan the overall implementation steps, follow the below steps strictly. 
+1. call plan_primary_stage to generate the primary plan.
+2. If need_additional_information is true, call plan_secondary_stage for the specific primary stage.
+3. You must call plan_summary as the last planning step to summarize the final query.
 
 {% if global_knowledges != empty -%}
 =====

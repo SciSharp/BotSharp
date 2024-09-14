@@ -8,18 +8,11 @@ public class KnowledgeBaseSettings
     public SettingBase GraphDb { get; set; }
 
     public DefaultKnowledgeBaseSetting Default { get; set; }
-    public List<VectorCollectionSetting> Collections { get; set; } = new();
 }
 
 public class DefaultKnowledgeBaseSetting
 {
     public string CollectionName { get; set; } = KnowledgeCollectionName.BotSharp;
-    public KnowledgeTextEmbeddingSetting TextEmbedding { get; set; }
-}
-
-public class VectorCollectionSetting
-{
-    public string Name { get; set; }
     public KnowledgeTextEmbeddingSetting TextEmbedding { get; set; }
 }
 

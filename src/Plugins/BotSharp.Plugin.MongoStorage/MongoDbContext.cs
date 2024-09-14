@@ -153,4 +153,10 @@ public class MongoDbContext
 
     public IMongoCollection<TranslationMemoryDocument> TranslationMemories
         => Database.GetCollection<TranslationMemoryDocument>($"{_collectionPrefix}_TranslationMemories");
+
+    public IMongoCollection<KnowledgeCollectionConfigDocument> KnowledgeCollectionConfigs
+        => Database.GetCollection<KnowledgeCollectionConfigDocument>($"{_collectionPrefix}_KnowledgeCollectionConfigs");
+
+    public IMongoCollection<KnowledgeCollectionFileDocument> KnowledgeCollectionFiles
+        => Database.GetCollection<KnowledgeCollectionFileDocument>($"{_collectionPrefix}_KnowledgeCollectionFiles");
 }

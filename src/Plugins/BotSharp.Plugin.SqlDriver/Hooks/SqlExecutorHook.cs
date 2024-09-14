@@ -10,7 +10,8 @@ public class SqlExecutorHook : AgentHookBase, IAgentHook
     private const string SQL_EXECUTOR_TEMPLATE = "sql_executor.fn";
     private IEnumerable<string> _targetSqlExecutorFunctions = new List<string>
     {
-        "sql_select"
+        "sql_select",
+        "get_table_definition",
     };
 
     public override string SelfId => string.Empty;
