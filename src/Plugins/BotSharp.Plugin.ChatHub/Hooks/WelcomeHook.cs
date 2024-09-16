@@ -35,20 +35,25 @@ public class WelcomeHook : ConversationHookBase
             // Render template
             var templating = _services.GetRequiredService<ITemplateRender>();
             var user = _services.GetRequiredService<IUserIdentity>();
-            var richContent = templating.Render(welcomeTemplate.Content, new Dictionary<string, object>
+            var content = templating.Render(welcomeTemplate.Content, new Dictionary<string, object>
             {
                 { "user",  user }
             });
             var richContentService = _services.GetRequiredService<IRichContentService>();
-            var messages = richContentService.ConvertToMessages(richContent);
+            var messages = richContentService.ConvertToMessages(content);
 
             foreach (var message in messages)
             {
+                var richContent = new RichContent<IRichMessage>(message)
+                {
+                    Editor = message.RichType == RichTypeEnum.QuickReply ? EditorTypeEnum.None : EditorTypeEnum.Text,
+                };
+
                 var json = JsonSerializer.Serialize(new ChatResponseModel()
                 {
                     ConversationId = conversation.Id,
                     Text = message.Text,
-                    RichContent = new RichContent<IRichMessage>(message),
+                    RichContent = richContent,
                     Sender = new UserViewModel()
                     {
                         FirstName = agent.Name,
@@ -63,6 +68,7 @@ public class WelcomeHook : ConversationHookBase
                 {
                     MessageId = conversation.Id,
                     CurrentAgentId = agent.Id,
+                    RichContent = richContent
                 });
 
                 await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);

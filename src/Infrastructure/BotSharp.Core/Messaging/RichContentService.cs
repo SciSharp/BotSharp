@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Messaging;
-using BotSharp.Abstraction.Messaging.Enums;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 
 namespace BotSharp.Core.Messaging;
