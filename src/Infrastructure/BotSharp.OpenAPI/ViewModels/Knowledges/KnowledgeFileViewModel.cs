@@ -5,7 +5,7 @@ namespace BotSharp.OpenAPI.ViewModels.Knowledges;
 public class KnowledgeFileViewModel
 {
     [JsonPropertyName("file_id")]
-    public string FileId { get; set; }
+    public Guid FileId { get; set; }
 
     [JsonPropertyName("file_name")]
     public string FileName { get; set; }

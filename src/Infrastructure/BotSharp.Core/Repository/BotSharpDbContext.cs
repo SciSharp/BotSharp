@@ -234,7 +234,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
     #endregion
 
-    #region Knowledge
+    #region KnowledgeBase
     public bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false) =>
         throw new NotImplementedException();
 
@@ -245,6 +245,9 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         throw new NotImplementedException();
 
     public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData) =>
+        throw new NotImplementedException();
+
+    public bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null) =>
         throw new NotImplementedException();
 
     public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter) =>

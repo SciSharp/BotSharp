@@ -1,9 +1,9 @@
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class KnowledgeCollectionFileDocument : MongoBase
+public class KnowledgeCollectionFileMetaDocument : MongoBase
 {
     public string Collection { get; set; }
-    public string FileId { get; set; }
+    public Guid FileId { get; set; }
     public string FileName { get; set; }
     public string FileSource { get; set; }
     public string ContentType { get; set; }

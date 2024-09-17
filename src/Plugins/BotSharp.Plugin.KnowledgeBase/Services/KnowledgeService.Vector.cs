@@ -92,7 +92,8 @@ public partial class KnowledgeService
                 var vectorStoreProvider = _settings.VectorDb.Provider;
 
                 db.DeleteKnowledgeCollectionConfig(collectionName);
-                fileStorage.DeleteKnowledgeFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr());
+                fileStorage.DeleteKnowledgeFile(collectionName, vectorStoreProvider);
+                db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider);
             }
 
             return deleted;
