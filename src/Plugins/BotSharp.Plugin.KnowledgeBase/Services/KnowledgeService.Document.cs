@@ -150,13 +150,19 @@ public partial class KnowledgeService
             Size = filter.Size
         });
 
-        var files = pagedData.Items?.Select(x => new KnowledgeFileModel
+        var files = pagedData.Items?.Select(x =>
         {
-            FileId = x.FileId,
-            FileName = x.FileName,
-            FileExtension = Path.GetExtension(x.FileName),
-            ContentType = x.ContentType,
-            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, vectorStoreProvider, x.FileId, x.FileName)
+            var fileUrl = x.ContentType == MediaTypeNames.Text.Html ?
+                        x.WebUrl : fileStorage.GetKnowledgeBaseFileUrl(collectionName, vectorStoreProvider, x.FileId, x.FileName);  
+
+            return new KnowledgeFileModel
+            {
+                FileId = x.FileId,
+                FileName = x.FileName,
+                FileExtension = Path.GetExtension(x.FileName),
+                ContentType = x.ContentType,
+                FileUrl = fileUrl
+            };
         })?.ToList() ?? new List<KnowledgeFileModel>();
 
         return new PagedItems<KnowledgeFileModel>
