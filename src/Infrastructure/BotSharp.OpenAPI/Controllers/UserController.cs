@@ -121,6 +121,16 @@ public class UserController : ControllerBase
         return await _userService.ResetUserPassword(user.ToUser());
     }
 
+    [HttpPost("/user/updatepassword")]
+    public async Task<bool> UpdatePassword([FromBody] User user)
+    {
+        if (string.IsNullOrWhiteSpace(user.Password) || string.IsNullOrWhiteSpace(user.VerificationCode))
+        {
+            return false;
+        }
+        return await _userService.UpdatePassword(user.Password, user.VerificationCode);
+    }
+
     [HttpPost("/user/email/modify")]
     public async Task<bool> ModifyUserEmail([FromQuery] string email)
     {

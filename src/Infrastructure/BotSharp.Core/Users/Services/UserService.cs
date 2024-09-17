@@ -83,6 +83,28 @@ public class UserService : IUserService
         return record;
     }
 
+    public async Task<bool> UpdatePassword(string password, string verificationCode)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByUserName(_user.UserName);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        if (record.VerificationCode != verificationCode)
+        {
+            return false;
+        }
+
+        var salt = Guid.NewGuid().ToString("N");
+        record.Password = Utilities.HashTextMd5($"{password}{salt}");
+
+        db.UpdateUserPassword(record.Id, password);
+        return true;
+    }
+
     public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
