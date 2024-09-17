@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Planning;
+using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 
 namespace BotSharp.Plugin.Planner.Functions;
@@ -62,7 +64,9 @@ public class SummaryPlanFn : IFunctionCallback
 
         var summary = await GetAiResponse(plannerAgent);
         message.Content = summary.Content;
-        message.StopCompletion = true;
+
+        await HookEmitter.Emit<IPlanningHook>(_services, x => 
+            x.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message));
 
         return true;
     }
@@ -74,18 +78,20 @@ public class SummaryPlanFn : IFunctionCallback
 
         var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
         var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
-        var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
+
+        var additionalRequirements = new List<string>();
+        await HookEmitter.Emit<IPlanningHook>(_services, async x =>
         {
-            Parameters = [JsonDocument.Parse("{}")],
-            Results = [""]
+            var requirement = await x.GetSummaryAdditionalRequirements(nameof(TwoStageTaskPlanner));
+            additionalRequirements.Add(requirement);
         });
 
         return render.Render(template, new Dictionary<string, object>
         {
-            { "table_structure", ddlStatement },
             { "task_description", taskDescription },
+            { "summary_requirements", string.Join("\r\n",additionalRequirements) },
             { "relevant_knowledges", relevantKnowledge },
-            { "response_format", responseFormat }
+            { "table_structure", ddlStatement },
         });
     }
     private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
@@ -94,8 +100,8 @@ public class SummaryPlanFn : IFunctionCallback
         var wholeDialogs = conv.GetDialogHistory();
 
         // Append text
-        wholeDialogs.Last().Content += "\n\nIf the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id) instead of LAST_INSERT_ID function.\nFor example, you should use SET @id = select max(id) from table;";
-        wholeDialogs.Last().Content += "\n\nTry if you can generate a single query to fulfill the needs";
+        wholeDialogs.Last().Content += "\n\nIf the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id).\nFor example, you should use SET @id = select max(id) from table;";
+        wholeDialogs.Last().Content += "\n\nTry if you can generate a single query to fulfill the needs.";
 
         var completion = CompletionProvider.GetChatCompletion(_services, 
             provider: plannerAgent.LlmConfig.Provider, 

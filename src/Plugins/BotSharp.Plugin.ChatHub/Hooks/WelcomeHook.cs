@@ -46,7 +46,6 @@ public class WelcomeHook : ConversationHookBase
             {
                 var richContent = new RichContent<IRichMessage>(message)
                 {
-                    Editor = message.RichType == RichTypeEnum.QuickReply ? EditorTypeEnum.None : EditorTypeEnum.Text,
                 };
 
                 var json = JsonSerializer.Serialize(new ChatResponseModel()

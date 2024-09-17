@@ -18,8 +18,8 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
 
     public async Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs)
     {
-        var nextStepPrompt = await GetNextStepPrompt(router);
         var inst = new FunctionCallFromLlm();
+        var nextStepPrompt = await GetNextStepPrompt(router);
 
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,
@@ -125,7 +125,7 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var planner = await agentService.LoadAgent(BuiltInAgentId.Planner);
-        var template = planner.Templates.First(x => x.Name == "two_stage.1st.next").Content;
+        var template = planner.Templates.First(x => x.Name == "two_stage.next").Content;
         var states = _services.GetRequiredService<IConversationStateService>();
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>

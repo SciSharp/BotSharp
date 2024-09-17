@@ -1,0 +1,18 @@
+{
+  "name": "execute_sql",
+  "description": "Run the sql statements provided in the last converastion",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "sql_statements": {
+        "type": "array",
+        "description": "raw sql statements",
+        "items": {
+          "type": "string",
+          "description": "sql statement"
+        }
+      }
+    },
+    "required": [ "sql_statement" ]
+  }
+}
