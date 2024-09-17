@@ -5,11 +5,11 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace BotSharp.OpenAPI.Filters
 {
-    public class UserSignleAccountFilter : IAuthorizationFilter
+    public class UserSingleLoginFilter : IAuthorizationFilter
     {
         private readonly IUserService _userService;
 
-        public UserSignleAccountFilter(IUserService userService)
+        public UserSingleLoginFilter(IUserService userService)
         {
             _userService = userService;
         }

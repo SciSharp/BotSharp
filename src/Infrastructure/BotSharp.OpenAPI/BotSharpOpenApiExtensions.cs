@@ -35,7 +35,7 @@ public static class BotSharpOpenApiExtensions
         
         services.AddMvc(options =>
         {
-            options.Filters.Add<UserSignleAccountFilter>();
+            options.Filters.Add<UserSingleLoginFilter>();
         });
 
         // Add bearer authentication
