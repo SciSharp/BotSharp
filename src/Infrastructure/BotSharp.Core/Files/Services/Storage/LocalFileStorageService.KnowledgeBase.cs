@@ -1,23 +1,21 @@
-using BotSharp.Abstraction.Knowledges.Models;
 using System.IO;
 
 namespace BotSharp.Core.Files.Services;
 
 public partial class LocalFileStorageService
 {
-    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, string fileId, string fileName, BinaryData fileData)
+    public bool SaveKnowledgeBaseFile(string collectionName, string vectorStoreProvider, Guid fileId, string fileName, BinaryData fileData)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider)
-            || string.IsNullOrWhiteSpace(fileId))
+            || string.IsNullOrWhiteSpace(vectorStoreProvider))
         {
             return false;
         }
 
         try
         {
-            var docDir = BuildKnowledgeCollectionDocumentDir(collectionName, vectorStoreProvider);
-            var dir = Path.Combine(docDir, fileId);
+            var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+            var dir = Path.Combine(docDir, fileId.ToString());
             if (ExistDirectory(dir))
             {
                 Directory.Delete(dir);
@@ -40,7 +38,7 @@ public partial class LocalFileStorageService
         }
     }
 
-    public bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, string? fileId = null)
+    public bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, Guid? fileId = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider))
@@ -48,16 +46,16 @@ public partial class LocalFileStorageService
             return false;
         }
 
-        var dir = BuildKnowledgeCollectionDocumentDir(collectionName, vectorStoreProvider);
+        var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
         if (!ExistDirectory(dir)) return false;
 
-        if (string.IsNullOrEmpty(fileId))
+        if (fileId == null)
         {
             Directory.Delete(dir, true);
         }
         else
         {
-            var fileDir = Path.Combine(dir, fileId);
+            var fileDir = Path.Combine(dir, fileId.ToString());
             if (ExistDirectory(fileDir))
             {
                 Directory.Delete(fileDir, true);
@@ -67,10 +65,10 @@ public partial class LocalFileStorageService
         return true;
     }
 
-    public string GetKnowledgeBaseFileUrl(string collectionName, string fileId)
+    public string GetKnowledgeBaseFileUrl(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-             || string.IsNullOrWhiteSpace(fileId))
+            || string.IsNullOrWhiteSpace(vectorStoreProvider))
         {
             return string.Empty;
         }
@@ -78,39 +76,31 @@ public partial class LocalFileStorageService
         return $"/knowledge/document/{collectionName}/file/{fileId}";
     }
 
-    public FileBinaryDataModel? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, string fileId)
+    public BinaryData? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider)
-            || string.IsNullOrWhiteSpace(fileId))
+            || string.IsNullOrWhiteSpace(fileName))
         {
             return null;
         }
 
-        var docDir = BuildKnowledgeCollectionDocumentDir(collectionName, vectorStoreProvider);
-        var fileDir = Path.Combine(docDir, fileId);
+        var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var fileDir = Path.Combine(docDir, fileId.ToString());
         if (!ExistDirectory(fileDir)) return null;
 
-        var metaFile = Path.Combine(fileDir, KNOWLEDGE_DOC_META_FILE);
-        var content = File.ReadAllText(metaFile);
-        var metaData = JsonSerializer.Deserialize<KnowledgeDocMetaData>(content, _jsonOptions);
-        var file = Path.Combine(fileDir, metaData.FileName);
+        var file = Path.Combine(fileDir, fileName);
         using var stream = new FileStream(file, FileMode.Open, FileAccess.Read);
         stream.Position = 0;
 
-        return new FileBinaryDataModel
-        {
-            FileName = metaData.FileName,
-            ContentType = metaData.ContentType,
-            FileBinaryData = BinaryData.FromStream(stream)
-        };
+        return BinaryData.FromStream(stream);
     }
 
 
     #region Private methods
-    private string BuildKnowledgeCollectionDocumentDir(string collectionName, string vectorStoreProvider)
+    private string BuildKnowledgeCollectionFileDir(string collectionName, string vectorStoreProvider)
     {
-        return Path.Combine(_baseDir, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, vectorStoreProvider, collectionName);
+        return Path.Combine(_baseDir, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, vectorStoreProvider.CleanStr(), collectionName.CleanStr());
     }
     #endregion
 }

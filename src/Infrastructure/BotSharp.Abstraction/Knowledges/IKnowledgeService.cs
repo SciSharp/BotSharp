@@ -22,9 +22,9 @@ public interface IKnowledgeService
 
     #region Document
     Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files);
-    Task<bool> DeleteKnowledgeDocument(string collectionName, string fileId);
+    Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId);
     Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
-    Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, string fileId);
+    Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId);
     #endregion
 
     #region Common
