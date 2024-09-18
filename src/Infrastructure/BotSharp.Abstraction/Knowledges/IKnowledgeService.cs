@@ -12,6 +12,7 @@ public interface IKnowledgeService
     Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
     Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
     Task<bool> DeleteVectorCollectionData(string collectionName, string id);
+    Task<bool> DeleteVectorCollectionAllData(string collectionName);
     Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
     Task<bool> UpdateVectorCollectionData(string collectionName, VectorUpdateModel update);
     #endregion
