@@ -135,7 +135,7 @@ public partial class MongoRepository
             ContentType = metaData.ContentType,
             VectorStoreProvider = metaData.VectorStoreProvider,
             VectorDataIds = metaData.VectorDataIds,
-            WebUrl = metaData.WebUrl,
+            RefData = KnowledgeFileMetaRefMongoModel.ToMongoModel(metaData.RefData),
             CreateDate = metaData.CreateDate,
             CreateUserId = metaData.CreateUserId
         };
@@ -203,10 +203,10 @@ public partial class MongoRepository
             ContentType = x.ContentType,
             VectorStoreProvider = x.VectorStoreProvider,
             VectorDataIds = x.VectorDataIds,
-            WebUrl = x.WebUrl,
+            RefData = KnowledgeFileMetaRefMongoModel.ToDomainModel(x.RefData),
             CreateDate = x.CreateDate,
             CreateUserId = x.CreateUserId
-        })?.ToList() ?? new List<KnowledgeDocMetaData>();
+        })?.ToList() ?? new();
 
         return new PagedItems<KnowledgeDocMetaData>
         {
