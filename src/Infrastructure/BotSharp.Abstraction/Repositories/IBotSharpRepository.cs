@@ -20,6 +20,7 @@ public interface IBotSharpRepository
 
     #region User
     User? GetUserByEmail(string email) => throw new NotImplementedException();
+    User? GetUserByPhone(string phone) => throw new NotImplementedException();
     User? GetUserById(string id) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();

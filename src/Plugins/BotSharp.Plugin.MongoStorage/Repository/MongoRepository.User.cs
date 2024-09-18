@@ -10,6 +10,12 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
+    public User? GetUserByPhone(string phone)
+    {
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone);
+        return user != null ? user.ToUser() : null;
+    }
+
     public User? GetUserById(string id)
     {
         var user = _dc.Users.AsQueryable()

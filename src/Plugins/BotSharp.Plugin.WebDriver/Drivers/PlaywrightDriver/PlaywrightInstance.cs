@@ -203,15 +203,18 @@ public class PlaywrightInstance : IDisposable
     /// <param name="ctxId"></param>
     /// <param name="timeout">seconds</param>
     /// <returns></returns>
-    public async Task Wait(string ctxId, int timeout = 60)
+    public async Task Wait(string ctxId, int timeout = 10, bool waitNetworkIdle = true)
     {
         foreach (var page in _pages[ctxId])
         {
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
-            await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
+            if (waitNetworkIdle)
             {
-                Timeout = 1000 * timeout
-            });
+                await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
+                {
+                    Timeout = 1000 * timeout
+                });
+            }
         }
         await Task.Delay(100);
     }
