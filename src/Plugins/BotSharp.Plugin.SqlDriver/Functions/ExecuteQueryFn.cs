@@ -36,7 +36,7 @@ public class ExecuteQueryFn : IFunctionCallback
     private IEnumerable<dynamic> RunQueryInMySql(string[] sqlTexts)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
+        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString ?? settings.MySqlConnectionString);
         return connection.Query(string.Join(";\r\n", sqlTexts));
     }
 

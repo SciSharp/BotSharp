@@ -14,5 +14,7 @@ VALUES ((SELECT MAX(Id) + 1 FROM data_Service), 'HVAC');
 If the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id) instead of LAST_INSERT_ID function.
 For example, you should use SET @id = select max(id) from table; 
 
-* the alias of the table name in the sql query should be identical.
+*** the alias of the table name in the sql query should be identical. ***
 *** the generated sql query MUST be basedd on the provided table structure. ***
+*** All queries return a maximum of 20 records. ***
+*** Only select user friendly columns. ***
