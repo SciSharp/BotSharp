@@ -9,6 +9,7 @@ namespace BotSharp.Plugin.SqlDriver.Functions;
 public class GetTableDefinitionFn : IFunctionCallback
 {
     public string Name => "get_table_definition";
+    public string Indication => "Obtain the relevant data structure definitions.";
     private readonly IServiceProvider _services;
     private readonly ILogger<GetTableDefinitionFn> _logger;
 

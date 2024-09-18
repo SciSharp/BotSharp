@@ -1,6 +1,5 @@
 using BotSharp.Plugin.SqlDriver.Models;
 using Dapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 
@@ -9,7 +8,7 @@ namespace BotSharp.Plugin.SqlDriver.Functions;
 public class ExecuteQueryFn : IFunctionCallback
 {
     public string Name => "execute_sql";
-
+    public string Indication => "Performing data retrieval operation.";
     private readonly SqlDriverSetting _setting;
     private readonly IServiceProvider _services;
 

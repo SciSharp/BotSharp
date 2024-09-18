@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.Planner.Functions;
 public class SummaryPlanFn : IFunctionCallback
 {
     public string Name => "plan_summary";
-
+    public string Indication => "Organizing and summarizing the final output results.";
     private readonly IServiceProvider _services;
     private readonly ILogger<SummaryPlanFn> _logger;
 
