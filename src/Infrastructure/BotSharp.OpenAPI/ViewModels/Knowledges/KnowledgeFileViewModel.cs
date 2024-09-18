@@ -19,6 +19,10 @@ public class KnowledgeFileViewModel
     [JsonPropertyName("file_url")]
     public string FileUrl { get; set; }
 
+    [JsonPropertyName("ref_data")]
+    public DocMetaRefData? RefData { get; set; }
+
+
     public static KnowledgeFileViewModel From(KnowledgeFileModel model)
     {
         return new KnowledgeFileViewModel
@@ -27,7 +31,8 @@ public class KnowledgeFileViewModel
             FileName = model.FileName,
             FileExtension = model.FileExtension,
             ContentType = model.ContentType,
-            FileUrl = model.FileUrl
+            FileUrl = model.FileUrl,
+            RefData = model.RefData
         };
     }
 }
