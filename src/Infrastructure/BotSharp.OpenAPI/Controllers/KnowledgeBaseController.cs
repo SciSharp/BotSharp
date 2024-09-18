@@ -102,6 +102,12 @@ public class KnowledgeBaseController : ControllerBase
     {
         return await _knowledgeService.DeleteVectorCollectionData(collection, id);
     }
+
+    [HttpDelete("/knowledge/vector/{collection}/data")]
+    public async Task<bool> DeleteVectorCollectionAllData([FromRoute] string collection)
+    {
+        return await _knowledgeService.DeleteVectorCollectionAllData(collection);
+    }
     #endregion
 
 

@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.VectorStorage.Enums;
+using System;
 
 namespace BotSharp.Plugin.KnowledgeBase.Services;
 
@@ -178,6 +179,21 @@ public partial class KnowledgeService
         catch (Exception ex)
         {
             _logger.LogWarning($"Error when deleting vector collection data ({collectionName}-{id}). {ex.Message}\r\n{ex.InnerException}");
+            return false;
+        }
+    }
+
+
+    public async Task<bool> DeleteVectorCollectionAllData(string collectionName)
+    {
+        try
+        {
+            var db = GetVectorDb();
+            return await db.DeleteCollectionAllData(collectionName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when deleting vector collection data ({collectionName}). {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }
