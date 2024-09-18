@@ -156,12 +156,10 @@ public class UserService : IUserService
             return default;
         }
 
-#if !DEBUG
         if (!isAuthenticatedByHook && Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
         {
             return default;
         }
-#endif
 
         var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
@@ -325,8 +323,24 @@ public class UserService : IUserService
 
     public async Task<bool> SendVerificationCodeResetPassword(User user)
     {
+        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return false;
+        }
+
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByEmail(user.Email);
+
+        User? record = null;
+
+        if (!string.IsNullOrEmpty(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (!string.IsNullOrEmpty(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone);
+        }
         if (record == null)
         {
             return false;
@@ -349,8 +363,23 @@ public class UserService : IUserService
 
     public async Task<bool> ResetUserPassword(User user)
     {
+        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return false;
+        }
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByEmail(user.Email);
+
+        User? record = null;
+
+        if (!string.IsNullOrEmpty(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (!string.IsNullOrEmpty(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone);
+        }
 
         if (record == null)
         {

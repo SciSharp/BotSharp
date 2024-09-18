@@ -180,6 +180,7 @@
     <PackageReference Include="DistributedLock.Redis" Version="1.0.3" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.5.1" />
     <PackageReference Include="Fluid.Core" Version="2.11.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="Nanoid" Version="3.1.0" />
   </ItemGroup>

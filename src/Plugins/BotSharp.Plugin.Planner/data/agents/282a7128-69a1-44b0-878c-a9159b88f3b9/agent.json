@@ -11,8 +11,8 @@
   "profiles": [ "planning" ],
   "utilities": [ "two-stage-planner" ],
   "llmConfig": {
-    "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20240620",
+    "provider": "azure-openai",
+    "model": "gpt-4o",
     "max_recursion_depth": 10
   }
 }
