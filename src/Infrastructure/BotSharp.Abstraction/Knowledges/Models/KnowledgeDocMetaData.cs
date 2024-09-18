@@ -6,7 +6,7 @@ public class KnowledgeDocMetaData
     public string Collection { get; set; }
 
     [JsonPropertyName("file_id")]
-    public string FileId { get; set; }
+    public Guid FileId { get; set; }
 
     [JsonPropertyName("file_name")]
     public string FileName { get; set; }
@@ -23,6 +23,9 @@ public class KnowledgeDocMetaData
     [JsonPropertyName("vector_data_ids")]
     public IEnumerable<string> VectorDataIds { get; set; } = new List<string>();
 
+    [JsonPropertyName("web_url")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WebUrl { get; set; }
 
     [JsonPropertyName("create_date")]
     public DateTime CreateDate { get; set; } = DateTime.UtcNow;

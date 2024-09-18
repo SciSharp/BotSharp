@@ -110,14 +110,13 @@ public partial class FileRepository
     {
         if (metaData == null
             || string.IsNullOrWhiteSpace(metaData.Collection)
-            || string.IsNullOrWhiteSpace(metaData.VectorStoreProvider)
-            || string.IsNullOrWhiteSpace(metaData.FileId))
+            || string.IsNullOrWhiteSpace(metaData.VectorStoreProvider))
         {
             return false;
         }
 
-        var dir = BuildKnowledgeDocumentDir(metaData.Collection.CleanStr(), metaData.VectorStoreProvider.CleanStr());
-        var docDir = Path.Combine(dir, metaData.FileId);
+        var dir = BuildKnowledgeCollectionFileDir(metaData.Collection, metaData.VectorStoreProvider);
+        var docDir = Path.Combine(dir, metaData.FileId.ToString());
         if (!Directory.Exists(docDir))
         {
             Directory.CreateDirectory(docDir);
@@ -129,6 +128,33 @@ public partial class FileRepository
         return true;
     }
 
+    public bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)
+            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+        {
+            return false;
+        }
+
+        var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        if (!Directory.Exists(dir)) return false;
+
+        if (fileId == null)
+        {
+            Directory.Delete(dir, true);
+        }
+        else
+        {
+            var fileDir = Path.Combine(dir, fileId.ToString());
+            if (Directory.Exists(fileDir))
+            {
+                Directory.Delete(fileDir, true);
+            }
+        }
+
+        return true;
+    }
+
     public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
@@ -137,7 +163,7 @@ public partial class FileRepository
             return new PagedItems<KnowledgeDocMetaData>();
         }
 
-        var dir = BuildKnowledgeDocumentDir(collectionName, vectorStoreProvider);
+        var dir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
         if (!Directory.Exists(dir))
         {
             return new PagedItems<KnowledgeDocMetaData>();
@@ -181,9 +207,9 @@ public partial class FileRepository
         return Path.Combine(_dbSettings.FileRepository, KNOWLEDGE_FOLDER, VECTOR_FOLDER);
     }
 
-    private string BuildKnowledgeDocumentDir(string collectionName, string vectorStoreProvider)
+    private string BuildKnowledgeCollectionFileDir(string collectionName, string vectorStoreProvider)
     {
-        return Path.Combine(_dbSettings.FileRepository, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, vectorStoreProvider, collectionName);
+        return Path.Combine(_dbSettings.FileRepository, KNOWLEDGE_FOLDER, KNOWLEDGE_DOC_FOLDER, vectorStoreProvider.CleanStr(), collectionName.CleanStr());
     }
     #endregion
 }

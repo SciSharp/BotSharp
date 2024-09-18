@@ -21,7 +21,6 @@ public partial class LocalFileStorageService : IFileStorageService
     private const string TEXT_TO_SPEECH_FOLDER = "speeches";
     private const string KNOWLEDGE_FOLDER = "knowledgebase";
     private const string KNOWLEDGE_DOC_FOLDER = "document";
-    private const string KNOWLEDGE_DOC_META_FILE = "meta.json";
 
     private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
