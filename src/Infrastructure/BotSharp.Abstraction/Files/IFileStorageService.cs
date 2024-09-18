@@ -74,6 +74,6 @@ public interface IFileStorageService
     /// <returns></returns>
     bool DeleteKnowledgeFile(string collectionName, string vectorStoreProvider, Guid? fileId = null);
     string GetKnowledgeBaseFileUrl(string collectionName, string vectorStoreProvider, Guid fileId, string fileName);
-    BinaryData? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName);
+    BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName);
     #endregion
 }

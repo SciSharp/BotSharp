@@ -68,7 +68,15 @@ public partial class LocalFileStorageService
     public string GetKnowledgeBaseFileUrl(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
-            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+            || string.IsNullOrWhiteSpace(vectorStoreProvider)
+            || string.IsNullOrWhiteSpace(fileName))
+        {
+            return string.Empty;
+        }
+
+        var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+        var file = Path.Combine(docDir, fileId.ToString(), fileName);
+        if (!File.Exists(file))
         {
             return string.Empty;
         }
@@ -76,20 +84,23 @@ public partial class LocalFileStorageService
         return $"/knowledge/document/{collectionName}/file/{fileId}";
     }
 
-    public BinaryData? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
+    public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider)
             || string.IsNullOrWhiteSpace(fileName))
         {
-            return null;
+            return BinaryData.Empty;
         }
 
         var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
-        var fileDir = Path.Combine(docDir, fileId.ToString());
-        if (!ExistDirectory(fileDir)) return null;
+        var file = Path.Combine(docDir, fileId.ToString(), fileName);
 
-        var file = Path.Combine(fileDir, fileName);
+        if (!File.Exists(file))
+        {
+            return BinaryData.Empty;
+        }
+        
         using var stream = new FileStream(file, FileMode.Open, FileAccess.Read);
         stream.Position = 0;
 

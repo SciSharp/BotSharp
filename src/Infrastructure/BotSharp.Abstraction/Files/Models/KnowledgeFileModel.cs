@@ -7,4 +7,5 @@ public class KnowledgeFileModel
     public string FileExtension { get; set; }
     public string ContentType { get; set; }
     public string FileUrl { get; set; }
+    public DocMetaRefData? RefData { get; set; }
 }

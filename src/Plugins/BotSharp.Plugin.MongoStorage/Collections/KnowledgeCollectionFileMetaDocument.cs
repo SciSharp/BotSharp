@@ -9,7 +9,7 @@ public class KnowledgeCollectionFileMetaDocument : MongoBase
     public string ContentType { get; set; }
     public string VectorStoreProvider { get; set; }
     public IEnumerable<string> VectorDataIds { get; set; } = new List<string>();
-    public string? WebUrl { get; set; }
+    public KnowledgeFileMetaRefMongoModel? RefData { get; set; }
     public DateTime CreateDate { get; set; }
     public string CreateUserId { get; set; }
 }
