@@ -120,13 +120,12 @@ public partial class MongoRepository
     {
         if (metaData == null
             || string.IsNullOrWhiteSpace(metaData.Collection)
-            || string.IsNullOrWhiteSpace(metaData.VectorStoreProvider)
-            || string.IsNullOrWhiteSpace(metaData.FileId))
+            || string.IsNullOrWhiteSpace(metaData.VectorStoreProvider))
         {
             return false;
         }
 
-        var doc = new KnowledgeCollectionFileDocument
+        var doc = new KnowledgeCollectionFileMetaDocument
         {
             Id = Guid.NewGuid().ToString(),
             Collection = metaData.Collection,
@@ -136,12 +135,37 @@ public partial class MongoRepository
             ContentType = metaData.ContentType,
             VectorStoreProvider = metaData.VectorStoreProvider,
             VectorDataIds = metaData.VectorDataIds,
+            WebUrl = metaData.WebUrl,
             CreateDate = metaData.CreateDate,
             CreateUserId = metaData.CreateUserId
         };
 
-        _dc.KnowledgeCollectionFiles.InsertOne(doc);
+        _dc.KnowledgeCollectionFileMeta.InsertOne(doc);
         return true;
+    }
+
+    public bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)
+            || string.IsNullOrWhiteSpace(vectorStoreProvider))
+        {
+            return false;
+        }
+
+        var builder = Builders<KnowledgeCollectionFileMetaDocument>.Filter;
+        var filters = new List<FilterDefinition<KnowledgeCollectionFileMetaDocument>>()
+        {
+            builder.Eq(x => x.Collection, collectionName),
+            builder.Eq(x => x.VectorStoreProvider, vectorStoreProvider)
+        };
+
+        if (fileId != null)
+        {
+            filters.Add(builder.Eq(x => x.FileId, fileId));
+        }
+
+        var res = _dc.KnowledgeCollectionFileMeta.DeleteMany(builder.And(filters));
+        return res.DeletedCount > 0;
     }
 
     public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
@@ -152,9 +176,8 @@ public partial class MongoRepository
             return new PagedItems<KnowledgeDocMetaData>();
         }
 
-        var builder = Builders<KnowledgeCollectionFileDocument>.Filter;
-        
-        var docFilters = new List<FilterDefinition<KnowledgeCollectionFileDocument>>()
+        var builder = Builders<KnowledgeCollectionFileMetaDocument>.Filter;
+        var docFilters = new List<FilterDefinition<KnowledgeCollectionFileMetaDocument>>()
         {
             builder.Eq(x => x.Collection, collectionName),
             builder.Eq(x => x.VectorStoreProvider, vectorStoreProvider)
@@ -167,9 +190,9 @@ public partial class MongoRepository
         }
 
         var filterDef = builder.And(docFilters);
-        var sortDef = Builders<KnowledgeCollectionFileDocument>.Sort.Descending(x => x.CreateDate);
-        var docs = _dc.KnowledgeCollectionFiles.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
-        var count = _dc.KnowledgeCollectionFiles.CountDocuments(filterDef);
+        var sortDef = Builders<KnowledgeCollectionFileMetaDocument>.Sort.Descending(x => x.CreateDate);
+        var docs = _dc.KnowledgeCollectionFileMeta.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
+        var count = _dc.KnowledgeCollectionFileMeta.CountDocuments(filterDef);
 
         var files = docs?.Select(x => new KnowledgeDocMetaData
         {
@@ -180,6 +203,7 @@ public partial class MongoRepository
             ContentType = x.ContentType,
             VectorStoreProvider = x.VectorStoreProvider,
             VectorDataIds = x.VectorDataIds,
+            WebUrl = x.WebUrl,
             CreateDate = x.CreateDate,
             CreateUserId = x.CreateUserId
         })?.ToList() ?? new List<KnowledgeDocMetaData>();
