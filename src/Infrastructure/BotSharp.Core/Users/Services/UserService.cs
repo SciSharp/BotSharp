@@ -98,10 +98,9 @@ public class UserService : IUserService
             return false;
         }
 
-        var salt = Guid.NewGuid().ToString("N");
-        record.Password = Utilities.HashTextMd5($"{password}{salt}");
+        var newPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
 
-        db.UpdateUserPassword(record.Id, password);
+        db.UpdateUserPassword(record.Id, newPassword);
         return true;
     }
 
