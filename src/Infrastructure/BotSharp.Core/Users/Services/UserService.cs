@@ -344,24 +344,32 @@ public class UserService : IUserService
 
     public async Task<bool> SendVerificationCodeResetPassword(User user)
     {
-        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
-        {
-            return false;
-        }
-
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
         User? record = null;
 
-        if (!string.IsNullOrEmpty(user.Email))
+        if (!string.IsNullOrWhiteSpace(_user.Id))
         {
-            record = db.GetUserByEmail(user.Email);
+            record = db.GetUserById(_user.Id);
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                record = db.GetUserByEmail(user.Email);
+            }
+
+            if (!string.IsNullOrEmpty(user.Phone))
+            {
+                record = db.GetUserByPhone(user.Phone);
+            }
         }
 
-        if (!string.IsNullOrEmpty(user.Phone))
-        {
-            record = db.GetUserByPhone(user.Phone);
-        }
         if (record == null)
         {
             return false;
