@@ -6,4 +6,5 @@ public class AccountSetting
     /// Whether to enable verification code to verify the authenticity of new users
     /// </summary>
     public bool NewUserVerification { get; set; }
+    public string[] AllowMultipleDeviceLoginUserIds { get; set; } = [];
 }

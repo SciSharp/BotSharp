@@ -1,5 +1,7 @@
+using BotSharp.Abstraction.Users.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -8,10 +10,12 @@ namespace BotSharp.OpenAPI.Filters
     public class UserSingleLoginFilter : IAuthorizationFilter
     {
         private readonly IUserService _userService;
+        private readonly IServiceProvider _services;
 
-        public UserSingleLoginFilter(IUserService userService)
+        public UserSingleLoginFilter(IUserService userService, IServiceProvider services)
         {
             _userService = userService;
+            _services = services;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -19,7 +23,15 @@ namespace BotSharp.OpenAPI.Filters
             var bearerToken = GetBearerToken(context);
             if (!string.IsNullOrWhiteSpace(bearerToken))
             {
-                if (GetJwtTokenExpires(bearerToken).ToLongTimeString() != GetUserExpires().ToLongTimeString())
+                var config = _services.GetRequiredService<AccountSetting>();
+                var token = GetJwtToken(bearerToken);
+
+                if (config.AllowMultipleDeviceLoginUserIds.Contains(token.Claims.First(x => x.Type == "nameid").Value))
+                {
+                    return;
+                }
+
+                if (token.ValidTo.ToLongTimeString() != GetUserExpires().ToLongTimeString())
                 {
                     context.Result = new UnauthorizedResult();
                 }
@@ -40,11 +52,11 @@ namespace BotSharp.OpenAPI.Filters
             return null;
         }
 
-        private DateTime GetJwtTokenExpires(string jwtToken)
+        private JwtSecurityToken GetJwtToken(string jwtToken)
         {
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(jwtToken);
-            return token.ValidTo;
+            return token;
         }
 
         private DateTime GetUserExpires()
