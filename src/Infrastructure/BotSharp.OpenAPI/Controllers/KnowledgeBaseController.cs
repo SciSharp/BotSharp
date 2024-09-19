@@ -115,7 +115,7 @@ public class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/document/{collection}/upload")]
     public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
     {
-        var response = await _knowledgeService.UploadKnowledgeDocuments(collection, request.Files);
+        var response = await _knowledgeService.UploadDocumentsToKnowledge(collection, request.Files);
         return response;
     }
 
@@ -138,7 +138,7 @@ public class KnowledgeBaseController : ControllerBase
             });
         }
 
-        var response = await _knowledgeService.UploadKnowledgeDocuments(collection, docs);
+        var response = await _knowledgeService.UploadDocumentsToKnowledge(collection, docs);
         return response;
     }
 
@@ -149,7 +149,7 @@ public class KnowledgeBaseController : ControllerBase
         return response;
     }
 
-    [HttpPost("/knowledge/document/{collection}/list")]
+    [HttpPost("/knowledge/document/{collection}/page")]
     public async Task<PagedItems<KnowledgeFileViewModel>> GetPagedKnowledgeDocuments([FromRoute] string collection, [FromBody] GetKnowledgeDocsRequest request)
     {
         var data = await _knowledgeService.GetPagedKnowledgeDocuments(collection, new KnowledgeFileFilter

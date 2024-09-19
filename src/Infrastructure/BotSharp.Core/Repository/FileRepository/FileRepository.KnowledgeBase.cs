@@ -182,10 +182,19 @@ public partial class FileRepository
             var matched = true;
 
             // Apply filter
-            if (filter != null && !filter.FileIds.IsNullOrEmpty())
+            if (filter != null)
             {
-                matched = matched && filter.FileIds.Contains(metaData.FileId);
+                if (!filter.FileIds.IsNullOrEmpty())
+                {
+                    matched = matched && filter.FileIds.Contains(metaData.FileId);
+                }
+
+                if (!filter.FileSources.IsNullOrEmpty())
+                {
+                    matched = matched & filter.FileSources.Contains(metaData.FileSource);
+                }
             }
+            
 
             if (!matched) continue;
 

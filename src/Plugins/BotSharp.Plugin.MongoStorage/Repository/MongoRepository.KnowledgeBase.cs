@@ -184,9 +184,17 @@ public partial class MongoRepository
         };
         
         // Apply filters
-        if (filter != null && !filter.FileIds.IsNullOrEmpty())
+        if (filter != null)
         {
-            docFilters.Add(builder.In(x => x.FileId, filter.FileIds));
+            if (!filter.FileIds.IsNullOrEmpty())
+            {
+                docFilters.Add(builder.In(x => x.FileId, filter.FileIds));
+            }
+
+            if (!filter.FileSources.IsNullOrEmpty())
+            {
+                docFilters.Add(builder.In(x => x.FileSource, filter.FileSources));
+            }
         }
 
         var filterDef = builder.And(docFilters);
