@@ -161,6 +161,7 @@ public class UserService : IUserService
                         ExternalId = user.ExternalId,
                         Password = user.Password,
                         Type = user.Type,
+                        Role = user.Role
                     };
                     await CreateUser(record);
                 }
@@ -215,6 +216,7 @@ public class UserService : IUserService
             new Claim("source", user.Source),
             new Claim("external_id", user.ExternalId ?? string.Empty),
             new Claim("type", user.Type ?? UserType.Client),
+            new Claim("role", user.Role ?? UserRole.User),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty)
         };
