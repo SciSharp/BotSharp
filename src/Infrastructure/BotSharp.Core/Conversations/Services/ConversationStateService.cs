@@ -126,7 +126,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
         _historyStates = _db.GetConversationStates(conversationId);
         var dialogs = _db.GetConversationDialogs(conversationId);
-        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.Client)
+        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.User)
                                  .GroupBy(x => x.MetaData?.MessageId)
                                  .Select(g => g.First())
                                  .OrderBy(x => x.MetaData?.CreateTime)

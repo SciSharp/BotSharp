@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Users.Settings;
 using BotSharp.OpenAPI.ViewModels.Users;
@@ -137,6 +138,7 @@ public class UserService : IUserService
                         Source = user.Source,
                         ExternalId = user.ExternalId,
                         Password = user.Password,
+                        Type = user.Type,
                     };
                     await CreateUser(record);
                 }
@@ -190,6 +192,7 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.FamilyName, user?.LastName ?? string.Empty),
             new Claim("source", user.Source),
             new Claim("external_id", user.ExternalId ?? string.Empty),
+            new Claim("type", user.Type ?? UserType.Client),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty)
         };

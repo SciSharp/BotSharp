@@ -10,7 +10,8 @@ public class UserCreationModel
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Password { get; set; } = string.Empty;
-    public string Role { get; set; } = UserRole.Client;
+    public string Type { get; set; } = UserType.Client;
+    public string Role { get; set; } = UserRole.User;
 
     public User ToUser()
     {
@@ -22,7 +23,8 @@ public class UserCreationModel
             Email = Email,
             Phone = Phone,
             Password = Password,
-            Role = Role
+            Role = Role,
+            Type = Type
         };
     }
 }

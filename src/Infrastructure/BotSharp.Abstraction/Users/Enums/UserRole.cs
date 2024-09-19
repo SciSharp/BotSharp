@@ -13,9 +13,9 @@ public class UserRole
     public const string CSR = "csr";
 
     /// <summary>
-    /// Client
+    /// Authorized user
     /// </summary>
-    public const string Client = "client";
+    public const string User = "user";
 
     /// <summary>
     /// Back office operations
