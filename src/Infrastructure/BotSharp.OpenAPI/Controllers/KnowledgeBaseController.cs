@@ -149,7 +149,7 @@ public class KnowledgeBaseController : ControllerBase
         return response;
     }
 
-    [HttpPost("/knowledge/document/{collection}/list")]
+    [HttpPost("/knowledge/document/{collection}/page")]
     public async Task<PagedItems<KnowledgeFileViewModel>> GetPagedKnowledgeDocuments([FromRoute] string collection, [FromBody] GetKnowledgeDocsRequest request)
     {
         var data = await _knowledgeService.GetPagedKnowledgeDocuments(collection, new KnowledgeFileFilter
