@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Users.Settings;
 using BotSharp.OpenAPI.ViewModels.Users;
@@ -229,10 +230,11 @@ public class UserService : IUserService
         var audience = config["Jwt:Audience"];
         var expireInMinutes = int.Parse(config["Jwt:ExpireInMinutes"] ?? "120");
         var key = Encoding.ASCII.GetBytes(config["Jwt:Key"]);
+        var expires = DateTime.UtcNow.AddMinutes(expireInMinutes);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(expireInMinutes),
+            Expires = expires,
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
@@ -240,7 +242,25 @@ public class UserService : IUserService
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
+        SaveUserTokenExpiresCache(user.Id,expires).GetAwaiter().GetResult();
         return tokenHandler.WriteToken(token);
+    }
+
+    private async Task SaveUserTokenExpiresCache(string userId, DateTime expires)
+    {
+        var _cacheService = _services.GetRequiredService<ICacheService>();
+        await _cacheService.SetAsync<DateTime>(GetUserTokenExpiresCacheKey(userId), expires, null);
+    }
+
+    private string GetUserTokenExpiresCacheKey(string userId)
+    {
+        return $"user_{userId}_token_expires";
+    }
+
+    public async Task<DateTime> GetUserTokenExpires()
+    {
+        var _cacheService = _services.GetRequiredService<ICacheService>();
+        return await _cacheService.GetAsync<DateTime>(GetUserTokenExpiresCacheKey(_user.Id));
     }
 
     [MemoryCache(10 * 60, perInstanceCache: true)]
