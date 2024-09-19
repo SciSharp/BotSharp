@@ -11,4 +11,5 @@ public static class KnowledgePayloadName
     public static string FileId = "fileId";
     public static string FileName = "fileName";
     public static string FileSource = "fileSource";
+    public static string FileUrl = "fileUrl";
 }

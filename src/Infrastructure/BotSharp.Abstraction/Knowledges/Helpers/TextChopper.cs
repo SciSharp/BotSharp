@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace BotSharp.Plugin.KnowledgeBase.Helpers;
+namespace BotSharp.Abstraction.Knowledges.Helpers;
 
 public static class TextChopper
 {
@@ -14,17 +14,21 @@ public static class TextChopper
     private static List<string> ChopByWord(string content, ChunkOption option)
     {
         var chunks = new List<string>();
-        var words = content.Split(' ').Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+        var words = content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
 
         var chunk = string.Empty;
         for (int i = 0; i < words.Count; i++)
         {
-            chunk += words[i] + " ";
+            chunk += words[i];
             if (chunk.Length > option.Size)
             {
                 chunks.Add(chunk.Trim());
                 chunk = string.Empty;
                 i -= option.Conjunction;
+            }
+            else
+            {
+                chunk += " ";
             }
         }
 
