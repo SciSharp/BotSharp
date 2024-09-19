@@ -46,6 +46,7 @@ public partial class MongoRepository
             Source = user.Source,
             ExternalId = user.ExternalId,
             Role = user.Role,
+            Type = user.Type,
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
             CreatedTime = DateTime.UtcNow,

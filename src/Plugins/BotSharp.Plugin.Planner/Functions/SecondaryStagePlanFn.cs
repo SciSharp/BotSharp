@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.Planner.Functions;
 public class SecondaryStagePlanFn : IFunctionCallback
 {
     public string Name => "plan_secondary_stage";
-
+    public string Indication => "Further analyzing and breaking down user sub-needs.";
     private readonly IServiceProvider _services;
     private readonly ILogger<SecondaryStagePlanFn> _logger;
 

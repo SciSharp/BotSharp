@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Users.Settings;
@@ -84,6 +85,27 @@ public class UserService : IUserService
         return record;
     }
 
+    public async Task<bool> UpdatePassword(string password, string verificationCode)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByUserName(_user.UserName);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        if (record.VerificationCode != verificationCode)
+        {
+            return false;
+        }
+
+        var newPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
+
+        db.UpdateUserPassword(record.Id, newPassword);
+        return true;
+    }
+
     public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
@@ -138,6 +160,7 @@ public class UserService : IUserService
                         Source = user.Source,
                         ExternalId = user.ExternalId,
                         Password = user.Password,
+                        Type = user.Type,
                     };
                     await CreateUser(record);
                 }
@@ -191,6 +214,7 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.FamilyName, user?.LastName ?? string.Empty),
             new Claim("source", user.Source),
             new Claim("external_id", user.ExternalId ?? string.Empty),
+            new Claim("type", user.Type ?? UserType.Client),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty)
         };
@@ -343,24 +367,32 @@ public class UserService : IUserService
 
     public async Task<bool> SendVerificationCodeResetPassword(User user)
     {
-        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
-        {
-            return false;
-        }
-
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
         User? record = null;
 
-        if (!string.IsNullOrEmpty(user.Email))
+        if (!string.IsNullOrWhiteSpace(_user.Id))
         {
-            record = db.GetUserByEmail(user.Email);
+            record = db.GetUserById(_user.Id);
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                record = db.GetUserByEmail(user.Email);
+            }
+
+            if (!string.IsNullOrEmpty(user.Phone))
+            {
+                record = db.GetUserByPhone(user.Phone);
+            }
         }
 
-        if (!string.IsNullOrEmpty(user.Phone))
-        {
-            record = db.GetUserByPhone(user.Phone);
-        }
         if (record == null)
         {
             return false;

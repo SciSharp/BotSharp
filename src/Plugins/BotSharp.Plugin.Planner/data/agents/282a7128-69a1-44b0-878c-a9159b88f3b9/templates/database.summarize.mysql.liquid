@@ -1,0 +1,20 @@
+Try if you can generate a single query to fulfill the needs. The step should contains all needed parameters.                                                                    
+The parameters can be extracted from the original task.
+If not, generate the query step by step based on the planning. 
+
+The query must exactly based on the provided table structure. And carefully review the foreign keys to make sure you include all the accurate information.
+
+Note: Output should be only the sql query with sql comments that can be directly run in mysql database with version 8.0.
+
+Don't use the sql statement that specify target table for update in FROM clause.
+For example, you CAN'T write query as below:
+INSERT INTO data_Service (Id, Name)
+VALUES ((SELECT MAX(Id) + 1 FROM data_Service), 'HVAC');
+
+If the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id) instead of LAST_INSERT_ID function.
+For example, you should use SET @id = select max(id) from table; 
+
+*** the alias of the table name in the sql query should be identical. ***
+*** the generated sql query MUST be basedd on the provided table structure. ***
+*** All queries return a maximum of 20 records. ***
+*** Only select user friendly columns. ***

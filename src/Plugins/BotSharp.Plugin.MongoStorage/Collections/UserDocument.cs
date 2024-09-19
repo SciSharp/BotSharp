@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Collections;
@@ -13,6 +14,7 @@ public class UserDocument : MongoBase
     public string Password { get; set; } = null!;
     public string Source { get; set; } = "internal";
     public string? ExternalId { get; set; }
+    public string Type { get; set; } = UserType.Client;
     public string Role { get; set; } = null!;
     public string? VerificationCode { get; set; }
     public bool Verified { get; set; }
@@ -33,6 +35,7 @@ public class UserDocument : MongoBase
             Salt = Salt,
             Source = Source,
             ExternalId = ExternalId,
+            Type = Type,
             Role = Role,
             VerificationCode = VerificationCode,
             Verified = Verified,

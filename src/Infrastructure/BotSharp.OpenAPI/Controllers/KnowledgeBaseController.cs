@@ -102,6 +102,12 @@ public class KnowledgeBaseController : ControllerBase
     {
         return await _knowledgeService.DeleteVectorCollectionData(collection, id);
     }
+
+    [HttpDelete("/knowledge/vector/{collection}/data")]
+    public async Task<bool> DeleteVectorCollectionAllData([FromRoute] string collection)
+    {
+        return await _knowledgeService.DeleteVectorCollectionAllData(collection);
+    }
     #endregion
 
 
@@ -137,7 +143,7 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     [HttpDelete("/knowledge/document/{collection}/delete/{fileId}")]
-    public async Task<bool> DeleteKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
+    public async Task<bool> DeleteKnowledgeDocument([FromRoute] string collection, [FromRoute] Guid fileId)
     {
         var response = await _knowledgeService.DeleteKnowledgeDocument(collection, fileId);
         return response;
@@ -160,7 +166,7 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     [HttpGet("/knowledge/document/{collection}/file/{fileId}")]
-    public async Task<IActionResult> GetKnowledgeDocument([FromRoute] string collection, [FromRoute] string fileId)
+    public async Task<IActionResult> GetKnowledgeDocument([FromRoute] string collection, [FromRoute] Guid fileId)
     {
         var file = await _knowledgeService.GetKnowledgeDocumentBinaryData(collection, fileId);
         var stream = file.FileBinaryData.ToStream();

@@ -42,7 +42,7 @@ public partial class KnowledgeService
                 var contents = await GetFileContent(contentType, bytes);
                 
                 // Save document
-                var fileId = Guid.NewGuid().ToString();
+                var fileId = Guid.NewGuid();
                 var saved = SaveDocument(collectionName, vectorStoreProvider, fileId, file.FileName, bytes);
                 if (!saved)
                 {
@@ -89,9 +89,9 @@ public partial class KnowledgeService
     }
 
 
-    public async Task<bool> DeleteKnowledgeDocument(string collectionName, string fileId)
+    public async Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId)
     {
-        if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(fileId))
+        if (string.IsNullOrWhiteSpace(collectionName))
         {
             return false;
         }
@@ -104,21 +104,23 @@ public partial class KnowledgeService
             var vectorStoreProvider = _settings.VectorDb.Provider;
 
             // Get doc meta data
-            var pagedData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
+            var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
             {
-                FileIds = new[] { fileId }
+                FileIds = [ fileId ],
+                Size = 1
             });
 
             // Delete doc
-            fileStorage.DeleteKnowledgeFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
-
-            var found = pagedData?.Items?.FirstOrDefault();
+            fileStorage.DeleteKnowledgeFile(collectionName, vectorStoreProvider, fileId);
+            
+            var found = pageData?.Items?.FirstOrDefault();
             if (found != null && !found.VectorDataIds.IsNullOrEmpty())
             {
                 var guids = found.VectorDataIds.Where(x => Guid.TryParse(x, out _)).Select(x => Guid.Parse(x)).ToList();
                 await vectorDb.DeleteCollectionData(collectionName, guids);
             }
-            
+
+            db.DeleteKnolwedgeBaseFileMeta(collectionName, vectorStoreProvider, fileId);
             return true;
         }
         catch (Exception ex)
@@ -154,7 +156,8 @@ public partial class KnowledgeService
             FileName = x.FileName,
             FileExtension = Path.GetExtension(x.FileName),
             ContentType = x.ContentType,
-            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, x.FileId)
+            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, vectorStoreProvider, x.FileId, x.FileName),
+            RefData = x.RefData
         })?.ToList() ?? new List<KnowledgeFileModel>();
 
         return new PagedItems<KnowledgeFileModel>
@@ -164,14 +167,37 @@ public partial class KnowledgeService
         };
     }
 
-    public async Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, string fileId)
+    public async Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId)
     {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var vectorStoreProvider = _settings.VectorDb.Provider;
 
         // Get doc binary data
-        var file = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId);
-        return file;
+        var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
+        {
+            FileIds = [ fileId ],
+            Size = 1
+        });
+
+        var metaData = pageData?.Items?.FirstOrDefault();
+        if (metaData == null)
+        {
+            return new FileBinaryDataModel
+            {
+                FileName = "error.txt",
+                ContentType = "text/plain",
+                FileBinaryData = BinaryData.Empty
+            };
+        };
+
+        var binaryData = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName, vectorStoreProvider, fileId, metaData.FileName);
+        return new FileBinaryDataModel
+        {
+            FileName = metaData.FileName,
+            ContentType = metaData.ContentType,
+            FileBinaryData = binaryData
+        };
     }
 
 
@@ -246,16 +272,16 @@ public partial class KnowledgeService
     #endregion
 
 
-    private bool SaveDocument(string collectionName, string vectorStoreProvider, string fileId, string fileName, byte[] bytes)
+    private bool SaveDocument(string collectionName, string vectorStoreProvider, Guid fileId, string fileName, byte[] bytes)
     {
         var fileStoreage = _services.GetRequiredService<IFileStorageService>();
         var data = BinaryData.FromBytes(bytes);
-        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName.CleanStr(), vectorStoreProvider.CleanStr(), fileId, fileName, data);
+        var saved = fileStoreage.SaveKnowledgeBaseFile(collectionName, vectorStoreProvider, fileId, fileName, data);
         return saved;
     }
 
     private async Task<IEnumerable<string>> SaveToVectorDb(
-        string collectionName, string fileId, string fileName, IEnumerable<string> contents,
+        string collectionName, Guid fileId, string fileName, IEnumerable<string> contents,
         string fileSource = KnowledgeDocSource.Api, string vectorDataSource = VectorDataSource.File)
     {
         if (contents.IsNullOrEmpty())
@@ -275,7 +301,7 @@ public partial class KnowledgeService
             var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, new Dictionary<string, string>
             {
                 { KnowledgePayloadName.DataSource, vectorDataSource },
-                { KnowledgePayloadName.FileId, fileId },
+                { KnowledgePayloadName.FileId, fileId.ToString() },
                 { KnowledgePayloadName.FileName, fileName },
                 { KnowledgePayloadName.FileSource, fileSource },
                 { "textNumber", $"{i + 1}" }

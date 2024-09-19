@@ -113,7 +113,15 @@ public interface IBotSharpRepository
     bool DeleteKnowledgeCollectionConfig(string collectionName);
     IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter);
 
-    public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData);
-    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
+    bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData);
+    /// <summary>
+    /// Delete file meta data in a knowledge collection, given the vector store provider. If "fileId" is null, delete all in the collection.
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="vectorStoreProvider"></param>
+    /// <param name="fileId"></param>
+    /// <returns></returns>
+    bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null);
+    PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
     #endregion
 }

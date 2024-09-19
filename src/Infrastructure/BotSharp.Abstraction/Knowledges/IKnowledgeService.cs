@@ -12,6 +12,7 @@ public interface IKnowledgeService
     Task<IEnumerable<VectorSearchResult>> SearchVectorKnowledge(string query, string collectionName, VectorSearchOptions options);
     Task<StringIdPagedItems<VectorSearchResult>> GetPagedVectorCollectionData(string collectionName, VectorFilter filter);
     Task<bool> DeleteVectorCollectionData(string collectionName, string id);
+    Task<bool> DeleteVectorCollectionAllData(string collectionName);
     Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
     Task<bool> UpdateVectorCollectionData(string collectionName, VectorUpdateModel update);
     #endregion
@@ -22,9 +23,9 @@ public interface IKnowledgeService
 
     #region Document
     Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files);
-    Task<bool> DeleteKnowledgeDocument(string collectionName, string fileId);
+    Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId);
     Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
-    Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, string fileId);
+    Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId);
     #endregion
 
     #region Common

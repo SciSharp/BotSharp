@@ -16,5 +16,6 @@ public interface IUserService
     Task<bool> ResetUserPassword(User user);
     Task<bool> ModifyUserEmail(string email);
     Task<bool> ModifyUserPhone(string phone);
+    Task<bool> UpdatePassword(string newPassword, string verificationCode);
     Task<DateTime> GetUserTokenExpires();
 }

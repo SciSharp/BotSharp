@@ -182,8 +182,11 @@ public class PluginLoader
             foreach (var agentId in plugin.AgentIds)
             {
                 var agent = agentService.LoadAgent(agentId).Result;
-                agent.Disabled = true;
-                agentService.UpdateAgent(agent, AgentField.Disabled);
+                if (agent != null)
+                {
+                    agent.Disabled = true;
+                    agentService.UpdateAgent(agent, AgentField.Disabled);
+                }
             }
         }
         return plugin;

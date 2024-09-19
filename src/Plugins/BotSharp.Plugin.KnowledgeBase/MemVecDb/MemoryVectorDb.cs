@@ -78,4 +78,9 @@ public class MemoryVectorDb : IVectorDb
     {
         return await Task.FromResult(false);
     }
+
+    public async Task<bool> DeleteCollectionAllData(string collectionName)
+    {
+        return await Task.FromResult(false);
+    }
 }
