@@ -84,6 +84,27 @@ public class UserService : IUserService
         return record;
     }
 
+    public async Task<bool> UpdatePassword(string password, string verificationCode)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByUserName(_user.UserName);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        if (record.VerificationCode != verificationCode)
+        {
+            return false;
+        }
+
+        var newPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
+
+        db.UpdateUserPassword(record.Id, newPassword);
+        return true;
+    }
+
     public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
@@ -326,24 +347,32 @@ public class UserService : IUserService
 
     public async Task<bool> SendVerificationCodeResetPassword(User user)
     {
-        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
-        {
-            return false;
-        }
-
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
         User? record = null;
 
-        if (!string.IsNullOrEmpty(user.Email))
+        if (!string.IsNullOrWhiteSpace(_user.Id))
         {
-            record = db.GetUserByEmail(user.Email);
+            record = db.GetUserById(_user.Id);
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                record = db.GetUserByEmail(user.Email);
+            }
+
+            if (!string.IsNullOrEmpty(user.Phone))
+            {
+                record = db.GetUserByPhone(user.Phone);
+            }
         }
 
-        if (!string.IsNullOrEmpty(user.Phone))
-        {
-            record = db.GetUserByPhone(user.Phone);
-        }
         if (record == null)
         {
             return false;
