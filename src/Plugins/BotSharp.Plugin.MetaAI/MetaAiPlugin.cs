@@ -1,13 +1,10 @@
-using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Abstraction.VectorStorage;
 using BotSharp.Plugin.MetaAI.Providers;
 using BotSharp.Plugin.MetaAI.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace BotSharp.Plugin.MetaAI;
 
@@ -32,6 +29,5 @@ public class MetaAiPlugin : IBotSharpPlugin
         });
 
         services.AddSingleton<ITextEmbedding, fastTextEmbeddingProvider>();
-        services.AddSingleton<IVectorDb, FaissDb>();
     }
 }

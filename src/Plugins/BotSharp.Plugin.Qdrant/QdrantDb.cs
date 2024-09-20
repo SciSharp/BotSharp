@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Abstraction.VectorStorage.Models;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
@@ -246,7 +245,26 @@ public class QdrantDb : IVectorDb
         if (ids.IsNullOrEmpty()) return false;
 
         var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+        if (!exist)
+        {
+            return false;
+        }
+
         var result = await client.DeleteAsync(collectionName, ids);
+        return result.Status == UpdateStatus.Completed;
+    }
+
+    public async Task<bool> DeleteCollectionAllData(string collectionName)
+    {
+        var client = GetClient();
+        var exist = await DoesCollectionExist(client, collectionName);
+        if (!exist)
+        {
+            return false;
+        }
+
+        var result = await client.DeleteAsync(collectionName, new Filter());
         return result.Status == UpdateStatus.Completed;
     }
 

@@ -68,28 +68,49 @@ public partial class TencentCosService
             return string.Empty;
         }
 
-        var dir = BuildKnowledgeCollectionFileDir(vectorStoreProvider, collectionName);
-        return $"https://{_fullBuketName}.cos.{_settings.Region}.myqcloud.com/{dir}/{fileId}/{fileName}"; ;
+        var docDir = BuildKnowledgeCollectionFileDir(vectorStoreProvider, collectionName);
+        var fileDir = $"{docDir}/{fileId}";
+        if (!ExistDirectory(fileDir))
+        {
+            return string.Empty;
+        }
+
+        return $"https://{_fullBuketName}.cos.{_settings.Region}.myqcloud.com/{fileDir}/{fileName}"; ;
     }
 
-    public BinaryData? GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
+    public BinaryData GetKnowledgeBaseFileBinaryData(string collectionName, string vectorStoreProvider, Guid fileId, string fileName)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(vectorStoreProvider)
             || string.IsNullOrWhiteSpace(fileName))
         {
-            return null;
+            return BinaryData.Empty;
         }
 
-        var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
-        var fileDir = $"{docDir}/{fileId}";
-        if (!ExistDirectory(fileDir)) return null;
+        try
+        {
+            var docDir = BuildKnowledgeCollectionFileDir(collectionName, vectorStoreProvider);
+            var fileDir = $"{docDir}/{fileId}";
+            if (!ExistDirectory(fileDir))
+            {
+                return BinaryData.Empty;
+            }
 
-        var file = $"{fileDir}/{fileName}";
-        var bytes = _cosClient.BucketClient.DownloadFileBytes(file);
-        if (bytes == null) return null;
+            var file = $"{fileDir}/{fileName}";
+            var bytes = _cosClient.BucketClient.DownloadFileBytes(file);
+            if (bytes == null)
+            {
+                return BinaryData.Empty;
+            }
 
-        return BinaryData.FromBytes(bytes);
+            return BinaryData.FromBytes(bytes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when downloading collection file ({collectionName}-{vectorStoreProvider}-{fileId}-{fileName})" +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+            return BinaryData.Empty;
+        }
     }
 
 

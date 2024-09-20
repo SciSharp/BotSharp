@@ -95,5 +95,10 @@ namespace BotSharp.Plugin.SemanticKernel
             await _memoryStore.RemoveBatchAsync(collectionName, ids.Select(x => x.ToString()));
             return true;
         }
+
+        public async Task<bool> DeleteCollectionAllData(string collectionName)
+        {
+            return await Task.FromResult(false);
+        }
     }
 }

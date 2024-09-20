@@ -150,19 +150,14 @@ public partial class KnowledgeService
             Size = filter.Size
         });
 
-        var files = pagedData.Items?.Select(x =>
+        var files = pagedData.Items?.Select(x => new KnowledgeFileModel
         {
-            var fileUrl = x.ContentType == MediaTypeNames.Text.Html ?
-                        x.WebUrl : fileStorage.GetKnowledgeBaseFileUrl(collectionName, vectorStoreProvider, x.FileId, x.FileName);  
-
-            return new KnowledgeFileModel
-            {
-                FileId = x.FileId,
-                FileName = x.FileName,
-                FileExtension = Path.GetExtension(x.FileName),
-                ContentType = x.ContentType,
-                FileUrl = fileUrl
-            };
+            FileId = x.FileId,
+            FileName = x.FileName,
+            FileExtension = Path.GetExtension(x.FileName),
+            ContentType = x.ContentType,
+            FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, vectorStoreProvider, x.FileId, x.FileName),
+            RefData = x.RefData
         })?.ToList() ?? new List<KnowledgeFileModel>();
 
         return new PagedItems<KnowledgeFileModel>
@@ -172,7 +167,7 @@ public partial class KnowledgeService
         };
     }
 
-    public async Task<FileBinaryDataModel?> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId)
+    public async Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
@@ -186,7 +181,15 @@ public partial class KnowledgeService
         });
 
         var metaData = pageData?.Items?.FirstOrDefault();
-        if (metaData == null) return null;
+        if (metaData == null)
+        {
+            return new FileBinaryDataModel
+            {
+                FileName = "error.txt",
+                ContentType = "text/plain",
+                FileBinaryData = BinaryData.Empty
+            };
+        };
 
         var binaryData = fileStorage.GetKnowledgeBaseFileBinaryData(collectionName, vectorStoreProvider, fileId, metaData.FileName);
         return new FileBinaryDataModel
