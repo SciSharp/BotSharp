@@ -8,7 +8,7 @@ public class KnowledgeFileMetaRefMongoModel
     public string Name { get; set; }
     public string Type { get; set; }
     public string Url { get; set; }
-    public string? JsonContent { get; set; }
+    public IDictionary<string, string>? Data { get; set; }
 
     public static KnowledgeFileMetaRefMongoModel? ToMongoModel(DocMetaRefData? model)
     {
@@ -20,7 +20,7 @@ public class KnowledgeFileMetaRefMongoModel
             Name = model.Name,
             Type = model.Type,
             Url = model.Url,
-            JsonContent = model.JsonContent
+            Data = model.Data
         };
     }
 
@@ -34,7 +34,7 @@ public class KnowledgeFileMetaRefMongoModel
             Name = model.Name,
             Type = model.Type,
             Url = model.Url,
-            JsonContent = model.JsonContent
+            Data = model.Data
         };
     }
 }
