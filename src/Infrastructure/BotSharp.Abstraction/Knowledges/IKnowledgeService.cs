@@ -22,9 +22,37 @@ public interface IKnowledgeService
     #endregion
 
     #region Document
+    /// <summary>
+    /// Save documents and their contents to knowledgebase
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="files"></param>
+    /// <returns></returns>
     Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files);
+    /// <summary>
+    /// Save document content to knowledgebase without saving the document
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="fileName"></param>
+    /// <param name="fileSource"></param>
+    /// <param name="contents"></param>
+    /// <param name="refData"></param>
+    /// <returns></returns>
     Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource, IEnumerable<string> contents, DocMetaRefData? refData = null);
+    /// <summary>
+    /// Delete one document and its related knowledge in the collection
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="fileId"></param>
+    /// <returns></returns>
     Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId);
+    /// <summary>
+    /// Delete all documents and their related knowledge in the collection
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="filter"></param>
+    /// <returns></returns>
+    Task<bool> DeleteKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
     Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter);
     Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId);
     #endregion

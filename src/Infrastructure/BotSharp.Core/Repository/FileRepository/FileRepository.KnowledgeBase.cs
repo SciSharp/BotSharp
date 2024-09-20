@@ -189,9 +189,19 @@ public partial class FileRepository
                     matched = matched && filter.FileIds.Contains(metaData.FileId);
                 }
 
+                if (!filter.FileNames.IsNullOrEmpty())
+                {
+                    matched = matched && filter.FileNames.Contains(metaData.FileName);
+                }
+
                 if (!filter.FileSources.IsNullOrEmpty())
                 {
                     matched = matched & filter.FileSources.Contains(metaData.FileSource);
+                }
+
+                if (!filter.ContentTypes.IsNullOrEmpty())
+                {
+                    matched = matched && filter.ContentTypes.Contains(metaData.ContentType);
                 }
             }
             
