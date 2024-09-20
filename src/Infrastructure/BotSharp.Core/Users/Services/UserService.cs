@@ -56,7 +56,7 @@ public class UserService : IUserService
 
         record = user;
         record.Email = user.Email?.ToLower();
-        if (user.Phone != null)
+        if (!string.IsNullOrWhiteSpace(user.Phone))
         {
             record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
         }
