@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Knowledges.Helpers;
 using BotSharp.Abstraction.VectorStorage.Enums;
+using System.Collections;
 using System.Net.Http;
 using System.Net.Mime;
 
@@ -151,8 +152,8 @@ public partial class KnowledgeService
             // Get doc meta data
             var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
             {
-                FileIds = [ fileId ],
-                Size = 1
+                Size = 1,
+                FileIds = [ fileId ]
             });
 
             // Delete doc
@@ -177,6 +178,57 @@ public partial class KnowledgeService
         }
     }
 
+    public async Task<bool> DeleteKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)) return false;
+
+        
+        var pageSize = filter.Size;
+        var innerFilter = new KnowledgeFileFilter
+        {
+            Page = 1,
+            Size = pageSize,
+            FileIds = filter.FileIds,
+            FileNames = filter.FileNames,
+            FileSources = filter.FileSources,
+            ContentTypes = filter.ContentTypes
+        };
+
+        var pageData = await GetPagedKnowledgeDocuments(collectionName, innerFilter);
+
+        var total = pageData.Count;
+        if (total == 0) return false;
+
+        var page = 1;
+        var totalPages = total % pageSize == 0 ? total / pageSize : total / pageSize + 1;
+
+        while (page <= totalPages)
+        {
+            if (page > 1)
+            {
+                pageData = await GetPagedKnowledgeDocuments(collectionName, innerFilter);
+            }
+
+            var fileIds = pageData.Items.Select(x => x.FileId).ToList();
+            foreach (var fileId in fileIds)
+            {
+                try
+                {
+                    await DeleteKnowledgeDocument(collectionName, fileId);
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            page++;
+        }
+
+        return true;
+    }
+
+
     public async Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
@@ -189,11 +241,7 @@ public partial class KnowledgeService
         var vectorStoreProvider = _settings.VectorDb.Provider;
 
         // Get doc meta data
-        var pagedData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
-        {
-            Page = filter.Page,
-            Size = filter.Size
-        });
+        var pagedData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, filter);
 
         var files = pagedData.Items?.Select(x => new KnowledgeFileModel
         {
@@ -222,8 +270,8 @@ public partial class KnowledgeService
         // Get doc binary data
         var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
         {
-            FileIds = [ fileId ],
-            Size = 1
+            Size = 1,
+            FileIds = [ fileId ]
         });
 
         var metaData = pageData?.Items?.FirstOrDefault();
@@ -245,6 +293,7 @@ public partial class KnowledgeService
             FileBinaryData = binaryData
         };
     }
+
 
 
     #region Private methods

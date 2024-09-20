@@ -149,14 +149,17 @@ public class KnowledgeBaseController : ControllerBase
         return response;
     }
 
+    [HttpDelete("/knowledge/document/{collection}/delete")]
+    public async Task<bool> DeleteKnowledgeDocuments([FromRoute] string collection, [FromBody] GetKnowledgeDocsRequest request)
+    {
+        var response = await _knowledgeService.DeleteKnowledgeDocuments(collection, request);
+        return response;
+    }
+
     [HttpPost("/knowledge/document/{collection}/page")]
     public async Task<PagedItems<KnowledgeFileViewModel>> GetPagedKnowledgeDocuments([FromRoute] string collection, [FromBody] GetKnowledgeDocsRequest request)
     {
-        var data = await _knowledgeService.GetPagedKnowledgeDocuments(collection, new KnowledgeFileFilter
-        {
-            Page = request.Page,
-            Size = request.Size
-        });
+        var data = await _knowledgeService.GetPagedKnowledgeDocuments(collection, request);
 
         return new PagedItems<KnowledgeFileViewModel>
         {
