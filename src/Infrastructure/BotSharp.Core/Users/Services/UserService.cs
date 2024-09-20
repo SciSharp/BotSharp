@@ -106,12 +106,27 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<Token?> GetToken(string authorization)
+    public async Task<Token> GetAffiliateToken(string authorization)
+    {
+        var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
+        var (id, password) = base64.SplitAsTuple(":");
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByPhone(id);
+
+        var isCanLoginAffiliateRoleType = record == null && record.Type != UserType.Client;
+        if (isCanLoginAffiliateRoleType)
+        {
+            return await GetToken(record, id, password);
+        }
+
+        return default;
+    }
+
+    public async Task<Token> GetClientToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
 
-        var hooks = _services.GetServices<IAuthenticationHook>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
@@ -119,6 +134,17 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        if (record != null && record.Type == UserType.Affiliate)
+        {
+            return default;
+        }
+
+        return await GetToken(record, id, password);
+    }
+
+    private async Task<Token?> GetToken(User record, string id, string password)
+    {
+        var hooks = _services.GetServices<IAuthenticationHook>();
         //verify password is correct or not.
         if (record != null && !hooks.Any())
         {
@@ -242,7 +268,7 @@ public class UserService : IUserService
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        SaveUserTokenExpiresCache(user.Id,expires).GetAwaiter().GetResult();
+        SaveUserTokenExpiresCache(user.Id, expires).GetAwaiter().GetResult();
         return tokenHandler.WriteToken(token);
     }
 
