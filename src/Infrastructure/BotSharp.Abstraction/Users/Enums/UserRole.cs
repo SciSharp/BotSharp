@@ -33,5 +33,4 @@ public class UserRole
     /// AI Assistant
     /// </summary>
     public const string Assistant = "assistant";
-    public const string Affiliate = "affiliate";
 }

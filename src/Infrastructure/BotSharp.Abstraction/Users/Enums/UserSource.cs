@@ -9,6 +9,5 @@ namespace BotSharp.Abstraction.Users.Enums
     public static class UserSource
     {
         public const string Internal = "internal";
-        public const string Affiliate = "affiliate";
     }
 }

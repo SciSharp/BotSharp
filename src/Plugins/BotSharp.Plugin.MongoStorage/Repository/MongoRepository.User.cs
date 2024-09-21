@@ -71,7 +71,7 @@ public partial class MongoRepository
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
             AffiliateId = user.AffiliateId,
-            IsDisable = user.IsDisable,
+            IsDisabled = user.IsDisabled,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
         };
@@ -122,7 +122,7 @@ public partial class MongoRepository
     public void UpdateUserIsDisable(string userId, bool isDisable)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
-        var update = Builders<UserDocument>.Update.Set(x => x.IsDisable, isDisable)
+        var update = Builders<UserDocument>.Update.Set(x => x.IsDisabled, isDisable)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
         _dc.Users.UpdateOne(filter, update);
     }

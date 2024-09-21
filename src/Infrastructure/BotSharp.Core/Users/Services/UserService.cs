@@ -114,7 +114,7 @@ public class UserService : IUserService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserByPhone(id);
 
-        var isCanLoginAffiliateRoleType = record != null && !record.IsDisable && record.Type != UserType.Client;
+        var isCanLoginAffiliateRoleType = record != null && !record.IsDisabled && record.Type != UserType.Client;
         if (!isCanLoginAffiliateRoleType)
         {
             return default;
