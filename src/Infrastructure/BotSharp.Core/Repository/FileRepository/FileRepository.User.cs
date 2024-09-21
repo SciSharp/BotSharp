@@ -16,9 +16,24 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.Phone == phone);
     }
 
+    public User? GetAffiliateUserByPhone(string phone)
+    {
+        return Users.FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
+    }
+
     public User? GetUserById(string id = null)
     {
         return Users.FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+    }
+
+    public List<User> GetUserByIds(List<string> ids)
+    {
+        return Users.Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId)))?.ToList() ?? new List<User>();
+    }
+
+    public User? GetUserByAffiliateId(string affiliateId)
+    {
+        return Users.FirstOrDefault(x => x.AffiliateId == affiliateId);
     }
 
     public User? GetUserByUserName(string userName = null)

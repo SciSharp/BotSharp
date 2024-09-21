@@ -25,7 +25,7 @@ public class UserController : ControllerBase
             authcode = authcode.Split(' ')[1];
         }
 
-        var token = await _userService.GetClientToken(authcode);
+        var token = await _userService.GetToken(authcode);
 
         if (token == null)
         {

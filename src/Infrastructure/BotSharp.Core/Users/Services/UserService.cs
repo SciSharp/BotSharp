@@ -9,6 +9,7 @@ using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.Net;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -113,16 +114,30 @@ public class UserService : IUserService
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserByPhone(id);
 
-        var isCanLoginAffiliateRoleType = record == null && record.Type != UserType.Client;
-        if (isCanLoginAffiliateRoleType)
+        var isCanLoginAffiliateRoleType = record != null && !record.IsDisable && record.Type != UserType.Client;
+        if (!isCanLoginAffiliateRoleType)
         {
-            return await GetToken(record, id, password);
+            return default;
         }
 
-        return default;
+        if (Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
+        {
+            return default;
+        }
+
+        var accessToken = GenerateJwtToken(record);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var token = new Token
+        {
+            AccessToken = accessToken,
+            ExpireTime = jwt.Payload.Exp.Value,
+            TokenType = "Bearer",
+            Scope = "api"
+        };
+        return token;
     }
 
-    public async Task<Token> GetClientToken(string authorization)
+    public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
@@ -139,11 +154,6 @@ public class UserService : IUserService
             return default;
         }
 
-        return await GetToken(record, id, password);
-    }
-
-    private async Task<Token?> GetToken(User record, string id, string password)
-    {
         var hooks = _services.GetServices<IAuthenticationHook>();
         //verify password is correct or not.
         if (record != null && !hooks.Any())
@@ -157,7 +167,7 @@ public class UserService : IUserService
 
         User? user = record;
         var isAuthenticatedByHook = false;
-        if (record == null || record.Source != "internal")
+        if (record == null || record.Source != UserSource.Internal)
         {
             // check 3rd party user
             foreach (var hook in hooks)
@@ -168,7 +178,7 @@ public class UserService : IUserService
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(user.Source) || user.Source == "internal")
+                if (string.IsNullOrEmpty(user.Source) || user.Source == UserSource.Internal)
                 {
                     _logger.LogError($"Please set source name in the Authenticate hook.");
                     return null;

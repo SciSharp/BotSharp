@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -16,10 +17,30 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
+    public User? GetAffiliateUserByPhone(string phone)
+    {
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
+        return user != null ? user.ToUser() : null;
+    }
+
     public User? GetUserById(string id)
     {
         var user = _dc.Users.AsQueryable()
             .FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        return user != null ? user.ToUser() : null;
+    }
+
+    public List<User> GetUserByIds(List<string> ids)
+    {
+        var users = _dc.Users.AsQueryable()
+            .Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
+        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
+    }
+
+    public User? GetUserByAffiliateId(string affiliateId)
+    {
+        var user = _dc.Users.AsQueryable()
+            .FirstOrDefault(x => x.AffiliateId == affiliateId);
         return user != null ? user.ToUser() : null;
     }
 
@@ -49,6 +70,8 @@ public partial class MongoRepository
             Type = user.Type,
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
+            AffiliateId = user.AffiliateId,
+            IsDisable = user.IsDisable,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
         };
@@ -92,6 +115,14 @@ public partial class MongoRepository
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Phone, phone)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+        _dc.Users.UpdateOne(filter, update);
+    }
+
+    public void UpdateUserIsDisable(string userId, bool isDisable)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update.Set(x => x.IsDisable, isDisable)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
         _dc.Users.UpdateOne(filter, update);
     }

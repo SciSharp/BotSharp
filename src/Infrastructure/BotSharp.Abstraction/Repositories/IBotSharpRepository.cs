@@ -21,7 +21,10 @@ public interface IBotSharpRepository
     #region User
     User? GetUserByEmail(string email) => throw new NotImplementedException();
     User? GetUserByPhone(string phone) => throw new NotImplementedException();
-    User? GetUserById(string id) => throw new NotImplementedException();
+    User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
+    User? GetUserById(string id) => throw new NotImplementedException();   
+    List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
+    User? GetUserByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateUserVerified(string userId) => throw new NotImplementedException();
@@ -29,6 +32,7 @@ public interface IBotSharpRepository
     void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
     void UpdateUserEmail(string userId, string email)=> throw new NotImplementedException();
     void UpdateUserPhone(string userId, string Iphone) => throw new NotImplementedException();
+    void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     #endregion
 
     #region Agent
