@@ -35,7 +35,7 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(user.UserName))
         {
             // generate unique name
-            var name = user.Email.Split("@").First() + "-" + Nanoid.Generate("0123456789botsharp", 6);
+            var name = Nanoid.Generate("0123456789botsharp", 10);
             user.UserName = name;
         }
         else
