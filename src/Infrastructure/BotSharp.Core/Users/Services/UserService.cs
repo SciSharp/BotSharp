@@ -9,6 +9,7 @@ using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.Net;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -106,12 +107,41 @@ public class UserService : IUserService
         return true;
     }
 
+    public async Task<Token> GetAffiliateToken(string authorization)
+    {
+        var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
+        var (id, password) = base64.SplitAsTuple(":");
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByPhone(id);
+
+        var isCanLoginAffiliateRoleType = record != null && !record.IsDisabled && record.Type != UserType.Client;
+        if (!isCanLoginAffiliateRoleType)
+        {
+            return default;
+        }
+
+        if (Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
+        {
+            return default;
+        }
+
+        var accessToken = GenerateJwtToken(record);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var token = new Token
+        {
+            AccessToken = accessToken,
+            ExpireTime = jwt.Payload.Exp.Value,
+            TokenType = "Bearer",
+            Scope = "api"
+        };
+        return token;
+    }
+
     public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
 
-        var hooks = _services.GetServices<IAuthenticationHook>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
@@ -119,6 +149,12 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        if (record != null && record.Type == UserType.Affiliate)
+        {
+            return default;
+        }
+
+        var hooks = _services.GetServices<IAuthenticationHook>();
         //verify password is correct or not.
         if (record != null && !hooks.Any())
         {
@@ -131,7 +167,7 @@ public class UserService : IUserService
 
         User? user = record;
         var isAuthenticatedByHook = false;
-        if (record == null || record.Source != "internal")
+        if (record == null || record.Source != UserSource.Internal)
         {
             // check 3rd party user
             foreach (var hook in hooks)
@@ -142,7 +178,7 @@ public class UserService : IUserService
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(user.Source) || user.Source == "internal")
+                if (string.IsNullOrEmpty(user.Source) || user.Source == UserSource.Internal)
                 {
                     _logger.LogError($"Please set source name in the Authenticate hook.");
                     return null;
@@ -244,7 +280,7 @@ public class UserService : IUserService
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        SaveUserTokenExpiresCache(user.Id,expires).GetAwaiter().GetResult();
+        SaveUserTokenExpiresCache(user.Id, expires).GetAwaiter().GetResult();
         return tokenHandler.WriteToken(token);
     }
 
