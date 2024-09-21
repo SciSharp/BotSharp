@@ -10,6 +10,9 @@ public class KnowledgeFileViewModel
     [JsonPropertyName("file_name")]
     public string FileName { get; set; }
 
+    [JsonPropertyName("file_source")]
+    public string FileSource { get; set; }
+
     [JsonPropertyName("file_extension")]
     public string FileExtension { get; set; }
 
@@ -29,6 +32,7 @@ public class KnowledgeFileViewModel
         {
             FileId = model.FileId,
             FileName = model.FileName,
+            FileSource = model.FileSource,
             FileExtension = model.FileExtension,
             ContentType = model.ContentType,
             FileUrl = model.FileUrl,

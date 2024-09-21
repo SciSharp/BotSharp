@@ -42,10 +42,13 @@ public class DocMetaRefData
     [JsonPropertyName("name")]
     public string Name { get; set; }
 
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+
     [JsonPropertyName("url")]
     public string Url { get; set; }
 
-    [JsonPropertyName("json_content")]
+    [JsonPropertyName("data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? JsonContent { get; set; }
+    public IDictionary<string, string>? Data { get; set; }
 }

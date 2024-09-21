@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Knowledges.Helpers;
 using BotSharp.Abstraction.VectorStorage.Enums;
+using System.Collections;
 using System.Net.Http;
 using System.Net.Mime;
 
@@ -9,7 +11,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
 {
-    public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments(string collectionName, IEnumerable<ExternalFileModel> files)
+    public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files)
     {
         if (string.IsNullOrWhiteSpace(collectionName) || files.IsNullOrEmpty())
         {
@@ -89,6 +91,50 @@ public partial class KnowledgeService
     }
 
 
+    public async Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource,
+        IEnumerable<string> contents, DocMetaRefData? refData = null)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)
+            || string.IsNullOrWhiteSpace(fileName)
+            || contents.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var userId = await GetUserId();
+            var vectorStoreProvider = _settings.VectorDb.Provider;
+            var fileId = Guid.NewGuid();
+            var contentType = FileUtility.GetFileContentType(fileName);
+
+            var dataIds = await SaveToVectorDb(collectionName, fileId, fileName, contents, fileSource, fileUrl: refData?.Url);
+            db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
+            {
+                Collection = collectionName,
+                FileId = fileId,
+                FileName = fileName,
+                FileSource = fileSource,
+                ContentType = contentType,
+                VectorStoreProvider = vectorStoreProvider,
+                VectorDataIds = dataIds,
+                RefData = refData,
+                CreateDate = DateTime.UtcNow,
+                CreateUserId = userId
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when importing doc content to knowledgebase ({collectionName}-{fileName})" +
+                $"\r\n{ex.Message}" +
+                $"\r\n{ex.InnerException}");
+            return false;
+        }
+    }
+
+
     public async Task<bool> DeleteKnowledgeDocument(string collectionName, Guid fileId)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
@@ -106,8 +152,8 @@ public partial class KnowledgeService
             // Get doc meta data
             var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
             {
-                FileIds = [ fileId ],
-                Size = 1
+                Size = 1,
+                FileIds = [ fileId ]
             });
 
             // Delete doc
@@ -132,6 +178,57 @@ public partial class KnowledgeService
         }
     }
 
+    public async Task<bool> DeleteKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter)
+    {
+        if (string.IsNullOrWhiteSpace(collectionName)) return false;
+
+        
+        var pageSize = filter.Size;
+        var innerFilter = new KnowledgeFileFilter
+        {
+            Page = 1,
+            Size = pageSize,
+            FileIds = filter.FileIds,
+            FileNames = filter.FileNames,
+            FileSources = filter.FileSources,
+            ContentTypes = filter.ContentTypes
+        };
+
+        var pageData = await GetPagedKnowledgeDocuments(collectionName, innerFilter);
+
+        var total = pageData.Count;
+        if (total == 0) return false;
+
+        var page = 1;
+        var totalPages = total % pageSize == 0 ? total / pageSize : total / pageSize + 1;
+
+        while (page <= totalPages)
+        {
+            if (page > 1)
+            {
+                pageData = await GetPagedKnowledgeDocuments(collectionName, innerFilter);
+            }
+
+            var fileIds = pageData.Items.Select(x => x.FileId).ToList();
+            foreach (var fileId in fileIds)
+            {
+                try
+                {
+                    await DeleteKnowledgeDocument(collectionName, fileId);
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            page++;
+        }
+
+        return true;
+    }
+
+
     public async Task<PagedItems<KnowledgeFileModel>> GetPagedKnowledgeDocuments(string collectionName, KnowledgeFileFilter filter)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
@@ -144,16 +241,13 @@ public partial class KnowledgeService
         var vectorStoreProvider = _settings.VectorDb.Provider;
 
         // Get doc meta data
-        var pagedData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
-        {
-            Page = filter.Page,
-            Size = filter.Size
-        });
+        var pagedData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, filter);
 
         var files = pagedData.Items?.Select(x => new KnowledgeFileModel
         {
             FileId = x.FileId,
             FileName = x.FileName,
+            FileSource = x.FileSource,
             FileExtension = Path.GetExtension(x.FileName),
             ContentType = x.ContentType,
             FileUrl = fileStorage.GetKnowledgeBaseFileUrl(collectionName, vectorStoreProvider, x.FileId, x.FileName),
@@ -176,8 +270,8 @@ public partial class KnowledgeService
         // Get doc binary data
         var pageData = db.GetKnowledgeBaseFileMeta(collectionName, vectorStoreProvider, new KnowledgeFileFilter
         {
-            FileIds = [ fileId ],
-            Size = 1
+            Size = 1,
+            FileIds = [ fileId ]
         });
 
         var metaData = pageData?.Items?.FirstOrDefault();
@@ -199,6 +293,7 @@ public partial class KnowledgeService
             FileBinaryData = binaryData
         };
     }
+
 
 
     #region Private methods
@@ -259,7 +354,7 @@ public partial class KnowledgeService
         var lines = TextChopper.Chop(content, new ChunkOption
         {
             Size = 1024,
-            Conjunction = 32,
+            Conjunction = 12,
             SplitByWord = true,
         });
         return lines;
@@ -282,7 +377,7 @@ public partial class KnowledgeService
 
     private async Task<IEnumerable<string>> SaveToVectorDb(
         string collectionName, Guid fileId, string fileName, IEnumerable<string> contents,
-        string fileSource = KnowledgeDocSource.Api, string vectorDataSource = VectorDataSource.File)
+        string fileSource = KnowledgeDocSource.Api, string vectorDataSource = VectorDataSource.File, string? fileUrl = null)
     {
         if (contents.IsNullOrEmpty())
         {
@@ -293,19 +388,25 @@ public partial class KnowledgeService
         var vectorDb = GetVectorDb();
         var textEmbedding = GetTextEmbedding(collectionName);
 
+        var payload = new Dictionary<string, string>
+        {
+            { KnowledgePayloadName.DataSource, vectorDataSource },
+            { KnowledgePayloadName.FileId, fileId.ToString() },
+            { KnowledgePayloadName.FileName, fileName },
+            { KnowledgePayloadName.FileSource, fileSource }
+        };
+
+        if (!string.IsNullOrWhiteSpace(fileUrl))
+        {
+            payload[KnowledgePayloadName.FileUrl] = fileUrl;
+        }
+
         for (int i = 0; i < contents.Count(); i++)
         {
             var content = contents.ElementAt(i);
             var vector = await textEmbedding.GetVectorAsync(content);
             var dataId = Guid.NewGuid();
-            var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, new Dictionary<string, string>
-            {
-                { KnowledgePayloadName.DataSource, vectorDataSource },
-                { KnowledgePayloadName.FileId, fileId.ToString() },
-                { KnowledgePayloadName.FileName, fileName },
-                { KnowledgePayloadName.FileSource, fileSource },
-                { "textNumber", $"{i + 1}" }
-            });
+            var saved = await vectorDb.Upsert(collectionName, dataId, vector, content, payload);
 
             if (!saved) continue;
 
