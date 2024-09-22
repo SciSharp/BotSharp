@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="packages\**" />
+    <EmbeddedResource Remove="packages\**" />
+    <None Remove="packages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\..\arts\Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

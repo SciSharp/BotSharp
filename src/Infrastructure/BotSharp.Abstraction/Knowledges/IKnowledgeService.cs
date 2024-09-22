@@ -15,6 +15,7 @@ public interface IKnowledgeService
     Task<bool> DeleteVectorCollectionAllData(string collectionName);
     Task<bool> CreateVectorCollectionData(string collectionName, VectorCreateModel create);
     Task<bool> UpdateVectorCollectionData(string collectionName, VectorUpdateModel update);
+    Task<bool> UpsertVectorCollectionData(string collectionName, VectorUpdateModel update);
     #endregion
 
     #region Graph
