@@ -75,7 +75,6 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.2nd.plan")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new SecondStagePlan
         {
-            Tool = "tool name if task solution provided", 
             Parameters = [ JsonDocument.Parse("{}") ],
             Results = [ string.Empty ]
         });
