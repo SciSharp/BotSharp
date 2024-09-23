@@ -164,6 +164,42 @@ public partial class KnowledgeService
         }
     }
 
+    public async Task<bool> UpsertVectorCollectionData(string collectionName, VectorUpdateModel update)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(collectionName) || string.IsNullOrWhiteSpace(update.Text) || !Guid.TryParse(update.Id, out var guid))
+            {
+                return false;
+            }
+
+            var db = GetVectorDb();
+            var found = await db.GetCollectionData(collectionName, new List<Guid> { guid }, 
+                withVector: true, 
+                withPayload: true);
+            if (!found.IsNullOrEmpty())
+            {
+                if (found.First().Data["text"] == update.Text)
+                {
+                    // Only update payload
+                    return await db.Upsert(collectionName, guid, found.First().Vector, update.Text, update.Payload);
+                }
+            }
+
+            var textEmbedding = GetTextEmbedding(collectionName);
+            var vector = await textEmbedding.GetVectorAsync(update.Text);
+            var payload = update.Payload ?? new();
+            payload[KnowledgePayloadName.DataSource] = !string.IsNullOrWhiteSpace(update.DataSource) ? update.DataSource : VectorDataSource.Api;
+
+            return await db.Upsert(collectionName, guid, vector, update.Text, payload);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when updating vector collection data. {ex.Message}\r\n{ex.InnerException}");
+            return false;
+        }
+    }
+
     public async Task<bool> DeleteVectorCollectionData(string collectionName, string id)
     {
         try

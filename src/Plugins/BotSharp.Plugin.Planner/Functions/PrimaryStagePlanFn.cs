@@ -27,6 +27,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
         // Get knowledge from vectordb
+        var hooks = _services.GetServices<IKnowledgeHook>();
         var knowledges = new List<string>();
         foreach (var question in task.Questions)
         {
@@ -34,8 +35,13 @@ public class PrimaryStagePlanFn : IFunctionCallback
             {
                 Confidence = 0.2f
             });
-
             knowledges.Add(string.Join("\r\n\r\n=====\r\n", list.Select(x => x.ToQuestionAnswer())));
+            
+            foreach (var hook in hooks)
+            {
+                var k = await hook.GetRelevantKnowledges(question);
+                knowledges.AddRange(k);
+            }
         }
 
         // Get first stage planning prompt
@@ -92,7 +98,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var wholeDialogs = conv.GetDialogHistory();
 
         // Append text
-        wholeDialogs.Last().Content += "\n\nYou must analyze the table description to infer the table relations.";
+        wholeDialogs.Last().Content += "\n\nYou must analyze the table description to infer the table relations. Only output the JSON result.";
 
         var completion = CompletionProvider.GetChatCompletion(_services, 
             provider: plannerAgent.LlmConfig.Provider, 

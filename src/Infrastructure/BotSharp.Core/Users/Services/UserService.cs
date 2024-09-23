@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Users.Settings;
 using BotSharp.OpenAPI.ViewModels.Users;
@@ -7,6 +9,7 @@ using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.Net;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -33,7 +36,7 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(user.UserName))
         {
             // generate unique name
-            var name = user.Email.Split("@").First() + "-" + Nanoid.Generate("0123456789botsharp", 6);
+            var name = Nanoid.Generate("0123456789botsharp", 10);
             user.UserName = name;
         }
         else
@@ -56,7 +59,7 @@ public class UserService : IUserService
 
         record = user;
         record.Email = user.Email?.ToLower();
-        if (user.Phone != null)
+        if (!string.IsNullOrWhiteSpace(user.Phone))
         {
             record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
         }
@@ -83,12 +86,62 @@ public class UserService : IUserService
         return record;
     }
 
+    public async Task<bool> UpdatePassword(string password, string verificationCode)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByUserName(_user.UserName);
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        if (record.VerificationCode != verificationCode)
+        {
+            return false;
+        }
+
+        var newPassword = Utilities.HashTextMd5($"{password}{record.Salt}");
+
+        db.UpdateUserPassword(record.Id, newPassword);
+        return true;
+    }
+
+    public async Task<Token> GetAffiliateToken(string authorization)
+    {
+        var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
+        var (id, password) = base64.SplitAsTuple(":");
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByPhone(id);
+
+        var isCanLoginAffiliateRoleType = record != null && !record.IsDisabled && record.Type != UserType.Client;
+        if (!isCanLoginAffiliateRoleType)
+        {
+            return default;
+        }
+
+        if (Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
+        {
+            return default;
+        }
+
+        var accessToken = GenerateJwtToken(record);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var token = new Token
+        {
+            AccessToken = accessToken,
+            ExpireTime = jwt.Payload.Exp.Value,
+            TokenType = "Bearer",
+            Scope = "api"
+        };
+        return token;
+    }
+
     public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
 
-        var hooks = _services.GetServices<IAuthenticationHook>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
@@ -96,6 +149,12 @@ public class UserService : IUserService
             record = db.GetUserByUserName(id);
         }
 
+        if (record != null && record.Type == UserType.Affiliate)
+        {
+            return default;
+        }
+
+        var hooks = _services.GetServices<IAuthenticationHook>();
         //verify password is correct or not.
         if (record != null && !hooks.Any())
         {
@@ -108,7 +167,7 @@ public class UserService : IUserService
 
         User? user = record;
         var isAuthenticatedByHook = false;
-        if (record == null || record.Source != "internal")
+        if (record == null || record.Source != UserSource.Internal)
         {
             // check 3rd party user
             foreach (var hook in hooks)
@@ -119,7 +178,7 @@ public class UserService : IUserService
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(user.Source) || user.Source == "internal")
+                if (string.IsNullOrEmpty(user.Source) || user.Source == UserSource.Internal)
                 {
                     _logger.LogError($"Please set source name in the Authenticate hook.");
                     return null;
@@ -137,6 +196,8 @@ public class UserService : IUserService
                         Source = user.Source,
                         ExternalId = user.ExternalId,
                         Password = user.Password,
+                        Type = user.Type,
+                        Role = user.Role
                     };
                     await CreateUser(record);
                 }
@@ -190,6 +251,8 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.FamilyName, user?.LastName ?? string.Empty),
             new Claim("source", user.Source),
             new Claim("external_id", user.ExternalId ?? string.Empty),
+            new Claim("type", user.Type ?? UserType.Client),
+            new Claim("role", user.Role ?? UserRole.User),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty)
         };
@@ -205,10 +268,11 @@ public class UserService : IUserService
         var audience = config["Jwt:Audience"];
         var expireInMinutes = int.Parse(config["Jwt:ExpireInMinutes"] ?? "120");
         var key = Encoding.ASCII.GetBytes(config["Jwt:Key"]);
+        var expires = DateTime.UtcNow.AddMinutes(expireInMinutes);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(expireInMinutes),
+            Expires = expires,
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
@@ -216,7 +280,25 @@ public class UserService : IUserService
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
+        SaveUserTokenExpiresCache(user.Id, expires).GetAwaiter().GetResult();
         return tokenHandler.WriteToken(token);
+    }
+
+    private async Task SaveUserTokenExpiresCache(string userId, DateTime expires)
+    {
+        var _cacheService = _services.GetRequiredService<ICacheService>();
+        await _cacheService.SetAsync<DateTime>(GetUserTokenExpiresCacheKey(userId), expires, null);
+    }
+
+    private string GetUserTokenExpiresCacheKey(string userId)
+    {
+        return $"user_{userId}_token_expires";
+    }
+
+    public async Task<DateTime> GetUserTokenExpires()
+    {
+        var _cacheService = _services.GetRequiredService<ICacheService>();
+        return await _cacheService.GetAsync<DateTime>(GetUserTokenExpiresCacheKey(_user.Id));
     }
 
     [MemoryCache(10 * 60, perInstanceCache: true)]
@@ -323,24 +405,32 @@ public class UserService : IUserService
 
     public async Task<bool> SendVerificationCodeResetPassword(User user)
     {
-        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
-        {
-            return false;
-        }
-
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
         User? record = null;
 
-        if (!string.IsNullOrEmpty(user.Email))
+        if (!string.IsNullOrWhiteSpace(_user.Id))
         {
-            record = db.GetUserByEmail(user.Email);
+            record = db.GetUserById(_user.Id);
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                record = db.GetUserByEmail(user.Email);
+            }
+
+            if (!string.IsNullOrEmpty(user.Phone))
+            {
+                record = db.GetUserByPhone(user.Phone);
+            }
         }
 
-        if (!string.IsNullOrEmpty(user.Phone))
-        {
-            record = db.GetUserByPhone(user.Phone);
-        }
         if (record == null)
         {
             return false;

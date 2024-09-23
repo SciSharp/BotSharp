@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Knowledges.Enums;
-
 namespace BotSharp.Abstraction.VectorStorage.Models;
 
 public class VectorSearchResult : VectorCollectionData

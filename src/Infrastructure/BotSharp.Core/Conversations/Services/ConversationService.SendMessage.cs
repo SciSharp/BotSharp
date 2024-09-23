@@ -123,6 +123,12 @@ public partial class ConversationService
             Message = new TextMessage(response.SecondaryContent ?? response.Content)
         };
 
+        // Use model refined response
+        if (string.IsNullOrEmpty(response.RichContent.Message.Text))
+        {
+            response.RichContent.Message.Text = response.Content;
+        }
+
         // Patch return function name
         if (response.PostbackFunctionName != null)
         {
