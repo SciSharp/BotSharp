@@ -213,7 +213,7 @@ public partial class FileRepository
         
         return new PagedItems<KnowledgeDocMetaData>
         {
-            Items = records.Skip(filter.Offset).Take(filter.Size),
+            Items = records.OrderByDescending(x => x.CreateDate).Skip(filter.Offset).Take(filter.Size),
             Count = records.Count
         };
     }

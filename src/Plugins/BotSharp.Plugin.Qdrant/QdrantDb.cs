@@ -39,16 +39,22 @@ public class QdrantDb : IVectorDb
         return _client;
     }
 
-    public async Task<bool> CreateCollection(string collectionName, int dimension)
+    public async Task<bool> DoesCollectionExist(string collectionName)
     {
         var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
+        return await client.CollectionExistsAsync(collectionName);
+    }
+
+    public async Task<bool> CreateCollection(string collectionName, int dimension)
+    {
+        var exist = await DoesCollectionExist(collectionName);
 
         if (exist) return false;
 
         try
         {
             // Create a new collection
+            var client = GetClient();
             await client.CreateCollectionAsync(collectionName, new VectorParams()
             {
                 Size = (ulong)dimension,
@@ -65,11 +71,11 @@ public class QdrantDb : IVectorDb
 
     public async Task<bool> DeleteCollection(string collectionName)
     {
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
+        var exist = await DoesCollectionExist(collectionName);
 
         if (!exist) return false;
 
+        var client = GetClient();
         await client.DeleteCollectionAsync(collectionName);
         return true;
     }
@@ -83,8 +89,7 @@ public class QdrantDb : IVectorDb
 
     public async Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
     {
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
+        var exist = await DoesCollectionExist(collectionName);
         if (!exist)
         {
             return new StringIdPagedItems<VectorCollectionData>();
@@ -126,6 +131,7 @@ public class QdrantDb : IVectorDb
             };
         }
 
+        var client = GetClient();
         var totalPointCount = await client.CountAsync(collectionName, filter: queryFilter);
         var response = await client.ScrollAsync(collectionName, limit: (uint)filter.Size, 
             offset: !string.IsNullOrWhiteSpace(filter.StartId) ? new PointId { Uuid = filter.StartId } : null,
@@ -152,15 +158,18 @@ public class QdrantDb : IVectorDb
     public async Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
         bool withPayload = false, bool withVector = false)
     {
-        if (ids.IsNullOrEmpty()) return Enumerable.Empty<VectorCollectionData>();
-
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
+        if (ids.IsNullOrEmpty())
+        {
+            return Enumerable.Empty<VectorCollectionData>();
+        }
+        
+        var exist = await DoesCollectionExist(collectionName);
         if (!exist)
         {
             return Enumerable.Empty<VectorCollectionData>();
         }
 
+        var client = GetClient();
         var pointIds = ids.Select(x => new PointId { Uuid = x.ToString() }).Distinct().ToList();
         var points = await client.RetrieveAsync(collectionName, pointIds, withPayload, withVector);
         return points.Select(x => new VectorCollectionData
@@ -209,8 +218,7 @@ public class QdrantDb : IVectorDb
     {
         var results = new List<VectorCollectionData>();
 
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
+        var exist = await DoesCollectionExist(collectionName);
         if (!exist)
         {
             return results;
@@ -221,7 +229,8 @@ public class QdrantDb : IVectorDb
         {
             payloadSelector.Include = new PayloadIncludeSelector { Fields = { fields.ToArray() } };
         }
-        
+
+        var client = GetClient();
         var points = await client.SearchAsync(collectionName,
                                             vector,
                                             limit: (ulong)limit,
@@ -244,33 +253,27 @@ public class QdrantDb : IVectorDb
     {
         if (ids.IsNullOrEmpty()) return false;
 
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
+        var exist = await DoesCollectionExist(collectionName);
         if (!exist)
         {
             return false;
         }
 
+        var client = GetClient();
         var result = await client.DeleteAsync(collectionName, ids);
         return result.Status == UpdateStatus.Completed;
     }
 
     public async Task<bool> DeleteCollectionAllData(string collectionName)
     {
-        var client = GetClient();
-        var exist = await DoesCollectionExist(client, collectionName);
+        var exist = await DoesCollectionExist(collectionName);
         if (!exist)
         {
             return false;
         }
 
+        var client = GetClient();
         var result = await client.DeleteAsync(collectionName, new Filter());
         return result.Status == UpdateStatus.Completed;
-    }
-
-
-    private async Task<bool> DoesCollectionExist(QdrantClient client, string collectionName)
-    {
-        return await client.CollectionExistsAsync(collectionName);
     }
 }
