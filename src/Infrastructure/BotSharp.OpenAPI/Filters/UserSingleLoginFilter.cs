@@ -31,8 +31,12 @@ namespace BotSharp.OpenAPI.Filters
                     return;
                 }
 
-                if (token.ValidTo.ToLongTimeString() != GetUserExpires().ToLongTimeString())
+                var validTo = token.ValidTo.ToLongTimeString();
+                var currentExpires = GetUserExpires().ToLongTimeString();
+
+                if (validTo != currentExpires)
                 {
+                    Serilog.Log.Warning($"Token expired. Token expires at {validTo}, current expires at {currentExpires}");
                     context.Result = new UnauthorizedResult();
                 }
             }

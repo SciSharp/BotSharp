@@ -8,9 +8,6 @@ public class SecondStagePlan
     [JsonPropertyName("description")]
     public string Description { get; set; } = "";
 
-    [JsonPropertyName("tool_name")]
-    public string Tool { get; set; } = "";
-
     [JsonPropertyName("input_args")]
     public JsonDocument[] Parameters { get; set; } = [];
 

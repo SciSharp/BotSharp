@@ -5,6 +5,9 @@ public class GenericTemplateMessage<T> : IRichMessage, ITemplateMessage
     [JsonPropertyName("rich_type")]
     public string RichType => RichTypeEnum.GenericTemplate;
 
+    /// <summary>
+    /// Use model refined content if leaving blank
+    /// </summary>
     [JsonPropertyName("text")]
     [Translate]
     public string Text { get; set; } = string.Empty;

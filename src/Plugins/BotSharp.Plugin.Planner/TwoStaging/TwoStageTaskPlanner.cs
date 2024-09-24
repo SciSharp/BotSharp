@@ -96,31 +96,6 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
         return true;
     }
 
-    private async Task<string> GetFirstStagePlanPrompt(Agent router)
-    {
-        var template = router.Templates.First(x => x.Name == "two_stage.1st.plan").Content;
-        var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
-        {
-            Parameters = new JsonDocument[] { JsonDocument.Parse("{}") },
-            Results = new string[] { "" }
-        });
-
-        var relevantKnowledges = new List<string>();
-        var hooks = _services.GetServices<IKnowledgeHook>();
-        foreach (var hook in hooks)
-        {
-            var k = await hook.GetRelevantKnowledges();
-            relevantKnowledges.AddRange(k);
-        }
-
-        var render = _services.GetRequiredService<ITemplateRender>();
-        return render.Render(template, new Dictionary<string, object>
-        {
-            { "response_format",  responseFormat },
-            { "relevant_knowledges", relevantKnowledges.ToArray() }
-        });
-    }
-
     private async Task<string> GetNextStepPrompt(Agent router)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -132,19 +107,6 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
         {
             { StateConst.EXPECTED_ACTION_AGENT,  states.GetState(StateConst.EXPECTED_ACTION_AGENT) },
             { StateConst.EXPECTED_GOAL_AGENT,  states.GetState(StateConst.EXPECTED_GOAL_AGENT) }
-        });
-    }
-
-    private string GetSecondStageTaskPrompt(Agent router, SecondStagePlan plan)
-    {
-        var template = router.Templates.First(x => x.Name == "planner_prompt.two_stage.2nd.task").Content;
-        var render = _services.GetRequiredService<ITemplateRender>();
-        return render.Render(template, new Dictionary<string, object>
-        {
-            { "task_description",  plan.Description },
-            { "related_tables",  plan.Tables },
-            { "input_arguments", JsonSerializer.Serialize(plan.Parameters) },
-            { "output_results", JsonSerializer.Serialize(plan.Results) },
         });
     }
 }
