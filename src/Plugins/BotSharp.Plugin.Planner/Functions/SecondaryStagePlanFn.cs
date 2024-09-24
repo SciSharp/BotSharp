@@ -41,7 +41,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
 
             var knowledges = await knowledgeService.SearchVectorKnowledge(item.Task, collectionName, new VectorSearchOptions
             {
-                Confidence = 0.5f
+                Confidence = 0.6f
             });
             message.Content += string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
         }
@@ -63,6 +63,9 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var response = await GetAiResponse(plannerAgent);
         message.Content = response.Content;
         _logger.LogInformation(response.Content);
+
+        var states = _services.GetRequiredService<IConversationStateService>();
+        states.SetState("planning_result", response.Content);
         return true;
     }
 

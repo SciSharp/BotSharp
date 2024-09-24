@@ -33,7 +33,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         {
             var list = await knowledgeService.SearchVectorKnowledge(question, collectionName, new VectorSearchOptions
             {
-                Confidence = 0.2f
+                Confidence = 0.4f
             });
             knowledges.Add(string.Join("\r\n\r\n=====\r\n", list.Select(x => x.ToQuestionAnswer())));
             
@@ -56,7 +56,10 @@ public class PrimaryStagePlanFn : IFunctionCallback
             LlmConfig = currentAgent.LlmConfig
         };
         var response = await GetAiResponse(plannerAgent);
-        message.Content = response.Content; 
+        message.Content = response.Content;
+
+        var states = _services.GetRequiredService<IConversationStateService>();
+        states.SetState("planning_result", response.Content);
 
         return true;
     }
