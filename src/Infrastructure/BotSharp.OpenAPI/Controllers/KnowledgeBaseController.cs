@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Graph.Models;
-using BotSharp.Abstraction.Knowledges.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 using BotSharp.OpenAPI.ViewModels.Knowledges;
 
@@ -20,6 +19,12 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     #region Vector
+    [HttpGet("knowledge/vector/{collection}/exist")]
+    public async Task<bool> ExistVectorCollection([FromRoute] string collection)
+    {
+        return await _knowledgeService.ExistVectorCollection(collection);
+    }
+
     [HttpGet("knowledge/vector/collections")]
     public async Task<IEnumerable<string>> GetVectorCollections([FromQuery] string type)
     {

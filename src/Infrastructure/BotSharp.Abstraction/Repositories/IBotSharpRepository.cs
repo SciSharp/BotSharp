@@ -116,7 +116,6 @@ public interface IBotSharpRepository
     bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false);
     bool DeleteKnowledgeCollectionConfig(string collectionName);
     IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter);
-
     bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData);
     /// <summary>
     /// Delete file meta data in a knowledge collection, given the vector store provider. If "fileId" is null, delete all in the collection.

@@ -3,7 +3,6 @@ using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Knowledges.Helpers;
 using BotSharp.Abstraction.VectorStorage.Enums;
-using System.Collections;
 using System.Net.Http;
 using System.Net.Mime;
 
@@ -13,13 +12,21 @@ public partial class KnowledgeService
 {
     public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files)
     {
+        var res = new UploadKnowledgeResponse
+        {
+            Success = [],
+            Failed = files?.Select(x => x.FileName) ?? new List<string>()
+        };
+
         if (string.IsNullOrWhiteSpace(collectionName) || files.IsNullOrEmpty())
         {
-            return new UploadKnowledgeResponse
-            {
-                Success = [],
-                Failed = files?.Select(x => x.FileName) ?? new List<string>()
-            };
+            return res;
+        }
+
+        var exist = await ExistVectorCollection(collectionName);
+        if (!exist)
+        {
+            return res;
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -103,6 +110,9 @@ public partial class KnowledgeService
 
         try
         {
+            var exist = await ExistVectorCollection(collectionName);
+            if (!exist) return false;
+
             var db = _services.GetRequiredService<IBotSharpRepository>();
             var userId = await GetUserId();
             var vectorStoreProvider = _settings.VectorDb.Provider;
