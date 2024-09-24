@@ -7,4 +7,7 @@ public class SecondaryBreakdownTask
 
     [JsonPropertyName("solution_search_question")]
     public string SolutionQuestion { get; set; } = null!;
+
+    [JsonPropertyName("need_lookup_dictionary")]
+    public bool NeedLookupDictionary { get; set; }
 }

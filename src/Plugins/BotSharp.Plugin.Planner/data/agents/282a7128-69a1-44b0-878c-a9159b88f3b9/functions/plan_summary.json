@@ -4,7 +4,15 @@
   "parameters": {
     "type": "object",
     "properties": {
+      "related_tables": {
+        "type": "array",
+        "description": "table name in planning steps",
+        "items": {
+          "type": "string",
+          "description": "table name"
+        }
+      }
     },
-    "required": []
+    "required": [ "related_tables" ]
   }
 }
