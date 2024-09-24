@@ -29,7 +29,15 @@ public class ExecuteQueryFn : IFunctionCallback
             _ => throw new NotImplementedException($"Database type {settings.DatabaseType} is not supported.")
         };
 
-        message.Content = JsonSerializer.Serialize(results);
+        if (results.Count() == 0)
+        {
+            message.Content = "No record found";
+        }
+        else
+        {
+            message.Content = JsonSerializer.Serialize(results);
+        }
+        
         return true;
     }
 
