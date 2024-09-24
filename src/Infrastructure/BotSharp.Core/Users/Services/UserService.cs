@@ -254,7 +254,8 @@ public class UserService : IUserService
             new Claim("type", user.Type ?? UserType.Client),
             new Claim("role", user.Role ?? UserRole.User),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("phone", user.Phone ?? string.Empty)
+            new Claim("phone", user.Phone ?? string.Empty),
+            new Claim("affiliateId", user.AffiliateId ?? string.Empty)
         };
 
         var validators = _services.GetServices<IAuthenticationHook>();
@@ -280,14 +281,14 @@ public class UserService : IUserService
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        SaveUserTokenExpiresCache(user.Id, expires).GetAwaiter().GetResult();
+        SaveUserTokenExpiresCache(user.Id, expires, expireInMinutes).GetAwaiter().GetResult();
         return tokenHandler.WriteToken(token);
     }
 
-    private async Task SaveUserTokenExpiresCache(string userId, DateTime expires)
+    private async Task SaveUserTokenExpiresCache(string userId, DateTime expires, int expireInMinutes)
     {
         var _cacheService = _services.GetRequiredService<ICacheService>();
-        await _cacheService.SetAsync<DateTime>(GetUserTokenExpiresCacheKey(userId), expires, null);
+        await _cacheService.SetAsync<DateTime>(GetUserTokenExpiresCacheKey(userId), expires, TimeSpan.FromMinutes(expireInMinutes));
     }
 
     private string GetUserTokenExpiresCacheKey(string userId)
