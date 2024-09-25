@@ -112,7 +112,11 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByPhone(id);
+        var record = db.GetAffiliateUserByPhone(id);
+        if (record == null)
+        {
+            record = db.GetUserByPhone(id);
+        }
 
         var isCanLoginAffiliateRoleType = record != null && !record.IsDisabled && record.Type != UserType.Client;
         if (!isCanLoginAffiliateRoleType)
