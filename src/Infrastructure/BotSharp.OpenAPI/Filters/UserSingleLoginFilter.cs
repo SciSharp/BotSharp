@@ -34,7 +34,7 @@ namespace BotSharp.OpenAPI.Filters
                 var validTo = token.ValidTo.ToLongTimeString();
                 var currentExpires = GetUserExpires().ToLongTimeString();
 
-                if (validTo != currentExpires)
+                if (token.ValidTo > DateTime.UtcNow && validTo != currentExpires)
                 {
                     Serilog.Log.Warning($"Token expired. Token expires at {validTo}, current expires at {currentExpires}");
                     // login confict
