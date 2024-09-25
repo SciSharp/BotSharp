@@ -20,6 +20,14 @@ namespace BotSharp.OpenAPI.Filters
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
+            var isAllowAnonymous = context.ActionDescriptor.EndpointMetadata
+                .Any(em => em.GetType() == typeof(AllowAnonymousAttribute));
+
+            if (isAllowAnonymous)
+            {
+                return;
+            }
+
             var bearerToken = GetBearerToken(context);
             if (!string.IsNullOrWhiteSpace(bearerToken))
             {
