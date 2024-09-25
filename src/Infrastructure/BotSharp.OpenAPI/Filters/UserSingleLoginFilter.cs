@@ -20,6 +20,14 @@ namespace BotSharp.OpenAPI.Filters
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
+            var isAllowAnonymous = context.ActionDescriptor.EndpointMetadata
+                .Any(em => em.GetType() == typeof(AllowAnonymousAttribute));
+
+            if (isAllowAnonymous)
+            {
+                return;
+            }
+
             var bearerToken = GetBearerToken(context);
             if (!string.IsNullOrWhiteSpace(bearerToken))
             {
@@ -34,7 +42,7 @@ namespace BotSharp.OpenAPI.Filters
                 var validTo = token.ValidTo.ToLongTimeString();
                 var currentExpires = GetUserExpires().ToLongTimeString();
 
-                if (token.ValidTo > DateTime.UtcNow && validTo != currentExpires)
+                if (validTo != currentExpires)
                 {
                     Serilog.Log.Warning($"Token expired. Token expires at {validTo}, current expires at {currentExpires}");
                     // login confict
