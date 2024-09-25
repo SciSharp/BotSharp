@@ -69,4 +69,7 @@ public class UserIdentity : IUserIdentity
 
     [JsonPropertyName("phone")]
     public string? Phone => _claims?.FirstOrDefault(x => x.Type == "phone")?.Value;
+
+    [JsonPropertyName("affiliateId")]
+    public string? AffiliateId => _claims?.FirstOrDefault(x => x.Type == "affiliateId")?.Value;
 }
