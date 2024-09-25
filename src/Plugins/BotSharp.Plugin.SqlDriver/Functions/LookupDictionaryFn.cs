@@ -1,3 +1,4 @@
+using Azure;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Core.Infrastructures;
@@ -9,7 +10,7 @@ namespace BotSharp.Plugin.SqlDriver.Functions;
 
 public class LookupDictionaryFn : IFunctionCallback
 {
-    public string Name => "lookup_dictionary";
+    public string Name => "sql_dictionary_lookup";
     private readonly IServiceProvider _services;
 
     public LookupDictionaryFn(IServiceProvider services)
@@ -21,58 +22,24 @@ public class LookupDictionaryFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LookupDictionary>(message.FunctionArgs);
 
+        // check if need to instantely
         var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new MySqlConnection(settings.MySqlConnectionString);
-        var dictionary = new Dictionary<string, object>();
-        var results = connection.Query($"SELECT * FROM {args.Table} LIMIT 10");
-        var items = new List<string>();
-        foreach(var item in results)
+        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
+        var result = connection.Query(args.SqlStatement);
+
+        if (result == null)
         {
-            items.Add(JsonSerializer.Serialize(item));
+            message.Content = "Record not found";
         }
-
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(message.CurrentAgentId);
-        var prompt = GetPrompt(agent, items, args.Keyword);
-
-        // Ask LLM which one is the best
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var model = llmProviderService.GetProviderModel("azure-openai", "gpt-35-turbo");
-
-        // chat completion
-        var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: "azure-openai",
-            model: model.Name);
-
-        var conversations = new List<RoleDialogModel>
+        else
         {
-            new RoleDialogModel(AgentRole.User, prompt)
-            {
-                CurrentAgentId = message.CurrentAgentId,
-                MessageId = message.MessageId,
-            } 
-        };
-
-        var response = await completion.GetChatCompletions(new Agent
-        {
-            Id = message.CurrentAgentId,
-            Instruction = ""
-        }, conversations);
-
-        message.Content = response.Content;
+            message.Content = JsonSerializer.Serialize(result);
+        }
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var dictionaryItems = states.GetState("dictionary_items", "");
+        dictionaryItems += "\r\n\r\n" +  args.Reason + ":\r\n" + message.Content + "\r\n";
+        states.SetState("dictionary_items", dictionaryItems);
 
         return true;
-    }
-
-    private string GetPrompt(Agent agent, List<string> task, string keyword)
-    {
-        var template = agent.Templates.First(x => x.Name == "lookup_dictionary").Content;
-
-        var render = _services.GetRequiredService<ITemplateRender>();
-        return render.Render(template, new Dictionary<string, object>
-        {
-            { "items", task },
-            { "keyword", keyword }
-        });
     }
 }
