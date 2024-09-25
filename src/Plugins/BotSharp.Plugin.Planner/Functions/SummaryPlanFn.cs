@@ -30,10 +30,13 @@ public class SummaryPlanFn : IFunctionCallback
         var taskRequirement = state.GetState("requirement_detail");
 
         // Get table names
-        var steps = message.Content.JsonArrayContent<SecondStagePlan>();
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var steps = states.GetState("planning_result").JsonArrayContent<SecondStagePlan>();
         var allTables = new List<string>();
         var ddlStatements = "";
-        var relevantKnowledge = message.Content;
+        var relevantKnowledge = states.GetState("planning_result");
+        relevantKnowledge += states.GetState("dictionary_items");
+
         foreach (var step in steps)
         {
             allTables.AddRange(step.Tables);

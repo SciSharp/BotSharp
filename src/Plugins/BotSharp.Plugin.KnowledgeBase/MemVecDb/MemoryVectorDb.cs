@@ -10,6 +10,12 @@ public class MemoryVectorDb : IVectorDb
 
     public string Provider => "MemoryVector";
 
+
+    public async Task<bool> DoesCollectionExist(string collectionName)
+    {
+        return false;
+    }
+
     public async Task<bool> CreateCollection(string collectionName, int dimension)
     {
         _collections[collectionName] = dimension;

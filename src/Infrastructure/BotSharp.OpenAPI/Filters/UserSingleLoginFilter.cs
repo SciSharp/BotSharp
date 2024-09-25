@@ -37,7 +37,8 @@ namespace BotSharp.OpenAPI.Filters
                 if (validTo != currentExpires)
                 {
                     Serilog.Log.Warning($"Token expired. Token expires at {validTo}, current expires at {currentExpires}");
-                    context.Result = new UnauthorizedResult();
+                    // login confict
+                    context.Result = new ConflictResult();
                 }
             }
         }
