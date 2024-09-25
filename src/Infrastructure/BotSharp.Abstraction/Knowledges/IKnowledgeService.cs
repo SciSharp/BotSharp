@@ -6,6 +6,7 @@ namespace BotSharp.Abstraction.Knowledges;
 public interface IKnowledgeService
 {
     #region Vector
+    Task<bool> ExistVectorCollection(string collectionName);
     Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model);
     Task<bool> DeleteVectorCollection(string collectionName);
     Task<IEnumerable<string>> GetVectorCollections(string type);

@@ -7,6 +7,23 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 public partial class KnowledgeService
 {
     #region Collection
+    public async Task<bool> ExistVectorCollection(string collectionName)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var vectorDb = GetVectorDb();
+
+        var exist = await vectorDb.DoesCollectionExist(collectionName);
+        if (exist) return true;
+
+        var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+        {
+            CollectionNames = [collectionName],
+            VectorStroageProviders = [_settings.VectorDb.Provider]
+        });
+
+        return !configs.IsNullOrEmpty();
+    }
+
     public async Task<bool> CreateVectorCollection(string collectionName, string collectionType, int dimension, string provider, string model)
     {
         try

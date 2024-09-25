@@ -25,6 +25,12 @@ namespace BotSharp.Plugin.SemanticKernel
 
         public string Provider => "SemanticKernel";
 
+
+        public async Task<bool> DoesCollectionExist(string collectionName)
+        {
+            return false;
+        }
+
         public async Task<bool> CreateCollection(string collectionName, int dimension)
         {
             await _memoryStore.CreateCollectionAsync(collectionName);
