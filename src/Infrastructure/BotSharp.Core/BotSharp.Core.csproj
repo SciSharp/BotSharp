@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -46,17 +46,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="packages\**" />
     <Compile Remove="Planning\**" />
     <Compile Remove="Translation\Models\**" />
+    <EmbeddedResource Remove="packages\**" />
     <EmbeddedResource Remove="Planning\**" />
     <EmbeddedResource Remove="Translation\Models\**" />
+    <None Remove="packages\**" />
     <None Remove="Planning\**" />
     <None Remove="Translation\Models\**" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\database_knowledge.liquid" />
-    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.summarize.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\agent.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\instructions\instruction.liquid" />
     <None Remove="data\agents\01dcc3e5-0af7-49e6-ad7a-a760bd12dc4b\agent.json" />
@@ -75,9 +77,6 @@
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.naive.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.sequential.get_remaining_task.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.sequential.liquid" />
-    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.1st.plan.liquid" />
-    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.2nd.plan.liquid" />
-    <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.2nd.task.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\response_with_function.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\translation_prompt.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_file_prompt.liquid" />
@@ -119,15 +118,6 @@
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\database_knowledge.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.1st.plan.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.2nd.plan.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.2nd.task.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.sequential.get_remaining_task.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -138,9 +128,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.naive.liquid">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\planner_prompt.two_stage.summarize.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\response_with_function.liquid">
@@ -193,6 +180,7 @@
     <PackageReference Include="DistributedLock.Redis" Version="1.0.3" />
     <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.5.1" />
     <PackageReference Include="Fluid.Core" Version="2.11.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="Nanoid" Version="3.1.0" />
   </ItemGroup>

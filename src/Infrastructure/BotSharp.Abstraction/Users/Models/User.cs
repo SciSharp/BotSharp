@@ -12,11 +12,17 @@ public class User
     public string? Phone { get; set; }
     public string Salt { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public string Source { get; set; } = "internal";
+    public string Source { get; set; } = UserSource.Internal;
     public string? ExternalId { get; set; }
-    public string Role { get; set; } = UserRole.Client;
+    /// <summary>
+    /// internal, client, affiliate
+    /// </summary>
+    public string Type { get; set; } = UserType.Client;
+    public string Role { get; set; } = UserRole.User;
     public string? VerificationCode { get; set; }
     public bool Verified { get; set; }
+    public string? AffiliateId { get; set; }
+    public bool IsDisabled { get; set; }
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }

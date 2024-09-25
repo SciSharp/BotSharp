@@ -12,6 +12,7 @@ namespace BotSharp.Plugin.TencentCos.Modules
         private readonly string _fullBucketName;
         private readonly string _appId;
         private readonly string _region;
+
         public BucketClient(CosXmlServer cosXml, string fullBucketName, string appId, string region)
         {
             _cosXml = cosXml;
@@ -141,7 +142,6 @@ namespace BotSharp.Plugin.TencentCos.Modules
                 var objects = info.contentsList;
 
                 return objects.Where(o => o.size > 0).Select(o => o.key).ToList();
-
             }
             catch (CosClientException clientEx)
             {
@@ -151,6 +151,11 @@ namespace BotSharp.Plugin.TencentCos.Modules
             {
                 throw new Exception(serverEx.Message);
             }
+        }
+
+        public string? GetDirFile(string dir, string key)
+        {
+            return GetDirFiles(dir).FirstOrDefault(x => x == key);
         }
 
         public List<string> GetDirectories(string dir)

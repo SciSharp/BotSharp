@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Conversations.Models;
 namespace BotSharp.OpenAPI.ViewModels.Instructs;
 
 public class InstructMessageModel : IncomingMessageModel

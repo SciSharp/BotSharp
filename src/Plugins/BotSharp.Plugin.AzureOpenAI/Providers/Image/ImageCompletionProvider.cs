@@ -72,9 +72,6 @@ public partial class ImageCompletionProvider : IImageCompletion
             case "512x512":
                 retSize = GeneratedImageSize.W512xH512;
                 break;
-            case "1024x1024":
-                retSize = GeneratedImageSize.W1024xH1024;
-                break;
             case "1024x1792":
                 retSize = GeneratedImageSize.W1024xH1792;
                 break;
@@ -96,9 +93,6 @@ public partial class ImageCompletionProvider : IImageCompletion
         GeneratedImageQuality retQuality;
         switch (value)
         {
-            case "standard":
-                retQuality = GeneratedImageQuality.Standard;
-                break;
             case "hd":
                 retQuality = GeneratedImageQuality.High;
                 break;
@@ -117,9 +111,6 @@ public partial class ImageCompletionProvider : IImageCompletion
         GeneratedImageStyle retStyle;
         switch (value)
         {
-            case "natural":
-                retStyle = GeneratedImageStyle.Natural;
-                break;
             case "vivid":
                 retStyle = GeneratedImageStyle.Vivid;
                 break;
@@ -138,9 +129,6 @@ public partial class ImageCompletionProvider : IImageCompletion
         GeneratedImageFormat retFormat;
         switch (value)
         {
-            case "uri":
-                retFormat = GeneratedImageFormat.Uri;
-                break;
             case "bytes":
                 retFormat = GeneratedImageFormat.Bytes;
                 break;

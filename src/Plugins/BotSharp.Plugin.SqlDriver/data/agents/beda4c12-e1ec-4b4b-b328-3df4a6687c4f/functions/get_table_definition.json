@@ -1,0 +1,14 @@
+{
+  "name": "get_table_definition",
+  "description": "Get the DDL, including data structure, data field and relationship for table",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "table": {
+        "type": "string",
+        "description": "table need to check"
+      }
+    },
+    "required": [ "table" ]
+  }
+}

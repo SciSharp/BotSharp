@@ -37,7 +37,8 @@ public class WebSocketsMiddleware
         var regexes = new List<Regex>
         {
             new Regex(@"/conversation/(.*?)/message/(.*?)/(.*?)/file/(.*?)/(.*?)", RegexOptions.IgnoreCase),
-            new Regex(@"/user/avatar", RegexOptions.IgnoreCase)
+            new Regex(@"/user/avatar", RegexOptions.IgnoreCase),
+            new Regex(@"/knowledge/document/(.*?)/file/(.*?)", RegexOptions.IgnoreCase)
         };
 
         return request.Method.IsEqualTo("GET") && regexes.Any(x => x.IsMatch(request.Path.Value ?? string.Empty));

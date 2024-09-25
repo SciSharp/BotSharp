@@ -13,9 +13,21 @@ public class UserRole
     public const string CSR = "csr";
 
     /// <summary>
-    /// Client
+    /// Authorized user
     /// </summary>
-    public const string Client = "client";
+    public const string User = "user";
+
+    /// <summary>
+    /// Back office operations
+    /// </summary>
+    public const string Operation = "operation";
+
+    public const string Technician = "technician";
+
+    /// <summary>
+    /// Software Developers, Data Engineer, Business Analyst
+    /// </summary>
+    public const string Engineer = "engineer";
 
     /// <summary>
     /// AI Assistant

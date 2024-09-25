@@ -14,6 +14,22 @@ public partial class LocalFileStorageService
         return dir;
     }
 
+    public IEnumerable<string> GetFiles(string relativePath, string? searchPattern = null)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        var path = Path.Combine(_baseDir, relativePath);
+
+        if (!string.IsNullOrWhiteSpace(searchPattern))
+        {
+            return Directory.GetFiles(path, searchPattern);
+        }
+        return Directory.GetFiles(path);
+    }
+
     public byte[] GetFileBytes(string fileStorageUrl)
     {
         using var stream = File.OpenRead(fileStorageUrl);

@@ -13,6 +13,11 @@ public class ElementActionArgs
     public string? PressKey { get; set; }
 
     /// <summary>
+    /// Locator option
+    /// </summary>
+    public bool FirstIfMultipleFound { get; set; } = false;
+
+    /// <summary>
     /// Wait time in seconds
     /// </summary>
     public int WaitTime { get; set; }

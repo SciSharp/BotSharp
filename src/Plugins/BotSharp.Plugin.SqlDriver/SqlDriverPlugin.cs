@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Planning;
+
 namespace BotSharp.Plugin.SqlDriver;
 
 public class SqlDriverPlugin : IBotSharpPlugin
@@ -16,8 +18,11 @@ public class SqlDriverPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<SqlDriverService>();
+        services.AddScoped<DbKnowledgeService>();
         services.AddScoped<IKnowledgeHook, SqlDriverKnowledgeHook>();
         services.AddScoped<IAgentHook, SqlExecutorHook>();
-        services.AddScoped<IAgentUtilityHook, SqlExecutorUtilityHook>();
+        services.AddScoped<IAgentUtilityHook, SqlUtilityHook>();
+        services.AddScoped<IPlanningHook, SqlDriverPlanningHook>();
+        services.AddScoped<IAgentHook, SqlDictionaryLookupHook>();
     }
 }

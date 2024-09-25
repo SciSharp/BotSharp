@@ -10,12 +10,6 @@ public partial class LocalFileStorageService : IFileStorageService
     private readonly ILogger<LocalFileStorageService> _logger;
     private readonly string _baseDir;
 
-    private readonly IEnumerable<string> _audioTypes = new List<string>
-    {
-        "mp3",
-        "wav"
-    };
-
     private const string CONVERSATION_FOLDER = "conversations";
     private const string FILE_FOLDER = "files";
     private const string USER_FILE_FOLDER = "user";
@@ -25,6 +19,16 @@ public partial class LocalFileStorageService : IFileStorageService
     private const string USER_AVATAR_FOLDER = "avatar";
     private const string SESSION_FOLDER = "sessions";
     private const string TEXT_TO_SPEECH_FOLDER = "speeches";
+    private const string KNOWLEDGE_FOLDER = "knowledgebase";
+    private const string KNOWLEDGE_DOC_FOLDER = "document";
+
+    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        AllowTrailingCommas = true
+    };
 
     public LocalFileStorageService(
         BotSharpDatabaseSettings dbSettings,

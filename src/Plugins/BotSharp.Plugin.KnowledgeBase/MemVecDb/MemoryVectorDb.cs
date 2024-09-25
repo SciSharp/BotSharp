@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.VectorStorage.Models;
-using BotSharp.Plugin.KnowledgeBase.Utilities;
 using Tensorflow.NumPy;
 
 namespace BotSharp.Plugin.KnowledgeBase.MemVecDb;
@@ -10,12 +8,24 @@ public class MemoryVectorDb : IVectorDb
     private readonly Dictionary<string, List<VecRecord>> _vectors = new Dictionary<string, List<VecRecord>>();
 
 
-    public string Name => "MemoryVector";
+    public string Provider => "MemoryVector";
 
-    public async Task CreateCollection(string collectionName, int dim)
+
+    public async Task<bool> DoesCollectionExist(string collectionName)
     {
-        _collections[collectionName] = dim;
+        return false;
+    }
+
+    public async Task<bool> CreateCollection(string collectionName, int dimension)
+    {
+        _collections[collectionName] = dimension;
         _vectors[collectionName] = new List<VecRecord>();
+        return true;
+    }
+
+    public async Task<bool> DeleteCollection(string collectionName)
+    {
+        return false;
     }
 
     public async Task<IEnumerable<string>> GetCollections()
@@ -23,7 +33,13 @@ public class MemoryVectorDb : IVectorDb
         return _collections.Select(x => x.Key).ToList();
     }
 
-    public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
+    public Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
+        bool withPayload = false, bool withVector = false)
     {
         throw new NotImplementedException();
     }
@@ -36,8 +52,7 @@ public class MemoryVectorDb : IVectorDb
             return new List<VectorCollectionData>();
         }
 
-        var similarities = VectorUtility.CalCosineSimilarity(vector, _vectors[collectionName]);
-        // var similarities = VectorUtility.CalEuclideanDistance(vector, _vectors[collectionName]);
+        var similarities = VectorHelper.CalCosineSimilarity(vector, _vectors[collectionName]);
 
         var results = np.argsort(similarities).ToArray<int>()
                         .Reverse()
@@ -65,7 +80,12 @@ public class MemoryVectorDb : IVectorDb
         return true;
     }
 
-    public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
+    public async Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
+    {
+        return await Task.FromResult(false);
+    }
+
+    public async Task<bool> DeleteCollectionAllData(string collectionName)
     {
         return await Task.FromResult(false);
     }

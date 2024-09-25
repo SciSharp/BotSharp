@@ -13,7 +13,7 @@ public interface IConversationService
     Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter);
     Task<Conversation> UpdateConversationTitle(string id, string title);
     Task<List<Conversation>> GetLastConversations();
-    Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours);
+    Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds);
     Task<bool> DeleteConversations(IEnumerable<string> ids);
 
     /// <summary>
@@ -39,9 +39,7 @@ public interface IConversationService
     Task<bool> SendMessage(string agentId,
         RoleDialogModel lastDalog, 
         PostbackMessageModel? replyMessage,
-        Func<RoleDialogModel, Task> onResponseReceived, 
-        Func<RoleDialogModel, Task> onFunctionExecuting,
-        Func<RoleDialogModel, Task> onFunctionExecuted);
+        Func<RoleDialogModel, Task> onResponseReceived);
 
     List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true);
     Task CleanHistory(string agentId);

@@ -4,6 +4,7 @@ using BotSharp.Abstraction.VectorStorage.Models;
 using Microsoft.SemanticKernel.Memory;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.SemanticKernel
@@ -22,16 +23,35 @@ namespace BotSharp.Plugin.SemanticKernel
         }
 
 
-        public string Name => "SemanticKernel";
+        public string Provider => "SemanticKernel";
 
-        public async Task CreateCollection(string collectionName, int dim)
+
+        public async Task<bool> DoesCollectionExist(string collectionName)
         {
-            await _memoryStore.CreateCollectionAsync(collectionName);
+            return false;
         }
 
-        public Task<StringIdPagedItems<VectorCollectionData>> GetCollectionData(string collectionName, VectorFilter filter)
+        public async Task<bool> CreateCollection(string collectionName, int dimension)
         {
-            throw new System.NotImplementedException();
+            await _memoryStore.CreateCollectionAsync(collectionName);
+            return true;
+        }
+
+        public async Task<bool> DeleteCollection(string collectionName)
+        {
+            await _memoryStore.DeleteCollectionAsync(collectionName);
+            return false;
+        }
+
+        public Task<StringIdPagedItems<VectorCollectionData>> GetPagedCollectionData(string collectionName, VectorFilter filter)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<VectorCollectionData>> GetCollectionData(string collectionName, IEnumerable<Guid> ids,
+        bool withPayload = false, bool withVector = false)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<string>> GetCollections()
@@ -71,16 +91,20 @@ namespace BotSharp.Plugin.SemanticKernel
             return true;
         }
 
-        public async Task<bool> DeleteCollectionData(string collectionName, Guid id)
+        public async Task<bool> DeleteCollectionData(string collectionName, List<Guid> ids)
         {
-            var exist = await _memoryStore.DoesCollectionExistAsync(collectionName);
+            if (ids.IsNullOrEmpty()) return false;
 
-            if (exist)
-            {
-                await _memoryStore.RemoveAsync(collectionName, id.ToString());
-                return true;
-            }
-            return false;
+            var exist = await _memoryStore.DoesCollectionExistAsync(collectionName);
+            if (!exist) return false;
+
+            await _memoryStore.RemoveBatchAsync(collectionName, ids.Select(x => x.ToString()));
+            return true;
+        }
+
+        public async Task<bool> DeleteCollectionAllData(string collectionName)
+        {
+            return await Task.FromResult(false);
         }
     }
 }

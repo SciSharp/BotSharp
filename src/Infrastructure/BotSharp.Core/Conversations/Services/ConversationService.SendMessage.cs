@@ -10,9 +10,7 @@ public partial class ConversationService
     public async Task<bool> SendMessage(string agentId,
         RoleDialogModel message,
         PostbackMessageModel? replyMessage,
-        Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting,
-        Func<RoleDialogModel, Task> onFunctionExecuted)
+        Func<RoleDialogModel, Task> onMessageReceived)
     {
         var conversation = await GetConversationRecordOrCreateNew(agentId);
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -41,7 +39,7 @@ public partial class ConversationService
         routing.Context.SetMessageId(_conversationId, message.MessageId);
         routing.Context.Push(agent.Id, reason: "request started");
 
-        // Save payload
+        // Save payload in order to assign the payload before hook is invoked
         if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
         {
             message.Payload = replyMessage.Payload;
@@ -78,7 +76,7 @@ public partial class ConversationService
 
             if (agent.Type == AgentType.Routing)
             {
-                response = await routing.InstructLoop(message, dialogs, onFunctionExecuting);
+                response = await routing.InstructLoop(message, dialogs);
             }
             else
             {
@@ -124,6 +122,12 @@ public partial class ConversationService
             Recipient = new Recipient { Id = state.GetConversationId() },
             Message = new TextMessage(response.SecondaryContent ?? response.Content)
         };
+
+        // Use model refined response
+        if (string.IsNullOrEmpty(response.RichContent.Message.Text))
+        {
+            response.RichContent.Message.Text = response.Content;
+        }
 
         // Patch return function name
         if (response.PostbackFunctionName != null)

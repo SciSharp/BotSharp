@@ -10,7 +10,11 @@ public partial class PlaywrightWebDriver
         {
             var page = args.UseExistingPage ? 
                 _instance.GetPage(message.ContextId, pattern: args.Url) :
-                await _instance.NewPage(message, excludeResponseUrls: args.ExcludeResponseUrls);
+                await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback, 
+                    responseInMemory: args.ResponseInMemory,
+                    responseContainer: args.ResponseContainer,
+                    excludeResponseUrls: args.ExcludeResponseUrls,
+                    includeResponseUrls: args.IncludeResponseUrls);
 
             if (args.UseExistingPage && page != null && page.Url == args.Url)
             {
@@ -23,7 +27,22 @@ public partial class PlaywrightWebDriver
 
             if (args.UseExistingPage && args.OpenNewTab && page != null && page.Url == "about:blank")
             {
-                page = await _instance.NewPage(message, excludeResponseUrls: args.ExcludeResponseUrls);
+                page = await _instance.NewPage(message, 
+                    enableResponseCallback: args.EnableResponseCallback,
+                    responseInMemory: args.ResponseInMemory,
+                    responseContainer: args.ResponseContainer,
+                    excludeResponseUrls: args.ExcludeResponseUrls,
+                    includeResponseUrls: args.IncludeResponseUrls);
+            }
+
+            if (page == null)
+            {
+                page = await _instance.NewPage(message, 
+                    enableResponseCallback: args.EnableResponseCallback,
+                    responseInMemory: args.ResponseInMemory,
+                    responseContainer: args.ResponseContainer,
+                    excludeResponseUrls: args.ExcludeResponseUrls,
+                    includeResponseUrls: args.IncludeResponseUrls);
             }
 
             var response = await page.GotoAsync(args.Url, new PageGotoOptions

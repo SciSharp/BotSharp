@@ -1,10 +1,9 @@
 using BotSharp.Abstraction.Functions;
-
 namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    public async Task<bool> InvokeFunction(string name, RoleDialogModel message, Func<RoleDialogModel, Task>? onFunctionExecuting = null)
+    public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
         if (function == null)
@@ -23,11 +22,13 @@ public partial class RoutingService
             .OrderBy(x => x.Priority)
             .ToList();
 
+        var progressService = _services.GetService<IConversationProgressService>();
+
         // Before executing functions
-        clonedMessage.Indication = function.Indication;
-        if (onFunctionExecuting != null)
+        clonedMessage.Indication = await function.GetIndication(message);
+        if (progressService?.OnFunctionExecuting != null)
         {
-            await onFunctionExecuting(clonedMessage);
+            await progressService.OnFunctionExecuting(clonedMessage);
         }
         
         foreach (var hook in hooks)

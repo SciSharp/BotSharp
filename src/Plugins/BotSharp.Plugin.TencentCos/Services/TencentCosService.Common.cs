@@ -7,6 +7,24 @@ public partial class TencentCosService
         return $"{CONVERSATION_FOLDER}/{conversationId}/attachments/";
     }
 
+    public IEnumerable<string> GetFiles(string relativePath, string? searchPattern = null)
+    {
+        if (string.IsNullOrEmpty(relativePath))
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        try
+        {
+            return _cosClient.BucketClient.GetDirFiles(relativePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Error when getting files: {ex.Message}\r\n{ex.InnerException}");
+            return Enumerable.Empty<string>();
+        }
+    }
+
     public byte[] GetFileBytes(string fileStorageUrl)
     {
         try
@@ -15,9 +33,9 @@ public partial class TencentCosService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Error when get file bytes: {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogWarning($"Error when getting file bytes: {ex.Message}\r\n{ex.InnerException}");
+            return Array.Empty<byte>();
         }
-        return Array.Empty<byte>();
     }
 
     public bool SaveFileStreamToPath(string filePath, Stream stream)

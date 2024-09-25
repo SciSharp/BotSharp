@@ -103,9 +103,7 @@ public class EvaluatingService : IEvaluatingService
         await conv.SendMessage(agentId,
             inputMsg,
             replyMessage: null,
-            async msg => response = msg,
-            _ => Task.CompletedTask,
-            _ => Task.CompletedTask);
+            async msg => response = msg);
 
         return response;
     }

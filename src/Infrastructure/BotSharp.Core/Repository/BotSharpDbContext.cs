@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
+using BotSharp.Abstraction.VectorStorage.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BotSharp.Core.Repository;
@@ -145,7 +146,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public List<Conversation> GetLastConversations()
         => throw new NotImplementedException();
 
-    public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours)
+    public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds)
         => throw new NotImplementedException();
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
@@ -230,6 +231,26 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries)
         => throw new NotImplementedException();
     public bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs) =>
+        throw new NotImplementedException();
+    #endregion
+
+    #region KnowledgeBase
+    public bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false) =>
+        throw new NotImplementedException();
+
+    public bool DeleteKnowledgeCollectionConfig(string collectionName) =>
+        throw new NotImplementedException();
+
+    public IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter) =>
+        throw new NotImplementedException();
+
+    public bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData) =>
+        throw new NotImplementedException();
+
+    public bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null) =>
+        throw new NotImplementedException();
+
+    public PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter) =>
         throw new NotImplementedException();
     #endregion
 }

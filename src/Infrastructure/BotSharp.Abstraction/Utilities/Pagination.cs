@@ -1,6 +1,8 @@
+using BotSharp.Abstraction.Infrastructures;
+
 namespace BotSharp.Abstraction.Utilities;
 
-public class Pagination
+public class Pagination : ICacheKey
 {
     private int _page;
     private int _size;
@@ -39,6 +41,9 @@ public class Pagination
     }
 
     public bool ReturnTotal { get; set; } = true;
+
+    public string GetCacheKey()
+        => $"{nameof(Pagination)}_{_page}_{_size}_{Sort}_{Order}";
 }
 
 public class PagedItems<T>

@@ -4,14 +4,25 @@ namespace BotSharp.Abstraction.Knowledges.Settings;
 
 public class KnowledgeBaseSettings
 {
-    public string DefaultCollection { get; set; } = KnowledgeCollectionName.BotSharp;
-    public string VectorDb { get; set; }
-    public string GraphDb { get; set; }
-    public KnowledgeModelSetting TextEmbedding { get; set; }
+    public SettingBase VectorDb { get; set; }
+    public SettingBase GraphDb { get; set; }
+
+    public DefaultKnowledgeBaseSetting Default { get; set; }
 }
 
-public class KnowledgeModelSetting
+public class DefaultKnowledgeBaseSetting
+{
+    public string CollectionName { get; set; } = KnowledgeCollectionName.BotSharp;
+    public KnowledgeTextEmbeddingSetting TextEmbedding { get; set; }
+}
+
+public class KnowledgeTextEmbeddingSetting : SettingBase
+{
+    public string Model { get; set; }
+    public int Dimension { get; set; }
+}
+
+public class SettingBase
 {
     public string Provider { get; set; }
-    public string Model { get; set; }
 }

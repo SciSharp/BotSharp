@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Routing;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Models;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
@@ -55,23 +57,29 @@ namespace BotSharp.Plugin.Twilio.Services
         {
             using var scope = _serviceProvider.CreateScope();
             var sp = scope.ServiceProvider;
+
             AssistantMessage reply = null;
             var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
             var conv = sp.GetRequiredService<IConversationService>();
             var routing = sp.GetRequiredService<IRoutingService>();
             var config = sp.GetRequiredService<TwilioSetting>();
+            var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
+            var progressService = sp.GetRequiredService<IConversationProgressService>();
+            InitProgressService(message, sessionManager, progressService);
+
             routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
             var states = new List<MessageState>
             {
                 new MessageState("channel", ConversationChannel.Phone),
                 new MessageState("calling_phone", message.From)
             };
+
             foreach (var kvp in message.States)
             {
                 states.Add(new MessageState(kvp.Key, kvp.Value));
             }
             conv.SetConversationId(message.ConversationId, states);
-            var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
+
             var result = await conv.SendMessage(config.AgentId,
                 inputMsg,
                 replyMessage: null,
@@ -79,30 +87,54 @@ namespace BotSharp.Plugin.Twilio.Services
                 {
                     reply = new AssistantMessage()
                     {
-                        ConversationEnd = msg.Instruction.ConversationEnd,
+                        ConversationEnd = msg.Instruction?.ConversationEnd ?? false,
+                        HumanIntervationNeeded = string.Equals("human_intervention_needed", msg.FunctionName),
                         Content = msg.Content,
                         MessageId = msg.MessageId
                     };
-                },
-                async msg =>
-                {
-                    if (!string.IsNullOrEmpty(msg.Indication))
-                    {
-                        await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
-                    }
-                },
-                async functionExecuted =>
-                { }
+                }
             );
-            if (reply == null || string.IsNullOrWhiteSpace(reply.Content))
+
+            var completion = CompletionProvider.GetAudioCompletion(sp, "openai", "tts-1");
+            var fileStorage = sp.GetRequiredService<IFileStorageService>();
+            var data = await completion.GenerateAudioFromTextAsync(reply.Content);
+            var fileName = $"reply_{reply.MessageId}.mp3";
+            fileStorage.SaveSpeechFile(message.ConversationId, fileName, data);
+            reply.SpeechFileName = fileName;
+            var phrases = reply.Content.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            int capcity = 100;
+            var hints = new List<string>(capcity);
+            for (int i = phrases.Length - 1; i >= 0; i--)
             {
-                reply = new AssistantMessage()
+                var words = phrases[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                for (int j = words.Length - 1; j >= 0; j--)
                 {
-                    ConversationEnd = true,
-                    Content = "Sorry, something was wrong."
-                };
-            }           
+                    hints.Add(words[j]);
+                    if (hints.Count >= capcity)
+                    {
+                        break;
+                    }
+                }
+                if (hints.Count >= capcity)
+                {
+                    break;
+                }
+            }
+            reply.Hints = string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
+            reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
+        }
+
+        private static void InitProgressService(CallerMessage message, ITwilioSessionManager sessionManager, IConversationProgressService progressService)
+        {
+            progressService.OnFunctionExecuting = async msg =>
+            {
+                if (!string.IsNullOrEmpty(msg.Indication))
+                {
+                    await sessionManager.SetReplyIndicationAsync(message.ConversationId, message.SeqNumber, msg.Indication);
+                }
+            };
+            progressService.OnFunctionExecuted = async msg => { };
         }
     }
 }

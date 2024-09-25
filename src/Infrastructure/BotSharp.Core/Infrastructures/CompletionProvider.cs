@@ -28,6 +28,10 @@ public class CompletionProvider
         {
             return GetImageCompletion(services, provider: provider, model: model);
         }
+        else if (settings.Type == LlmModelType.Audio)
+        {
+            return GetAudioCompletion(services, provider: provider, model: model);
+        }
         else
         {
             return GetChatCompletion(services, provider: provider, model: model, agentConfig: agentConfig);
@@ -108,42 +112,31 @@ public class CompletionProvider
         if (completer == null)
         {
             var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
-            logger.LogError($"Can't resolve completion provider by {provider}");
+            logger.LogError($"Can't resolve text-embedding provider by {provider}");
         }
 
+
+        var llmProviderService = services.GetRequiredService<ILlmProviderService>();
+        var found = llmProviderService.GetSetting(provider, model);
+
         completer.SetModelName(model);
+        completer.SetDimension(found.Dimension);
         return completer;
     }
 
-    public static ITextToSpeech GetTextToSpeech(
+    public static IAudioCompletion GetAudioCompletion(
         IServiceProvider services,
         string provider,
         string model)
     {
-        var completions = services.GetServices<ITextToSpeech>();
+        var completions = services.GetServices<IAudioCompletion>();
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
         if (completer == null)
         {
             var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
-            logger.LogError($"Can't resolve text2speech provider by {provider}");
+            logger.LogError($"Can't resolve audio-completion provider by {provider}");
         }
-        completer.SetModelName(model);
-        return completer;
-    }
 
-    public static ISpeechToText GetSpeechToText(
-        IServiceProvider services,
-        string provider,
-        string model
-        )
-    {
-        var completions = services.GetServices<ISpeechToText>();
-        var completer = completions.FirstOrDefault(x => x.Provider == provider);
-        if (completer == null)
-        {
-            var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
-            logger.LogError($"Can't resolve speech2text provider by {provider}");
-        }
         completer.SetModelName(model);
         return completer;
     }

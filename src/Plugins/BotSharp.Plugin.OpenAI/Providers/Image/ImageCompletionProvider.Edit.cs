@@ -54,7 +54,7 @@ public partial class ImageCompletionProvider
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var size = GetImageSize(state.GetState("image_size"));
-        var format = GetImageFormat(state.GetState("image_format"));
+        var format = GetImageFormat(state.GetState("image_response_format"));
         var count = GetImageCount(state.GetState("image_count", "1"));
 
         var options = new ImageEditOptions

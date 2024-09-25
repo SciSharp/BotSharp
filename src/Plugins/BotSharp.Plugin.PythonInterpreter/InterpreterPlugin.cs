@@ -1,8 +1,12 @@
+using BotSharp.Abstraction.Interpreters.Settings;
 using BotSharp.Plugin.PythonInterpreter.Hooks;
+using Microsoft.AspNetCore.Builder;
+using Python.Runtime;
+using System.IO;
 
 namespace BotSharp.Plugin.PythonInterpreter;
 
-public class InterpreterPlugin : IBotSharpPlugin
+public class InterpreterPlugin : IBotSharpAppPlugin
 {
     public string Id => "23174e08-e866-4173-824a-cf1d97afa8d0";
     public string Name => "Python Interpreter";
@@ -13,5 +17,25 @@ public class InterpreterPlugin : IBotSharpPlugin
     {
         services.AddScoped<IAgentHook, InterpreterAgentHook>();
         services.AddScoped<IAgentUtilityHook, InterpreterUtilityHook>();
+    }
+
+    public void Configure(IApplicationBuilder app)
+    {
+        var settings = app.ApplicationServices.GetRequiredService<InterpreterSettings>();
+
+        // For Python interpreter plugin
+        if (File.Exists(settings.Python.PythonDLL))
+        {
+            Runtime.PythonDLL = settings.Python.PythonDLL;
+            PythonEngine.Initialize();
+            PythonEngine.BeginAllowThreads();
+        }
+        else
+        {
+            Serilog.Log.Error("Python DLL found at {PythonDLL}", settings.Python.PythonDLL);
+        }
+
+        // Shut down the Python engine
+        // PythonEngine.Shutdown();
     }
 }

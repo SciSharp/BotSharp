@@ -14,19 +14,7 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     private FastTextWrapper _fastText;
     private readonly IServiceProvider _services;
 
-    private int dimension;
-    public int Dimension
-    {
-        get
-        {
-            LoadModel();
-            return _fastText.GetModelDimension();
-        }
-        set
-        {
-            dimension = value;
-        }
-    }
+    private int _dimension;
 
     public string Provider => "meta-ai";
 
@@ -73,4 +61,15 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     }
 
     public void SetModelName(string model) { }
+
+    public void SetDimension(int dimension)
+    {
+        LoadModel();
+        _dimension = _fastText.GetModelDimension();
+    }
+
+    public int GetDimension()
+    {
+        return _dimension;
+    }
 }

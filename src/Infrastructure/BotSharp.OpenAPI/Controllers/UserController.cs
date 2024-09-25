@@ -110,7 +110,7 @@ public class UserController : ControllerBase
     }
     [AllowAnonymous]
     [HttpPost("/user/verifycode")]
-    public async Task<bool> SendVerificationCodeResetPassword([FromQuery] UserCreationModel user)
+    public async Task<bool> SendVerificationCodeResetPassword([FromBody] UserCreationModel user)
     {
         return await _userService.SendVerificationCodeResetPassword(user.ToUser());
     }
@@ -119,6 +119,16 @@ public class UserController : ControllerBase
     public async Task<bool> ResetUserPassword([FromBody] UserResetPasswordModel user)
     {
         return await _userService.ResetUserPassword(user.ToUser());
+    }
+
+    [HttpPost("/user/updatepassword")]
+    public async Task<bool> UpdatePassword([FromBody] User user)
+    {
+        if (string.IsNullOrWhiteSpace(user.Password) || string.IsNullOrWhiteSpace(user.VerificationCode))
+        {
+            return false;
+        }
+        return await _userService.UpdatePassword(user.Password, user.VerificationCode);
     }
 
     [HttpPost("/user/email/modify")]
@@ -135,9 +145,14 @@ public class UserController : ControllerBase
 
     #region Avatar
     [HttpPost("/user/avatar")]
-    public bool UploadUserAvatar([FromBody] BotSharpFile file)
+    public bool UploadUserAvatar([FromBody] UserAvatarModel input)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var file = new FileDataModel
+        {
+            FileName = input.FileName,
+            FileData = input.FileData,
+        };
         return fileStorage.SaveUserAvatar(file);
     }
 

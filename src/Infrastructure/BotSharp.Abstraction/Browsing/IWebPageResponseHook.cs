@@ -4,6 +4,6 @@ namespace BotSharp.Abstraction.Browsing;
 
 public interface IWebPageResponseHook
 {
-    void OnDataFetched(MessageInfo message, string url, string postData, string responsData);
-    T? GetResponse<T>(MessageInfo message, string url, string? queryParameter = null);
+    void OnDataFetched(MessageInfo message, WebPageResponseData response);
+    T? GetResponse<T>(MessageInfo message, WebPageResponseFilter filter);
 }

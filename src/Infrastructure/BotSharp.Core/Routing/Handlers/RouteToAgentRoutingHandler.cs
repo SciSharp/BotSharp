@@ -24,7 +24,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
             "user goal based on user initial task.", 
             required: true),
         new ParameterPropertyDef("user_goal_agent",
-            "agent who can acheive user initial task,  must align with user_goal_description.", 
+            "agent who can acheive user initial task.", 
             required: true),
         new ParameterPropertyDef("conversation_end",
             "user is ending the conversation.",
@@ -40,7 +40,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
     {
     }
 
-    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message, Func<RoleDialogModel, Task> onFunctionExecuting)
+    public async Task<bool> Handle(IRoutingService routing, FunctionCallFromLlm inst, RoleDialogModel message)
     {
         var states = _services.GetRequiredService<IConversationStateService>();
         var goalAgent = states.GetState(StateConst.EXPECTED_GOAL_AGENT);
@@ -64,7 +64,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         if (message.FunctionName != null)
         {
             var msg = RoleDialogModel.From(message, role: AgentRole.Function);
-            var ret = await routing.InvokeFunction(message.FunctionName, msg);
+            await routing.InvokeFunction(message.FunctionName, msg);
         }
 
         var agentId = routing.Context.GetCurrentAgentId();
@@ -83,14 +83,12 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
         {
             var content = $"This agent ({agent.Name}) is disabled, please install the corresponding plugin ({agent.Plugin.Name}) to activate this agent.";
 
-            message = RoleDialogModel.From(message,
-                role: AgentRole.Assistant,
-                content: content);
+            message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: content);
             _dialogs.Add(message);
         }
         else
         {
-            var ret = await routing.InvokeAgent(agentId, _dialogs, onFunctionExecuting);
+            var ret = await routing.InvokeAgent(agentId, _dialogs);
         }
 
         var response = _dialogs.Last();

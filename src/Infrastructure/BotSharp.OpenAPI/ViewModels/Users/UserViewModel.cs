@@ -14,7 +14,8 @@ public class UserViewModel
     public string? LastName { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
-    public string Role { get; set; } = UserRole.Client;
+    public string Type { get; set; } = UserType.Client;
+    public string Role { get; set; } = UserRole.User;
     [JsonPropertyName("full_name")]
     public string FullName => $"{FirstName} {LastName}".Trim();
     public string Source { get; set; }
@@ -34,6 +35,7 @@ public class UserViewModel
             {
                 FirstName = "Unknown",
                 LastName = "Anonymous",
+                Type = UserType.Client,
                 Role = AgentRole.User
             };
         }
@@ -46,6 +48,7 @@ public class UserViewModel
             LastName = user.LastName,
             Email = user.Email,
             Phone = user.Phone,
+            Type = user.Type,
             Role = user.Role,
             Source = user.Source,
             ExternalId = user.ExternalId,

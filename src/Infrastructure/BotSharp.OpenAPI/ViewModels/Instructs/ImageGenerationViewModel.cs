@@ -2,18 +2,11 @@ using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Instructs;
 
-public class ImageGenerationViewModel
+public class ImageGenerationViewModel : InstructBaseViewModel
 {
-    [JsonPropertyName("content")]
-    public string Content { get; set; } = string.Empty;
-
     [JsonPropertyName("images")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IEnumerable<ImageViewModel> Images { get; set; } = new List<ImageViewModel>();
-
-    [JsonPropertyName("message")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Message { get; set; }
 }
 
 public class ImageViewModel

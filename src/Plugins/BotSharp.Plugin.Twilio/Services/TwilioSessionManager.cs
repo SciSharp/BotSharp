@@ -25,9 +25,7 @@ namespace BotSharp.Plugin.Twilio.Services
         {
             var db = _redis.GetDatabase();
             var key = $"{conversationId}:Caller:{seqNum}";
-            return (await db.ListRangeAsync(key))
-                .Select(x => (string)x)
-                .ToList();
+            return (await db.ListRangeAsync(key)).Select(x => (string)x).ToList();
         }
 
         public async Task SetAssistantReplyAsync(string conversationId, int seqNum, AssistantMessage message)
@@ -58,6 +56,13 @@ namespace BotSharp.Plugin.Twilio.Services
             var db = _redis.GetDatabase();
             var key = $"{conversationId}:Indication:{seqNum}";
             return await db.StringGetAsync(key);
+        }
+
+        public async Task RemoveReplyIndicationAsync(string conversationId, int seqNum)
+        {
+            var db = _redis.GetDatabase();
+            var key = $"{conversationId}:Indication:{seqNum}";
+            await db.KeyDeleteAsync(key);
         }
     }
 }

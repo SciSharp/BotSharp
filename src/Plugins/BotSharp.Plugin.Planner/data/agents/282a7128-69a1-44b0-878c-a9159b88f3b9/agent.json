@@ -1,0 +1,18 @@
+{
+  "id": "282a7128-69a1-44b0-878c-a9159b88f3b9",
+  "name": "Planner",
+  "description": "Plan feasible implementation steps for user task request",
+  "type": "task",
+  "createdDateTime": "2023-08-27T10:39:00Z",
+  "updatedDateTime": "2023-08-27T14:39:00Z",
+  "iconUrl": "https://e7.pngegg.com/pngimages/775/350/png-clipart-action-plan-computer-icons-plan-miscellaneous-text-thumbnail.png",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "planning" ],
+  "utilities": [ "two-stage-planner" ],
+  "llmConfig": {
+    "provider": "azure-openai",
+    "model": "gpt-4o",
+    "max_recursion_depth": 10
+  }
+}
