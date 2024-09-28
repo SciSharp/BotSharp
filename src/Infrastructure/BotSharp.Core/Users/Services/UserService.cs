@@ -291,8 +291,13 @@ public class UserService : IUserService
 
     private async Task SaveUserTokenExpiresCache(string userId, DateTime expires, int expireInMinutes)
     {
-        var _cacheService = _services.GetRequiredService<ICacheService>();
-        await _cacheService.SetAsync<DateTime>(GetUserTokenExpiresCacheKey(userId), expires, TimeSpan.FromMinutes(expireInMinutes));
+        var config = _services.GetService<IConfiguration>();
+        var enableSingleLogin = bool.Parse(config["Jwt:EnableSingleLogin"] ?? "false");
+        if (enableSingleLogin)
+        {
+            var _cacheService = _services.GetRequiredService<ICacheService>();
+            await _cacheService.SetAsync(GetUserTokenExpiresCacheKey(userId), expires, TimeSpan.FromMinutes(expireInMinutes));
+        }
     }
 
     private string GetUserTokenExpiresCacheKey(string userId)
