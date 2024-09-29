@@ -76,4 +76,20 @@ public class RedisCacheService : ICacheService
         var db = redis.GetDatabase();
         await db.StringSetAsync(key, JsonConvert.SerializeObject(value), expiry);
     }
+
+    public async Task RemoveAsync(string key)
+    {
+        if (string.IsNullOrEmpty(_settings.Redis))
+        {
+            return;
+        }
+
+        if (redis == null)
+        {
+            redis = ConnectionMultiplexer.Connect(_settings.Redis);
+        }
+
+        var db = redis.GetDatabase();
+        await db.KeyDeleteAsync(key);
+    }
 }

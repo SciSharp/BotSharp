@@ -398,7 +398,7 @@ public partial class KnowledgeService
         var vectorDb = GetVectorDb();
         var textEmbedding = GetTextEmbedding(collectionName);
 
-        var payload = new Dictionary<string, string>
+        var payload = new Dictionary<string, object>
         {
             { KnowledgePayloadName.DataSource, vectorDataSource },
             { KnowledgePayloadName.FileId, fileId.ToString() },

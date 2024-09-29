@@ -142,7 +142,13 @@ public class QdrantDb : IVectorDb
         var points = response?.Result?.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = x.Payload.ToDictionary(x => x.Key, x => x.Value.StringValue),
+            Data = x.Payload.ToDictionary(p => p.Key, p => p.Value.KindCase switch
+            {
+                Value.KindOneofCase.StringValue => p.Value.StringValue,
+                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
+                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                _ => new object()
+            }),
             Vector = filter.WithVector ? x.Vectors?.Vector?.Data?.ToArray() : null
         })?.ToList() ?? new List<VectorCollectionData>();
 
@@ -175,12 +181,18 @@ public class QdrantDb : IVectorDb
         return points.Select(x => new VectorCollectionData
         {
             Id = x.Id?.Uuid ?? string.Empty,
-            Data = x.Payload?.ToDictionary(x => x.Key, x => x.Value.StringValue) ?? new(),
+            Data = x.Payload?.ToDictionary(p => p.Key, p => p.Value.KindCase switch 
+            { 
+                Value.KindOneofCase.StringValue => p.Value.StringValue,
+                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
+                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                _ => new object()
+            }) ?? new(),
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         });
     }
 
-    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload = null)
     {
         // Insert vectors
         var point = new PointStruct()
@@ -200,7 +212,42 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
-                point.Payload[item.Key] = item.Value;
+                if (item.Value is string str)
+                {
+                    point.Payload[item.Key] = str;
+                }
+                else if (item.Value is bool b)
+                {
+                    point.Payload[item.Key] = b;
+                }
+                else if (item.Value is byte int8)
+                {
+                    point.Payload[item.Key] = int8;
+                }
+                else if (item.Value is short int16)
+                {
+                    point.Payload[item.Key] = int16;
+                }
+                else if (item.Value is int int32)
+                {
+                    point.Payload[item.Key] = int32;
+                }
+                else if (item.Value is long int64)
+                {
+                    point.Payload[item.Key] = int64;
+                }
+                else if (item.Value is float f32)
+                {
+                    point.Payload[item.Key] = f32;
+                }
+                else if (item.Value is double f64)
+                {
+                    point.Payload[item.Key] = f64;
+                }
+                else if (item.Value is DateTime dt)
+                {
+                    point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
+                }
             }
         }
 
@@ -241,7 +288,13 @@ public class QdrantDb : IVectorDb
         results = points.Select(x => new VectorCollectionData
         {
             Id = x.Id.Uuid,
-            Data = x.Payload.ToDictionary(x => x.Key, x => x.Value.StringValue),
+            Data = x.Payload.ToDictionary(p => p.Key, p => p.Value.KindCase switch
+            {
+                Value.KindOneofCase.StringValue => p.Value.StringValue,
+                Value.KindOneofCase.BoolValue => p.Value.BoolValue,
+                Value.KindOneofCase.IntegerValue => p.Value.IntegerValue,
+                _ => new object()
+            }),
             Score = x.Score,
             Vector = x.Vectors?.Vector?.Data?.ToArray()
         }).ToList();
