@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files.Utilities;
 using OpenAI.Chat;
+using System.ClientModel;
 
 namespace BotSharp.Plugin.AzureOpenAI.Providers.Chat;
 
@@ -37,43 +38,67 @@ public class ChatCompletionProvider : IChatCompletion
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, conversations);
 
-        var response = chatClient.CompleteChat(messages, options);
-        var value = response.Value;
-        var reason = value.FinishReason;
-        var content = value.Content;
-        var text = content.FirstOrDefault()?.Text ?? string.Empty;
-
+        ChatCompletion value = default;
         RoleDialogModel responseMessage;
-        if (reason == ChatFinishReason.FunctionCall)
-        {
-            responseMessage = new RoleDialogModel(AgentRole.Function, text)
-            {
-                CurrentAgentId = agent.Id,
-                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                FunctionName = value.FunctionCall.FunctionName,
-                FunctionArgs = value.FunctionCall.FunctionArguments
-            };
 
-            // Somethings LLM will generate a function name with agent name.
-            if (!string.IsNullOrEmpty(responseMessage.FunctionName))
+        try
+        {
+            var response = chatClient.CompleteChat(messages, options);
+            value = response.Value;
+
+            var reason = value.FinishReason;
+            var content = value.Content;
+            var text = content.FirstOrDefault()?.Text ?? string.Empty;
+
+            if (reason == ChatFinishReason.FunctionCall)
             {
-                responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
+                responseMessage = new RoleDialogModel(AgentRole.Function, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    FunctionName = value.FunctionCall.FunctionName,
+                    FunctionArgs = value.FunctionCall.FunctionArguments
+                };
+
+                // Somethings LLM will generate a function name with agent name.
+                if (!string.IsNullOrEmpty(responseMessage.FunctionName))
+                {
+                    responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
+                }
+            }
+            else if (reason == ChatFinishReason.ToolCalls)
+            {
+                var toolCall = value.ToolCalls.FirstOrDefault();
+                responseMessage = new RoleDialogModel(AgentRole.Function, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                    FunctionName = toolCall?.FunctionName,
+                    FunctionArgs = toolCall?.FunctionArguments
+                };
+            }
+            else
+            {
+                responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
+                {
+                    CurrentAgentId = agent.Id,
+                    MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                };
             }
         }
-        else if (reason == ChatFinishReason.ToolCalls)
+        catch (ClientResultException ex)
         {
-            var toolCall = value.ToolCalls.FirstOrDefault();
-            responseMessage = new RoleDialogModel(AgentRole.Function, text)
+            _logger.LogError(ex, ex.Message);
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, "The response was filtered due to the prompt triggering our content management policy. Please modify your prompt and retry.")
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-                FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments
             };
         }
-        else
+        catch (Exception ex)
         {
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
+            _logger.LogError(ex, ex.Message);
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, ex.Message)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
@@ -88,8 +113,8 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Value.Usage.InputTokens,
-                CompletionCount = response.Value.Usage.OutputTokens
+                PromptCount = value?.Usage?.InputTokens ?? 0,
+                CompletionCount = value?.Usage?.OutputTokens ?? 0
             });
         }
 
