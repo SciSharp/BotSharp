@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Users.Settings;
 using BotSharp.OpenAPI.ViewModels.Users;
@@ -9,7 +9,6 @@ using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using System.Net;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -522,6 +521,25 @@ public class UserService : IUserService
         }
 
         db.UpdateUserPhone(record.Id, phone);
+        return true;
+    }
+
+    public async Task<bool> UpdateUsersIsDisable(List<string> userIds, bool isDisable)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.UpdateUsersIsDisable(userIds, isDisable);
+
+        if (!isDisable)
+        {
+            return true;
+        }
+
+        // del membership
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.DelUsers(userIds);
+        }
         return true;
     }
 }

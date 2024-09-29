@@ -126,4 +126,12 @@ public partial class MongoRepository
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
         _dc.Users.UpdateOne(filter, update);
     }
+
+    public void UpdateUsersIsDisable(List<string> userIds, bool isDisable)
+    {
+        foreach (var userId in userIds)
+        {
+            UpdateUserIsDisable(userId, isDisable);
+        }
+    }
 }

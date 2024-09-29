@@ -143,6 +143,12 @@ public class UserController : ControllerBase
         return await _userService.ModifyUserPhone(phone);
     }
 
+    [HttpPost("/user/update/isdisable")]
+    public async Task<bool> UpdateUsersIsDisable([FromQuery] List<string> userIds, [FromQuery] bool isDisable)
+    {
+        return await _userService.UpdateUsersIsDisable(userIds, isDisable);
+    }
+
     #region Avatar
     [HttpPost("/user/avatar")]
     public bool UploadUserAvatar([FromBody] UserAvatarModel input)
