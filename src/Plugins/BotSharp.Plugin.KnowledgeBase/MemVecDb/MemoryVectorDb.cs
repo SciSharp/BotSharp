@@ -59,7 +59,7 @@ public class MemoryVectorDb : IVectorDb
                         .Take(limit)
                         .Select(i => new VectorCollectionData
                         {
-                            Data = new Dictionary<string, string> { { "text", _vectors[collectionName][i].Text } },
+                            Data = new Dictionary<string, object> { { "text", _vectors[collectionName][i].Text } },
                             Score = similarities[i],
                             Vector = withVector ? _vectors[collectionName][i].Vector : null,
                         })
@@ -68,7 +68,7 @@ public class MemoryVectorDb : IVectorDb
         return await Task.FromResult(results);
     }
 
-    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, string>? payload = null)
+    public async Task<bool> Upsert(string collectionName, Guid id, float[] vector, string text, Dictionary<string, object>? payload = null)
     {
         _vectors[collectionName].Add(new VecRecord
         {

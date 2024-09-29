@@ -196,7 +196,7 @@ public partial class KnowledgeService
                 withPayload: true);
             if (!found.IsNullOrEmpty())
             {
-                if (found.First().Data["text"] == update.Text)
+                if (found.First().Data["text"].ToString() == update.Text)
                 {
                     // Only update payload
                     return await db.Upsert(collectionName, guid, found.First().Vector, update.Text, update.Payload);

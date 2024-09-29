@@ -69,7 +69,7 @@ public class DbKnowledgeService
                     await knowledgeService.CreateVectorCollectionData(collectionName, new VectorCreateModel
                     {
                         Text = item.Question,
-                        Payload = new Dictionary<string, string>
+                        Payload = new Dictionary<string, object>
                         {
                             { KnowledgePayloadName.Answer, item.Answer }
                         }
