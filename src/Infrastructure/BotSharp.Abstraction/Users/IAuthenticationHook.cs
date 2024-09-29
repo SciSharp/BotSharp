@@ -10,4 +10,5 @@ public interface IAuthenticationHook
     void BeforeSending(Token token);
     Task UserCreated(User user);
     Task VerificationCodeResetPassword(User user);
+    Task DelUsers(List<string> userIds);
 }
