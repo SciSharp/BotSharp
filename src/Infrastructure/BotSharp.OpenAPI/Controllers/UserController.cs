@@ -68,7 +68,8 @@ public class UserController : ControllerBase
         var token = await _userService.ActiveUser(model);
         if (token == null)
         {
-            return Unauthorized();
+            //return Unauthorized();
+            return BadRequest();
         }
         return Ok(token);
     }
