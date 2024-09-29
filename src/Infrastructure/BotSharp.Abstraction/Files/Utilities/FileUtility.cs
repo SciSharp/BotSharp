@@ -58,4 +58,20 @@ public static class FileUtility
 
         return contentType;
     }
+
+    public static List<string> GetMimeFileTypes(IEnumerable<string> fileTypes)
+    {
+        var provider = new FileExtensionContentTypeProvider();
+        var mimeTypes = provider.Mappings.Where(x => fileTypes.Any(type => x.Value.Contains(type))).Select(x => x.Key).ToList();
+
+        return mimeTypes;
+    }
+
+    public static List<string> GetContentFileTypes(IEnumerable<string> mimeTypes)
+    {
+        var provider = new FileExtensionContentTypeProvider();
+        var mappings = provider.Mappings.Where(x => mimeTypes.Any(type => x.Key.Contains(type))).Select(x => x.Value).ToList();
+
+        return mappings;
+    }
 }
