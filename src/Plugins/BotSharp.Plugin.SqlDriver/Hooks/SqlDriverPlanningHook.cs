@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Agents.Services;
 using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Plugin.SqlDriver.Hooks;

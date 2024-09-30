@@ -44,7 +44,6 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
-        var dictionary = new Dictionary<string, object>();
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 }
