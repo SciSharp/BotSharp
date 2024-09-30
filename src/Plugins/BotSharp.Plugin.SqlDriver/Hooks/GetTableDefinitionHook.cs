@@ -5,18 +5,17 @@ using BotSharp.Abstraction.Repositories;
 
 namespace BotSharp.Plugin.SqlDriver.Hooks;
 
-public class SqlExecutorHook : AgentHookBase, IAgentHook
+public class GetTableDefinitionHook : AgentHookBase, IAgentHook
 {
-    private const string SQL_EXECUTOR_TEMPLATE = "sql_executor.fn";
+    private const string SQL_EXECUTOR_TEMPLATE = "sql_table_definition.fn";
     private IEnumerable<string> _targetSqlExecutorFunctions = new List<string>
     {
-        "sql_select",
         "sql_table_definition",
     };
 
-    public override string SelfId => string.Empty;
+    public override string SelfId => BuiltInAgentId.Planner;
 
-    public SqlExecutorHook(IServiceProvider services, AgentSettings settings) : base(services, settings)
+    public GetTableDefinitionHook(IServiceProvider services, AgentSettings settings) : base(services, settings)
     {
     }
 
@@ -24,7 +23,7 @@ public class SqlExecutorHook : AgentHookBase, IAgentHook
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
-        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(Utility.SqlExecutor);
+        var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(Utility.SqlTableDefinition);
 
         if (isConvMode && isEnabled)
         {
@@ -55,7 +54,7 @@ public class SqlExecutorHook : AgentHookBase, IAgentHook
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
         var fns = agent?.Functions?.Where(x => _targetSqlExecutorFunctions.Contains(x.Name))?.ToList();
-        
+
         var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(SQL_EXECUTOR_TEMPLATE))?.Content ?? string.Empty;
         var dbType = GetDatabaseType();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -63,7 +62,7 @@ public class SqlExecutorHook : AgentHookBase, IAgentHook
         {
             { "db_type", dbType }
         });
-        
+
         return (prompt, fns);
     }
 

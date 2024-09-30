@@ -1,5 +1,5 @@
 {
-  "name": "get_table_definition",
+  "name": "sql_table_definition",
   "description": "Get the DDL, including data structure, data field and relationship for table",
   "parameters": {
     "type": "object",

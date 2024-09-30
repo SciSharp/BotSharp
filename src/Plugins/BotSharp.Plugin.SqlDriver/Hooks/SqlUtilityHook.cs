@@ -6,5 +6,6 @@ public class SqlUtilityHook : IAgentUtilityHook
     {
         utilities.Add(Utility.SqlExecutor);
         utilities.Add(Utility.SqlDictionaryLookup);
+        utilities.Add(Utility.SqlTableDefinition);
     }
 }

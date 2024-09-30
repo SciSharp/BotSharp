@@ -8,7 +8,7 @@ namespace BotSharp.Plugin.SqlDriver.Functions;
 
 public class GetTableDefinitionFn : IFunctionCallback
 {
-    public string Name => "get_table_definition";
+    public string Name => "sql_table_definition";
     public string Indication => "Obtain the relevant data structure definitions.";
     private readonly IServiceProvider _services;
     private readonly ILogger<GetTableDefinitionFn> _logger;
@@ -37,6 +37,9 @@ public class GetTableDefinitionFn : IFunctionCallback
         };
     
         message.Content = string.Join("\r\n\r\n", tableDdls);
+
+        //var states = _services.GetRequiredService<IConversationStateService>();
+        //states.SetState($"table_definition_{args.Table}", message.Content);
 
         return true;
     }

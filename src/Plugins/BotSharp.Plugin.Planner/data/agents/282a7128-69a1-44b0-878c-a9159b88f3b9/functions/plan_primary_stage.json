@@ -13,7 +13,7 @@
         "description": "User requirements in detail, don't miss any information especially for those line items, values and numbers.",
         "items": {
           "type": "string",
-          "description": "Question converted from requirement in different ways to search in the knowledge base, be short"
+          "description": "Question converted from requirement in different ways to search in the knowledge base, be short and you can refer to the global knowledge."
         }
       }
     },
