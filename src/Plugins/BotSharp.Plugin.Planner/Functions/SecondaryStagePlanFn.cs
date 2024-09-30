@@ -21,34 +21,26 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
-        
-        var msgSecondary = RoleDialogModel.From(message);
-        var taskPrimary = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
-        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
+        var states = _services.GetRequiredService<IConversationStateService>();
 
-        msgSecondary.FunctionArgs = JsonSerializer.Serialize(new SecondaryBreakdownTask
-        {
-            TaskDescription = taskPrimary.Requirements
-        });
+        var msgSecondary = RoleDialogModel.From(message);
+        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
+        var planPrimary = states.GetState("planning_result");
+        var taskPrimary = states.GetState("requirement_detail");
 
         var taskSecondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msgSecondary.FunctionArgs);
-        var items = msgSecondary.Content.JsonArrayContent<FirstStagePlan>();
-
+ 
         // Search knowledgebase
-        foreach (var item in items)
+        var knowledges = await knowledgeService.SearchVectorKnowledge(taskSecondary.SolutionQuestion, collectionName, new VectorSearchOptions
         {
-            if (!item.NeedAdditionalInformation) continue;
-
-            var knowledges = await knowledgeService.SearchVectorKnowledge(item.Task, collectionName, new VectorSearchOptions
-            {
-                Confidence = 0.6f
-            });
-            message.Content += string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
-        }
+            Confidence = 0.6f
+        });
+        var knowledgeResults = "";
+        knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
 
         // Get second stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var secondPlanningPrompt = await GetSecondStagePlanPrompt(taskSecondary.TaskDescription, message);
+        var secondPlanningPrompt = await GetSecondStagePlanPrompt(taskSecondary.TaskDescription, planPrimary, knowledgeResults, message);
         _logger.LogInformation(secondPlanningPrompt);
 
         var plannerAgent = new Agent
@@ -64,12 +56,11 @@ public class SecondaryStagePlanFn : IFunctionCallback
         message.Content = response.Content;
         _logger.LogInformation(response.Content);
 
-        var states = _services.GetRequiredService<IConversationStateService>();
         states.SetState("planning_result", response.Content);
         return true;
     }
 
-    private async Task<string> GetSecondStagePlanPrompt(string taskDescription, RoleDialogModel message)
+    private async Task<string> GetSecondStagePlanPrompt(string taskDescription, string planPrimary, string knowledgeResults, RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -85,7 +76,8 @@ public class SecondaryStagePlanFn : IFunctionCallback
         return render.Render(template, new Dictionary<string, object>
         {
             { "task_description", taskDescription },
-            { "primary_plan", new[]{ message.Content } },
+            { "primary_plan", planPrimary },
+            { "additional_knowledge", knowledgeResults },
             { "response_format",  responseFormat }
         });
     }
