@@ -16,6 +16,7 @@
     <None Remove="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\functions\plan_secondary_stage.json" />
     <None Remove="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\functions\plan_summary.json" />
     <None Remove="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\instructions\instruction.liquid" />
+    <None Remove="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\templates\database.dictionary.sql.liquid" />
     <None Remove="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\templates\database.summarize.MySql.liquid" />
     <None Remove="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\templates\database.summarize.SqlServer.liquid" />
     <None Remove="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\templates\two_stage.2nd.plan.liquid" />
@@ -47,6 +48,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\templates\database.summarize.sqlserver.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\templates\database.dictionary.sql.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\282a7128-69a1-44b0-878c-a9159b88f3b9\templates\two_stage.next.liquid">

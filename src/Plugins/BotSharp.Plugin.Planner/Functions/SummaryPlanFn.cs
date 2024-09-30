@@ -35,7 +35,7 @@ public class SummaryPlanFn : IFunctionCallback
         var allTables = new List<string>();
         var ddlStatements = "";
         var relevantKnowledge = states.GetState("planning_result");
-        relevantKnowledge += states.GetState("dictionary_items");
+        var dictionaryItems = states.GetState("dictionary_items");
 
         foreach (var step in steps)
         {
@@ -49,12 +49,12 @@ public class SummaryPlanFn : IFunctionCallback
             { 
                 table = table,
             });
-            await fn.InvokeFunction("get_table_definition", msgCopy);
+            await fn.InvokeFunction("sql_table_definition", msgCopy);
             ddlStatements += "\r\n" + msgCopy.Content;
         }
 
         // Summarize and generate query
-        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, ddlStatements);
+        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements);
         _logger.LogInformation($"Summary plan prompt:\r\n{summaryPlanPrompt}");
 
         var plannerAgent = new Agent
@@ -74,7 +74,7 @@ public class SummaryPlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, string ddlStatement)
+    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, string dictionaryItems, string ddlStatement)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -94,6 +94,7 @@ public class SummaryPlanFn : IFunctionCallback
             { "task_description", taskDescription },
             { "summary_requirements", string.Join("\r\n",additionalRequirements) },
             { "relevant_knowledges", relevantKnowledge },
+            { "dictionary_items", dictionaryItems },
             { "table_structure", ddlStatement },
         });
     }
