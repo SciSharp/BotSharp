@@ -19,6 +19,6 @@ public class SqlDriverController : ControllerBase
     public async Task<bool> ImportDbKnowledge(ImportDbKnowledgeRequest request)
     {
         var dbKnowledge = _services.GetRequiredService<DbKnowledgeService>();
-        return await dbKnowledge.Import(request.Provider ?? "openai", request.Model ?? "gpt-4o", request.Schema);
+        return await dbKnowledge.Import(request);
     }
 }
