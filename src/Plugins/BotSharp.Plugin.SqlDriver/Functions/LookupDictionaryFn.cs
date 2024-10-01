@@ -57,18 +57,10 @@ public class LookupDictionaryFn : IFunctionCallback
         }
 
         var states = _services.GetRequiredService<IConversationStateService>();
-        var dictionaryItems = states.GetState("dictionary_items");
+        var dictionaryItems = states.GetState("dictionary_items", "");
         var newItem = BuildDictionaryItem(args.Table, args.Reason, message.Content);
-
-        var items = new List<string>();
-        if (!string.IsNullOrWhiteSpace(dictionaryItems))
-        {
-            items = JsonSerializer.Deserialize<List<string>>(dictionaryItems);
-        }
-
-        items.Add(newItem);
-        //dictionaryItems += "\r\n\r\n" + args.Table + ":\r\n" + args.Reason + ":\r\n" + message.Content + "\r\n";
-        states.SetState("dictionary_items", JsonSerializer.Serialize(items));
+        dictionaryItems += !string.IsNullOrWhiteSpace(newItem) ? $"\r\n{newItem}\r\n" : string.Empty;
+        states.SetState("dictionary_items", dictionaryItems);
 
         return true;
     }
@@ -105,24 +97,30 @@ public class LookupDictionaryFn : IFunctionCallback
 
     private string BuildDictionaryItem(string? table, string? reason, string? result)
     {
-        var res = new List<string>();
+        var res = string.Empty;
         if (!string.IsNullOrWhiteSpace(table))
         {
-            res.Add($"Table: {table}");
+            res += $"Table: {table}";
         }
 
         if (!string.IsNullOrWhiteSpace(reason))
         {
-            res.Add($"Reason: {reason}");
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                res += "\r\n";
+            }
+            res += $"Reason: {reason}";
         }
 
         if (!string.IsNullOrWhiteSpace(result))
         {
-            res.Add($"Result: {result}");
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                res += "\r\n";
+            }
+            res += $"Result: {result}";
         }
 
-        if (res.IsNullOrEmpty()) return string.Empty;
-
-        return string.Join("\r\n", res);
+        return res;
     }
 }
