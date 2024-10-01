@@ -17,16 +17,14 @@ public class SecondaryStagePlanFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var fn = _services.GetRequiredService<IRoutingService>();
         var agentService = _services.GetRequiredService<IAgentService>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
         var states = _services.GetRequiredService<IConversationStateService>();
 
         var msgSecondary = RoleDialogModel.From(message);
-        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
+        var collectionName = knowledgeSettings.Default.CollectionName;
         var planPrimary = states.GetState("planning_result");
-        var taskPrimary = states.GetState("requirement_detail");
 
         var taskSecondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msgSecondary.FunctionArgs);
  
@@ -35,8 +33,8 @@ public class SecondaryStagePlanFn : IFunctionCallback
         {
             Confidence = 0.6f
         });
-        var knowledgeResults = "";
-        knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
+
+        var knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
 
         // Get second stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
@@ -45,7 +43,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
 
         var plannerAgent = new Agent
         {
-            Id = string.Empty,
+            Id = BuiltInAgentId.Planner,
             Name = "planning_2nd",
             Instruction = secondPlanningPrompt,
             TemplateDict = new Dictionary<string, object>(),

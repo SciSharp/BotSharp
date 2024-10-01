@@ -1,14 +1,9 @@
-using Azure;
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Agents.Services;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.SqlDriver.Models;
 using MySqlConnector;
-using System.Text.RegularExpressions;
 using static Dapper.SqlMapper;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -35,15 +30,16 @@ public class LookupDictionaryFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
         var dictionarySqlPrompt = await GetDictionarySQLPrompt(args.SqlStatement, msgCopy.Content);
-        var plannerAgent = new Agent
+        var agent = new Agent
         {
-            Id = string.Empty,
+            Id = message.CurrentAgentId ?? string.Empty,
             Name = "sqlDriver_DictionarySearch",
             Instruction = dictionarySqlPrompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
-        var response = await GetAiResponse(plannerAgent);
+
+        var response = await GetAiResponse(agent);
         args = JsonSerializer.Deserialize<LookupDictionary>(response.Content);
 
         // check if need to instantely
@@ -59,13 +55,16 @@ public class LookupDictionaryFn : IFunctionCallback
         {
             message.Content = JsonSerializer.Serialize(result);
         }
+
         var states = _services.GetRequiredService<IConversationStateService>();
         var dictionaryItems = states.GetState("dictionary_items", "");
-        dictionaryItems += "\r\n\r\n" + args.Table + ":\r\n" + args.Reason + ":\r\n" + message.Content + "\r\n";
+        var newItem = BuildDictionaryItem(args.Table, args.Reason, message.Content);
+        dictionaryItems += !string.IsNullOrWhiteSpace(newItem) ? $"\r\n{newItem}\r\n" : string.Empty;
         states.SetState("dictionary_items", dictionaryItems);
 
         return true;
     }
+
     private async Task<string> GetDictionarySQLPrompt(string originalSql, string tableStructure)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -83,15 +82,45 @@ public class LookupDictionaryFn : IFunctionCallback
             { "response_format", responseFormat }
         });
     }
-    private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
+
+    private async Task<RoleDialogModel> GetAiResponse(Agent agent)
     {
         var text = "Check and correct the SQL statement.";
         var message = new RoleDialogModel(AgentRole.User, text);
 
         var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: plannerAgent.LlmConfig.Provider,
-            model: plannerAgent.LlmConfig.Model);
+            provider: agent.LlmConfig.Provider,
+            model: agent.LlmConfig.Model);
 
-        return await completion.GetChatCompletions(plannerAgent, new List<RoleDialogModel> { message });
+        return await completion.GetChatCompletions(agent, new List<RoleDialogModel> { message });
+    }
+
+    private string BuildDictionaryItem(string? table, string? reason, string? result)
+    {
+        var res = string.Empty;
+        if (!string.IsNullOrWhiteSpace(table))
+        {
+            res += $"Table: {table}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(reason))
+        {
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                res += "\r\n";
+            }
+            res += $"Reason: {reason}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(result))
+        {
+            if (!string.IsNullOrWhiteSpace(res))
+            {
+                res += "\r\n";
+            }
+            res += $"Result: {result}";
+        }
+
+        return res;
     }
 }

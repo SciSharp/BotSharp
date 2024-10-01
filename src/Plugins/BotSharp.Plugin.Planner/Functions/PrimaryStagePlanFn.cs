@@ -24,7 +24,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
-        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
+        var collectionName = knowledgeSettings.Default.CollectionName;
 
         // Get knowledge from vectordb
         var hooks = _services.GetServices<IKnowledgeHook>();
