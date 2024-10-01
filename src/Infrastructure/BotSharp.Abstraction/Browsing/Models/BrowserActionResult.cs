@@ -2,6 +2,7 @@ namespace BotSharp.Abstraction.Browsing.Models;
 
 public class BrowserActionResult
 {
+    public int ResponseStatusCode { get; set; }
     public bool IsSuccess { get; set; }
     public string? Message { get; set; }
     public string? StackTrace { get; set; }
