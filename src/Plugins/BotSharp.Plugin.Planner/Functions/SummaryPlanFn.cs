@@ -36,11 +36,6 @@ public class SummaryPlanFn : IFunctionCallback
         var ddlStatements = string.Empty;
         var relevantKnowledge = states.GetState("planning_result");
         var dictionaryItems = states.GetState("dictionary_items");
-        var items = new List<string>();
-        if (!string.IsNullOrWhiteSpace(dictionaryItems))
-        {
-            items = JsonSerializer.Deserialize<List<string>>(dictionaryItems);
-        }
 
         foreach (var step in steps)
         {
@@ -60,7 +55,7 @@ public class SummaryPlanFn : IFunctionCallback
         }
 
         // Summarize and generate query
-        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, items, ddlStatements);
+        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements);
         _logger.LogInformation($"Summary plan prompt:\r\n{summaryPlanPrompt}");
 
         var plannerAgent = new Agent
@@ -80,7 +75,7 @@ public class SummaryPlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, IEnumerable<string> dictionaryItems, string ddlStatement)
+    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, string dictionaryItems, string ddlStatement)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -100,7 +95,7 @@ public class SummaryPlanFn : IFunctionCallback
             { "task_description", taskDescription },
             { "summary_requirements", string.Join("\r\n", additionalRequirements) },
             { "relevant_knowledges", relevantKnowledge },
-            { "dictionary_items", string.Join("\r\n\r\n", dictionaryItems) },
+            { "dictionary_items", dictionaryItems },
             { "table_structure", ddlStatement },
         });
     }
