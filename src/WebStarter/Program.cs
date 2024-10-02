@@ -4,6 +4,7 @@ using BotSharp.Logger;
 using BotSharp.Plugin.ChatHub;
 using Serilog;
 using BotSharp.Abstraction.Messaging.JsonConverters;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +29,12 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
 builder.AddServiceDefaults();
 
 // Add SignalR for WebSocket
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    // Enable Redis backplane for SignalR
+    /*.AddStackExchangeRedis("127.0.0.1", o =>
+    {
+        o.Configuration.ChannelPrefix = RedisChannel.Literal("botsharp");
+    })*/;
 
 var app = builder.Build();
 
