@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Plugin.ExcelHandler.Helpers;
+using BotSharp.Plugin.ExcelHandler.Helpers.MySql;
+using BotSharp.Plugin.ExcelHandler.Helpers.Sqlite;
 using BotSharp.Plugin.ExcelHandler.Hooks;
+using BotSharp.Plugin.ExcelHandler.Services;
 using BotSharp.Plugin.ExcelHandler.Settings;
 using Microsoft.Extensions.Configuration;
 
@@ -28,6 +30,9 @@ public class ExcelHandlerPlugin : IBotSharpPlugin
 
         services.AddScoped<IAgentUtilityHook, ExcelHandlerUtilityHook>();
         services.AddScoped<IAgentHook, ExcelHandlerHook>();
-        services.AddScoped<IDbHelpers, DbHelpers>();
+        services.AddScoped<ISqliteDbHelpers, SqliteDbHelpers>();
+        services.AddScoped<IMySqlDbHelper, MySqlDbHelpers>();
+        services.AddScoped<ISqliteService, SqliteService>();
+        services.AddScoped<IMySqlService, MySqlService>();
     }
 }
