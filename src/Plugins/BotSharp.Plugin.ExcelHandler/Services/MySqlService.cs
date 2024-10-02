@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -84,7 +85,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                         tables.Add(tableName);
                     }
                 }
-                return tables;
+                return tables.Distinct().ToList();
             }
         }
 
