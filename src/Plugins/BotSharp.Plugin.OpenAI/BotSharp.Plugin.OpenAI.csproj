@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenAI" Version="2.0.0-beta.5" />
+    <PackageReference Include="OpenAI" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
 

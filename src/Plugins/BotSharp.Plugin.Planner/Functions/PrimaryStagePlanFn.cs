@@ -19,27 +19,18 @@ public class PrimaryStagePlanFn : IFunctionCallback
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        // var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
-        // var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
 
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
-        // var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
 
         // Get knowledge from vectordb
         var hooks = _services.GetServices<IKnowledgeHook>();
         var knowledges = new List<string>();
         foreach (var question in task.Questions)
         {
-            /*var list = await knowledgeService.SearchVectorKnowledge(question, collectionName, new VectorSearchOptions
-            {
-                Confidence = 0.4f
-            });
-            knowledges.Add(string.Join("\r\n\r\n=====\r\n", list.Select(x => x.ToQuestionAnswer())));*/
-            
             foreach (var hook in hooks)
             {
-                var k = await hook.GetRelevantKnowledges(question);
+                var k = await hook.GetRelevantKnowledges(message, question);
                 knowledges.AddRange(k);
             }
         }
@@ -47,7 +38,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         // Get first stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var firstPlanningPrompt = await GetFirstStagePlanPrompt(task.Requirements, knowledges);
+        var firstPlanningPrompt = await GetFirstStagePlanPrompt(message, task.Requirements, knowledges);
         var plannerAgent = new Agent
         {
             Id = BuiltInAgentId.Planner,
@@ -65,7 +56,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetFirstStagePlanPrompt(string taskDescription, List<string> relevantKnowledges)
+    private async Task<string> GetFirstStagePlanPrompt(RoleDialogModel message, string taskDescription, List<string> relevantKnowledges)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -83,7 +74,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var globalKnowledges = new List<string>();
         foreach (var hook in knowledgeHooks)
         {
-            var k = await hook.GetGlobalKnowledges();
+            var k = await hook.GetGlobalKnowledges(message);
             globalKnowledges.AddRange(k);
         }
 

@@ -31,7 +31,7 @@ public class TextEmbeddingProvider : ITextEmbedding
         var options = PrepareOptions();
         var response = await embeddingClient.GenerateEmbeddingAsync(text, options);
         var value = response.Value;
-        return value.Vector.ToArray();
+        return value.ToFloats().ToArray();
     }
 
     public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
@@ -41,7 +41,7 @@ public class TextEmbeddingProvider : ITextEmbedding
         var options = PrepareOptions();
         var response = await embeddingClient.GenerateEmbeddingsAsync(texts, options);
         var value = response.Value;
-        return value.Select(x => x.Vector.ToArray()).ToList();
+        return value.Select(x => x.ToFloats().ToArray()).ToList();
     }
 
     public void SetModelName(string model)

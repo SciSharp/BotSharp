@@ -10,7 +10,7 @@ public partial class AudioCompletionProvider
                                         .GetAudioClient(_model);
 
         var (voice, options) = PrepareGenerationOptions();
-        var result = await audioClient.GenerateSpeechFromTextAsync(text, voice, options);
+        var result = await audioClient.GenerateSpeechAsync(text, voice, options);
         return result.Value;
     }
 
@@ -24,7 +24,7 @@ public partial class AudioCompletionProvider
         var options = new SpeechGenerationOptions
         {
             ResponseFormat = format,
-            Speed = speed
+            SpeedRatio = speed
         };
 
         return (voice, options);
