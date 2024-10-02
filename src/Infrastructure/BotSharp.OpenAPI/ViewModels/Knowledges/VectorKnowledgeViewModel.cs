@@ -9,7 +9,7 @@ public class VectorKnowledgeViewModel
     public string Id { get; set; }
 
     [JsonPropertyName("data")]
-    public IDictionary<string, string> Data { get; set; }
+    public IDictionary<string, object> Data { get; set; }
 
     [JsonPropertyName("score")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

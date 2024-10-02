@@ -32,4 +32,9 @@ public class MemoryCacheService : ICacheService
             AbsoluteExpirationRelativeToNow = expiry
         });
     }
+
+    public async Task RemoveAsync(string key)
+    {
+        _cache.Remove(key);
+    }
 }

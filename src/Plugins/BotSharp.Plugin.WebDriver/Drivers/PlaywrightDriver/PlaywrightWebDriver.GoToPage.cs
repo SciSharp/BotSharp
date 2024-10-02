@@ -64,6 +64,7 @@ public partial class PlaywrightWebDriver
                 await Task.Delay(args.WaitTime * 1000);
             }
 
+            result.ResponseStatusCode = response.Status;
             if (response.Status == 200)
             {
                 // Disable this due to performance issue, some page is too large
@@ -71,7 +72,7 @@ public partial class PlaywrightWebDriver
                 result.IsSuccess = true;
             }
             else
-            {
+            {                
                 result.Message = response.StatusText;
             }
         }

@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Users.Settings;
 using BotSharp.OpenAPI.ViewModels.Users;
@@ -9,7 +9,6 @@ using NanoidDotNet;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using System.Net;
 
 namespace BotSharp.Core.Users.Services;
 
@@ -112,7 +111,11 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByPhone(id);
+        var record = db.GetAffiliateUserByPhone(id);
+        if (record == null)
+        {
+            record = db.GetUserByPhone(id);
+        }
 
         var isCanLoginAffiliateRoleType = record != null && !record.IsDisabled && record.Type != UserType.Client;
         if (!isCanLoginAffiliateRoleType)
@@ -254,7 +257,8 @@ public class UserService : IUserService
             new Claim("type", user.Type ?? UserType.Client),
             new Claim("role", user.Role ?? UserRole.User),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("phone", user.Phone ?? string.Empty)
+            new Claim("phone", user.Phone ?? string.Empty),
+            new Claim("affiliateId", user.AffiliateId ?? string.Empty)
         };
 
         var validators = _services.GetServices<IAuthenticationHook>();
@@ -280,14 +284,19 @@ public class UserService : IUserService
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        SaveUserTokenExpiresCache(user.Id, expires).GetAwaiter().GetResult();
+        SaveUserTokenExpiresCache(user.Id, expires, expireInMinutes).GetAwaiter().GetResult();
         return tokenHandler.WriteToken(token);
     }
 
-    private async Task SaveUserTokenExpiresCache(string userId, DateTime expires)
+    private async Task SaveUserTokenExpiresCache(string userId, DateTime expires, int expireInMinutes)
     {
-        var _cacheService = _services.GetRequiredService<ICacheService>();
-        await _cacheService.SetAsync<DateTime>(GetUserTokenExpiresCacheKey(userId), expires, null);
+        var config = _services.GetService<IConfiguration>();
+        var enableSingleLogin = bool.Parse(config["Jwt:EnableSingleLogin"] ?? "false");
+        if (enableSingleLogin)
+        {
+            var _cacheService = _services.GetRequiredService<ICacheService>();
+            await _cacheService.SetAsync(GetUserTokenExpiresCacheKey(userId), expires, TimeSpan.FromMinutes(expireInMinutes));
+        }
     }
 
     private string GetUserTokenExpiresCacheKey(string userId)
@@ -512,6 +521,25 @@ public class UserService : IUserService
         }
 
         db.UpdateUserPhone(record.Id, phone);
+        return true;
+    }
+
+    public async Task<bool> UpdateUsersIsDisable(List<string> userIds, bool isDisable)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.UpdateUsersIsDisable(userIds, isDisable);
+
+        if (!isDisable)
+        {
+            return true;
+        }
+
+        // del membership
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.DelUsers(userIds);
+        }
         return true;
     }
 }

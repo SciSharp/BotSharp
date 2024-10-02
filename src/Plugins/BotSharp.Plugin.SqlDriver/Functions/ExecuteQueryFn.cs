@@ -30,6 +30,12 @@ public class ExecuteQueryFn : IFunctionCallback
             "SqlServer" => RunQueryInSqlServer(args.SqlStatements),
             _ => throw new NotImplementedException($"Database type {settings.DatabaseType} is not supported.")
         };
+        
+        if (results.Count() == 0)
+        {
+            message.Content = "No record found";
+            return true;
+        }
 
         message.Content = JsonSerializer.Serialize(results);
 

@@ -14,7 +14,7 @@ public interface IBotSharpRepository
     void Add<TTableInterface>(object entity);
 
     #region Plugin
-    PluginConfig GetPluginConfig(); 
+    PluginConfig GetPluginConfig();
     void SavePluginConfig(PluginConfig config);
     #endregion
 
@@ -22,7 +22,7 @@ public interface IBotSharpRepository
     User? GetUserByEmail(string email) => throw new NotImplementedException();
     User? GetUserByPhone(string phone) => throw new NotImplementedException();
     User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
-    User? GetUserById(string id) => throw new NotImplementedException();   
+    User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
     User? GetUserByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
@@ -30,9 +30,10 @@ public interface IBotSharpRepository
     void UpdateUserVerified(string userId) => throw new NotImplementedException();
     void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
     void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
-    void UpdateUserEmail(string userId, string email)=> throw new NotImplementedException();
+    void UpdateUserEmail(string userId, string email) => throw new NotImplementedException();
     void UpdateUserPhone(string userId, string Iphone) => throw new NotImplementedException();
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
+    void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
     #endregion
 
     #region Agent
@@ -76,7 +77,7 @@ public interface IBotSharpRepository
     List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds);
     IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
     #endregion
-    
+
     #region Execution Log
     void AddExecutionLogs(string conversationId, List<string> logs);
     List<string> GetExecutionLogs(string conversationId);

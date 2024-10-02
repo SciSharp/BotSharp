@@ -10,4 +10,5 @@ public interface IUserIdentity
     string FullName { get; }
     string? UserLanguage { get; }
     string? Phone { get; }
+    string? AffiliateId { get; }
 }
