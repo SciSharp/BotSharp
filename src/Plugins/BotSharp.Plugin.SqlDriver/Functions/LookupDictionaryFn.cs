@@ -40,14 +40,18 @@ public class LookupDictionaryFn : IFunctionCallback
         };
 
         var response = await GetAiResponse(agent);
-        args = JsonSerializer.Deserialize<LookupDictionary>(response.Content);
+        args = response.Content.JsonContent<LookupDictionary>();
 
         // check if need to instantely
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
-        var result = connection.Query(args.SqlStatement);
+        IEnumerable<dynamic>? result = null;
+        if (!string.IsNullOrWhiteSpace(args.SqlStatement))
+        {
+            var settings = _services.GetRequiredService<SqlDriverSetting>();
+            using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString);
+            result = connection.Query(args.SqlStatement);
+        }
 
-        if (result == null)
+        if (result.IsNullOrEmpty())
         {
             message.Content = "Record not found";
         }

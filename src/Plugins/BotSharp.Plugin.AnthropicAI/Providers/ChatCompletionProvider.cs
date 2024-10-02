@@ -50,10 +50,10 @@ public class ChatCompletionProvider : IChatCompletion
         {
             var toolResult = response.Content.OfType<ToolUseContent>().First();
 
-            responseMessage = new RoleDialogModel(AgentRole.Function, response.FirstMessage?.Text)
+            responseMessage = new RoleDialogModel(AgentRole.Function, response.FirstMessage?.Text ?? string.Empty)
             {
                 CurrentAgentId = agent.Id,
-                MessageId = conversations.Last().MessageId,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolResult.Id,
                 FunctionName = toolResult.Name,
                 FunctionArgs = JsonSerializer.Serialize(toolResult.Input)
@@ -62,10 +62,10 @@ public class ChatCompletionProvider : IChatCompletion
         else
         {
             var message = response.FirstMessage;
-            responseMessage = new RoleDialogModel(AgentRole.Assistant, message.Text)
+            responseMessage = new RoleDialogModel(AgentRole.Assistant, message?.Text ?? string.Empty)
             {
                 CurrentAgentId = agent.Id,
-                MessageId = conversations.Last().MessageId
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
             };
         }
 
@@ -77,8 +77,8 @@ public class ChatCompletionProvider : IChatCompletion
                 Prompt = prompt,
                 Provider = Provider,
                 Model = _model,
-                PromptCount = response.Usage.InputTokens,
-                CompletionCount = response.Usage.OutputTokens
+                PromptCount = response.Usage?.InputTokens ?? 0,
+                CompletionCount = response.Usage?.OutputTokens ?? 0
             });
         }
 
@@ -120,7 +120,14 @@ public class ChatCompletionProvider : IChatCompletion
         prompt += "\r\n\r\n" + response_with_function;*/
 
         var messages = new List<Message>();
-        foreach (var conv in conversations)
+        var filteredMessages = conversations.Select(x => x).ToList();
+        var firstUserMsgIdx = filteredMessages.FindIndex(x => x.Role == AgentRole.User);
+        if (firstUserMsgIdx > 0)
+        {
+            filteredMessages = filteredMessages.Where((_, idx) => idx >= firstUserMsgIdx).ToList();
+        }
+
+        foreach (var conv in filteredMessages)
         {
             if (conv.Role == AgentRole.User)
             {
