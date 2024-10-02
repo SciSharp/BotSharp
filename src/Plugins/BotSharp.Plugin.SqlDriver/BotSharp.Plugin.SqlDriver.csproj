@@ -29,6 +29,7 @@
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\sql_insert.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\sql_select.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\instructions\instruction.liquid" />
+    <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\query_result_formatting.liquid" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,6 +69,9 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\sql_executor.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\query_result_formatting.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -78,10 +82,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
     <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\" />
   </ItemGroup>
 
 </Project>

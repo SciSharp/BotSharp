@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.SqlDriver.Models;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -28,16 +30,37 @@ public class ExecuteQueryFn : IFunctionCallback
             "SqlServer" => RunQueryInSqlServer(args.SqlStatements),
             _ => throw new NotImplementedException($"Database type {settings.DatabaseType} is not supported.")
         };
-
+        
         if (results.Count() == 0)
         {
             message.Content = "No record found";
+            return true;
         }
-        else
+
+        message.Content = JsonSerializer.Serialize(results);
+
+        if (args.FormattingResult)
         {
-            message.Content = JsonSerializer.Serialize(results);
+            var conv = _services.GetRequiredService<IConversationService>();
+            var sqlAgent = await _services.GetRequiredService<IAgentService>().LoadAgent(BuiltInAgentId.SqlDriver);
+            var prompt = sqlAgent.Templates.FirstOrDefault(x => x.Name == "query_result_formatting");
+
+            var completion = CompletionProvider.GetChatCompletion(_services,
+                provider: sqlAgent.LlmConfig.Provider,
+                model: sqlAgent.LlmConfig.Model);
+
+            var result = await completion.GetChatCompletions(new Agent
+            {
+                Id = sqlAgent.Id,
+                Instruction = prompt.Content,
+            }, new List<RoleDialogModel>
+            {
+                new RoleDialogModel(AgentRole.User, message.Content)
+            });
+
+            message.Content = result.Content;
         }
-        
+
         return true;
     }
 
@@ -52,7 +75,6 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
-        var dictionary = new Dictionary<string, object>();
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 }

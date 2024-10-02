@@ -11,7 +11,7 @@
   "profiles": [ "planning" ],
   "utilities": [ "two-stage-planner" ],
   "llmConfig": {
-    "provider": "azure-openai",
+    "provider": "openai",
     "model": "gpt-4o",
     "max_recursion_depth": 10
   }

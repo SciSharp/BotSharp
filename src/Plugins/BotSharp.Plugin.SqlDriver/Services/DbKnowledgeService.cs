@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using BotSharp.Core.Infrastructures;
 using MySqlConnector;
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Knowledges.Settings;
 using BotSharp.Abstraction.Knowledges.Enums;
 using BotSharp.Abstraction.VectorStorage.Models;
+using BotSharp.Plugin.SqlDriver.Models;
 
 namespace BotSharp.Plugin.SqlDriver.Services;
 
@@ -22,12 +22,14 @@ public class DbKnowledgeService
         _logger = logger;
     }
 
-    public async Task<bool> Import(string provider, string model, string schema)
+    public async Task<bool> Import(ImportDbKnowledgeRequest request)
     {
         var sqlDriverSettings = _services.GetRequiredService<SqlDriverSetting>();
-        var knowledgeSettings = _services.GetRequiredService<KnowledgeBaseSettings>();
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
-        var collectionName = knowledgeSettings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
+        var provider = request.Provider ?? "openai";
+        var model = request.Model ?? "gpt-4o";
+        var schema = request.Schema;
+        var collectionName = request.KnowledgebaseCollection;
 
         var tables = new HashSet<string>();
         using var connection = new MySqlConnection(sqlDriverSettings.MySqlConnectionString);

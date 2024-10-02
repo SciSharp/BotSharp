@@ -33,7 +33,7 @@ public class SummaryPlanFn : IFunctionCallback
         var states = _services.GetRequiredService<IConversationStateService>();
         var steps = states.GetState("planning_result").JsonArrayContent<SecondStagePlan>();
         var allTables = new List<string>();
-        var ddlStatements = "";
+        var ddlStatements = string.Empty;
         var relevantKnowledge = states.GetState("planning_result");
         var dictionaryItems = states.GetState("dictionary_items");
 
@@ -42,6 +42,7 @@ public class SummaryPlanFn : IFunctionCallback
             allTables.AddRange(step.Tables);
         }
         var distinctTables = allTables.Distinct().ToList();
+
         foreach (var table in distinctTables)
         {
             var msgCopy = RoleDialogModel.From(message);
@@ -92,7 +93,7 @@ public class SummaryPlanFn : IFunctionCallback
         return render.Render(template, new Dictionary<string, object>
         {
             { "task_description", taskDescription },
-            { "summary_requirements", string.Join("\r\n",additionalRequirements) },
+            { "summary_requirements", string.Join("\r\n", additionalRequirements) },
             { "relevant_knowledges", relevantKnowledge },
             { "dictionary_items", dictionaryItems },
             { "table_structure", ddlStatement },

@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
-using System.Collections.Generic;
 
 namespace BotSharp.Plugin.SqlDriver.Hooks;
 

@@ -16,4 +16,7 @@ public class ImportDbKnowledgeRequest : RequestBase
 {
     [JsonPropertyName("schema")]
     public string Schema { get; set; }
+
+    [JsonPropertyName("knowledgebase_collection")]
+    public string KnowledgebaseCollection { get; set; }
 }
