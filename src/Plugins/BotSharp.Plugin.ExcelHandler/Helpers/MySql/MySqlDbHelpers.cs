@@ -36,8 +36,8 @@ namespace BotSharp.Plugin.ExcelHandler.Helpers.MySql
         private void InitializeDatabase()
         {
             var settingService = _services.GetRequiredService<SqlDriverSetting>();
-            _mySqlDriverConnection = settingService.MySqlConnectionString;
-            _databaseName = GetDatabaseName(settingService.MySqlConnectionString);
+            _mySqlDriverConnection = settingService.MySqlTempConnectionString;
+            _databaseName = GetDatabaseName(settingService.MySqlTempConnectionString);
         }
 
         private string GetDatabaseName(string connectionString)

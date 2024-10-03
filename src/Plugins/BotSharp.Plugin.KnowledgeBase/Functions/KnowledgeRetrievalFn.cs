@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.VectorStorage.Extensions;
-
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class KnowledgeRetrievalFn : IFunctionCallback
@@ -21,23 +19,23 @@ public class KnowledgeRetrievalFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
-        var collectionName = _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
-        var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
-        var knowledges = await knowledgeService.SearchVectorKnowledge(args.Question, collectionName, new VectorSearchOptions
+        // Get knowledge from vectordb
+        var hooks = _services.GetServices<IKnowledgeHook>();
+        var knowledges = new List<string>();
+        foreach (var hook in hooks)
         {
-            Fields = new List<string> { KnowledgePayloadName.Text, KnowledgePayloadName.Answer },
-            Confidence = 0.2f
-        });
+            var k = await hook.GetRelevantKnowledges(message, args.Question);
+            knowledges.AddRange(k);
+        }
+        knowledges = knowledges.Distinct().ToList();
 
         if (!knowledges.IsNullOrEmpty())
         {
-            var answers = knowledges.Select(x => x.ToQuestionAnswer()).ToList();
-            message.Content = string.Join("\r\n\r\n=====\r\n", answers);
+            message.Content = string.Join("\r\n\r\n=====\r\n", knowledges);
         }
         else
         {
-            message.Content = $"I didn't find any useful knowledge related to [{args.Question}]. \r\nCan you tell me the instruction and I'll memorize it.";
-            message.StopCompletion = true;
+            message.Content = $"I didn't find any useful knowledge related to [{args.Question}].";
         }
 
         return true;

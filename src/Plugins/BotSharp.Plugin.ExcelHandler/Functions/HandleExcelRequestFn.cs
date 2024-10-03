@@ -72,7 +72,6 @@ public class HandleExcelRequestFn : IFunctionCallback
             var resultList = GetResponeFromDialogs(dialogs);
             message.Content = GenerateSqlExecutionSummary(resultList);
         }
-        message.StopCompletion = true;
         return true;
     }
 
@@ -131,7 +130,7 @@ public class HandleExcelRequestFn : IFunctionCallback
     {
         try
         {
-            _mySqlService.DeleteTableSqlQuery();
+            //_mySqlService.DeleteTableSqlQuery();
             return true;
         }
         catch (Exception ex)
@@ -151,8 +150,6 @@ public class HandleExcelRequestFn : IFunctionCallback
             foreach (var message in messageList.Where(x => x.isSuccessful))
             {
                 stringBuilder.Append(message.Message);
-                string tableSchemaInfo = _mySqlService.GenerateTableSchema();
-                stringBuilder.Append(tableSchemaInfo);
                 stringBuilder.Append("\r\n\r\n");
             }
         }
