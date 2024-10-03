@@ -118,7 +118,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 string insertDataSql = ProcessInsertSqlQuery(dataSql);
                 ExecuteSqlQueryForInsertion(insertDataSql);
 
-                return (true, $"{_currentFileName}: \r\n `**{_excelRowSize}**` data have been successfully stored into `{_tableName}` table");
+                return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_tableName}` table");
             }
             catch (Exception ex)
             {

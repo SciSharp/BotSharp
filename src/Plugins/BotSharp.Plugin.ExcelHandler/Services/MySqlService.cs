@@ -1,17 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BotSharp.Plugin.ExcelHandler.Helpers.MySql;
 using BotSharp.Plugin.ExcelHandler.Models;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MySql.Data.MySqlClient;
-//using MySqlConnector;
 using NPOI.SS.UserModel;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace BotSharp.Plugin.ExcelHandler.Services
 {
@@ -35,13 +26,13 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         {
             try
             {
-                using var mySqlDbConnection = _mySqlDbHelpers.GetDbConnection();
+                /*using var mySqlDbConnection = _mySqlDbHelpers.GetDbConnection();
                 var tableNames = GetAllTableSchema(mySqlDbConnection);
                 if (tableNames.IsNullOrEmpty())
                 {
                     return true;
-                }
-                ExecuteDropTableQuery(tableNames, mySqlDbConnection);
+                }*/
+                
                 return true;
             }
             catch (Exception ex)
@@ -49,7 +40,8 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 return false;
             }
         }
-        private void ExecuteDropTableQuery(List<string> dropTableNames, MySqlConnection connection)
+
+        /*private void ExecuteDropTableQuery(List<string> dropTableNames, MySqlConnection connection)
         {
             dropTableNames.ForEach(x =>
             {
@@ -58,7 +50,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 using var selectCmd = new MySqlCommand(dropTableQuery, connection);
                 selectCmd.ExecuteNonQuery();
             });
-        }
+        }*/
 
         public List<string> GetAllTableSchema(MySqlConnection mySqlDbConnection)
         {
@@ -89,23 +81,6 @@ namespace BotSharp.Plugin.ExcelHandler.Services
             }
         }
 
-        public string GenerateTableSchema()
-        {
-
-            var sb = new StringBuilder();
-            sb.Append($"\nTable Schema for `{_tableName}`:");
-            sb.Append("\n");
-            sb.Append($"cid | name       | type      ");
-            sb.Append("\n");
-            //sb.Append("----|------------|------------");
-            for (int i = 0; i < _excelColumnSize; i++)
-            {
-                sb.Append($"{i,-4}   | {_headerColumns[i],-10} | {_columnTypes[i],-10}");
-                sb.Append("\n");
-            }
-            return sb.ToString();
-        }
-
         public IEnumerable<SqlContextOut> WriteExcelDataToDB(IWorkbook workbook)
         {
             var numTables = workbook.NumberOfSheets;
@@ -133,7 +108,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 commandResult = new SqlContextOut
                 {
                     isSuccessful = isInsertSuccess,
-                    Message = insertMessage,
+                    Message = $"{insertMessage}\r\n{message}",
                     FileName = _currentFileName
                 };
                 commandList.Add(commandResult);
@@ -155,7 +130,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 string insertDataSql = ProcessInsertSqlQuery(dataSql);
                 ExecuteSqlQueryForInsertion(insertDataSql);
 
-                return (true, $"{_currentFileName}: \r\n `**{_excelRowSize}**` data have been successfully stored into `{_tableName}` table");
+                return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_tableName}` table");
             }
             catch (Exception ex)
             {
@@ -210,11 +185,11 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         {
             try
             {
-                _tableName = sheet.SheetName;
+                _tableName = $"excel_{sheet.SheetName}";
                 _headerColumns = ParseSheetColumn(sheet);
                 string createTableSql = CreateDBTableSqlString(_tableName, _headerColumns, null ,true);
                 ExecuteSqlQueryForInsertion(createTableSql);
-                return (true, $"{_tableName} has been successfully created.");
+                return (true, createTableSql);
             }
             catch (Exception ex)
             {
