@@ -7,16 +7,16 @@ using Microsoft.Data.Sqlite;
 using BotSharp.Plugin.SqlDriver.Models;
 using BotSharp.Plugin.SqlHero.Settings;
 
-namespace BotSharp.Plugin.ExcelHandler.Helpers;
+namespace BotSharp.Plugin.ExcelHandler.Helpers.Sqlite;
 
-public class DbHelpers : IDbHelpers
+public class SqliteDbHelpers : ISqliteDbHelpers
 {
     private string _dbFilePath = string.Empty;
     private SqliteConnection inMemoryDbConnection = null;
 
     private readonly IServiceProvider _services;
 
-    public DbHelpers(IServiceProvider service)
+    public SqliteDbHelpers(IServiceProvider service)
     {
         _services = service;
     }
