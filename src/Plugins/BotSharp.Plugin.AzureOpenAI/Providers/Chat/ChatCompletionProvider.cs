@@ -67,17 +67,6 @@ public class ChatCompletionProvider : IChatCompletion
                     responseMessage.FunctionName = responseMessage.FunctionName.Split('.').Last();
                 }
             }
-            //else if (reason == ChatFinishReason.ToolCalls)
-            //{
-            //    var toolCall = value.ToolCalls.FirstOrDefault();
-            //    responseMessage = new RoleDialogModel(AgentRole.Function, text)
-            //    {
-            //        CurrentAgentId = agent.Id,
-            //        MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
-            //        FunctionName = toolCall?.FunctionName,
-            //        FunctionArgs = toolCall?.FunctionArguments
-            //    };
-            //}
             else
             {
                 responseMessage = new RoleDialogModel(AgentRole.Assistant, text)
@@ -281,13 +270,6 @@ public class ChatCompletionProvider : IChatCompletion
         {
             if (message.Role == AgentRole.Function)
             {
-                //messages.Add(new AssistantChatMessage(string.Empty)
-                //{
-                //    FunctionCall = new ChatFunctionCall(message.FunctionName, message.FunctionArgs ?? string.Empty)
-                //});
-
-                //messages.Add(new FunctionChatMessage(message.FunctionName, message.Content));
-
                 messages.Add(new AssistantChatMessage(new List<ChatToolCall>
                 {
                     ChatToolCall.CreateFunctionToolCall(message.FunctionName, message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? string.Empty))

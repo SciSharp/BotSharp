@@ -1,8 +1,8 @@
 using Microsoft.Data.Sqlite;
 
-namespace BotSharp.Plugin.ExcelHandler.Helpers;
+namespace BotSharp.Plugin.ExcelHandler.Helpers.Sqlite;
 
-public interface IDbHelpers
+public interface ISqliteDbHelpers
 {
     SqliteConnection GetPhysicalDbConnection();
     SqliteConnection GetInMemoryDbConnection();
