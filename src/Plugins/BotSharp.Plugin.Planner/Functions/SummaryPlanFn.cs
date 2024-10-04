@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Planning;
 using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -36,6 +37,7 @@ public class SummaryPlanFn : IFunctionCallback
         var ddlStatements = string.Empty;
         var relevantKnowledge = states.GetState("planning_result");
         var dictionaryItems = states.GetState("dictionary_items");
+        var excelImportResult = states.GetState("excel_import_result");
 
         foreach (var step in steps)
         {
@@ -43,19 +45,16 @@ public class SummaryPlanFn : IFunctionCallback
         }
         var distinctTables = allTables.Distinct().ToList();
 
-        foreach (var table in distinctTables)
+        var msgCopy = RoleDialogModel.From(message);
+        msgCopy.FunctionArgs = JsonSerializer.Serialize(new
         {
-            var msgCopy = RoleDialogModel.From(message);
-            msgCopy.FunctionArgs = JsonSerializer.Serialize(new  
-            { 
-                table = table,
-            });
-            await fn.InvokeFunction("sql_table_definition", msgCopy);
-            ddlStatements += "\r\n" + msgCopy.Content;
-        }
+            tables = distinctTables,
+        });
+        await fn.InvokeFunction("sql_table_definition", msgCopy);
+        ddlStatements += "\r\n" + msgCopy.Content;
 
         // Summarize and generate query
-        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements);
+        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements, excelImportResult);
         _logger.LogInformation($"Summary plan prompt:\r\n{summaryPlanPrompt}");
 
         var plannerAgent = new Agent
@@ -75,7 +74,7 @@ public class SummaryPlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, string dictionaryItems, string ddlStatement)
+    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, string dictionaryItems, string ddlStatement, string excelImportResult)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -97,6 +96,7 @@ public class SummaryPlanFn : IFunctionCallback
             { "relevant_knowledges", relevantKnowledge },
             { "dictionary_items", dictionaryItems },
             { "table_structure", ddlStatement },
+            { "excel_import_result",excelImportResult }
         });
     }
     private async Task<RoleDialogModel> GetAiResponse(Agent plannerAgent)
