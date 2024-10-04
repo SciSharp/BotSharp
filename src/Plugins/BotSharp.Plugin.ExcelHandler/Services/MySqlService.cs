@@ -1,4 +1,5 @@
 using System.Data;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.ExcelHandler.Helpers.MySql;
 using BotSharp.Plugin.ExcelHandler.Models;
 using MySql.Data.MySqlClient;
@@ -9,17 +10,19 @@ namespace BotSharp.Plugin.ExcelHandler.Services
     public class MySqlService : IMySqlService
     {
         private readonly IMySqlDbHelper _mySqlDbHelpers;
-
+        private readonly IServiceProvider _services;
         private double _excelRowSize = 0;
         private double _excelColumnSize = 0;
         private string _tableName = "tempTable";
+        private string _database = "";
         private string _currentFileName = string.Empty;
         private List<string> _headerColumns = new List<string>();
         private List<string> _columnTypes = new List<string>();
 
-        public MySqlService(IMySqlDbHelper mySqlDbHelpers)
+        public MySqlService(IMySqlDbHelper mySqlDbHelpers, IServiceProvider services)
         {
             _mySqlDbHelpers = mySqlDbHelpers;
+            _services = services;
         }
 
         public bool DeleteTableSqlQuery()
@@ -185,10 +188,12 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         {
             try
             {
-                _tableName = $"excel_{sheet.SheetName}";
+                var routing = _services.GetRequiredService<IRoutingContext>();
+                _tableName = $"excel_{routing.ConversationId.Split('-').Last()}_{sheet.SheetName}";
                 _headerColumns = ParseSheetColumn(sheet);
                 string createTableSql = CreateDBTableSqlString(_tableName, _headerColumns, null ,true);
                 ExecuteSqlQueryForInsertion(createTableSql);
+                createTableSql = createTableSql.Replace(_tableName, $"{_database}.{_tableName}");
                 return (true, createTableSql);
             }
             catch (Exception ex)
@@ -210,21 +215,26 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         }
         private string CreateDBTableSqlString(string tableName, List<string> headerColumns, List<string>? columnTypes = null, bool isMemory = false)
         {
-            var createTableSql = $"CREATE TABLE if not exists {tableName} ( ";
-
             _columnTypes = columnTypes.IsNullOrEmpty() ? headerColumns.Select(x => "VARCHAR(512)").ToList() : columnTypes;
 
-            headerColumns = headerColumns.Select((x, i) => $"`{x}`" + $" {_columnTypes[i]}").ToList();
-            createTableSql += string.Join(", ", headerColumns);
+            /*if (!headerColumns.Any(x => x.Equals("id", StringComparison.OrdinalIgnoreCase)))
+            {
+                headerColumns.Insert(0, "Id");
+                _columnTypes?.Insert(0, "INT UNSIGNED AUTO_INCREMENT");
+            }*/
 
-            string engine = isMemory ? "ENGINE=MEMORY" : "";
-            createTableSql += $") {engine};";
+            var createTableSql = $"CREATE TABLE if not exists {tableName} ( \n";
+            createTableSql += string.Join(", \n", headerColumns.Select((x, i) => $"`{x}` {_columnTypes[i]}"));
+            var indexSql = string.Join(", \n", headerColumns.Select(x => $"KEY `idx_{tableName}_{x}` (`{x}`)"));
+            createTableSql += $", \n{indexSql}\n);";
+
             return createTableSql;
         }
 
         public void ExecuteSqlQueryForInsertion(string sqlQuery)
         {
             using var connection = _mySqlDbHelpers.GetDbConnection();
+            _database = connection.Database;
             using (MySqlCommand cmd = new MySqlCommand(sqlQuery, connection))
             {
                 cmd.ExecuteNonQuery();

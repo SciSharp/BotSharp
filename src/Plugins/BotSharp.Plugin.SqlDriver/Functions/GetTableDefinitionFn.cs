@@ -23,7 +23,7 @@ public class GetTableDefinitionFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
-        var tables = new string[] { args.Table };
+        var tables = args.Tables;
         var agentService = _services.GetRequiredService<IAgentService>();
         var settings = _services.GetRequiredService<SqlDriverSetting>();
 

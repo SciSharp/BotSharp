@@ -12,11 +12,14 @@
         "type": "string",
         "description": "the reason why you need to call sql_dictionary_lookup"
       },
-      "table": {
-        "type": "string",
-        "description": "table name"
-      }
-    },
-    "required": [ "sql_statement", "reason", "table" ]
+      "tables": {
+        "type": "array",
+        "description": "all related tables",
+        "items": {
+          "type": "string",
+          "description": "table name"
+        }
+      },
+    "required": [ "sql_statement", "reason", "tables" ]
   }
 }

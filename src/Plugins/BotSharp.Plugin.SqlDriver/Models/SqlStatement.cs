@@ -10,8 +10,8 @@ public class SqlStatement
     [JsonPropertyName("reason")]
     public string Reason { get; set; } = null!;
 
-    [JsonPropertyName("table")]
-    public string Table { get; set; } = null!;
+    [JsonPropertyName("tables")]
+    public string[] Tables { get; set; } = null!;
 
     [JsonPropertyName("parameters")]
     public SqlParameter[] Parameters { get; set; } = [];

@@ -51,6 +51,7 @@ public class HandleExcelRequestFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
         var conv = _serviceProvider.GetRequiredService<IConversationService>();
 
+
         if (_excelMimeTypes.IsNullOrEmpty())
         {
             _excelMimeTypes = FileUtility.GetMimeFileTypes(new List<string> { "excel", "spreadsheet" }).ToHashSet<string>();
@@ -70,7 +71,10 @@ public class HandleExcelRequestFn : IFunctionCallback
         else
         {
             var resultList = GetResponeFromDialogs(dialogs);
+            var states = _serviceProvider.GetRequiredService<IConversationStateService>();
+
             message.Content = GenerateSqlExecutionSummary(resultList);
+            states.SetState("excel_import_result",message.Content);
         }
         return true;
     }
