@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{32FAFFFE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.Plugin.PizzaBot", "tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj", "{A1118A2C-C6D7-4E22-9462-964AEC7CC46E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotSharp.ServiceDefaults", "src\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj", "{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,14 @@ Global
 		{A1118A2C-C6D7-4E22-9462-964AEC7CC46E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1118A2C-C6D7-4E22-9462-964AEC7CC46E}.Release|x64.ActiveCfg = Release|Any CPU
 		{A1118A2C-C6D7-4E22-9462-964AEC7CC46E}.Release|x64.Build.0 = Release|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Debug|x64.Build.0 = Debug|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Release|x64.ActiveCfg = Release|Any CPU
+		{3EC01DC7-07F5-48FF-8A6F-9F79D5D38300}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
