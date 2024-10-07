@@ -1,5 +1,3 @@
-using BotSharp.Abstraction.Functions.Models;
-
 namespace BotSharp.Abstraction.Conversations;
 
 public interface IConversationHook
@@ -107,4 +105,11 @@ public interface IConversationHook
     /// <param name="conversationId"></param>
     /// <returns></returns>
     Task OnBreakpointUpdated(string conversationId, bool resetStates);
+
+    /// <summary>
+    /// Generate a notification
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    Task OnNotificationGenerated(RoleDialogModel message);
 }
