@@ -41,7 +41,7 @@ public interface IConversationService
         PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onResponseReceived);
 
-    List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? excludeMessageTypes = null);
+    List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null);
     Task CleanHistory(string agentId);
 
     /// <summary>

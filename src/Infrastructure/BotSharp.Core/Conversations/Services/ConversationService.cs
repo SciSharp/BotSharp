@@ -106,7 +106,7 @@ public partial class ConversationService : IConversationService
         throw new NotImplementedException();
     }
 
-    public List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? excludeMessageTypes = null)
+    public List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null)
     {
         if (string.IsNullOrEmpty(_conversationId))
         {
@@ -115,9 +115,13 @@ public partial class ConversationService : IConversationService
 
         var dialogs = _storage.GetDialogs(_conversationId);
 
-        if (!excludeMessageTypes.IsNullOrEmpty())
+        if (!includeMessageTypes.IsNullOrEmpty())
         {
-            dialogs = dialogs.Where(x => !excludeMessageTypes.Contains(x.MessageType)).ToList();
+            dialogs = dialogs.Where(x => string.IsNullOrEmpty(x.MessageType) || includeMessageTypes.Contains(x.MessageType)).ToList();
+        }
+        else
+        {
+            dialogs = dialogs.Where(x => string.IsNullOrEmpty(x.MessageType) || x.MessageType.IsEqualTo(MessageTypeName.Plain)).ToList();
         }
 
         if (fromBreakpoint)
