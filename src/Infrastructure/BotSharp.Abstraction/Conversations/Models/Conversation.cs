@@ -83,6 +83,9 @@ public class DialogMetaData
     [JsonPropertyName("message_id")]
     public string MessageId { get; set; }
 
+    [JsonPropertyName("message_type")]
+    public string MessageType { get; set; }
+
     [JsonPropertyName("function_name")]
     public string? FunctionName { get; set; }
 

@@ -1,8 +1,10 @@
+using Azure;
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -250,6 +252,44 @@ public class ConversationController : ControllerBase
         var isSuccess = await conversationService.TruncateConversation(conversationId, messageId, newMessageId);
         return isSuccess ? newMessageId : string.Empty;
     }
+
+    #region Send notification
+    [HttpPost("/conversation/{conversationId}/notification")]
+    public async Task<ChatResponseModel> SendNotification([FromRoute] string conversationId, [FromBody] NewMessageModel input)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var userService = _services.GetRequiredService<IUserService>();
+
+        conv.SetConversationId(conversationId, new List<MessageState>(), isReadOnly: true);
+
+        var inputMsg = new RoleDialogModel(AgentRole.User, input.Text)
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var user = await userService.GetUser(_user.Id);
+        var response = new ChatResponseModel()
+        {
+            ConversationId = conversationId,
+            MessageId = inputMsg.MessageId,
+            Sender = new UserViewModel
+            {
+                Id = user?.Id ?? string.Empty,
+                FirstName = user?.FirstName ?? string.Empty,
+                LastName = user?.LastName ?? string.Empty
+            },
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await HookEmitter.Emit<IConversationHook>(_services, async hook =>
+            await hook.OnNotificationGenerated(inputMsg)
+        );
+
+        return response;
+    }
+    #endregion
 
     #region Send message
     [HttpPost("/conversation/{agentId}/{conversationId}")]

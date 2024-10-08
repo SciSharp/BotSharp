@@ -48,6 +48,7 @@ public class DialogMetaDataMongoElement
     public string Role { get; set; }
     public string AgentId { get; set; }
     public string MessageId { get; set; }
+    public string MessageType { get; set; }
     public string? FunctionName { get; set; }
     public string? SenderId { get; set; }
     public DateTime CreateTime { get; set; }
@@ -64,6 +65,7 @@ public class DialogMetaDataMongoElement
             Role = meta.Role,
             AgentId = meta.AgentId,
             MessageId = meta.MessageId,
+            MessageType = meta.MessageType,
             FunctionName = meta.FunctionName,
             SenderId = meta.SenderId,
             CreateTime = meta.CreateTime,
@@ -77,6 +79,7 @@ public class DialogMetaDataMongoElement
             Role = meta.Role,
             AgentId = meta.AgentId,
             MessageId = meta.MessageId,
+            MessageType = meta.MessageType,
             FunctionName = meta.FunctionName,
             SenderId = meta.SenderId,
             CreateTime = meta.CreateTime,

@@ -79,4 +79,7 @@ public abstract class ConversationHookBase : IConversationHook
 
     public virtual Task OnBreakpointUpdated(string conversationId, bool resetStates)
         => Task.CompletedTask;
+
+    public virtual Task OnNotificationGenerated(RoleDialogModel message)
+        => Task.CompletedTask;
 }

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Templating;
 
@@ -21,6 +22,7 @@ public partial class ConversationService
 
             if (dialogs.IsNullOrEmpty()) continue;
 
+            dialogs = dialogs.Where(x => x.MessageType != MessageTypeName.Notification).ToList();
             var content = GetConversationContent(dialogs);
             if (string.IsNullOrWhiteSpace(content)) continue;
 
