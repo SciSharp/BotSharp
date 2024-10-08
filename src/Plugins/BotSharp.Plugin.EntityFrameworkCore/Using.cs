@@ -1,0 +1,9 @@
+global using BotSharp.Abstraction.Agents.Enums;
+global using BotSharp.Abstraction.Repositories;
+global using BotSharp.Abstraction.Translation.Models;
+global using BotSharp.Abstraction.Utilities;
+global using Microsoft.Extensions.DependencyInjection;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Text;

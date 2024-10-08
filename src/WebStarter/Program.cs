@@ -1,10 +1,14 @@
-using BotSharp.Core;
-using BotSharp.OpenAPI;
-using BotSharp.Logger;
-using BotSharp.Plugin.ChatHub;
-using Serilog;
 using BotSharp.Abstraction.Messaging.JsonConverters;
-using StackExchange.Redis;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Users;
+using BotSharp.Abstraction.Users.Models;
+using BotSharp.Core;
+using BotSharp.Logger;
+using BotSharp.OpenAPI;
+using BotSharp.Plugin.ChatHub;
+using BotSharp.Plugin.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,14 +20,14 @@ string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get
         "https://botsharp.scisharpstack.org",
         "https://chat.scisharpstack.org"
     };
- 
- // Add BotSharp
- builder.Services.AddBotSharpCore(builder.Configuration, options =>
- {
-     options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
-     options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
- }).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
-   .AddBotSharpLogger(builder.Configuration);
+
+// Add BotSharp
+builder.Services.AddBotSharpCore(builder.Configuration, options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());
+    options.JsonSerializerOptions.Converters.Add(new TemplateMessageJsonConverter());
+}).AddBotSharpOpenAPI(builder.Configuration, allowedOrigins, builder.Environment, true)
+  .AddBotSharpLogger(builder.Configuration);
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
@@ -37,6 +41,36 @@ builder.Services.AddSignalR()
     })*/;
 
 var app = builder.Build();
+
+// ef test code for development
+//if (app.Environment.IsDevelopment())
+//{
+//    var dbSettings = new BotSharpDatabaseSettings();
+//    builder.Configuration.Bind("Database", dbSettings);
+//    if (dbSettings.Default == RepositoryEnum.PostgreSqlRepository || dbSettings.Default == RepositoryEnum.MySqlRepository)
+//    {
+//        // Retrieve an instance of the DbContext class and manually run migrations during development
+//        using (var scope = app.Services.CreateScope())
+//        {
+//            var context = scope.ServiceProvider.GetRequiredService<BotSharpEfCoreDbContext>();
+//            context.Database.EnsureCreated();
+
+//            if (!context.Users.Any())
+//            {
+//                // create a default user
+//                var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+//                await userService.CreateUser(new User
+//                {
+//                    UserName = "admin",
+//                    FirstName = "Administrator",
+//                    Email = "admin@gmail.com",
+//                    Role = "admin",
+//                    Password = "123456"
+//                });
+//            }
+//        }
+//    }
+//}
 
 // Enable SignalR
 app.MapHub<SignalRHub>("/chatHub");

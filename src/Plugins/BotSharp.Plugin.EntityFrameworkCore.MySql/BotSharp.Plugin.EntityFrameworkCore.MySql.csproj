@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <Nullable>enable</Nullable>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql.Json.Microsoft" Version="8.0.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Plugin.EntityFrameworkCore\BotSharp.Plugin.EntityFrameworkCore.csproj" />
+  </ItemGroup>
+</Project>
