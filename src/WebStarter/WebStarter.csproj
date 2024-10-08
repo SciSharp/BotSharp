@@ -67,6 +67,9 @@
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.MetaGLM\BotSharp.Plugin.MetaGLM.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.Planner\BotSharp.Plugin.Planner.csproj" />
     <ProjectReference Include="..\Plugins\BotSharp.Plugin.TencentCos\BotSharp.Plugin.TencentCos.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.EntityFrameworkCore.MySql\BotSharp.Plugin.EntityFrameworkCore.MySql.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.EntityFrameworkCore.PostgreSql\BotSharp.Plugin.EntityFrameworkCore.PostgreSql.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.EntityFrameworkCore\BotSharp.Plugin.EntityFrameworkCore.csproj" />
   </ItemGroup>
   
   <ItemGroup>
