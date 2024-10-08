@@ -73,7 +73,7 @@ public partial class KnowledgeService
                     payload[KnowledgePayloadName.FileUrl] = file.FileUrl;
                 }
 
-                var dataIds = await SaveToVectorDb(collectionName, fileId, file.FileName, contents, payload);
+                var dataIds = await SaveToVectorDb(collectionName, contents, payload);
                 if (!dataIds.IsNullOrEmpty())
                 {
                     db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
@@ -145,7 +145,7 @@ public partial class KnowledgeService
                 payload[KnowledgePayloadName.FileUrl] = refData.Url;
             }
 
-            var dataIds = await SaveToVectorDb(collectionName, fileId, fileName, contents, payload);
+            var dataIds = await SaveToVectorDb(collectionName, contents, payload);
             db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
             {
                 Collection = collectionName,
@@ -411,8 +411,7 @@ public partial class KnowledgeService
         return saved;
     }
 
-    private async Task<IEnumerable<string>> SaveToVectorDb(
-        string collectionName, Guid fileId, string fileName, IEnumerable<string> contents, Dictionary<string, object>? payload = null)
+    private async Task<IEnumerable<string>> SaveToVectorDb(string collectionName, IEnumerable<string> contents, Dictionary<string, object>? payload = null)
     {
         if (contents.IsNullOrEmpty())
         {
