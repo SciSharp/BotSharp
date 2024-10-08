@@ -160,6 +160,8 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     public void UpdateConversationTitle(string conversationId, string title)
         => new NotImplementedException();
+    public void UpdateConversationTitleAlias(string conversationId, string titleAlias)
+        => new NotImplementedException();
 
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
         => new NotImplementedException();

@@ -108,6 +108,18 @@ public partial class MongoRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
+    public void UpdateConversationTitleAlias(string conversationId, string titleAlias)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var updateConv = Builders<ConversationDocument>.Update
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.TitleAlias, titleAlias);
+
+        _dc.Conversations.UpdateOne(filterConv, updateConv);
+    }
+
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
