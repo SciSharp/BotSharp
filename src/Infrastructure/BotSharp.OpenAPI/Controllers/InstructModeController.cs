@@ -29,7 +29,8 @@ public class InstructModeController : ControllerBase
             .SetState("model", input.Model, source: StateSource.External)
             .SetState("model_id", input.ModelId, source: StateSource.External)
             .SetState("instruction", input.Instruction, source: StateSource.External)
-            .SetState("input_text", input.Text,source: StateSource.External);
+            .SetState("input_text", input.Text, source: StateSource.External)
+            .SetState("template_name", input.Template, source: StateSource.External);
 
         var instructor = _services.GetRequiredService<IInstructService>();
         var result = await instructor.Execute(agentId,
