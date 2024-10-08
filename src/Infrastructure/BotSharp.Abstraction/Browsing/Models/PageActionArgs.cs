@@ -43,4 +43,6 @@ public class PageActionArgs
     /// Wait time in seconds after page is opened
     /// </summary>
     public int WaitTime { get; set; }
+
+    public bool ReadInnerHTMLAsBody { get; set; } = false;
 }
