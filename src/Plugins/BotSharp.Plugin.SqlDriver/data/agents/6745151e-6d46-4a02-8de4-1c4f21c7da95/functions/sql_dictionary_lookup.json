@@ -19,7 +19,8 @@
           "type": "string",
           "description": "table name"
         }
-      },
+      }
+    },
     "required": [ "sql_statement", "reason", "tables" ]
   }
 }
