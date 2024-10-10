@@ -9,7 +9,7 @@
   "isPublic": true,
   "profiles": [ "database" ],
   "llmConfig": {
-    "provider": "azure-openai",
+    "provider": "openai",
     "model": "gpt-4o-mini"
   },
   "routingRules": [

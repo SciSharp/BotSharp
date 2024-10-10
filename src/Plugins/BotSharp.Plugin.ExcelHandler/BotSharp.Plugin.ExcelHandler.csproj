@@ -13,14 +13,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
-    <PackageReference Include="NPOI" Version="2.7.1" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_excel_request.json" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_excel_request.fn.liquid" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\" />
-    <Folder Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\" />
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\handle_excel_request.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\handle_excel_request.fn.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
+    <PackageReference Include="MySql.Data" Version="9.0.0" />
+    <PackageReference Include="NPOI" Version="2.7.1" />
   </ItemGroup>
 
   <ItemGroup>

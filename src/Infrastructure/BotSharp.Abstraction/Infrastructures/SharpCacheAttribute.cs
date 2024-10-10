@@ -31,7 +31,13 @@ public class SharpCacheAttribute : MoAttribute
         var value = cache.GetAsync(key, context.TaskReturnType).Result;
         if (value != null)
         {
-            context.ReplaceReturnValue(this, value);
+            // check if the cache is out of date
+            var isOutOfDate = IsOutOfDate(context, value).Result;
+
+            if (!isOutOfDate)
+            {
+                context.ReplaceReturnValue(this, value);
+            }
         }
     }
 
@@ -56,6 +62,11 @@ public class SharpCacheAttribute : MoAttribute
             var key = GetCacheKey(settings, context);
             cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0)).Wait();
         }
+    }
+
+    public virtual Task<bool> IsOutOfDate(MethodContext context, object value)
+    {
+        return Task.FromResult(false);
     }
 
     private string GetCacheKey(SharpCacheSettings settings, MethodContext context)

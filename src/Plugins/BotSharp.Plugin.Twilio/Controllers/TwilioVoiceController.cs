@@ -48,7 +48,7 @@ public class TwilioVoiceController : TwilioController
 
     [ValidateRequest]
     [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
-    public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, [FromQuery] int attempts, VoiceRequest request)
+    public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, VoiceRequest request, [FromQuery] int attempts = 1)
     {
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();

@@ -36,4 +36,6 @@ public class BuiltInAgentId
     /// Plan feasible implementation steps for complex problems
     /// </summary>
     public const string Planner = "282a7128-69a1-44b0-878c-a9159b88f3b9";
+
+    public const string SqlDriver = "beda4c12-e1ec-4b4b-b328-3df4a6687c4f";
 }

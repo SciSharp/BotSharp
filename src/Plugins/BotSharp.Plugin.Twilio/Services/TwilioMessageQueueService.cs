@@ -120,6 +120,8 @@ namespace BotSharp.Plugin.Twilio.Services
                     break;
                 }
             }
+            // add frequency short words
+            hints.AddRange(["yes", "no", "correct", "right"]);
             reply.Hints = string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
             reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);

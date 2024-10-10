@@ -74,6 +74,12 @@ public partial class ConversationService
             // Routing with reasoning
             var settings = _services.GetRequiredService<RoutingSettings>();
 
+            // reload agent in case it has been changed by hook
+            if (message.CurrentAgentId != agent.Id)
+            {
+                agent = await agentService.LoadAgent(message.CurrentAgentId);
+            }
+            
             if (agent.Type == AgentType.Routing)
             {
                 response = await routing.InstructLoop(message, dialogs);

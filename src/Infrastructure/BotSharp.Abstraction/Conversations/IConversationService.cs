@@ -8,7 +8,7 @@ public interface IConversationService
     IConversationStateService States { get; }
     string ConversationId { get; }
     Task<Conversation> NewConversation(Conversation conversation);
-    void SetConversationId(string conversationId, List<MessageState> states);
+    void SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false);
     Task<Conversation> GetConversation(string id);
     Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter);
     Task<Conversation> UpdateConversationTitle(string id, string title);
@@ -41,7 +41,7 @@ public interface IConversationService
         PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onResponseReceived);
 
-    List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true);
+    List<RoleDialogModel> GetDialogHistory(int lastCount = 100, bool fromBreakpoint = true, IEnumerable<string>? includeMessageTypes = null);
     Task CleanHistory(string agentId);
 
     /// <summary>

@@ -21,9 +21,9 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 ### Some Features
 
 * Built-in multi-agents and conversation with state management.
-* Support multiple LLM Planning approaches to handle different tasks.
+* Support multiple LLM Planning approaches to handle different tasks from simple to complex.
 * Built-in RAG related interfaces, Memeory based vector searching.
-* Support multiple AI platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 2, HuggingFace).
+* Support multiple AI platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 3, Claude Sonnet 3.5, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.
 * Build-in `BotSharp UI` written in [SvelteKit](https://kit.svelte.dev/).
@@ -79,9 +79,13 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 #### Data Storages
 - BotSharp.Core.Repository
 - BotSharp.Plugin.MongoStorage
+- BotSharp.Plugin.TencentCos
 
 #### LLMs
+- BotSharp.Plugin.Planner
 - BotSharp.Plugin.AzureOpenAI
+- BotSharp.Plugin.OpenAI
+- BotSharp.Plugin.AnthropicAI
 - BotSharp.Plugin.GoogleAI
 - BotSharp.Plugin.MetaAI
 - BotSharp.Plugin.HuggingFace
@@ -107,8 +111,13 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 #### Tools
 - BotSharp.Plugin.Dashboard
 - BotSharp.Plugin.RoutingSpeeder
+- BotSharp.Plugin.AudioHandler
+- BotSharp.Plugin.EmailHandler
+- BotSharp.Plugin.FileHandler
+- BotSharp.Plugin.HttpHandler
+- BotSharp.Plugin.SqlDriver
 - BotSharp.Plugin.WebDriver
-- BotSharp.Plugin.PizzaBot
+- BotSharp.Plugin.PythonInterpreter
 
 #### UIs
 - BotSharp.Plugin.ChatbotUI

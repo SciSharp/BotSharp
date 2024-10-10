@@ -68,7 +68,7 @@ public class UserController : ControllerBase
         var token = await _userService.ActiveUser(model);
         if (token == null)
         {
-            return Unauthorized();
+            return BadRequest();
         }
         return Ok(token);
     }
@@ -141,6 +141,12 @@ public class UserController : ControllerBase
     public async Task<bool> ModifyUserPhone([FromQuery] string phone)
     {
         return await _userService.ModifyUserPhone(phone);
+    }
+
+    [HttpPost("/user/update/isdisable")]
+    public async Task<bool> UpdateUsersIsDisable([FromQuery] List<string> userIds, [FromQuery] bool isDisable)
+    {
+        return await _userService.UpdateUsersIsDisable(userIds, isDisable);
     }
 
     #region Avatar
