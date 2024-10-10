@@ -54,6 +54,7 @@ public class ChatHubConversationHook : ConversationHookBase
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
+            Payload = message.Payload,
             Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Sender = UserViewModel.FromUser(sender)
         };
