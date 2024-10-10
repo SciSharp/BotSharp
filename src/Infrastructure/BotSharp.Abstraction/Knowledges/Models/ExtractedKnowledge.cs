@@ -7,4 +7,7 @@ public class ExtractedKnowledge
 
     [JsonPropertyName("answer")]
     public string Answer { get; set; } = string.Empty;
+
+    [JsonPropertyName("refined_collection")]
+    public string RefinedCollection { get; set; } = string.Empty;
 }

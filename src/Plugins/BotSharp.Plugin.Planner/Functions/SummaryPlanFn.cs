@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
@@ -54,7 +55,7 @@ public class SummaryPlanFn : IFunctionCallback
         ddlStatements += "\r\n" + msgCopy.Content;
 
         // Summarize and generate query
-        var summaryPlanPrompt = await GetSummaryPlanPrompt(taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements, excelImportResult);
+        var summaryPlanPrompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements, excelImportResult);
         _logger.LogInformation($"Summary plan prompt:\r\n{summaryPlanPrompt}");
 
         var plannerAgent = new Agent
@@ -74,10 +75,11 @@ public class SummaryPlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetSummaryPlanPrompt(string taskDescription, string relevantKnowledge, string dictionaryItems, string ddlStatement, string excelImportResult)
+    private async Task<string> GetSummaryPlanPrompt(RoleDialogModel message, string taskDescription, string relevantKnowledge, string dictionaryItems, string ddlStatement, string excelImportResult)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
+        var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
         var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
         var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
@@ -89,10 +91,18 @@ public class SummaryPlanFn : IFunctionCallback
             additionalRequirements.Add(requirement);
         });
 
+        var globalKnowledges = new List<string>();
+        foreach (var hook in knowledgeHooks)
+        {
+            var k = await hook.GetGlobalKnowledges(message);
+            globalKnowledges.AddRange(k);
+        }
+
         return render.Render(template, new Dictionary<string, object>
         {
             { "task_description", taskDescription },
             { "summary_requirements", string.Join("\r\n", additionalRequirements) },
+            { "global_knowledges", globalKnowledges },
             { "relevant_knowledges", relevantKnowledge },
             { "dictionary_items", dictionaryItems },
             { "table_structure", ddlStatement },
