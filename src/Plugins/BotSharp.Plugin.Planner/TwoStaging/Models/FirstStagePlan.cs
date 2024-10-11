@@ -11,8 +11,11 @@ public class FirstStagePlan
     [JsonPropertyName("step")]
     public int Step { get; set; } = -1;
 
-    [JsonPropertyName("need_additional_information")]
+    [JsonPropertyName("need_breakdown_task")]
     public bool NeedAdditionalInformation { get; set; } = false;
+
+    [JsonPropertyName("need_lookup_dictionary")]
+    public bool NeedLookupDictionary { get; set; } = false;
 
     [JsonPropertyName("related_tables")]
     public string[] Tables { get; set; } = [];

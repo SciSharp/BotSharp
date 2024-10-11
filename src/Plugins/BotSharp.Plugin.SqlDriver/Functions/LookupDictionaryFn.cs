@@ -9,7 +9,7 @@ namespace BotSharp.Plugin.SqlDriver.Functions;
 
 public class LookupDictionaryFn : IFunctionCallback
 {
-    public string Name => "sql_dictionary_lookup";
+    public string Name => "verify_dictionary_term";
     private readonly IServiceProvider _services;
 
     public LookupDictionaryFn(IServiceProvider services)
