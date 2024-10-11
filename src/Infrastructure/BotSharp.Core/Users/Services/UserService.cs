@@ -32,6 +32,7 @@ public class UserService : IUserService
 
     public async Task<User> CreateUser(User user)
     {
+        string hasRegisterId = null;
         if (string.IsNullOrEmpty(user.UserName))
         {
             // generate unique name
@@ -48,7 +49,7 @@ public class UserService : IUserService
 
         if (record != null)
         {
-            return record;
+            hasRegisterId = record.Id;
         }
 
         if (string.IsNullOrEmpty(user.Id))
@@ -71,7 +72,14 @@ public class UserService : IUserService
             record.Verified = false;
         }
 
-        db.CreateUser(record);
+        if (hasRegisterId == null)
+        {
+            db.CreateUser(record);
+        }
+        else
+        {
+            db.UpdateExistUser(hasRegisterId, record);
+        }
 
         _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}");
         Utilities.ClearCache();
@@ -386,8 +394,9 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
+
         var user = db.GetUserByUserName(userName);
-        if (user != null)
+        if (user != null && user.Verified)
         {
             return true;
         }
@@ -404,7 +413,7 @@ public class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var emailName = db.GetUserByEmail(email);
-        if (emailName != null)
+        if (emailName != null && emailName.Verified)
         {
             return true;
         }
