@@ -1,8 +1,11 @@
-Dictionary Lookup Rules:
+Dictionary Verification Rules:
 =====
-Please call function sql_dictionary_lookup if user wants to get or retrieve dictionary/enum/term from data tables. 
-You must return the id and name/code. The table name must come from the planning in conversation.
+1. The table name must come from the planning in conversation. 
+2. You must return the id and name/code. 
 
 You are connecting to {{ db_type }} database. You can run provided SQL statements by following {{ db_type }} rules.
-Dictionary table pattern is table name starting with "data_". You can only query the dictionary table without join other non-dictionary tables.
+
+The dictionary table is identified by a name that begins with "data_". You are only allowed to query the dictionary table without joining it with other non-dictionary tables.
+
+IMPORTANT: Don't generate insert SQL.
 =====

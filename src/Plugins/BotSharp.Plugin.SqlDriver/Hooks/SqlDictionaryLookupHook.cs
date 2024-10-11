@@ -10,7 +10,7 @@ public class SqlDictionaryLookupHook : AgentHookBase, IAgentHook
     private const string SQL_EXECUTOR_TEMPLATE = "sql_dictionary_lookup.fn";
     private IEnumerable<string> _targetSqlExecutorFunctions = new List<string>
     {
-        "sql_dictionary_lookup",
+        "verify_dictionary_term",
     };
 
     public override string SelfId => BuiltInAgentId.Planner;

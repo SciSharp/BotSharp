@@ -31,7 +31,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
         // Search knowledgebase
         var knowledges = await knowledgeService.SearchVectorKnowledge(taskSecondary.SolutionQuestion, collectionName, new VectorSearchOptions
         {
-            Confidence = 0.6f
+            Confidence = 0.7f
         });
 
         var knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
