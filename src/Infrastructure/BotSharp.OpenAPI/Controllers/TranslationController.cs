@@ -24,10 +24,12 @@ public class TranslationController : ControllerBase
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(BuiltInAgentId.AIAssistant);
         var translator = _services.GetRequiredService<ITranslationService>();
-        var text = await translator.Translate(agent, Guid.NewGuid().ToString(), model.Text, language: model.ToLang);
+        var states = _services.GetRequiredService<IConversationStateService>();
+        states.SetState("max_tokens", "8192");
+        var text = await translator.Translate(agent, Guid.NewGuid().ToString(), model.Text.Split("\r\n"), language: model.ToLang);
         return new TranslationResponseModel
         {
-            Text = text
+            Text = string.Join("\r\n", text)
         };
     }
 

@@ -1,6 +1,19 @@
 {{ text_list }}
 
 =====
+{% if language == "Chinese" %}
+将以上所有句子翻译成中文。
+
+要求：
+* 以 JSON 格式输出翻译后的文本 {"input_lang":"原始文本语言", "output_count": {{ text_list_size }}, "output_lang":"{{ language }}", "texts":[{"id": 1, "text":""},{"id": 2, "text":""}]}。
+* output_count 必须等于输出中texts数组的长度。
+{% else %}
 Translate all the above sentences into {{ language }}.
-Output the translated text in JSON {"input_lang":"original text language", "output_count": {{ text_list_size }}, "output_lang":"{{ language }}", "texts":[{"id": 1, "text":""},{"id": 2, "text":""}]}.
-The "output_count" must equal the length of the "texts" array in the output.
+
+Requirements:
+* Output the translated text in JSON {"input_lang":"original text language", "output_count": {{ text_list_size }}, "output_lang":"{{ language }}", "texts":[{"id": 1, "text":""},{"id": 2, "text":""}]}.
+* The "output_count" must equal the length of the "texts" array in the output.
+{% endif %}
+
+
+
