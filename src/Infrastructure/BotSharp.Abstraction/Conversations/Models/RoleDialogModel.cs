@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
@@ -10,6 +11,11 @@ public class RoleDialogModel : ITrackableMessage
     /// If Role is Assistant, it is same as user's message id.
     /// </summary>
     public string MessageId { get; set; }
+
+    /// <summary>
+    /// The message type
+    /// </summary>
+    public string MessageType { get; set; } = MessageTypeName.Plain;
 
     /// <summary>
     /// user, system, assistant, function
@@ -101,6 +107,7 @@ public class RoleDialogModel : ITrackableMessage
     public List<ImageGeneration> GeneratedImages { get; set; } = new List<ImageGeneration>();
 
 
+
     private RoleDialogModel()
     {
     }
@@ -110,6 +117,7 @@ public class RoleDialogModel : ITrackableMessage
         Role = role;
         Content = text;
         MessageId = Guid.NewGuid().ToString();
+        MessageType = MessageTypeName.Plain;
     }
 
     public override string ToString()
@@ -132,6 +140,7 @@ public class RoleDialogModel : ITrackableMessage
         {
             CurrentAgentId = source.CurrentAgentId,
             MessageId = source.MessageId,
+            MessageType = source.MessageType,
             FunctionArgs = source.FunctionArgs,
             FunctionName = source.FunctionName,
             ToolCallId = source.ToolCallId,

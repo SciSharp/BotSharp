@@ -412,7 +412,48 @@ public class UserService : IUserService
         return false;
     }
 
-    public async Task<bool> SendVerificationCodeResetPassword(User user)
+    public async Task<bool> SendVerificationCodeResetPasswordNoLogin(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        User? record = null;
+
+        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone);
+        }
+
+        if (!string.IsNullOrEmpty(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
+
+        //update current verification code.
+        db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
+
+        //send code to user Email.
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            hook.VerificationCodeResetPassword(record);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> SendVerificationCodeResetPasswordLogin()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -421,23 +462,6 @@ public class UserService : IUserService
         if (!string.IsNullOrWhiteSpace(_user.Id))
         {
             record = db.GetUserById(_user.Id);
-        }
-        else
-        {
-            if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
-            {
-                return false;
-            }
-
-            if (!string.IsNullOrEmpty(user.Email))
-            {
-                record = db.GetUserByEmail(user.Email);
-            }
-
-            if (!string.IsNullOrEmpty(user.Phone))
-            {
-                record = db.GetUserByPhone(user.Phone);
-            }
         }
 
         if (record == null)

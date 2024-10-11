@@ -212,41 +212,44 @@ public class QdrantDb : IVectorDb
         {
             foreach (var item in payload)
             {
-                if (item.Value is string str)
-                {
-                    point.Payload[item.Key] = str;
-                }
-                else if (item.Value is bool b)
+                var value = item.Value?.ToString();
+                if (value == null) continue;
+
+                if (bool.TryParse(value, out var b))
                 {
                     point.Payload[item.Key] = b;
                 }
-                else if (item.Value is byte int8)
+                else if (byte.TryParse(value, out var int8))
                 {
                     point.Payload[item.Key] = int8;
                 }
-                else if (item.Value is short int16)
+                else if (short.TryParse(value, out var int16))
                 {
                     point.Payload[item.Key] = int16;
                 }
-                else if (item.Value is int int32)
+                else if (int.TryParse(value, out var int32))
                 {
                     point.Payload[item.Key] = int32;
                 }
-                else if (item.Value is long int64)
+                else if (long.TryParse(value, out var int64))
                 {
                     point.Payload[item.Key] = int64;
                 }
-                else if (item.Value is float f32)
+                else if (float.TryParse(value, out var f32))
                 {
                     point.Payload[item.Key] = f32;
                 }
-                else if (item.Value is double f64)
+                else if (double.TryParse(value, out var f64))
                 {
                     point.Payload[item.Key] = f64;
                 }
-                else if (item.Value is DateTime dt)
+                else if (DateTime.TryParse(value, out var dt))
                 {
                     point.Payload[item.Key] = dt.ToUniversalTime().ToString("o");
+                }
+                else
+                {
+                    point.Payload[item.Key] = value;
                 }
             }
         }

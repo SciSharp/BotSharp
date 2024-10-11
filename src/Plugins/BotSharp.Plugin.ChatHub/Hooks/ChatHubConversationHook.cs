@@ -15,6 +15,7 @@ public class ChatHubConversationHook : ConversationHookBase
     private const string RECEIVE_ASSISTANT_MESSAGE = "OnMessageReceivedFromAssistant";
     private const string GENERATE_SENDER_ACTION = "OnSenderActionGenerated";
     private const string DELETE_MESSAGE = "OnMessageDeleted";
+    private const string GENERATE_NOTIFICATION = "OnNotificationGenerated";
     #endregion
 
     public ChatHubConversationHook(
@@ -53,6 +54,7 @@ public class ChatHubConversationHook : ConversationHookBase
         {
             ConversationId = conv.ConversationId,
             MessageId = message.MessageId,
+            Payload = message.Payload,
             Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Sender = UserViewModel.FromUser(sender)
         };
@@ -117,6 +119,31 @@ public class ChatHubConversationHook : ConversationHookBase
         await base.OnResponseGenerated(message);
     }
 
+
+    public override async Task OnNotificationGenerated(RoleDialogModel message)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        var json = JsonSerializer.Serialize(new ChatResponseModel()
+        {
+            ConversationId = conv.ConversationId,
+            MessageId = message.MessageId,
+            Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
+            Function = message.FunctionName,
+            RichContent = message.SecondaryRichContent ?? message.RichContent,
+            Data = message.Data,
+            Sender = new UserViewModel()
+            {
+                FirstName = "AI",
+                LastName = "Assistant",
+                Role = AgentRole.Assistant
+            }
+        }, _options.JsonSerializerOptions);
+
+        await GenerateNotification(json);
+        await base.OnNotificationGenerated(message);
+    }
+
+
     public override async Task OnMessageDeleted(string conversationId, string messageId)
     {
         var model = new ChatResponseModel
@@ -152,6 +179,11 @@ public class ChatHubConversationHook : ConversationHookBase
     private async Task DeleteMessage(ChatResponseModel model)
     {
         await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
+    }
+
+    private async Task GenerateNotification(string? json)
+    {
+        await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_NOTIFICATION, json);
     }
     #endregion
 }

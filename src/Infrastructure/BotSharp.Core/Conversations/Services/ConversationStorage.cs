@@ -41,6 +41,7 @@ public class ConversationStorage : IConversationStorage
                 Role = dialog.Role,
                 AgentId = agentId,
                 MessageId = dialog.MessageId,
+                MessageType = dialog.MessageType,
                 FunctionName = dialog.FunctionName,
                 CreateTime = dialog.CreatedAt
             }; 
@@ -65,6 +66,7 @@ public class ConversationStorage : IConversationStorage
                 Role = dialog.Role,
                 AgentId = agentId,
                 MessageId = dialog.MessageId,
+                MessageType = dialog.MessageType,
                 SenderId = dialog.SenderId,
                 FunctionName = dialog.FunctionName,
                 CreateTime = dialog.CreatedAt
@@ -108,6 +110,7 @@ public class ConversationStorage : IConversationStorage
             var role = meta.Role;
             var currentAgentId = meta.AgentId;
             var messageId = meta.MessageId;
+            var messageType = meta.MessageType;
             var function = meta.FunctionName;
             var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
             var createdAt = meta.CreateTime;
@@ -120,6 +123,7 @@ public class ConversationStorage : IConversationStorage
             {
                 CurrentAgentId = currentAgentId,
                 MessageId = messageId,
+                MessageType = messageType,
                 CreatedAt = createdAt,
                 SenderId = senderId,
                 FunctionName = function,
@@ -142,24 +146,5 @@ public class ConversationStorage : IConversationStorage
         }
 
         return results;
-    }
-
-    public void InitStorage(string conversationId)
-    {
-        var file = GetStorageFile(conversationId);
-        if (!File.Exists(file))
-        {
-            File.WriteAllLines(file, new string[0]);
-        }
-    }
-
-    private string GetStorageFile(string conversationId)
-    {
-        var dir = Path.Combine(_dbSettings.FileRepository, "conversations", conversationId);
-        if (!Directory.Exists(dir))
-        {
-            Directory.CreateDirectory(dir);
-        }
-        return Path.Combine(dir, "dialogs.txt");
     }
 }

@@ -46,6 +46,7 @@ public partial class ConversationService
         }
 
         // Before chat completion hook
+        hooks = ReOrderConversationHooks(hooks);
         foreach (var hook in hooks)
         {
             hook.SetAgent(agent)
@@ -172,5 +173,19 @@ public partial class ConversationService
 
         // Add to dialog history
         _storage.Append(_conversationId, response);
+    }
+
+    private List<IConversationHook> ReOrderConversationHooks(List<IConversationHook> hooks)
+    {
+        var target = "ChatHubConversationHook";
+        var chathub = hooks.FirstOrDefault(x => x.GetType().Name == target);
+        var otherHooks = hooks.Where(x => x.GetType().Name != target).ToList();
+
+        if (chathub != null)
+        {
+            var newHooks = new List<IConversationHook> { chathub }.Concat(otherHooks);
+            return newHooks.ToList();
+        }
+        return hooks;
     }
 }
