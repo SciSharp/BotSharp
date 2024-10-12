@@ -1,4 +1,5 @@
 using BotSharp.Plugin.Planner.TwoStaging.Models;
+using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -27,14 +28,18 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var planPrimary = states.GetState("planning_result");
 
         var taskSecondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msgSecondary.FunctionArgs);
- 
-        // Search knowledgebase
-        var knowledges = await knowledgeService.SearchVectorKnowledge(taskSecondary.SolutionQuestion, collectionName, new VectorSearchOptions
-        {
-            Confidence = 0.7f
-        });
 
-        var knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges.Select(x => x.ToQuestionAnswer()));
+        // Search knowledgebase
+        var hooks = _services.GetServices<IKnowledgeHook>();
+        var knowledges = new List<string>();
+        foreach (var hook in hooks)
+        {
+            var k = await hook.GetRelevantKnowledges(message, taskSecondary.SolutionQuestion);
+            knowledges.AddRange(k);
+        }
+        knowledges = knowledges.Distinct().ToList();
+
+        var knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges);
 
         // Get second stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
