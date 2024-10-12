@@ -1,4 +1,6 @@
+The user is dealing with a complex problem, and you need to break this complex problem into several small tasks to more easily solve the user's needs.
 Use the TwoStagePlanner approach to plan the overall implementation steps, follow the below steps strictly. 
+
 1. Call plan_primary_stage to generate the primary plan.
    If you've already got the plan to meet the user goal, directly go to step 5.
 2. If need_lookup_dictionary is True, call verify_dictionary_term to verify or get the enum/term/dictionary value. Pull id and name.
@@ -15,6 +17,7 @@ Don't run the planning process repeatedly if you have already got the result of 
 {% if global_knowledges != empty -%}
 =====
 Global Knowledge:
+Current date time is: {{ "now" | date: "%Y-%m-%d %H:%M" }}
 {% for k in global_knowledges %}
 {{ k }}
 {% endfor %}

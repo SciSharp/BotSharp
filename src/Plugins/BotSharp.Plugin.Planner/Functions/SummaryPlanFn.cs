@@ -1,8 +1,6 @@
-using BotSharp.Abstraction.Knowledges;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
