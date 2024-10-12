@@ -108,6 +108,42 @@ public partial class MongoRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
+    public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+
+        var filter = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundDialog = _dc.ConversationDialogs.Find(filter).FirstOrDefault();
+        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var dialogs = foundDialog.Dialogs;
+        var candidates = dialogs.Where(x => x.MetaData.MessageId == request.Message.MetaData.MessageId
+                                            && x.MetaData.Role == request.Message.MetaData.Role).ToList();
+
+        var found = candidates.Where((_, idx) => idx == request.InnderIndex).FirstOrDefault();
+        if (found == null) return false;
+
+        found.Content = request.Message.Content;
+        found.RichContent = request.Message.RichContent;
+
+        if (!string.IsNullOrEmpty(found.SecondaryContent))
+        {
+            found.SecondaryContent = request.Message.Content;
+        }
+
+        if (!string.IsNullOrEmpty(found.SecondaryRichContent))
+        {
+            found.SecondaryRichContent = request.Message.RichContent;
+        }
+
+        var update = Builders<ConversationDialogDocument>.Update.Set(x => x.Dialogs, dialogs);
+        _dc.ConversationDialogs.UpdateOne(filter, update);
+        return true;
+    }
+
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
         if (string.IsNullOrEmpty(conversationId)) return;

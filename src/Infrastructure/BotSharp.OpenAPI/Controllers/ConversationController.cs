@@ -221,6 +221,29 @@ public class ConversationController : ControllerBase
         return response != null;
     }
 
+    [HttpPut("/conversation/{conversationId}/update-message")]
+    public async Task<bool> UpdateConversationMessage([FromRoute] string conversationId, [FromBody] UpdateMessageModel model)
+    {
+        var conversationService = _services.GetRequiredService<IConversationService>();
+        var request = new UpdateMessageRequest
+        {
+            Message = new DialogElement
+            {
+                MetaData = new DialogMetaData
+                {
+                    MessageId = model.Message.MessageId,
+                    Role = model.Message.Sender?.Role
+                },
+                Content = model.Message.Text,
+                RichContent = JsonSerializer.Serialize(model.Message.RichContent, _jsonOptions),
+            },
+            InnderIndex = model.InnerIndex
+        };
+
+        return await conversationService.UpdateConversationMessage(conversationId, request);
+    }
+
+
     [HttpDelete("/conversation/{conversationId}")]
     public async Task<bool> DeleteConversation([FromRoute] string conversationId)
     {
