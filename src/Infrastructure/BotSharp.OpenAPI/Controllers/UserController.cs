@@ -110,6 +110,13 @@ public class UserController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpGet("/user/phone/existing")]
+    public async Task<bool> VerifyPhoneExisting([FromQuery] string phone)
+    {
+        return await _userService.VerifyPhoneExisting(phone);
+    }
+
+    [AllowAnonymous]
     [HttpPost("/user/verifycode-out")]
     public async Task<bool> SendVerificationCodeResetPassword([FromBody] UserCreationModel user)
     {
