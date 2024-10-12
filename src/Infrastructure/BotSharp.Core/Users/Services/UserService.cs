@@ -46,15 +46,19 @@ public class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
+        User? record = null;
 
-        var record = db.GetUserByPhone(user.Phone);
+        if (user.Phone != null)
+        {
+            record = db.GetUserByPhone(user.Phone);
+        }
 
-        if (record == null)
+        if (record == null && user.Email != null)
         {
             record = db.GetUserByEmail(user.Email);
         }
 
-        if (record == null)
+        if (record == null && user.UserName != null)
         {
             record = db.GetUserByUserName(user.UserName);
         }
