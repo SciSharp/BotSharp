@@ -41,13 +41,22 @@ public class WelcomeHook : ConversationHookBase
             });
             var richContentService = _services.GetRequiredService<IRichContentService>();
             var messages = richContentService.ConvertToMessages(content);
+            var guid = Guid.NewGuid().ToString();
 
             foreach (var message in messages)
             {
                 var richContent = new RichContent<IRichMessage>(message);
+                var dialog = new RoleDialogModel(AgentRole.Assistant, message.Text)
+                {
+                    MessageId = guid,
+                    CurrentAgentId = agent.Id,
+                    RichContent = richContent
+                };
+
                 var json = JsonSerializer.Serialize(new ChatResponseModel()
                 {
                     ConversationId = conversation.Id,
+                    MessageId = dialog.MessageId,
                     Text = message.Text,
                     RichContent = richContent,
                     Sender = new UserViewModel()
@@ -60,12 +69,7 @@ public class WelcomeHook : ConversationHookBase
 
                 await Task.Delay(300);
 
-                _storage.Append(conversation.Id, new RoleDialogModel(AgentRole.Assistant, message.Text)
-                {
-                    MessageId = conversation.Id,
-                    CurrentAgentId = agent.Id,
-                    RichContent = richContent
-                });
+                _storage.Append(conversation.Id, dialog);
 
                 await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
             }
