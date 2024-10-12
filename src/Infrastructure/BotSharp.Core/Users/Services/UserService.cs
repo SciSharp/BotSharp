@@ -45,7 +45,19 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByUserName(user.UserName);
+
+
+        var record = db.GetUserByPhone(user.Phone);
+
+        if (record == null)
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record == null)
+        {
+            record = db.GetUserByUserName(user.UserName);
+        }
 
         if (record != null)
         {
@@ -428,6 +440,23 @@ public class UserService : IUserService
         return false;
     }
 
+    public async Task<bool> VerifyPhoneExisting(string phone)
+    {
+        if (string.IsNullOrEmpty(phone))
+        {
+            return true;
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var UserByphone = db.GetUserByPhone(phone);
+        if (UserByphone != null && UserByphone.Verified)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public async Task<bool> SendVerificationCodeResetPasswordNoLogin(User user)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -540,7 +569,8 @@ public class UserService : IUserService
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
-        if (record == null)
+        var existEmail = db.GetUserByEmail(email);
+        if (record == null || existEmail != null)
         {
             return false;
         }
@@ -554,8 +584,9 @@ public class UserService : IUserService
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
+        var existPhone = db.GetUserByPhone(phone);
 
-        if (record == null)
+        if (record == null || existPhone != null)
         {
             return false;
         }
