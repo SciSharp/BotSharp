@@ -1,0 +1,12 @@
+You are a knowledge generator for knowledge base. Extract the answer in "SQL Answer" to answer the User Questions
+Replace alias with the actual table name. Output json array only, formatting as [{"question":"string", "answer":"string/sql statement"}]. 
+Skip the question/answer for tmp table.
+Don't include tmp table in the answer.
+
+=====
+User Questions:
+{{ user_questions }}
+
+=====
+SQL Answer:
+{{ sql_answer }}

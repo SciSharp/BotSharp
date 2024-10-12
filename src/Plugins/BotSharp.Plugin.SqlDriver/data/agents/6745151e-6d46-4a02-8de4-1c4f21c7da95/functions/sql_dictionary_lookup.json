@@ -1,5 +1,5 @@
 {
-  "name": "sql_dictionary_lookup",
+  "name": "verify_dictionary_term",
   "description": "Get id from dictionary table by keyword if tool or solution mentioned this approach",
   "parameters": {
     "type": "object",
@@ -10,7 +10,7 @@
       },
       "reason": {
         "type": "string",
-        "description": "the reason why you need to call sql_dictionary_lookup"
+        "description": "the reason why you need to call verify_dictionary_term"
       },
       "tables": {
         "type": "array",

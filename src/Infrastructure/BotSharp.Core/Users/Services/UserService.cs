@@ -560,6 +560,11 @@ public class UserService : IUserService
             return false;
         }
 
+        if ((record.UserName.Substring(0, 3) == "+86" || record.FirstName.Substring(0, 3) == "+86") && phone.Substring(0, 3) != "+86")
+        {
+            phone = $"+86{phone}";
+        }
+
         db.UpdateUserPhone(record.Id, phone);
         return true;
     }

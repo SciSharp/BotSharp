@@ -215,7 +215,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         }
         private string CreateDBTableSqlString(string tableName, List<string> headerColumns, List<string>? columnTypes = null, bool isMemory = false)
         {
-            _columnTypes = columnTypes.IsNullOrEmpty() ? headerColumns.Select(x => "VARCHAR(512)").ToList() : columnTypes;
+            _columnTypes = columnTypes.IsNullOrEmpty() ? headerColumns.Select(x => "VARCHAR(128)").ToList() : columnTypes;
 
             /*if (!headerColumns.Any(x => x.Equals("id", StringComparison.OrdinalIgnoreCase)))
             {
