@@ -33,7 +33,7 @@ public class UserService : IUserService
     public async Task<User> CreateUser(User user)
     {
         string hasRegisterId = null;
-        if (string.IsNullOrEmpty(user.UserName))
+        if (string.IsNullOrWhiteSpace(user.UserName))
         {
             // generate unique name
             var name = Nanoid.Generate("0123456789botsharp", 10);
@@ -48,19 +48,14 @@ public class UserService : IUserService
 
         User? record = null;
 
-        if (user.Phone != null)
+        if (!string.IsNullOrWhiteSpace(user.Phone))
         {
             record = db.GetUserByPhone(user.Phone);
         }
 
-        if (record == null && user.Email != null)
+        if (record == null && !string.IsNullOrWhiteSpace(user.Email))
         {
             record = db.GetUserByEmail(user.Email);
-        }
-
-        if (record == null && user.UserName != null)
-        {
-            record = db.GetUserByUserName(user.UserName);
         }
 
         if (record != null)
@@ -68,9 +63,9 @@ public class UserService : IUserService
             hasRegisterId = record.Id;
         }
 
-        if (string.IsNullOrEmpty(user.Id))
+        if (string.IsNullOrWhiteSpace(user.Id))
         {
-            if (hasRegisterId != null)
+            if (!string.IsNullOrWhiteSpace(hasRegisterId))
             {
                 user.Id = hasRegisterId;
             }
