@@ -54,7 +54,14 @@ public class UserService : IUserService
 
         if (string.IsNullOrEmpty(user.Id))
         {
-            user.Id = Guid.NewGuid().ToString();
+            if (hasRegisterId != null)
+            {
+                user.Id = hasRegisterId;
+            }
+            else
+            {
+                user.Id = Guid.NewGuid().ToString();
+            }
         }
 
         record = user;
