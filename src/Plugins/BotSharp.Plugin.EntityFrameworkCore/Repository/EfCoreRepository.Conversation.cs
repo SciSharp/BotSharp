@@ -140,6 +140,42 @@ public partial class EfCoreRepository
         }
     }
 
+    public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+
+        var foundDialog = _context.ConversationDialogs.FirstOrDefault(x => x.ConversationId == conversationId);
+        if (foundDialog == null || foundDialog.Dialogs.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var dialogs = foundDialog.Dialogs;
+        var candidates = dialogs.Where(x => x.MetaData.MessageId == request.Message.MetaData.MessageId
+                                            && x.MetaData.Role == request.Message.MetaData.Role).ToList();
+
+        var found = candidates.Where((_, idx) => idx == request.InnderIndex).FirstOrDefault();
+        if (found == null) return false;
+
+        found.Content = request.Message.Content;
+        found.RichContent = request.Message.RichContent;
+
+        if (!string.IsNullOrEmpty(found.SecondaryContent))
+        {
+            found.SecondaryContent = request.Message.Content;
+        }
+
+        if (!string.IsNullOrEmpty(found.SecondaryRichContent))
+        {
+            found.SecondaryRichContent = request.Message.RichContent;
+        }
+
+        foundDialog.Dialogs = dialogs;
+
+        _context.ConversationDialogs.Update(foundDialog);
+        return true;
+    }
+
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
