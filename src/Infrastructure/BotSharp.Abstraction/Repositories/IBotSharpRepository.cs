@@ -27,6 +27,7 @@ public interface IBotSharpRepository
     User? GetUserByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
+    void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
     void UpdateUserVerified(string userId) => throw new NotImplementedException();
     void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
     void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
@@ -72,6 +73,7 @@ public interface IBotSharpRepository
     PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
     void UpdateConversationTitleAlias(string conversationId, string titleAlias);
+    bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
     ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
     List<Conversation> GetLastConversations();

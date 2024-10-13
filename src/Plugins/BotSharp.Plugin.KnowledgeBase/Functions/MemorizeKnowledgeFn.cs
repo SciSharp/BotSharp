@@ -19,7 +19,9 @@ public class MemorizeKnowledgeFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
 
-        var collectionName = _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
+        var collectionName = !string.IsNullOrEmpty(args.RefinedCollection) 
+            ? args.RefinedCollection 
+            : _settings.Default.CollectionName ?? KnowledgeCollectionName.BotSharp;
         var knowledgeService = _services.GetRequiredService<IKnowledgeService>();
         var result = await knowledgeService.CreateVectorCollectionData(collectionName, new VectorCreateModel
         {

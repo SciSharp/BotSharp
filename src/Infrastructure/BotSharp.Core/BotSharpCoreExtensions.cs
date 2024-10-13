@@ -8,6 +8,7 @@ using BotSharp.Abstraction.Messaging.JsonConverters;
 using BotSharp.Abstraction.Users.Settings;
 using BotSharp.Abstraction.Interpreters.Settings;
 using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Core.Processors;
 
 namespace BotSharp.Core;
 
@@ -23,6 +24,7 @@ public static class BotSharpCoreExtensions
 
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ProcessorFactory>();
 
         services.AddSingleton<DistributedLocker>();
 

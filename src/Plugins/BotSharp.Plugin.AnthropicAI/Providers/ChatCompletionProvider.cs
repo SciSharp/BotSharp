@@ -179,8 +179,15 @@ public class ChatCompletionProvider : IChatCompletion
             Model = settings.Name,
             Stream = false,
             Temperature = temperature,
-            SystemMessage = instruction,
-            Tools = new List<Function>() { }
+            Tools = new List<Anthropic.SDK.Common.Tool>() 
+        };
+
+        if (!string.IsNullOrEmpty(instruction))
+        {
+            parameters.System = new List<SystemMessage>()
+            {
+                new SystemMessage(instruction)
+            };
         };
 
         JsonSerializerOptions jsonSerializationOptions = new()
@@ -221,7 +228,7 @@ public class ChatCompletionProvider : IChatCompletion
 
     private string GetPrompt(MessageParameters parameters)
     {
-        var prompt = $"{parameters.SystemMessage}\r\n";
+        var prompt = $"{string.Join("\r\n", parameters.System.Select(x => x.Text))}\r\n";
         prompt += "\r\n[CONVERSATION]";
 
         var verbose = string.Join("\r\n", parameters.Messages
@@ -264,7 +271,7 @@ public class ChatCompletionProvider : IChatCompletion
         {
             var functions = string.Join("\r\n", parameters.Tools.Select(x =>
             {
-                return $"\r\n{x.Name}: {x.Description}\r\n{JsonSerializer.Serialize(x.Parameters)}";
+                return $"\r\n{x.Function.Name}: {x.Function.Description}\r\n{JsonSerializer.Serialize(x.Function.Parameters)}";
             }));
             prompt += $"\r\n[FUNCTIONS]\r\n{functions}\r\n";
         }
