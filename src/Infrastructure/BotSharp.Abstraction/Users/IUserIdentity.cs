@@ -8,7 +8,10 @@ public interface IUserIdentity
     string FirstName { get; }
     string LastName { get; }
     string FullName { get; }
-    string? UserLanguage { get; }
+    /// <summary>
+    ///  "en-US", "zh-CN"
+    /// </summary>
+    string UserLanguage { get; }
     string? Phone { get; }
     string? AffiliateId { get; }
 }
