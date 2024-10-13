@@ -491,7 +491,7 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            hook.VerificationCodeResetPassword(record);
+            await hook.VerificationCodeResetPassword(record);
         }
 
         return true;
@@ -522,7 +522,7 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            hook.VerificationCodeResetPassword(record);
+            await hook.VerificationCodeResetPassword(record);
         }
 
         return true;
@@ -574,7 +574,14 @@ public class UserService : IUserService
             return false;
         }
 
-        db.UpdateUserEmail(record.Id, email);
+        record.Email = email;
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.UserUpdating(record);
+        }
+
+        db.UpdateUserEmail(record.Id, record.Email);
         return true;
     }
 
@@ -590,12 +597,16 @@ public class UserService : IUserService
             return false;
         }
 
-        if ((record.UserName.Substring(0, 3) == "+86" || record.FirstName.Substring(0, 3) == "+86") && phone.Substring(0, 3) != "+86")
+        record.Phone = phone;
+
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
         {
-            phone = $"+86{phone}";
+            await hook.UserUpdating(record);
         }
 
-        db.UpdateUserPhone(record.Id, phone);
+        db.UpdateUserPhone(record.Id, record.Phone);
+
         return true;
     }
 
