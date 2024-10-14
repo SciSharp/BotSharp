@@ -54,6 +54,12 @@ public partial class FileRepository
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
     }
 
+    public void UpdateExistUser(string userId, User user)
+    {
+        user.Id = userId;
+        CreateUser(user);
+    }
+
     public void UpdateUserVerified(string userId)
     {
         var user = GetUserById(userId);

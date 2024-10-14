@@ -43,7 +43,7 @@ public class GetTableDefinitionFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         var tableDdls = new List<string>();
-        using var connection = new MySqlConnection(settings.MySqlExecutionConnectionString ?? settings.MySqlConnectionString);
+        using var connection = new MySqlConnection(settings.MySqlMetaConnectionString ?? settings.MySqlConnectionString);
         connection.Open();
 
         foreach (var table in tables)
