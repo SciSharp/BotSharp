@@ -67,8 +67,9 @@ public class SummaryPlanFn : IFunctionCallback
         var summary = await GetAiResponse(plannerAgent);
         message.Content = summary.Content;
 
-        await HookEmitter.Emit<IPlanningHook>(_services, x => 
-            x.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message));
+        await HookEmitter.Emit<IPlanningHook>(_services, async hook =>
+            await hook.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message)
+        );
 
         return true;
     }

@@ -58,12 +58,12 @@ public class UserIdentity : IUserIdentity
     }
 
     [JsonPropertyName("user_language")]
-    public string? UserLanguage
+    public string UserLanguage
     {
         get
         {
             _contextAccessor.HttpContext.Request.Headers.TryGetValue("User-Language", out var languages);
-            return languages.FirstOrDefault();
+            return languages.FirstOrDefault() ?? "en-US"; 
         }
     }
 

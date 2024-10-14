@@ -8,6 +8,7 @@ public interface IAuthenticationHook
     Task<User> Authenticate(string id, string password);
     void AddClaims(List<Claim> claims);
     void BeforeSending(Token token);
+    Task UserUpdating(User user);
     Task UserCreated(User user);
     Task VerificationCodeResetPassword(User user);
     Task DelUsers(List<string> userIds);

@@ -33,7 +33,7 @@ public class UserService : IUserService
     public async Task<User> CreateUser(User user)
     {
         string hasRegisterId = null;
-        if (string.IsNullOrEmpty(user.UserName))
+        if (string.IsNullOrWhiteSpace(user.UserName))
         {
             // generate unique name
             var name = Nanoid.Generate("0123456789botsharp", 10);
@@ -45,16 +45,46 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByUserName(user.UserName);
+
+        User? record = null;
+
+        if (!string.IsNullOrWhiteSpace(user.UserName))
+        {
+            record = db.GetUserByUserName(user.UserName);
+        }
+
+        if (record != null && record.Verified)
+        {
+            // account is already activated
+            _logger.LogWarning($"User account already exists: {record.Id} {record.UserName}");
+            return record;
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone);
+        }
+
+        if (record == null && !string.IsNullOrWhiteSpace(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
 
         if (record != null)
         {
             hasRegisterId = record.Id;
         }
 
-        if (string.IsNullOrEmpty(user.Id))
+        if (string.IsNullOrWhiteSpace(user.Id))
         {
-            user.Id = Guid.NewGuid().ToString();
+            if (!string.IsNullOrWhiteSpace(hasRegisterId))
+            {
+                user.Id = hasRegisterId;
+            }
+            else
+            {
+                user.Id = Guid.NewGuid().ToString();
+            }
         }
 
         record = user;
@@ -68,7 +98,7 @@ public class UserService : IUserService
 
         if (_setting.NewUserVerification)
         {
-            record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
+            // record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
             record.Verified = false;
         }
 
@@ -421,6 +451,23 @@ public class UserService : IUserService
         return false;
     }
 
+    public async Task<bool> VerifyPhoneExisting(string phone)
+    {
+        if (string.IsNullOrEmpty(phone))
+        {
+            return true;
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var UserByphone = db.GetUserByPhone(phone);
+        if (UserByphone != null && UserByphone.Verified)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public async Task<bool> SendVerificationCodeResetPasswordNoLogin(User user)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -456,7 +503,7 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            hook.VerificationCodeResetPassword(record);
+            await hook.VerificationCodeResetPassword(record);
         }
 
         return true;
@@ -487,7 +534,7 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            hook.VerificationCodeResetPassword(record);
+            await hook.VerificationCodeResetPassword(record);
         }
 
         return true;
@@ -533,12 +580,20 @@ public class UserService : IUserService
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
-        if (record == null)
+        var existEmail = db.GetUserByEmail(email);
+        if (record == null || existEmail != null)
         {
             return false;
         }
 
-        db.UpdateUserEmail(record.Id, email);
+        record.Email = email;
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.UserUpdating(record);
+        }
+
+        db.UpdateUserEmail(record.Id, record.Email);
         return true;
     }
 
@@ -547,18 +602,23 @@ public class UserService : IUserService
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
+        var existPhone = db.GetUserByPhone(phone);
 
-        if (record == null)
+        if (record == null || existPhone != null)
         {
             return false;
         }
 
-        if ((record.UserName.Substring(0, 3) == "+86" || record.FirstName.Substring(0, 3) == "+86") && phone.Substring(0, 3) != "+86")
+        record.Phone = phone;
+
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
         {
-            phone = $"+86{phone}";
+            await hook.UserUpdating(record);
         }
 
-        db.UpdateUserPhone(record.Id, phone);
+        db.UpdateUserPhone(record.Id, record.Phone);
+
         return true;
     }
 
