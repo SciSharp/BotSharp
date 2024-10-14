@@ -48,6 +48,18 @@ public class UserService : IUserService
 
         User? record = null;
 
+        if (!string.IsNullOrWhiteSpace(user.UserName))
+        {
+            record = db.GetUserByUserName(user.UserName);
+        }
+
+        if (record != null && record.Verified)
+        {
+            // account is already activated
+            _logger.LogWarning($"User account already exists: {record.Id} {record.UserName}");
+            return record;
+        }
+
         if (!string.IsNullOrWhiteSpace(user.Phone))
         {
             record = db.GetUserByPhone(user.Phone);
@@ -86,7 +98,7 @@ public class UserService : IUserService
 
         if (_setting.NewUserVerification)
         {
-            record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
+            // record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
             record.Verified = false;
         }
 
