@@ -67,9 +67,13 @@ public partial class PlaywrightWebDriver
             result.ResponseStatusCode = response.Status;
             if (response.Status == 200)
             {
-                // Disable this due to performance issue, some page is too large
-                // result.Body = await page.InnerHTMLAsync("body");
                 result.IsSuccess = true;
+
+                // Be careful if page is too large, it will cause performance issue
+                if (args.ReadInnerHTMLAsBody)
+                {
+                    result.Body = await page.InnerHTMLAsync("body");
+                }
             }
             else
             {                

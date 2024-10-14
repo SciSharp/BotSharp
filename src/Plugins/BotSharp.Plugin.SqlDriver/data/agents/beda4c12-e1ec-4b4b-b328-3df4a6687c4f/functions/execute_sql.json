@@ -11,8 +11,22 @@
           "type": "string",
           "description": "sql statement"
         }
+      },
+
+      "formatting_result": {
+        "type": "boolean",
+        "description": "formatting the results"
+      },
+
+      "tables": {
+        "type": "array",
+        "description": "all related tables",
+        "items": {
+          "type": "string",
+          "description": "table name"
+        }
       }
     },
-    "required": [ "sql_statement" ]
+    "required": [ "sql_statement", "tables", "formatting_result" ]
   }
 }

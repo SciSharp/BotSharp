@@ -32,6 +32,7 @@ public class UserService : IUserService
 
     public async Task<User> CreateUser(User user)
     {
+        string hasRegisterId = null;
         if (string.IsNullOrEmpty(user.UserName))
         {
             // generate unique name
@@ -48,7 +49,7 @@ public class UserService : IUserService
 
         if (record != null)
         {
-            return record;
+            hasRegisterId = record.Id;
         }
 
         if (string.IsNullOrEmpty(user.Id))
@@ -71,7 +72,14 @@ public class UserService : IUserService
             record.Verified = false;
         }
 
-        db.CreateUser(record);
+        if (hasRegisterId == null)
+        {
+            db.CreateUser(record);
+        }
+        else
+        {
+            db.UpdateExistUser(hasRegisterId, record);
+        }
 
         _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}");
         Utilities.ClearCache();
@@ -386,8 +394,9 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
+
         var user = db.GetUserByUserName(userName);
-        if (user != null)
+        if (user != null && user.Verified)
         {
             return true;
         }
@@ -404,7 +413,7 @@ public class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var emailName = db.GetUserByEmail(email);
-        if (emailName != null)
+        if (emailName != null && emailName.Verified)
         {
             return true;
         }
@@ -412,7 +421,48 @@ public class UserService : IUserService
         return false;
     }
 
-    public async Task<bool> SendVerificationCodeResetPassword(User user)
+    public async Task<bool> SendVerificationCodeResetPasswordNoLogin(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        User? record = null;
+
+        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone);
+        }
+
+        if (!string.IsNullOrEmpty(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record == null)
+        {
+            return false;
+        }
+
+        record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
+
+        //update current verification code.
+        db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
+
+        //send code to user Email.
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            hook.VerificationCodeResetPassword(record);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> SendVerificationCodeResetPasswordLogin()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -421,23 +471,6 @@ public class UserService : IUserService
         if (!string.IsNullOrWhiteSpace(_user.Id))
         {
             record = db.GetUserById(_user.Id);
-        }
-        else
-        {
-            if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
-            {
-                return false;
-            }
-
-            if (!string.IsNullOrEmpty(user.Email))
-            {
-                record = db.GetUserByEmail(user.Email);
-            }
-
-            if (!string.IsNullOrEmpty(user.Phone))
-            {
-                record = db.GetUserByPhone(user.Phone);
-            }
         }
 
         if (record == null)
@@ -518,6 +551,11 @@ public class UserService : IUserService
         if (record == null)
         {
             return false;
+        }
+
+        if ((record.UserName.Substring(0, 3) == "+86" || record.FirstName.Substring(0, 3) == "+86") && phone.Substring(0, 3) != "+86")
+        {
+            phone = $"+86{phone}";
         }
 
         db.UpdateUserPhone(record.Id, phone);
