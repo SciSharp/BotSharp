@@ -1,6 +1,6 @@
 {
   "name": "verify_dictionary_term",
-  "description": "Get id from dictionary table by keyword if tool or solution mentioned this approach",
+  "description": "Get id from dictionary table by keyword. Call this function only if need_lookup_dictionary is True",
   "parameters": {
     "type": "object",
     "properties": {

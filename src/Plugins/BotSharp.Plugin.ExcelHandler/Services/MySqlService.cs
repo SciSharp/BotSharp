@@ -2,7 +2,9 @@ using System.Data;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.ExcelHandler.Helpers.MySql;
 using BotSharp.Plugin.ExcelHandler.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using NPOI.SS.UserModel;
 
 namespace BotSharp.Plugin.ExcelHandler.Services
@@ -108,10 +110,14 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                     continue;
                 }
                 var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
+
+                string table = $"{_database}.{_tableName}";
+                string exampleData = GetInsertExample(table);
+
                 commandResult = new SqlContextOut
                 {
                     isSuccessful = isInsertSuccess,
-                    Message = $"{insertMessage}\r\n{message}",
+                    Message = $"{insertMessage}\r\nExample Data: {exampleData}",
                     FileName = _currentFileName
                 };
                 commandList.Add(commandResult);
@@ -239,6 +245,19 @@ namespace BotSharp.Plugin.ExcelHandler.Services
             {
                 cmd.ExecuteNonQuery();
             }
+        }
+        private string GetInsertExample(string tableName)
+        {
+            using var connection = _mySqlDbHelpers.GetDbConnection();
+            _database = connection.Database;
+            var sqlQuery = $"SELECT * FROM {tableName} LIMIT 2;";
+            using var cmd = new MySqlCommand(sqlQuery, connection);
+            using var reader = cmd.ExecuteReader();
+
+            var dataExample = new DataTable();
+            dataExample.Load(reader);
+
+            return JsonConvert.SerializeObject(dataExample);
         }
     }
 }
