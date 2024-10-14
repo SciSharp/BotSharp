@@ -10,7 +10,7 @@
       },
       "solution_search_question": {
         "type": "string",
-        "description": "Provide solution query text"
+        "description": "Generate question to find the knowledge for text. Be short"
       }
     },
     "required": [ "task_description", "solution_search_question" ]
