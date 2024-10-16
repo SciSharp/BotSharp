@@ -99,6 +99,11 @@ public class ExecuteQueryFn : IFunctionCallback
 
     private async Task<ExecuteQueryArgs> RefineSqlStatement(RoleDialogModel message, ExecuteQueryArgs args)
     {
+        if (args.Tables == null || args.Tables.Length == 0)
+        {
+            return args;
+        }
+
         // get table DDL
         var fn = _services.GetRequiredService<IRoutingService>();
         var msg = RoleDialogModel.From(message);
