@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Infrastructures;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
@@ -20,14 +21,23 @@ public class GenerateKnowledgeFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<ExtractedKnowledge>(message.FunctionArgs ?? "{}");
+        var args = JsonSerializer.Deserialize<GenerateKnowledge>(message.FunctionArgs ?? "{}");
         var agentService = _services.GetRequiredService<IAgentService>();
         var llmAgent = await agentService.GetAgent(BuiltInAgentId.Planner);
-        var generateKnowledgePrompt = await GetGenerateKnowledgePrompt(args.Question, args.Answer);
+        var refineKnowledge = args.RefinedCollection;
+        String generateKnowledgePrompt;
+        if (args.RefineAnswer == true)
+        {
+            generateKnowledgePrompt = await GetRefineKnowledgePrompt(args.Question, args.Answer, args.ExistingAnswer);
+        }
+        else
+        {
+            generateKnowledgePrompt = await GetGenerateKnowledgePrompt(args.Question, args.Answer);
+        }
         var agent = new Agent
         {
             Id = message.CurrentAgentId ?? string.Empty,
-            Name = "sqlDriver_DictionarySearch",
+            Name = "knowledge_generator",
             Instruction = generateKnowledgePrompt,
             LlmConfig = llmAgent.LlmConfig
         };
@@ -49,6 +59,21 @@ public class GenerateKnowledgeFn : IFunctionCallback
         {
             { "user_questions", userQuestions },
             { "sql_answer", sqlAnswer },
+        });
+    }
+    private async Task<string> GetRefineKnowledgePrompt(string userQuestion, string sqlAnswer, string existionAnswer)
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var render = _services.GetRequiredService<ITemplateRender>();
+
+        var agent = await agentService.GetAgent(BuiltInAgentId.Learner);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "knowledge.generation.refine")?.Content ?? string.Empty;
+
+        return render.Render(template, new Dictionary<string, object>
+        {
+            { "user_question", userQuestion },
+            { "new_answer", sqlAnswer },
+            { "existing_answer",  existionAnswer}
         });
     }
     private async Task<RoleDialogModel> GetAiResponse(Agent agent)
