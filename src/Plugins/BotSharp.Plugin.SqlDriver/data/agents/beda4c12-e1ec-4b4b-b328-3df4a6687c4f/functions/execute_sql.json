@@ -20,13 +20,13 @@
 
       "tables": {
         "type": "array",
-        "description": "all related tables",
+        "description": "all related tables in the sql statements",
         "items": {
           "type": "string",
           "description": "table name"
         }
       }
     },
-    "required": [ "sql_statement", "tables", "formatting_result" ]
+    "required": [ "sql_statements", "tables", "formatting_result" ]
   }
 }
