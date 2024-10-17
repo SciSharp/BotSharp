@@ -6,10 +6,13 @@ public class PrimaryStagePlanFn : IFunctionCallback
 {
     public string Name => "plan_primary_stage";
     public string Indication => "Currently analyzing and breaking down user requirements.";
+
     private readonly IServiceProvider _services;
     private readonly ILogger<PrimaryStagePlanFn> _logger;
 
-    public PrimaryStagePlanFn(IServiceProvider services, ILogger<PrimaryStagePlanFn> logger)
+    public PrimaryStagePlanFn(
+        IServiceProvider services,
+        ILogger<PrimaryStagePlanFn> logger)
     {
         _services = services;
         _logger = logger;
@@ -38,12 +41,12 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         // Get first stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var firstPlanningPrompt = await GetFirstStagePlanPrompt(message, task.Requirements, knowledges);
+        var prompt = await GetFirstStagePlanPrompt(message, task.Requirements, knowledges);
         var plannerAgent = new Agent
         {
             Id = BuiltInAgentId.Planner,
-            Name = "planning_1st",
-            Instruction = firstPlanningPrompt,
+            Name = "FirstStagePlanner",
+            Instruction = prompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
