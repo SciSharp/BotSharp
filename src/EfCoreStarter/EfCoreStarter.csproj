@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.EntityFrameworkCore.MySql\BotSharp.Plugin.EntityFrameworkCore.MySql.csproj" />
+    <ProjectReference Include="..\Plugins\BotSharp.Plugin.EntityFrameworkCore.PostgreSql\BotSharp.Plugin.EntityFrameworkCore.PostgreSql.csproj" />
+  </ItemGroup>
+
+</Project>

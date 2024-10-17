@@ -72,6 +72,7 @@ public interface IBotSharpRepository
     Conversation GetConversation(string conversationId);
     PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
+    void UpdateConversationTitleAlias(string conversationId, string titleAlias);
     bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
     ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
