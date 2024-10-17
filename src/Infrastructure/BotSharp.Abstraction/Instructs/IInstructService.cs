@@ -14,6 +14,13 @@ public interface IInstructService
     /// <returns></returns>
     Task<InstructResult> Execute(string agentId, RoleDialogModel message, string? templateName = null, string? instruction = null);
 
-    
+    /// <summary>
+    /// A generic way to execute completion by using specified instruction or template
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="instruction"></param>
+    /// <param name="agentId"></param>
+    /// <param name="options"></param>
+    /// <returns></returns>
     Task<T?> Instruct<T>(string instruction, string agentId, InstructOptions options) where T : class;
 }
