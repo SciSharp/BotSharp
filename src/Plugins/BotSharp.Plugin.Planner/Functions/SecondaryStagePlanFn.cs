@@ -1,5 +1,4 @@
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -7,10 +6,13 @@ public class SecondaryStagePlanFn : IFunctionCallback
 {
     public string Name => "plan_secondary_stage";
     public string Indication => "Further analyzing and breaking down user sub-needs.";
+
     private readonly IServiceProvider _services;
     private readonly ILogger<SecondaryStagePlanFn> _logger;
 
-    public SecondaryStagePlanFn(IServiceProvider services, ILogger<SecondaryStagePlanFn> logger)
+    public SecondaryStagePlanFn(
+        IServiceProvider services,
+        ILogger<SecondaryStagePlanFn> logger)
     {
         _services = services;
         _logger = logger;
@@ -25,7 +27,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
 
         var msgSecondary = RoleDialogModel.From(message);
         var collectionName = knowledgeSettings.Default.CollectionName;
-        var planPrimary = states.GetState("planning_result");
+        var planResult = states.GetState("planning_result");
 
         var taskSecondary = JsonSerializer.Deserialize<SecondaryBreakdownTask>(msgSecondary.FunctionArgs);
 
@@ -43,14 +45,14 @@ public class SecondaryStagePlanFn : IFunctionCallback
 
         // Get second stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var secondPlanningPrompt = await GetSecondStagePlanPrompt(taskSecondary.TaskDescription, planPrimary, knowledgeResults, message);
-        _logger.LogInformation(secondPlanningPrompt);
+        var prompt = await GetSecondStagePlanPrompt(taskSecondary.TaskDescription, planResult, knowledgeResults, message);
+        _logger.LogInformation(prompt);
 
         var plannerAgent = new Agent
         {
             Id = BuiltInAgentId.Planner,
-            Name = "planning_2nd",
-            Instruction = secondPlanningPrompt,
+            Name = "SecondStagePlanner",
+            Instruction = prompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
@@ -63,7 +65,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetSecondStagePlanPrompt(string taskDescription, string planPrimary, string knowledgeResults, RoleDialogModel message)
+    private async Task<string> GetSecondStagePlanPrompt(string taskDescription, string planResult, string knowledgeResults, RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -79,7 +81,7 @@ public class SecondaryStagePlanFn : IFunctionCallback
         return render.Render(template, new Dictionary<string, object>
         {
             { "task_description", taskDescription },
-            { "primary_plan", planPrimary },
+            { "primary_plan", planResult },
             { "additional_knowledge", knowledgeResults },
             { "response_format",  responseFormat }
         });

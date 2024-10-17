@@ -17,12 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\sql_dictionary_lookup.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\sql_select.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\sql_table_definition.json" />
-    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\sql_dictionary_lookup.fn.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\verify_dictionary_term.json" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\sql_executor.fn.liquid" />
     <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\sql_table_definition.fn.liquid" />
+    <None Remove="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\verify_dictionary_term.fn.liquid" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\agent.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\execute_sql.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\lookup_dictionary.json" />
@@ -37,10 +37,10 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\sql_table_definition.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\sql_dictionary_lookup.json">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\verify_dictionary_term.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\sql_dictionary_lookup.fn.liquid">
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\verify_dictionary_term.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\sql_table_definition.json">
