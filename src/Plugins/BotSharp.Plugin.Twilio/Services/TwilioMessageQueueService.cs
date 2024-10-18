@@ -28,22 +28,19 @@ namespace BotSharp.Plugin.Twilio.Services
             await foreach (var message in _queue.Reader.ReadAllAsync(stoppingToken))
             {
                 await _throttler.WaitAsync(stoppingToken);
-                _ = Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        Console.WriteLine($"Start processing {message}.");
-                        await ProcessUserMessageAsync(message);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Processing {message} failed due to {ex.Message}.");
-                    }
-                    finally
-                    {
-                        _throttler.Release();
-                    }
-                });
+                    Console.WriteLine($"Start processing {message}.");
+                    await ProcessUserMessageAsync(message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Processing {message} failed due to {ex.Message}.");
+                }
+                finally
+                {
+                    _throttler.Release();
+                }
             }
         }
 
@@ -66,19 +63,7 @@ namespace BotSharp.Plugin.Twilio.Services
             var sessionManager = sp.GetRequiredService<ITwilioSessionManager>();
             var progressService = sp.GetRequiredService<IConversationProgressService>();
             InitProgressService(message, sessionManager, progressService);
-
-            routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
-            var states = new List<MessageState>
-            {
-                new MessageState("channel", ConversationChannel.Phone),
-                new MessageState("calling_phone", message.From)
-            };
-
-            foreach (var kvp in message.States)
-            {
-                states.Add(new MessageState(kvp.Key, kvp.Value));
-            }
-            conv.SetConversationId(message.ConversationId, states);
+            InitConversation(message, inputMsg, conv, routing);
 
             var result = await conv.SendMessage(config.AgentId,
                 inputMsg,
@@ -94,13 +79,36 @@ namespace BotSharp.Plugin.Twilio.Services
                     };
                 }
             );
+            reply.SpeechFileName = await GetReplySpeechFileName(message.ConversationId, reply, sp);
+            reply.Hints = GetHints(reply); ;
+            reply.Content = null;
+            await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
+        }
 
+        private static void InitConversation(CallerMessage message, RoleDialogModel inputMsg, IConversationService conv, IRoutingService routing)
+        {
+            routing.Context.SetMessageId(message.ConversationId, inputMsg.MessageId);
+            var states = new List<MessageState>
+            {
+                new("channel", ConversationChannel.Phone),
+                new("calling_phone", message.From)
+            };
+            states.AddRange(message.States.Select(kvp => new MessageState(kvp.Key, kvp.Value)));
+            conv.SetConversationId(message.ConversationId, states);
+        }
+
+        private static async Task<string> GetReplySpeechFileName(string conversationId, AssistantMessage reply, IServiceProvider sp)
+        {
             var completion = CompletionProvider.GetAudioCompletion(sp, "openai", "tts-1");
             var fileStorage = sp.GetRequiredService<IFileStorageService>();
             var data = await completion.GenerateAudioFromTextAsync(reply.Content);
             var fileName = $"reply_{reply.MessageId}.mp3";
-            fileStorage.SaveSpeechFile(message.ConversationId, fileName, data);
-            reply.SpeechFileName = fileName;
+            fileStorage.SaveSpeechFile(conversationId, fileName, data);
+            return fileName;
+        }
+
+        private static string GetHints(AssistantMessage reply)
+        {
             var phrases = reply.Content.Split(',', StringSplitOptions.RemoveEmptyEntries);
             int capcity = 100;
             var hints = new List<string>(capcity);
@@ -122,9 +130,7 @@ namespace BotSharp.Plugin.Twilio.Services
             }
             // add frequency short words
             hints.AddRange(["yes", "no", "correct", "right"]);
-            reply.Hints = string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
-            reply.Content = null;
-            await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
+            return string.Join(", ", hints.Select(x => x.ToLower()).Distinct().Reverse());
         }
 
         private static void InitProgressService(CallerMessage message, ITwilioSessionManager sessionManager, IConversationProgressService progressService)
