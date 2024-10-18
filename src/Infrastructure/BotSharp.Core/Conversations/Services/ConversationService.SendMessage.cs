@@ -40,10 +40,10 @@ public partial class ConversationService
         routing.Context.Push(agent.Id, reason: "request started");
 
         // Save payload in order to assign the payload before hook is invoked
-        if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
-        {
-            message.Payload = replyMessage.Payload;
-        }
+        // if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
+        // {
+        //     message.Payload = replyMessage.Payload;
+        // }
 
         // Before chat completion hook
         foreach (var hook in hooks)
