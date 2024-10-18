@@ -67,10 +67,10 @@ namespace BotSharp.Plugin.Twilio.Services
             var progressService = sp.GetRequiredService<IConversationProgressService>();
             InitProgressService(message, sessionManager, progressService);
             InitConversation(message, inputMsg, conv, routing);
-
+            
             var result = await conv.SendMessage(config.AgentId,
                 inputMsg,
-                replyMessage: null,
+                replyMessage: BuildPostbackMessageModel(conv),
                 async msg =>
                 {
                     reply = new AssistantMessage()
@@ -86,6 +86,20 @@ namespace BotSharp.Plugin.Twilio.Services
             reply.Hints = GetHints(reply); ;
             reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
+        }
+
+        private PostbackMessageModel BuildPostbackMessageModel(IConversationService conv)
+        {
+            var messages = conv.GetDialogHistory(1);
+            if (!messages.Any()) return null;
+            var lastMessage = messages[0];
+            if (string.IsNullOrEmpty(lastMessage.PostbackFunctionName)) return null;
+            return new PostbackMessageModel
+            {
+                FunctionName = lastMessage.PostbackFunctionName,
+                ParentId = lastMessage.MessageId,
+                Payload = lastMessage.Payload
+            };
         }
 
         private static void InitConversation(CallerMessage message, RoleDialogModel inputMsg, IConversationService conv, IRoutingService routing)
