@@ -40,8 +40,11 @@ public class SecondaryStagePlanFn : IFunctionCallback
             knowledges.AddRange(k);
         }
         knowledges = knowledges.Distinct().ToList();
-
         var knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges);
+
+        var knowledgeState = states.GetState("relevant_knowledges");
+        knowledgeState += String.Join("\r\n", knowledges);
+        states.SetState("relevant_knowledges", knowledgeState);
 
         // Get second stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);

@@ -38,6 +38,8 @@ public class PrimaryStagePlanFn : IFunctionCallback
             }
         }
         knowledges = knowledges.Distinct().ToList();
+        var knowledgeState = String.Join("\r\n", knowledges);
+        state.SetState("relevant_knowledges", knowledgeState);
 
         // Get first stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
@@ -67,11 +69,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
         var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.1st.plan")?.Content ?? string.Empty;
-        var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
-        {
-            Parameters = [ JsonDocument.Parse("{}") ],
-            Results = [ string.Empty ]
-        });
+        var responseFormat = JsonSerializer.Serialize(new FirstStagePlan{});
 
         // Get global knowledges
         var globalKnowledges = new List<string>();
