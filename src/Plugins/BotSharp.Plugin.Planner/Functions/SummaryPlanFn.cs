@@ -35,7 +35,8 @@ public class SummaryPlanFn : IFunctionCallback
         var steps = states.GetState("planning_result").JsonArrayContent<SecondStagePlan>();
         var allTables = new List<string>();
         var ddlStatements = string.Empty;
-        var planResult = states.GetState("planning_result");
+        var relevantKnowledge = states.GetState("planning_result");
+        relevantKnowledge += "\r\n" + states.GetState("relevant_knowledges");
         var dictionaryItems = states.GetState("dictionary_items");
         var excelImportResult = states.GetState("excel_import_result");
 
@@ -54,7 +55,7 @@ public class SummaryPlanFn : IFunctionCallback
         ddlStatements += "\r\n" + msgCopy.Content;
 
         // Summarize and generate query
-        var prompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, planResult, dictionaryItems, ddlStatements, excelImportResult);
+        var prompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements, excelImportResult);
         _logger.LogInformation($"Summary plan prompt:\r\n{prompt}");
 
         var plannerAgent = new Agent
