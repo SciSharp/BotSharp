@@ -70,7 +70,7 @@ namespace BotSharp.Plugin.Twilio.Services
             
             var result = await conv.SendMessage(config.AgentId,
                 inputMsg,
-                replyMessage: BuildPostbackMessageModel(conv),
+                replyMessage: BuildPostbackMessageModel(conv, message),
                 async msg =>
                 {
                     reply = new AssistantMessage()
@@ -88,7 +88,7 @@ namespace BotSharp.Plugin.Twilio.Services
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
         }
 
-        private PostbackMessageModel BuildPostbackMessageModel(IConversationService conv)
+        private PostbackMessageModel BuildPostbackMessageModel(IConversationService conv, CallerMessage message)
         {
             var messages = conv.GetDialogHistory(1);
             if (!messages.Any()) return null;
@@ -98,7 +98,7 @@ namespace BotSharp.Plugin.Twilio.Services
             {
                 FunctionName = lastMessage.PostbackFunctionName,
                 ParentId = lastMessage.MessageId,
-                Payload = lastMessage.Payload
+                Payload = message.Digits
             };
         }
 
