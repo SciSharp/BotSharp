@@ -13,5 +13,5 @@ public class WebPageResponseFilter
     /// <summary>
     /// Handle Content-Type: text/x-component
     /// </summary>
-    public int PartIndex { get; set; } = -1;
+    public Func<string, string>? PartSearch { get; set; } = null;
 }
