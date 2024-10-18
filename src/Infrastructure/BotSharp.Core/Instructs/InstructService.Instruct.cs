@@ -63,14 +63,13 @@ public partial class InstructService
         var localAgent = new Agent
         {
             Id = agentId,
-            Name = agent.Name,
+            Name = agent?.Name ?? "Unknown",
             Instruction = prompt,
             TemplateDict = new()
         };
 
         var messages = BuildDialogs(options);
         var completion = CompletionProvider.GetChatCompletion(_services, provider: options.Provider, model: options.Model);
-
         return await completion.GetChatCompletions(localAgent, messages);
     }
 
