@@ -18,9 +18,9 @@ public interface IInstructService
     /// A generic way to execute completion by using specified instruction or template
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="instruction"></param>
-    /// <param name="agentId"></param>
-    /// <param name="options"></param>
+    /// <param name="instruction">Prompt</param>
+    /// <param name="agentId">Agent id</param>
+    /// <param name="options">Llm Provider, model, message, prompt data</param>
     /// <returns></returns>
     Task<T?> Instruct<T>(string instruction, string agentId, InstructOptions options) where T : class;
 }
