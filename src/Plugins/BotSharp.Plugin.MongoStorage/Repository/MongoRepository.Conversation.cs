@@ -19,6 +19,7 @@ public partial class MongoRepository
             Channel = conversation.Channel,
             TaskId = conversation.TaskId,
             Status = conversation.Status,
+            Tags = conversation.Tags ?? new(),
             CreatedTime = utcNow,
             UpdatedTime = utcNow
         };
@@ -106,6 +107,19 @@ public partial class MongoRepository
             .Set(x => x.Title, title);
 
         _dc.Conversations.UpdateOne(filterConv, updateConv);
+    }
+
+    public bool UpdateConversationTags(string conversationId, List<string> tags)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+
+        var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var update = Builders<ConversationDocument>.Update
+                                                   .Set(x => x.Tags, tags ?? new())
+                                                   .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        var res = _dc.Conversations.UpdateOne(filter, update);
+        return res.ModifiedCount > 0;
     }
 
     public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
@@ -254,6 +268,7 @@ public partial class MongoRepository
             Dialogs = dialogElements,
             States = curStates,
             DialogCount = conv.DialogCount,
+            Tags = conv.Tags,
             CreatedTime = conv.CreatedTime,
             UpdatedTime = conv.UpdatedTime
         };
@@ -296,6 +311,10 @@ public partial class MongoRepository
         if (filter?.StartTime != null)
         {
             convFilters.Add(convBuilder.Gte(x => x.CreatedTime, filter.StartTime.Value));
+        }
+        if (filter?.Tags != null && filter.Tags.Any())
+        {
+            convFilters.Add(convBuilder.AnyIn(x => x.Tags, filter.Tags));
         }
 
         // Filter states
@@ -349,6 +368,7 @@ public partial class MongoRepository
             Channel = x.Channel,
             Status = x.Status,
             DialogCount = x.DialogCount,
+            Tags = x.Tags ?? new(),
             CreatedTime = x.CreatedTime,
             UpdatedTime = x.UpdatedTime
         }).ToList();
@@ -375,6 +395,7 @@ public partial class MongoRepository
             Channel = c.Channel,
             Status = c.Status,
             DialogCount = c.DialogCount,
+            Tags = c.Tags ?? new(),
             CreatedTime = c.CreatedTime,
             UpdatedTime = c.UpdatedTime
         }).ToList();
