@@ -16,15 +16,7 @@ public partial class RoutingService
                 role = agent.Name;
             }
 
-            if (role == AgentRole.User)
-            {
-                conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
-            }
-            else
-            {
-                // Assistant reply deosn't need help with payload
-                conversation += $"{role}: {dialog.Content}\r\n";
-            }
+            conversation += $"{role}: {dialog.Payload ?? dialog.Content}\r\n";
         }
 
         return conversation;
