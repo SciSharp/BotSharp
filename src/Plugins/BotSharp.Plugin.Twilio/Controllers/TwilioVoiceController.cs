@@ -72,6 +72,7 @@ public class TwilioVoiceController : TwilioController
                 ConversationId = conversationId,
                 SeqNumber = seqNum,
                 Content = messageContent,
+                Digits = request.Digits, 
                 From = request.From
             };
 
