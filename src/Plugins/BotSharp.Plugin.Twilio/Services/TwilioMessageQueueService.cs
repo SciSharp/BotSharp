@@ -28,19 +28,22 @@ namespace BotSharp.Plugin.Twilio.Services
             await foreach (var message in _queue.Reader.ReadAllAsync(stoppingToken))
             {
                 await _throttler.WaitAsync(stoppingToken);
-                try
+                _ = Task.Run(async () =>
                 {
-                    Console.WriteLine($"Start processing {message}.");
-                    await ProcessUserMessageAsync(message);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Processing {message} failed due to {ex.Message}.");
-                }
-                finally
-                {
-                    _throttler.Release();
-                }
+                    try
+                    {
+                        Console.WriteLine($"Start processing {message}.");
+                        await ProcessUserMessageAsync(message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Processing {message} failed due to {ex.Message}.");
+                    }
+                    finally
+                    {
+                        _throttler.Release();
+                    }
+                });
             }
         }
 
