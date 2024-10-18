@@ -83,7 +83,7 @@ namespace BotSharp.Plugin.Twilio.Services
                 }
             );
             reply.SpeechFileName = await GetReplySpeechFileName(message.ConversationId, reply, sp);
-            reply.Hints = GetHints(reply); ;
+            reply.Hints = GetHints(reply);
             reply.Content = null;
             await sessionManager.SetAssistantReplyAsync(message.ConversationId, message.SeqNumber, reply);
         }
