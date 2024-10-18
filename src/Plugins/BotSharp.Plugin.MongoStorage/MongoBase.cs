@@ -6,5 +6,3 @@ public abstract class MongoBase
     [BsonId(IdGenerator = typeof(StringGuidIdGenerator))]
     public string Id { get; set; }
 }
-
-

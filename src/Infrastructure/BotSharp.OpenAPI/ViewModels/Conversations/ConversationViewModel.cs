@@ -29,6 +29,8 @@ public class ConversationViewModel
     public string Status { get; set; }
     public Dictionary<string, string> States { get; set; }
 
+    public List<string> Tags { get; set; } = new();
+
     [JsonPropertyName("updated_time")]
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     [JsonPropertyName("created_time")]
@@ -48,6 +50,7 @@ public class ConversationViewModel
             Channel = sess.Channel,
             Status = sess.Status,
             TaskId = sess.TaskId,
+            Tags = sess.Tags ?? new(),
             CreatedTime = sess.CreatedTime,
             UpdatedTime = sess.UpdatedTime
         };
