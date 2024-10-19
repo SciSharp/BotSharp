@@ -71,6 +71,7 @@ public partial class MongoRepository
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
             AffiliateId = user.AffiliateId,
+            EmployeeId = user.EmployeeId,
             IsDisabled = user.IsDisabled,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow

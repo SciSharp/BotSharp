@@ -19,9 +19,10 @@ public class UserDocument : MongoBase
     public string? VerificationCode { get; set; }
     public bool Verified { get; set; }
     public string? AffiliateId { get; set; }
+    public string? EmployeeId { get; set; }
     public bool IsDisabled { get; set; }
     public DateTime CreatedTime { get; set; }
-    public DateTime UpdatedTime { get; set; }
+    public DateTime UpdatedTime { get; set; }    
 
     public User ToUser()
     {
