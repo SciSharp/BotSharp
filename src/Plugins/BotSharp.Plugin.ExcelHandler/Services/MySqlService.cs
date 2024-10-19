@@ -139,11 +139,11 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 string insertDataSql = ProcessInsertSqlQuery(dataSql);
                 ExecuteSqlQueryForInsertion(insertDataSql);
 
-                return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_tableName}` table");
+                return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_database}`.`{_tableName}` table");
             }
             catch (Exception ex)
             {
-                return (false, $"{_currentFileName}: Failed to parse excel data into `{_tableName}` table. ####Error: {ex.Message}");
+                return (false, $"{_currentFileName}: Failed to parse excel data into `{_database}`.`{_tableName}` table. ####Error: {ex.Message}");
             }
         }
         private string ParseSheetData(ISheet singleSheet)
