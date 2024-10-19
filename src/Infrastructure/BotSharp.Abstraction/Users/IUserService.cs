@@ -9,6 +9,7 @@ public interface IUserService
     Task<User> CreateUser(User user);
     Task<Token> ActiveUser(UserActivationModel model);
     Task<Token?> GetAffiliateToken(string authorization);
+    Task<Token?> GetAdminToken(string authorization);
     Task<Token?> GetToken(string authorization);
     Task<User> GetMyProfile();
     Task<bool> VerifyUserNameExisting(string userName);
