@@ -80,5 +80,5 @@ public class UserIdentity : IUserIdentity
     public string? Type => _claims?.FirstOrDefault(x => x.Type == "type")?.Value;
 
     [JsonPropertyName("role")]
-    public string? Role => _claims?.FirstOrDefault(x => x.Type == "role")?.Value;
+    public string? Role => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
 }
