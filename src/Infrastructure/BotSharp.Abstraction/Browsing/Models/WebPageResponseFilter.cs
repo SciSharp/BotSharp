@@ -1,5 +1,8 @@
+using System.Diagnostics;
+
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class WebPageResponseFilter
 {
     public string Url { get; set; } = null!;
