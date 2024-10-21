@@ -70,6 +70,7 @@ public partial class MongoRepository
             Type = user.Type,
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
+            RegionCode = user.RegionCode,
             AffiliateId = user.AffiliateId,
             IsDisabled = user.IsDisabled,
             CreatedTime = DateTime.UtcNow,
@@ -87,7 +88,9 @@ public partial class MongoRepository
             .Set(x => x.Phone, user.Phone)
             .Set(x => x.Salt, user.Salt)
             .Set(x => x.Password, user.Password)
-            .Set(x => x.VerificationCode, user.VerificationCode);
+            .Set(x => x.VerificationCode, user.VerificationCode)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.RegionCode, user.RegionCode);
         _dc.Users.UpdateOne(filter, update);
     }
 

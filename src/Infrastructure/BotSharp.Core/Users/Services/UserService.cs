@@ -91,7 +91,8 @@ public class UserService : IUserService
         record.Email = user.Email?.ToLower();
         if (!string.IsNullOrWhiteSpace(user.Phone))
         {
-            record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
+            //record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
+            record.Phone = Regex.Match(user.Phone, @"\d+").Value;
         }
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");

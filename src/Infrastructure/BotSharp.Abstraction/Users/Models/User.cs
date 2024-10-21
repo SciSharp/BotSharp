@@ -21,6 +21,7 @@ public class User
     public string Role { get; set; } = UserRole.User;
     public string? VerificationCode { get; set; }
     public bool Verified { get; set; }
+    public string? RegionCode { get; set; }
     public string? AffiliateId { get; set; }
     public bool IsDisabled { get; set; }
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
