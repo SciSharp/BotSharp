@@ -156,22 +156,25 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         => throw new NotImplementedException();
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
-        => new NotImplementedException();
+        => throw new NotImplementedException();
 
     public void UpdateConversationTitle(string conversationId, string title)
-        => new NotImplementedException();
+        => throw new NotImplementedException();
+
+    public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
+        => throw new NotImplementedException();
 
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
-        => new NotImplementedException();
+        => throw new NotImplementedException();
 
     public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
         => throw new NotImplementedException();
 
     public void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
-        => new NotImplementedException();
+        => throw new NotImplementedException();
 
     public void UpdateConversationStatus(string conversationId, string status)
-        => new NotImplementedException();
+        => throw new NotImplementedException();
 
     public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
         => throw new NotImplementedException();

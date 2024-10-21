@@ -112,7 +112,7 @@ public partial class KnowledgeService
 
 
     public async Task<bool> ImportDocumentContentToKnowledge(string collectionName, string fileName, string fileSource,
-        IEnumerable<string> contents, DocMetaRefData? refData = null)
+        IEnumerable<string> contents, DocMetaRefData? refData = null, Dictionary<string, object>? payload = null)
     {
         if (string.IsNullOrWhiteSpace(collectionName)
             || string.IsNullOrWhiteSpace(fileName)
@@ -132,20 +132,26 @@ public partial class KnowledgeService
             var fileId = Guid.NewGuid();
             var contentType = FileUtility.GetFileContentType(fileName);
 
-            var payload = new Dictionary<string, object>()
+            var innerPayload = new Dictionary<string, object>();
+            if (payload != null)
             {
-                { KnowledgePayloadName.DataSource, VectorDataSource.File },
-                { KnowledgePayloadName.FileId, fileId.ToString() },
-                { KnowledgePayloadName.FileName, fileName },
-                { KnowledgePayloadName.FileSource, fileSource }
-            };
+                foreach (var item in payload)
+                {
+                    innerPayload[item.Key] = item.Value;
+                }
+            }
+
+            innerPayload[KnowledgePayloadName.DataSource] = VectorDataSource.File;
+            innerPayload[KnowledgePayloadName.FileId] = fileId.ToString();
+            innerPayload[KnowledgePayloadName.FileName] = fileName;
+            innerPayload[KnowledgePayloadName.FileSource] = fileSource;
 
             if (!string.IsNullOrWhiteSpace(refData?.Url))
             {
-                payload[KnowledgePayloadName.FileUrl] = refData.Url;
+                innerPayload[KnowledgePayloadName.FileUrl] = refData.Url;
             }
 
-            var dataIds = await SaveToVectorDb(collectionName, contents, payload);
+            var dataIds = await SaveToVectorDb(collectionName, contents, innerPayload);
             db.SaveKnolwedgeBaseFileMeta(new KnowledgeDocMetaData
             {
                 Collection = collectionName,

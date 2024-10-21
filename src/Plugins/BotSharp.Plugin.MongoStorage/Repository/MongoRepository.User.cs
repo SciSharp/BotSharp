@@ -79,6 +79,18 @@ public partial class MongoRepository
         _dc.Users.InsertOne(userCollection);
     }
 
+    public void UpdateExistUser(string userId, User user)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update
+            .Set(x => x.Email, user.Email)
+            .Set(x => x.Phone, user.Phone)
+            .Set(x => x.Salt, user.Salt)
+            .Set(x => x.Password, user.Password)
+            .Set(x => x.VerificationCode, user.VerificationCode);
+        _dc.Users.UpdateOne(filter, update);
+    }
+
     public void UpdateUserVerified(string userId)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);

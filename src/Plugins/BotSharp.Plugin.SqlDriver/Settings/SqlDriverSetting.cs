@@ -10,4 +10,5 @@ public class SqlDriverSetting
     public string SqlServerExecutionConnectionString { get; set; } = null!;
     public string SqlLiteConnectionString { get; set; } = null!;
     public bool ExecuteSqlSelectAutonomous { get; set; } = false;
+    public bool FormattingResult { get; set; } = true;
 }

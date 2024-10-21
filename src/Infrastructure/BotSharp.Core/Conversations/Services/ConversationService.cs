@@ -50,6 +50,13 @@ public partial class ConversationService : IConversationService
         var conversation = db.GetConversation(id);
         return conversation;
     }
+
+    public async Task<bool> UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.UpdateConversationMessage(conversationId, request);
+    }
+
     public async Task<Conversation> GetConversation(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
