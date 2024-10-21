@@ -146,37 +146,41 @@ public class PlaywrightInstance : IDisposable
         {
             if (e.Status != 204 &&
                 e.Headers.ContainsKey("content-type") &&
-                e.Headers["content-type"].Contains("application/json") &&
                 (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr") &&
                 (excludeResponseUrls == null || !excludeResponseUrls.Any(url => e.Url.ToLower().Contains(url))) &&
                 (includeResponseUrls == null || includeResponseUrls.Any(url => e.Url.ToLower().Contains(url))))
             {
                 Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
-                JsonElement? json = null;
+                
                 try
                 {
-                    if (e.Status == 200 && e.Ok)
-                    {
-                        json = await e.JsonAsync();
-                    }
-                    else
-                    {
-                        Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
-                    }
-
                     var result = new WebPageResponseData
                     {
                         Url = e.Url.ToLower(),
                         PostData = e.Request?.PostData ?? string.Empty,
-                        ResponseData = JsonSerializer.Serialize(json),
                         ResponseInMemory = responseInMemory
                     };
+
+                    if (e.Headers["content-type"].Contains("application/json"))
+                    {
+                        if (e.Status == 200 && e.Ok)
+                        {
+                            var json = await e.JsonAsync();
+                            result.ResponseData = JsonSerializer.Serialize(json);
+                        }
+                    }
+                    else
+                    {
+                        var html = await e.TextAsync();
+                        result.ResponseData = html;
+                    }
 
                     if (responseContainer != null && responseInMemory)
                     {
                         responseContainer.Add(result);
                     }
 
+                    Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
                     var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
                     foreach (var hook in webPageResponseHooks)
                     {

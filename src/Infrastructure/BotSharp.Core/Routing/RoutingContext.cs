@@ -42,11 +42,10 @@ public class RoutingContext : IRoutingContext
                 _routerAgentIds = agentService.GetAgents(new AgentFilter
                 {
                     Type = AgentType.Routing
-                }).Result.Items
-                .Select(x => x.Id).ToArray();
+                }).Result.Items.Select(x => x.Id).ToArray();
             }
 
-            return _stack.Where(x => !_routerAgentIds.Contains(x)).Last();
+            return _stack.Where(x => !_routerAgentIds.Contains(x)).LastOrDefault() ?? string.Empty;
         }
     }
 

@@ -15,16 +15,18 @@ public class Conversation
     public string Title { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public List<DialogElement> Dialogs { get; set; } = new List<DialogElement>();
+    public List<DialogElement> Dialogs { get; set; } = new();
 
     [JsonIgnore]
-    public Dictionary<string, string> States { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> States { get; set; } = new();
 
     public string Status { get; set; } = ConversationStatus.Open;
 
     public string Channel { get; set; } = ConversationChannel.OpenAPI;
 
     public int DialogCount { get; set; }
+
+    public List<string> Tags { get; set; } = new();
 
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;

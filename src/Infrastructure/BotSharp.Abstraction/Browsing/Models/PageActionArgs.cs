@@ -7,7 +7,7 @@ public class PageActionArgs
     public BroswerActionEnum Action { get; set; }
 
     public string? Content { get; set; }
-    public string? Direction { get; set; }
+    public string Direction { get; set; } = "down";
 
     public string Url { get; set; } = null!;
 

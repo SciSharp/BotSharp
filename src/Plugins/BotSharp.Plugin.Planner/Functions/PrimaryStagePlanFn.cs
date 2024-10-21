@@ -6,10 +6,13 @@ public class PrimaryStagePlanFn : IFunctionCallback
 {
     public string Name => "plan_primary_stage";
     public string Indication => "Currently analyzing and breaking down user requirements.";
+
     private readonly IServiceProvider _services;
     private readonly ILogger<PrimaryStagePlanFn> _logger;
 
-    public PrimaryStagePlanFn(IServiceProvider services, ILogger<PrimaryStagePlanFn> logger)
+    public PrimaryStagePlanFn(
+        IServiceProvider services,
+        ILogger<PrimaryStagePlanFn> logger)
     {
         _services = services;
         _logger = logger;
@@ -35,15 +38,17 @@ public class PrimaryStagePlanFn : IFunctionCallback
             }
         }
         knowledges = knowledges.Distinct().ToList();
+        var knowledgeState = String.Join("\r\n", knowledges);
+        state.SetState("relevant_knowledges", knowledgeState);
 
         // Get first stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var firstPlanningPrompt = await GetFirstStagePlanPrompt(message, task.Requirements, knowledges);
+        var prompt = await GetFirstStagePlanPrompt(message, task.Requirements, knowledges);
         var plannerAgent = new Agent
         {
             Id = BuiltInAgentId.Planner,
-            Name = "planning_1st",
-            Instruction = firstPlanningPrompt,
+            Name = "FirstStagePlanner",
+            Instruction = prompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
         };
@@ -64,11 +69,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
         var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.1st.plan")?.Content ?? string.Empty;
-        var responseFormat = JsonSerializer.Serialize(new FirstStagePlan
-        {
-            Parameters = [ JsonDocument.Parse("{}") ],
-            Results = [ string.Empty ]
-        });
+        var responseFormat = JsonSerializer.Serialize(new FirstStagePlan{});
 
         // Get global knowledges
         var globalKnowledges = new List<string>();

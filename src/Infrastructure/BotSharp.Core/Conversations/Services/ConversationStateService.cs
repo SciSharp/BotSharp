@@ -372,10 +372,10 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private bool CheckArgType(string name, string value)
     {
         var agentTypes = AgentService.AgentParameterTypes.SelectMany(p => p.Value).ToList();
-        var filed = agentTypes.FirstOrDefault(t => t.Key == name); 
-        if (filed.Key != null)
+        var found = agentTypes.FirstOrDefault(t => t.Key == name); 
+        if (found.Key != null)
         {
-            return filed.Value switch
+            return found.Value switch
             {
                 "boolean" => bool.TryParse(value, out _),
                 "number" => long.TryParse(value, out _),

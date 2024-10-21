@@ -128,7 +128,15 @@ public partial class PlaywrightWebDriver
             }
             else
             {
-                result.Selector = locator.ToString().Split("Locator@").Last();
+                foreach (var element in await locator.AllAsync())
+                {
+                    var html = await element.InnerHTMLAsync();
+                    _logger.LogWarning(html);
+                    // fix if html has &
+                    result.Body = HttpUtility.HtmlDecode(html);
+                    break;
+                }
+
                 result.IsSuccess = true;
             }
         }

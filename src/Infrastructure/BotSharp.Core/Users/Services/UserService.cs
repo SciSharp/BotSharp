@@ -275,7 +275,7 @@ public class UserService : IUserService
 
         foreach (var hook in hooks)
         {
-            hook.BeforeSending(token);
+            hook.UserAuthenticated(jwt);
         }
 
         return token;

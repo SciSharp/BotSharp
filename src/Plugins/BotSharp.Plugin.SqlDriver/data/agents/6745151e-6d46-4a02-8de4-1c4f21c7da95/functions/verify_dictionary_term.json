@@ -1,6 +1,6 @@
 {
   "name": "verify_dictionary_term",
-  "description": "Get id from dictionary table by keyword. Call this function only if need_lookup_dictionary is True",
+  "description": "Get id from dictionary table by keyword. Call this function only if need_lookup_dictionary is true and is_insert is false",
   "parameters": {
     "type": "object",
     "properties": {
@@ -11,6 +11,10 @@
       "reason": {
         "type": "string",
         "description": "the reason why you need to call verify_dictionary_term"
+      },
+      "is_insert": {
+        "type": "boolean",
+        "description": "if SQL statement is inserting."
       },
       "tables": {
         "type": "array",

@@ -1,8 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Repositories.Models;
-using System.Globalization;
 using System.IO;
-using System.Xml.Linq;
 
 namespace BotSharp.Core.Repository
 {
@@ -13,6 +10,7 @@ namespace BotSharp.Core.Repository
             var utcNow = DateTime.UtcNow;
             conversation.CreatedTime = utcNow;
             conversation.UpdatedTime = utcNow;
+            conversation.Tags = conversation.Tags ?? new();
 
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversation.Id);
             if (!Directory.Exists(dir))
@@ -132,6 +130,24 @@ namespace BotSharp.Core.Repository
                     File.WriteAllText(convFile, JsonSerializer.Serialize(record, _options));
                 }
             }
+        }
+
+        public bool UpdateConversationTags(string conversationId, List<string> tags)
+        {
+            if (string.IsNullOrEmpty(conversationId)) return false;
+
+            var convDir = FindConversationDirectory(conversationId);
+            if (string.IsNullOrEmpty(convDir)) return false;
+
+            var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+            if (!File.Exists(convFile)) return false;
+
+            var json = File.ReadAllText(convFile);
+            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+            conv.Tags = tags ?? new();
+            conv.UpdatedTime = DateTime.UtcNow;
+            File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+            return true;
         }
 
         public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
@@ -353,6 +369,10 @@ namespace BotSharp.Core.Repository
                 if (filter?.StartTime != null)
                 {
                     matched = matched && record.CreatedTime >= filter.StartTime.Value;
+                }
+                if (filter?.Tags != null && filter.Tags.Any())
+                {
+                    matched = matched && !record.Tags.IsNullOrEmpty() && record.Tags.Exists(t => filter.Tags.Contains(t));
                 }
 
                 // Check states
