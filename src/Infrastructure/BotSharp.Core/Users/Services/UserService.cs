@@ -359,7 +359,7 @@ public class UserService : IUserService
 
     private string GetUserTokenExpiresCacheKey(string userId)
     {
-        return $"user_{userId}_token_expires";
+        return $"user:{userId}_token_expires";
     }
 
     public async Task<DateTime> GetUserTokenExpires()
