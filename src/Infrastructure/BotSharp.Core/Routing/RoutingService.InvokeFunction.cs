@@ -53,6 +53,7 @@ public partial class RoutingService
             message.PostbackFunctionName = clonedMessage.PostbackFunctionName;
             message.CurrentAgentId = clonedMessage.CurrentAgentId;
             message.Content = clonedMessage.Content;
+            message.Payload = clonedMessage.Payload;
             message.StopCompletion = clonedMessage.StopCompletion;
             message.RichContent = clonedMessage.RichContent;
             message.Data = clonedMessage.Data;
