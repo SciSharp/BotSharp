@@ -161,7 +161,9 @@ public class UserService : IUserService
             return default;
         }
 
-        return await Task.FromResult(BuildToken(record));
+        var (token, jwt) = BuildToken(record);
+
+        return await Task.FromResult(token);
     }
 
     public async Task<Token?> GetAdminToken(string authorization)
@@ -185,10 +187,12 @@ public class UserService : IUserService
             return default;
         }
 
-        return await Task.FromResult(BuildToken(record));
+        var (token, jwt) = BuildToken(record);
+        
+        return await Task.FromResult(token);
     }
 
-    private Token BuildToken(User record)
+    private (Token, JwtSecurityToken) BuildToken(User record)
     {
         var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
@@ -199,7 +203,7 @@ public class UserService : IUserService
             TokenType = "Bearer",
             Scope = "api"
         };
-        return token;
+        return (token, jwt);
     }
 
     public async Task<Token?> GetToken(string authorization)
@@ -287,7 +291,7 @@ public class UserService : IUserService
             return default;
         }
 
-        var token = BuildToken(record);
+        var (token, jwt) = BuildToken(record);
         foreach (var hook in hooks)
         {
             hook.UserAuthenticated(jwt);
