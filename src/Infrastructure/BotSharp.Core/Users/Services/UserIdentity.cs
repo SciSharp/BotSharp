@@ -72,4 +72,13 @@ public class UserIdentity : IUserIdentity
 
     [JsonPropertyName("affiliateId")]
     public string? AffiliateId => _claims?.FirstOrDefault(x => x.Type == "affiliateId")?.Value;
+
+    [JsonPropertyName("employeeId")]
+    public string? EmployeeId => _claims?.FirstOrDefault(x => x.Type == "employeeId")?.Value;
+
+    [JsonPropertyName("type")]
+    public string? Type => _claims?.FirstOrDefault(x => x.Type == "type")?.Value;
+
+    [JsonPropertyName("role")]
+    public string? Role => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
 }

@@ -145,19 +145,14 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<Token> GetAffiliateToken(string authorization)
+    public async Task<Token?> GetAffiliateToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetAffiliateUserByPhone(id);
-        if (record == null)
-        {
-            record = db.GetUserByPhone(id);
-        }
-
-        var isCanLoginAffiliateRoleType = record != null && !record.IsDisabled && record.Type != UserType.Client;
-        if (!isCanLoginAffiliateRoleType)
+        var isCanLogin = record != null && !record.IsDisabled && record.Type == UserType.Affiliate;
+        if (!isCanLogin)
         {
             return default;
         }
@@ -167,6 +162,39 @@ public class UserService : IUserService
             return default;
         }
 
+        var (token, jwt) = BuildToken(record);
+
+        return await Task.FromResult(token);
+    }
+
+    public async Task<Token?> GetAdminToken(string authorization)
+    {
+        var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
+        var (id, password) = base64.SplitAsTuple(":");
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var record = db.GetUserByPhone(id);
+        var isCanLogin = record != null && !record.IsDisabled
+            && record.Type == UserType.Internal && new List<string>
+            {
+                UserRole.Root,UserRole.Admin
+            }.Contains(record.Role);
+        if (!isCanLogin)
+        {
+            return default;
+        }
+
+        if (Utilities.HashTextMd5($"{password}{record.Salt}") != record.Password)
+        {
+            return default;
+        }
+
+        var (token, jwt) = BuildToken(record);
+        
+        return await Task.FromResult(token);
+    }
+
+    private (Token, JwtSecurityToken) BuildToken(User record)
+    {
         var accessToken = GenerateJwtToken(record);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
         var token = new Token
@@ -176,7 +204,7 @@ public class UserService : IUserService
             TokenType = "Bearer",
             Scope = "api"
         };
-        return token;
+        return (token, jwt);
     }
 
     public async Task<Token?> GetToken(string authorization)
@@ -264,16 +292,7 @@ public class UserService : IUserService
             return default;
         }
 
-        var accessToken = GenerateJwtToken(record);
-        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-        var token = new Token
-        {
-            AccessToken = accessToken,
-            ExpireTime = jwt.Payload.Exp.Value,
-            TokenType = "Bearer",
-            Scope = "api"
-        };
-
+        var (token, jwt) = BuildToken(record);
         foreach (var hook in hooks)
         {
             hook.UserAuthenticated(jwt);
@@ -297,7 +316,8 @@ public class UserService : IUserService
             new Claim("role", user.Role ?? UserRole.User),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty),
-            new Claim("affiliateId", user.AffiliateId ?? string.Empty)
+            new Claim("affiliateId", user.AffiliateId ?? string.Empty),
+            new Claim("employeeId", user.EmployeeId ?? string.Empty)
         };
 
         var validators = _services.GetServices<IAuthenticationHook>();
@@ -340,7 +360,7 @@ public class UserService : IUserService
 
     private string GetUserTokenExpiresCacheKey(string userId)
     {
-        return $"user_{userId}_token_expires";
+        return $"user:{userId}_token_expires";
     }
 
     public async Task<DateTime> GetUserTokenExpires()

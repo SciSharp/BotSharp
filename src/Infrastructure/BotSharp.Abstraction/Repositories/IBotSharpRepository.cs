@@ -24,7 +24,7 @@ public interface IBotSharpRepository
     User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
     User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
-    User? GetUserByAffiliateId(string affiliateId) => throw new NotImplementedException();
+    List<User> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
