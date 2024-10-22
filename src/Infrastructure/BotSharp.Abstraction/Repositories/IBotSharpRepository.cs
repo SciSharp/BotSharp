@@ -32,7 +32,7 @@ public interface IBotSharpRepository
     void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
     void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
     void UpdateUserEmail(string userId, string email) => throw new NotImplementedException();
-    void UpdateUserPhone(string userId, string Iphone) => throw new NotImplementedException();
+    void UpdateUserPhone(string userId, string Iphone, string regionCode) => throw new NotImplementedException();
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
     #endregion

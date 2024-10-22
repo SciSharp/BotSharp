@@ -189,7 +189,7 @@ public class UserService : IUserService
         }
 
         var (token, jwt) = BuildToken(record);
-        
+
         return await Task.FromResult(token);
     }
 
@@ -618,8 +618,12 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> ModifyUserPhone(string phone)
+    public async Task<bool> ModifyUserPhone(string phone, string regionCode)
     {
+        if (string.IsNullOrWhiteSpace(regionCode))
+        {
+            throw new Exception("regionCode is required");
+        }
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
@@ -631,6 +635,7 @@ public class UserService : IUserService
         }
 
         record.Phone = phone;
+        record.RegionCode = regionCode;
 
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
@@ -638,7 +643,7 @@ public class UserService : IUserService
             await hook.UserUpdating(record);
         }
 
-        db.UpdateUserPhone(record.Id, record.Phone);
+        db.UpdateUserPhone(record.Id, record.Phone, regionCode);
 
         return true;
     }

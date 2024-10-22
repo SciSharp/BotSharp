@@ -128,11 +128,12 @@ public partial class MongoRepository
         _dc.Users.UpdateOne(filter, update);
     }
 
-    public void UpdateUserPhone(string userId, string phone)
+    public void UpdateUserPhone(string userId, string phone, string regionCode)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Phone, phone)
-            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.RegionCode, regionCode);
         _dc.Users.UpdateOne(filter, update);
     }
 

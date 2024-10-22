@@ -153,9 +153,9 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("/user/phone/modify")]
-    public async Task<bool> ModifyUserPhone([FromQuery] string phone)
+    public async Task<bool> ModifyUserPhone([FromQuery] string phone, [FromQuery] string regionCode)
     {
-        return await _userService.ModifyUserPhone(phone);
+        return await _userService.ModifyUserPhone(phone, regionCode);
     }
 
     [HttpPost("/user/update/isdisable")]
