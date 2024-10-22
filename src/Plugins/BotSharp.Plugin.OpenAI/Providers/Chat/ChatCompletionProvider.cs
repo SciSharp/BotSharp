@@ -290,7 +290,7 @@ public class ChatCompletionProvider : IChatCompletion
             }
             else if (message.Role == AgentRole.Assistant)
             {
-                messages.Add(new AssistantChatMessage(message.Payload ?? message.Content));
+                messages.Add(new AssistantChatMessage(message.Content));
             }
         }
 
