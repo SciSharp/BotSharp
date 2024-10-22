@@ -37,11 +37,11 @@ public partial class MongoRepository
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
-    public User? GetUserByAffiliateId(string affiliateId)
+    public List<User> GetUsersByAffiliateId(string affiliateId)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.AffiliateId == affiliateId);
-        return user != null ? user.ToUser() : null;
+        var users = _dc.Users.AsQueryable()
+            .Where(x => x.AffiliateId == affiliateId).ToList();
+        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
     public User? GetUserByUserName(string userName)
@@ -71,6 +71,7 @@ public partial class MongoRepository
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
             AffiliateId = user.AffiliateId,
+            EmployeeId = user.EmployeeId,
             IsDisabled = user.IsDisabled,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow

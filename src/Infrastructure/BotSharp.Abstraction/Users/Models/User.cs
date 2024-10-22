@@ -22,6 +22,7 @@ public class User
     public string? VerificationCode { get; set; }
     public bool Verified { get; set; }
     public string? AffiliateId { get; set; }
+    public string? EmployeeId { get; set; }
     public bool IsDisabled { get; set; }
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
