@@ -636,6 +636,8 @@ public class UserService : IUserService
 
         record.Phone = phone;
         record.RegionCode = regionCode;
+        record.UserName = phone;
+        record.FirstName = phone;
 
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
