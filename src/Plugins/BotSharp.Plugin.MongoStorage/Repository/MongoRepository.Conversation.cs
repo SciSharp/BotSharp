@@ -17,6 +17,7 @@ public partial class MongoRepository
             UserId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty,
             Title = conversation.Title,
             Channel = conversation.Channel,
+            CallingPhone = conversation.CallingPhone,
             TaskId = conversation.TaskId,
             Status = conversation.Status,
             Tags = conversation.Tags ?? new(),

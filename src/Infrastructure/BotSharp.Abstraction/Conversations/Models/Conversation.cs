@@ -28,6 +28,8 @@ public class Conversation
 
     public List<string> Tags { get; set; } = new();
 
+    public string CallingPhone { get; set; }
+
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }
