@@ -36,6 +36,9 @@ public class GenericElement
     [Translate]
     public string Subtitle { get; set; }
 
+    [Translate]
+    public string Text { get; set; }
+
     [JsonPropertyName("image_url")]
     public string ImageUrl { get; set; }
 
