@@ -153,7 +153,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("/user/phone/modify")]
-    public async Task<bool> ModifyUserPhone([FromQuery] string phone, [FromQuery] string regionCode)
+    public async Task<bool> ModifyUserPhone([FromQuery] string phone, [FromQuery] string regionCode = "CN")
     {
         return await _userService.ModifyUserPhone(phone, regionCode);
     }
