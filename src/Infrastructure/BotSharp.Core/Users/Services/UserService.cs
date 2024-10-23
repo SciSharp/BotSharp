@@ -267,7 +267,8 @@ public class UserService : IUserService
                         ExternalId = user.ExternalId,
                         Password = user.Password,
                         Type = user.Type,
-                        Role = user.Role
+                        Role = user.Role,
+                        RegionCode = user.RegionCode
                     };
                     await CreateUser(record);
                 }
@@ -317,7 +318,8 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty),
             new Claim("affiliateId", user.AffiliateId ?? string.Empty),
-            new Claim("employeeId", user.EmployeeId ?? string.Empty)
+            new Claim("employeeId", user.EmployeeId ?? string.Empty),
+            new Claim("regionCode", user.RegionCode ?? "CN")
         };
 
         var validators = _services.GetServices<IAuthenticationHook>();
