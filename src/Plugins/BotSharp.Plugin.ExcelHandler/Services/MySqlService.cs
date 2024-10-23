@@ -90,6 +90,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         {
             var numTables = workbook.NumberOfSheets;
             var commandList = new List<SqlContextOut>();
+            var state = _services.GetRequiredService<IConversationStateService>();
 
             for (int sheetIdx = 0; sheetIdx < numTables; sheetIdx++)
             {
@@ -109,15 +110,17 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                     commandList.Add(commandResult);
                     continue;
                 }
-                var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
 
                 string table = $"{_database}.{_tableName}";
+                state.SetState("tmp_table", table);
+
+                var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
                 string exampleData = GetInsertExample(table);
 
                 commandResult = new SqlContextOut
                 {
                     isSuccessful = isInsertSuccess,
-                    Message = $"{insertMessage}\r\nExample Data: {exampleData}",
+                    Message = $"{insertMessage}\r\nExample Data: {exampleData}. \r\n The remaining data contains different values. ",
                     FileName = _currentFileName
                 };
                 commandList.Add(commandResult);

@@ -1,6 +1,6 @@
 {
   "name": "verify_dictionary_term",
-  "description": "Get id from dictionary table by keyword. Call this function only if need_lookup_dictionary is true and is_insert is false",
+  "description": "Get id from dictionary table by keyword. Call this function only if need_lookup_dictionary is true and is_insert is false. You can only query one table at a time.",
   "parameters": {
     "type": "object",
     "properties": {
@@ -18,7 +18,7 @@
       },
       "tables": {
         "type": "array",
-        "description": "all related tables",
+        "description": "all related dictionary tables",
         "items": {
           "type": "string",
           "description": "table name"
