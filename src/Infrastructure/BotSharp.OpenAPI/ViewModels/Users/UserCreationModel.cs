@@ -12,7 +12,7 @@ public class UserCreationModel
     public string Password { get; set; } = string.Empty;
     public string Type { get; set; } = UserType.Client;
     public string Role { get; set; } = UserRole.User;
-    public string? RegionCode { get; set; }
+    public string RegionCode { get; set; } = "CN";
     public User ToUser()
     {
         return new User
