@@ -41,6 +41,12 @@ public class ExecuteQueryFn : IFunctionCallback
                 _ => throw new NotImplementedException($"Database type {settings.DatabaseType} is not supported.")
             };
 
+            if (refinedArgs.SqlStatements.Length == 1 && refinedArgs.SqlStatements[0].StartsWith("DROP TABLE"))
+            {
+                message.Content = "Drop table successfully";
+                return true;
+            }
+
             if (results.Count() == 0)
             {
                 message.Content = "No record found";
