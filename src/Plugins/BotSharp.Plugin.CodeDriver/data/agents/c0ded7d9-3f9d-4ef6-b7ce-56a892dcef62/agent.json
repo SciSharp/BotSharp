@@ -1,0 +1,17 @@
+{
+  "id": "c0ded7d9-3f9d-4ef6-b7ce-56a892dcef62",
+  "name": "Code Driver",
+  "description": "Write executable program code according to user needs, such as HTTP API written in Python.",
+  "iconUrl": "https://cdn-icons-png.flaticon.com/512/4208/4208366.png",
+  "type": "task",
+  "createdDateTime": "2024-10-23T00:00:00Z",
+  "updatedDateTime": "2024-11-23T00:00:00Z",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "database" ],
+  "llmConfig": {
+    "provider": "openai",
+    "model": "gpt-4o",
+    "max_recursion_depth": 10
+  }
+}

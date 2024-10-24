@@ -1,0 +1,19 @@
+{
+  "name": "save_source_code",
+  "description": "Save the source code to file",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "file_path": {
+        "type": "string",
+        "description": "source code of file relative path start with project folder name"
+      },
+
+      "source_code": {
+        "type": "string",
+        "description": "source code"
+      }
+    },
+    "required": [ "file_path", "source_code" ]
+  }
+}
