@@ -172,10 +172,12 @@ public partial class ConversationService : IConversationService
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var channel = state.GetState("channel");
+            var channelId = state.GetState("channel_id");
             var sess = new Conversation
             {
                 Id = _conversationId,
                 Channel = channel,
+                ChannelId = channelId,
                 AgentId = agentId
             };
             converation = await NewConversation(sess);

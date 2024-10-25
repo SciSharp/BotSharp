@@ -10,7 +10,7 @@ namespace BotSharp.Core.Repository
             var utcNow = DateTime.UtcNow;
             conversation.CreatedTime = utcNow;
             conversation.UpdatedTime = utcNow;
-            conversation.Tags = conversation.Tags ?? new();
+            conversation.Tags ??= new();
 
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversation.Id);
             if (!Directory.Exists(dir))

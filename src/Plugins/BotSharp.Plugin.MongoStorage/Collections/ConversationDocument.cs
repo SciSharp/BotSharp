@@ -7,6 +7,7 @@ public class ConversationDocument : MongoBase
     public string? TaskId { get; set; }
     public string Title { get; set; }
     public string Channel { get; set; }
+    public string ChannelId { get; set; }
     public string Status { get; set; }
     public int DialogCount { get; set; }
     public List<string> Tags { get; set; }
