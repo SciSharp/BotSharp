@@ -24,6 +24,11 @@ public class Conversation
 
     public string Channel { get; set; } = ConversationChannel.OpenAPI;
 
+    /// <summary>
+    /// Channel id, like phone number, email address, etc.
+    /// </summary>
+    public string ChannelId { get; set; }
+
     public int DialogCount { get; set; }
 
     public List<string> Tags { get; set; } = new();

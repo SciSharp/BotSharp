@@ -69,7 +69,9 @@ public partial class InstructService
         };
 
         var messages = BuildDialogs(options);
-        var completion = CompletionProvider.GetChatCompletion(_services, provider: options.Provider, model: options.Model);
+        var provider = options.Provider ?? agent?.LlmConfig?.Provider ?? "openai";
+        var model = options.Model ?? agent?.LlmConfig?.Model ?? "gpt-4o";
+        var completion = CompletionProvider.GetChatCompletion(_services, provider: provider, model: model);
         return await completion.GetChatCompletions(localAgent, messages);
     }
 

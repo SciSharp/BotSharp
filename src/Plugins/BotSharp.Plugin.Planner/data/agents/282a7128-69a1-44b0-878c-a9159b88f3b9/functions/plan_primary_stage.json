@@ -10,10 +10,35 @@
       },
       "questions": {
         "type": "array",
-        "description": "Rephrase user requirements in details and in multiple ways, don't miss any information especially for those line items, values and numbers.",
+        "description": "Break down user requirements in details and in multiple ways, don't miss any entity type/value",
         "items": {
           "type": "string",
-          "description": "Question converted from requirement in different ways to search in the knowledge base, be short and you can refer to the global knowledge.One question should contain only one main topic."
+          "description": "Question converted from requirement in different ways to search in the knowledge base, be short and you can refer to the global knowledge.One question should contain only one main topic that with one entity type."
+        }
+      },
+      "norm_questions": {
+        "type": "array",
+        "description": "normalize the generated questions, remove specific entity value.",
+        "items": {
+          "type": "string",
+          "description": "Normalized question"
+        }
+      },
+      "entities": {
+        "type": "array",
+        "description": "entities with type and value",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "entity type"
+            },
+            "value": {
+              "type": "string",
+              "description": "entity value"
+            }
+          }
         }
       }
     },

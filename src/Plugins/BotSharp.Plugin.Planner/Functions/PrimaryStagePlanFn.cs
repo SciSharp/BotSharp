@@ -25,11 +25,14 @@ public class PrimaryStagePlanFn : IFunctionCallback
 
         state.SetState("max_tokens", "4096");
         var task = JsonSerializer.Deserialize<PrimaryRequirementRequest>(message.FunctionArgs);
+        var searchQuestions = new List<string>(task.Questions);
+        searchQuestions.AddRange(task.NormQuestions);
+        searchQuestions = searchQuestions.Distinct().ToList();
 
         // Get knowledge from vectordb
         var hooks = _services.GetServices<IKnowledgeHook>();
         var knowledges = new List<string>();
-        foreach (var question in task.Questions)
+        foreach (var question in searchQuestions)
         {
             foreach (var hook in hooks)
             {

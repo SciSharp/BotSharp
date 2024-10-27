@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Planning;
 
 namespace BotSharp.Plugin.SqlDriver;
@@ -8,6 +9,11 @@ public class SqlDriverPlugin : IBotSharpPlugin
     public string Name => "SQL Driver";
     public string Description => "Convert the user requirements into corresponding SQL statements";
     public string IconUrl => "https://uxwing.com/wp-content/themes/uxwing/download/file-and-folder-type/sql-icon.png";
+
+    public string[] AgentIds =
+    [
+        BuiltInAgentId.SqlDriver
+    ];
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
