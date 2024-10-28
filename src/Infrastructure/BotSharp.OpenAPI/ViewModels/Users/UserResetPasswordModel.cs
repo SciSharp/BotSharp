@@ -15,7 +15,8 @@ public class UserResetPasswordModel
             Email = Email,
             Phone = Phone,
             Password = Password,
-            VerificationCode = VerificationCode
+            VerificationCode = VerificationCode,
+            RegionCode = RegionCode
         };
     }
 }
