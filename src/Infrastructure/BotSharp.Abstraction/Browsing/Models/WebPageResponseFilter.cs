@@ -8,6 +8,8 @@ public class WebPageResponseFilter
     public string Url { get; set; } = null!;
     public string[]? QueryParameters { get; set; }
 
+    public string[]? PostData { get; set; }
+
     /// <summary>
     /// contains, starts, ends, equals
     /// </summary>

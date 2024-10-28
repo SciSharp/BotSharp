@@ -37,6 +37,11 @@ public class MessageConfig
     public List<MessageState> States { get; set; } = new();
 
     /// <summary>
+    /// Conversation tags
+    /// </summary>
+    public List<string> Tags { get; set; } = new();
+
+    /// <summary>
     /// Agent task id
     /// </summary>
     public string? TaskId { get; set; }

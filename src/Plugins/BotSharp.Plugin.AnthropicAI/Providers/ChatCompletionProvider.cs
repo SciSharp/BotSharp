@@ -37,7 +37,7 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting("anthropic", agent.LlmConfig?.Model ?? "claude-3-haiku");
+        var settings = settingsService.GetSetting(Provider, _model ?? agent.LlmConfig?.Model ?? "claude-3-haiku");
 
         var client = new AnthropicClient(new APIAuthentication(settings.ApiKey));
         var (prompt, parameters) = PrepareOptions(agent, conversations, settings);

@@ -12,7 +12,7 @@
     
 **BotSharp** is an open source machine learning framework for AI Bot platform builder. This project involves natural language understanding, computer vision and audio processing technologies, and aims to promote the development and application of intelligent robot assistants in information systems. Out-of-the-box machine learning algorithms allow ordinary programmers to develop artificial intelligence applications faster and easier. 
 
-It's written in C# running on .Net Core that is full cross-platform framework, the plug-in and pipeline flow execution design is adopted to completely decouple the plug-ins. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. More friendly to corporate developers. BotSharp adopts machine learning algrithm in C# directly. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
+It's written in C# running on .Net Core that is full cross-platform framework, the plug-in and pipeline flow execution design is adopted to completely decouple the plug-ins. C# is a enterprise grade programming language which is widely used to code business logic in information management related system. More friendly to corporate developers. BotSharp adopts machine learning algorithm in C# directly. That will facilitate the feature of the typed language C#, and be more easier when refactoring code in system scope. 
 
 **BotSharp** is in accordance with components principle strictly, decouples every part that is needed in the platform builder. So you can choose different UI/UX, or pick up a different LLM providers. They are all modulized based on unified interfaces. **BotSharp** provides an advanced Agent abstraction layer to efficiently manage complex application scenarios in enterprises, allowing enterprise developers to efficiently integrate AI into business systems.
 
@@ -22,7 +22,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 
 * Built-in multi-agents and conversation with state management.
 * Support multiple LLM Planning approaches to handle different tasks from simple to complex.
-* Built-in RAG related interfaces, Memeory based vector searching.
+* Built-in RAG related interfaces, Memory based vector searching.
 * Support multiple AI platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 3, Claude Sonnet 3.5, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.

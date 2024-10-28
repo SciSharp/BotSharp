@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.MongoDB.Driver" Version="8.0.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.27.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
   </ItemGroup>
 
   <ItemGroup>

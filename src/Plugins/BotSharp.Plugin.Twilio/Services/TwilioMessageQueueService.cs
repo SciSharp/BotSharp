@@ -108,6 +108,7 @@ namespace BotSharp.Plugin.Twilio.Services
             var states = new List<MessageState>
             {
                 new("channel", ConversationChannel.Phone),
+                new("channel_id", message.From),
                 new("calling_phone", message.From)
             };
             states.AddRange(message.States.Select(kvp => new MessageState(kvp.Key, kvp.Value)));

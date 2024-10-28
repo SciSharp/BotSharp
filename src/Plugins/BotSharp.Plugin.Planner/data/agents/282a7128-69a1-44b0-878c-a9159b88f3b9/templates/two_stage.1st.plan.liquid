@@ -8,7 +8,8 @@ Thinking process:
     - If there is extra knowledge or relationship needed between steps, set the need_breakdown_task to true for both steps.
     - If the solution mentioned "related solutions" is needed, set the need_breakdown_task to true.
     - You should find the relationships between data structure based on the task knowledge strictly. If lack of information, set the need_breakdown_task to true.
-    - If you need to lookup the dictionary to verify or get the enum/term/dictionary value, set the need_lookup_dictionary to true.
+    - If you need to lookup the dictionary to verify or get the enum/term/dictionary value(exclude example data from attachment), set the need_lookup_dictionary to true.
+    - Don't set need_lookup_dictionary to true for attachment data.
     - Seperate the dictionary lookup and need additional information/knowledge into different subtask.
 3. Input argument must reference to corresponding variable name that retrieved by previous steps, variable name must start with '@';
 4. Output all the subtasks as much detail as possible in JSON: [{{ response_format }}]
