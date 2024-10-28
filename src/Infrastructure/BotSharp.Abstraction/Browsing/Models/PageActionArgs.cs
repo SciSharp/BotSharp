@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Browsing.Enums;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class PageActionArgs
 {
     public BroswerActionEnum Action { get; set; }
