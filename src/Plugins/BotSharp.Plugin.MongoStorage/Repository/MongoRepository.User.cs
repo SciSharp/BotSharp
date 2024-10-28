@@ -13,7 +13,12 @@ public partial class MongoRepository
 
     public User? GetUserByPhone(string phone)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone && x.Type != UserType.Affiliate);
+        string phoneSecond = string.Empty;
+        if (phone.Substring(0, 3) != "+86")
+        {
+            phoneSecond = $"+86{phone}";
+        }
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate);
         return user != null ? user.ToUser() : null;
     }
 
