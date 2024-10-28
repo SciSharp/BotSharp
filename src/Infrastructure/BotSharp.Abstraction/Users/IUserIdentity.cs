@@ -17,4 +17,5 @@ public interface IUserIdentity
     string? EmployeeId { get; }
     string Type { get; }
     string Role { get; }
+    string? RegionCode { get; }
 }

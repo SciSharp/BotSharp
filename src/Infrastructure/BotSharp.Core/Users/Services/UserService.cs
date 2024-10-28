@@ -91,7 +91,8 @@ public class UserService : IUserService
         record.Email = user.Email?.ToLower();
         if (!string.IsNullOrWhiteSpace(user.Phone))
         {
-            record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
+            //record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
+            record.Phone = Regex.Match(user.Phone, @"\d+").Value;
         }
         record.Salt = Guid.NewGuid().ToString("N");
         record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
@@ -188,7 +189,7 @@ public class UserService : IUserService
         }
 
         var (token, jwt) = BuildToken(record);
-        
+
         return await Task.FromResult(token);
     }
 
@@ -266,7 +267,8 @@ public class UserService : IUserService
                         ExternalId = user.ExternalId,
                         Password = user.Password,
                         Type = user.Type,
-                        Role = user.Role
+                        Role = user.Role,
+                        RegionCode = user.RegionCode
                     };
                     await CreateUser(record);
                 }
@@ -316,7 +318,8 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty),
             new Claim("affiliateId", user.AffiliateId ?? string.Empty),
-            new Claim("employeeId", user.EmployeeId ?? string.Empty)
+            new Claim("employeeId", user.EmployeeId ?? string.Empty),
+            new Claim("regionCode", user.RegionCode ?? "CN")
         };
 
         var validators = _services.GetServices<IAuthenticationHook>();
@@ -617,8 +620,12 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> ModifyUserPhone(string phone)
+    public async Task<bool> ModifyUserPhone(string phone, string regionCode)
     {
+        if (string.IsNullOrWhiteSpace(regionCode))
+        {
+            throw new Exception("regionCode is required");
+        }
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
@@ -630,6 +637,9 @@ public class UserService : IUserService
         }
 
         record.Phone = phone;
+        record.RegionCode = regionCode;
+        record.UserName = phone;
+        record.FirstName = phone;
 
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
@@ -637,7 +647,7 @@ public class UserService : IUserService
             await hook.UserUpdating(record);
         }
 
-        db.UpdateUserPhone(record.Id, record.Phone);
+        db.UpdateUserPhone(record.Id, record.Phone, regionCode);
 
         return true;
     }
