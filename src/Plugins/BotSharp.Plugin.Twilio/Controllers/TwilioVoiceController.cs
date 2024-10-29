@@ -32,7 +32,7 @@ public class TwilioVoiceController : TwilioController
     /// <exception cref="ArgumentNullException"></exception>
     [ValidateRequest]
     [HttpPost("twilio/voice/welcome")]
-    public TwiMLResult InitiateConversation(VoiceRequest request, [FromQuery] string states)
+    public async Task<TwiMLResult> InitiateConversation(VoiceRequest request, [FromQuery] string states, [FromQuery] string intent)
     {
         if (request?.CallSid == null)
         {
@@ -41,8 +41,29 @@ public class TwilioVoiceController : TwilioController
 
         string conversationId = $"TwilioVoice_{request.CallSid}";
         var twilio = _services.GetRequiredService<TwilioService>();
-        var url = $"twilio/voice/{conversationId}/receive/0?states={states}";
-        var response = twilio.ReturnNoninterruptedInstructions(new List<string> { "twilio/welcome.mp3" }, url, true, timeout: 2);
+        VoiceResponse response;
+        if (string.IsNullOrWhiteSpace(intent))
+        {
+            var url = $"twilio/voice/{conversationId}/receive/0?states={states}";
+            response = twilio.ReturnNoninterruptedInstructions(new List<string> { "twilio/welcome.mp3" }, url, true, timeout: 2);
+        }
+        else
+        {
+            int seqNum = 0;
+            var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
+            var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+            await sessionManager.StageCallerMessageAsync(conversationId, seqNum, intent);
+            var callerMessage = new CallerMessage()
+            {
+                ConversationId = conversationId,
+                SeqNumber = seqNum,
+                Content = intent,
+                From = request.From,
+                States = ParseStates(states)
+            };
+            await messageQueue.EnqueueAsync(callerMessage);
+            response = new VoiceResponse().Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}"), HttpMethod.Post);
+        }
         return TwiML(response);
     }
 
@@ -72,19 +93,10 @@ public class TwilioVoiceController : TwilioController
                 ConversationId = conversationId,
                 SeqNumber = seqNum,
                 Content = messageContent,
-                Digits = request.Digits, 
-                From = request.From
+                Digits = request.Digits,
+                From = request.From,
+                States = ParseStates(states)
             };
-
-            if (!string.IsNullOrEmpty(states))
-            {
-                var kvp = states.Split(':');
-                if (kvp.Length == 2)
-                {
-                    callerMessage.States.Add(kvp[0], kvp[1]);
-                }
-            }
-
             await messageQueue.EnqueueAsync(callerMessage);
 
             response = new VoiceResponse().Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}"), HttpMethod.Post);
@@ -159,7 +171,7 @@ public class TwilioVoiceController : TwilioController
                         {
                             speechPaths.Add($"twilio/hold-on-short-{holdOnIndex}.mp3");
                         }
-                        
+
                         var fileName = $"indication_{seqNum}_{segIndex}.mp3";
                         fileStorage.SaveSpeechFile(conversationId, fileName, data);
                         speechPaths.Add($"twilio/voice/speeches/{conversationId}/{fileName}");
@@ -214,7 +226,7 @@ public class TwilioVoiceController : TwilioController
                 response = twilio.ReturnInstructions(new List<string>
                 {
                     $"twilio/voice/speeches/{conversationId}/{reply.SpeechFileName}"
-                }, $"twilio/voice/{conversationId}/receive/{nextSeqNum}?states={states}", true, hints:reply.Hints);
+                }, $"twilio/voice/{conversationId}/receive/{nextSeqNum}?states={states}", true, hints: reply.Hints);
             }
         }
 
@@ -231,6 +243,25 @@ public class TwilioVoiceController : TwilioController
         {
             FileDownloadName = fileName
         };
+        return result;
+    }
+
+    private Dictionary<string, string> ParseStates(string? states)
+    {
+        var result = new Dictionary<string, string>();
+        if (string.IsNullOrWhiteSpace(states))
+        {
+            return result;
+        }
+        var kvps = states.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        foreach (var kvp in kvps)
+        {
+            var parts = kvp.Split(':');
+            if (parts.Length == 2)
+            {
+                result.Add(parts[0], parts[1]);
+            }
+        }
         return result;
     }
 }
