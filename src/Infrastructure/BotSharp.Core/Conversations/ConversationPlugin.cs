@@ -43,6 +43,7 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IConversationProgressService, ConversationProgressService>();
         services.AddScoped<IConversationStateService, ConversationStateService>();
+        services.AddScoped<IConversationSideCar, ConversationSideCar>();
         services.AddScoped<ITranslationService, TranslationService>();
 
         // Rich content messaging

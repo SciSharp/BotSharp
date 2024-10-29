@@ -32,6 +32,8 @@ public class ChatHubConversationHook : ConversationHookBase
 
     public override async Task OnConversationInitialized(Conversation conversation)
     {
+        if (!AllowSendingMessage()) return;
+
         var userService = _services.GetRequiredService<IUserService>();
         var conv = ConversationViewModel.FromSession(conversation);
 
@@ -44,6 +46,8 @@ public class ChatHubConversationHook : ConversationHookBase
 
     public override async Task OnMessageReceived(RoleDialogModel message)
     {
+        if (!AllowSendingMessage()) return;
+
         var conv = _services.GetRequiredService<IConversationService>();
         var userService = _services.GetRequiredService<IUserService>();
         var sender = await userService.GetMyProfile();
@@ -90,6 +94,8 @@ public class ChatHubConversationHook : ConversationHookBase
 
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
+        if (!AllowSendingMessage()) return;
+
         var conv = _services.GetRequiredService<IConversationService>();
         var json = JsonSerializer.Serialize(new ChatResponseModel()
         {
@@ -156,6 +162,12 @@ public class ChatHubConversationHook : ConversationHookBase
     }
 
     #region Private methods
+    private bool AllowSendingMessage()
+    {
+        var sidecar = _services.GetRequiredService<IConversationSideCar>();
+        return !sidecar.IsEnabled();
+    }
+
     private async Task InitClientConversation(ConversationViewModel conversation)
     {
         await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);

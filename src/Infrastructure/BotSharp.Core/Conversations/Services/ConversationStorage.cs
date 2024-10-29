@@ -91,13 +91,21 @@ public class ConversationStorage : IConversationStorage
             });
         }
 
-        db.AppendConversationDialogs(conversationId, dialogElements);
+        //db.AppendConversationDialogs(conversationId, dialogElements);
+
+        var sidecar = _services.GetRequiredService<IConversationSideCar>();
+        sidecar.AppendConversationDialogs(conversationId, dialogElements);
+
     }
 
     public List<RoleDialogModel> GetDialogs(string conversationId)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var dialogs = db.GetConversationDialogs(conversationId);
+        //var db = _services.GetRequiredService<IBotSharpRepository>();
+        //var dialogs = db.GetConversationDialogs(conversationId);
+
+        var sidecar = _services.GetRequiredService<IConversationSideCar>();
+        var dialogs = sidecar.GetConversationDialogs(conversationId);
+
         var hooks = _services.GetServices<IConversationHook>();
 
         var results = new List<RoleDialogModel>();

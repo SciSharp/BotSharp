@@ -98,6 +98,7 @@ public partial class ConversationService : IConversationService
         var record = sess;
         record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         record.UserId = sess.UserId.IfNullOrEmptyAs(foundUserId);
+        record.Tags = sess.Tags;
         record.Title = "New Conversation";
 
         db.CreateNewConversation(record);
@@ -139,8 +140,12 @@ public partial class ConversationService : IConversationService
 
         if (fromBreakpoint)
         {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            var breakpoint = db.GetConversationBreakpoint(_conversationId);
+            //var db = _services.GetRequiredService<IBotSharpRepository>();
+            //var breakpoint = db.GetConversationBreakpoint(_conversationId);
+
+            var sidecar = _services.GetRequiredService<IConversationSideCar>();
+            var breakpoint = sidecar.GetConversationBreakpoint(_conversationId);
+
             if (breakpoint != null)
             {
                 dialogs = dialogs.Where(x => x.CreatedAt >= breakpoint.Breakpoint).ToList();
@@ -151,9 +156,7 @@ public partial class ConversationService : IConversationService
             }
         }
 
-        return dialogs
-            .TakeLast(lastCount)
-            .ToList();
+        return dialogs.TakeLast(lastCount).ToList();
     }
 
     public void SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false)

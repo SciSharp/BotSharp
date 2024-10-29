@@ -92,7 +92,7 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
         }
 
         var routing = _services.GetRequiredService<IRoutingService>();
-        routing.ResetRecursiveCounter();
+        routing.Context.ResetRecursiveCounter();
         return true;
     }
 
