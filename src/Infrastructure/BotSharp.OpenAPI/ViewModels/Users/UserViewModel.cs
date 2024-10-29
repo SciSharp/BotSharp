@@ -47,7 +47,7 @@ public class UserViewModel
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Phone = user.Phone.Substring(0, 3) == "+86" ? user.Phone.Substring(3) : user.Phone,
+            Phone = user.Phone?.Substring(0, 3) == "+86" ? user.Phone.Substring(3) : user.Phone,
             Type = user.Type,
             Role = user.Role,
             Source = user.Source,
