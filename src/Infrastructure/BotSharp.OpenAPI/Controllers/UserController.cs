@@ -90,6 +90,8 @@ public class UserController : ControllerBase
                 LastName = identiy.LastName,
                 Source = claims.First().Issuer,
                 ExternalId = identiy.Id,
+                RegionCode = identiy.RegionCode,
+                Phone = identiy.Phone,
             });
         }
         return UserViewModel.FromUser(user);

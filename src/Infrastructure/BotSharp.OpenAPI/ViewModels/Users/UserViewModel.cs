@@ -27,6 +27,8 @@ public class UserViewModel
     [JsonPropertyName("update_date")]
     public DateTime UpdateDate { get; set; }
 
+    public string RegionCode { get; set; } = "CN";
+
     public static UserViewModel FromUser(User user)
     {
         if (user == null)
@@ -54,7 +56,8 @@ public class UserViewModel
             ExternalId = user.ExternalId,
             CreateDate = user.CreatedTime,
             UpdateDate = user.UpdatedTime,
-            Avatar = "/user/avatar"
+            Avatar = "/user/avatar",
+            RegionCode = user.RegionCode
         };
     }
 }
