@@ -18,6 +18,10 @@ public partial class MongoRepository
         {
             phoneSecond = $"+86{phone}";
         }
+        else
+        {
+            phoneSecond = phone.Replace("+86", "");
+        }
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate);
         return user != null ? user.ToUser() : null;
     }
