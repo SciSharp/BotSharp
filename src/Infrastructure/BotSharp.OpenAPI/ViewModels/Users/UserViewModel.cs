@@ -57,7 +57,7 @@ public class UserViewModel
             CreateDate = user.CreatedTime,
             UpdateDate = user.UpdatedTime,
             Avatar = "/user/avatar",
-            RegionCode = user.RegionCode
+            RegionCode = string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode
         };
     }
 }
