@@ -483,7 +483,7 @@ public class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var UserByphone = db.GetUserByPhone(phone);
-        if (UserByphone != null && UserByphone.Verified)
+        if (UserByphone != null/* && UserByphone.Verified*/)
         {
             return true;
         }
