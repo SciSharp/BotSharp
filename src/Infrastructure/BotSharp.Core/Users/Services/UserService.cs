@@ -631,7 +631,7 @@ public class UserService : IUserService
         var record = db.GetUserById(curUser.Id);
         var existPhone = db.GetUserByPhone(phone);
 
-        if (record == null || existPhone != null)
+        if (record == null || (existPhone != null && existPhone.RegionCode == regionCode))
         {
             return false;
         }
