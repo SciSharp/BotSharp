@@ -213,7 +213,7 @@ public class UserService : IUserService
         var (id, password) = base64.SplitAsTuple(":");
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
+        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByPhone(id);
         if (record == null)
         {
             record = db.GetUserByUserName(id);
