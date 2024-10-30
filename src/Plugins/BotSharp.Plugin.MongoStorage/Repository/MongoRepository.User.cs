@@ -14,7 +14,7 @@ public partial class MongoRepository
     public User? GetUserByPhone(string phone)
     {
         string phoneSecond = string.Empty;
-        if (phone.Substring(0, 3) != "+86")
+        if (phone.Length >= 4 && phone.Substring(0, 3) != "+86")
         {
             phoneSecond = $"+86{phone}";
         }
