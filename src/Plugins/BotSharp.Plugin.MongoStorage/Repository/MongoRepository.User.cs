@@ -14,9 +14,18 @@ public partial class MongoRepository
     public User? GetUserByPhone(string phone)
     {
         string phoneSecond = string.Empty;
-        if (phone.Length >= 4 && phone.Substring(0, 3) != "+86")
+        // 如果电话号码长度小于 4，直接返回 null
+        if (phone?.Length < 4)
+        {
+            return null;
+        }
+        if (phone.Substring(0, 3) != "+86")
         {
             phoneSecond = $"+86{phone}";
+        }
+        else
+        {
+            phoneSecond = phone.Replace("+86", "");
         }
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate);
         return user != null ? user.ToUser() : null;
