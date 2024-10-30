@@ -216,7 +216,7 @@ public class UserService : IUserService
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
         {
-            record = db.GetUserByUserName(id);
+            record = db.GetUserByPhone(id);
         }
 
         if (record != null && record.Type == UserType.Affiliate)
