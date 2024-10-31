@@ -32,7 +32,7 @@ public class TwilioVoiceController : TwilioController
     /// <exception cref="ArgumentNullException"></exception>
     [ValidateRequest]
     [HttpPost("twilio/voice/welcome")]
-    public TwiMLResult InitiateConversation(VoiceRequest request, [FromQuery] string states)
+    public async Task<TwiMLResult> InitiateConversation(VoiceRequest request, [FromQuery] string[] states, [FromQuery] string intent)
     {
         if (request?.CallSid == null)
         {
@@ -41,14 +41,35 @@ public class TwilioVoiceController : TwilioController
 
         string conversationId = $"TwilioVoice_{request.CallSid}";
         var twilio = _services.GetRequiredService<TwilioService>();
-        var url = $"twilio/voice/{conversationId}/receive/0?states={states}";
-        var response = twilio.ReturnNoninterruptedInstructions(new List<string> { "twilio/welcome.mp3" }, url, true, timeout: 2);
+        VoiceResponse response;
+        if (string.IsNullOrWhiteSpace(intent))
+        {
+            var url = $"twilio/voice/{conversationId}/receive/0?{GenerateStatesParameter(states)}";
+            response = twilio.ReturnNoninterruptedInstructions(new List<string> { "twilio/welcome.mp3" }, url, true, timeout: 2);
+        }
+        else
+        {
+            int seqNum = 0;
+            var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
+            var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+            await sessionManager.StageCallerMessageAsync(conversationId, seqNum, intent);
+            var callerMessage = new CallerMessage()
+            {
+                ConversationId = conversationId,
+                SeqNumber = seqNum,
+                Content = intent,
+                From = request.From,
+                States = ParseStates(states)
+            };
+            await messageQueue.EnqueueAsync(callerMessage);
+            response = new VoiceResponse().Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?{GenerateStatesParameter(states)}"), HttpMethod.Post);
+        }
         return TwiML(response);
     }
 
     [ValidateRequest]
     [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
-    public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string states, VoiceRequest request, [FromQuery] int attempts = 1)
+    public async Task<TwiMLResult> ReceiveCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum, [FromQuery] string[] states, VoiceRequest request, [FromQuery] int attempts = 1)
     {
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
@@ -72,22 +93,13 @@ public class TwilioVoiceController : TwilioController
                 ConversationId = conversationId,
                 SeqNumber = seqNum,
                 Content = messageContent,
-                Digits = request.Digits, 
-                From = request.From
+                Digits = request.Digits,
+                From = request.From,
+                States = ParseStates(states)
             };
-
-            if (!string.IsNullOrEmpty(states))
-            {
-                var kvp = states.Split(':');
-                if (kvp.Length == 2)
-                {
-                    callerMessage.States.Add(kvp[0], kvp[1]);
-                }
-            }
-
             await messageQueue.EnqueueAsync(callerMessage);
 
-            response = new VoiceResponse().Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?states={states}"), HttpMethod.Post);
+            response = new VoiceResponse().Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{conversationId}/reply/{seqNum}?{GenerateStatesParameter(states)}"), HttpMethod.Post);
         }
         else
         {
@@ -105,11 +117,11 @@ public class TwilioVoiceController : TwilioController
                     speechPaths.Add($"twilio/say-it-again-{Random.Shared.Next(1, 5)}.mp3");
                     speechPaths.Add($"twilio/voice/speeches/{conversationId}/{lastRepy.SpeechFileName}");
                 }
-                response = twilio.ReturnInstructions(speechPaths, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}", true);
+                response = twilio.ReturnInstructions(speechPaths, $"twilio/voice/{conversationId}/receive/{seqNum}?{GenerateStatesParameter(states)}", true);
             }
             else
             {
-                response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/receive/{seqNum}?states={states}&attempts={++attempts}", true);
+                response = twilio.ReturnInstructions(null, $"twilio/voice/{conversationId}/receive/{seqNum}?{GenerateStatesParameter(states)}&attempts={++attempts}", true);
             }
         }
         return TwiML(response);
@@ -118,7 +130,7 @@ public class TwilioVoiceController : TwilioController
     [ValidateRequest]
     [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
     public async Task<TwiMLResult> ReplyCallerMessage([FromRoute] string conversationId, [FromRoute] int seqNum,
-        [FromQuery] string states, VoiceRequest request)
+        [FromQuery] string[] states, VoiceRequest request)
     {
         var nextSeqNum = seqNum + 1;
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
@@ -159,7 +171,7 @@ public class TwilioVoiceController : TwilioController
                         {
                             speechPaths.Add($"twilio/hold-on-short-{holdOnIndex}.mp3");
                         }
-                        
+
                         var fileName = $"indication_{seqNum}_{segIndex}.mp3";
                         fileStorage.SaveSpeechFile(conversationId, fileName, data);
                         speechPaths.Add($"twilio/voice/speeches/{conversationId}/{fileName}");
@@ -173,7 +185,7 @@ public class TwilioVoiceController : TwilioController
                         segIndex++;
                     }
                 }
-                response = twilio.ReturnInstructions(speechPaths, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
+                response = twilio.ReturnInstructions(speechPaths, $"twilio/voice/{conversationId}/reply/{seqNum}?{GenerateStatesParameter(states)}", true);
                 await sessionManager.RemoveReplyIndicationAsync(conversationId, seqNum);
             }
             else
@@ -196,7 +208,7 @@ public class TwilioVoiceController : TwilioController
                     instructions.Add($"twilio/typing-{typingIndex}.mp3");
                 }
 
-                response = twilio.ReturnInstructions(instructions, $"twilio/voice/{conversationId}/reply/{seqNum}?states={states}", true);
+                response = twilio.ReturnInstructions(instructions, $"twilio/voice/{conversationId}/reply/{seqNum}?{GenerateStatesParameter(states)}", true);
             }
         }
         else
@@ -214,7 +226,7 @@ public class TwilioVoiceController : TwilioController
                 response = twilio.ReturnInstructions(new List<string>
                 {
                     $"twilio/voice/speeches/{conversationId}/{reply.SpeechFileName}"
-                }, $"twilio/voice/{conversationId}/receive/{nextSeqNum}?states={states}", true, hints:reply.Hints);
+                }, $"twilio/voice/{conversationId}/receive/{nextSeqNum}?{GenerateStatesParameter(states)}", true, hints: reply.Hints);
             }
         }
 
@@ -232,5 +244,32 @@ public class TwilioVoiceController : TwilioController
             FileDownloadName = fileName
         };
         return result;
+    }
+
+    private Dictionary<string, string> ParseStates(string[] states)
+    {
+        var result = new Dictionary<string, string>();
+        if (states is null || !states.Any())
+        {
+            return result;
+        }
+        foreach (var kvp in states)
+        {
+            var parts = kvp.Split(':', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2)
+            {
+                result.Add(parts[0], parts[1]);
+            }
+        }
+        return result;
+    }
+
+    private string GenerateStatesParameter(string[] states)
+    {
+        if (states is null || states.Length == 0)
+        {
+            return null;
+        }
+        return string.Join("&", states.Select(x => $"states={x}"));
     }
 }
