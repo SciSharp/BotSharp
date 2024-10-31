@@ -27,4 +27,14 @@ public class UserAgentActionViewModel
             Actions = action.Actions
         };
     }
+
+    public static UserAgentAction ToDomainModel(UserAgentActionViewModel action)
+    {
+        return new UserAgentAction
+        {
+            Id = action.Id,
+            AgentId = action.AgentId,
+            Actions = action.Actions
+        };
+    }
 }

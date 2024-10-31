@@ -33,6 +33,7 @@ public interface IBotSharpRepository
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
     PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
+    bool UpdateUser(User user, bool isUpdateUserAgents = false) => throw new NotImplementedException();
     #endregion
 
     #region Agent

@@ -1,9 +1,7 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
-using System.Globalization;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -230,5 +228,47 @@ public partial class MongoRepository
             Items = users,
             Count = (int)count
         };
+    }
+
+
+    public bool UpdateUser(User user, bool isUpdateUserAgents = false)
+    {
+        if (string.IsNullOrEmpty(user?.Id)) return false;
+
+        var userFilter = Builders<UserDocument>.Filter.Eq(x => x.Id, user.Id);
+        var userUpdate = Builders<UserDocument>.Update
+            .Set(x => x.Role, user.Role)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Users.UpdateOne(userFilter, userUpdate);
+
+        if (isUpdateUserAgents)
+        {
+            var userAgentDocs = user.AgentActions?.Select(x => new UserAgentDocument
+            {
+                Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+                UserId = user.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions,
+                CreatedTime = DateTime.UtcNow,
+                UpdatedTime = DateTime.UtcNow
+            })?.ToList() ?? [];
+
+            _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.Nin(x => x.Id, userAgentDocs.Select(x => x.Id)));
+            foreach (var doc in userAgentDocs)
+            {
+                var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.Id, doc.Id);
+                var userAgentUpdate = Builders<UserAgentDocument>.Update
+                    .Set(x => x.Id, doc.Id)
+                    .Set(x => x.UserId, user.Id)
+                    .Set(x => x.AgentId, doc.AgentId)
+                    .Set(x => x.Actions, doc.Actions)
+                    .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+                _dc.UserAgents.UpdateOne(userAgentFilter, userAgentUpdate, _options);
+            }
+        }
+
+        return true;
     }
 }

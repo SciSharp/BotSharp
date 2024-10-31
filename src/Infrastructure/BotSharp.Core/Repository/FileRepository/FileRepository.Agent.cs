@@ -449,9 +449,15 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
-        public void BulkInsertAgents(List<Agent> agents) { }
+        public void BulkInsertAgents(List<Agent> agents)
+        {
+            _agents = [];
+        }
 
-        public void BulkInsertUserAgents(List<UserAgent> userAgents) { }
+        public void BulkInsertUserAgents(List<UserAgent> userAgents)
+        {
+            _userAgents = [];
+        }
 
         public bool DeleteAgents()
         {
@@ -487,6 +493,8 @@ namespace BotSharp.Core.Repository
 
                 // Delete agent folder
                 Directory.Delete(agentDir, true);
+                _agents = [];
+                _userAgents = [];
                 return true;
             }
             catch

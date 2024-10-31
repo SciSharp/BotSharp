@@ -7,6 +7,7 @@ public interface IUserService
 {
     Task<User> GetUser(string id);
     Task<PagedItems<User>> GetUsers(UserFilter filter);
+    Task<bool> UpdateUser(User model, bool isUpdateUserAgents = false);
     Task<User> CreateUser(User user);
     Task<Token> ActiveUser(UserActivationModel model);
     Task<Token?> GetAffiliateToken(string authorization);

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using System;
@@ -129,5 +130,40 @@ public partial class FileRepository
             Items = users.OrderByDescending(x => x.CreatedTime).Skip(filter.Offset).Take(filter.Size),
             Count = users.Count()
         };
+    }
+
+    public bool UpdateUser(User user, bool isUpdateUserAgents = false)
+    {
+        if (string.IsNullOrEmpty(user?.Id)) return false;
+
+        var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        var userFile = Path.Combine(dir, USER_FILE);
+        user.UpdatedTime = DateTime.UtcNow;
+        File.WriteAllText(_dbSettings.FileRepository, JsonSerializer.Serialize(user, _options));
+
+        if (isUpdateUserAgents)
+        {
+            var userAgents = user.AgentActions?.Select(x => new UserAgent
+            {
+                Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+                UserId = user.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions ?? [],
+                CreatedTime = DateTime.UtcNow,
+                UpdatedTime = DateTime.UtcNow
+            })?.ToList() ?? [];
+
+            var userAgentFile = Path.Combine(dir, USER_AGENT_FILE);
+            File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+        }
+
+        _users = [];
+        _userAgents = [];
+        return true;
     }
 }
