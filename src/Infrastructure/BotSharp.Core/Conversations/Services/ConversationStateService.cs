@@ -394,7 +394,9 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void SetCurrentState(ConversationState state)
     {
-        _curStates = state;
+        var values = _curStates.Values.ToList();
+        var copy = JsonSerializer.Deserialize<List<StateKeyValue>>(JsonSerializer.Serialize(values));
+        _curStates = new ConversationState(copy ?? new());
     }
 
     public void ResetCurrentState()

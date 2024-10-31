@@ -80,7 +80,7 @@ public class ConversationSideCar : IConversationSideCar
         }
     }
 
-    public async Task<RoleDialogModel> Execute(string conversationId, string agentId, string text,
+    public async Task<RoleDialogModel> Execute(string agentId, string text,
         PostbackMessageModel? postback = null, List<MessageState>? states = null)
     {
         BeforeExecute();

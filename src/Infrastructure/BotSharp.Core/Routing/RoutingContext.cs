@@ -214,9 +214,9 @@ public class RoutingContext : IRoutingContext
         return _currentRecursionDepth;
     }
 
-    public int IncreaseRecursiveCounter()
+    public void IncreaseRecursiveCounter()
     {
-        return _currentRecursionDepth;
+        _currentRecursionDepth++;
     }
 
     public void SetRecursiveCounter(int counter)

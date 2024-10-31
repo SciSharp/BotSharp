@@ -21,7 +21,7 @@ public interface IRoutingContext
 
     int CurrentRecursionDepth { get; }
     int GetRecursiveCounter();
-    int IncreaseRecursiveCounter();
+    void IncreaseRecursiveCounter();
     void SetRecursiveCounter(int counter);
     void ResetRecursiveCounter();
 
