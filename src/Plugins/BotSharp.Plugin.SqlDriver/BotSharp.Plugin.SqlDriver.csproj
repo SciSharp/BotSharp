@@ -29,6 +29,10 @@
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\sql_insert.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\functions\sql_select.json" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\instructions\instruction.liquid" />
+    <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.dictionary.sql.liquid" />
+    <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.summarize.mysql.liquid" />
+    <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.summarize.redshift.liquid" />
+    <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.summarize.sqlserver.liquid" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\query_result_formatting.liquid" />
     <None Remove="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\sql_statement_correctness.liquid" />
   </ItemGroup>
@@ -70,6 +74,18 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\sql_executor.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.summarize.redshift.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.dictionary.sql.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.summarize.mysql.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\database.summarize.sqlserver.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\beda4c12-e1ec-4b4b-b328-3df4a6687c4f\templates\sql_statement_correctness.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -81,6 +97,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
+    <PackageReference Include="Npgsql" Version="8.0.5" />
   </ItemGroup>
 
   <ItemGroup>
