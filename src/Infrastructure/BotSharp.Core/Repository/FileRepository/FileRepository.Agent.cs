@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing.Models;
+using BotSharp.Abstraction.Users.Models;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -386,19 +386,26 @@ namespace BotSharp.Core.Repository
             return query.ToList();
         }
 
-        public List<Agent> GetAgentsByUser(string userId)
+        public List<UserAgent> GetUserAgents(string userId)
         {
-            var agentIds = (from ua in UserAgents
-                            join u in Users on ua.UserId equals u.Id
-                            where ua.UserId == userId || u.ExternalId == userId
-                            select ua.AgentId).ToList();
+            var found = (from ua in UserAgents
+                         join u in Users on ua.UserId equals u.Id
+                         where ua.UserId == userId || u.ExternalId == userId
+                         select ua).ToList();
 
-            var filter = new AgentFilter
+            if (found.IsNullOrEmpty()) return [];
+
+            var agentIds = found.Select(x => x.AgentId).Distinct().ToList();
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+            foreach (var item in found)
             {
-                AgentIds = agentIds
-            };
-            var agents = GetAgents(filter);
-            return agents;
+                var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (agent == null) continue;
+
+                item.Agent = agent;
+            }
+
+            return found;
         }
 
 
@@ -473,14 +480,13 @@ namespace BotSharp.Core.Repository
                         var userAgents = JsonSerializer.Deserialize<List<UserAgent>>(text, _options);
                         if (userAgents.IsNullOrEmpty()) continue;
 
-                        userAgents = userAgents.Where(x => x.AgentId != agentId).ToList();
+                        userAgents = userAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
                         File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
                     }
                 }
 
                 // Delete agent folder
                 Directory.Delete(agentDir, true);
-
                 return true;
             }
             catch

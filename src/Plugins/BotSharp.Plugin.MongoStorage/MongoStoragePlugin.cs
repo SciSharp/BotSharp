@@ -37,7 +37,7 @@ public class MongoStoragePlugin : IBotSharpPlugin
         var section = menu.First(x => x.Label == "Apps");
         menu.Add(new PluginMenuDef("MongoDB", icon: "bx bx-data", link: "page/mongodb", weight: section.Weight + 10)
         {
-            Roles = new List<string> { UserRole.Admin }
+            Roles = new List<string> { UserRole.Root, UserRole.Admin }
         });
         return true;
     }

@@ -9,13 +9,18 @@ public partial class AgentService
 {
     public async Task UpdateAgent(Agent agent, AgentField updateField)
     {
+        if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
+
         var userService = _services.GetRequiredService<IUserService>();
         var user = await userService.GetUser(_user.Id);
-        var userAgents = GetAgentsByUser(user?.Id);
-        var editable = userAgents?.Select(x => x.Id)?.Contains(agent.Id) ?? false;
-        if (user?.Role != UserRole.Admin && !editable) return;
 
-        if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
+        var userAgents = await GetUserAgents(user.Id);
+        var found = userAgents?.FirstOrDefault(x => x.AgentId == agent.Id);
+
+        if (!UserConstant.AdminRoles.Contains(user?.Role) && (found?.Actions == null || found.Actions.Contains(UserAction.Edit)))
+        {
+            return;
+        }
 
         var record = _db.GetAgent(agent.Id);
         if (record == null) return;

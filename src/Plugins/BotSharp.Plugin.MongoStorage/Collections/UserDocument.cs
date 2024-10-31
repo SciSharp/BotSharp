@@ -20,6 +20,7 @@ public class UserDocument : MongoBase
     public bool Verified { get; set; }
     public string? AffiliateId { get; set; }
     public bool IsDisabled { get; set; }
+    public IEnumerable<string> Permissions { get; set; } = [];
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
 
@@ -43,6 +44,7 @@ public class UserDocument : MongoBase
             IsDisabled = IsDisabled,
             VerificationCode = VerificationCode,
             Verified = Verified,
+            Permissions = Permissions,
         };
     }
 }

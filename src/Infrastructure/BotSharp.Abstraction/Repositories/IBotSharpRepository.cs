@@ -10,9 +10,6 @@ namespace BotSharp.Abstraction.Repositories;
 
 public interface IBotSharpRepository
 {
-    int Transaction<TTableInterface>(Action action);
-    void Add<TTableInterface>(object entity);
-
     #region Plugin
     PluginConfig GetPluginConfig();
     void SavePluginConfig(PluginConfig config);
@@ -35,13 +32,14 @@ public interface IBotSharpRepository
     void UpdateUserPhone(string userId, string Iphone) => throw new NotImplementedException();
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
+    PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
     #endregion
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
     Agent? GetAgent(string agentId);
     List<Agent> GetAgents(AgentFilter filter);
-    List<Agent> GetAgentsByUser(string userId);
+    List<UserAgent> GetUserAgents(string userId);
     void BulkInsertAgents(List<Agent> agents);
     void BulkInsertUserAgents(List<UserAgent> userAgents);
     bool DeleteAgents();

@@ -6,6 +6,7 @@ namespace BotSharp.Abstraction.Users;
 public interface IUserService
 {
     Task<User> GetUser(string id);
+    Task<PagedItems<User>> GetUsers(UserFilter filter);
     Task<User> CreateUser(User user);
     Task<Token> ActiveUser(UserActivationModel model);
     Task<Token?> GetAffiliateToken(string authorization);

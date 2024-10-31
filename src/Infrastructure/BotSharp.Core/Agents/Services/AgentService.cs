@@ -49,10 +49,12 @@ public partial class AgentService : IAgentService
         return dir;
     }
 
-    public List<Agent> GetAgentsByUser(string userId)
+    public async Task<List<UserAgent>> GetUserAgents(string userId)
     {
-        var agents = _db.GetAgentsByUser(userId);
-        return agents;
+        if (string.IsNullOrEmpty(userId)) return [];
+
+        var userAgents = _db.GetUserAgents(userId);
+        return userAgents;
     }
 
     public IEnumerable<string> GetAgentUtilities()

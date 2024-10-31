@@ -377,6 +377,13 @@ public class UserService : IUserService
         return user;
     }
 
+    public async Task<PagedItems<User>> GetUsers(UserFilter filter)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var users = db.GetUsers(filter);
+        return users;
+    }
+
     public async Task<Token> ActiveUser(UserActivationModel model)
     {
         var id = model.UserName;

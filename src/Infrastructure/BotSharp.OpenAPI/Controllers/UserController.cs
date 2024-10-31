@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Users.Enums;
+using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
@@ -10,10 +12,16 @@ public class UserController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserService _userService;
-    public UserController(IUserService userService, IServiceProvider services)
+    private readonly IUserIdentity _user;
+
+    public UserController(
+        IUserService userService,
+        IServiceProvider services,
+        IUserIdentity user)
     {
         _services = services;
         _userService = userService;
+        _user = user;
     }
 
     [AllowAnonymous]
@@ -163,6 +171,29 @@ public class UserController : ControllerBase
     {
         return await _userService.UpdateUsersIsDisable(userIds, isDisable);
     }
+
+    #region User management
+    [HttpPost("/users")]
+    public async Task<PagedItems<UserViewModel>> GetUsers([FromBody] UserFilter filter)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        {
+            return new PagedItems<UserViewModel>();
+        }
+
+        var users = await userService.GetUsers(filter);
+        var views = users.Items.Select(x => UserViewModel.FromUser(x)).ToList();
+
+        return new PagedItems<UserViewModel>
+        {
+            Count = users.Count,
+            Items = views
+        };
+    }
+    #endregion
+
 
     #region Avatar
     [HttpPost("/user/avatar")]

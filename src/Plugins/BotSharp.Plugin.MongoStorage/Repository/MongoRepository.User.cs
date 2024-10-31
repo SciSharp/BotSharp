@@ -1,5 +1,9 @@
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Models;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
+using System.Globalization;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -145,5 +149,86 @@ public partial class MongoRepository
         {
             UpdateUserIsDisable(userId, isDisable);
         }
+    }
+
+    public PagedItems<User> GetUsers(UserFilter filter)
+    {
+        var userBuilder = Builders<UserDocument>.Filter;
+        var userFilters = new List<FilterDefinition<UserDocument>>() { userBuilder.Empty };
+
+        // Apply filters
+        if (!filter.UserIds.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Id, filter.UserIds));
+        }
+        if (!filter.UserNames.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.UserName, filter.UserNames));
+        }
+        if (!filter.ExternalIds.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.ExternalId, filter.ExternalIds));
+        }
+        if (!filter.Roles.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Role, filter.Roles));
+        }
+        if (!filter.Sources.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Source, filter.Sources));
+        }
+
+        // Filter def and sort
+        var filterDef = userBuilder.And(userFilters);
+        var sortDef = Builders<UserDocument>.Sort.Descending(x => x.CreatedTime);
+
+        // Search
+        var userDocs = _dc.Users.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
+        var count = _dc.Users.CountDocuments(filterDef);
+
+        var users = userDocs.Select(x => x.ToUser()).ToList();
+        var userIds = users.Select(x => x.Id).ToList();
+        var userAgents = _dc.UserAgents.AsQueryable().Where(x => userIds.Contains(x.UserId)).Select(x => new UserAgent
+        {
+            Id = x.Id,
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions ?? Enumerable.Empty<string>(),
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
+        var agentIds = userAgents.Select(x => x.AgentId).Distinct().ToList();
+
+        if (!agentIds.IsNullOrEmpty())
+        {
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+            foreach (var item in userAgents)
+            {
+                var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (agent == null) continue;
+
+                item.Agent = agent;
+            }
+
+            foreach (var user in users)
+            {
+                var found = userAgents.Where(x => x.UserId == user.Id).ToList();
+                if (found.IsNullOrEmpty()) continue;
+
+                user.AgentActions = found.Select(x => new UserAgentAction
+                {
+                    Id = x.Id,
+                    AgentId = x.AgentId,
+                    Agent = x.Agent,
+                    Actions = x.Actions
+                });
+            }
+        }
+
+        return new PagedItems<User>
+        {
+            Items = users,
+            Count = (int)count
+        };
     }
 }
