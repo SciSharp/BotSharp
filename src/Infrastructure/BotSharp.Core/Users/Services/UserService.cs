@@ -466,7 +466,7 @@ public class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var emailName = db.GetUserByEmail(email);
-        if (emailName != null && emailName.Verified)
+        if (emailName != null /*&& emailName.Verified*/)
         {
             return true;
         }
