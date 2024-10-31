@@ -1,7 +1,12 @@
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Plugin.SqlDriver.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using Npgsql;
+using System.ComponentModel.DataAnnotations;
+using System.Data.Common;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -25,14 +30,16 @@ public class GetTableDefinitionFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<SqlStatement>(message.FunctionArgs);
         var tables = args.Tables;
         var agentService = _services.GetRequiredService<IAgentService>();
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        var dbHook = _services.GetRequiredService<IDatabaseHook>();
+        var dbType = dbHook.GetDatabaseType(message);
 
         // Get table DDL from database
-        var tableDdls = settings.DatabaseType switch
+        var tableDdls = dbType switch
         {
-            "MySql" => GetDdlFromMySql(tables),
-            "SqlServer" => GetDdlFromSqlServer(tables),
-            _ => throw new NotImplementedException($"Database type {settings.DatabaseType} is not supported.")
+            "mysql" => GetDdlFromMySql(tables),
+            "sqlserver" => GetDdlFromSqlServer(tables),
+            "redshift" => GetDdlFromRedshift(tables),
+            _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };
     
         message.Content = string.Join("\r\n\r\n", tableDdls);
@@ -122,6 +129,45 @@ public class GetTableDefinitionFn : IFunctionCallback
             }
         }
 
+        connection.Close();
+        return tableDdls;
+    }
+
+    private List<string> GetDdlFromRedshift(string[] tables)
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        var tableDdls = new List<string>();
+        var schemas = "'onebi_hour','onebi_day'";
+        using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
+        connection.Open();
+
+        foreach (var table in tables)
+        {
+            try
+            {
+                var sql = $"SELECT columnname, external_type, columnnum FROM svv_external_columns WHERE schemaname in ({schemas}) AND tablename = '{table}';";
+                
+                using var command = new NpgsqlCommand(sql, connection);
+                using var reader = command.ExecuteReader();
+                var ddl = $"Table {table} contains below fields: \r\n";
+                while (reader.Read())
+                {
+                    /*var result = reader.GetString(0);
+                    tableDdls.Add(result);*/
+                    var columnName = reader.GetString(0);
+                    var dataType = reader.GetString(1);
+                    ddl += $"{columnName} {dataType}\n";
+                }
+                tableDdls.Add(ddl);
+
+                reader.Close();
+                command.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error when getting ddl statement of table {table}. {ex.Message}\r\n{ex.InnerException}");
+            }
+        }
         connection.Close();
         return tableDdls;
     }

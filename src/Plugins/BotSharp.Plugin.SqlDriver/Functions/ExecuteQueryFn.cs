@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.SqlDriver.Models;
@@ -6,6 +7,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using Npgsql;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -27,18 +29,18 @@ public class ExecuteQueryFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs);
-
         var refinedArgs = await RefineSqlStatement(message, args);
-
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        var dbHook = _services.GetRequiredService<IDatabaseHook>();
+        var dbType = dbHook.GetDatabaseType(message);
 
         try
         {
-            var results = settings.DatabaseType switch
+            var results = dbType.ToLower() switch
             {
-                "MySql" => RunQueryInMySql(refinedArgs.SqlStatements),
-                "SqlServer" => RunQueryInSqlServer(refinedArgs.SqlStatements),
-                _ => throw new NotImplementedException($"Database type {settings.DatabaseType} is not supported.")
+                "mysql" => RunQueryInMySql(refinedArgs.SqlStatements),
+                "sqlserver" => RunQueryInSqlServer(refinedArgs.SqlStatements),
+                "redshift" => RunQueryInRedshift(refinedArgs.SqlStatements),
+                _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
             };
 
             if (refinedArgs.SqlStatements.Length == 1 && refinedArgs.SqlStatements[0].StartsWith("DROP TABLE"))
@@ -100,6 +102,12 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
+        return connection.Query(string.Join("\r\n", sqlTexts));
+    }
+    private IEnumerable<dynamic> RunQueryInRedshift(string[] sqlTexts)
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
 

@@ -14,14 +14,6 @@ public class SqlDriverPlanningHook : IPlanningHook
         _services = services;
     }
 
-    public async Task<string> GetSummaryAdditionalRequirements(string planner)
-    {
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
-        return agent.Templates.FirstOrDefault(x => x.Name == $"database.summarize.{settings.DatabaseType.ToLower()}")?.Content ?? string.Empty;
-    }
-
     public async Task OnPlanningCompleted(string planner, RoleDialogModel msg)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
