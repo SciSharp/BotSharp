@@ -36,15 +36,15 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var knowledges = new List<string>();
         foreach (var hook in hooks)
         {
-            var k = await hook.GetRelevantKnowledges(message, taskSecondary.SolutionQuestion);
+            var k = await hook.GetDomainKnowledges(message, taskSecondary.SolutionQuestion);
             knowledges.AddRange(k);
         }
         knowledges = knowledges.Distinct().ToList();
         var knowledgeResults = string.Join("\r\n\r\n=====\r\n", knowledges);
 
-        var knowledgeState = states.GetState("relevant_knowledges");
+        var knowledgeState = states.GetState("domain_knowledges");
         knowledgeState += String.Join("\r\n", knowledges);
-        states.SetState("relevant_knowledges", knowledgeState);
+        states.SetState("domain_knowledges", knowledgeState);
 
         // Get second stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);

@@ -36,13 +36,13 @@ public class PrimaryStagePlanFn : IFunctionCallback
         {
             foreach (var hook in hooks)
             {
-                var k = await hook.GetRelevantKnowledges(message, question);
+                var k = await hook.GetDomainKnowledges(message, question);
                 knowledges.AddRange(k);
             }
         }
         knowledges = knowledges.Distinct().ToList();
         var knowledgeState = String.Join("\r\n", knowledges);
-        state.SetState("relevant_knowledges", knowledgeState);
+        state.SetState("domain_knowledges", knowledgeState);
 
         // Get first stage planning prompt
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
@@ -64,7 +64,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetFirstStagePlanPrompt(RoleDialogModel message, string taskDescription, List<string> relevantKnowledges)
+    private async Task<string> GetFirstStagePlanPrompt(RoleDialogModel message, string taskDescription, List<string> domainKnowledges)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -86,7 +86,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         {
             { "task_description", taskDescription },
             { "global_knowledges", globalKnowledges },
-            { "relevant_knowledges", relevantKnowledges },
+            { "domain_knowledges", domainKnowledges },
             { "response_format", responseFormat }
         });
     }

@@ -35,8 +35,8 @@ public class SummaryPlanFn : IFunctionCallback
         var steps = states.GetState("planning_result").JsonArrayContent<SecondStagePlan>();
         var allTables = new List<string>();
         var ddlStatements = string.Empty;
-        var relevantKnowledge = states.GetState("planning_result");
-        relevantKnowledge += "\r\n" + states.GetState("relevant_knowledges");
+        var domainKnowledge = states.GetState("planning_result");
+        domainKnowledge += "\r\n" + states.GetState("domain_knowledges");
         var dictionaryItems = states.GetState("dictionary_items");
         var excelImportResult = states.GetState("excel_import_result");
 
@@ -55,7 +55,7 @@ public class SummaryPlanFn : IFunctionCallback
         ddlStatements += "\r\n" + msgCopy.Content;
 
         // Summarize and generate query
-        var prompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, relevantKnowledge, dictionaryItems, ddlStatements, excelImportResult);
+        var prompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, domainKnowledge, dictionaryItems, ddlStatements, excelImportResult);
         _logger.LogInformation($"Summary plan prompt:\r\n{prompt}");
 
         var plannerAgent = new Agent
@@ -76,7 +76,7 @@ public class SummaryPlanFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetSummaryPlanPrompt(RoleDialogModel message, string taskDescription, string relevantKnowledge, string dictionaryItems, string ddlStatement, string excelImportResult)
+    private async Task<string> GetSummaryPlanPrompt(RoleDialogModel message, string taskDescription, string domainKnowledge, string dictionaryItems, string ddlStatement, string excelImportResult)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -104,7 +104,7 @@ public class SummaryPlanFn : IFunctionCallback
             { "task_description", taskDescription },
             { "summary_requirements", string.Join("\r\n", additionalRequirements) },
             { "global_knowledges", globalKnowledges },
-            { "relevant_knowledges", relevantKnowledge },
+            { "domain_knowledges", domainKnowledge },
             { "dictionary_items", dictionaryItems },
             { "table_structure", ddlStatement },
             { "excel_import_result", excelImportResult }
