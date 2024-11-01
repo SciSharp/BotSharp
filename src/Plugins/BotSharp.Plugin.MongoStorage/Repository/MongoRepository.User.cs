@@ -237,7 +237,9 @@ public partial class MongoRepository
 
         var userFilter = Builders<UserDocument>.Filter.Eq(x => x.Id, user.Id);
         var userUpdate = Builders<UserDocument>.Update
+            .Set(x => x.Type, user.Type)
             .Set(x => x.Role, user.Role)
+            .Set(x => x.Permissions, user.Permissions)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Users.UpdateOne(userFilter, userUpdate);
@@ -254,7 +256,12 @@ public partial class MongoRepository
                 UpdatedTime = DateTime.UtcNow
             })?.ToList() ?? [];
 
-            _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.Nin(x => x.Id, userAgentDocs.Select(x => x.Id)));
+            var toDelete = _dc.UserAgents.Find(Builders<UserAgentDocument>.Filter.And(
+                    Builders<UserAgentDocument>.Filter.Eq(x => x.UserId, user.Id),
+                    Builders<UserAgentDocument>.Filter.Nin(x => x.Id, userAgentDocs.Select(x => x.Id))
+                )).ToList();
+
+            _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.In(x => x.Id, toDelete.Select(x => x.Id)));
             foreach (var doc in userAgentDocs)
             {
                 var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.Id, doc.Id);

@@ -76,12 +76,24 @@ public class AgentController : ControllerBase
     }
 
     [HttpGet("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter, [FromQuery] bool checkAuth = false)
     {
         var agentSetting = _services.GetRequiredService<AgentSettings>();
         var userService = _services.GetRequiredService<IUserService>();
 
+        List<AgentViewModel> agents;
         var pagedAgents = await _agentService.GetAgents(filter);
+
+        if (!checkAuth)
+        {
+            agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? [];
+            return new PagedItems<AgentViewModel>
+            {
+                Items = agents,
+                Count = pagedAgents?.Count ?? 0
+            };
+        }
+
         var userAgents = new List<UserAgent>();
         var user = await userService.GetUser(_user.Id);
         if (!UserConstant.AdminRoles.Contains(user.Role))
@@ -89,16 +101,19 @@ public class AgentController : ControllerBase
             userAgents = await _agentService.GetUserAgents(user.Id);
         }
 
-        var agents = pagedAgents?.Items?.Select(x =>
+        agents = pagedAgents?.Items?.Select(x =>
         {
             var chatable = true;
+            var editable = true;
             if (!UserConstant.AdminRoles.Contains(user.Role))
             {
                 var actions = userAgents.FirstOrDefault(a => a.AgentId == x.Id)?.Actions ?? [];
                 chatable = actions.Contains(UserAction.Chat);
+                editable = actions.Contains(UserAction.Edit);
             }
 
             var model = AgentViewModel.FromAgent(x);
+            model.Editable = editable;
             model.Chatable = chatable;
             return model;
         })?.ToList() ?? [];

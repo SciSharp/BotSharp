@@ -144,7 +144,7 @@ public partial class FileRepository
 
         var userFile = Path.Combine(dir, USER_FILE);
         user.UpdatedTime = DateTime.UtcNow;
-        File.WriteAllText(_dbSettings.FileRepository, JsonSerializer.Serialize(user, _options));
+        File.WriteAllText(userFile, JsonSerializer.Serialize(user, _options));
 
         if (isUpdateUserAgents)
         {

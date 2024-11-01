@@ -6,7 +6,7 @@ namespace BotSharp.OpenAPI.ViewModels.Users;
 public class UserAgentActionViewModel
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     [JsonPropertyName("agent_id")]
     public string AgentId { get; set; }
