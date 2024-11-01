@@ -13,13 +13,13 @@ public class UserController : ControllerBase
     private readonly IServiceProvider _services;
     private readonly IUserService _userService;
     private readonly IUserIdentity _user;
+    private readonly AccountSetting _setting;
 
     public UserController(
         IUserService userService,
         IServiceProvider services,
-        IUserIdentity user)
-    private readonly AccountSetting _setting;
-    public UserController(IUserService userService, IServiceProvider services, AccountSetting setting)
+        IUserIdentity user,
+        AccountSetting setting)
     {
         _services = services;
         _userService = userService;
