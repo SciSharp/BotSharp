@@ -18,7 +18,9 @@ public class UserDocument : MongoBase
     public string Role { get; set; } = null!;
     public string? VerificationCode { get; set; }
     public bool Verified { get; set; }
+    public string? RegionCode { get; set; }
     public string? AffiliateId { get; set; }
+    public string? EmployeeId { get; set; }
     public bool IsDisabled { get; set; }
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
@@ -40,9 +42,11 @@ public class UserDocument : MongoBase
             Type = Type,
             Role = Role,
             AffiliateId = AffiliateId,
+            EmployeeId = EmployeeId,
             IsDisabled = IsDisabled,
             VerificationCode = VerificationCode,
             Verified = Verified,
+            RegionCode = RegionCode,
         };
     }
 }

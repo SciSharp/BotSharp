@@ -14,4 +14,8 @@ public interface IUserIdentity
     string UserLanguage { get; }
     string? Phone { get; }
     string? AffiliateId { get; }
+    string? EmployeeId { get; }
+    string Type { get; }
+    string Role { get; }
+    string? RegionCode { get; }
 }
