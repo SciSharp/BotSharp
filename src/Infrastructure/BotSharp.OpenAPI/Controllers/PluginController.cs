@@ -24,7 +24,7 @@ public class PluginController : ControllerBase
     {
         var userService = _services.GetRequiredService<IUserService>();
         var user = await userService.GetUser(_user.Id);
-        if (user?.Role != UserRole.Admin)
+        if (!UserConstant.AdminRoles.Contains(user?.Role))
         {
             return new PagedItems<PluginDef>();
         }
@@ -45,15 +45,19 @@ public class PluginController : ControllerBase
             new PluginMenuDef("System", weight: 30)
             { 
                 IsHeader = true,
-                Roles = new List<string> { UserRole.Admin }
+                Roles = new List<string> { UserRole.Root, UserRole.Admin }
             },
             new PluginMenuDef("Plugins", link: "page/plugin", icon: "bx bx-plug", weight: 31)
             {
-                Roles = new List<string> { UserRole.Admin }
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
             },
             new PluginMenuDef("Settings", link: "page/setting", icon: "bx bx-cog", weight: 32)
             {
-                Roles = new List<string> { UserRole.Admin }
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
+            },
+            new PluginMenuDef("Users", link: "page/users", icon: "bx bx-user", weight: 33)
+            {
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
             }
         };
 

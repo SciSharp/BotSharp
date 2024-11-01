@@ -55,7 +55,7 @@ public class ConversationController : ControllerBase
             return new PagedItems<ConversationViewModel>();
         }
 
-        filter.UserId = user.Role != UserRole.Admin ? user.Id : filter.UserId;
+        filter.UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : filter.UserId;
         var conversations = await convService.GetConversations(filter);
         var agentService = _services.GetRequiredService<IAgentService>();
         var list = conversations.Items.Select(x => ConversationViewModel.FromSession(x)).ToList();
@@ -146,7 +146,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await service.GetConversations(filter);
         if (conversations.Items.IsNullOrEmpty())
@@ -209,7 +209,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await conv.GetConversations(filter);
 
@@ -262,7 +262,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await conversationService.GetConversations(filter);
 
