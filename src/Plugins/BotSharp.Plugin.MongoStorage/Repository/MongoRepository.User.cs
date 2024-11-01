@@ -15,7 +15,21 @@ public partial class MongoRepository
 
     public User? GetUserByPhone(string phone)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone && x.Type != UserType.Affiliate);
+        string phoneSecond = string.Empty;
+        // 如果电话号码长度小于 4，直接返回 null
+        if (phone?.Length < 4)
+        {
+            return null;
+        }
+        if (phone.Substring(0, 3) != "+86")
+        {
+            phoneSecond = $"+86{phone}";
+        }
+        else
+        {
+            phoneSecond = phone.Replace("+86", "");
+        }
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate);
         return user != null ? user.ToUser() : null;
     }
 
@@ -39,11 +53,11 @@ public partial class MongoRepository
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
-    public User? GetUserByAffiliateId(string affiliateId)
+    public List<User> GetUsersByAffiliateId(string affiliateId)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.AffiliateId == affiliateId);
-        return user != null ? user.ToUser() : null;
+        var users = _dc.Users.AsQueryable()
+            .Where(x => x.AffiliateId == affiliateId).ToList();
+        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
     public User? GetUserByUserName(string userName)
@@ -72,7 +86,9 @@ public partial class MongoRepository
             Type = user.Type,
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
+            RegionCode = user.RegionCode,
             AffiliateId = user.AffiliateId,
+            EmployeeId = user.EmployeeId,
             IsDisabled = user.IsDisabled,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
@@ -89,7 +105,9 @@ public partial class MongoRepository
             .Set(x => x.Phone, user.Phone)
             .Set(x => x.Salt, user.Salt)
             .Set(x => x.Password, user.Password)
-            .Set(x => x.VerificationCode, user.VerificationCode);
+            .Set(x => x.VerificationCode, user.VerificationCode)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.RegionCode, user.RegionCode);
         _dc.Users.UpdateOne(filter, update);
     }
 
@@ -113,7 +131,8 @@ public partial class MongoRepository
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Password, password)
-            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.Verified, true);
         _dc.Users.UpdateOne(filter, update);
     }
 
@@ -125,11 +144,14 @@ public partial class MongoRepository
         _dc.Users.UpdateOne(filter, update);
     }
 
-    public void UpdateUserPhone(string userId, string phone)
+    public void UpdateUserPhone(string userId, string phone, string regionCode)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Phone, phone)
-            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.RegionCode, regionCode)
+            .Set(x => x.UserName, phone)
+            .Set(x => x.FirstName, phone);
         _dc.Users.UpdateOne(filter, update);
     }
 

@@ -36,6 +36,8 @@ public class UserViewModel
     [JsonPropertyName("update_date")]
     public DateTime UpdateDate { get; set; }
 
+    public string RegionCode { get; set; } = "CN";
+
     public static UserViewModel FromUser(User user)
     {
         if (user == null)
@@ -56,7 +58,7 @@ public class UserViewModel
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Phone = user.Phone,
+            Phone = user.Phone?.Substring(0, 3) == "+86" ? user.Phone.Substring(3) : user.Phone,
             Type = user.Type,
             Role = user.Role,
             Source = user.Source,
@@ -65,7 +67,8 @@ public class UserViewModel
             AgentActions = user.AgentActions?.Select(x => UserAgentActionViewModel.ToViewModel(x)) ?? [],
             CreateDate = user.CreatedTime,
             UpdateDate = user.UpdatedTime,
-            Avatar = "/user/avatar"
+            Avatar = "/user/avatar",
+            RegionCode = string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode
         };
     }
 }

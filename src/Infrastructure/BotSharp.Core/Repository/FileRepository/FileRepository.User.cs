@@ -33,9 +33,9 @@ public partial class FileRepository
         return Users.Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId)))?.ToList() ?? new List<User>();
     }
 
-    public User? GetUserByAffiliateId(string affiliateId)
+    public List<User> GetUsersByAffiliateId(string affiliateId)
     {
-        return Users.FirstOrDefault(x => x.AffiliateId == affiliateId);
+        return Users.Where(x => x.AffiliateId == affiliateId).ToList();
     }
 
     public User? GetUserByUserName(string userName = null)

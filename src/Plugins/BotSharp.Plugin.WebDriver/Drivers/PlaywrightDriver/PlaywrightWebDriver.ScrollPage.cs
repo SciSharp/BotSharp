@@ -12,17 +12,33 @@ public partial class PlaywrightWebDriver
         if (args.Direction == "down")
         {
             // Get the total page height
-            int scrollY = await page.EvaluateAsync<int>("document.body.scrollHeight");
+            int scrollY = await page.EvaluateAsync<int>("window.screen.height");
 
-            // Scroll to the bottom
+            // Scroll a page down
             await page.Mouse.WheelAsync(0, scrollY);
         }
         else if (args.Direction == "up")
         {
             // Get the total page height
+            int scrollY = await page.EvaluateAsync<int>("window.screen.height");
+
+            // Scroll a page up
+            await page.Mouse.WheelAsync(0, -scrollY);
+        }
+        else if (args.Direction == "bottom")
+        {
+            // Get the total page height
             int scrollY = await page.EvaluateAsync<int>("document.body.scrollHeight");
 
             // Scroll to the bottom
+            await page.Mouse.WheelAsync(0, -scrollY);
+        }
+        else if (args.Direction == "top")
+        {
+            // Get the total page height
+            int scrollY = await page.EvaluateAsync<int>("document.body.scrollHeight");
+
+            // Scroll to the top
             await page.Mouse.WheelAsync(0, -scrollY);
         }
         else if (args.Direction == "left")

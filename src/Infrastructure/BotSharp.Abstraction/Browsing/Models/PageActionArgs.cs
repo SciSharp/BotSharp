@@ -1,13 +1,15 @@
 using BotSharp.Abstraction.Browsing.Enums;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class PageActionArgs
 {
     public BroswerActionEnum Action { get; set; }
 
     public string? Content { get; set; }
-    public string? Direction { get; set; }
+    public string Direction { get; set; } = "down";
 
     public string Url { get; set; } = null!;
 

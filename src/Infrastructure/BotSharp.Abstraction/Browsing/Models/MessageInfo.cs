@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Infrastructures;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class MessageInfo : ICacheKey
 {
     public string AgentId { get; set; } = null!;

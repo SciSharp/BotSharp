@@ -7,4 +7,9 @@ public class WebPageResponseData
     public string ResponseData { get; set; } = null!;
     public bool ResponseInMemory { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public override string ToString()
+    {
+        return $"{Url} {ResponseData.Length}";
+    }
 }

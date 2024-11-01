@@ -7,4 +7,5 @@ public class AccountSetting
     /// </summary>
     public bool NewUserVerification { get; set; }
     public string[] AllowMultipleDeviceLoginUserIds { get; set; } = [];
+    public bool CreateUserAutomatically { get; set; } = true;
 }
