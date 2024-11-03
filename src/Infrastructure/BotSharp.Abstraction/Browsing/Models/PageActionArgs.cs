@@ -30,6 +30,8 @@ public class PageActionArgs
     /// </summary>
     public string[]? IncludeResponseUrls { get; set; }
 
+    public List<string>? Selectors { get; set; }
+
     /// <summary>
     /// If set to true, the response will be stored in memory
     /// </summary>
