@@ -165,8 +165,8 @@ public class ChatHubConversationHook : ConversationHookBase
     #region Private methods
     private bool AllowSendingMessage()
     {
-        var sidecar = _services.GetRequiredService<IConversationSideCar>();
-        return !sidecar.IsEnabled();
+        var sidecar = _services.GetService<IConversationSideCar>();
+        return sidecar == null || !sidecar.IsEnabled();
     }
 
     private async Task InitClientConversation(ConversationViewModel conversation)
