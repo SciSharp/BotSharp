@@ -31,7 +31,7 @@ public class DistributedLocker
         }
     }
 
-    public async Task<T> Lock<T>(string resource, Func<T> action, int timeoutInSeconds = 30)
+    public async Task Lock(string resource, Action action, int timeoutInSeconds = 30)
     {
         await ConnectToRedis();
 
@@ -45,7 +45,7 @@ public class DistributedLocker
                 Serilog.Log.Logger.Error($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
                 
             }
-            return action();
+            action();
         }
     }
 
