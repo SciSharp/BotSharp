@@ -37,6 +37,7 @@ public class WebSocketsMiddleware
         var regexes = new List<Regex>
         {
             new Regex(@"/conversation/(.*?)/message/(.*?)/(.*?)/file/(.*?)/(.*?)", RegexOptions.IgnoreCase),
+            new Regex(@"/conversation/(.*?)/message/(.*?)/(.*?)/file/(.*?)/(.*?)/download", RegexOptions.IgnoreCase),
             new Regex(@"/user/avatar", RegexOptions.IgnoreCase),
             new Regex(@"/knowledge/document/(.*?)/file/(.*?)", RegexOptions.IgnoreCase)
         };
