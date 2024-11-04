@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Users.Enums;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -25,6 +26,20 @@ public partial class AgentService
 
         var user = _db.GetUserById(_user.Id);
         _db.BulkInsertAgents(new List<Agent> { agentRecord });
+        if (!UserConstant.AdminRoles.Contains(user.Role))
+        {
+            _db.BulkInsertUserAgents(new List<UserAgent>
+            {
+                new UserAgent
+                {
+                    UserId = user.Id,
+                    AgentId = agent.Id,
+                    Actions = new List<string> { UserAction.Edit },
+                    CreatedTime = DateTime.UtcNow,
+                    UpdatedTime = DateTime.UtcNow
+                }
+            });
+        }
 
         Utilities.ClearCache();
         return await Task.FromResult(agentRecord);
