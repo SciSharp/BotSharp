@@ -33,7 +33,7 @@ public partial class AgentService
                 new UserAgent
                 {
                     UserId = user.Id,
-                    AgentId = agent.Id,
+                    AgentId = agentRecord.Id,
                     Actions = new List<string> { UserAction.Edit },
                     CreatedTime = DateTime.UtcNow,
                     UpdatedTime = DateTime.UtcNow

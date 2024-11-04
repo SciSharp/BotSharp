@@ -429,16 +429,18 @@ public partial class MongoRepository
     {
         if (userAgents.IsNullOrEmpty()) return;
 
-        var userAgentDocs = userAgents.Where(x => !string.IsNullOrEmpty(x.UserId))
-                                      .Select(x => new UserAgentDocument
-                                        {
-                                            Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
-                                            UserId = x.UserId,
-                                            AgentId = x.AgentId,
-                                            Actions = x.Actions,
-                                            CreatedTime = x.CreatedTime,
-                                            UpdatedTime = x.UpdatedTime
-                                        }).ToList();
+        var filtered = userAgents.Where(x => !string.IsNullOrEmpty(x.UserId) && !string.IsNullOrEmpty(x.AgentId)).ToList();
+        if (filtered.IsNullOrEmpty()) return;
+
+        var userAgentDocs = filtered.Select(x => new UserAgentDocument
+        {
+            Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions,
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
 
         _dc.UserAgents.InsertMany(userAgentDocs);
     }
