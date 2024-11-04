@@ -429,10 +429,13 @@ public partial class MongoRepository
     {
         if (userAgents.IsNullOrEmpty()) return;
 
-        var userAgentDocs = userAgents.Select(x => new UserAgentDocument
+        var filtered = userAgents.Where(x => !string.IsNullOrEmpty(x.UserId) && !string.IsNullOrEmpty(x.AgentId)).ToList();
+        if (filtered.IsNullOrEmpty()) return;
+
+        var userAgentDocs = filtered.Select(x => new UserAgentDocument
         {
             Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
-            UserId = !string.IsNullOrEmpty(x.UserId) ? x.UserId : string.Empty,
+            UserId = x.UserId,
             AgentId = x.AgentId,
             Actions = x.Actions,
             CreatedTime = x.CreatedTime,

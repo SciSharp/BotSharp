@@ -1,5 +1,7 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Models;
+using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -451,12 +453,63 @@ namespace BotSharp.Core.Repository
 
         public void BulkInsertAgents(List<Agent> agents)
         {
-            _agents = [];
+            if (agents.IsNullOrEmpty()) return;
+
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
+            foreach (var agent in agents)
+            {
+                var dir = Path.Combine(baseDir, agent.Id);
+                if (Directory.Exists(dir)) continue;
+
+                Directory.CreateDirectory(dir);
+                Thread.Sleep(50);
+
+                var agentFile = Path.Combine(dir, AGENT_FILE);
+                var json = JsonSerializer.Serialize(agent, _options);
+                File.WriteAllText(agentFile, json);
+
+                if (!string.IsNullOrWhiteSpace(agent.Instruction))
+                {
+                    var instDir = Path.Combine(dir, AGENT_INSTRUCTIONS_FOLDER);
+                    Directory.CreateDirectory(instDir);
+                    var instFile = Path.Combine(instDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
+                    File.WriteAllText(instFile, agent.Instruction);
+                }
+            }
+            Reset();
         }
 
         public void BulkInsertUserAgents(List<UserAgent> userAgents)
         {
-            _userAgents = [];
+            if (userAgents.IsNullOrEmpty()) return;
+
+            var groups = userAgents.GroupBy(x => x.UserId);
+            var usersDir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
+
+            foreach (var group in groups)
+            {
+                var filtered = group.Where(x => !string.IsNullOrEmpty(x.UserId) && !string.IsNullOrEmpty(x.AgentId)).ToList();
+                if (filtered.IsNullOrEmpty()) continue;
+
+                filtered.ForEach(x => x.Id = Guid.NewGuid().ToString());
+                var userId = filtered.First().UserId;
+                var userDir = Path.Combine(usersDir, userId);
+                if (!Directory.Exists(userDir)) continue;
+
+                var userAgentFile = Path.Combine(userDir, USER_AGENT_FILE);
+                var list = new List<UserAgent>();
+                if (File.Exists(userAgentFile))
+                {
+                    var str = File.ReadAllText(userAgentFile);
+                    list = JsonSerializer.Deserialize<List<UserAgent>>(str, _options);
+                }
+
+                list.AddRange(filtered);
+                File.WriteAllText(userAgentFile, JsonSerializer.Serialize(list, _options));
+                Thread.Sleep(50);
+            }
+
+            Reset();
         }
 
         public bool DeleteAgents()
@@ -493,14 +546,19 @@ namespace BotSharp.Core.Repository
 
                 // Delete agent folder
                 Directory.Delete(agentDir, true);
-                _agents = [];
-                _userAgents = [];
+                Reset();
                 return true;
             }
             catch
             {
                 return false;
             }
+        }
+
+        private void Reset()
+        {
+            _agents = [];
+            _userAgents = [];
         }
     }
 }
