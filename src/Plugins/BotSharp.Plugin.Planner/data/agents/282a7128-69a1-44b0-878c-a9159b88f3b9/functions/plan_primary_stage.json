@@ -10,7 +10,7 @@
       },
       "questions": {
         "type": "array",
-        "description": "Break down user requirements in details and in multiple ways, don't miss any entity type/value",
+        "description": "Break down user requirements in details and in multiple ways, don't miss any entity type/value. The output format must be string array.",
         "items": {
           "type": "string",
           "description": "Question converted from requirement in different ways to search in the knowledge base, be short and you can refer to the global knowledge.One question should contain only one main topic that with one entity type."
@@ -18,7 +18,7 @@
       },
       "norm_questions": {
         "type": "array",
-        "description": "normalize the generated questions, remove specific entity value.",
+        "description": "normalize the generated questions, remove specific entity value. The output format must be string array.",
         "items": {
           "type": "string",
           "description": "Normalized question"

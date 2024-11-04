@@ -1,6 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Conversations.Models;
-using BotSharp.Abstraction.Users.Models;
 using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -25,10 +22,4 @@ public partial class MongoRepository : IBotSharpRepository
             IsUpsert = true,
         };
     }
-
-    private List<Agent> _agents = new List<Agent>();
-    private List<User> _users = new List<User>();
-    private List<UserAgent> _userAgents = new List<UserAgent>();
-    private List<Conversation> _conversations = new List<Conversation>();
-    List<string> _changedTableNames = new List<string>();    
 }

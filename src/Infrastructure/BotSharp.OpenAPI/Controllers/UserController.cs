@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Users.Settings;
+using BotSharp.Abstraction.Users.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
@@ -10,10 +12,19 @@ public class UserController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserService _userService;
-    public UserController(IUserService userService, IServiceProvider services)
+    private readonly IUserIdentity _user;
+    private readonly AccountSetting _setting;
+
+    public UserController(
+        IUserService userService,
+        IServiceProvider services,
+        IUserIdentity user,
+        AccountSetting setting)
     {
         _services = services;
         _userService = userService;
+        _user = user;
+        _setting = setting;
     }
 
     [AllowAnonymous]
@@ -77,7 +88,7 @@ public class UserController : ControllerBase
     public async Task<UserViewModel> GetMyUserProfile()
     {
         var user = await _userService.GetMyProfile();
-        if (user == null)
+        if (user == null && _setting.CreateUserAutomatically)
         {
             var identiy = _services.GetRequiredService<IUserIdentity>();
             var accessor = _services.GetRequiredService<IHttpContextAccessor>();
@@ -90,6 +101,8 @@ public class UserController : ControllerBase
                 LastName = identiy.LastName,
                 Source = claims.First().Issuer,
                 ExternalId = identiy.Id,
+                RegionCode = identiy.RegionCode,
+                Phone = identiy.Phone,
             });
         }
         return UserViewModel.FromUser(user);
@@ -153,9 +166,9 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("/user/phone/modify")]
-    public async Task<bool> ModifyUserPhone([FromQuery] string phone)
+    public async Task<bool> ModifyUserPhone([FromQuery] string phone, [FromQuery] string regionCode = "CN")
     {
-        return await _userService.ModifyUserPhone(phone);
+        return await _userService.ModifyUserPhone(phone, regionCode);
     }
 
     [HttpPost("/user/update/isdisable")]
@@ -163,6 +176,46 @@ public class UserController : ControllerBase
     {
         return await _userService.UpdateUsersIsDisable(userIds, isDisable);
     }
+
+    #region User management
+    [HttpPost("/users")]
+    public async Task<PagedItems<UserViewModel>> GetUsers([FromBody] UserFilter filter)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        {
+            return new PagedItems<UserViewModel>();
+        }
+
+        var users = await userService.GetUsers(filter);
+        var views = users.Items.Select(x => UserViewModel.FromUser(x)).ToList();
+
+        return new PagedItems<UserViewModel>
+        {
+            Count = users.Count,
+            Items = views
+        };
+    }
+
+
+    [HttpPut("/user")]
+    public async Task<bool> UpdateUser([FromBody] UserUpdateModel model)
+    {
+        if (model == null) return false;
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        {
+            return false;
+        }
+
+        var updated = await userService.UpdateUser(UserUpdateModel.ToUser(model), isUpdateUserAgents: true);
+        return updated;
+    }
+    #endregion
+
 
     #region Avatar
     [HttpPost("/user/avatar")]

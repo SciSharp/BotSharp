@@ -9,7 +9,7 @@ public class PlaywrightInstance : IDisposable
     public IServiceProvider Services => _services;
     Dictionary<string, IBrowserContext> _contexts = new Dictionary<string, IBrowserContext>();
     Dictionary<string, List<IPage>> _pages = new Dictionary<string, List<IPage>>();
-    IPage? _activePage = null;
+    Dictionary<string, IPage?> _activePage = new Dictionary<string, IPage?>();
 
     /// <summary>
     /// ContextId and BrowserContext
@@ -30,14 +30,14 @@ public class PlaywrightInstance : IDisposable
     {
         if (string.IsNullOrEmpty(pattern))
         {
-            return _activePage ?? _contexts[contextId].Pages.LastOrDefault();
+            return _activePage.ContainsKey(contextId) ? _activePage[contextId] : _contexts[contextId].Pages.LastOrDefault();
         }
 
         foreach (var page in _contexts[contextId].Pages)
         {
             if (page.Url.ToLower() == pattern.ToLower())
             {
-                _activePage = page;
+                _activePage[contextId] = page;
                 page.BringToFrontAsync().Wait();
                 return page;
             }
@@ -92,7 +92,7 @@ public class PlaywrightInstance : IDisposable
 
         _contexts[ctxId].Page += async (sender, page) =>
         {
-            _activePage = page;
+            _activePage[ctxId] = page;
             _pages[ctxId].Add(page);
             page.Close += async (sender, e) =>
             {
@@ -146,37 +146,41 @@ public class PlaywrightInstance : IDisposable
         {
             if (e.Status != 204 &&
                 e.Headers.ContainsKey("content-type") &&
-                e.Headers["content-type"].Contains("application/json") &&
                 (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr") &&
                 (excludeResponseUrls == null || !excludeResponseUrls.Any(url => e.Url.ToLower().Contains(url))) &&
                 (includeResponseUrls == null || includeResponseUrls.Any(url => e.Url.ToLower().Contains(url))))
             {
                 Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
-                JsonElement? json = null;
+                
                 try
                 {
-                    if (e.Status == 200 && e.Ok)
-                    {
-                        json = await e.JsonAsync();
-                    }
-                    else
-                    {
-                        Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
-                    }
-
                     var result = new WebPageResponseData
                     {
                         Url = e.Url.ToLower(),
                         PostData = e.Request?.PostData ?? string.Empty,
-                        ResponseData = JsonSerializer.Serialize(json),
                         ResponseInMemory = responseInMemory
                     };
+
+                    if (e.Headers["content-type"].Contains("application/json"))
+                    {
+                        if (e.Status == 200 && e.Ok)
+                        {
+                            var json = await e.JsonAsync();
+                            result.ResponseData = JsonSerializer.Serialize(json);
+                        }
+                    }
+                    else
+                    {
+                        var html = await e.TextAsync();
+                        result.ResponseData = html;
+                    }
 
                     if (responseContainer != null && responseInMemory)
                     {
                         responseContainer.Add(result);
                     }
 
+                    Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
                     var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
                     foreach (var hook in webPageResponseHooks)
                     {
@@ -236,7 +240,7 @@ public class PlaywrightInstance : IDisposable
             if (page != null)
             {
                 await page.CloseAsync();
-                _activePage = _pages[ctxId].LastOrDefault();
+                _activePage[ctxId] = _pages[ctxId].LastOrDefault();
             }
         }
     }

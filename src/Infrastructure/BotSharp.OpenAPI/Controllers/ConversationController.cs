@@ -1,6 +1,7 @@
 using Azure;
 using BotSharp.Abstraction.Files.Constants;
 using BotSharp.Abstraction.Files.Enums;
+using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users.Enums;
@@ -55,7 +56,7 @@ public class ConversationController : ControllerBase
             return new PagedItems<ConversationViewModel>();
         }
 
-        filter.UserId = user.Role != UserRole.Admin ? user.Id : filter.UserId;
+        filter.UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : filter.UserId;
         var conversations = await convService.GetConversations(filter);
         var agentService = _services.GetRequiredService<IAgentService>();
         var list = conversations.Items.Select(x => ConversationViewModel.FromSession(x)).ToList();
@@ -146,7 +147,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await service.GetConversations(filter);
         if (conversations.Items.IsNullOrEmpty())
@@ -209,7 +210,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await conv.GetConversations(filter);
 
@@ -262,7 +263,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await conversationService.GetConversations(filter);
 
@@ -487,6 +488,26 @@ public class ConversationController : ControllerBase
             return NotFound();
         }
         return BuildFileResult(file);
+    }
+
+    [HttpGet("/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}/download")]
+    public IActionResult DownloadMessageFile([FromRoute] string conversationId, [FromRoute] string messageId, [FromRoute] string source, [FromRoute] string index, [FromRoute] string fileName)
+    {
+        var fileStorage = _services.GetRequiredService<IFileStorageService>();
+        var file = fileStorage.GetMessageFile(conversationId, messageId, source, index, fileName);
+        if (string.IsNullOrEmpty(file))
+        {
+            return NotFound();
+        }
+
+        var fName = file.Split(Path.DirectorySeparatorChar).Last();
+        var contentType = FileUtility.GetFileContentType(fName);
+        var stream = System.IO.File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var bytes = new byte[stream.Length];
+        stream.Read(bytes, 0, (int)stream.Length);
+        stream.Position = 0;
+
+        return new FileStreamResult(stream, contentType) { FileDownloadName = fName };
     }
     #endregion
 
