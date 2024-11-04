@@ -10,15 +10,7 @@ public partial class ConversationService : IConversationService
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var messageId = routingCtx.MessageId;
 
-        //db.UpdateConversationBreakpoint(_conversationId, new ConversationBreakpoint
-        //{
-        //    MessageId = messageId,
-        //    Breakpoint = DateTime.UtcNow,
-        //    Reason = reason
-        //});
-
-        var sidecar = _services.GetRequiredService<IConversationSideCar>();
-        sidecar.UpdateConversationBreakpoint(_conversationId, new ConversationBreakpoint
+        db.UpdateConversationBreakpoint(_conversationId, new ConversationBreakpoint
         {
             MessageId = messageId,
             Breakpoint = DateTime.UtcNow,

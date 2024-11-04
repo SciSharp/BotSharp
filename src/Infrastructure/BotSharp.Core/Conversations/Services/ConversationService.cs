@@ -140,11 +140,8 @@ public partial class ConversationService : IConversationService
 
         if (fromBreakpoint)
         {
-            //var db = _services.GetRequiredService<IBotSharpRepository>();
-            //var breakpoint = db.GetConversationBreakpoint(_conversationId);
-
-            var sidecar = _services.GetRequiredService<IConversationSideCar>();
-            var breakpoint = sidecar.GetConversationBreakpoint(_conversationId);
+            var db = _services.GetRequiredService<IBotSharpRepository>();
+            var breakpoint = db.GetConversationBreakpoint(_conversationId);
 
             if (breakpoint != null)
             {

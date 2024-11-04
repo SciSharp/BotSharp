@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
@@ -8,7 +9,7 @@ using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Repositories;
 
-public interface IBotSharpRepository
+public interface IBotSharpRepository : IHaveServiceProvider
 {
     #region Plugin
     PluginConfig GetPluginConfig();

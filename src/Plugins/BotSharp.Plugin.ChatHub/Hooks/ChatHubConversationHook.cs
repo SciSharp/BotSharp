@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.SideCar;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;

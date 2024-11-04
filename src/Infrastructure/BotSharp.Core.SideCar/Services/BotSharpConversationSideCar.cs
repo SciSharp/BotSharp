@@ -1,20 +1,19 @@
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Models;
+namespace BotSharp.Core.SideCar.Services;
 
-namespace BotSharp.Core.Conversations.Services;
-
-public class ConversationSideCar : IConversationSideCar
+public class BotSharpConversationSideCar : IConversationSideCar
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<ConversationSideCar> _logger;
+    private readonly ILogger<BotSharpConversationSideCar> _logger;
 
     private Stack<ConversationContext> contextStack = new();
 
     private bool enabled = false;
 
-    public ConversationSideCar(
+    public string Provider => "botsharp";
+
+    public BotSharpConversationSideCar(
         IServiceProvider services,
-        ILogger<ConversationSideCar> logger)
+        ILogger<BotSharpConversationSideCar> logger)
     {
         _services = services;
         _logger = logger;
@@ -27,60 +26,42 @@ public class ConversationSideCar : IConversationSideCar
 
     public void AppendConversationDialogs(string conversationId, List<DialogElement> messages)
     {
-        if (enabled)
-        {
-            var top = contextStack.Peek();
-            top.Dialogs.AddRange(messages);
-        }
-        else
-        {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            db.AppendConversationDialogs(conversationId, messages);
-        }
+        if (contextStack.IsNullOrEmpty()) return;
+
+        var top = contextStack.Peek();
+        top.Dialogs.AddRange(messages);
     }
 
     public List<DialogElement> GetConversationDialogs(string conversationId)
     {
-        if (enabled)
+        if (contextStack.IsNullOrEmpty())
         {
-            return contextStack.Peek().Dialogs;
+            return new List<DialogElement>();
         }
-        else
-        {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            return db.GetConversationDialogs(conversationId);
-        }
+
+        return contextStack.Peek().Dialogs;
     }
 
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
-        if (enabled)
-        {
-            var top = contextStack.Peek().Breakpoints;
-            top.Add(breakpoint);
-        }
-        else
-        {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            db.UpdateConversationBreakpoint(conversationId, breakpoint);
-        }
+        if (contextStack.IsNullOrEmpty()) return;
+
+        var top = contextStack.Peek().Breakpoints;
+        top.Add(breakpoint);
     }
 
     public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
     {
-        if (enabled)
+        if (contextStack.IsNullOrEmpty())
         {
-            var top = contextStack.Peek().Breakpoints;
-            return top.LastOrDefault();
+            return null;
         }
-        else
-        {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            return db.GetConversationBreakpoint(conversationId);
-        }
+
+        var top = contextStack.Peek().Breakpoints;
+        return top.LastOrDefault();
     }
 
-    public async Task<RoleDialogModel> Execute(string agentId, string text,
+    public async Task<RoleDialogModel> SendMessage(string agentId, string text,
         PostbackMessageModel? postback = null, List<MessageState>? states = null)
     {
         BeforeExecute();

@@ -22,4 +22,6 @@ public partial class MongoRepository : IBotSharpRepository
             IsUpsert = true,
         };
     }
+
+    public IServiceProvider ServiceProvider => _services;
 }

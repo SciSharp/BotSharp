@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\BotSharp.Plugin.PizzaBot\BotSharp.Plugin.PizzaBot.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Core.SideCar\BotSharp.Core.SideCar.csproj" />
 
   </ItemGroup>
   
