@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+
+</Project>

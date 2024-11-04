@@ -190,7 +190,7 @@ namespace BotSharp.Core.Repository
             // Save default instructions
             var instructionFile = Path.Combine(instructionDir, $"{AGENT_INSTRUCTION_FILE}.{_agentSettings.TemplateFormat}");
             File.WriteAllText(instructionFile, instruction ?? string.Empty);
-            Thread.Sleep(100);
+            Thread.Sleep(50);
 
             // Save channel instructions
             foreach (var ci in channelInstructions)
@@ -199,7 +199,7 @@ namespace BotSharp.Core.Repository
 
                 var file = Path.Combine(instructionDir, $"{AGENT_INSTRUCTION_FILE}.{ci.Channel}.{_agentSettings.TemplateFormat}");
                 File.WriteAllText(file, ci.Instruction ?? string.Empty);
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
         }
 

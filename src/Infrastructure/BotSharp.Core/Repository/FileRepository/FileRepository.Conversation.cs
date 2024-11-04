@@ -57,6 +57,7 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
+        [SideCar]
         public List<DialogElement> GetConversationDialogs(string conversationId)
         {
             var dialogs = new List<DialogElement>();
@@ -78,6 +79,7 @@ namespace BotSharp.Core.Repository
             return dialogs;
         }
 
+        [SideCar]
         public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
         {
             var convDir = FindConversationDirectory(conversationId);
@@ -182,6 +184,7 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
+        [SideCar]
         public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
         {
             var convDir = FindConversationDirectory(conversationId);
@@ -220,6 +223,7 @@ namespace BotSharp.Core.Repository
             }
         }
 
+        [SideCar]
         public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
         {
             var convDir = FindConversationDirectory(conversationId);

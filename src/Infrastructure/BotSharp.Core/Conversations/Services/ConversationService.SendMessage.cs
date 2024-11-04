@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing.Settings;
-using BotSharp.Core.Routing.Planning;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -90,7 +89,7 @@ public partial class ConversationService
                 response = await routing.InstructDirect(agent, message);
             }
 
-            routing.ResetRecursiveCounter();
+            routing.Context.ResetRecursiveCounter();
         }
 
         await HandleAssistantMessage(response, onMessageReceived);

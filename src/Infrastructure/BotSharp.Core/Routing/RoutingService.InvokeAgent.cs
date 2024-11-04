@@ -4,14 +4,15 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    private int _currentRecursionDepth = 0;
+    //private int _currentRecursionDepth = 0;
     public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
-        _currentRecursionDepth++;
-        if (_currentRecursionDepth > agent.LlmConfig.MaxRecursionDepth)
+        //_currentRecursionDepth++;
+        Context.IncreaseRecursiveCounter();
+        if (Context.CurrentRecursionDepth > agent.LlmConfig.MaxRecursionDepth)
         {
             _logger.LogWarning($"Current recursive call depth greater than {agent.LlmConfig.MaxRecursionDepth}, which will cause unexpected result.");
             return false;
@@ -36,8 +37,7 @@ public partial class RoutingService
 
         if (response.Role == AgentRole.Function)
         {
-            message = RoleDialogModel.From(message,
-                    role: AgentRole.Function);
+            message = RoleDialogModel.From(message, role: AgentRole.Function);
             if (response.FunctionName != null && response.FunctionName.Contains("/"))
             {
                 response.FunctionName = response.FunctionName.Split("/").Last();
@@ -57,9 +57,7 @@ public partial class RoutingService
                 response.Content = "Apologies, I'm not quite sure I understand. Could you please provide additional clarification or context?";
             }
 
-            message = RoleDialogModel.From(message,
-                    role: AgentRole.Assistant,
-                    content: response.Content);
+            message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: response.Content);
             message.CurrentAgentId = agent.Id;
             dialogs.Add(message);
         }
