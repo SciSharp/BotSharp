@@ -69,6 +69,7 @@ public partial class LocalFileStorageService
                     {
                         MessageId = messageId,
                         FileUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}",
+                        FileDownloadUrl = $"/conversation/{conversationId}/message/{messageId}/{source}/file/{index}/{fileName}/download",
                         FileStorageUrl = file,
                         FileName = fileName,
                         FileExtension = fileExtension,

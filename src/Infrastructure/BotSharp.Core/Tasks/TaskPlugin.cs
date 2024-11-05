@@ -22,7 +22,7 @@ public class TaskPlugin : IBotSharpPlugin
         var section = menu.First(x => x.Label == "Apps");
         menu.Add(new PluginMenuDef("Task", link: "page/task", icon: "bx bx-task", weight: section.Weight + 8)
         {
-            Roles = new List<string> { UserRole.Admin }
+            Roles = new List<string> { UserRole.Root, UserRole.Admin }
         });
 
         return true;

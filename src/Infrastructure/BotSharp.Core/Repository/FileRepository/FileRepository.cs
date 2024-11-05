@@ -171,6 +171,8 @@ public partial class FileRepository : IBotSharpRepository
         }
     }
 
+    public IServiceProvider ServiceProvider => _services;
+
 
     #region Private methods
     private void DeleteBeforeCreateDirectory(string dir)

@@ -66,6 +66,7 @@ public partial class TencentCosService
                     {
                         MessageId = messageId,
                         FileUrl = BuilFileUrl(file),
+                        FileDownloadUrl = BuilFileUrl(file),
                         FileStorageUrl = file,
                         FileName = fileName,
                         FileExtension = fileExtension,

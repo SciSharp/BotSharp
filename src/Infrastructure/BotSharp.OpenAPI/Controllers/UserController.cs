@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Users.Settings;
+using BotSharp.Abstraction.Users.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
@@ -11,11 +12,18 @@ public class UserController : ControllerBase
 {
     private readonly IServiceProvider _services;
     private readonly IUserService _userService;
+    private readonly IUserIdentity _user;
     private readonly AccountSetting _setting;
-    public UserController(IUserService userService, IServiceProvider services, AccountSetting setting)
+
+    public UserController(
+        IUserService userService,
+        IServiceProvider services,
+        IUserIdentity user,
+        AccountSetting setting)
     {
         _services = services;
         _userService = userService;
+        _user = user;
         _setting = setting;
     }
 
@@ -168,6 +176,46 @@ public class UserController : ControllerBase
     {
         return await _userService.UpdateUsersIsDisable(userIds, isDisable);
     }
+
+    #region User management
+    [HttpPost("/users")]
+    public async Task<PagedItems<UserViewModel>> GetUsers([FromBody] UserFilter filter)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        {
+            return new PagedItems<UserViewModel>();
+        }
+
+        var users = await userService.GetUsers(filter);
+        var views = users.Items.Select(x => UserViewModel.FromUser(x)).ToList();
+
+        return new PagedItems<UserViewModel>
+        {
+            Count = users.Count,
+            Items = views
+        };
+    }
+
+
+    [HttpPut("/user")]
+    public async Task<bool> UpdateUser([FromBody] UserUpdateModel model)
+    {
+        if (model == null) return false;
+
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUser(_user.Id);
+        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        {
+            return false;
+        }
+
+        var updated = await userService.UpdateUser(UserUpdateModel.ToUser(model), isUpdateUserAgents: true);
+        return updated;
+    }
+    #endregion
+
 
     #region Avatar
     [HttpPost("/user/avatar")]

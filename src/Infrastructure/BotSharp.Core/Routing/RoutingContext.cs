@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Routing.Settings;
-using BotSharp.Abstraction.Utilities;
 
 namespace BotSharp.Core.Routing;
 
@@ -10,6 +9,7 @@ public class RoutingContext : IRoutingContext
     private string[] _routerAgentIds;
     private string _conversationId;
     private string _messageId;
+    private int _currentRecursionDepth = 0;
 
     public RoutingContext(IServiceProvider services, RoutingSettings setting)
     {
@@ -20,9 +20,9 @@ public class RoutingContext : IRoutingContext
     public int AgentCount => _stack.Count;
     public string ConversationId => _conversationId;
     public string MessageId => _messageId;
+    public int CurrentRecursionDepth => _currentRecursionDepth;
 
-    private Stack<string> _stack { get; set; }
-        = new Stack<string>();
+    private Stack<string> _stack { get; set; } = new();
 
     /// <summary>
     /// Intent name
@@ -207,5 +207,40 @@ public class RoutingContext : IRoutingContext
     {
         _conversationId = conversationId;
         _messageId = messageId;
+    }
+
+    public int GetRecursiveCounter()
+    {
+        return _currentRecursionDepth;
+    }
+
+    public void IncreaseRecursiveCounter()
+    {
+        _currentRecursionDepth++;
+    }
+
+    public void SetRecursiveCounter(int counter)
+    {
+        _currentRecursionDepth = counter;
+    }
+
+    public void ResetRecursiveCounter()
+    {
+        _currentRecursionDepth = 0;
+    }
+
+    public Stack<string> GetAgentStack()
+    {
+        return new Stack<string>(_stack);
+    }
+
+    public void SetAgentStack(Stack<string> stack)
+    {
+        _stack = new Stack<string>(stack);
+    }
+
+    public void ResetAgentStack()
+    {
+        _stack.Clear();
     }
 }

@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
@@ -167,5 +169,135 @@ public partial class MongoRepository
         {
             UpdateUserIsDisable(userId, isDisable);
         }
+    }
+
+    public PagedItems<User> GetUsers(UserFilter filter)
+    {
+        var userBuilder = Builders<UserDocument>.Filter;
+        var userFilters = new List<FilterDefinition<UserDocument>>() { userBuilder.Empty };
+
+        // Apply filters
+        if (!filter.UserIds.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Id, filter.UserIds));
+        }
+        if (!filter.UserNames.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.UserName, filter.UserNames));
+        }
+        if (!filter.ExternalIds.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.ExternalId, filter.ExternalIds));
+        }
+        if (!filter.Roles.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Role, filter.Roles));
+        }
+        if (!filter.Sources.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Source, filter.Sources));
+        }
+
+        // Filter def and sort
+        var filterDef = userBuilder.And(userFilters);
+        var sortDef = Builders<UserDocument>.Sort.Descending(x => x.CreatedTime);
+
+        // Search
+        var userDocs = _dc.Users.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
+        var count = _dc.Users.CountDocuments(filterDef);
+
+        var users = userDocs.Select(x => x.ToUser()).ToList();
+        var userIds = users.Select(x => x.Id).ToList();
+        var userAgents = _dc.UserAgents.AsQueryable().Where(x => userIds.Contains(x.UserId)).Select(x => new UserAgent
+        {
+            Id = x.Id,
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions ?? Enumerable.Empty<string>(),
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
+        var agentIds = userAgents.Select(x => x.AgentId).Distinct().ToList();
+
+        if (!agentIds.IsNullOrEmpty())
+        {
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+            foreach (var item in userAgents)
+            {
+                var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (agent == null) continue;
+
+                item.Agent = agent;
+            }
+
+            foreach (var user in users)
+            {
+                var found = userAgents.Where(x => x.UserId == user.Id).ToList();
+                if (found.IsNullOrEmpty()) continue;
+
+                user.AgentActions = found.Select(x => new UserAgentAction
+                {
+                    Id = x.Id,
+                    AgentId = x.AgentId,
+                    Agent = x.Agent,
+                    Actions = x.Actions
+                });
+            }
+        }
+
+        return new PagedItems<User>
+        {
+            Items = users,
+            Count = (int)count
+        };
+    }
+
+
+    public bool UpdateUser(User user, bool isUpdateUserAgents = false)
+    {
+        if (string.IsNullOrEmpty(user?.Id)) return false;
+
+        var userFilter = Builders<UserDocument>.Filter.Eq(x => x.Id, user.Id);
+        var userUpdate = Builders<UserDocument>.Update
+            .Set(x => x.Type, user.Type)
+            .Set(x => x.Role, user.Role)
+            .Set(x => x.Permissions, user.Permissions)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Users.UpdateOne(userFilter, userUpdate);
+
+        if (isUpdateUserAgents)
+        {
+            var userAgentDocs = user.AgentActions?.Select(x => new UserAgentDocument
+            {
+                Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+                UserId = user.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions,
+                CreatedTime = DateTime.UtcNow,
+                UpdatedTime = DateTime.UtcNow
+            })?.ToList() ?? [];
+
+            var toDelete = _dc.UserAgents.Find(Builders<UserAgentDocument>.Filter.And(
+                    Builders<UserAgentDocument>.Filter.Eq(x => x.UserId, user.Id),
+                    Builders<UserAgentDocument>.Filter.Nin(x => x.Id, userAgentDocs.Select(x => x.Id))
+                )).ToList();
+
+            _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.In(x => x.Id, toDelete.Select(x => x.Id)));
+            foreach (var doc in userAgentDocs)
+            {
+                var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.Id, doc.Id);
+                var userAgentUpdate = Builders<UserAgentDocument>.Update
+                    .Set(x => x.Id, doc.Id)
+                    .Set(x => x.UserId, user.Id)
+                    .Set(x => x.AgentId, doc.AgentId)
+                    .Set(x => x.Actions, doc.Actions)
+                    .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+                _dc.UserAgents.UpdateOne(userAgentFilter, userAgentUpdate, _options);
+            }
+        }
+
+        return true;
     }
 }

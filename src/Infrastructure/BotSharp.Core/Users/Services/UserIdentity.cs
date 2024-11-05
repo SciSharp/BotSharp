@@ -70,18 +70,15 @@ public class UserIdentity : IUserIdentity
     [JsonPropertyName("phone")]
     public string? Phone => _claims?.FirstOrDefault(x => x.Type == "phone")?.Value;
 
-    [JsonPropertyName("affiliateId")]
-    public string? AffiliateId => _claims?.FirstOrDefault(x => x.Type == "affiliateId")?.Value;
-
-    [JsonPropertyName("employeeId")]
-    public string? EmployeeId => _claims?.FirstOrDefault(x => x.Type == "employeeId")?.Value;
-
     [JsonPropertyName("type")]
     public string? Type => _claims?.FirstOrDefault(x => x.Type == "type")?.Value;
 
     [JsonPropertyName("role")]
     public string? Role => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
 
-    [JsonPropertyName("regionCode")]
-    public string? RegionCode => _claims?.FirstOrDefault(x => x.Type == "regionCode")?.Value;
+    /// <summary>
+    /// US, CA, etc.
+    /// </summary>
+    [JsonPropertyName("region_code")]
+    public string? RegionCode => _claims?.FirstOrDefault(x => x.Type == "region_code")?.Value;
 }
