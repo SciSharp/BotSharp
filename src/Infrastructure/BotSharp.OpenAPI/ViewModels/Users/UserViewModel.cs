@@ -58,7 +58,7 @@ public class UserViewModel
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Phone = !string.IsNullOrWhiteSpace(user.Phone) && user.Phone.Length > 3 ? user.Phone.Replace("+86", String.Empty) : user.Phone,
+            Phone = !string.IsNullOrWhiteSpace(user.Phone) ? user.Phone.Replace("+86", String.Empty) : user.Phone,
             Type = user.Type,
             Role = user.Role,
             Source = user.Source,
