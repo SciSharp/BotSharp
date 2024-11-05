@@ -296,7 +296,7 @@ public class UserService : IUserService
         var (token, jwt) = BuildToken(record);
         foreach (var hook in hooks)
         {
-            hook.UserAuthenticated(jwt);
+            hook.UserAuthenticated(record, token);
         }
 
         return token;

@@ -17,4 +17,15 @@ public interface IRoutingContext
     void PopTo(string agentId, string reason);
     void Replace(string agentId, string? reason = null);
     void Empty(string? reason = null);
+
+
+    int CurrentRecursionDepth { get; }
+    int GetRecursiveCounter();
+    void IncreaseRecursiveCounter();
+    void SetRecursiveCounter(int counter);
+    void ResetRecursiveCounter();
+
+    Stack<string> GetAgentStack();
+    void SetAgentStack(Stack<string> stack);
+    void ResetAgentStack();
 }
