@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Plugin.KnowledgeBase.Converters;
 using BotSharp.Plugin.KnowledgeBase.Hooks;
 using BotSharp.Plugin.KnowledgeBase.Services;
@@ -25,7 +26,6 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
         services.AddScoped<IAgentUtilityHook, KnowledgeBaseUtilityHook>();
         services.AddScoped<IAgentHook, KnowledgeBaseAgentHook>();
-
         services.AddScoped<IKnowledgeService, KnowledgeService>();
     }
 
@@ -34,6 +34,7 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         var section = menu.First(x => x.Label == "Apps");
         menu.Add(new PluginMenuDef("Knowledge Base", icon: "bx bx-book-open", weight: section.Weight + 1)
         {
+            Roles = new List<string> { UserRole.Root, UserRole.Admin },
             SubMenu = new List<PluginMenuDef>
             {
                 new PluginMenuDef("Q & A", link: "page/knowledge-base/question-answer"),
