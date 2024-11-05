@@ -1,3 +1,5 @@
+using Microsoft.Playwright;
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver
@@ -47,15 +49,37 @@ public partial class PlaywrightWebDriver
 
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
             {
-                Timeout = args.Timeout
+                Timeout = args.Timeout > 0 ? args.Timeout : 30000
             });
+
+            if (args.Selectors != null)
+            {
+                // 使用传入的选择器列表进行并行等待
+                var tasks =args.Selectors.Select(selector =>
+                    page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions
+                    {
+                        Timeout = args.Timeout > 0 ? args.Timeout : 30000
+                    })
+                ).ToArray();
+
+                await Task.WhenAll(tasks);
+
+                // 在此处提取所有选择器的 HTML 内容
+                var contentTasks = args.Selectors.Select(selector => page.InnerHTMLAsync(selector)).ToArray();
+                var contents = await Task.WhenAll(contentTasks);
+
+                result.IsSuccess = true;
+                result.Body = string.Join(", ", contents.Select((content, index) => $"{args.Selectors[index]}: {content}"));
+
+                return result;
+            }
 
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
             if (args.WaitForNetworkIdle)
             {
                 await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
                 {
-                    Timeout = args.Timeout
+                    Timeout = args.Timeout > 0 ? args.Timeout : 30000
                 });
             }
 
