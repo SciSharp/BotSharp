@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
@@ -8,11 +9,8 @@ using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Repositories;
 
-public interface IBotSharpRepository
+public interface IBotSharpRepository : IHaveServiceProvider
 {
-    int Transaction<TTableInterface>(Action action);
-    void Add<TTableInterface>(object entity);
-
     #region Plugin
     PluginConfig GetPluginConfig();
     void SavePluginConfig(PluginConfig config);
@@ -35,13 +33,15 @@ public interface IBotSharpRepository
     void UpdateUserPhone(string userId, string Iphone, string regionCode) => throw new NotImplementedException();
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
+    PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
+    bool UpdateUser(User user, bool isUpdateUserAgents = false) => throw new NotImplementedException();
     #endregion
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
     Agent? GetAgent(string agentId);
     List<Agent> GetAgents(AgentFilter filter);
-    List<Agent> GetAgentsByUser(string userId);
+    List<UserAgent> GetUserAgents(string userId);
     void BulkInsertAgents(List<Agent> agents);
     void BulkInsertUserAgents(List<UserAgent> userAgents);
     bool DeleteAgents();

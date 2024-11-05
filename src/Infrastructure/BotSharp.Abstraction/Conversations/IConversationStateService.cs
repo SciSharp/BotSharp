@@ -19,4 +19,8 @@ public interface IConversationStateService
     bool RemoveState(string name);
     void CleanStates(params string[] excludedStates);
     void Save();
+
+    ConversationState GetCurrentState();
+    void SetCurrentState(ConversationState state);
+    void ResetCurrentState();
 }
