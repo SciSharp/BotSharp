@@ -44,9 +44,12 @@ public class SideCarAspect
     private (IConversationSideCar?, MethodInfo?) GetSideCarMethod(IServiceProvider serviceProvider, string methodName, object[] args)
     {
         var sidecar = serviceProvider.GetService<IConversationSideCar>();
-        var paramTypes = args.Select(x => x.GetType()).ToList();
+        var argTypes = args.Select(x => x.GetType()).ToArray();
         var sidecarMethod = sidecar?.GetType()?.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                                               .FirstOrDefault(x => x.Name == methodName && x.GetParameters().Select(p => p.ParameterType).SequenceEqual(paramTypes));
+                                               .FirstOrDefault(x => x.Name == methodName
+                                               && x.GetParameters().Length == argTypes.Length
+                                               && x.GetParameters().Select(p => p.ParameterType)
+                                                   .Zip(argTypes, (paramType, argType) => paramType.IsAssignableFrom(argType)).All(y => y));
 
         return (sidecar, sidecarMethod);
     }
