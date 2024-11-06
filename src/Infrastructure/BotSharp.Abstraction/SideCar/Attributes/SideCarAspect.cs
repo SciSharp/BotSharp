@@ -40,12 +40,22 @@ public class SideCarAspect
         return typeof(SideCarAspect).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static);
     }
 
-    private object CallAsyncMethod(IServiceProvider serviceProvider, Type retType, string methodName, Func<object[], object> target, object[] args)
+
+    private (IConversationSideCar?, MethodInfo?) GetSideCarMethod(IServiceProvider serviceProvider, string methodName, object[] args)
     {
         var sidecar = serviceProvider.GetService<IConversationSideCar>();
-        var sidecarMethod = sidecar?.GetType()?.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance);
+        var paramTypes = args.Select(x => x.GetType()).ToList();
+        var sidecarMethod = sidecar?.GetType()?.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                                               .FirstOrDefault(x => x.Name == methodName && x.GetParameters().Select(p => p.ParameterType).SequenceEqual(paramTypes));
 
+        return (sidecar, sidecarMethod);
+    }
+
+    private object CallAsyncMethod(IServiceProvider serviceProvider, Type retType, string methodName, Func<object[], object> target, object[] args)
+    {
         object value;
+
+        var (sidecar, sidecarMethod) = GetSideCarMethod(serviceProvider, methodName, args);
         var enabled = sidecar != null && sidecar.IsEnabled() && sidecarMethod != null;
 
         if (retType == typeof(void))
@@ -77,11 +87,10 @@ public class SideCarAspect
 
     private object CallSyncMethod(IServiceProvider serviceProvider, Type retType, string methodName, Func<object[], object> target, object[] args)
     {
-        var sidecar = serviceProvider.GetService<IConversationSideCar>();
-        var sidecarMethod = sidecar?.GetType()?.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance);
-
         object value;
-        var enabled = sidecar != null && sidecarMethod != null && sidecar.IsEnabled();
+
+        var (sidecar, sidecarMethod) = GetSideCarMethod(serviceProvider, methodName, args);
+        var enabled = sidecar != null && sidecar.IsEnabled() && sidecarMethod != null;
 
         if (retType == typeof(void))
         {
