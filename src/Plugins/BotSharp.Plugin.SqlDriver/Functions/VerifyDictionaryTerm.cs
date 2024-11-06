@@ -78,7 +78,7 @@ public class VerifyDictionaryTerm : IFunctionCallback
         var render = _services.GetRequiredService<ITemplateRender>();
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
-        var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
+        var agent = await agentService.GetAgent(BuiltInAgentId.SqlDriver);
         var template = agent.Templates.FirstOrDefault(x => x.Name == "database.dictionary.sql")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new LookupDictionary{ });
 
