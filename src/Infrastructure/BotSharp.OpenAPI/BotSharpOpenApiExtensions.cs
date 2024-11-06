@@ -209,7 +209,7 @@ public static class BotSharpOpenApiExtensions
 
         app.UseSwagger();
 
-        if (env.IsDevelopment())
+        // if (env.IsDevelopment())
         {
             IdentityModelEventSource.ShowPII = true;
             app.UseSwaggerUI();
