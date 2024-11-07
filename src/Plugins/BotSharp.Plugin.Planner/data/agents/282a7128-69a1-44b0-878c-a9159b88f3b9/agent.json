@@ -9,7 +9,7 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "planning" ],
-  "utilities": [ "two-stage-planner" ],
+  "utilities": [ "two-stage-planner", "sql-dictionary-lookup", "excel-handler" ],
   "llmConfig": {
     "provider": "openai",
     "model": "gpt-4o",
