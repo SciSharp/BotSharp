@@ -83,7 +83,9 @@
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\agent.json" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\instructions\instruction.liquid" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.executor.liquid" />
+    <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.metrics.liquid" />
     <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.reviewer.liquid" />
+    <None Remove="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.simulator.liquid" />
     <None Remove="data\plugins\config.json" />
   </ItemGroup>
 
@@ -161,6 +163,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\select_file_prompt.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.simulator.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\dfd9b46d-d00c-40af-8a75-3fbdc2b89869\templates\instruction.metrics.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\plugins\config.json">
