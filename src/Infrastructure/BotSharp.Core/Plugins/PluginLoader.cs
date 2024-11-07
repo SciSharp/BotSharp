@@ -126,6 +126,12 @@ public class PluginLoader
         var plugins = GetPlugins(services);
         var pager = filter?.Pager ?? new Pagination();
 
+        // Apply filter
+        if (!filter.Names.IsNullOrEmpty())
+        {
+            plugins = plugins.Where(x => filter.Names.Any(n => x.Name.IsEqualTo(n))).ToList();
+        }
+
         return new PagedItems<PluginDef>
         {
             Items = plugins.Skip(pager.Offset).Take(pager.Size),
