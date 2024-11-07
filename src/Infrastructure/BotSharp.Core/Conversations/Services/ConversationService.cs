@@ -159,7 +159,7 @@ public partial class ConversationService : IConversationService
     public void SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false)
     {
         _conversationId = conversationId;
-        _state.Load(_conversationId);
+        _state.Load(_conversationId, isReadOnly);
         states.ForEach(x => _state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
     }
 
