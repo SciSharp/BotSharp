@@ -23,6 +23,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string AGENT_INSTRUCTION_FILE = "instruction";
     private const string AGENT_SAMPLES_FILE = "samples.txt";
     private const string USER_FILE = "user.json";
+    private const string DASHBOARD_FILE = "dashboard.json";
     private const string USER_AGENT_FILE = "agents.json";
     private const string CONVERSATION_FILE = "conversation.json";
     private const string STATS_FILE = "stats.json";
@@ -74,6 +75,7 @@ public partial class FileRepository : IBotSharpRepository
     }
 
     private List<User> _users = new List<User>();
+    private List<Dashboard> _dashboards = [];
     private List<Agent> _agents = new List<Agent>();
     private List<UserAgent> _userAgents = new List<UserAgent>();
     private List<Conversation> _conversations = new List<Conversation>();
@@ -103,6 +105,36 @@ public partial class FileRepository : IBotSharpRepository
                 }
             }
             return _users.AsQueryable();
+        }
+    }
+
+    private IQueryable<Dashboard> Dashboards
+    {
+        get
+        {
+            if (!_dashboards.IsNullOrEmpty())
+            {
+                return _dashboards.AsQueryable();
+            }
+
+            var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
+            _dashboards = [];
+            if (Directory.Exists(dir))
+            {
+                foreach (var d in Directory.GetDirectories(dir))
+                {
+                    var dashboardFile = Path.Combine(d, DASHBOARD_FILE);
+                    if (!Directory.Exists(d) || !File.Exists(dashboardFile))
+                        continue;
+
+                    var json = File.ReadAllText(dashboardFile);
+                    var dash = JsonSerializer.Deserialize<Dashboard>(json, _options);
+
+                    if (dash == null) continue;
+                    _dashboards.Add(dash);
+                }
+            }
+            return _dashboards.AsQueryable();
         }
     }
 

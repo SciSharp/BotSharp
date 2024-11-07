@@ -490,6 +490,18 @@ public class ConversationController : ControllerBase
     }
     #endregion
 
+    #region miscellaneous
+    [HttpPut("/agent/{agentId}/conversation/{conversationId}/PinToDashboard")]
+    public async Task<bool> PinConversationToDashboard([FromRoute] string agentId, [FromRoute] string conversationId)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+
+        var user = await userService.GetUser(_user.Id);
+        var pinned = await userService.AddDashboardConversation(user.Id, conversationId);
+        return pinned;
+    }
+    #endregion
+
     #region Private methods
     private void SetStates(IConversationService conv, NewMessageModel input)
     {

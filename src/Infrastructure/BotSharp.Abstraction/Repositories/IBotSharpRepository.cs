@@ -26,9 +26,11 @@ public interface IBotSharpRepository
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
     User? GetUserByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
+    Dashboard? GetDashboard(string id = null) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
     void UpdateUserVerified(string userId) => throw new NotImplementedException();
+    void AddDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
     void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
     void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
     void UpdateUserEmail(string userId, string email) => throw new NotImplementedException();

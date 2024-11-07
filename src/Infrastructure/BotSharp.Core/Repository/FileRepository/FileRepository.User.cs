@@ -41,6 +41,11 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.UserName == userName.ToLower());
     }
 
+    public Dashboard? GetDashboard(string id = null)
+    {
+        return Dashboards.FirstOrDefault();
+    }
+
     public void CreateUser(User user)
     {
         var userId = Guid.NewGuid().ToString();
@@ -67,5 +72,27 @@ public partial class FileRepository
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
         var path = Path.Combine(dir, USER_FILE);
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
+    }
+
+    public void AddDashboardConversation(string userId, string conversationId)
+    {
+        var user = GetUserById(userId);
+        if (user == null) return;
+
+        // one user only has one dashboard currently
+        var dash = Dashboards.FirstOrDefault();
+        dash ??= new();
+
+        var dashconv = new DashboardConversation
+        {
+            Id = Guid.NewGuid().ToString(),
+            ConversationId = conversationId
+        };
+
+        dash.ConversationList.Add(dashconv);
+
+        var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
+        var path = Path.Combine(dir, DASHBOARD_FILE);
+        File.WriteAllText(path, JsonSerializer.Serialize(dash, _options));
     }
 }

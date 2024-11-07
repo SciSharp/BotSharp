@@ -640,4 +640,21 @@ public class UserService : IUserService
         }
         return true;
     }
+
+    public async Task<bool> AddDashboardConversation(string userId, string conversationId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.AddDashboardConversation(userId, conversationId);
+
+        await Task.CompletedTask;
+        return true;
+    }
+
+    public async Task<Dashboard?> GetDashboard(string userId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dash = db.GetDashboard();
+        await Task.CompletedTask;
+        return dash;
+    }
 }
