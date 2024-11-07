@@ -80,7 +80,7 @@ public class ConversationController : ControllerBase
     public async Task<IEnumerable<ChatResponseModel>> GetDialogs([FromRoute] string conversationId)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, new List<MessageState>());
+        conv.SetConversationId(conversationId, new List<MessageState>(), isReadOnly: true);
         var history = conv.GetDialogHistory(fromBreakpoint: false);
 
         var userService = _services.GetRequiredService<IUserService>();
