@@ -7,7 +7,7 @@ public class PluginDef
     public string Description { get; set; }
     public string Assembly { get; set; }
     [JsonPropertyName("is_core")]
-    public bool IsCore => Assembly == "BotSharp.Core";
+    public bool IsCore => Assembly == "BotSharp.Core" || Assembly == "BotSharp.Core.SideCar";
 
     [JsonPropertyName("icon_url")]
     public string? IconUrl { get; set; }

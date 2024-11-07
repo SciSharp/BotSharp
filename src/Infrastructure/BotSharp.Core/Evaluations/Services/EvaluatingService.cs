@@ -4,17 +4,22 @@ using BotSharp.Abstraction.Evaluations.Models;
 using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Templating;
-using System.Drawing;
 
-namespace BotSharp.Core.Evaluatings;
+namespace BotSharp.Core.Evaluations.Services;
 
-public class EvaluatingService : IEvaluatingService
+public partial class EvaluatingService : IEvaluatingService
 {
     private readonly IServiceProvider _services;
+    private readonly ILogger<EvaluatingService> _logger;
     private readonly EvaluatorSetting _settings;
-    public EvaluatingService(IServiceProvider services, EvaluatorSetting settings)
+
+    public EvaluatingService(
+        IServiceProvider services,
+        ILogger<EvaluatingService> logger,
+        EvaluatorSetting settings)
     {
         _services = services;
+        _logger = logger;
         _settings = settings;
     }
 
@@ -79,11 +84,6 @@ public class EvaluatingService : IEvaluatingService
 
         result.Dialogs = dialogs;
         return conv;
-    }
-
-    public async Task<EvaluationResult> Evaluate(string conversationId, EvaluationRequest request)
-    {
-        throw new NotImplementedException();
     }
 
     private async Task<RoleDialogModel> SendMessage(string agentId, string conversationId, string text)

@@ -1,8 +1,8 @@
 using BotSharp.Abstraction.Evaluations.Settings;
 using BotSharp.Abstraction.Evaluations;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Core.Evaluatings;
 using Microsoft.Extensions.Configuration;
+using BotSharp.Core.Evaluations.Services;
 
 namespace BotSharp.Core.Evaluations;
 
@@ -21,7 +21,6 @@ public class EvaluationPlugin : IBotSharpPlugin
             return settingService.Bind<EvaluatorSetting>("Evaluator");
         });
 
-        services.AddScoped<IConversationHook, EvaluationConversationHook>();
         services.AddScoped<IEvaluatingService, EvaluatingService>();
         services.AddScoped<IExecutionLogger, ExecutionLogger>();
     }
