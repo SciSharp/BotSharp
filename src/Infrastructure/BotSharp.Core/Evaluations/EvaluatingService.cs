@@ -89,9 +89,9 @@ public class EvaluatingService : IEvaluatingService
     private async Task<RoleDialogModel> SendMessage(string agentId, string conversationId, string text)
     {
         var conv = _services.GetRequiredService<IConversationService>();
+        var routing = _services.GetRequiredService<IRoutingService>();
 
         var inputMsg = new RoleDialogModel(AgentRole.User, text);
-        var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
         conv.SetConversationId(conversationId, new List<MessageState>
         {
