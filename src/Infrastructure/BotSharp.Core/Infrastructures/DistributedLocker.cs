@@ -5,21 +5,18 @@ namespace BotSharp.Core.Infrastructures;
 
 public class DistributedLocker
 {
-    private readonly BotSharpDatabaseSettings _settings;
-    private static ConnectionMultiplexer connection;
+    private readonly IConnectionMultiplexer _redis;
 
-    public DistributedLocker(BotSharpDatabaseSettings settings)
+    public DistributedLocker(IConnectionMultiplexer redis)
     {
-        _settings = settings;
+        _redis = redis;
     }
 
     public async Task<T> Lock<T>(string resource, Func<Task<T>> action, int timeoutInSeconds = 30)
     {
-        await ConnectToRedisAsync();
-
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
+        var @lock = new RedisDistributedLock(resource, _redis.GetDatabase());
         await using (var handle = await @lock.TryAcquireAsync(timeout))
         {
             if (handle == null) 
@@ -33,11 +30,9 @@ public class DistributedLocker
 
     public void Lock(string resource, Action action, int timeoutInSeconds = 30)
     {
-        ConnectToRedis();
-
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
+        var @lock = new RedisDistributedLock(resource, _redis.GetDatabase());
         using (var handle = @lock.TryAcquire(timeout))
         {
             if (handle == null)
@@ -48,22 +43,6 @@ public class DistributedLocker
             {
                 action();
             }
-        }
-    }
-
-    private void ConnectToRedis()
-    {
-        if (connection == null)
-        {
-            connection = ConnectionMultiplexer.Connect(_settings.Redis);
-        }
-    }
-
-    private async Task ConnectToRedisAsync()
-    {
-        if (connection == null)
-        {
-            connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
         }
     }
 }
