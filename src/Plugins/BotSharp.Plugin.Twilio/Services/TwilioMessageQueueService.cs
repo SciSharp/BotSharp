@@ -2,7 +2,9 @@ using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using System.Security.Claims;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -57,6 +59,11 @@ namespace BotSharp.Plugin.Twilio.Services
         {
             using var scope = _serviceProvider.CreateScope();
             var sp = scope.ServiceProvider;
+
+            // Clean static HttpContext
+            var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
+            httpContext.HttpContext = new DefaultHttpContext();
+            httpContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
 
             AssistantMessage reply = null;
             var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
