@@ -28,8 +28,6 @@ public static class BotSharpCoreExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ProcessorFactory>();
 
-        services.AddSingleton<DistributedLocker>();
-
         // Register cache service
         var cacheSettings = new SharpCacheSettings();
         config.Bind("SharpCache", cacheSettings);
