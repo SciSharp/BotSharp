@@ -24,7 +24,12 @@ public partial class EvaluatingService
 
         var refDialogContents = GetConversationContent(refDialogs);
         var initDialog = refDialogs.FirstOrDefault(x => x.Role == AgentRole.User);
-        var initMessage = initDialog?.RichContent?.Message?.Text ?? initDialog?.Content ?? "Hello";
+        var initMessage = initDialog?.RichContent?.Message?.Text ?? initDialog?.Content;
+
+        if (string.IsNullOrWhiteSpace(initMessage))
+        {
+            return result;
+        }
 
         var generatedConvId = await SimulateConversation(initMessage, refDialogContents, request);
 
@@ -106,7 +111,7 @@ public partial class EvaluatingService
                 role = AgentRole.Assistant;
             }
 
-            contents.Add($"{role}: {dialog.RichContent?.Message?.Text ?? dialog.Content}");
+            contents.Add($"{role}: {dialog.RichContent?.Message?.Text ?? dialog.Content ?? string.Empty}");
         }
 
         return contents;
