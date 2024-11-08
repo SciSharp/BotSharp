@@ -12,7 +12,4 @@ public class EvaluationRequest : LlmBaseRequest
 
     [JsonPropertyName("max_rounds")]
     public int MaxRounds { get; set; } = 20;
-
-    [JsonPropertyName("ref_conversation_id")]
-    public string RefConversationId { get; set; } = null!;
 }
