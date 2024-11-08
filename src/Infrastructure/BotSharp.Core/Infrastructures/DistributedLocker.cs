@@ -6,10 +6,12 @@ namespace BotSharp.Core.Infrastructures;
 public class DistributedLocker
 {
     private readonly IConnectionMultiplexer _redis;
+    private readonly ILogger _logger;
 
-    public DistributedLocker(IConnectionMultiplexer redis)
+    public DistributedLocker(IConnectionMultiplexer redis, ILogger<DistributedLocker> logger)
     {
         _redis = redis;
+        _logger = logger;
     }
 
     public async Task<T> Lock<T>(string resource, Func<Task<T>> action, int timeoutInSeconds = 30)
@@ -21,14 +23,14 @@ public class DistributedLocker
         {
             if (handle == null) 
             {
-                Serilog.Log.Logger.Error($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                _logger.LogWarning($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
             }
             
             return await action();
         }
     }
 
-    public void Lock(string resource, Action action, int timeoutInSeconds = 30)
+    public bool Lock(string resource, Action action, int timeoutInSeconds = 30)
     {
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
@@ -37,11 +39,13 @@ public class DistributedLocker
         {
             if (handle == null)
             {
-                Serilog.Log.Logger.Error($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                _logger.LogWarning($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                return false;
             }
             else
             {
                 action();
+                return true;
             }
         }
     }
