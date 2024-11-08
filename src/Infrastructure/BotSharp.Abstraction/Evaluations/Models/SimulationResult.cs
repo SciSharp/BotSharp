@@ -5,7 +5,7 @@ public class SimulationResult
     [JsonPropertyName("generated_message")]
     public string GeneratedMessage { get; set; }
 
-    [JsonPropertyName("stop")]
+    [JsonPropertyName("stop_conversation")]
     public bool Stop { get; set; }
 
     [JsonPropertyName("reason")]
