@@ -487,7 +487,7 @@ public class UserService : IUserService
         return false;
     }
 
-    public async Task<bool> VerifyPhoneExisting(string phone)
+    public async Task<bool> VerifyPhoneExisting(string phone, string regionCode)
     {
         if (string.IsNullOrEmpty(phone))
         {
@@ -495,7 +495,7 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var UserByphone = db.GetUserByPhone(phone);
+        var UserByphone = db.GetUserByPhone(phone, regionCode);
         if (UserByphone != null && UserByphone.Verified)
         {
             return true;

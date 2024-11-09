@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Users.Settings;
 using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Users.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
@@ -124,9 +124,9 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("/user/phone/existing")]
-    public async Task<bool> VerifyPhoneExisting([FromQuery] string phone)
+    public async Task<bool> VerifyPhoneExisting([FromQuery] string phone, [FromQuery] string regionCode = "CN")
     {
-        return await _userService.VerifyPhoneExisting(phone);
+        return await _userService.VerifyPhoneExisting(phone, regionCode);
     }
 
     [AllowAnonymous]

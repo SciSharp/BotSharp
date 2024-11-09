@@ -13,7 +13,7 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone)
+    public User? GetUserByPhone(string phone, string regionCode = "CN")
     {
         string phoneSecond = string.Empty;
         // 如果电话号码长度小于 4，直接返回 null
@@ -29,7 +29,7 @@ public partial class MongoRepository
         {
             phoneSecond = phone.Replace("+86", "");
         }
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate);
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate && x.RegionCode == regionCode);
         return user != null ? user.ToUser() : null;
     }
 

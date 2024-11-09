@@ -16,7 +16,7 @@ public interface IUserService
     Task<User> GetMyProfile();
     Task<bool> VerifyUserNameExisting(string userName);
     Task<bool> VerifyEmailExisting(string email);
-    Task<bool> VerifyPhoneExisting(string phone);
+    Task<bool> VerifyPhoneExisting(string phone, string regionCode);
     Task<bool> SendVerificationCodeResetPasswordNoLogin(User user);
     Task<bool> SendVerificationCodeResetPasswordLogin();
     Task<bool> ResetUserPassword(User user);
