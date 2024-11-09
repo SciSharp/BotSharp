@@ -42,6 +42,7 @@ public partial class EvaluatingService
     private async Task<string> SimulateConversation(string initMessage, IEnumerable<string> refDialogs, EvaluationRequest request)
     {
         var count = 0;
+        var duplicateCount = 0;
         var convId = Guid.NewGuid().ToString();
         var curDialogs = new List<string>();
         var curUserMsg = initMessage;
@@ -79,13 +80,30 @@ public partial class EvaluatingService
                                 {
                                     { "ref_conversation", refDialogs },
                                     { "cur_conversation", curDialogs },
+                                    { "additional_instruction", request.AdditionalInstruction },
+                                    { "stop_criteria", request.StopCriteria }
                                 }
                             });
 
             _logger.LogInformation($"Generated message: {result?.GeneratedMessage}, stop: {result?.Stop}, reason: {result?.Reason}");
 
-            if (curUserMsg.IsEqualTo(prevUserMsg) || curBotMsg.IsEqualTo(prevBotMsg)
-                || count > request.MaxRounds || (result != null && result.Stop))
+            if (count > request.MaxRounds || (result != null && result.Stop))
+            {
+                break;
+            }
+
+
+            if (curUserMsg.IsEqualTo(prevUserMsg) || curBotMsg.IsEqualTo(prevBotMsg))
+            {
+                duplicateCount++;
+            }
+            else
+            {
+                duplicateCount = 0;
+            }
+
+
+            if (duplicateCount >= request.DuplicateLimit)
             {
                 break;
             }
