@@ -29,4 +29,29 @@ public class RedisPublisher : IEventPublisher
 
         _logger.LogInformation($"Published message {channel} {message}");
     }
+
+    public async Task ReDispatchAsync(string channel, int count = 10, string order = "asc")
+    {
+        var db = _redis.GetDatabase();
+
+        var entries = await db.StreamRangeAsync(channel, "-", "+", count: count, messageOrder: order == "asc" ? Order.Ascending : Order.Descending);
+        foreach (var entry in entries)
+        {
+            _logger.LogInformation($"Fetched message: {channel} {entry.Values[0].Value} ({entry.Id})");
+
+            try
+            {
+                var messageId = await db.StreamAddAsync(channel, "message", entry.Values[0].Value);
+
+                _logger.LogWarning($"ReDispatched message: {channel} {entry.Values[0].Value} ({messageId})");
+
+                // Optionally delete the message to save space
+                await db.StreamDeleteAsync(channel, [entry.Id]);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}");
+            }
+        }
+    }
 }

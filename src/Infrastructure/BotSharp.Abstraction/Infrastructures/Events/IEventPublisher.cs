@@ -11,4 +11,6 @@ public interface IEventPublisher
     Task BroadcastAsync(string channel, string message);
 
     Task PublishAsync(string channel, string message);
+
+    Task ReDispatchAsync(string channel, int count = 10, string order = "asc");
 }
