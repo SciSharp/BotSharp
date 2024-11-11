@@ -41,3 +41,4 @@ global using BotSharp.Core.Conversations.Services;
 global using BotSharp.Core.Infrastructures;
 global using BotSharp.Core.Users.Services;
 global using Aspects.Cache;
+global using BotSharp.Abstraction.Infrastructures.Events;

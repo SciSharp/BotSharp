@@ -4,7 +4,31 @@ Please take the content in the [REFERENCE CONVERSATION] section as a reference, 
 ** You need to take a close look at the content in both [REFERENCE CONVERSATION] and [ONGOING CONVERSATION], and determine whether to generate a text message or stop the ongoing conversation.
 ** When you generate a message, please assume you are the user and reply in the user perceptive.
 ** Please do not generate or append a message with similar meaning that you have already mentioned in the [ONGOING CONVERSATION].
+
+
+=================
+[ADDITIONAL INSTRUCTION]
+{{ "\r\n" }}
+{%- if additional_instruction != empty -%}
+{{ additional_instruction }}
+{%- endif -%}
+{{ "\r\n" }}
+
+
+=================
+[CONVERSATION STOP CRITERIA]
+{{ "\r\n" }}
+{%- if stop_criteria != empty -%}
+{{ stop_criteria }}
+{%- else -%}
 ** If you see the assistant replies two or more than two similar messages in the [ONGOING CONVERSATION], please stop the conversation immediately.
+{%- endif -%}
+{{ "\r\n" }}
+
+
+=================
+[OUTPUT JSON FORMAT]
+
 ** The output must be in JSON format:
 {
     "generated_message": the generated text message using the user tone,

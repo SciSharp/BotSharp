@@ -317,8 +317,8 @@ public class UserService : IUserService
             new Claim("role", user.Role ?? UserRole.User),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty),
-            new Claim("affiliateId", user.AffiliateId ?? string.Empty),
-            new Claim("employeeId", user.EmployeeId ?? string.Empty),
+            new Claim("affiliate_id", user.AffiliateId ?? string.Empty),
+            new Claim("employee_id", user.EmployeeId ?? string.Empty),
             new Claim("regionCode", user.RegionCode ?? "CN")
         };
 
