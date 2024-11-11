@@ -35,6 +35,7 @@ public class ConversationController : ControllerBase
         {
             AgentId = agentId,
             Channel = channel == default ? ConversationChannel.OpenAPI : channel.Value,
+            Tags = config.Tags ?? new(),
             TaskId = config.TaskId
         };
         conv = await service.NewConversation(conv);
@@ -54,7 +55,7 @@ public class ConversationController : ControllerBase
             return new PagedItems<ConversationViewModel>();
         }
 
-        filter.UserId = user.Role != UserRole.Admin ? user.Id : filter.UserId;
+        filter.UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : filter.UserId;
         var conversations = await convService.GetConversations(filter);
         var agentService = _services.GetRequiredService<IAgentService>();
         var list = conversations.Items.Select(x => ConversationViewModel.FromSession(x)).ToList();
@@ -145,7 +146,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await service.GetConversations(filter);
         if (conversations.Items.IsNullOrEmpty())
@@ -202,23 +203,30 @@ public class ConversationController : ControllerBase
     public async Task<bool> UpdateConversationTitle([FromRoute] string conversationId, [FromBody] UpdateConversationTitleModel newTile)
     {
         var userService = _services.GetRequiredService<IUserService>();
-        var conversationService = _services.GetRequiredService<IConversationService>();
+        var conv = _services.GetRequiredService<IConversationService>();
 
         var user = await userService.GetUser(_user.Id);
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
-        var conversations = await conversationService.GetConversations(filter);
+        var conversations = await conv.GetConversations(filter);
 
         if (conversations.Items.IsNullOrEmpty())
         {
             return false;
         }
 
-        var response = await conversationService.UpdateConversationTitle(conversationId, newTile.NewTitle);
+        var response = await conv.UpdateConversationTitle(conversationId, newTile.NewTitle);
         return response != null;
+    }
+
+    [HttpPut("/conversation/{conversationId}/update-tags")]
+    public async Task<bool> UpdateConversationTags([FromRoute] string conversationId, [FromBody] UpdateConversationRequest request)
+    {
+        var conv = _services.GetRequiredService<IConversationService>();
+        return await conv.UpdateConversationTags(conversationId, request.Tags);
     }
 
     [HttpPut("/conversation/{conversationId}/update-message")]
@@ -254,7 +262,7 @@ public class ConversationController : ControllerBase
         var filter = new ConversationFilter
         {
             Id = conversationId,
-            UserId = user.Role != UserRole.Admin ? user.Id : null
+            UserId = !UserConstant.AdminRoles.Contains(user?.Role) ? user.Id : null
         };
         var conversations = await conversationService.GetConversations(filter);
 

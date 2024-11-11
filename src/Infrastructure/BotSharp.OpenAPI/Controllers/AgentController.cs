@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -58,24 +59,64 @@ public class AgentController : ControllerBase
         }
 
         var editable = true;
+        var chatable = true;
         var userService = _services.GetRequiredService<IUserService>();
         var user = await userService.GetUser(_user.Id);
-        if (user?.Role != UserRole.Admin)
+        if (!UserConstant.AdminRoles.Contains(user?.Role))
         {
-            var userAgents = _agentService.GetAgentsByUser(user?.Id);
-            editable = userAgents?.Select(x => x.Id)?.Contains(targetAgent.Id) ?? false;
+            var userAgents = await _agentService.GetUserAgents(user?.Id);
+            var actions = userAgents?.FirstOrDefault(x => x.AgentId == targetAgent.Id)?.Actions ?? [];
+            editable = actions.Contains(UserAction.Edit);
+            chatable = actions.Contains(UserAction.Chat);
         }
 
         targetAgent.Editable = editable;
+        targetAgent.Chatable = chatable;
         return targetAgent;
     }
 
     [HttpGet("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter, [FromQuery] bool checkAuth = false)
     {
         var agentSetting = _services.GetRequiredService<AgentSettings>();
+        var userService = _services.GetRequiredService<IUserService>();
+
+        List<AgentViewModel> agents;
         var pagedAgents = await _agentService.GetAgents(filter);
-        var agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? new List<AgentViewModel>();
+
+        if (!checkAuth)
+        {
+            agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? [];
+            return new PagedItems<AgentViewModel>
+            {
+                Items = agents,
+                Count = pagedAgents?.Count ?? 0
+            };
+        }
+
+        var userAgents = new List<UserAgent>();
+        var user = await userService.GetUser(_user.Id);
+        if (!UserConstant.AdminRoles.Contains(user.Role))
+        {
+            userAgents = await _agentService.GetUserAgents(user.Id);
+        }
+
+        agents = pagedAgents?.Items?.Select(x =>
+        {
+            var chatable = true;
+            var editable = true;
+            if (!UserConstant.AdminRoles.Contains(user.Role))
+            {
+                var actions = userAgents.FirstOrDefault(a => a.AgentId == x.Id)?.Actions ?? [];
+                chatable = actions.Contains(UserAction.Chat);
+                editable = actions.Contains(UserAction.Edit);
+            }
+
+            var model = AgentViewModel.FromAgent(x);
+            model.Editable = editable;
+            model.Chatable = chatable;
+            return model;
+        })?.ToList() ?? [];
 
         return new PagedItems<AgentViewModel>
         {

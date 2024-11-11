@@ -22,7 +22,7 @@ public partial class RoutingService
             }
             else
             {
-                // Assistant reply deosn't need help with payload
+                // Assistant reply doesn't need help with payload
                 conversation += $"{role}: {dialog.Content}\r\n";
             }
         }

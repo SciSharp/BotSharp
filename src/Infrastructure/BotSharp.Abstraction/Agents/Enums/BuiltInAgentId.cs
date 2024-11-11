@@ -37,5 +37,13 @@ public class BuiltInAgentId
     /// </summary>
     public const string Planner = "282a7128-69a1-44b0-878c-a9159b88f3b9";
 
+    /// <summary>
+    /// SQL statement generation
+    /// </summary>
     public const string SqlDriver = "beda4c12-e1ec-4b4b-b328-3df4a6687c4f";
+
+    /// <summary>
+    /// Programming source code generation
+    /// </summary>
+    public const string CodeDriver = "c0ded7d9-3f9d-4ef6-b7ce-56a892dcef62";
 }

@@ -58,12 +58,12 @@ public class UserIdentity : IUserIdentity
     }
 
     [JsonPropertyName("user_language")]
-    public string? UserLanguage
+    public string UserLanguage
     {
         get
         {
             _contextAccessor.HttpContext.Request.Headers.TryGetValue("User-Language", out var languages);
-            return languages.FirstOrDefault();
+            return languages.FirstOrDefault() ?? "en-US";
         }
     }
 
@@ -72,4 +72,16 @@ public class UserIdentity : IUserIdentity
 
     [JsonPropertyName("affiliateId")]
     public string? AffiliateId => _claims?.FirstOrDefault(x => x.Type == "affiliateId")?.Value;
+
+    [JsonPropertyName("employeeId")]
+    public string? EmployeeId => _claims?.FirstOrDefault(x => x.Type == "employeeId")?.Value;
+
+    [JsonPropertyName("type")]
+    public string? Type => _claims?.FirstOrDefault(x => x.Type == "type")?.Value;
+
+    [JsonPropertyName("role")]
+    public string? Role => _claims?.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+
+    [JsonPropertyName("regionCode")]
+    public string? RegionCode => _claims?.FirstOrDefault(x => x.Type == "regionCode")?.Value;
 }

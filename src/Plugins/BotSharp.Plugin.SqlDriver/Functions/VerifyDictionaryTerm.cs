@@ -7,12 +7,15 @@ using static Dapper.SqlMapper;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
-public class LookupDictionaryFn : IFunctionCallback
+public class VerifyDictionaryTerm : IFunctionCallback
 {
     public string Name => "verify_dictionary_term";
+    public string Indication => "Verifying dictionary term";
+
+
     private readonly IServiceProvider _services;
 
-    public LookupDictionaryFn(IServiceProvider services)
+    public VerifyDictionaryTerm(IServiceProvider services)
     {
         _services = services;
     }

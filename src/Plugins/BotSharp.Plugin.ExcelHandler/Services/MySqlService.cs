@@ -2,7 +2,9 @@ using System.Data;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Plugin.ExcelHandler.Helpers.MySql;
 using BotSharp.Plugin.ExcelHandler.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using NPOI.SS.UserModel;
 
 namespace BotSharp.Plugin.ExcelHandler.Services
@@ -88,6 +90,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         {
             var numTables = workbook.NumberOfSheets;
             var commandList = new List<SqlContextOut>();
+            var state = _services.GetRequiredService<IConversationStateService>();
 
             for (int sheetIdx = 0; sheetIdx < numTables; sheetIdx++)
             {
@@ -107,11 +110,17 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                     commandList.Add(commandResult);
                     continue;
                 }
+
+                string table = $"{_database}.{_tableName}";
+                state.SetState("tmp_table", table);
+
                 var (isInsertSuccess, insertMessage) = SqlInsertDataFn(sheet);
+                string exampleData = GetInsertExample(table);
+
                 commandResult = new SqlContextOut
                 {
                     isSuccessful = isInsertSuccess,
-                    Message = $"{insertMessage}\r\n{message}",
+                    Message = $"{insertMessage}\r\nExample Data: {exampleData}. \r\n The remaining data contains different values. ",
                     FileName = _currentFileName
                 };
                 commandList.Add(commandResult);
@@ -133,11 +142,11 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 string insertDataSql = ProcessInsertSqlQuery(dataSql);
                 ExecuteSqlQueryForInsertion(insertDataSql);
 
-                return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_tableName}` table");
+                return (true, $"{_currentFileName}: \r\n {_excelRowSize} records have been successfully inserted into `{_database}`.`{_tableName}` table");
             }
             catch (Exception ex)
             {
-                return (false, $"{_currentFileName}: Failed to parse excel data into `{_tableName}` table. ####Error: {ex.Message}");
+                return (false, $"{_currentFileName}: Failed to parse excel data into `{_database}`.`{_tableName}` table. ####Error: {ex.Message}");
             }
         }
         private string ParseSheetData(ISheet singleSheet)
@@ -239,6 +248,19 @@ namespace BotSharp.Plugin.ExcelHandler.Services
             {
                 cmd.ExecuteNonQuery();
             }
+        }
+        private string GetInsertExample(string tableName)
+        {
+            using var connection = _mySqlDbHelpers.GetDbConnection();
+            _database = connection.Database;
+            var sqlQuery = $"SELECT * FROM {tableName} LIMIT 2;";
+            using var cmd = new MySqlCommand(sqlQuery, connection);
+            using var reader = cmd.ExecuteReader();
+
+            var dataExample = new DataTable();
+            dataExample.Load(reader);
+
+            return JsonConvert.SerializeObject(dataExample);
         }
     }
 }

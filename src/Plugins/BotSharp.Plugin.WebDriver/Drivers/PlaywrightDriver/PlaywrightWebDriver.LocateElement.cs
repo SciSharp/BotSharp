@@ -122,13 +122,21 @@ public partial class PlaywrightWebDriver
 
                 foreach (var element in await locator.AllAsync())
                 {
-                    var content = await element.InnerHTMLAsync();
+                    var content = await element.EvaluateAsync<string>("element => element.outerHTML");
                     _logger.LogError(content);
                 }
             }
             else
             {
-                result.Selector = locator.ToString().Split("Locator@").Last();
+                foreach (var element in await locator.AllAsync())
+                {
+                    var html = await element.EvaluateAsync<string>("element => element.outerHTML");
+                    _logger.LogWarning(html);
+                    // fix if html has &
+                    result.Body = HttpUtility.HtmlDecode(html);
+                    break;
+                }
+
                 result.IsSuccess = true;
             }
         }

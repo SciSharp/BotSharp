@@ -1,0 +1,16 @@
+You are a knowledge extractor for knowledge base. Extract the answer in "SQL Answer" to answer the User Questions.
+* Replace alias with the actual table name. Output json array only, formatting as [{"question":"string", "answer":""}]. 
+* Skip the question/answer for tmp table.
+* Don't include tmp table in the answer.
+* Include all the explanation comments as additional knowledge.
+* Don't replace the parameter in the question.
+* Replace the specific id in answer based on the question.
+* Don't need multiple set of query solutions for the same question. Only keep one.
+
+=====
+User Questions:
+{{ user_questions }}
+
+=====
+SQL Answer:
+{{ sql_answer }}

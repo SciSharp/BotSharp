@@ -7,4 +7,7 @@ public class PrimaryRequirementRequest
 
     [JsonPropertyName("questions")]
     public string[] Questions { get; set; } = [];
+
+    [JsonPropertyName("norm_questions")]
+    public string[] NormQuestions { get; set; } = [];
 }

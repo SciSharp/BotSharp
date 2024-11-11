@@ -51,6 +51,12 @@ public partial class ConversationService : IConversationService
         return conversation;
     }
 
+    public async Task<bool> UpdateConversationTags(string conversationId, List<string> tags)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.UpdateConversationTags(conversationId, tags);
+    }
+
     public async Task<bool> UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -166,10 +172,12 @@ public partial class ConversationService : IConversationService
         {
             var state = _services.GetRequiredService<IConversationStateService>();
             var channel = state.GetState("channel");
+            var channelId = state.GetState("channel_id");
             var sess = new Conversation
             {
                 Id = _conversationId,
                 Channel = channel,
+                ChannelId = channelId,
                 AgentId = agentId
             };
             converation = await NewConversation(sess);
