@@ -15,14 +15,13 @@ public partial class MongoRepository
 
     public User? GetUserByPhone(string phone, string regionCode = "CN")
     {
-        if (phone == null || phone.Length < 4)
+        if (string.IsNullOrWhiteSpace(phone))
         {
             return null;
         }
 
         string phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
 
-        //var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate && x.RegionCode == regionCode);
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate && (x.RegionCode == regionCode || x.RegionCode == null));
         return user != null ? user.ToUser() : null;
     }
