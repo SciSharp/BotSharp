@@ -15,21 +15,14 @@ public partial class MongoRepository
 
     public User? GetUserByPhone(string phone, string regionCode = "CN")
     {
-        string phoneSecond = string.Empty;
-        // 如果电话号码长度小于 4，直接返回 null
-        if (phone?.Length < 4)
+        if (string.IsNullOrWhiteSpace(phone))
         {
             return null;
         }
-        if (phone.Substring(0, 3) != "+86")
-        {
-            phoneSecond = $"+86{phone}";
-        }
-        else
-        {
-            phoneSecond = phone.Replace("+86", "");
-        }
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate && x.RegionCode == regionCode);
+
+        string phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
+
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate && (x.RegionCode == regionCode || x.RegionCode == null));
         return user != null ? user.ToUser() : null;
     }
 
