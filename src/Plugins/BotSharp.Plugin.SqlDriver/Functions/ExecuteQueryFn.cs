@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
+using BotSharp.Plugin.SqlDriver.Interfaces;
 using BotSharp.Plugin.SqlDriver.Models;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -30,7 +31,7 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs);
         var refinedArgs = await RefineSqlStatement(message, args);
-        var dbHook = _services.GetRequiredService<IDatabaseHook>();
+        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
         var dbType = dbHook.GetDatabaseType(message);
 
         try

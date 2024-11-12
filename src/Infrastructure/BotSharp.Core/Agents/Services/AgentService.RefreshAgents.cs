@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Users.Enums;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -16,6 +17,12 @@ public partial class AgentService
             return refreshResult;
         }
 
+        var user = _db.GetUserById(_user.Id);
+        if (!UserConstant.AdminRoles.Contains(user.Role))
+        {
+            return "Unauthorized user.";
+        }
+
         var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                                     dbSettings.FileRepository,
                                     _agentSettings.DataDir);
@@ -25,10 +32,8 @@ public partial class AgentService
             refreshResult = $"Cannot find the directory: {agentDir}";
             return refreshResult;
         }
-
-        var user = _db.GetUserById(_user.Id);
+        
         var refreshedAgents = new List<string>();
-
         foreach (var dir in Directory.GetDirectories(agentDir))
         {
             try

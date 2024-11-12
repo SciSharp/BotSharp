@@ -88,7 +88,7 @@ public class SummaryPlanFn : IFunctionCallback
         var additionalRequirements = new List<string>();
         await HookEmitter.Emit<IPlanningHook>(_services, async x =>
         {
-            var requirement = await x.GetSummaryAdditionalRequirements(nameof(TwoStageTaskPlanner));
+            var requirement = await x.GetSummaryAdditionalRequirements(nameof(TwoStageTaskPlanner), message);
             additionalRequirements.Add(requirement);
         });
 
