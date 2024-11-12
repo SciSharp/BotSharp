@@ -53,6 +53,7 @@ public class SqlDriverPlanningHook : IPlanningHook
         // Invoke "execute_sql"
         var routing = _services.GetRequiredService<IRoutingService>();
         await routing.InvokeFunction(response.FunctionName, response);
+
         msg.CurrentAgentId = agent.Id;
         msg.FunctionName = response.FunctionName;
         msg.FunctionArgs = response.FunctionArgs;
@@ -64,13 +65,10 @@ public class SqlDriverPlanningHook : IPlanningHook
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         var sqlHooks = _services.GetServices<ISqlDriverHook>();
-        
-        var dbType = sqlHooks.Any() ? 
-            sqlHooks.First().GetDatabaseType(message) :
-            settings.DatabaseType;
+        var agentService = _services.GetRequiredService<IAgentService>();
 
-        var agent = await _services.GetRequiredService<IAgentService>()
-            .LoadAgent(BuiltInAgentId.SqlDriver);
+        var dbType = !sqlHooks.IsNullOrEmpty() ? sqlHooks.First().GetDatabaseType(message) : settings.DatabaseType;
+        var agent = await agentService.LoadAgent(BuiltInAgentId.SqlDriver);
 
         return agent.Templates.FirstOrDefault(x => x.Name == $"database.summarize.{dbType}")?.Content ?? string.Empty;
     }
@@ -101,7 +99,6 @@ public class SqlDriverPlanningHook : IPlanningHook
                         Type = "text",
                         Title = "Execute the SQL Statement",
                         Payload = sql,
-
                         IsPrimary = true
                     },
                     new ElementButton

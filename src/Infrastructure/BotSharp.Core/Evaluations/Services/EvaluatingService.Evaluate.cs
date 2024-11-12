@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Evaluations.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Core.Agents.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BotSharp.Core.Evaluations.Services;
 
@@ -32,10 +34,12 @@ public partial class EvaluatingService
         }
 
         var generatedConvId = await SimulateConversation(initMessage, refDialogContents, request);
+        var metricResult = await EvaluateMetrics(generatedConvId, refDialogContents, request);
 
         return new EvaluationResult
         {
-            GeneratedConversationId = generatedConvId
+            GeneratedConversationId = generatedConvId,
+            MetricResult = metricResult
         };
     }
 
@@ -56,8 +60,8 @@ public partial class EvaluatingService
 
         var query = "Please see yourself as a user and follow the instruction to generate a message.";
         var targetAgentId = request.AgentId;
-        var evaluatorAgent = await agentService.GetAgent(BuiltInAgentId.Evaluator);
-        var simulatorPrompt = evaluatorAgent.Templates.FirstOrDefault(x => x.Name == "instruction.simulator")?.Content ?? string.Empty;
+        var evaluator = await agentService.GetAgent(BuiltInAgentId.Evaluator);
+        var simulatorPrompt = evaluator.Templates.FirstOrDefault(x => x.Name == "instruction.simulator")?.Content ?? string.Empty;
 
         while (true)
         {
@@ -80,14 +84,14 @@ public partial class EvaluatingService
                                 {
                                     { "ref_conversation", refDialogs },
                                     { "cur_conversation", curDialogs },
-                                    { "additional_instruction", request.AdditionalInstruction },
-                                    { "stop_criteria", request.StopCriteria }
+                                    { "additional_instruction", request.Chat.AdditionalInstruction },
+                                    { "stop_criteria", request.Chat.StopCriteria }
                                 }
                             });
 
             _logger.LogInformation($"Generated message: {result?.GeneratedMessage}, stop: {result?.Stop}, reason: {result?.Reason}");
 
-            if (count > request.MaxRounds || (result != null && result.Stop))
+            if (count > request.Chat.MaxRounds || (result != null && result.Stop))
             {
                 break;
             }
@@ -103,7 +107,7 @@ public partial class EvaluatingService
             }
 
 
-            if (duplicateCount >= request.DuplicateLimit)
+            if (duplicateCount >= request.Chat.DuplicateLimit)
             {
                 break;
             }
@@ -113,6 +117,38 @@ public partial class EvaluatingService
         }
 
         return convId;
+    }
+
+
+    private async Task<string?> EvaluateMetrics(string curConversationId, IEnumerable<string> refDialogs, EvaluationRequest request)
+    {
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var instructService = _services.GetRequiredService<IInstructService>();
+
+        var curDialogs = storage.GetDialogs(curConversationId);
+        var curDialogContents = GetConversationContent(curDialogs);
+
+        var evaluator = await agentService.GetAgent(BuiltInAgentId.Evaluator);
+        var metricPrompt = evaluator.Templates.FirstOrDefault(x => x.Name == "instruction.metrics")?.Content ?? string.Empty;
+        var query = "Please follow the instruction for evaluation.";
+
+        var result = await instructService.Instruct<JsonDocument>(metricPrompt, BuiltInAgentId.Evaluator,
+                            new InstructOptions
+                            {
+                                Provider = request.Provider,
+                                Model = request.Model,
+                                Message = query,
+                                Data = new Dictionary<string, object>
+                                {
+                                    { "ref_conversation", refDialogs },
+                                    { "cur_conversation", curDialogs },
+                                    { "additional_instruction", request.Metric.AdditionalInstruction },
+                                    { "metrics", request.Metric.Metrics }
+                                }
+                            });
+
+        return result != null ? result.RootElement.GetRawText() : null;
     }
 
     private IEnumerable<string> GetConversationContent(IEnumerable<RoleDialogModel> dialogs)

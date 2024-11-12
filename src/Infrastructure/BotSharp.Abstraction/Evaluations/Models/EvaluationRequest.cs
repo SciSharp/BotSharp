@@ -10,6 +10,16 @@ public class EvaluationRequest : LlmBaseRequest
     [JsonPropertyName("states")]
     public IEnumerable<MessageState> States { get; set; } = [];
 
+    [JsonPropertyName("chat")]
+    public ChatEvaluationRequest Chat { get; set; } = new ChatEvaluationRequest();
+
+    [JsonPropertyName("metric")]
+    public MetricEvaluationRequest Metric { get; set; } = new MetricEvaluationRequest();
+}
+
+
+public class ChatEvaluationRequest
+{
     [JsonPropertyName("duplicate_limit")]
     public int DuplicateLimit { get; set; } = 2;
 
@@ -24,4 +34,26 @@ public class EvaluationRequest : LlmBaseRequest
     [JsonPropertyName("stop_criteria")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StopCriteria { get; set; }
+
+    public ChatEvaluationRequest()
+    {
+        
+    }
+}
+
+
+public class MetricEvaluationRequest
+{
+    [JsonPropertyName("additional_instruction")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? AdditionalInstruction { get; set; }
+
+    [JsonPropertyName("metrics")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IEnumerable<NameDesc>? Metrics { get; set; } = [];
+
+    public MetricEvaluationRequest()
+    {
+        
+    }
 }
