@@ -57,7 +57,7 @@ public class SqlExecutorHook : AgentHookBase, IAgentHook
         var fns = agent?.Functions?.Where(x => _targetSqlExecutorFunctions.Contains(x.Name))?.ToList();
         
         var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(SQL_EXECUTOR_TEMPLATE))?.Content ?? string.Empty;
-        var dbType = GetDatabaseType();
+        var dbType = GetDatabaseType(); //need change-> using hook?
         var render = _services.GetRequiredService<ITemplateRender>();
         prompt = render.Render(prompt, new Dictionary<string, object>
         {

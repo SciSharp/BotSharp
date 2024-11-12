@@ -20,6 +20,9 @@ public class FirstStagePlan
     [JsonPropertyName("related_tables")]
     public string[] Tables { get; set; } = [];
 
+    [JsonPropertyName("has_found_relevant_knowledge")]
+    public bool HasFoundRelevantKnowledge { get; set; } = false;
+
     //[JsonPropertyName("related_urls")]
     //public string[] Urls { get; set; } = [];
 
