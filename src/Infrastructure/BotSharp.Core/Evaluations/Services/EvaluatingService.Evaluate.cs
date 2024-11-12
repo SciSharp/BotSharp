@@ -1,8 +1,7 @@
 using BotSharp.Abstraction.Evaluations.Models;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
-using BotSharp.Core.Agents.Services;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using BotSharp.Abstraction.Models;
 
 namespace BotSharp.Core.Evaluations.Services;
 
@@ -33,7 +32,8 @@ public partial class EvaluatingService
             return result;
         }
 
-        var generatedConvId = await SimulateConversation(initMessage, refDialogContents, request);
+        var initialStates = GetInitialStates(conversationId);
+        var generatedConvId = await SimulateConversation(initMessage, refDialogContents, request, initialStates);
         var metricResult = await EvaluateMetrics(generatedConvId, refDialogContents, request);
 
         return new EvaluationResult
@@ -43,7 +43,8 @@ public partial class EvaluatingService
         };
     }
 
-    private async Task<string> SimulateConversation(string initMessage, IEnumerable<string> refDialogs, EvaluationRequest request)
+    private async Task<string> SimulateConversation(string initMessage, IEnumerable<string> refDialogs,
+        EvaluationRequest request, IEnumerable<MessageState>? states = null)
     {
         var count = 0;
         var duplicateCount = 0;
@@ -53,6 +54,7 @@ public partial class EvaluatingService
         var prevUserMsg = string.Empty;
         var curBotMsg = string.Empty;
         var prevBotMsg = string.Empty;
+        var initialStates = states?.ToList() ?? [];
 
         var storage = _services.GetRequiredService<IConversationStorage>();
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -66,7 +68,8 @@ public partial class EvaluatingService
         while (true)
         {
             curDialogs.Add($"{AgentRole.User}: {curUserMsg}");
-            var dialog = await SendMessage(targetAgentId, convId, curUserMsg);
+            var dialog = await SendMessage(targetAgentId, convId, curUserMsg, states: initialStates);
+            initialStates = [];
 
             prevBotMsg = curBotMsg;
             curBotMsg = dialog?.RichContent?.Message?.Text ?? dialog?.Content ?? string.Empty;
@@ -97,7 +100,7 @@ public partial class EvaluatingService
             }
 
 
-            if (curUserMsg.IsEqualTo(prevUserMsg) || curBotMsg.IsEqualTo(prevBotMsg))
+            if (curBotMsg.IsEqualTo(prevBotMsg))
             {
                 duplicateCount++;
             }
@@ -169,5 +172,31 @@ public partial class EvaluatingService
         }
 
         return contents;
+    }
+
+    private IEnumerable<MessageState> GetInitialStates(string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            return [];
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var states = db.GetConversationStates(conversationId);
+        var initialStates = new List<MessageState>();
+
+        foreach (var state in states)
+        {
+            var value = state.Value?.Values?.FirstOrDefault(x => string.IsNullOrEmpty(x.MessageId));
+
+            if (string.IsNullOrEmpty(value?.Data))
+            {
+                continue;
+            }
+
+            initialStates.Add(new MessageState(state.Key, value.Data, value.ActiveRounds));
+        }
+
+        return initialStates;
     }
 }
