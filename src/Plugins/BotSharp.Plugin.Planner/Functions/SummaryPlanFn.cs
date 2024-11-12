@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Planning;
 using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -24,14 +26,13 @@ public class SummaryPlanFn : IFunctionCallback
     {
         var fn = _services.GetRequiredService<IRoutingService>();
         var agentService = _services.GetRequiredService<IAgentService>();
-        var state = _services.GetRequiredService<IConversationStateService>();
+        var states = _services.GetRequiredService<IConversationStateService>();
 
-        state.SetState("max_tokens", "4096");
+        states.SetState("max_tokens", "4096");
         var currentAgent = await agentService.LoadAgent(message.CurrentAgentId);
-        var taskRequirement = state.GetState("requirement_detail");
+        var taskRequirement = states.GetState("requirement_detail");
 
         // Get table names
-        var states = _services.GetRequiredService<IConversationStateService>();
         var steps = states.GetState("planning_result").JsonArrayContent<SecondStagePlan>();
         var allTables = new List<string>();
         var ddlStatements = string.Empty;
@@ -53,6 +54,7 @@ public class SummaryPlanFn : IFunctionCallback
         });
         await fn.InvokeFunction("sql_table_definition", msgCopy);
         ddlStatements += "\r\n" + msgCopy.Content;
+        states.SetState("table_ddls", ddlStatements);
 
         // Summarize and generate query
         var prompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, domainKnowledge, dictionaryItems, ddlStatements, excelImportResult);
@@ -68,6 +70,9 @@ public class SummaryPlanFn : IFunctionCallback
 
         var summary = await GetAiResponse(plannerAgent);
         message.Content = summary.Content;
+
+        // Validate the sql result
+        await fn.InvokeFunction("validate_sql", message);
 
         await HookEmitter.Emit<IPlanningHook>(_services, async hook =>
             await hook.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message)
@@ -119,8 +124,8 @@ public class SummaryPlanFn : IFunctionCallback
         wholeDialogs.Last().Content += "\n\nIf the table structure didn't mention auto incremental, the data field id needs to insert id manually and you need to use max(id).\nFor example, you should use SET @id = select max(id) from table;";
         wholeDialogs.Last().Content += "\n\nTry if you can generate a single query to fulfill the needs.";
 
-        var completion = CompletionProvider.GetChatCompletion(_services, 
-            provider: plannerAgent.LlmConfig.Provider, 
+        var completion = CompletionProvider.GetChatCompletion(_services,
+            provider: plannerAgent.LlmConfig.Provider,
             model: plannerAgent.LlmConfig.Model);
 
         return await completion.GetChatCompletions(plannerAgent, wholeDialogs);
