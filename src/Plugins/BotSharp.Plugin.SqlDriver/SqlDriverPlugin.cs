@@ -31,5 +31,6 @@ public class SqlDriverPlugin : IBotSharpPlugin
         services.AddScoped<IPlanningHook, SqlDriverPlanningHook>();
         services.AddScoped<IAgentHook, SqlDictionaryLookupHook>();
         services.AddScoped<IAgentHook, GetTableDefinitionHook>();
+        services.AddScoped<IConversationHook, SqlDriverConversationHook>();
     }
 }
