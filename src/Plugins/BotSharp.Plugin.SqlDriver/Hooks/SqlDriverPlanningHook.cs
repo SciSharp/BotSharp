@@ -58,10 +58,8 @@ public class SqlDriverPlanningHook : IPlanningHook
         msg.FunctionArgs = response.FunctionArgs;
         msg.Content = response.Content;
         msg.StopCompletion = response.StopCompletion;
-
-        /*var routing = _services.GetRequiredService<IRoutingService>();
-        await routing.InvokeAgent(BuiltInAgentId.SqlDriver, wholeDialogs);*/
     }
+
     public async Task<string> GetSummaryAdditionalRequirements(string planner, RoleDialogModel message)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
