@@ -22,7 +22,7 @@ public partial class MongoRepository
 
         string phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
 
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate && (x.RegionCode == regionCode || x.RegionCode == null));
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)));
         return user != null ? user.ToUser() : null;
     }
 
