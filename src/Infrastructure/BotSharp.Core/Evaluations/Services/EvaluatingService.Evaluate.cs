@@ -99,17 +99,7 @@ public partial class EvaluatingService
                 break;
             }
 
-
-            if (curBotMsg.IsEqualTo(prevBotMsg))
-            {
-                duplicateCount++;
-            }
-            else
-            {
-                duplicateCount = 0;
-            }
-
-
+            duplicateCount = curBotMsg.IsEqualTo(prevBotMsg) ? duplicateCount + 1 : 0;
             if (duplicateCount >= request.Chat.DuplicateLimit)
             {
                 break;
