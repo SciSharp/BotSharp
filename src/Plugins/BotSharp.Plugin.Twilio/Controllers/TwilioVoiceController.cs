@@ -48,7 +48,7 @@ public class TwilioVoiceController : TwilioController
         var instruction = new ConversationalVoiceResponse
         {
             SpeechPaths = ["twilio/welcome.mp3"],
-            CallbackPath = $"twilio/voice/{request.ConversationId}/receive/0?{GenerateStatesParameter(request.States)}",
+            CallbackPath = $"twilio/voice/{request.ConversationId}/receive/0",
             ActionOnEmptyResult = true,
             Timeout = 2
         };
@@ -59,6 +59,8 @@ public class TwilioVoiceController : TwilioController
         {
             OnlyOnce = true
         });
+
+        instruction.CallbackPath = $"{instruction.CallbackPath}?{GenerateStatesParameter(request.States)}";
 
         var twilio = _services.GetRequiredService<TwilioService>();
         if (string.IsNullOrWhiteSpace(request.Intent))
