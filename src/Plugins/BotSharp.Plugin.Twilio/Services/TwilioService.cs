@@ -115,7 +115,7 @@ public class TwilioService
             },
             Action = new Uri($"{_settings.CallbackHost}/{conversationalVoiceResponse.CallbackPath}"),
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
-            SpeechTimeout = conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout.ToString() : "3",
+            SpeechTimeout = "auto", // conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout.ToString() : "3",
             Timeout = conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout : 3,
             ActionOnEmptyResult = conversationalVoiceResponse.ActionOnEmptyResult
         };
