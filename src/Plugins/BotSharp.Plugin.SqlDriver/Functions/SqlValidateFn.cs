@@ -74,7 +74,7 @@ public class SqlValidateFn : IFunctionCallback
                     Message = "Correct SQL Statement",
                     Data = new Dictionary<string, object>
                     {
-                        { "original_sql", validateSql },
+                        { "original_sql", sql },
                         { "error_message", ex.Message },
                         { "table_structure", ddl }
                     }
