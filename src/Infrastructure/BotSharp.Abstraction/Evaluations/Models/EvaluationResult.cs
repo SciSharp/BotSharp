@@ -6,4 +6,5 @@ public class EvaluationResult
     public string TaskInstruction { get; set; }
     public string SystemPrompt { get; set; }
     public string GeneratedConversationId { get; set; }
+    public string? MetricResult { get; set; }
 }

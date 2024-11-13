@@ -1,13 +1,14 @@
 using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
+using BotSharp.Plugin.SqlDriver.Interfaces;
 using BotSharp.Plugin.SqlDriver.Models;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Npgsql;
+using System.Data.Common;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -30,7 +31,7 @@ public class ExecuteQueryFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs);
         var refinedArgs = await RefineSqlStatement(message, args);
-        var dbHook = _services.GetRequiredService<IDatabaseHook>();
+        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
         var dbType = dbHook.GetDatabaseType(message);
 
         try
@@ -57,10 +58,18 @@ public class ExecuteQueryFn : IFunctionCallback
 
             message.Content = JsonSerializer.Serialize(results);
         }
+        catch (DbException ex)
+        {
+            _logger.LogError(ex, "Error occurred while executing SQL query.");
+            message.Content = $"Error occurred while executing SQL query: {ex.Message}";
+            message.Data = ex;
+            message.StopCompletion = true;
+            return false;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while executing SQL query.");
-            message.Content = "Error occurred while retrieving information.";
+            message.Content = $"Error occurred while executing SQL query: {ex.Message}";
             message.StopCompletion = true;
             return false;
         }
@@ -140,11 +149,11 @@ public class ExecuteQueryFn : IFunctionCallback
             provider: agent.LlmConfig.Provider,
             model: agent.LlmConfig.Model);
 
-        var refinedMessage = await completion.GetChatCompletions(agent, new List<RoleDialogModel> 
-        { 
-            new RoleDialogModel(AgentRole.User, "Check and output the correct SQL statements") 
+        var refinedMessage = await completion.GetChatCompletions(agent, new List<RoleDialogModel>
+        {
+            new RoleDialogModel(AgentRole.User, "Check and output the correct SQL statements")
         });
-        
+
         return refinedMessage.Content.JsonContent<ExecuteQueryArgs>();
     }
 

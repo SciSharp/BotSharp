@@ -11,6 +11,13 @@ public interface IConversationHook
     IConversationHook SetConversation(Conversation conversation);
 
     /// <summary>
+    /// Get the predifined intent for the conversation.
+    /// It will send to the conversation context to help LLM to understand the user's intent.
+    /// </summary>
+    /// <returns></returns>
+    Task<string> GetConversationIntent() => Task.FromResult(string.Empty);
+
+    /// <summary>
     /// Triggered when user connects with agent first time.
     /// This hook is the good timing to show welcome infomation.
     /// </summary>
