@@ -61,7 +61,10 @@ public partial class EvaluatingService : IEvaluatingService
             dialogs.Add(new RoleDialogModel(AgentRole.User, question));
             prompt += question.Trim();
 
-            response = await SendMessage(request.AgentId, conv.Id, question);
+            response = await SendMessage(request.AgentId, conv.Id, question, states: new List<MessageState>
+            {
+                new MessageState("channel", ConversationChannel.OpenAPI)
+            });
             dialogs.Add(new RoleDialogModel(AgentRole.Assistant, response.Content));
             prompt += $"\r\n{AgentRole.Assistant}: {response.Content.Trim()}";
             prompt += $"\r\n{AgentRole.User}: ";
@@ -86,17 +89,16 @@ public partial class EvaluatingService : IEvaluatingService
         return conv;
     }
 
-    private async Task<RoleDialogModel> SendMessage(string agentId, string conversationId, string text)
+    private async Task<RoleDialogModel> SendMessage(string agentId, string conversationId, string text,
+        PostbackMessageModel? postback = null,
+        List<MessageState>? states = null)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         var routing = _services.GetRequiredService<IRoutingService>();
 
         var inputMsg = new RoleDialogModel(AgentRole.User, text);
         routing.Context.SetMessageId(conversationId, inputMsg.MessageId);
-        conv.SetConversationId(conversationId, new List<MessageState>
-        {
-            new MessageState("channel", ConversationChannel.OpenAPI)
-        });
+        conv.SetConversationId(conversationId, states ?? []);
 
         RoleDialogModel response = default;
 
