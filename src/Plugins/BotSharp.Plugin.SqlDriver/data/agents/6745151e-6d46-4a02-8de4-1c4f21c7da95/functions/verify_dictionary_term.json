@@ -18,10 +18,10 @@
       },
       "tables": {
         "type": "array",
-        "description": "all related dictionary tables",
+        "description": "all related dictionary tables must be from related knowledge in the context",
         "items": {
           "type": "string",
-          "description": "table name"
+          "description": "table name from related knowledge in the context"
         }
       }
     },
