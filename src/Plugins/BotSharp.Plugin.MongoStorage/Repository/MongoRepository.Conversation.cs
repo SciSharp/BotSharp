@@ -281,6 +281,11 @@ public partial class MongoRepository
 
     public PagedItems<Conversation> GetConversations(ConversationFilter filter)
     {
+        if (filter == null)
+        {
+            filter = ConversationFilter.Empty();
+        }
+
         var convBuilder = Builders<ConversationDocument>.Filter;
         var convFilters = new List<FilterDefinition<ConversationDocument>>() { convBuilder.Empty };
 

@@ -407,10 +407,18 @@ public class UserService : IUserService
         return users;
     }
 
-    public async Task<bool> UpdateUser(User model, bool isUpdateUserAgents = false)
+    public async Task<User?> GetUserDetails(string userId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateUser(model, isUpdateUserAgents);
+        return db.GetUserDetails(userId);
+    }
+
+    public async Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false)
+    {
+        if (user == null) return false;
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.UpdateUser(user, isUpdateUserAgents);
     }
 
     public async Task<Token> ActiveUser(UserActivationModel model)

@@ -1,7 +1,4 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Users.Models;
-using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -358,6 +355,11 @@ namespace BotSharp.Core.Repository
 
         public List<Agent> GetAgents(AgentFilter filter)
         {
+            if (filter == null)
+            {
+                filter = AgentFilter.Empty();
+            }
+
             var query = Agents;
             if (!string.IsNullOrEmpty(filter.AgentName))
             {

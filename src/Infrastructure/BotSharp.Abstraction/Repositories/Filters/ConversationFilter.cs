@@ -25,4 +25,9 @@ public class ConversationFilter
     public IEnumerable<KeyValue>? States { get; set; } = [];
 
     public IEnumerable<string>? Tags { get; set; } = [];
+
+    public static ConversationFilter Empty()
+    {
+        return new ConversationFilter();
+    }
 }

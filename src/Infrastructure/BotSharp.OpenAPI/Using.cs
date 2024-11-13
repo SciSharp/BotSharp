@@ -32,3 +32,4 @@ global using BotSharp.OpenAPI.ViewModels.Conversations;
 global using BotSharp.OpenAPI.ViewModels.Users;
 global using BotSharp.OpenAPI.ViewModels.Agents;
 global using BotSharp.OpenAPI.ViewModels.Files;
+global using BotSharp.OpenAPI.ViewModels.Roles;

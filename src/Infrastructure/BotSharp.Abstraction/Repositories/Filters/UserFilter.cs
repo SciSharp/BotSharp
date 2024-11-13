@@ -1,4 +1,4 @@
-namespace BotSharp.Abstraction.Users.Models;
+namespace BotSharp.Abstraction.Repositories.Filters;
 
 public class UserFilter : Pagination
 {
@@ -16,4 +16,9 @@ public class UserFilter : Pagination
 
     [JsonPropertyName("sources")]
     public IEnumerable<string>? Sources { get; set; }
+
+    public static UserFilter Empty()
+    {
+        return new UserFilter();
+    }
 }

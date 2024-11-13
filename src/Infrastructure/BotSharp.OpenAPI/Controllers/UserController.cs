@@ -198,6 +198,13 @@ public class UserController : ControllerBase
         };
     }
 
+    [HttpGet("/user/{id}/details")]
+    public async Task<UserViewModel> GetUserDetails(string id)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUserDetails(id);
+        return UserViewModel.FromUser(user);
+    }
 
     [HttpPut("/user")]
     public async Task<bool> UpdateUser([FromBody] UserUpdateModel model)

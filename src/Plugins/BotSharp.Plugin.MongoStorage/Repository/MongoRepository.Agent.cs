@@ -283,6 +283,11 @@ public partial class MongoRepository
 
     public List<Agent> GetAgents(AgentFilter filter)
     {
+        if (filter == null)
+        {
+            filter = AgentFilter.Empty();
+        }
+
         var agents = new List<Agent>();
         var builder = Builders<AgentDocument>.Filter;
         var filters = new List<FilterDefinition<AgentDocument>>() { builder.Empty };

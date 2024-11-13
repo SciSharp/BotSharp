@@ -2,6 +2,8 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
+using MongoDB.Driver;
+using System.Globalization;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -173,6 +175,11 @@ public partial class MongoRepository
 
     public PagedItems<User> GetUsers(UserFilter filter)
     {
+        if (filter == null)
+        {
+            filter = UserFilter.Empty();
+        }
+
         var userBuilder = Builders<UserDocument>.Filter;
         var userFilters = new List<FilterDefinition<UserDocument>>() { userBuilder.Empty };
 
@@ -207,44 +214,6 @@ public partial class MongoRepository
         var count = _dc.Users.CountDocuments(filterDef);
 
         var users = userDocs.Select(x => x.ToUser()).ToList();
-        var userIds = users.Select(x => x.Id).ToList();
-        var userAgents = _dc.UserAgents.AsQueryable().Where(x => userIds.Contains(x.UserId)).Select(x => new UserAgent
-        {
-            Id = x.Id,
-            UserId = x.UserId,
-            AgentId = x.AgentId,
-            Actions = x.Actions ?? Enumerable.Empty<string>(),
-            CreatedTime = x.CreatedTime,
-            UpdatedTime = x.UpdatedTime
-        }).ToList();
-        var agentIds = userAgents.Select(x => x.AgentId).Distinct().ToList();
-
-        if (!agentIds.IsNullOrEmpty())
-        {
-            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
-            foreach (var item in userAgents)
-            {
-                var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
-                if (agent == null) continue;
-
-                item.Agent = agent;
-            }
-
-            foreach (var user in users)
-            {
-                var found = userAgents.Where(x => x.UserId == user.Id).ToList();
-                if (found.IsNullOrEmpty()) continue;
-
-                user.AgentActions = found.Select(x => new UserAgentAction
-                {
-                    Id = x.Id,
-                    AgentId = x.AgentId,
-                    Agent = x.Agent,
-                    Actions = x.Actions
-                });
-            }
-        }
-
         return new PagedItems<User>
         {
             Items = users,
@@ -252,6 +221,48 @@ public partial class MongoRepository
         };
     }
 
+    public User? GetUserDetails(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+
+        var userDoc = _dc.Users.Find(Builders<UserDocument>.Filter.Eq(x => x.Id, userId)).FirstOrDefault();
+        if (userDoc == null) return null;
+
+        var user = userDoc.ToUser();
+
+        var userAgents = _dc.UserAgents.AsQueryable().Where(x => x.UserId == userId).Select(x => new UserAgent
+        {
+            Id = x.Id,
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions ?? Enumerable.Empty<string>()
+        }).ToList();
+
+        var agentActions = new List<UserAgentAction>();
+        var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
+
+        if (!agentIds.IsNullOrEmpty())
+        {
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+
+            foreach (var item in userAgents)
+            {
+                var found = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (found == null) continue;
+
+                agentActions.Add(new UserAgentAction
+                {
+                    Id = item.Id,
+                    AgentId = found.Id,
+                    Agent = found,
+                    Actions = item.Actions
+                });
+            }
+        }
+
+        user.AgentActions = agentActions;
+        return user;
+    }
 
     public bool UpdateUser(User user, bool isUpdateUserAgents = false)
     {
