@@ -13,11 +13,10 @@ using System.Threading.Tasks;
 
 namespace BotSharp.Plugin.VertexAI.Providers
 {
-    public class TextCompletionProvider(
-    VertexAIConfiguration config,
-    ChatSettings settings,
-    ILogger<TextCompletionProvider> logger,
-    IServiceProvider services) : ITextCompletion
+    public class TextCompletionProvider(VertexAIConfiguration config,
+        ChatSettings settings,
+        ILogger<TextCompletionProvider> logger,
+        IServiceProvider services) : ITextCompletion
     {
         public string Provider => "vertexai";
         private readonly VertexAIConfiguration _config = config;
