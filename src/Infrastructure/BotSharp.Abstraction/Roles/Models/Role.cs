@@ -15,8 +15,8 @@ public class Role
     public IEnumerable<RoleAgentAction> AgentActions { get; set; } = [];
 
     [JsonPropertyName("updated_time")]
-    public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedTime { get; set; }
 
     [JsonPropertyName("created_time")]
-    public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedTime { get; set; }
 }

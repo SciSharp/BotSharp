@@ -58,20 +58,11 @@ public class AgentController : ControllerBase
             rule.RedirectToAgentName = found.Name;
         }
 
-        var editable = true;
-        var chatable = true;
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (!UserConstant.AdminRoles.Contains(user?.Role))
-        {
-            var userAgents = await _agentService.GetUserAgents(user?.Id);
-            var actions = userAgents?.FirstOrDefault(x => x.AgentId == targetAgent.Id)?.Actions ?? [];
-            editable = actions.Contains(UserAction.Edit);
-            chatable = actions.Contains(UserAction.Chat);
-        }
+        var auth = await userService.GetUserAuthorizations(targetAgent.Id);
 
-        targetAgent.Editable = editable;
-        targetAgent.Chatable = chatable;
+        targetAgent.Editable = auth.IsAdmin || auth.AgentActions.Contains(UserAction.Edit);
+        targetAgent.Chatable = auth.IsAdmin || auth.AgentActions.Contains(UserAction.Chat);
         return targetAgent;
     }
 

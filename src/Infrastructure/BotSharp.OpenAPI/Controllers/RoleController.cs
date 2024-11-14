@@ -21,6 +21,19 @@ public class RoleController : ControllerBase
         _user = user;
     }
 
+    [HttpPost("/role/refresh")]
+    public async Task<bool> RefreshRoles()
+    {
+        var isValid = await IsValidUser();
+        if (!isValid)
+        {
+            return false;
+        }
+
+        return await _roleService.RefreshRoles();
+    }
+
+
     [HttpGet("/role/options")]
     public async Task<IEnumerable<string>> GetRoleOptions()
     {
@@ -33,6 +46,12 @@ public class RoleController : ControllerBase
         if (filter == null)
         {
             filter = RoleFilter.Empty();
+        }
+
+        var isValid = await IsValidUser();
+        if (!isValid)
+        {
+            return Enumerable.Empty<RoleViewModel>();
         }
 
         var roles = await _roleService.GetRoles(filter);
@@ -51,14 +70,19 @@ public class RoleController : ControllerBase
     {
         if (model == null) return false;
 
-        var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        var isValid = await IsValidUser();
+        if (!isValid)
         {
             return false;
         }
 
         var role = RoleUpdateModel.ToRole(model);
         return await _roleService.UpdateRole(role, isUpdateRoleAgents: true);
+    }
+
+    private async Task<bool> IsValidUser()
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        return await userService.IsAuthorizedUser(_user.Id);
     }
 }

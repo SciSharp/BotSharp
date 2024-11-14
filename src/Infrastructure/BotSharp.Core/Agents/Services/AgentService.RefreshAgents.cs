@@ -17,8 +17,9 @@ public partial class AgentService
             return refreshResult;
         }
 
-        var user = _db.GetUserById(_user.Id);
-        if (!UserConstant.AdminRoles.Contains(user.Role))
+        var userService = _services.GetRequiredService<IUserService>();
+        var isValid = await userService.IsAuthorizedUser(_user.Id);
+        if (!isValid)
         {
             return "Unauthorized user.";
         }

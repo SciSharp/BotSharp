@@ -25,8 +25,11 @@ public partial class AgentService
         var agentSettings = _services.GetRequiredService<AgentSettings>();
 
         var user = _db.GetUserById(_user.Id);
+        var userService = _services.GetRequiredService<IUserService>();
+        var auth = await userService.GetUserAuthorizations();
+
         _db.BulkInsertAgents(new List<Agent> { agentRecord });
-        if (!UserConstant.AdminRoles.Contains(user.Role))
+        if (auth.IsAdmin || auth.Permissions.Contains(UserPermission.CreateAgent))
         {
             _db.BulkInsertUserAgents(new List<UserAgent>
             {
@@ -34,7 +37,7 @@ public partial class AgentService
                 {
                     UserId = user.Id,
                     AgentId = agentRecord.Id,
-                    Actions = new List<string> { UserAction.Edit, UserAction.Chat },
+                    Actions = new List<string> { UserAction.Edit, UserAction.Train, UserAction.Evaluate, UserAction.Chat },
                     CreatedTime = DateTime.UtcNow,
                     UpdatedTime = DateTime.UtcNow
                 }

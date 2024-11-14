@@ -9,6 +9,8 @@ public interface IUserService
     Task<User> GetUser(string id);
     Task<PagedItems<User>> GetUsers(UserFilter filter);
     Task<User?> GetUserDetails(string userId);
+    Task<bool> IsAuthorizedUser(string userId);
+    Task<UserAuthorization> GetUserAuthorizations(string? agentId = null);
     Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false);
     Task<User> CreateUser(User user);
     Task<Token> ActiveUser(UserActivationModel model);

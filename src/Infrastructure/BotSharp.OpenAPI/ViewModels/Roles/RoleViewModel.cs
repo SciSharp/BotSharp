@@ -18,10 +18,10 @@ public class RoleViewModel
     public IEnumerable<RoleAgentActionViewModel> AgentActions { get; set; } = [];
 
     [JsonPropertyName("create_date")]
-    public DateTime CreateDate { get; set; }
+    public DateTime? CreateDate { get; set; }
 
     [JsonPropertyName("update_date")]
-    public DateTime UpdateDate { get; set; }
+    public DateTime? UpdateDate { get; set; }
 
     public static RoleViewModel FromRole(Role? role)
     {
@@ -33,8 +33,8 @@ public class RoleViewModel
             Name = role.Name,
             Permissions = role.Permissions,
             AgentActions = role.AgentActions?.Select(x => RoleAgentActionViewModel.ToViewModel(x)) ?? [],
-            CreateDate = role.CreatedTime,
-            UpdateDate = role.UpdatedTime
+            CreateDate = role.CreatedTime != default ? role.CreatedTime : null,
+            UpdateDate = role.UpdatedTime != default ? role.UpdatedTime : null
         };
     }
 }

@@ -18,8 +18,8 @@ public class RoleAgent
     public Agent? Agent { get; set; }
 
     [JsonPropertyName("updated_time")]
-    public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedTime { get; set; }
 
     [JsonPropertyName("created_time")]
-    public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedTime { get; set; }
 }

@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
-using System;
 using System.IO;
 
 namespace BotSharp.Core.Repository;
@@ -97,6 +95,10 @@ public partial class FileRepository
         {
             users = users.Where(x => filter.Roles.Contains(x.Role));
         }
+        if (!filter.Types.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.Types.Contains(x.Type));
+        }
         if (!filter.Sources.IsNullOrEmpty())
         {
             users = users.Where(x => filter.Sources.Contains(x.Source));
@@ -109,17 +111,29 @@ public partial class FileRepository
         };
     }
 
-    public User? GetUserDetails(string userId)
+    public User? GetUserDetails(string userId, bool includeAgent = false)
     {
         if (string.IsNullOrWhiteSpace(userId)) return null;
 
-        var user = Users.FirstOrDefault(x => x.Id == userId);
+        var user = Users.FirstOrDefault(x => x.Id == userId || x.ExternalId == userId);
         if (user == null) return null;
 
         var agentActions = new List<UserAgentAction>();
         var userAgents = UserAgents?.Where(x => x.UserId == userId)?.ToList() ?? [];
-        var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
 
+        if (!includeAgent)
+        {
+            agentActions = userAgents.Select(x => new UserAgentAction
+            {
+                Id = x.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList();
+            user.AgentActions = agentActions;
+            return user;
+        }
+
+        var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
         if (!agentIds.IsNullOrEmpty())
         {
             var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
@@ -143,7 +157,7 @@ public partial class FileRepository
         return user;
     }
 
-    public bool UpdateUser(User user, bool isUpdateUserAgents = false)
+    public bool UpdateUser(User user, bool updateUserAgents = false)
     {
         if (string.IsNullOrEmpty(user?.Id)) return false;
 
@@ -157,7 +171,7 @@ public partial class FileRepository
         user.UpdatedTime = DateTime.UtcNow;
         File.WriteAllText(userFile, JsonSerializer.Serialize(user, _options));
 
-        if (isUpdateUserAgents)
+        if (updateUserAgents)
         {
             var userAgents = user.AgentActions?.Select(x => new UserAgent
             {

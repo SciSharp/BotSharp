@@ -407,10 +407,54 @@ public class UserService : IUserService
         return users;
     }
 
+    public async Task<bool> IsAuthorizedUser(string userId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var user = db.GetUserById(userId);
+        return user != null && UserConstant.AdminRoles.Contains(user.Role);
+    }
+
+    public async Task<UserAuthorization> GetUserAuthorizations(string? agentId = null)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var user = db.GetUserById(_user.Id);
+        var auth = new UserAuthorization();
+
+        if (user == null) return auth;
+
+        var permissions = user.Permissions;
+
+        var role = db.GetRoles(new RoleFilter { Names = [ user.Role ] }).FirstOrDefault();
+        if (role != null && !permissions.Any())
+        {
+            permissions = role.Permissions ?? [];
+        }
+
+        auth.IsAdmin = UserConstant.AdminRoles.Contains(user.Role);
+        auth.Permissions = permissions;
+
+        if (string.IsNullOrEmpty(agentId))
+        {
+            return auth;
+        }
+
+        var userAgent = db.GetUserDetails(user.Id)?.AgentActions?.FirstOrDefault(x => x.AgentId == agentId);
+        var actions = userAgent?.Actions ?? [];
+
+        if (role != null && !actions.Any())
+        {
+            var roleAgent = db.GetRoleDetails(role.Id)?.AgentActions?.FirstOrDefault(x => x.AgentId == agentId);
+            actions = roleAgent?.Actions ?? [];
+        }
+
+        auth.AgentActions = actions;
+        return auth;
+    }
+
     public async Task<User?> GetUserDetails(string userId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetUserDetails(userId);
+        return db.GetUserDetails(userId, includeAgent: true);
     }
 
     public async Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false)

@@ -528,7 +528,7 @@ namespace BotSharp.Core.Repository
                 var agentDir = GetAgentDataDir(agentId);
                 if (string.IsNullOrEmpty(agentDir)) return false;
 
-                // Delete agent user relationships
+                // Delete user agents
                 var usersDir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
                 if (Directory.Exists(usersDir))
                 {
@@ -543,6 +543,24 @@ namespace BotSharp.Core.Repository
 
                         userAgents = userAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
                         File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+                    }
+                }
+
+                // Delete role agents
+                var rolesDir = Path.Combine(_dbSettings.FileRepository, ROLES_FOLDER);
+                if (Directory.Exists(rolesDir))
+                {
+                    foreach (var roleDir in Directory.GetDirectories(rolesDir))
+                    {
+                        var roleAgentFile = Directory.GetFiles(roleDir).FirstOrDefault(x => Path.GetFileName(x) == ROLE_AGENT_FILE);
+                        if (string.IsNullOrEmpty(roleAgentFile)) continue;
+
+                        var text = File.ReadAllText(roleAgentFile);
+                        var roleAgents = JsonSerializer.Deserialize<List<RoleAgent>>(text, _options);
+                        if (roleAgents.IsNullOrEmpty()) continue;
+
+                        roleAgents = roleAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
+                        File.WriteAllText(roleAgentFile, JsonSerializer.Serialize(roleAgents, _options));
                     }
                 }
 
@@ -561,6 +579,7 @@ namespace BotSharp.Core.Repository
         {
             _agents = [];
             _userAgents = [];
+            _roleAgents = [];
         }
     }
 }

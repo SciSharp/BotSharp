@@ -200,6 +200,10 @@ public partial class MongoRepository
         {
             userFilters.Add(userBuilder.In(x => x.Role, filter.Roles));
         }
+        if (!filter.Types.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Type, filter.Types));
+        }
         if (!filter.Sources.IsNullOrEmpty())
         {
             userFilters.Add(userBuilder.In(x => x.Source, filter.Sources));
@@ -221,15 +225,15 @@ public partial class MongoRepository
         };
     }
 
-    public User? GetUserDetails(string userId)
+    public User? GetUserDetails(string userId, bool includeAgent = false)
     {
         if (string.IsNullOrWhiteSpace(userId)) return null;
 
-        var userDoc = _dc.Users.Find(Builders<UserDocument>.Filter.Eq(x => x.Id, userId)).FirstOrDefault();
+        var userDoc = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == userId || x.ExternalId == userId);
         if (userDoc == null) return null;
 
+        var agentActions = new List<UserAgentAction>();
         var user = userDoc.ToUser();
-
         var userAgents = _dc.UserAgents.AsQueryable().Where(x => x.UserId == userId).Select(x => new UserAgent
         {
             Id = x.Id,
@@ -238,9 +242,19 @@ public partial class MongoRepository
             Actions = x.Actions ?? Enumerable.Empty<string>()
         }).ToList();
 
-        var agentActions = new List<UserAgentAction>();
+        if (!includeAgent)
+        {
+            agentActions = userAgents.Select(x => new UserAgentAction
+            {
+                Id = x.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList();
+            user.AgentActions = agentActions;
+            return user;
+        }
+        
         var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
-
         if (!agentIds.IsNullOrEmpty())
         {
             var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
@@ -264,7 +278,7 @@ public partial class MongoRepository
         return user;
     }
 
-    public bool UpdateUser(User user, bool isUpdateUserAgents = false)
+    public bool UpdateUser(User user, bool updateUserAgents = false)
     {
         if (string.IsNullOrEmpty(user?.Id)) return false;
 
@@ -277,7 +291,7 @@ public partial class MongoRepository
 
         _dc.Users.UpdateOne(userFilter, userUpdate);
 
-        if (isUpdateUserAgents)
+        if (updateUserAgents)
         {
             var userAgentDocs = user.AgentActions?.Select(x => new UserAgentDocument
             {

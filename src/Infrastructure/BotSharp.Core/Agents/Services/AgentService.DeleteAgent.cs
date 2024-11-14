@@ -6,11 +6,10 @@ public partial class AgentService
 {
     public async Task<bool> DeleteAgent(string id)
     {
-        var user = _db.GetUserById(_user.Id);
-        var userAgents = await GetUserAgents(user?.Id);
-        var found = userAgents?.FirstOrDefault(x => x.AgentId == id);
+        var userService = _services.GetRequiredService<IUserService>();
+        var auth = await userService.GetUserAuthorizations(id);
 
-        if (!UserConstant.AdminRoles.Contains(user?.Role) && (found?.Actions == null || !found.Actions.Contains(UserAction.Edit)))
+        if (auth.IsAdmin || auth.AgentActions.Contains(UserAction.Edit))
         {
             return false;
         }

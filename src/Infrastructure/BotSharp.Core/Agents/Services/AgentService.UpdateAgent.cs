@@ -12,12 +12,9 @@ public partial class AgentService
         if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
+        var auth = await userService.GetUserAuthorizations(agent.Id);
 
-        var userAgents = await GetUserAgents(user.Id);
-        var found = userAgents?.FirstOrDefault(x => x.AgentId == agent.Id);
-
-        if (!UserConstant.AdminRoles.Contains(user?.Role) && (found?.Actions == null || found.Actions.Contains(UserAction.Edit)))
+        if (!auth.IsAdmin && !auth.AgentActions.Contains(UserAction.Edit))
         {
             return;
         }

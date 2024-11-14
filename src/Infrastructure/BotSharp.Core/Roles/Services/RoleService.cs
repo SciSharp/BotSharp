@@ -16,6 +16,15 @@ public class RoleService : IRoleService
         _logger = logger;
     }
 
+    public async Task<bool> RefreshRoles()
+    {
+        var allRoles = await GetRoleOptions();
+        var roles = allRoles.Select(x => new Role { Id = Guid.NewGuid().ToString(), Name = x }).ToList();
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.RefreshRoles(roles);
+    }
+
     public async Task<IEnumerable<string>> GetRoleOptions()
     {
         var fields = typeof(UserRole).GetFields(BindingFlags.Public | BindingFlags.Static)
@@ -37,7 +46,7 @@ public class RoleService : IRoleService
     public async Task<Role?> GetRoleDetails(string roleId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var role = db.GetRoleDetails(roleId);
+        var role = db.GetRoleDetails(roleId, includeAgent: true);
         return role;
     }
 
