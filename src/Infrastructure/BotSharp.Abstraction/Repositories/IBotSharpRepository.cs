@@ -19,6 +19,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region User
     User? GetUserByEmail(string email) => throw new NotImplementedException();
     User? GetUserByPhone(string phone, string regionCode = "CN") => throw new NotImplementedException();
+    User? GetAdminUserByPhone(string phone, string regionCode = "CN") => throw new NotImplementedException();
     User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
     User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
