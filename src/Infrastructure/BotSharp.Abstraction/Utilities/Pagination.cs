@@ -8,9 +8,9 @@ public class Pagination : ICacheKey
     private int _size;
 
     public int Page
-    { 
+    {
         get { return _page > 0 ? _page : 1; }
-        set { _page = value; } 
+        set { _page = value; }
     }
 
     public int Size
@@ -43,7 +43,7 @@ public class Pagination : ICacheKey
     public bool ReturnTotal { get; set; } = true;
 
     public string GetCacheKey()
-        => $"{nameof(Pagination)}_{_page}_{_size}_{Sort}_{Order}";
+        => $"{nameof(Pagination)}_{_page}_{_size}_{Sort}_{Order}_{Offset}_{ReturnTotal}";
 }
 
 public class PagedItems<T>

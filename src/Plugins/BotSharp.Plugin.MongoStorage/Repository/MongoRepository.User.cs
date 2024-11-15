@@ -13,7 +13,7 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone, string regionCode = "CN")
+    public User? GetUserByPhone(string phone, string role = null, string regionCode = "CN")
     {
         if (string.IsNullOrWhiteSpace(phone))
         {
@@ -23,21 +23,8 @@ public partial class MongoRepository
         string phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
 
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate
-        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)));
-        return user != null ? user.ToUser() : null;
-    }
-
-    public User? GetAdminUserByPhone(string phone, string regionCode = "CN")
-    {
-        if (string.IsNullOrWhiteSpace(phone))
-        {
-            return null;
-        }
-
-        string phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
-
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate
-        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)) && (x.Role == "admin" || x.Role == "root"));
+        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)) 
+        && (role == "admin" ? x.Role == "admin" || x.Role == "root" : true));
         return user != null ? user.ToUser() : null;
     }
 
