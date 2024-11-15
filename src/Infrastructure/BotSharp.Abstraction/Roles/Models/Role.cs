@@ -19,4 +19,9 @@ public class Role
 
     [JsonPropertyName("created_time")]
     public DateTime CreatedTime { get; set; }
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }
