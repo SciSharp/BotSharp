@@ -414,7 +414,7 @@ public class UserService : IUserService
         return user != null && UserConstant.AdminRoles.Contains(user.Role);
     }
 
-    public async Task<UserAuthorization> GetUserAuthorizations(string? agentId = null)
+    public async Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(_user.Id);
@@ -422,32 +422,33 @@ public class UserService : IUserService
 
         if (user == null) return auth;
 
-        var permissions = user.Permissions;
-
-        var role = db.GetRoles(new RoleFilter { Names = [ user.Role ] }).FirstOrDefault();
-        if (role != null && !permissions.Any())
-        {
-            permissions = role.Permissions ?? [];
-        }
-
         auth.IsAdmin = UserConstant.AdminRoles.Contains(user.Role);
+
+        var role = db.GetRoles(new RoleFilter { Names = [user.Role] }).FirstOrDefault();
+        var permissions = user.Permissions?.Any() == true ? user.Permissions : role?.Permissions ?? [];
         auth.Permissions = permissions;
 
-        if (string.IsNullOrEmpty(agentId))
+        if (agentIds == null || !agentIds.Any())
         {
             return auth;
         }
 
-        var userAgent = db.GetUserDetails(user.Id)?.AgentActions?.FirstOrDefault(x => x.AgentId == agentId);
-        var actions = userAgent?.Actions ?? [];
+        var userAgents = db.GetUserDetails(user.Id)?.AgentActions?
+            .Where(x => agentIds.Contains(x.AgentId) && x.Actions.Any())?.Select(x => new UserAgent
+            {
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList() ?? [];
 
-        if (role != null && !actions.Any())
-        {
-            var roleAgent = db.GetRoleDetails(role.Id)?.AgentActions?.FirstOrDefault(x => x.AgentId == agentId);
-            actions = roleAgent?.Actions ?? [];
-        }
+        var userAgentIds = userAgents.Select(x => x.AgentId).ToList();
+        var roleAgents = db.GetRoleDetails(role?.Id)?.AgentActions?
+            .Where(x => !userAgentIds.Contains(x.AgentId))?.Select(x => new UserAgent
+            {
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            })?.ToList() ?? [];
 
-        auth.AgentActions = actions;
+        auth.AgentActions = userAgents.Concat(roleAgents);
         return auth;
     }
 

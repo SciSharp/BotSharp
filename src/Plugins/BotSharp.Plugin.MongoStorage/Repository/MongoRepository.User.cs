@@ -43,22 +43,19 @@ public partial class MongoRepository
 
     public User? GetUserById(string id)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
         return user != null ? user.ToUser() : null;
     }
 
     public List<User> GetUserByIds(List<string> ids)
     {
-        var users = _dc.Users.AsQueryable()
-            .Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
+        var users = _dc.Users.AsQueryable().Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
     public List<User> GetUsersByAffiliateId(string affiliateId)
     {
-        var users = _dc.Users.AsQueryable()
-            .Where(x => x.AffiliateId == affiliateId).ToList();
+        var users = _dc.Users.AsQueryable().Where(x => x.AffiliateId == affiliateId).ToList();
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 

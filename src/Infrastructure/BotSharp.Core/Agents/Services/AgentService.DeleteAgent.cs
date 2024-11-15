@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Users.Models;
 
 namespace BotSharp.Core.Agents.Services;
 
@@ -7,9 +8,9 @@ public partial class AgentService
     public async Task<bool> DeleteAgent(string id)
     {
         var userService = _services.GetRequiredService<IUserService>();
-        var auth = await userService.GetUserAuthorizations(id);
+        var auth = await userService.GetUserAuthorizations(new List<string> { id });
 
-        if (auth.IsAdmin || auth.AgentActions.Contains(UserAction.Edit))
+        if (!auth.IsAgentActionAllowed(id, UserAction.Edit))
         {
             return false;
         }
