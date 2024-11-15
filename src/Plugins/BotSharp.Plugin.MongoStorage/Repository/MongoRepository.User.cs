@@ -18,7 +18,7 @@ public partial class MongoRepository
     public User? GetUserByPhone(string phone)
     {
         string phoneSecond = string.Empty;
-        // 如果电话号码长度小于 4，直接返回 null
+        // if phone number length is less than 4, return null
         if (phone?.Length < 4)
         {
             return null;

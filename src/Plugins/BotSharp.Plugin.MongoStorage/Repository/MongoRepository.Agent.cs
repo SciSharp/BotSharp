@@ -298,6 +298,11 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.Name, filter.AgentName));
         }
 
+        if (!string.IsNullOrEmpty(filter.SimilarName))
+        {
+            filters.Add(builder.Regex(x => x.Name, new BsonRegularExpression(filter.SimilarName, "i")));
+        }
+
         if (filter.Disabled.HasValue)
         {
             filters.Add(builder.Eq(x => x.Disabled, filter.Disabled.Value));

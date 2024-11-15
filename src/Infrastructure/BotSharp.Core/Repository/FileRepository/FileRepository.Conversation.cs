@@ -54,6 +54,7 @@ namespace BotSharp.Core.Repository
 
                 Directory.Delete(convDir, true);
             }
+
             return true;
         }
 
