@@ -43,14 +43,10 @@ public class TwilioVoiceController : TwilioController
         }
 
         VoiceResponse response = null;
-        request.ConversationId = $"TwilioVoice_{request.CallSid}";
-
         var instruction = new ConversationalVoiceResponse
         {
             SpeechPaths = ["twilio/welcome.mp3"],
-            CallbackPath = $"twilio/voice/{request.ConversationId}/receive/0",
-            ActionOnEmptyResult = true,
-            Timeout = 2
+            ActionOnEmptyResult = true
         };
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
@@ -60,7 +56,8 @@ public class TwilioVoiceController : TwilioController
             OnlyOnce = true
         });
 
-        instruction.CallbackPath = $"{instruction.CallbackPath}?{GenerateStatesParameter(request.States)}";
+        request.ConversationId = $"TwilioVoice_{request.CallSid}";
+        instruction.CallbackPath = $"twilio/voice/{request.ConversationId}/receive/0?{GenerateStatesParameter(request.States)}";
 
         var twilio = _services.GetRequiredService<TwilioService>();
         if (string.IsNullOrWhiteSpace(request.Intent))
@@ -109,7 +106,6 @@ public class TwilioVoiceController : TwilioController
         var twilio = _services.GetRequiredService<TwilioService>();
         var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
-
         var messages = await sessionManager.RetrieveStagedCallerMessagesAsync(request.ConversationId, request.SeqNum);
         string text = (request.SpeechResult + "\r\n" + request.Digits).Trim();
 
@@ -148,7 +144,7 @@ public class TwilioVoiceController : TwilioController
         else
         {
             // keep waiting for user response
-            if (request.Attempts > 2)
+            if (request.Attempts > 3)
             {
                 var instruction = new ConversationalVoiceResponse
                 {
@@ -187,7 +183,7 @@ public class TwilioVoiceController : TwilioController
                     ActionOnEmptyResult = true
                 };
 
-                if (request.Attempts == 2)
+                if (request.Attempts == 3)
                 {
                     instruction.SpeechPaths.Add($"twilio/say-it-again-{Random.Shared.Next(1, 5)}.mp3");
                 }
@@ -220,7 +216,6 @@ public class TwilioVoiceController : TwilioController
         var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
         var twilio = _services.GetRequiredService<TwilioService>();
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
-
         if (request.SpeechResult != null)
         {
             await sessionManager.StageCallerMessageAsync(request.ConversationId, nextSeqNum, request.SpeechResult);
