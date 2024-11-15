@@ -407,7 +407,7 @@ public class UserService : IUserService
         return users;
     }
 
-    public async Task<bool> IsAuthorizedUser(string userId)
+    public async Task<bool> IsAdminUser(string userId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(userId);

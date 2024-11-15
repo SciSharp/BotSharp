@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories.Enums;
-using BotSharp.Abstraction.Users.Enums;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -18,7 +17,7 @@ public partial class AgentService
         }
 
         var userService = _services.GetRequiredService<IUserService>();
-        var isValid = await userService.IsAuthorizedUser(_user.Id);
+        var isValid = await userService.IsAdminUser(_user.Id);
         if (!isValid)
         {
             return "Unauthorized user.";

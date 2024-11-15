@@ -98,6 +98,6 @@ public class PluginController : ControllerBase
     private async Task<bool> IsValidUser()
     {
         var userService = _services.GetRequiredService<IUserService>();
-        return await userService.IsAuthorizedUser(_user.Id);
+        return await userService.IsAdminUser(_user.Id);
     }
 }

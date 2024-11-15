@@ -9,7 +9,7 @@ public interface IUserService
     Task<User> GetUser(string id);
     Task<PagedItems<User>> GetUsers(UserFilter filter);
     Task<User?> GetUserDetails(string userId);
-    Task<bool> IsAuthorizedUser(string userId);
+    Task<bool> IsAdminUser(string userId);
     Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null);
     Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false);
     Task<User> CreateUser(User user);
