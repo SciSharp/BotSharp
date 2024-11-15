@@ -452,10 +452,10 @@ public class UserService : IUserService
         return auth;
     }
 
-    public async Task<User?> GetUserDetails(string userId)
+    public async Task<User?> GetUserDetails(string userId, bool includeAgent = false)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.GetUserDetails(userId, includeAgent: true);
+        return db.GetUserDetails(userId, includeAgent);
     }
 
     public async Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false)

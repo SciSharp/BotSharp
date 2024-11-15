@@ -8,6 +8,6 @@ public interface IRoleService
     Task<bool> RefreshRoles();
     Task<IEnumerable<string>> GetRoleOptions();
     Task<IEnumerable<Role>> GetRoles(RoleFilter filter);
-    Task<Role?> GetRoleDetails(string roleId);
+    Task<Role?> GetRoleDetails(string roleId, bool includeAgent = false);
     Task<bool> UpdateRole(Role role, bool isUpdateRoleAgents = false);
 }

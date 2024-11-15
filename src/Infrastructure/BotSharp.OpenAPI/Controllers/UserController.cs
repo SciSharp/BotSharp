@@ -202,7 +202,7 @@ public class UserController : ControllerBase
     public async Task<UserViewModel> GetUserDetails(string id)
     {
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUserDetails(id);
+        var user = await userService.GetUserDetails(id, includeAgent: true);
         return UserViewModel.FromUser(user);
     }
 

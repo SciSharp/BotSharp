@@ -43,10 +43,10 @@ public class RoleService : IRoleService
         return roles;
     }
 
-    public async Task<Role?> GetRoleDetails(string roleId)
+    public async Task<Role?> GetRoleDetails(string roleId, bool includeAgent = false)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var role = db.GetRoleDetails(roleId, includeAgent: true);
+        var role = db.GetRoleDetails(roleId, includeAgent);
         return role;
     }
 
