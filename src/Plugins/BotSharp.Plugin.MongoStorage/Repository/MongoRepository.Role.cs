@@ -48,6 +48,11 @@ public partial class MongoRepository
             roleFilters.Add(roleBuilder.In(x => x.Name, filter.Names));
         }
 
+        if (!filter.ExcludeRoles.IsNullOrEmpty())
+        {
+            roleFilters.Add(roleBuilder.Nin(x => x.Name, filter.ExcludeRoles));
+        }
+
         // Search
         var roleDocs = _dc.Roles.Find(roleBuilder.And(roleFilters)).ToList();
         var roles = roleDocs.Select(x => x.ToRole()).ToList();

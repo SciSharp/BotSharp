@@ -45,7 +45,12 @@ public partial class FileRepository
         // Apply filters
         if (!filter.Names.IsNullOrEmpty())
         {
-            roles = roles.Where(x => filter.Names.Contains(x.Id));
+            roles = roles.Where(x => filter.Names.Contains(x.Name));
+        }
+
+        if (!filter.ExcludeRoles.IsNullOrEmpty())
+        {
+            roles = roles.Where(x => !filter.ExcludeRoles.Contains(x.Name));
         }
 
         return roles.ToList();
