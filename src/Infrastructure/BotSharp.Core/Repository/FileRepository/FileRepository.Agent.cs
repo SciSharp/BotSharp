@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Routing.Models;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Repository
 {
@@ -62,6 +63,8 @@ namespace BotSharp.Core.Repository
                 default:
                     break;
             }
+
+            _agents = [];
         }
 
         #region Update Agent Fields
@@ -366,6 +369,12 @@ namespace BotSharp.Core.Repository
                 query = query.Where(x => x.Name.ToLower() == filter.AgentName.ToLower());
             }
 
+            if (!string.IsNullOrEmpty(filter.SimilarName))
+            {
+                var regex = new Regex(filter.SimilarName, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                query = query.Where(x => regex.IsMatch(x.Name));
+            }
+
             if (filter.Disabled.HasValue)
             {
                 query = query.Where(x => x.Disabled == filter.Disabled);
@@ -478,7 +487,8 @@ namespace BotSharp.Core.Repository
                     File.WriteAllText(instFile, agent.Instruction);
                 }
             }
-            Reset();
+
+            ResetLocalAgents();
         }
 
         public void BulkInsertUserAgents(List<UserAgent> userAgents)
@@ -511,7 +521,7 @@ namespace BotSharp.Core.Repository
                 Thread.Sleep(50);
             }
 
-            Reset();
+            ResetLocalAgents();
         }
 
         public bool DeleteAgents()
@@ -566,7 +576,7 @@ namespace BotSharp.Core.Repository
 
                 // Delete agent folder
                 Directory.Delete(agentDir, true);
-                Reset();
+                ResetLocalAgents();
                 return true;
             }
             catch
@@ -575,7 +585,7 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        private void Reset()
+        private void ResetLocalAgents()
         {
             _agents = [];
             _userAgents = [];
