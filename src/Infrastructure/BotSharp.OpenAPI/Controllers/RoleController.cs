@@ -61,7 +61,7 @@ public class RoleController : ControllerBase
     [HttpGet("/role/{id}/details")]
     public async Task<RoleViewModel> GetRoleDetails([FromRoute] string id)
     {
-        var role = await _roleService.GetRoleDetails(id);
+        var role = await _roleService.GetRoleDetails(id, includeAgent: true);
         return RoleViewModel.FromRole(role);
     }
 
