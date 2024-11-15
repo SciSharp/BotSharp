@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
+using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -283,6 +284,11 @@ public partial class MongoRepository
 
     public List<Agent> GetAgents(AgentFilter filter)
     {
+        if (filter == null)
+        {
+            filter = AgentFilter.Empty();
+        }
+
         var agents = new List<Agent>();
         var builder = Builders<AgentDocument>.Filter;
         var filters = new List<FilterDefinition<AgentDocument>>() { builder.Empty };
@@ -327,8 +333,6 @@ public partial class MongoRepository
 
         if (found.IsNullOrEmpty()) return [];
 
-        var agentIds = found.Select(x => x.AgentId).Distinct().ToList();
-        var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
         var res = found.Select(x => new UserAgent
         {
             Id = x.Id,
@@ -339,6 +343,8 @@ public partial class MongoRepository
             UpdatedTime = x.UpdatedTime
         }).ToList();
 
+        var agentIds = found.Select(x => x.AgentId).Distinct().ToList();
+        var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
         foreach (var item in res)
         {
             var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
@@ -450,6 +456,7 @@ public partial class MongoRepository
         try
         {
             _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.Empty);
+            _dc.RoleAgents.DeleteMany(Builders<RoleAgentDocument>.Filter.Empty);
             _dc.Agents.DeleteMany(Builders<AgentDocument>.Filter.Empty);
             return true;
         }
@@ -467,10 +474,12 @@ public partial class MongoRepository
 
             var agentFilter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
             var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
+            var roleAgentFilter = Builders<RoleAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
             var agentTaskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.AgentId, agentId);
 
             _dc.Agents.DeleteOne(agentFilter);
             _dc.UserAgents.DeleteMany(userAgentFilter);
+            _dc.RoleAgents.DeleteMany(roleAgentFilter);
             _dc.AgentTasks.DeleteMany(agentTaskFilter);
             return true;
         }

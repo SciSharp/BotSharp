@@ -9,4 +9,9 @@ public class AgentFilter
     public string? Type { get; set; }
     public bool? IsPublic { get; set; }
     public List<string>? AgentIds { get; set; }
+
+    public static AgentFilter Empty()
+    {
+        return new AgentFilter();
+    }
 }

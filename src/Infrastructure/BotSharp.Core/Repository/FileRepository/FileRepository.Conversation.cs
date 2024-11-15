@@ -322,6 +322,11 @@ namespace BotSharp.Core.Repository
 
         public PagedItems<Conversation> GetConversations(ConversationFilter filter)
         {
+            if (filter == null)
+            {
+                filter = ConversationFilter.Empty();
+            }
+
             var records = new List<Conversation>();
             var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
             var pager = filter?.Pager ?? new Pagination();

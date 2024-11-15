@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Repositories.Enums;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Users.Models;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -12,12 +13,10 @@ public partial class AgentService
         if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
 
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
+        var auth = await userService.GetUserAuthorizations(new List<string> { agent.Id });
+        var allowEdit = auth.IsAgentActionAllowed(agent.Id, UserAction.Edit);
 
-        var userAgents = await GetUserAgents(user.Id);
-        var found = userAgents?.FirstOrDefault(x => x.AgentId == agent.Id);
-
-        if (!UserConstant.AdminRoles.Contains(user?.Role) && (found?.Actions == null || found.Actions.Contains(UserAction.Edit)))
+        if (!allowEdit)
         {
             return;
         }

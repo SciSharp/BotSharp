@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -58,20 +57,13 @@ public class AgentController : ControllerBase
             rule.RedirectToAgentName = found.Name;
         }
 
-        var editable = true;
-        var chatable = true;
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (!UserConstant.AdminRoles.Contains(user?.Role))
-        {
-            var userAgents = await _agentService.GetUserAgents(user?.Id);
-            var actions = userAgents?.FirstOrDefault(x => x.AgentId == targetAgent.Id)?.Actions ?? [];
-            editable = actions.Contains(UserAction.Edit);
-            chatable = actions.Contains(UserAction.Chat);
-        }
+        var auth = await userService.GetUserAuthorizations(new List<string> { targetAgent.Id });
 
-        targetAgent.Editable = editable;
-        targetAgent.Chatable = chatable;
+        targetAgent.Editable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Edit);
+        targetAgent.Chatable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Chat);
+        targetAgent.Trainable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Train);
+        targetAgent.Evaluable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Evaluate);
         return targetAgent;
     }
 
@@ -94,27 +86,14 @@ public class AgentController : ControllerBase
             };
         }
 
-        var userAgents = new List<UserAgent>();
-        var user = await userService.GetUser(_user.Id);
-        if (!UserConstant.AdminRoles.Contains(user.Role))
-        {
-            userAgents = await _agentService.GetUserAgents(user.Id);
-        }
-
+        var auth = await userService.GetUserAuthorizations(pagedAgents.Items.Select(x => x.Id));
         agents = pagedAgents?.Items?.Select(x =>
         {
-            var chatable = true;
-            var editable = true;
-            if (!UserConstant.AdminRoles.Contains(user.Role))
-            {
-                var actions = userAgents.FirstOrDefault(a => a.AgentId == x.Id)?.Actions ?? [];
-                chatable = actions.Contains(UserAction.Chat);
-                editable = actions.Contains(UserAction.Edit);
-            }
-
             var model = AgentViewModel.FromAgent(x);
-            model.Editable = editable;
-            model.Chatable = chatable;
+            model.Editable = auth.IsAgentActionAllowed(x.Id, UserAction.Edit);
+            model.Chatable = auth.IsAgentActionAllowed(x.Id, UserAction.Chat);
+            model.Trainable = auth.IsAgentActionAllowed(x.Id, UserAction.Train);
+            model.Evaluable = auth.IsAgentActionAllowed(x.Id, UserAction.Evaluate);
             return model;
         })?.ToList() ?? [];
 

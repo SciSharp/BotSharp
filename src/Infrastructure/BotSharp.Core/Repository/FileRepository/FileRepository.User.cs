@@ -1,7 +1,5 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
-using System;
 using System.IO;
 
 namespace BotSharp.Core.Repository;
@@ -73,6 +71,11 @@ public partial class FileRepository
 
     public PagedItems<User> GetUsers(UserFilter filter)
     {
+        if (filter == null)
+        {
+            filter = UserFilter.Empty();
+        }
+
         var users = Users;
 
         // Apply filters
@@ -92,37 +95,13 @@ public partial class FileRepository
         {
             users = users.Where(x => filter.Roles.Contains(x.Role));
         }
+        if (!filter.Types.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.Types.Contains(x.Type));
+        }
         if (!filter.Sources.IsNullOrEmpty())
         {
             users = users.Where(x => filter.Sources.Contains(x.Source));
-        }
-
-        // Get user agents
-        var userIds = users.Select(x => x.Id).ToList();
-        var userAgents = UserAgents.Where(x => userIds.Contains(x.UserId)).ToList();
-        var agentIds = userAgents?.Select(x => x.AgentId)?.Distinct()?.ToList() ?? [];
-
-        if (!agentIds.IsNullOrEmpty())
-        {
-            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
-            foreach (var item in userAgents)
-            {
-                item.Agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
-            }
-
-            foreach (var user in users)
-            {
-                var found = userAgents.Where(x => x.UserId == user.Id).ToList();
-                if (found.IsNullOrEmpty()) continue;
-
-                user.AgentActions = found.Select(x => new UserAgentAction
-                {
-                    Id = x.Id,
-                    AgentId = x.AgentId,
-                    Agent = x.Agent,
-                    Actions = x.Actions
-                });
-            }
         }
 
         return new PagedItems<User>
@@ -132,7 +111,53 @@ public partial class FileRepository
         };
     }
 
-    public bool UpdateUser(User user, bool isUpdateUserAgents = false)
+    public User? GetUserDetails(string userId, bool includeAgent = false)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+
+        var user = Users.FirstOrDefault(x => x.Id == userId || x.ExternalId == userId);
+        if (user == null) return null;
+
+        var agentActions = new List<UserAgentAction>();
+        var userAgents = UserAgents?.Where(x => x.UserId == userId)?.ToList() ?? [];
+
+        if (!includeAgent)
+        {
+            agentActions = userAgents.Select(x => new UserAgentAction
+            {
+                Id = x.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList();
+            user.AgentActions = agentActions;
+            return user;
+        }
+
+        var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
+        if (!agentIds.IsNullOrEmpty())
+        {
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+
+            foreach (var item in userAgents)
+            {
+                var found = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (found == null) continue;
+
+                agentActions.Add(new UserAgentAction
+                {
+                    Id = item.Id,
+                    AgentId = found.Id,
+                    Agent = found,
+                    Actions = item.Actions ?? []
+                });
+            }
+        }
+
+        user.AgentActions = agentActions;
+        return user;
+    }
+
+    public bool UpdateUser(User user, bool updateUserAgents = false)
     {
         if (string.IsNullOrEmpty(user?.Id)) return false;
 
@@ -146,7 +171,7 @@ public partial class FileRepository
         user.UpdatedTime = DateTime.UtcNow;
         File.WriteAllText(userFile, JsonSerializer.Serialize(user, _options));
 
-        if (isUpdateUserAgents)
+        if (updateUserAgents)
         {
             var userAgents = user.AgentActions?.Select(x => new UserAgent
             {
@@ -160,10 +185,10 @@ public partial class FileRepository
 
             var userAgentFile = Path.Combine(dir, USER_AGENT_FILE);
             File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+            _userAgents = [];
         }
 
         _users = [];
-        _userAgents = [];
         return true;
     }
 }
