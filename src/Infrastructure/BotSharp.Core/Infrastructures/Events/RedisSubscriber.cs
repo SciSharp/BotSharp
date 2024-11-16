@@ -1,5 +1,4 @@
 using StackExchange.Redis;
-using System.Threading.Channels;
 
 namespace BotSharp.Core.Infrastructures.Events;
 
@@ -51,7 +50,6 @@ public class RedisSubscriber : IEventSubscriber
             foreach (var entry in entries)
             {
                 _logger.LogInformation($"Consumer {Environment.MachineName} received: {channel} {entry.Values[0].Value}");
-                await db.StreamAcknowledgeAsync(channel, group, entry.Id);
 
                 try
                 {
@@ -63,6 +61,10 @@ public class RedisSubscriber : IEventSubscriber
                 catch (Exception ex)
                 {
                     _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}");
+                }
+                finally
+                {
+                    await db.StreamAcknowledgeAsync(channel, group, entry.Id);
                 }
             }
 
