@@ -72,8 +72,12 @@ public class SummaryPlanFn : IFunctionCallback
         message.Content = summary.Content;
 
         // Validate the sql result
-        await fn.InvokeFunction("validate_sql", message);
-
+        var args = JsonSerializer.Deserialize<SummaryPlan>(message.FunctionArgs);
+        if (args.IsSqlTemplate == false) 
+        {
+            await fn.InvokeFunction("validate_sql", message);
+        }
+        
         await HookEmitter.Emit<IPlanningHook>(_services, async hook =>
             await hook.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message)
         );
