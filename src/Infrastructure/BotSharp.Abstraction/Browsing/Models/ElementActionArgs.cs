@@ -12,6 +12,10 @@ public class ElementActionArgs
 
     public ElementPosition? Position { get; set; }
 
+    /// <summary>
+    /// Delay milliseconds before pressing key
+    /// </summary>
+    public int DelayBeforePressingKey { get; set; }
     public string? PressKey { get; set; }
 
     /// <summary>
