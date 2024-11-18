@@ -75,6 +75,9 @@ public partial class PlaywrightWebDriver : IWebBrowser
         var page = _instance.GetPage(message.ContextId);
         if (page != null)
         {
+            // Click on the body to give focus to the page
+            await page.FocusAsync("input");
+
             await page.Keyboard.PressAsync(key);
         }
     }

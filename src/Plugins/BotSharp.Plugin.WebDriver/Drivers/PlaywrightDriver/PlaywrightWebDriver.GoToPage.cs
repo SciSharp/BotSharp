@@ -36,6 +36,9 @@ public partial class PlaywrightWebDriver
                     includeResponseUrls: args.IncludeResponseUrls);
             }
 
+            // Active current tab
+            await page.BringToFrontAsync();
+
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
             {
                 Timeout = args.Timeout > 0 ? args.Timeout : 30000
