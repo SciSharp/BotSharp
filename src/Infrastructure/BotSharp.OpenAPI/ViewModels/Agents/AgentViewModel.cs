@@ -48,6 +48,8 @@ public class AgentViewModel
 
     public bool Editable { get; set; }
     public bool Chatable { get; set; }
+    public bool Trainable { get; set; }
+    public bool Evaluable { get; set; }
 
     [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }

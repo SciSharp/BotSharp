@@ -11,6 +11,7 @@ using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Core.Processors;
 using StackExchange.Redis;
 using BotSharp.Core.Infrastructures.Events;
+using BotSharp.Core.Roles.Services;
 
 namespace BotSharp.Core;
 
@@ -25,6 +26,7 @@ public static class BotSharpCoreExtensions
         services.AddSingleton<DistributedLocker>();
 
         services.AddScoped<ISettingService, SettingService>();
+        services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ProcessorFactory>();
 

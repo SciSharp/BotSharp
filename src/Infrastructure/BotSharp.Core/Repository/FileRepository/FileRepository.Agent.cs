@@ -1,8 +1,6 @@
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Users.Models;
-using Microsoft.Extensions.Logging;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Repository
 {
@@ -65,6 +63,8 @@ namespace BotSharp.Core.Repository
                 default:
                     break;
             }
+
+            _agents = [];
         }
 
         #region Update Agent Fields
@@ -358,10 +358,21 @@ namespace BotSharp.Core.Repository
 
         public List<Agent> GetAgents(AgentFilter filter)
         {
+            if (filter == null)
+            {
+                filter = AgentFilter.Empty();
+            }
+
             var query = Agents;
             if (!string.IsNullOrEmpty(filter.AgentName))
             {
                 query = query.Where(x => x.Name.ToLower() == filter.AgentName.ToLower());
+            }
+
+            if (!string.IsNullOrEmpty(filter.SimilarName))
+            {
+                var regex = new Regex(filter.SimilarName, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                query = query.Where(x => regex.IsMatch(x.Name));
             }
 
             if (filter.Disabled.HasValue)
@@ -476,7 +487,8 @@ namespace BotSharp.Core.Repository
                     File.WriteAllText(instFile, agent.Instruction);
                 }
             }
-            Reset();
+
+            ResetLocalAgents();
         }
 
         public void BulkInsertUserAgents(List<UserAgent> userAgents)
@@ -509,7 +521,7 @@ namespace BotSharp.Core.Repository
                 Thread.Sleep(50);
             }
 
-            Reset();
+            ResetLocalAgents();
         }
 
         public bool DeleteAgents()
@@ -526,7 +538,7 @@ namespace BotSharp.Core.Repository
                 var agentDir = GetAgentDataDir(agentId);
                 if (string.IsNullOrEmpty(agentDir)) return false;
 
-                // Delete agent user relationships
+                // Delete user agents
                 var usersDir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER);
                 if (Directory.Exists(usersDir))
                 {
@@ -544,9 +556,27 @@ namespace BotSharp.Core.Repository
                     }
                 }
 
+                // Delete role agents
+                var rolesDir = Path.Combine(_dbSettings.FileRepository, ROLES_FOLDER);
+                if (Directory.Exists(rolesDir))
+                {
+                    foreach (var roleDir in Directory.GetDirectories(rolesDir))
+                    {
+                        var roleAgentFile = Directory.GetFiles(roleDir).FirstOrDefault(x => Path.GetFileName(x) == ROLE_AGENT_FILE);
+                        if (string.IsNullOrEmpty(roleAgentFile)) continue;
+
+                        var text = File.ReadAllText(roleAgentFile);
+                        var roleAgents = JsonSerializer.Deserialize<List<RoleAgent>>(text, _options);
+                        if (roleAgents.IsNullOrEmpty()) continue;
+
+                        roleAgents = roleAgents?.Where(x => x.AgentId != agentId)?.ToList() ?? [];
+                        File.WriteAllText(roleAgentFile, JsonSerializer.Serialize(roleAgents, _options));
+                    }
+                }
+
                 // Delete agent folder
                 Directory.Delete(agentDir, true);
-                Reset();
+                ResetLocalAgents();
                 return true;
             }
             catch
@@ -555,10 +585,11 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        private void Reset()
+        private void ResetLocalAgents()
         {
             _agents = [];
             _userAgents = [];
+            _roleAgents = [];
         }
     }
 }

@@ -30,7 +30,7 @@ public class ExecuteQueryFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var args = JsonSerializer.Deserialize<ExecuteQueryArgs>(message.FunctionArgs);
-        var refinedArgs = await RefineSqlStatement(message, args);
+        //var refinedArgs = await RefineSqlStatement(message, args);
         var dbHook = _services.GetRequiredService<ISqlDriverHook>();
         var dbType = dbHook.GetDatabaseType(message);
 
@@ -38,13 +38,13 @@ public class ExecuteQueryFn : IFunctionCallback
         {
             var results = dbType.ToLower() switch
             {
-                "mysql" => RunQueryInMySql(refinedArgs.SqlStatements),
-                "sqlserver" => RunQueryInSqlServer(refinedArgs.SqlStatements),
-                "redshift" => RunQueryInRedshift(refinedArgs.SqlStatements),
+                "mysql" => RunQueryInMySql(args.SqlStatements),
+                "sqlserver" => RunQueryInSqlServer(args.SqlStatements),
+                "redshift" => RunQueryInRedshift(args.SqlStatements),
                 _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
             };
 
-            if (refinedArgs.SqlStatements.Length == 1 && refinedArgs.SqlStatements[0].StartsWith("DROP TABLE"))
+            if (args.SqlStatements.Length == 1 && args.SqlStatements[0].StartsWith("DROP TABLE"))
             {
                 message.Content = "Drop table successfully";
                 return true;

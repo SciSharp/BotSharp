@@ -407,10 +407,63 @@ public class UserService : IUserService
         return users;
     }
 
-    public async Task<bool> UpdateUser(User model, bool isUpdateUserAgents = false)
+    public async Task<bool> IsAdminUser(string userId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateUser(model, isUpdateUserAgents);
+        var user = db.GetUserById(userId);
+        return user != null && UserConstant.AdminRoles.Contains(user.Role);
+    }
+
+    public async Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var user = db.GetUserById(_user.Id);
+        var auth = new UserAuthorization();
+
+        if (user == null) return auth;
+
+        auth.IsAdmin = UserConstant.AdminRoles.Contains(user.Role);
+
+        var role = db.GetRoles(new RoleFilter { Names = [user.Role] }).FirstOrDefault();
+        var permissions = user.Permissions?.Any() == true ? user.Permissions : role?.Permissions ?? [];
+        auth.Permissions = permissions;
+
+        if (agentIds == null || !agentIds.Any())
+        {
+            return auth;
+        }
+
+        var userAgents = db.GetUserDetails(user.Id)?.AgentActions?
+            .Where(x => agentIds.Contains(x.AgentId) && x.Actions.Any())?.Select(x => new UserAgent
+            {
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList() ?? [];
+
+        var userAgentIds = userAgents.Select(x => x.AgentId).ToList();
+        var roleAgents = db.GetRoleDetails(role?.Id)?.AgentActions?
+            .Where(x => !userAgentIds.Contains(x.AgentId))?.Select(x => new UserAgent
+            {
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            })?.ToList() ?? [];
+
+        auth.AgentActions = userAgents.Concat(roleAgents);
+        return auth;
+    }
+
+    public async Task<User?> GetUserDetails(string userId, bool includeAgent = false)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.GetUserDetails(userId, includeAgent);
+    }
+
+    public async Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false)
+    {
+        if (user == null) return false;
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        return db.UpdateUser(user, isUpdateUserAgents);
     }
 
     public async Task<Token> ActiveUser(UserActivationModel model)

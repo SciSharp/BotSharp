@@ -22,9 +22,8 @@ public class PluginController : ControllerBase
     [HttpGet("/plugins")]
     public async Task<PagedItems<PluginDef>> GetPlugins([FromQuery] PluginFilter filter)
     {
-        var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (!UserConstant.AdminRoles.Contains(user?.Role))
+        var isValid = await IsValidUser();
+        if (!isValid)
         {
             return new PagedItems<PluginDef>();
         }
@@ -55,7 +54,11 @@ public class PluginController : ControllerBase
             {
                 Roles = new List<string> {  UserRole.Root, UserRole.Admin }
             },
-            new PluginMenuDef("Users", link: "page/users", icon: "bx bx-user", weight: 33)
+            new PluginMenuDef("Roles", link: "page/roles", icon: "bx bx-group", weight: 33)
+            {
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
+            },
+            new PluginMenuDef("Users", link: "page/users", icon: "bx bx-user", weight: 34)
             {
                 Roles = new List<string> {  UserRole.Root, UserRole.Admin }
             }
@@ -90,5 +93,11 @@ public class PluginController : ControllerBase
     {
         var loader = _services.GetRequiredService<PluginLoader>();
         return loader.UpdatePluginStatus(_services, id, false);
+    }
+
+    private async Task<bool> IsValidUser()
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        return await userService.IsAdminUser(_user.Id);
     }
 }
