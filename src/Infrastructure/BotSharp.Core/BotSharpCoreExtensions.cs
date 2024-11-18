@@ -9,6 +9,8 @@ using BotSharp.Abstraction.Users.Settings;
 using BotSharp.Abstraction.Interpreters.Settings;
 using BotSharp.Abstraction.Infrastructures;
 using BotSharp.Core.Processors;
+using StackExchange.Redis;
+using BotSharp.Core.Infrastructures.Events;
 using BotSharp.Core.Roles.Services;
 
 namespace BotSharp.Core;
@@ -28,18 +30,18 @@ public static class BotSharpCoreExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ProcessorFactory>();
 
-        services.AddSingleton<DistributedLocker>();
-
         // Register cache service
         var cacheSettings = new SharpCacheSettings();
         config.Bind("SharpCache", cacheSettings);
         services.AddSingleton(x => cacheSettings);
         services.AddSingleton<ICacheService, RedisCacheService>();
 
+        AddRedisEvents(services, config);
+
         services.AddMemoryCache();
 
         RegisterPlugins(services, config);
-        ConfigureBotSharpOptions(services, configOptions);
+        AddBotSharpOptions(services, configOptions);
 
         return services;
     }
@@ -81,7 +83,7 @@ public static class BotSharpCoreExtensions
         return app;
     }
 
-    private static void ConfigureBotSharpOptions(IServiceCollection services, Action<BotSharpOptions>? configure)
+    private static void AddBotSharpOptions(IServiceCollection services, Action<BotSharpOptions>? configure)
     {
         var options = new BotSharpOptions();
         if (configure != null)
@@ -91,6 +93,17 @@ public static class BotSharpCoreExtensions
 
         AddDefaultJsonConverters(options);
         services.AddSingleton(options);
+    }
+
+    private static void AddRedisEvents(IServiceCollection services, IConfiguration config)
+    {
+        // Add Redis connection as a singleton
+        var dbSettings = new BotSharpDatabaseSettings();
+        config.Bind("Database", dbSettings);
+
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(dbSettings.Redis));
+        services.AddSingleton<IEventPublisher, RedisPublisher>();
+        services.AddSingleton<IEventSubscriber, RedisSubscriber>();
     }
 
     private static void AddDefaultJsonConverters(BotSharpOptions options)

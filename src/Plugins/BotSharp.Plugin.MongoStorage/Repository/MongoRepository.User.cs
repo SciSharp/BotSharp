@@ -15,23 +15,20 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone)
+    public User? GetUserByPhone(string phone, string role = null, string regionCode = "CN")
     {
         string phoneSecond = string.Empty;
         // if phone number length is less than 4, return null
-        if (phone?.Length < 4)
+        if (string.IsNullOrWhiteSpace(phone) || phone?.Length < 4)
         {
             return null;
         }
-        if (phone.Substring(0, 3) != "+86")
-        {
-            phoneSecond = $"+86{phone}";
-        }
-        else
-        {
-            phoneSecond = phone.Replace("+86", "");
-        }
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate);
+
+        string phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
+
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate
+        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)) 
+        && (role == "admin" ? x.Role == "admin" || x.Role == "root" : true));
         return user != null ? user.ToUser() : null;
     }
 

@@ -172,7 +172,7 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByPhone(id);
+        var record = db.GetUserByPhone(id,"admin");
         var isCanLogin = record != null && !record.IsDisabled
             && record.Type == UserType.Internal && new List<string>
             {
@@ -317,8 +317,8 @@ public class UserService : IUserService
             new Claim("role", user.Role ?? UserRole.User),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("phone", user.Phone ?? string.Empty),
-            new Claim("affiliateId", user.AffiliateId ?? string.Empty),
-            new Claim("employeeId", user.EmployeeId ?? string.Empty),
+            new Claim("affiliate_id", user.AffiliateId ?? string.Empty),
+            new Claim("employee_id", user.EmployeeId ?? string.Empty),
             new Claim("regionCode", user.RegionCode ?? "CN")
         };
 
@@ -540,7 +540,7 @@ public class UserService : IUserService
         return false;
     }
 
-    public async Task<bool> VerifyPhoneExisting(string phone)
+    public async Task<bool> VerifyPhoneExisting(string phone, string regionCode)
     {
         if (string.IsNullOrEmpty(phone))
         {
@@ -548,7 +548,7 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var UserByphone = db.GetUserByPhone(phone);
+        var UserByphone = db.GetUserByPhone(phone, regionCode);
         if (UserByphone != null && UserByphone.Verified)
         {
             return true;
