@@ -2,8 +2,6 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
-using MongoDB.Driver;
-using System.Globalization;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -24,7 +22,7 @@ public partial class MongoRepository
             return null;
         }
 
-        string phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
+        phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
 
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate
         && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)) 
