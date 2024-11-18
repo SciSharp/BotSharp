@@ -24,7 +24,11 @@ public class RedisPublisher : IEventPublisher
     {
         var db = _redis.GetDatabase();
         // Add a message to the stream, keeping only the latest 1 million messages
-        await db.StreamAddAsync(channel, "message", message, 
+        await db.StreamAddAsync(channel, 
+            [
+                new NameValueEntry("message", message),
+                new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
+            ],
             maxLength: 1000 * 10000);
 
         _logger.LogInformation($"Published message {channel} {message}");
@@ -50,7 +54,7 @@ public class RedisPublisher : IEventPublisher
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}");
+                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}\r\n{ex}");
             }
         }
     }
