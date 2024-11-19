@@ -6,6 +6,7 @@ using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using Twilio.Http;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
@@ -370,6 +371,24 @@ public class TwilioVoiceController : TwilioController
             }
         }
 
+        return TwiML(response);
+    }
+
+    [ValidateRequest]
+    [HttpPost("twilio/voice/init-call")]
+    public TwiMLResult InitiateOutboundCall(VoiceRequest request, [Required][FromQuery] string conversationId)
+    {
+        var instruction = new ConversationalVoiceResponse
+        {
+            ActionOnEmptyResult = true,
+            CallbackPath = $"twilio/voice/{conversationId}/receive/1",
+            SpeechPaths = new List<string>
+            {
+                $"twilio/voice/speeches/{conversationId}/intial.mp3"
+            }
+        };
+        var twilio = _services.GetRequiredService<TwilioService>();
+        var response = twilio.ReturnNoninterruptedInstructions(instruction);
         return TwiML(response);
     }
 
