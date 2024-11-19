@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.Twilio.Interfaces;
+using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Hooks;
 using BotSharp.Plugin.Twilio.Services;
 using StackExchange.Redis;
+using Twilio;
 
 namespace BotSharp.Plugin.Twilio;
 
@@ -18,7 +20,7 @@ public class TwilioPlugin : IBotSharpPlugin
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<TwilioSetting>("Twilio");
         });
-
+        TwilioClient.Init(config["Twilio:AccountSid"], config["Twilio:AuthToken"]);
         services.AddScoped<TwilioService>();
 
         var conn = ConnectionMultiplexer.Connect(config["Twilio:RedisConnectionString"]);
@@ -28,5 +30,7 @@ public class TwilioPlugin : IBotSharpPlugin
         services.AddSingleton<TwilioMessageQueue>();
         services.AddHostedService<TwilioMessageQueueService>();
         services.AddTwilioRequestValidation();
+        services.AddScoped<IAgentHook, OutboundPhoneCallHandlerHook>();
+        services.AddScoped<IAgentUtilityHook, OutboundPhoneCallHandlerUtilityHook>();
     }
 }

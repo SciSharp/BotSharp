@@ -99,6 +99,7 @@ public class TwilioService
     public VoiceResponse ReturnNoninterruptedInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
     {
         var response = new VoiceResponse();
+        response.Pause(2);
         if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
@@ -152,8 +153,8 @@ public class TwilioService
         var response = new VoiceResponse();
         var gather = new Gather()
         {
-            Input = new List<Gather.InputEnum>() 
-            { 
+            Input = new List<Gather.InputEnum>()
+            {
                 Gather.InputEnum.Speech,
                 Gather.InputEnum.Dtmf
             },
