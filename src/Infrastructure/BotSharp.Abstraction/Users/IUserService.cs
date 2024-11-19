@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.OpenAPI.ViewModels.Users;
 
@@ -7,7 +8,10 @@ public interface IUserService
 {
     Task<User> GetUser(string id);
     Task<PagedItems<User>> GetUsers(UserFilter filter);
-    Task<bool> UpdateUser(User model, bool isUpdateUserAgents = false);
+    Task<User?> GetUserDetails(string userId, bool includeAgent = false);
+    Task<bool> IsAdminUser(string userId);
+    Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null);
+    Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false);
     Task<User> CreateUser(User user);
     Task<Token> ActiveUser(UserActivationModel model);
     Task<Token?> GetAffiliateToken(string authorization);
@@ -16,7 +20,7 @@ public interface IUserService
     Task<User> GetMyProfile();
     Task<bool> VerifyUserNameExisting(string userName);
     Task<bool> VerifyEmailExisting(string email);
-    Task<bool> VerifyPhoneExisting(string phone);
+    Task<bool> VerifyPhoneExisting(string phone, string regionCode);
     Task<bool> SendVerificationCodeResetPasswordNoLogin(User user);
     Task<bool> SendVerificationCodeResetPasswordLogin();
     Task<bool> ResetUserPassword(User user);

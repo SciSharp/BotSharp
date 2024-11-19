@@ -159,4 +159,10 @@ public class MongoDbContext
 
     public IMongoCollection<KnowledgeCollectionFileMetaDocument> KnowledgeCollectionFileMeta
         => Database.GetCollection<KnowledgeCollectionFileMetaDocument>($"{_collectionPrefix}_KnowledgeCollectionFileMeta");
+
+    public IMongoCollection<RoleDocument> Roles
+        => Database.GetCollection<RoleDocument>($"{_collectionPrefix}_Roles");
+
+    public IMongoCollection<RoleAgentDocument> RoleAgents
+        => Database.GetCollection<RoleAgentDocument>($"{_collectionPrefix}_RoleAgents");
 }

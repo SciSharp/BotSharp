@@ -95,6 +95,8 @@ public class SecondaryStagePlanFn : IFunctionCallback
         var conv = _services.GetRequiredService<IConversationService>();
         var wholeDialogs = conv.GetDialogHistory();
 
+        wholeDialogs.Last().Content += "\r\nOutput in JSON format.";
+
         var completion = CompletionProvider.GetChatCompletion(_services,
             provider: plannerAgent.LlmConfig.Provider,
             model: plannerAgent.LlmConfig.Model);

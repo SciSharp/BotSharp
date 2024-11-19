@@ -13,23 +13,20 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone)
+    public User? GetUserByPhone(string phone, string role = null, string regionCode = "CN")
     {
         string phoneSecond = string.Empty;
-        // 如果电话号码长度小于 4，直接返回 null
-        if (phone?.Length < 4)
+        // if phone number length is less than 4, return null
+        if (string.IsNullOrWhiteSpace(phone) || phone?.Length < 4)
         {
             return null;
         }
-        if (phone.Substring(0, 3) != "+86")
-        {
-            phoneSecond = $"+86{phone}";
-        }
-        else
-        {
-            phoneSecond = phone.Replace("+86", "");
-        }
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate);
+
+        phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
+
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate
+        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)) 
+        && (role == "admin" ? x.Role == "admin" || x.Role == "root" : true));
         return user != null ? user.ToUser() : null;
     }
 
@@ -41,22 +38,19 @@ public partial class MongoRepository
 
     public User? GetUserById(string id)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
         return user != null ? user.ToUser() : null;
     }
 
     public List<User> GetUserByIds(List<string> ids)
     {
-        var users = _dc.Users.AsQueryable()
-            .Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
+        var users = _dc.Users.AsQueryable().Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
     public List<User> GetUsersByAffiliateId(string affiliateId)
     {
-        var users = _dc.Users.AsQueryable()
-            .Where(x => x.AffiliateId == affiliateId).ToList();
+        var users = _dc.Users.AsQueryable().Where(x => x.AffiliateId == affiliateId).ToList();
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
@@ -173,6 +167,11 @@ public partial class MongoRepository
 
     public PagedItems<User> GetUsers(UserFilter filter)
     {
+        if (filter == null)
+        {
+            filter = UserFilter.Empty();
+        }
+
         var userBuilder = Builders<UserDocument>.Filter;
         var userFilters = new List<FilterDefinition<UserDocument>>() { userBuilder.Empty };
 
@@ -193,6 +192,10 @@ public partial class MongoRepository
         {
             userFilters.Add(userBuilder.In(x => x.Role, filter.Roles));
         }
+        if (!filter.Types.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Type, filter.Types));
+        }
         if (!filter.Sources.IsNullOrEmpty())
         {
             userFilters.Add(userBuilder.In(x => x.Source, filter.Sources));
@@ -207,44 +210,6 @@ public partial class MongoRepository
         var count = _dc.Users.CountDocuments(filterDef);
 
         var users = userDocs.Select(x => x.ToUser()).ToList();
-        var userIds = users.Select(x => x.Id).ToList();
-        var userAgents = _dc.UserAgents.AsQueryable().Where(x => userIds.Contains(x.UserId)).Select(x => new UserAgent
-        {
-            Id = x.Id,
-            UserId = x.UserId,
-            AgentId = x.AgentId,
-            Actions = x.Actions ?? Enumerable.Empty<string>(),
-            CreatedTime = x.CreatedTime,
-            UpdatedTime = x.UpdatedTime
-        }).ToList();
-        var agentIds = userAgents.Select(x => x.AgentId).Distinct().ToList();
-
-        if (!agentIds.IsNullOrEmpty())
-        {
-            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
-            foreach (var item in userAgents)
-            {
-                var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
-                if (agent == null) continue;
-
-                item.Agent = agent;
-            }
-
-            foreach (var user in users)
-            {
-                var found = userAgents.Where(x => x.UserId == user.Id).ToList();
-                if (found.IsNullOrEmpty()) continue;
-
-                user.AgentActions = found.Select(x => new UserAgentAction
-                {
-                    Id = x.Id,
-                    AgentId = x.AgentId,
-                    Agent = x.Agent,
-                    Actions = x.Actions
-                });
-            }
-        }
-
         return new PagedItems<User>
         {
             Items = users,
@@ -252,8 +217,60 @@ public partial class MongoRepository
         };
     }
 
+    public User? GetUserDetails(string userId, bool includeAgent = false)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
 
-    public bool UpdateUser(User user, bool isUpdateUserAgents = false)
+        var userDoc = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == userId || x.ExternalId == userId);
+        if (userDoc == null) return null;
+
+        var agentActions = new List<UserAgentAction>();
+        var user = userDoc.ToUser();
+        var userAgents = _dc.UserAgents.AsQueryable().Where(x => x.UserId == userId).Select(x => new UserAgent
+        {
+            Id = x.Id,
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions ?? Enumerable.Empty<string>()
+        }).ToList();
+
+        if (!includeAgent)
+        {
+            agentActions = userAgents.Select(x => new UserAgentAction
+            {
+                Id = x.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList();
+            user.AgentActions = agentActions;
+            return user;
+        }
+        
+        var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
+        if (!agentIds.IsNullOrEmpty())
+        {
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+
+            foreach (var item in userAgents)
+            {
+                var found = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (found == null) continue;
+
+                agentActions.Add(new UserAgentAction
+                {
+                    Id = item.Id,
+                    AgentId = found.Id,
+                    Agent = found,
+                    Actions = item.Actions
+                });
+            }
+        }
+
+        user.AgentActions = agentActions;
+        return user;
+    }
+
+    public bool UpdateUser(User user, bool updateUserAgents = false)
     {
         if (string.IsNullOrEmpty(user?.Id)) return false;
 
@@ -266,7 +283,7 @@ public partial class MongoRepository
 
         _dc.Users.UpdateOne(userFilter, userUpdate);
 
-        if (isUpdateUserAgents)
+        if (updateUserAgents)
         {
             var userAgentDocs = user.AgentActions?.Select(x => new UserAgentDocument
             {

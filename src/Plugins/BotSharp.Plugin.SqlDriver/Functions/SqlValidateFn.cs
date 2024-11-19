@@ -41,7 +41,7 @@ public class SqlValidateFn : IFunctionCallback
         var dbType = dbHook.GetDatabaseType(message);
         var validateSql = dbType.ToLower() switch
         {
-            "mysql" => $"explain\r\n{sql}",
+            "mysql" => $"explain\r\n{sql.Replace("SET ", "-- SET ", StringComparison.InvariantCultureIgnoreCase).Replace(";", "; explain ").TrimEnd("explain ".ToCharArray())}",
             "sqlserver" => $"SET PARSEONLY ON;\r\n{sql}\r\nSET PARSEONLY OFF;",
             "redshift" => $"explain\r\n{sql}",
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
@@ -49,7 +49,7 @@ public class SqlValidateFn : IFunctionCallback
         var msgCopy = RoleDialogModel.From(message);
         msgCopy.FunctionArgs = JsonSerializer.Serialize(new ExecuteQueryArgs
         {
-            SqlStatements = new string[] { validateSql }
+            SqlStatements = [validateSql]
         });
 
         var fn = _services.GetRequiredService<IRoutingService>();
@@ -74,7 +74,7 @@ public class SqlValidateFn : IFunctionCallback
                     Message = "Correct SQL Statement",
                     Data = new Dictionary<string, object>
                     {
-                        { "original_sql", sql },
+                        { "original_sql", message.Content },
                         { "error_message", ex.Message },
                         { "table_structure", ddl }
                     }

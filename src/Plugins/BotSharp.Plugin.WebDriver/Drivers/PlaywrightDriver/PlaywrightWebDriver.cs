@@ -1,3 +1,4 @@
+
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
 
 public partial class PlaywrightWebDriver : IWebBrowser
@@ -67,5 +68,17 @@ public partial class PlaywrightWebDriver : IWebBrowser
     public void SetServiceProvider(IServiceProvider services)
     {
         _instance.SetServiceProvider(_services);
+    }
+
+    public async Task PressKey(MessageInfo message, string key)
+    {
+        var page = _instance.GetPage(message.ContextId);
+        if (page != null)
+        {
+            // Click on the body to give focus to the page
+            await page.FocusAsync("input");
+
+            await page.Keyboard.PressAsync(key);
+        }
     }
 }

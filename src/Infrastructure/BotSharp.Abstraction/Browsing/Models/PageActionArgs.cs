@@ -38,8 +38,6 @@ public class PageActionArgs
     public bool ResponseInMemory { get; set; } = false;
     public List<WebPageResponseData>? ResponseContainer { get; set; }
 
-    public bool UseExistingPage { get; set; } = false;
-
     public bool WaitForNetworkIdle { get; set; } = true;
     public float? Timeout { get; set; }
 

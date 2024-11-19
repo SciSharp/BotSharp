@@ -1,5 +1,5 @@
-using BotSharp.Abstraction.Users.Settings;
 using BotSharp.Abstraction.Users.Enums;
+using BotSharp.Abstraction.Users.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.ComponentModel.DataAnnotations;
@@ -124,9 +124,9 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("/user/phone/existing")]
-    public async Task<bool> VerifyPhoneExisting([FromQuery] string phone)
+    public async Task<bool> VerifyPhoneExisting([FromQuery] string phone, [FromQuery] string regionCode = "CN")
     {
-        return await _userService.VerifyPhoneExisting(phone);
+        return await _userService.VerifyPhoneExisting(phone, regionCode);
     }
 
     [AllowAnonymous]
@@ -182,8 +182,8 @@ public class UserController : ControllerBase
     public async Task<PagedItems<UserViewModel>> GetUsers([FromBody] UserFilter filter)
     {
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        var isValid = await IsValidUser();
+        if (!isValid)
         {
             return new PagedItems<UserViewModel>();
         }
@@ -198,19 +198,26 @@ public class UserController : ControllerBase
         };
     }
 
+    [HttpGet("/user/{id}/details")]
+    public async Task<UserViewModel> GetUserDetails(string id)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var user = await userService.GetUserDetails(id, includeAgent: true);
+        return UserViewModel.FromUser(user);
+    }
 
     [HttpPut("/user")]
     public async Task<bool> UpdateUser([FromBody] UserUpdateModel model)
     {
         if (model == null) return false;
 
-        var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (user == null || !UserConstant.AdminRoles.Contains(user.Role))
+        var isValid = await IsValidUser();
+        if (!isValid)
         {
             return false;
         }
 
+        var userService = _services.GetRequiredService<IUserService>();
         var updated = await userService.UpdateUser(UserUpdateModel.ToUser(model), isUpdateUserAgents: true);
         return updated;
     }
@@ -245,6 +252,12 @@ public class UserController : ControllerBase
 
 
     #region Private methods
+    private async Task<bool> IsValidUser()
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        return await userService.IsAdminUser(_user.Id);
+    }
+
     private FileContentResult BuildFileResult(string file)
     {
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
