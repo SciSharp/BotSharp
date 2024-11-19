@@ -2,17 +2,17 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Utilities;
-using BotSharp.Plugin.Twilio.OutboundCallHandler.Enums;
+using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Enums;
 
-namespace BotSharp.Plugin.Twilio.OutboundCallHandler.Hooks
+namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Hooks
 {
-    internal class OutboundCallHandlerHook : AgentHookBase
+    internal class OutboundPhoneCallHandlerHook : AgentHookBase
     {
-        private static string FUNCTION_NAME = "handle_outbound_call";
+        private static string FUNCTION_NAME = "twilio_outbound_phone_call";
 
         public override string SelfId => string.Empty;
 
-        public OutboundCallHandlerHook(IServiceProvider services, AgentSettings settings) : base(services, settings)
+        public OutboundPhoneCallHandlerHook(IServiceProvider services, AgentSettings settings) : base(services, settings)
         {
         }
 
@@ -20,7 +20,7 @@ namespace BotSharp.Plugin.Twilio.OutboundCallHandler.Hooks
         {
             var conv = _services.GetRequiredService<IConversationService>();
             var isConvMode = conv.IsConversationMode();
-            var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(UtilityName.TwilioOutboundCaller);
+            var isEnabled = !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(UtilityName.OutboundPhoneCall);
 
             if (isConvMode && isEnabled)
             {

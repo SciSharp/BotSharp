@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Plugin.Twilio.OutboundCallHandler.LlmContexts
+namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts
 {
     public class LlmContextOut
     {
