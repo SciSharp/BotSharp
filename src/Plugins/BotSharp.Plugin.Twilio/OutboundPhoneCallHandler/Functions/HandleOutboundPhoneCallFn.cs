@@ -36,31 +36,43 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs, _options.JsonSerializerOptions);
             if (args.PhoneNumber.Length != 12 || !args.PhoneNumber.StartsWith("+1", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogError("Invalid phone number format: {phone}", args.PhoneNumber);
+                var error = $"Invalid phone number format: {args.PhoneNumber}";
+                _logger.LogError(error);
+                message.Content = error;
                 return false;
             }
+
             if (string.IsNullOrWhiteSpace(args.InitialMessage))
             {
                 _logger.LogError("Initial message is empty.");
+                message.Content = "There is an error when generating phone message.";
                 return false;
             }
-            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
+
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
+            var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+            var convService = _services.GetRequiredService<IConversationService>();
+            var conversationId = convService.ConversationId;
+
+            // Generate audio
+            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
             var data = await completion.GenerateAudioFromTextAsync(args.InitialMessage);
-            var conversationId = Guid.NewGuid().ToString();
             var fileName = $"intial.mp3";
             fileStorage.SaveSpeechFile(conversationId, fileName, data);
-            // TODO: Add initial message in the new conversation
-            var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+
+            // Call phone number
             await sessionManager.SetAssistantReplyAsync(conversationId, 0, new AssistantMessage
             {
                 Content = args.InitialMessage,
                 SpeechFileName = fileName
             });
+
             var call = await CallResource.CreateAsync(
                 url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
                 to: new PhoneNumber(args.PhoneNumber),
                 from: new PhoneNumber(_twilioSetting.PhoneNumber));
+
+            message.Content = $"The generated phone message: {args.InitialMessage}" ?? message.Content;
             message.StopCompletion = true;
             return true;
         }
