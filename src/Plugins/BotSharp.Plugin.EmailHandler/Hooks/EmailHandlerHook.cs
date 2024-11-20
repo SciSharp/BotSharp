@@ -18,9 +18,9 @@ public class EmailHandlerHook : AgentHookBase
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var utilityLoad = new AgentUtilityLoadModel
+        var utilityLoad = new AgentUtility
         {
-            UtilityName = UtilityName.EmailHandler,
+            Name = UtilityName.EmailHandler,
             Content = new UtilityContent
             {
                 Functions = [new(EMAIL_READER_FN), new(EMAIL_SENDER_FN)],

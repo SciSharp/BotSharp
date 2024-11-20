@@ -15,38 +15,38 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var utilityLoads = new List<AgentUtilityLoadModel>
+        var utilityLoads = new List<AgentUtility>
         {
-            new AgentUtilityLoadModel
+            new AgentUtility
             {
-                UtilityName = UtilityName.ImageGenerator,
+                Name = UtilityName.ImageGenerator,
                 Content = new UtilityContent
                 {
                     Functions = [new(GENERATE_IMAGE_FN)],
                     Templates = [new($"{GENERATE_IMAGE_FN}.fn")]
                 }
             },
-            new AgentUtilityLoadModel
+            new AgentUtility
             {
-                UtilityName = UtilityName.ImageReader,
+                Name = UtilityName.ImageReader,
                 Content = new UtilityContent
                 {
                     Functions = [new(READ_IMAGE_FN)],
                     Templates = [new($"{READ_IMAGE_FN}.fn")]
                 }
             },
-            new AgentUtilityLoadModel
+            new AgentUtility
             {
-                UtilityName = UtilityName.ImageEditor,
+                Name = UtilityName.ImageEditor,
                 Content = new UtilityContent
                 {
                     Functions = [new(EDIT_IMAGE_FN)],
                     Templates = [new($"{EDIT_IMAGE_FN}.fn")]
                 }
             },
-            new AgentUtilityLoadModel
+            new AgentUtility
             {
-                UtilityName = UtilityName.PdfReader,
+                Name = UtilityName.PdfReader,
                 Content = new UtilityContent
                 {
                     Functions = [new(READ_PDF_FN)],

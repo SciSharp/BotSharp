@@ -34,9 +34,9 @@ public class PlannerAgentHook : AgentHookBase
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var utilityLoad = new AgentUtilityLoadModel
+        var utilityLoad = new AgentUtility
         {
-            UtilityName = UtilityName.TwoStagePlanner,
+            Name = UtilityName.TwoStagePlanner,
             Content = new UtilityContent
             {
                 Functions = [

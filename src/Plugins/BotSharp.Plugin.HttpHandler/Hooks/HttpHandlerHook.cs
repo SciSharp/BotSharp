@@ -16,9 +16,9 @@ public class HttpHandlerHook : AgentHookBase
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var utilityLoad = new AgentUtilityLoadModel
+        var utilityLoad = new AgentUtility
         {
-            UtilityName = UtilityName.HttpHandler,
+            Name = UtilityName.HttpHandler,
             Content = new UtilityContent
             {
                 Functions = [new(HTTP_HANDLER_FN)],

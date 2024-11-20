@@ -19,38 +19,35 @@ public class SqlDriverAgentHook : AgentHookBase, IAgentHook
     public override void OnAgentLoaded(Agent agent)
     {
         var dbType = SqlDriverHelper.GetDatabaseType(_services);
-        var promptData = new Dictionary<string, object>
-        {
-            { "db_type", dbType }
-        };
+        agent.TemplateDict["db_type"] = dbType;
 
-        var utilityLoads = new List<AgentUtilityLoadModel>
+        var utilityLoads = new List<AgentUtility>
         {
-            new AgentUtilityLoadModel
+            new AgentUtility
             {
-                UtilityName = UtilityName.SqlTableDefinition,
+                Name = UtilityName.SqlTableDefinition,
                 Content = new UtilityContent
                 {
                     Functions = new List<UtilityFunction> { new(SQL_TABLE_DEFINITION_FN) },
-                    Templates = new List<UtilityTemplate> { new($"{SQL_TABLE_DEFINITION_FN}.fn", promptData) }
+                    Templates = new List<UtilityTemplate> { new($"{SQL_TABLE_DEFINITION_FN}.fn") }
                 }
             },
-            new AgentUtilityLoadModel
+            new AgentUtility
             {
-                UtilityName = UtilityName.SqlDictionaryLookup,
+                Name = UtilityName.SqlDictionaryLookup,
                 Content = new UtilityContent
                 {
                     Functions = new List<UtilityFunction> { new(VERIFY_DICTIONARY_TERM_FN) },
-                    Templates = new List<UtilityTemplate> { new($"{VERIFY_DICTIONARY_TERM_FN}.fn", promptData) }
+                    Templates = new List<UtilityTemplate> { new($"{VERIFY_DICTIONARY_TERM_FN}.fn") }
                 }
             },
-            new AgentUtilityLoadModel
+            new AgentUtility
             {
-                UtilityName = UtilityName.SqlExecutor,
+                Name = UtilityName.SqlExecutor,
                 Content = new UtilityContent
                 {
                     Functions = new List<UtilityFunction> { new(SQL_SELECT_FN), new(SQL_TABLE_DEFINITION_FN) },
-                    Templates = new List<UtilityTemplate> { new($"sql_executor.fn", promptData) }
+                    Templates = new List<UtilityTemplate> { new($"sql_executor.fn") }
                 }
             }
         };

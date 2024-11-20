@@ -12,9 +12,9 @@ public class ExcelHandlerHook : AgentHookBase, IAgentHook
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var utilityLoad = new AgentUtilityLoadModel
+        var utilityLoad = new AgentUtility
         {
-            UtilityName = UtilityName.ExcelHandler,
+            Name = UtilityName.ExcelHandler,
             Content = new UtilityContent
             {
                 Functions = [new(HANDLER_EXCEL)],

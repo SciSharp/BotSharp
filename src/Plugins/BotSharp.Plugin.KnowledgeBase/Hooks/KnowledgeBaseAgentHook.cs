@@ -14,9 +14,9 @@ public class KnowledgeBaseAgentHook : AgentHookBase, IAgentHook
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var utilityLoad = new AgentUtilityLoadModel
+        var utilityLoad = new AgentUtility
         {
-            UtilityName = UtilityName.KnowledgeRetrieval,
+            Name = UtilityName.KnowledgeRetrieval,
             Content = new UtilityContent
             {
                 Functions = [new(KNOWLEDGE_RETRIEVAL_FN)],

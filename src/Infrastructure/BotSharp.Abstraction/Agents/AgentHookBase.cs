@@ -57,7 +57,7 @@ public abstract class AgentHookBase : IAgentHook
     {
     }
 
-    public virtual void OnLoadAgentUtility(Agent agent, IEnumerable<AgentUtilityLoadModel> utilities)
+    public virtual void OnLoadAgentUtility(Agent agent, IEnumerable<AgentUtility> utilities)
     {
         if (agent.Type == AgentType.Routing || utilities.IsNullOrEmpty()) return;
 
@@ -70,14 +70,14 @@ public abstract class AgentHookBase : IAgentHook
         agent.Functions ??= [];
         var agentUtilities = agent.Utilities ?? [];
 
-        foreach (var item in utilities)
+        foreach (var utillity in utilities)
         {
-            if (item.UtilityName.IsNullOrEmpty() || item.Content == null) continue;
+            if (utillity.Name.IsNullOrEmpty() || utillity.Content == null) continue;
 
-            var isEnabled = agentUtilities.Contains(item.UtilityName);
+            var isEnabled = agentUtilities.Contains(utillity.Name);
             if (!isEnabled) continue;
 
-            var (fns, prompts) = GetUtilityContent(item.Content);
+            var (fns, prompts) = GetUtilityContent(utillity.Content);
 
             if (!fns.IsNullOrEmpty())
             {
@@ -121,10 +121,6 @@ public abstract class AgentHookBase : IAgentHook
                 var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(template.Name))?.Content ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(prompt)) continue;
 
-                if (!template.Data.IsNullOrEmpty())
-                {
-                    prompt = render.Render(prompt, template.Data);
-                }
                 prompts.Add(prompt);
             }
         }

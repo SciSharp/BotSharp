@@ -16,9 +16,9 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Hooks
 
         public override void OnAgentLoaded(Agent agent)
         {
-            var utilityLoad = new AgentUtilityLoadModel
+            var utilityLoad = new AgentUtility
             {
-                UtilityName = UtilityName.OutboundPhoneCall,
+                Name = UtilityName.OutboundPhoneCall,
                 Content = new UtilityContent
                 {
                     Functions = [new(OUTBOUND_PHONE_CALL_FN)],

@@ -1,18 +1,18 @@
 namespace BotSharp.Abstraction.Agents.Models;
 
-public class AgentUtilityLoadModel
+public class AgentUtility
 {
-    public string UtilityName { get; set; }
+    public string Name { get; set; }
     public UtilityContent Content { get; set; }
 
-    public AgentUtilityLoadModel()
+    public AgentUtility()
     {
         
     }
 
-    public AgentUtilityLoadModel(string utilityName, UtilityContent content)
+    public AgentUtility(string utilityName, UtilityContent content)
     {
-        UtilityName = utilityName;
+        Name = utilityName;
         Content = content;
     }
 }
@@ -44,17 +44,14 @@ public class UtilityFunction : UtilityBase
 
 public class UtilityTemplate : UtilityBase
 {
-    public Dictionary<string, object>? Data { get; set; }
-
     public UtilityTemplate()
     {
         
     }
 
-    public UtilityTemplate(string name, Dictionary<string, object>? data = null)
+    public UtilityTemplate(string name)
     {
         Name = name;
-        Data = data;
     }
 }
 
