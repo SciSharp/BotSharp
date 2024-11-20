@@ -87,8 +87,12 @@ public class Agent
     /// <summary>
     /// Profile by channel
     /// </summary>
-    public List<string> Profiles { get; set; }
-        = new List<string>();
+    public List<string> Profiles { get; set; } = new();
+
+    /// <summary>
+    /// Merge utilities from entry agent
+    /// </summary>
+    public bool MergeUtility { get; set; }
 
     /// <summary>
     /// Agent utilities
@@ -212,6 +216,12 @@ public class Agent
     public Agent SetDisabled(bool disabled)
     {
         Disabled = disabled;
+        return this;
+    }
+
+    public Agent SetMergeUtility(bool merge)
+    {
+        MergeUtility = merge;
         return this;
     }
 

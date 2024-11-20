@@ -55,7 +55,7 @@ namespace BotSharp.Core.Repository
                     UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                     break;
                 case AgentField.Utility:
-                    UpdateAgentUtilities(agent.Id, agent.Utilities);
+                    UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                     break;
                 case AgentField.All:
                     UpdateAgentAllFields(agent);
@@ -151,13 +151,14 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentUtilities(string agentId, List<AgentUtility> utilities)
+        private void UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
         {
             if (utilities == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
+            agent.MergeUtility = mergeUtility;
             agent.Utilities = utilities;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
@@ -291,6 +292,7 @@ namespace BotSharp.Core.Repository
             agent.Description = inputAgent.Description;
             agent.IsPublic = inputAgent.IsPublic;
             agent.Disabled = inputAgent.Disabled;
+            agent.MergeUtility = inputAgent.MergeUtility;
             agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
             agent.Utilities = inputAgent.Utilities;

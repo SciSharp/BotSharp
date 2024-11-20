@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Repositories.Enums;
-using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using System.IO;
@@ -28,16 +27,17 @@ public partial class AgentService
         record.Description = agent.Description ?? string.Empty;
         record.IsPublic = agent.IsPublic;
         record.Disabled = agent.Disabled;
+        record.MergeUtility = agent.MergeUtility;
         record.Type = agent.Type;
-        record.Profiles = agent.Profiles ?? new List<string>();
-        record.RoutingRules = agent.RoutingRules ?? new List<RoutingRule>();
+        record.Profiles = agent.Profiles ?? [];
+        record.RoutingRules = agent.RoutingRules ?? [];
         record.Instruction = agent.Instruction ?? string.Empty;
-        record.ChannelInstructions = agent.ChannelInstructions ?? new List<ChannelInstruction>();
-        record.Functions = agent.Functions ?? new List<FunctionDef>();
-        record.Templates = agent.Templates ?? new List<AgentTemplate>();
-        record.Responses = agent.Responses ?? new List<AgentResponse>();
-        record.Samples = agent.Samples ?? new List<string>();
-        record.Utilities = agent.Utilities ?? new List<AgentUtility>();
+        record.ChannelInstructions = agent.ChannelInstructions ?? [];
+        record.Functions = agent.Functions ?? [];
+        record.Templates = agent.Templates ?? [];
+        record.Responses = agent.Responses ?? [];
+        record.Samples = agent.Samples ?? [];
+        record.Utilities = agent.Utilities ?? [];
         if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)
         {
             record.LlmConfig = agent.LlmConfig;
@@ -90,6 +90,7 @@ public partial class AgentService
                        .SetDescription(foundAgent.Description)
                        .SetIsPublic(foundAgent.IsPublic)
                        .SetDisabled(foundAgent.Disabled)
+                       .SetMergeUtility(foundAgent.MergeUtility)
                        .SetAgentType(foundAgent.Type)
                        .SetProfiles(foundAgent.Profiles)
                        .SetRoutingRules(foundAgent.RoutingRules)

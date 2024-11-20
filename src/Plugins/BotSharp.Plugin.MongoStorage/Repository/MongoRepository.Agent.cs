@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
-using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -57,7 +56,7 @@ public partial class MongoRepository
                 UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                 break;
             case AgentField.Utility:
-                UpdateAgentUtilities(agent.Id, agent.Utilities);
+                UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                 break;
             case AgentField.All:
                 UpdateAgentAllFields(agent);
@@ -224,7 +223,7 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentUtilities(string agentId, List<AgentUtility> utilities)
+    private void UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
     {
         if (utilities == null) return;
 
@@ -232,6 +231,7 @@ public partial class MongoRepository
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
+            .Set(x => x.MergeUtility, mergeUtility)
             .Set(x => x.Utilities, elements)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
@@ -256,6 +256,7 @@ public partial class MongoRepository
             .Set(x => x.Name, agent.Name)
             .Set(x => x.Description, agent.Description)
             .Set(x => x.Disabled, agent.Disabled)
+            .Set(x => x.MergeUtility, agent.MergeUtility)
             .Set(x => x.Type, agent.Type)
             .Set(x => x.Profiles, agent.Profiles)
             .Set(x => x.RoutingRules, agent.RoutingRules.Select(r => RoutingRuleMongoElement.ToMongoElement(r)).ToList())
@@ -418,6 +419,7 @@ public partial class MongoRepository
             Type = x.Type,
             InheritAgentId = x.InheritAgentId,
             Disabled = x.Disabled,
+            MergeUtility = x.MergeUtility,
             Profiles = x.Profiles,
             RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
             LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
@@ -507,6 +509,7 @@ public partial class MongoRepository
             Utilities = agentDoc.Utilities?.Select(u => AgentUtilityMongoElement.ToDomainElement(u))?.ToList() ?? [],
             IsPublic = agentDoc.IsPublic,
             Disabled = agentDoc.Disabled,
+            MergeUtility = agentDoc.MergeUtility,
             Type = agentDoc.Type,
             InheritAgentId = agentDoc.InheritAgentId,
             Profiles = agentDoc.Profiles,

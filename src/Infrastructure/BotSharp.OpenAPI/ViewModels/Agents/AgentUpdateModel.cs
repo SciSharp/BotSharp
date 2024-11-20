@@ -31,6 +31,9 @@ public class AgentUpdateModel
     /// </summary>
     public List<string>? Samples { get; set; }
 
+    [JsonPropertyName("merge_utility")]
+    public bool MergeUtility { get; set; }
+
     /// <summary>
     /// Utilities
     /// </summary>
@@ -73,6 +76,7 @@ public class AgentUpdateModel
             Description = Description ?? string.Empty,
             IsPublic = IsPublic,
             Disabled = Disabled,
+            MergeUtility = MergeUtility,
             Type = Type,
             Profiles = Profiles ?? new List<string>(),
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),

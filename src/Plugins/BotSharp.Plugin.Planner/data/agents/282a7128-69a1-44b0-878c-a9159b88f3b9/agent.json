@@ -9,6 +9,7 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "planning" ],
+  "mergeUtility": true,
   "utilities": [
     {
       "name": "two-stage-planner",
