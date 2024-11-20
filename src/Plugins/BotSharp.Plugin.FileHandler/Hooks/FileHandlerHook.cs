@@ -15,55 +15,47 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
 
     public override void OnAgentLoaded(Agent agent)
     {
-        var conv = _services.GetRequiredService<IConversationService>();
-        var isConvMode = conv.IsConversationMode();
-
-        if (isConvMode)
+        var utilityLoads = new List<AgentUtilityLoadModel>
         {
-            AddUtility(agent, UtilityName.ImageGenerator, GENERATE_IMAGE_FN);
-            AddUtility(agent, UtilityName.ImageReader, READ_IMAGE_FN);
-            AddUtility(agent, UtilityName.ImageEditor, EDIT_IMAGE_FN);
-            AddUtility(agent, UtilityName.PdfReader, READ_PDF_FN);
+            new AgentUtilityLoadModel
+            {
+                UtilityName = UtilityName.ImageGenerator,
+                Content = new UtilityContent
+                {
+                    Functions = [new(GENERATE_IMAGE_FN)],
+                    Templates = [new($"{GENERATE_IMAGE_FN}.fn")]
+                }
+            },
+            new AgentUtilityLoadModel
+            {
+                UtilityName = UtilityName.ImageReader,
+                Content = new UtilityContent
+                {
+                    Functions = [new(READ_IMAGE_FN)],
+                    Templates = [new($"{READ_IMAGE_FN}.fn")]
+                }
+            },
+            new AgentUtilityLoadModel
+            {
+                UtilityName = UtilityName.ImageEditor,
+                Content = new UtilityContent
+                {
+                    Functions = [new(EDIT_IMAGE_FN)],
+                    Templates = [new($"{EDIT_IMAGE_FN}.fn")]
+                }
+            },
+            new AgentUtilityLoadModel
+            {
+                UtilityName = UtilityName.PdfReader,
+                Content = new UtilityContent
+                {
+                    Functions = [new(READ_PDF_FN)],
+                    Templates = [new($"{READ_PDF_FN}.fn")]
+                }
+            }
+        };
 
-        }
-
+        base.OnLoadAgentUtility(agent, utilityLoads);
         base.OnAgentLoaded(agent);
-    }
-
-    private void AddUtility(Agent agent, string utility, string functionName)
-    {
-        if (!IsEnableUtility(agent, utility)) return;
-
-        var (prompt, fn) = GetPromptAndFunction(functionName);
-        if (fn != null)
-        {
-            if (!string.IsNullOrWhiteSpace(prompt))
-            {
-                agent.Instruction += $"\r\n\r\n{prompt}\r\n\r\n";
-            }
-
-            if (agent.Functions == null)
-            {
-                agent.Functions = new List<FunctionDef> { fn };
-            }
-            else
-            {
-                agent.Functions.Add(fn);
-            }
-        }
-    }
-
-    private bool IsEnableUtility(Agent agent, string utility)
-    {
-        return !agent.Utilities.IsNullOrEmpty() && agent.Utilities.Contains(utility);
-    }
-
-    private (string, FunctionDef?) GetPromptAndFunction(string functionName)
-    {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
-        var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo($"{functionName}.fn"))?.Content ?? string.Empty;
-        var loadAttachmentFn = agent?.Functions?.FirstOrDefault(x => x.Name.IsEqualTo(functionName));
-        return (prompt, loadAttachmentFn);
     }
 }

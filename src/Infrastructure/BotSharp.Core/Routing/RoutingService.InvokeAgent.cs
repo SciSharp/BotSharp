@@ -4,13 +4,11 @@ namespace BotSharp.Core.Routing;
 
 public partial class RoutingService
 {
-    //private int _currentRecursionDepth = 0;
     public async Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(agentId);
 
-        //_currentRecursionDepth++;
         Context.IncreaseRecursiveCounter();
         if (Context.CurrentRecursionDepth > agent.LlmConfig.MaxRecursionDepth)
         {

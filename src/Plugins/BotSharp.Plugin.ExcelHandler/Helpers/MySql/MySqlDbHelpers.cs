@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using BotSharp.Plugin.SqlHero.Settings;
-using Microsoft.Data.Sqlite;
+using BotSharp.Plugin.SqlDriver.Settings;
 using MySql.Data.MySqlClient;
 
 namespace BotSharp.Plugin.ExcelHandler.Helpers.MySql

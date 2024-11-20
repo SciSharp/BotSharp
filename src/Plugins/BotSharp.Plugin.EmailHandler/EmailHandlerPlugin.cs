@@ -20,8 +20,7 @@ namespace BotSharp.Plugin.EmailHandler
                 return settingService.Bind<EmailSenderSettings>("EmailSender");
             });
 
-            services.AddScoped<IAgentHook, EmailSenderHook>();
-            services.AddScoped<IAgentHook, EmailReaderHook>();
+            services.AddScoped<IAgentHook, EmailHandlerHook>();
             services.AddScoped<IAgentUtilityHook, EmailHandlerUtilityHook>();
 
             var emailReaderSettings = new EmailReaderSettings();

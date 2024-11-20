@@ -31,4 +31,6 @@ public interface IAgentHook
     /// <param name="agent"></param>
     /// <returns></returns>
     void OnAgentLoaded(Agent agent);
+
+    void OnLoadAgentUtility(Agent agent, IEnumerable<AgentUtilityLoadModel> utilities);
 }
