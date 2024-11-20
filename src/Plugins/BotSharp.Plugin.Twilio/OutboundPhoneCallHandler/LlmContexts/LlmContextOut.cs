@@ -1,11 +1,10 @@
 using System.Text.Json.Serialization;
 
-namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts
+namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
+
+public class LlmContextOut
 {
-    public class LlmContextOut
-    {
-        [JsonPropertyName("conversation_id")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string ConversationId { get; set; }
-    }
+    [JsonPropertyName("conversation_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string ConversationId { get; set; }
 }
