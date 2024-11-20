@@ -8,7 +8,7 @@ public partial class PlaywrightWebDriver
         var context = await _instance.GetContext(message.ContextId);
         try
         {
-            var page = await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback, 
+            var page = await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback,
                     responseInMemory: args.ResponseInMemory,
                     responseContainer: args.ResponseContainer,
                     excludeResponseUrls: args.ExcludeResponseUrls,
@@ -18,7 +18,7 @@ public partial class PlaywrightWebDriver
 
             if (args.OpenNewTab && page != null && page.Url == "about:blank")
             {
-                page = await _instance.NewPage(message, 
+                page = await _instance.NewPage(message,
                     enableResponseCallback: args.EnableResponseCallback,
                     responseInMemory: args.ResponseInMemory,
                     responseContainer: args.ResponseContainer,
@@ -28,7 +28,7 @@ public partial class PlaywrightWebDriver
 
             if (page == null)
             {
-                page = await _instance.NewPage(message, 
+                page = await _instance.NewPage(message,
                     enableResponseCallback: args.EnableResponseCallback,
                     responseInMemory: args.ResponseInMemory,
                     responseContainer: args.ResponseContainer,
@@ -44,7 +44,7 @@ public partial class PlaywrightWebDriver
             if (args.Selectors != null)
             {
                 // 使用传入的选择器列表进行并行等待
-                var tasks =args.Selectors.Select(selector =>
+                var tasks = args.Selectors.Select(selector =>
                     page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions
                     {
                         Timeout = args.Timeout > 0 ? args.Timeout : 30000
@@ -77,6 +77,18 @@ public partial class PlaywrightWebDriver
                 await Task.Delay(args.WaitTime * 1000);
             }
 
+            if (args.IsScrollPage)
+            {
+                var scrollCount = 0;
+                while (scrollCount < args.ScrollCount)
+                {
+                    var previousHeight = await page.EvaluateAsync("document.body.scrollHeight");
+                    await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+                    await page.WaitForTimeoutAsync(args.ScrollWaitTime * 1000);
+                    scrollCount++;
+                };
+            }
+
             result.ResponseStatusCode = response.Status;
             if (response.Status == 200)
             {
@@ -89,7 +101,7 @@ public partial class PlaywrightWebDriver
                 }
             }
             else
-            {                
+            {
                 result.Message = response.StatusText;
             }
         }
