@@ -37,7 +37,7 @@ public partial class AgentService
         record.Templates = agent.Templates ?? new List<AgentTemplate>();
         record.Responses = agent.Responses ?? new List<AgentResponse>();
         record.Samples = agent.Samples ?? new List<string>();
-        record.Utilities = agent.Utilities ?? new List<string>();
+        record.Utilities = agent.Utilities ?? new List<AgentUtility>();
         if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)
         {
             record.LlmConfig = agent.LlmConfig;

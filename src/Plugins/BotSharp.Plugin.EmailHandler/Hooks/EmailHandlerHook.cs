@@ -21,14 +21,10 @@ public class EmailHandlerHook : AgentHookBase
         var utilityLoad = new AgentUtility
         {
             Name = UtilityName.EmailHandler,
-            Content = new UtilityContent
-            {
-                Functions = [new(EMAIL_READER_FN), new(EMAIL_SENDER_FN)],
-                Templates = [new($"{EMAIL_READER_FN}.fn"), new($"{EMAIL_SENDER_FN}.fn")]
-            }
+            Functions = [new(EMAIL_READER_FN), new(EMAIL_SENDER_FN)],
+            Templates = [new($"{EMAIL_READER_FN}.fn"), new($"{EMAIL_SENDER_FN}.fn")]
         };
 
-        base.OnLoadAgentUtility(agent, [utilityLoad]);
         base.OnAgentLoaded(agent);
     }
 }

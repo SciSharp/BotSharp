@@ -41,11 +41,23 @@ public class RoutingContext : IRoutingContext
                 var agentService = _services.GetRequiredService<IAgentService>();
                 _routerAgentIds = agentService.GetAgents(new AgentFilter
                 {
-                    Type = AgentType.Routing
+                    Type = AgentType.Routing,
+                    Pager = new Pagination { Size = 20 }
                 }).Result.Items.Select(x => x.Id).ToArray();
             }
 
             return _stack.Where(x => !_routerAgentIds.Contains(x)).LastOrDefault() ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Entry agent
+    /// </summary>
+    public string EntryAgentId
+    {
+        get
+        {
+            return _stack.LastOrDefault() ?? string.Empty;
         }
     }
 

@@ -18,14 +18,10 @@ public class AudioHandlerHook : AgentHookBase, IAgentHook
         var utilityLoad = new AgentUtility
         {
             Name = UtilityName.AudioHandler,
-            Content = new UtilityContent
-            {
-                Functions = [new(HANDLER_AUDIO)],
-                Templates = [new($"{HANDLER_AUDIO}.fn")]
-            }
+            Functions = [new(HANDLER_AUDIO)],
+            Templates = [new($"{HANDLER_AUDIO}.fn")]
         };
 
-        base.OnLoadAgentUtility(agent, [utilityLoad]);
         base.OnAgentLoaded(agent);
     }
 }

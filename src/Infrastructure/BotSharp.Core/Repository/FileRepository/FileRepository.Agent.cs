@@ -151,7 +151,7 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentUtilities(string agentId, List<string> utilities)
+        private void UpdateAgentUtilities(string agentId, List<AgentUtility> utilities)
         {
             if (utilities == null) return;
 

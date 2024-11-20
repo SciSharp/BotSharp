@@ -19,14 +19,10 @@ public class HttpHandlerHook : AgentHookBase
         var utilityLoad = new AgentUtility
         {
             Name = UtilityName.HttpHandler,
-            Content = new UtilityContent
-            {
-                Functions = [new(HTTP_HANDLER_FN)],
-                Templates = [new($"{HTTP_HANDLER_FN}.fn")]
-            }
+            Functions = [new(HTTP_HANDLER_FN)],
+            Templates = [new($"{HTTP_HANDLER_FN}.fn")]
         };
 
-        base.OnLoadAgentUtility(agent, [utilityLoad]);
         base.OnAgentLoaded(agent);
     }
 }

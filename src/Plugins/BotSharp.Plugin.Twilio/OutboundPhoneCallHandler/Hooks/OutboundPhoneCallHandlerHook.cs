@@ -19,14 +19,10 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Hooks
             var utilityLoad = new AgentUtility
             {
                 Name = UtilityName.OutboundPhoneCall,
-                Content = new UtilityContent
-                {
-                    Functions = [new(OUTBOUND_PHONE_CALL_FN)],
-                    Templates = [new($"{OUTBOUND_PHONE_CALL_FN}.fn")]
-                }
+                Functions = [new(OUTBOUND_PHONE_CALL_FN)],
+                Templates = [new($"{OUTBOUND_PHONE_CALL_FN}.fn")]
             };
 
-            base.OnLoadAgentUtility(agent, [utilityLoad]);
             base.OnAgentLoaded(agent);
         }
     }

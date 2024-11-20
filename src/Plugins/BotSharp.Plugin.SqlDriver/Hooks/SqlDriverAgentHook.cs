@@ -26,33 +26,23 @@ public class SqlDriverAgentHook : AgentHookBase, IAgentHook
             new AgentUtility
             {
                 Name = UtilityName.SqlTableDefinition,
-                Content = new UtilityContent
-                {
-                    Functions = new List<UtilityFunction> { new(SQL_TABLE_DEFINITION_FN) },
-                    Templates = new List<UtilityTemplate> { new($"{SQL_TABLE_DEFINITION_FN}.fn") }
-                }
+                Functions = [new(SQL_TABLE_DEFINITION_FN)],
+                Templates = [new($"{SQL_TABLE_DEFINITION_FN}.fn")]
             },
             new AgentUtility
             {
                 Name = UtilityName.SqlDictionaryLookup,
-                Content = new UtilityContent
-                {
-                    Functions = new List<UtilityFunction> { new(VERIFY_DICTIONARY_TERM_FN) },
-                    Templates = new List<UtilityTemplate> { new($"{VERIFY_DICTIONARY_TERM_FN}.fn") }
-                }
+                Functions = [new(VERIFY_DICTIONARY_TERM_FN)],
+                Templates = [new($"{VERIFY_DICTIONARY_TERM_FN}.fn")]
             },
             new AgentUtility
             {
                 Name = UtilityName.SqlExecutor,
-                Content = new UtilityContent
-                {
-                    Functions = new List<UtilityFunction> { new(SQL_SELECT_FN), new(SQL_TABLE_DEFINITION_FN) },
-                    Templates = new List<UtilityTemplate> { new($"sql_executor.fn") }
-                }
+                Functions = new List<UtilityFunction> { new(SQL_SELECT_FN), new(SQL_TABLE_DEFINITION_FN) },
+                Templates = new List<UtilityTemplate> { new($"sql_executor.fn") }
             }
         };
 
-        base.OnLoadAgentUtility(agent, utilityLoads);
         base.OnAgentLoaded(agent);
     }
 }

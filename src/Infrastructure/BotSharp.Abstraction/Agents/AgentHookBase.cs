@@ -57,9 +57,9 @@ public abstract class AgentHookBase : IAgentHook
     {
     }
 
-    public virtual void OnLoadAgentUtility(Agent agent, IEnumerable<AgentUtility> utilities)
+    public virtual void OnAgentUtilityloaded(Agent agent)
     {
-        if (agent.Type == AgentType.Routing || utilities.IsNullOrEmpty()) return;
+        if (agent.Type == AgentType.Routing) return;
 
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
@@ -68,16 +68,13 @@ public abstract class AgentHookBase : IAgentHook
         var render = _services.GetRequiredService<ITemplateRender>();
 
         agent.Functions ??= [];
-        var agentUtilities = agent.Utilities ?? [];
+        agent.Utilities ??= [];
 
-        foreach (var utillity in utilities)
+        foreach (var utillity in agent.Utilities)
         {
-            if (utillity.Name.IsNullOrEmpty() || utillity.Content == null) continue;
+            if (utillity == null || string.IsNullOrWhiteSpace(utillity.Name)) continue;
 
-            var isEnabled = agentUtilities.Contains(utillity.Name);
-            if (!isEnabled) continue;
-
-            var (fns, prompts) = GetUtilityContent(utillity.Content);
+            var (fns, prompts) = GetUtilityContent(utillity);
 
             if (!fns.IsNullOrEmpty())
             {
@@ -94,7 +91,7 @@ public abstract class AgentHookBase : IAgentHook
         }
     }
 
-    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(UtilityContent content)
+    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(AgentUtility utility)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var render = _services.GetRequiredService<ITemplateRender>();
@@ -108,15 +105,15 @@ public abstract class AgentHookBase : IAgentHook
             return (fns, prompts);
         }
         
-        if (!content.Functions.IsNullOrEmpty())
+        if (!utility.Functions.IsNullOrEmpty())
         {
-            var functionNames = content.Functions?.Select(x => x.Name)?.ToList() ?? [];
+            var functionNames = utility.Functions?.Select(x => x.Name)?.ToList() ?? [];
             fns = agent?.Functions?.Where(x => functionNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
         }
 
-        if (!content.Templates.IsNullOrEmpty())
+        if (!utility.Templates.IsNullOrEmpty())
         {
-            foreach (var template in content.Templates)
+            foreach (var template in utility.Templates)
             {
                 var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(template.Name))?.Content ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(prompt)) continue;

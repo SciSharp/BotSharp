@@ -25,12 +25,12 @@ public interface IAgentHook
 
     bool OnSamplesLoaded(List<string> samples);
 
+    void OnAgentUtilityloaded(Agent agent);
+
     /// <summary>
     /// Triggered when agent is loaded completely.
     /// </summary>
     /// <param name="agent"></param>
     /// <returns></returns>
     void OnAgentLoaded(Agent agent);
-
-    void OnLoadAgentUtility(Agent agent, IEnumerable<AgentUtility> utilities);
 }

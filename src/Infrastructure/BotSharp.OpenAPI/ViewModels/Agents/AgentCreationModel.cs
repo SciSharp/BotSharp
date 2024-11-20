@@ -48,7 +48,7 @@ public class AgentCreationModel
     /// Combine different Agents together to form a Profile.
     /// </summary>
     public List<string> Profiles { get; set; } = new();
-    public List<string> Utilities { get; set; } = new();
+    public List<AgentUtility> Utilities { get; set; } = new();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new();
     public AgentLlmConfig? LlmConfig { get; set; }
 

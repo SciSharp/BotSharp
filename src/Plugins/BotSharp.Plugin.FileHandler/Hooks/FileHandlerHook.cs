@@ -20,42 +20,29 @@ public class FileHandlerHook : AgentHookBase, IAgentHook
             new AgentUtility
             {
                 Name = UtilityName.ImageGenerator,
-                Content = new UtilityContent
-                {
-                    Functions = [new(GENERATE_IMAGE_FN)],
-                    Templates = [new($"{GENERATE_IMAGE_FN}.fn")]
-                }
+                Functions = [new(GENERATE_IMAGE_FN)],
+                Templates = [new($"{GENERATE_IMAGE_FN}.fn")]
             },
             new AgentUtility
             {
                 Name = UtilityName.ImageReader,
-                Content = new UtilityContent
-                {
-                    Functions = [new(READ_IMAGE_FN)],
-                    Templates = [new($"{READ_IMAGE_FN}.fn")]
-                }
+                Functions = [new(READ_IMAGE_FN)],
+                Templates = [new($"{READ_IMAGE_FN}.fn")]
             },
             new AgentUtility
             {
                 Name = UtilityName.ImageEditor,
-                Content = new UtilityContent
-                {
-                    Functions = [new(EDIT_IMAGE_FN)],
-                    Templates = [new($"{EDIT_IMAGE_FN}.fn")]
-                }
+                Functions = [new(EDIT_IMAGE_FN)],
+                Templates = [new($"{EDIT_IMAGE_FN}.fn")]
             },
             new AgentUtility
             {
                 Name = UtilityName.PdfReader,
-                Content = new UtilityContent
-                {
-                    Functions = [new(READ_PDF_FN)],
-                    Templates = [new($"{READ_PDF_FN}.fn")]
-                }
+                Functions = [new(READ_PDF_FN)],
+                Templates = [new($"{READ_PDF_FN}.fn")]
             }
         };
 
-        base.OnLoadAgentUtility(agent, utilityLoads);
         base.OnAgentLoaded(agent);
     }
 }

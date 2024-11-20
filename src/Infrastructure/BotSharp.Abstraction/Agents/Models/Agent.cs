@@ -93,7 +93,7 @@ public class Agent
     /// <summary>
     /// Agent utilities
     /// </summary>
-    public List<string> Utilities { get; set; } = new();
+    public List<AgentUtility> Utilities { get; set; } = new();
 
     /// <summary>
     /// Inherit from agent
@@ -173,9 +173,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetUtilities(List<string> utilities)
+    public Agent SetUtilities(List<AgentUtility> utilities)
     {
-        Utilities = utilities ?? new List<string>();
+        Utilities = utilities ?? new List<AgentUtility>();
         return this;
     }
 

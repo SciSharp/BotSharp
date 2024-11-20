@@ -34,7 +34,7 @@ public class AgentUpdateModel
     /// <summary>
     /// Utilities
     /// </summary>
-    public List<string>? Utilities { get; set; }
+    public List<AgentUtility>? Utilities { get; set; }
 
     /// <summary>
     /// Functions
@@ -81,7 +81,7 @@ public class AgentUpdateModel
             Templates = Templates ?? new List<AgentTemplate>(),
             Functions = Functions ?? new List<FunctionDef>(),
             Responses = Responses ?? new List<AgentResponse>(),
-            Utilities = Utilities ?? new List<string>(),
+            Utilities = Utilities ?? new List<AgentUtility>(),
             LlmConfig = LlmConfig
         };
 

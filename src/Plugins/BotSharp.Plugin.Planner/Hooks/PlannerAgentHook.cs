@@ -37,22 +37,18 @@ public class PlannerAgentHook : AgentHookBase
         var utilityLoad = new AgentUtility
         {
             Name = UtilityName.TwoStagePlanner,
-            Content = new UtilityContent
-            {
-                Functions = [
-                    new(PRIMARY_STAGE_FN),
-                    new(SECONDARY_STAGE_FN),
-                    new(SUMMARY_FN)
-                ],
-                Templates = [
-                    new($"{PRIMARY_STAGE_FN}.fn"),
-                    new($"{SECONDARY_STAGE_FN}.fn"),
-                    new($"{SUMMARY_FN}.fn")
-                ]
-            }
+            Functions = [
+                new(PRIMARY_STAGE_FN),
+                new(SECONDARY_STAGE_FN),
+                new(SUMMARY_FN)
+            ],
+            Templates = [
+                new($"{PRIMARY_STAGE_FN}.fn"),
+                new($"{SECONDARY_STAGE_FN}.fn"),
+                new($"{SUMMARY_FN}.fn")
+            ]
         };
 
-        base.OnLoadAgentUtility(agent, [utilityLoad]);
         base.OnAgentLoaded(agent);
     }
 }

@@ -20,7 +20,7 @@ public class AgentViewModel
     public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public List<string> Samples { get; set; }
-    public List<string> Utilities { get; set; }
+    public List<AgentUtility> Utilities { get; set; }
 
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }

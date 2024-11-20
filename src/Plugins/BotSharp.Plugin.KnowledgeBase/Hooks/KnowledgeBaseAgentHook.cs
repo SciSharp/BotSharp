@@ -17,14 +17,10 @@ public class KnowledgeBaseAgentHook : AgentHookBase, IAgentHook
         var utilityLoad = new AgentUtility
         {
             Name = UtilityName.KnowledgeRetrieval,
-            Content = new UtilityContent
-            {
-                Functions = [new(KNOWLEDGE_RETRIEVAL_FN)],
-                Templates = [new($"{KNOWLEDGE_RETRIEVAL_FN}.fn")]
-            }
+            Functions = [new(KNOWLEDGE_RETRIEVAL_FN)],
+            Templates = [new($"{KNOWLEDGE_RETRIEVAL_FN}.fn")]
         };
 
-        base.OnLoadAgentUtility(agent, [utilityLoad]);
         base.OnAgentLoaded(agent);
     }
 }

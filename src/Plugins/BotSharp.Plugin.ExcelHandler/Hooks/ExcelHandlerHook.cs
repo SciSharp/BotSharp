@@ -15,14 +15,10 @@ public class ExcelHandlerHook : AgentHookBase, IAgentHook
         var utilityLoad = new AgentUtility
         {
             Name = UtilityName.ExcelHandler,
-            Content = new UtilityContent
-            {
-                Functions = [new(HANDLER_EXCEL)],
-                Templates = [new($"{HANDLER_EXCEL}.fn")]
-            }
+            Functions = [new(HANDLER_EXCEL)],
+            Templates = [new($"{HANDLER_EXCEL}.fn")]
         };
 
-        base.OnLoadAgentUtility(agent, [utilityLoad]);
         base.OnAgentLoaded(agent);
     }
 }
