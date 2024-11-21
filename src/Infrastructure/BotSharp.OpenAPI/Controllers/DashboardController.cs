@@ -43,5 +43,31 @@ public class DashboardController : ControllerBase
         };
         return result;
     }
+
+    [HttpPost("/dashboard/component/conversation")]
+    public async Task UpdateDashboardConversationInstruction(string userId, UserDashboardConversationModel dashConv)
+    {
+        if (string.IsNullOrEmpty(dashConv.Name) && string.IsNullOrEmpty(dashConv.Instruction)) 
+        {
+            return;    
+        }
+        var newDashConv = new DashboardConversation
+        {
+            Id = Guid.Empty.ToString(),
+            ConversationId = dashConv.ConversationId
+        };
+        if (!string.IsNullOrEmpty(dashConv.Name))
+        {
+            newDashConv.Name = dashConv.Name;
+        }
+        if (!string.IsNullOrEmpty(dashConv.Instruction))
+        {
+            newDashConv.Instruction = dashConv.Instruction;
+        }
+
+        var userService = _services.GetRequiredService<IUserService>();
+        await userService.UpdateDashboardConversation(userId, newDashConv);
+        return;
+    }
     #endregion
 }

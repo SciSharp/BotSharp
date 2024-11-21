@@ -82,6 +82,8 @@ public partial class FileRepository
         // one user only has one dashboard currently
         var dash = Dashboards.FirstOrDefault();
         dash ??= new();
+        var existingConv = dash.ConversationList.FirstOrDefault(x => string.Equals(x.ConversationId, conversationId, StringComparison.OrdinalIgnoreCase));
+        if (existingConv != null) return;
 
         var dashconv = new DashboardConversation
         {
@@ -90,6 +92,46 @@ public partial class FileRepository
         };
 
         dash.ConversationList.Add(dashconv);
+
+        var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
+        var path = Path.Combine(dir, DASHBOARD_FILE);
+        File.WriteAllText(path, JsonSerializer.Serialize(dash, _options));
+    }
+
+    public void RemoveDashboardConversation(string userId, string conversationId)
+    {
+        var user = GetUserById(userId);
+        if (user == null) return;
+
+        // one user only has one dashboard currently
+        var dash = Dashboards.FirstOrDefault();
+        if (dash == null) return;
+
+        var dashconv = dash.ConversationList.FirstOrDefault(
+            c => string.Equals(c.ConversationId, conversationId, StringComparison.OrdinalIgnoreCase));
+        if (dashconv == null) return;
+
+        dash.ConversationList.Remove(dashconv);
+
+        var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
+        var path = Path.Combine(dir, DASHBOARD_FILE);
+        File.WriteAllText(path, JsonSerializer.Serialize(dash, _options));
+    }
+
+    public void UpdateDashboardConversation(string userId, DashboardConversation dashConv)
+    {
+        var user = GetUserById(userId);
+        if (user == null) return;
+
+        // one user only has one dashboard currently
+        var dash = Dashboards.FirstOrDefault();
+        if (dash == null) return;
+
+        var curIdx = dash.ConversationList.ToList().FindIndex(
+            x => string.Equals(x.ConversationId, dashConv.ConversationId, StringComparison.OrdinalIgnoreCase));
+        if (curIdx < 0) return;
+
+        dash.ConversationList[curIdx] = dashConv;
 
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, userId);
         var path = Path.Combine(dir, DASHBOARD_FILE);

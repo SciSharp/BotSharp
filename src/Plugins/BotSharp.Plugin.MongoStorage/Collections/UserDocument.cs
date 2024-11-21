@@ -23,6 +23,8 @@ public class UserDocument : MongoBase
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
 
+    public Dashboard? Dashboard { get; set; }
+
     public User ToUser()
     {
         return new User

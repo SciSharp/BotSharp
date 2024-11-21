@@ -491,7 +491,7 @@ public class ConversationController : ControllerBase
     #endregion
 
     #region miscellaneous
-    [HttpPut("/agent/{agentId}/conversation/{conversationId}/PinToDashboard")]
+    [HttpPut("/agent/{agentId}/conversation/{conversationId}/dashboard")]
     public async Task<bool> PinConversationToDashboard([FromRoute] string agentId, [FromRoute] string conversationId)
     {
         var userService = _services.GetRequiredService<IUserService>();
@@ -499,6 +499,16 @@ public class ConversationController : ControllerBase
         var user = await userService.GetUser(_user.Id);
         var pinned = await userService.AddDashboardConversation(user.Id, conversationId);
         return pinned;
+    }
+
+    [HttpDelete("/agent/{agentId}/conversation/{conversationId}/dashboard")]
+    public async Task<bool> UnpinConversationFromDashboard([FromRoute] string agentId, [FromRoute] string conversationId)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+
+        var user = await userService.GetUser(_user.Id);
+        var unpinned = await userService.RemoveDashboardConversation(user.Id, conversationId);
+        return unpinned;
     }
     #endregion
 

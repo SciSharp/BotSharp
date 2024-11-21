@@ -23,7 +23,6 @@ public class User
     public bool Verified { get; set; }
     public string? AffiliateId { get; set; }
     public bool IsDisabled { get; set; }
-    public List<DashboardConversation> DashboardConversations { get; set; } = [];
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }
