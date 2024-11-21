@@ -22,4 +22,26 @@ public static class UserAuthorizationExtension
         var actions = found.Actions ?? [];
         return actions.Any(x => x == targetAction);
     }
+
+    /// <summary>
+    /// Get allowed user actions on the agent. If user is admin, returns null;
+    /// </summary>
+    /// <param name="auth"></param>
+    /// <param name="agentId"></param>
+    /// <returns></returns>
+    public static IEnumerable<string>? GetAllowedAgentActions(this UserAuthorization auth, string agentId)
+    {
+        if (auth == null || string.IsNullOrEmpty(agentId))
+        {
+            return [];
+        }
+
+        if (auth.IsAdmin)
+        {
+            return null;
+        }
+
+        var found = auth.AgentActions.FirstOrDefault(x => x.AgentId == agentId);
+        return found?.Actions ?? [];
+    }
 }

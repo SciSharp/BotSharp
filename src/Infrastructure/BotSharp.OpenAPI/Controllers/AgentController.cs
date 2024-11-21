@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -60,11 +59,7 @@ public class AgentController : ControllerBase
 
         var userService = _services.GetRequiredService<IUserService>();
         var auth = await userService.GetUserAuthorizations(new List<string> { targetAgent.Id });
-
-        targetAgent.Editable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Edit);
-        targetAgent.Chatable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Chat);
-        targetAgent.Trainable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Train);
-        targetAgent.Evaluable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Evaluate);
+        targetAgent.Actions = auth.GetAllowedAgentActions(targetAgent.Id);
         return targetAgent;
     }
 
@@ -91,10 +86,7 @@ public class AgentController : ControllerBase
         agents = pagedAgents?.Items?.Select(x =>
         {
             var model = AgentViewModel.FromAgent(x);
-            model.Editable = auth.IsAgentActionAllowed(x.Id, UserAction.Edit);
-            model.Chatable = auth.IsAgentActionAllowed(x.Id, UserAction.Chat);
-            model.Trainable = auth.IsAgentActionAllowed(x.Id, UserAction.Train);
-            model.Evaluable = auth.IsAgentActionAllowed(x.Id, UserAction.Evaluate);
+            model.Actions = auth.GetAllowedAgentActions(x.Id);
             return model;
         })?.ToList() ?? [];
 
