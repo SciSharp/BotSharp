@@ -49,6 +49,8 @@ public class UserDocument : MongoBase
             Verified = Verified,
             RegionCode = RegionCode,
             Permissions = Permissions,
+            CreatedTime = CreatedTime,
+            UpdatedTime = UpdatedTime,
         };
     }
 }
