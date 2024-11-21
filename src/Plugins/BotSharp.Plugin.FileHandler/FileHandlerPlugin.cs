@@ -19,7 +19,6 @@ public class FileHandlerPlugin : IBotSharpPlugin
             return settingService.Bind<FileHandlerSettings>("FileHandler");
         });
 
-        services.AddScoped<IAgentHook, FileHandlerHook>();
         services.AddScoped<IAgentUtilityHook, FileHandlerUtilityHook>();
     }
 

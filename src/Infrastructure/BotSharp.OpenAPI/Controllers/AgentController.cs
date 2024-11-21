@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -153,9 +154,9 @@ public class AgentController : ControllerBase
         return await _agentService.DeleteAgent(agentId);
     }
 
-    [HttpGet("/agent/utilities")]
-    public IEnumerable<string> GetAgentUtilities()
+    [HttpGet("/agent/utility/options")]
+    public IEnumerable<AgentUtility> GetAgentUtilityOptions()
     {
-        return _agentService.GetAgentUtilities();
+        return _agentService.GetAgentUtilityOptions();
     }
 }

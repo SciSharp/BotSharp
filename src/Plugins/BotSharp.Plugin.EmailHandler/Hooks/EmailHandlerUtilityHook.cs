@@ -5,8 +5,18 @@ namespace BotSharp.Plugin.EmailHandler.Hooks;
 
 public class EmailHandlerUtilityHook : IAgentUtilityHook
 {
-    public void AddUtilities(List<string> utilities)
+    private static string EMAIL_READER_FN = "handle_email_reader";
+    private static string EMAIL_SENDER_FN = "handle_email_sender";
+
+    public void AddUtilities(List<AgentUtility> utilities)
     {
-        utilities.Add(UtilityName.EmailHandler);
+        var utility = new AgentUtility
+        {
+            Name = UtilityName.EmailHandler,
+            Functions = [new(EMAIL_READER_FN), new(EMAIL_SENDER_FN)],
+            Templates = [new($"{EMAIL_READER_FN}.fn"), new($"{EMAIL_SENDER_FN}.fn")]
+        };
+
+        utilities.Add(utility);
     }
 }
