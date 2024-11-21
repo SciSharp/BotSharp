@@ -1,19 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Instructs;
-using BotSharp.Abstraction.Instructs.Models;
-using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Agents.Services;
-using BotSharp.Core.Infrastructures;
-using BotSharp.Core.Instructs;
-using BotSharp.Plugin.SqlDriver.Interfaces;
-using BotSharp.Plugin.SqlDriver.Models;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Text.RegularExpressions;
-
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
 public class SqlValidateFn : IFunctionCallback
@@ -22,26 +6,33 @@ public class SqlValidateFn : IFunctionCallback
     public string Indication => "Performing data validate operation.";
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
-    public SqlValidateFn(IServiceProvider services)
+    public SqlValidateFn(IServiceProvider services, ILogger<SqlValidateFn> logger)
     {
         _services = services;
+        _logger = logger;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        string pattern = @"```sql\s*([\s\S]*?)\s*```";
-        var sqls = Regex.Match(message.Content, pattern);
-        if (!sqls.Success)
+        // remove comments start with "--"
+        string pattern = @"--.*";
+        string sql = Regex.Replace(message.Content, pattern, string.Empty);
+
+        pattern = @"```sql\s*([\s\S]*?)\s*```";
+        sql = Regex.Match(sql, pattern)?.Value;
+
+        if (!Regex.IsMatch(sql, pattern))
         {
             return false;
         }
-        var sql = sqls.Groups[1].Value;
+
+        sql = Regex.Match(sql, pattern).Groups[1].Value;
 
         var dbHook = _services.GetRequiredService<ISqlDriverHook>();
         var dbType = dbHook.GetDatabaseType(message);
         var validateSql = dbType.ToLower() switch
         {
-            "mysql" => $"explain\r\n{sql.Replace("SET ", "-- SET ", StringComparison.InvariantCultureIgnoreCase).Replace(";", "; explain ").TrimEnd("explain ".ToCharArray())}",
+            "mysql" => $"EXPLAIN\r\n{sql.Replace("SET ", "-- SET ", StringComparison.InvariantCultureIgnoreCase).Replace(";", "; EXPLAIN ").TrimEnd("EXPLAIN ".ToCharArray())}",
             "sqlserver" => $"SET PARSEONLY ON;\r\n{sql}\r\nSET PARSEONLY OFF;",
             "redshift" => $"explain\r\n{sql}",
             _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
