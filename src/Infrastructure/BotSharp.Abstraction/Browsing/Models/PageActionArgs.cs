@@ -47,7 +47,4 @@ public class PageActionArgs
     public int WaitTime { get; set; }
 
     public bool ReadInnerHTMLAsBody { get; set; } = false;
-    public bool IsScrollPage { get; set; } = false;
-    public int ScrollCount { get; set; } = 1;
-    public int ScrollWaitTime { get; set; } = 1;
 }

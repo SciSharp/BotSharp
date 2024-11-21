@@ -77,18 +77,6 @@ public partial class PlaywrightWebDriver
                 await Task.Delay(args.WaitTime * 1000);
             }
 
-            if (args.IsScrollPage)
-            {
-                var scrollCount = 0;
-                while (scrollCount < args.ScrollCount)
-                {
-                    var previousHeight = await page.EvaluateAsync("document.body.scrollHeight");
-                    await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
-                    await page.WaitForTimeoutAsync(args.ScrollWaitTime * 1000);
-                    scrollCount++;
-                };
-            }
-
             result.ResponseStatusCode = response.Status;
             if (response.Status == 200)
             {
