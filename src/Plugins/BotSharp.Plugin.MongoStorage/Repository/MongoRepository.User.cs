@@ -13,7 +13,7 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone, string role = null, string regionCode = "CN")
+    public User? GetUserByPhone(string phone, string role = "client", string regionCode = "CN")
     {
         string phoneSecond = string.Empty;
         // if phone number length is less than 4, return null
@@ -25,8 +25,8 @@ public partial class MongoRepository
         phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
 
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate
-        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)) 
-        && (role == "admin" ? x.Role == "admin" || x.Role == "root" : true));
+        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
+        && (role == "client" ? x.Role == "client" || x.Role == "user" : role == "admin" ? x.Role == "admin" || x.Role == "root" : true));
         return user != null ? user.ToUser() : null;
     }
 
@@ -245,7 +245,7 @@ public partial class MongoRepository
             user.AgentActions = agentActions;
             return user;
         }
-        
+
         var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
         if (!agentIds.IsNullOrEmpty())
         {
