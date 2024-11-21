@@ -42,7 +42,7 @@ public class RoutingContext : IRoutingContext
                 _routerAgentIds = agentService.GetAgents(new AgentFilter
                 {
                     Type = AgentType.Routing,
-                    Pager = new Pagination { Size = 20 }
+                    Pager = new Pagination { Size = 100 }
                 }).Result.Items.Select(x => x.Id).ToArray();
             }
 
