@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Users.Enums;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -8,14 +9,14 @@ public partial class AgentService
 {
     public async Task<Agent> CreateAgent(Agent agent)
     {
-        var agentRecord = _db.GetAgentsByUser(_user.Id).FirstOrDefault(x => x.Name.IsEqualTo(agent.Name));
-
-        if (agentRecord != null)
+        var userAgents = _db.GetUserAgents(_user.Id);
+        var found = userAgents?.FirstOrDefault(x => x.Agent != null && x.Agent.Name.IsEqualTo(agent.Name));
+        if (found != null)
         {
-            return agentRecord;
+            return found.Agent;
         }
 
-        agentRecord = Agent.Clone(agent);
+        var agentRecord = Agent.Clone(agent);
         agentRecord.Id = Guid.NewGuid().ToString();
         agentRecord.CreatedDateTime = DateTime.UtcNow;
         agentRecord.UpdatedDateTime = DateTime.UtcNow;
@@ -24,21 +25,24 @@ public partial class AgentService
         var agentSettings = _services.GetRequiredService<AgentSettings>();
 
         var user = _db.GetUserById(_user.Id);
-        var userAgentRecord = new UserAgent
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = user.Id,
-            AgentId = agentRecord.Id,
-            Editable = false,
-            CreatedTime = DateTime.UtcNow,
-            UpdatedTime = DateTime.UtcNow
-        };
+        var userService = _services.GetRequiredService<IUserService>();
+        var auth = await userService.GetUserAuthorizations();
 
-        _db.Transaction<IBotSharpTable>(delegate
+        _db.BulkInsertAgents(new List<Agent> { agentRecord });
+        if (auth.IsAdmin || auth.Permissions.Contains(UserPermission.CreateAgent))
         {
-            _db.Add<IBotSharpTable>(agentRecord);
-            _db.Add<IBotSharpTable>(userAgentRecord);
-        });
+            _db.BulkInsertUserAgents(new List<UserAgent>
+            {
+                new UserAgent
+                {
+                    UserId = user.Id,
+                    AgentId = agentRecord.Id,
+                    Actions = new List<string> { UserAction.Edit, UserAction.Train, UserAction.Evaluate, UserAction.Chat },
+                    CreatedTime = DateTime.UtcNow,
+                    UpdatedTime = DateTime.UtcNow
+                }
+            });
+        }
 
         Utilities.ClearCache();
         return await Task.FromResult(agentRecord);
@@ -212,18 +216,5 @@ public partial class AgentService
         var content = Regex.Match(data, pattern, RegexOptions.Singleline).Value;
         task.Content = content.Substring(suffix.Length).Trim();
         return task;
-    }
-
-    private UserAgent BuildUserAgent(string agentId, string userId, bool editable = false)
-    {
-        return new UserAgent
-        {
-            Id = Guid.NewGuid().ToString(),
-            UserId = userId,
-            AgentId = agentId,
-            Editable = editable,
-            CreatedTime = DateTime.UtcNow,
-            UpdatedTime = DateTime.UtcNow
-        };
     }
 }

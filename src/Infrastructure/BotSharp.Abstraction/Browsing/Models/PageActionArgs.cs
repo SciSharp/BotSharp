@@ -1,13 +1,15 @@
 using BotSharp.Abstraction.Browsing.Enums;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class PageActionArgs
 {
     public BroswerActionEnum Action { get; set; }
 
     public string? Content { get; set; }
-    public string? Direction { get; set; }
+    public string Direction { get; set; } = "down";
 
     public string Url { get; set; } = null!;
 
@@ -28,13 +30,13 @@ public class PageActionArgs
     /// </summary>
     public string[]? IncludeResponseUrls { get; set; }
 
+    public List<string>? Selectors { get; set; }
+
     /// <summary>
     /// If set to true, the response will be stored in memory
     /// </summary>
     public bool ResponseInMemory { get; set; } = false;
     public List<WebPageResponseData>? ResponseContainer { get; set; }
-
-    public bool UseExistingPage { get; set; } = false;
 
     public bool WaitForNetworkIdle { get; set; } = true;
     public float? Timeout { get; set; }

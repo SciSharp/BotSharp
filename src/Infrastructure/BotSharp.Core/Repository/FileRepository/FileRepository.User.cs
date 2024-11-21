@@ -31,9 +31,9 @@ public partial class FileRepository
         return Users.Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId)))?.ToList() ?? new List<User>();
     }
 
-    public User? GetUserByAffiliateId(string affiliateId)
+    public List<User> GetUsersByAffiliateId(string affiliateId)
     {
-        return Users.FirstOrDefault(x => x.AffiliateId == affiliateId);
+        return Users.Where(x => x.AffiliateId == affiliateId).ToList();
     }
 
     public User? GetUserByUserName(string userName = null)
@@ -72,6 +72,129 @@ public partial class FileRepository
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
         var path = Path.Combine(dir, USER_FILE);
         File.WriteAllText(path, JsonSerializer.Serialize(user, _options));
+    }
+
+    public PagedItems<User> GetUsers(UserFilter filter)
+    {
+        if (filter == null)
+        {
+            filter = UserFilter.Empty();
+        }
+
+        var users = Users;
+
+        // Apply filters
+        if (!filter.UserIds.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.UserIds.Contains(x.Id));
+        }
+        if (!filter.UserNames.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.UserNames.Contains(x.UserName));
+        }
+        if (!filter.ExternalIds.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.ExternalIds.Contains(x.ExternalId));
+        }
+        if (!filter.Roles.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.Roles.Contains(x.Role));
+        }
+        if (!filter.Types.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.Types.Contains(x.Type));
+        }
+        if (!filter.Sources.IsNullOrEmpty())
+        {
+            users = users.Where(x => filter.Sources.Contains(x.Source));
+        }
+
+        return new PagedItems<User>
+        {
+            Items = users.OrderByDescending(x => x.CreatedTime).Skip(filter.Offset).Take(filter.Size),
+            Count = users.Count()
+        };
+    }
+
+    public User? GetUserDetails(string userId, bool includeAgent = false)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+
+        var user = Users.FirstOrDefault(x => x.Id == userId || x.ExternalId == userId);
+        if (user == null) return null;
+
+        var agentActions = new List<UserAgentAction>();
+        var userAgents = UserAgents?.Where(x => x.UserId == userId)?.ToList() ?? [];
+
+        if (!includeAgent)
+        {
+            agentActions = userAgents.Select(x => new UserAgentAction
+            {
+                Id = x.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList();
+            user.AgentActions = agentActions;
+            return user;
+        }
+
+        var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
+        if (!agentIds.IsNullOrEmpty())
+        {
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+
+            foreach (var item in userAgents)
+            {
+                var found = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (found == null) continue;
+
+                agentActions.Add(new UserAgentAction
+                {
+                    Id = item.Id,
+                    AgentId = found.Id,
+                    Agent = found,
+                    Actions = item.Actions ?? []
+                });
+            }
+        }
+
+        user.AgentActions = agentActions;
+        return user;
+    }
+
+    public bool UpdateUser(User user, bool updateUserAgents = false)
+    {
+        if (string.IsNullOrEmpty(user?.Id)) return false;
+
+        var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
+        if (!Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        var userFile = Path.Combine(dir, USER_FILE);
+        user.UpdatedTime = DateTime.UtcNow;
+        File.WriteAllText(userFile, JsonSerializer.Serialize(user, _options));
+
+        if (updateUserAgents)
+        {
+            var userAgents = user.AgentActions?.Select(x => new UserAgent
+            {
+                Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+                UserId = user.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions ?? [],
+                CreatedTime = DateTime.UtcNow,
+                UpdatedTime = DateTime.UtcNow
+            })?.ToList() ?? [];
+
+            var userAgentFile = Path.Combine(dir, USER_AGENT_FILE);
+            File.WriteAllText(userAgentFile, JsonSerializer.Serialize(userAgents, _options));
+            _userAgents = [];
+        }
+
+        _users = [];
+        return true;
     }
 
     public void AddDashboardConversation(string userId, string conversationId)

@@ -64,18 +64,13 @@ public class HandleExcelRequestFn : IFunctionCallback
             message.Content = "No excel files found in the conversation";
             return true;
         }
-        if (!DeleteTable())
-        {
-            message.Content = "Failed to clear existing tables. Please manually delete all existing tables";
-        }
-        else
-        {
-            var resultList = GetResponeFromDialogs(dialogs);
-            var states = _serviceProvider.GetRequiredService<IConversationStateService>();
 
-            message.Content = GenerateSqlExecutionSummary(resultList);
-            states.SetState("excel_import_result",message.Content);
-        }
+        var resultList = GetResponeFromDialogs(dialogs);
+        var states = _serviceProvider.GetRequiredService<IConversationStateService>();
+
+        message.Content = GenerateSqlExecutionSummary(resultList);
+        states.SetState("excel_import_result",message.Content);
+        
         return true;
     }
 
@@ -122,26 +117,10 @@ public class HandleExcelRequestFn : IFunctionCallback
             var bytes = _fileStorage.GetFileBytes(file.FileStorageUrl);
             var workbook = ConvertToWorkBook(bytes);
 
-
-            //var dbService = CreateDbService(DbServiceType.MySql);
             var currentCommandList = _mySqlService.WriteExcelDataToDB(workbook);
             sqlCommandList.AddRange(currentCommandList);
         }
         return sqlCommandList;
-    }
-
-    private bool DeleteTable()
-    {
-        try
-        {
-            //_mySqlService.DeleteTableSqlQuery();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to delete table");
-            return false;
-        }
     }
 
     private string GenerateSqlExecutionSummary(List<SqlContextOut> messageList)

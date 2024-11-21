@@ -384,4 +384,23 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
         return true;
     }
+
+    public ConversationState GetCurrentState()
+    {
+        var values = _curStates.Values.ToList();
+        var copy = JsonSerializer.Deserialize<List<StateKeyValue>>(JsonSerializer.Serialize(values));
+        return new ConversationState(copy ?? new());
+    }
+
+    public void SetCurrentState(ConversationState state)
+    {
+        var values = _curStates.Values.ToList();
+        var copy = JsonSerializer.Deserialize<List<StateKeyValue>>(JsonSerializer.Serialize(values));
+        _curStates = new ConversationState(copy ?? new());
+    }
+
+    public void ResetCurrentState()
+    {
+        _curStates.Clear();
+    }
 }

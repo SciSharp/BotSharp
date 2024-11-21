@@ -22,9 +22,8 @@ public class PluginController : ControllerBase
     [HttpGet("/plugins")]
     public async Task<PagedItems<PluginDef>> GetPlugins([FromQuery] PluginFilter filter)
     {
-        var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (user?.Role != UserRole.Admin)
+        var isValid = await IsValidUser();
+        if (!isValid)
         {
             return new PagedItems<PluginDef>();
         }
@@ -45,15 +44,23 @@ public class PluginController : ControllerBase
             new PluginMenuDef("System", weight: 30)
             { 
                 IsHeader = true,
-                Roles = new List<string> { UserRole.Admin }
+                Roles = new List<string> { UserRole.Root, UserRole.Admin }
             },
             new PluginMenuDef("Plugins", link: "page/plugin", icon: "bx bx-plug", weight: 31)
             {
-                Roles = new List<string> { UserRole.Admin }
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
             },
             new PluginMenuDef("Settings", link: "page/setting", icon: "bx bx-cog", weight: 32)
             {
-                Roles = new List<string> { UserRole.Admin }
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
+            },
+            new PluginMenuDef("Roles", link: "page/roles", icon: "bx bx-group", weight: 33)
+            {
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
+            },
+            new PluginMenuDef("Users", link: "page/users", icon: "bx bx-user", weight: 34)
+            {
+                Roles = new List<string> {  UserRole.Root, UserRole.Admin }
             }
         };
 
@@ -86,5 +93,11 @@ public class PluginController : ControllerBase
     {
         var loader = _services.GetRequiredService<PluginLoader>();
         return loader.UpdatePluginStatus(_services, id, false);
+    }
+
+    private async Task<bool> IsValidUser()
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        return await userService.IsAdminUser(_user.Id);
     }
 }

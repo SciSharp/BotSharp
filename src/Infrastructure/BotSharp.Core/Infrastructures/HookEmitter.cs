@@ -4,11 +4,12 @@ namespace BotSharp.Core.Infrastructures;
 
 public static class HookEmitter
 {
-    public static HookEmittedResult Emit<T>(IServiceProvider services, Action<T> action)
+    public static HookEmittedResult Emit<T>(IServiceProvider services, Action<T> action, HookEmitOption? option = null)
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
         var hooks = services.GetServices<T>();
+        option = option ?? new();
 
         foreach (var hook in hooks)
         {
@@ -16,6 +17,11 @@ public static class HookEmitter
             {
                 logger.LogInformation($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
                 action(hook);
+
+                if (option.OnlyOnce)
+                {
+                    break;
+                }
             }
             catch (Exception ex)
             {
@@ -26,11 +32,12 @@ public static class HookEmitter
         return result;
     }
 
-    public static async Task<HookEmittedResult> Emit<T>(IServiceProvider services, Func<T, Task> action)
+    public static async Task<HookEmittedResult> Emit<T>(IServiceProvider services, Func<T, Task> action, HookEmitOption? option = null)
     {
         var logger = services.GetRequiredService<ILogger<T>>();
         var result = new HookEmittedResult();
         var hooks = services.GetServices<T>();
+        option = option ?? new();
 
         foreach (var hook in hooks)
         {
@@ -38,6 +45,11 @@ public static class HookEmitter
             {
                 logger.LogInformation($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
                 await action(hook);
+
+                if (option.OnlyOnce)
+                {
+                    break;
+                }
             }
             catch (Exception ex)
             {

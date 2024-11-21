@@ -1,6 +1,6 @@
 {
   "name": "verify_dictionary_term",
-  "description": "Get id from dictionary table by keyword. Call this function only if need_lookup_dictionary is true and is_insert is false. You can only query one table at a time.",
+  "description": "Get id from dictionary table by keyword. Call this function only if need_lookup_dictionary is true, is_table_from_knowledge is true and is_insert is false. You can only query one table at a time. The table name must come from the global/domain knowledge.",
   "parameters": {
     "type": "object",
     "properties": {
@@ -16,12 +16,16 @@
         "type": "boolean",
         "description": "if SQL statement is inserting."
       },
+      "is_table_from_knowledge": {
+        "type": "boolean",
+        "description": "if table is from the global/domain knowledge."
+      },
       "tables": {
         "type": "array",
-        "description": "all related dictionary tables",
+        "description": "all related dictionary tables must be from global/domain knowledge in the context",
         "items": {
           "type": "string",
-          "description": "table name"
+          "description": "table name from related knowledge in the context"
         }
       }
     },

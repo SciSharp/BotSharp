@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.SqlDriver.Hooks;
 
 public class SqlDictionaryLookupHook : AgentHookBase, IAgentHook
 {
-    private const string SQL_EXECUTOR_TEMPLATE = "sql_dictionary_lookup.fn";
+    private const string SQL_EXECUTOR_TEMPLATE = "verify_dictionary_term.fn";
     private IEnumerable<string> _targetSqlExecutorFunctions = new List<string>
     {
         "verify_dictionary_term",

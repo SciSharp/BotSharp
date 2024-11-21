@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Browsing.Enums;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class ElementActionArgs
 {
     public BroswerActionEnum Action { get; set; }
@@ -10,6 +12,10 @@ public class ElementActionArgs
 
     public ElementPosition? Position { get; set; }
 
+    /// <summary>
+    /// Delay milliseconds before pressing key
+    /// </summary>
+    public int DelayBeforePressingKey { get; set; }
     public string? PressKey { get; set; }
 
     /// <summary>

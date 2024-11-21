@@ -13,5 +13,7 @@ public interface IUserIdentity
     /// </summary>
     string UserLanguage { get; }
     string? Phone { get; }
-    string? AffiliateId { get; }
+    string Type { get; }
+    string Role { get; }
+    string? RegionCode { get; }
 }

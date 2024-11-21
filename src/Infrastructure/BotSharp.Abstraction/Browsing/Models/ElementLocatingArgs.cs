@@ -1,5 +1,8 @@
+using System.Diagnostics;
+
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class ElementLocatingArgs
 {
     [JsonPropertyName("match_rule")]

@@ -21,8 +21,14 @@ public class User
     public string Role { get; set; } = UserRole.User;
     public string? VerificationCode { get; set; }
     public bool Verified { get; set; }
+    public string RegionCode { get; set; } = "CN";
     public string? AffiliateId { get; set; }
+    public string? EmployeeId { get; set; }
     public bool IsDisabled { get; set; }
+    public IEnumerable<string> Permissions { get; set; } = [];
+
+    [JsonIgnore]
+    public IEnumerable<UserAgentAction> AgentActions { get; set; } = [];
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }

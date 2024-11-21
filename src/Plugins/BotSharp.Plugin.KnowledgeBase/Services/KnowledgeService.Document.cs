@@ -10,7 +10,8 @@ namespace BotSharp.Plugin.KnowledgeBase.Services;
 
 public partial class KnowledgeService
 {
-    public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName, IEnumerable<ExternalFileModel> files)
+    public async Task<UploadKnowledgeResponse> UploadDocumentsToKnowledge(string collectionName,
+        IEnumerable<ExternalFileModel> files, ChunkOption? option = null)
     {
         var res = new UploadKnowledgeResponse
         {
@@ -48,7 +49,7 @@ public partial class KnowledgeService
             {
                 // Get document info
                 var (contentType, bytes) = await GetFileInfo(file);
-                var contents = await GetFileContent(contentType, bytes);
+                var contents = await GetFileContent(contentType, bytes, option ?? ChunkOption.Default());
                 
                 // Save document
                 var fileId = Guid.NewGuid();
@@ -369,13 +370,13 @@ public partial class KnowledgeService
     }
 
     #region Read doc content
-    private async Task<IEnumerable<string>> GetFileContent(string contentType, byte[] bytes)
+    private async Task<IEnumerable<string>> GetFileContent(string contentType, byte[] bytes, ChunkOption option)
     {
         IEnumerable<string> results = new List<string>();
 
         if (contentType.IsEqualTo(MediaTypeNames.Text.Plain))
         {
-            results = await ReadTxt(bytes);
+            results = await ReadTxt(bytes, option);
         }
         else if (contentType.IsEqualTo(MediaTypeNames.Application.Pdf))
         {
@@ -385,7 +386,7 @@ public partial class KnowledgeService
         return results;
     }
 
-    private async Task<IEnumerable<string>> ReadTxt(byte[] bytes)
+    private async Task<IEnumerable<string>> ReadTxt(byte[] bytes, ChunkOption option)
     {
         using var stream = new MemoryStream(bytes);
         using var reader = new StreamReader(stream);
@@ -393,12 +394,7 @@ public partial class KnowledgeService
         reader.Close();
         stream.Close();
 
-        var lines = TextChopper.Chop(content, new ChunkOption
-        {
-            Size = 1024,
-            Conjunction = 12,
-            SplitByWord = true,
-        });
+        var lines = TextChopper.Chop(content, option);
         return lines;
     }
 

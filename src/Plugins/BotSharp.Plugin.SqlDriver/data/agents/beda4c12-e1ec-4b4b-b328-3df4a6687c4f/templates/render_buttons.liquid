@@ -1,0 +1,11 @@
+Determine whether to render the following button based on the text.
+sql_executable: When the text contains an executable sql statement, set it to true
+contains_tmp_table: When the text contains a table named tmp, set it to true
+is_sql_template
+
+Output should be json format 
+{
+    "sql_executable": false,
+    "contains_tmp_table": false,
+    "is_sql_template": false
+}

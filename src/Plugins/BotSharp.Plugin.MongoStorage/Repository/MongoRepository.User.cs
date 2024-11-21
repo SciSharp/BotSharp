@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 
@@ -11,9 +13,20 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone)
+    public User? GetUserByPhone(string phone, string role = null, string regionCode = "CN")
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone && x.Type != UserType.Affiliate);
+        string phoneSecond = string.Empty;
+        // if phone number length is less than 4, return null
+        if (string.IsNullOrWhiteSpace(phone) || phone?.Length < 4)
+        {
+            return null;
+        }
+
+        phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
+
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond) && x.Type != UserType.Affiliate
+        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode)) 
+        && (role == "admin" ? x.Role == "admin" || x.Role == "root" : true));
         return user != null ? user.ToUser() : null;
     }
 
@@ -25,23 +38,20 @@ public partial class MongoRepository
 
     public User? GetUserById(string id)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
         return user != null ? user.ToUser() : null;
     }
 
     public List<User> GetUserByIds(List<string> ids)
     {
-        var users = _dc.Users.AsQueryable()
-            .Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
+        var users = _dc.Users.AsQueryable().Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
-    public User? GetUserByAffiliateId(string affiliateId)
+    public List<User> GetUsersByAffiliateId(string affiliateId)
     {
-        var user = _dc.Users.AsQueryable()
-            .FirstOrDefault(x => x.AffiliateId == affiliateId);
-        return user != null ? user.ToUser() : null;
+        var users = _dc.Users.AsQueryable().Where(x => x.AffiliateId == affiliateId).ToList();
+        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
     public User? GetUserByUserName(string userName)
@@ -70,7 +80,9 @@ public partial class MongoRepository
             Type = user.Type,
             VerificationCode = user.VerificationCode,
             Verified = user.Verified,
+            RegionCode = user.RegionCode,
             AffiliateId = user.AffiliateId,
+            EmployeeId = user.EmployeeId,
             IsDisabled = user.IsDisabled,
             CreatedTime = DateTime.UtcNow,
             UpdatedTime = DateTime.UtcNow
@@ -87,7 +99,9 @@ public partial class MongoRepository
             .Set(x => x.Phone, user.Phone)
             .Set(x => x.Salt, user.Salt)
             .Set(x => x.Password, user.Password)
-            .Set(x => x.VerificationCode, user.VerificationCode);
+            .Set(x => x.VerificationCode, user.VerificationCode)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.RegionCode, user.RegionCode);
         _dc.Users.UpdateOne(filter, update);
     }
 
@@ -111,7 +125,8 @@ public partial class MongoRepository
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Password, password)
-            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.Verified, true);
         _dc.Users.UpdateOne(filter, update);
     }
 
@@ -123,11 +138,14 @@ public partial class MongoRepository
         _dc.Users.UpdateOne(filter, update);
     }
 
-    public void UpdateUserPhone(string userId, string phone)
+    public void UpdateUserPhone(string userId, string phone, string regionCode)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.Phone, phone)
-            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.RegionCode, regionCode)
+            .Set(x => x.UserName, phone)
+            .Set(x => x.FirstName, phone);
         _dc.Users.UpdateOne(filter, update);
     }
 
@@ -145,6 +163,159 @@ public partial class MongoRepository
         {
             UpdateUserIsDisable(userId, isDisable);
         }
+    }
+
+    public PagedItems<User> GetUsers(UserFilter filter)
+    {
+        if (filter == null)
+        {
+            filter = UserFilter.Empty();
+        }
+
+        var userBuilder = Builders<UserDocument>.Filter;
+        var userFilters = new List<FilterDefinition<UserDocument>>() { userBuilder.Empty };
+
+        // Apply filters
+        if (!filter.UserIds.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Id, filter.UserIds));
+        }
+        if (!filter.UserNames.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.UserName, filter.UserNames));
+        }
+        if (!filter.ExternalIds.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.ExternalId, filter.ExternalIds));
+        }
+        if (!filter.Roles.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Role, filter.Roles));
+        }
+        if (!filter.Types.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Type, filter.Types));
+        }
+        if (!filter.Sources.IsNullOrEmpty())
+        {
+            userFilters.Add(userBuilder.In(x => x.Source, filter.Sources));
+        }
+
+        // Filter def and sort
+        var filterDef = userBuilder.And(userFilters);
+        var sortDef = Builders<UserDocument>.Sort.Descending(x => x.CreatedTime);
+
+        // Search
+        var userDocs = _dc.Users.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
+        var count = _dc.Users.CountDocuments(filterDef);
+
+        var users = userDocs.Select(x => x.ToUser()).ToList();
+        return new PagedItems<User>
+        {
+            Items = users,
+            Count = (int)count
+        };
+    }
+
+    public User? GetUserDetails(string userId, bool includeAgent = false)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+
+        var userDoc = _dc.Users.AsQueryable().FirstOrDefault(x => x.Id == userId || x.ExternalId == userId);
+        if (userDoc == null) return null;
+
+        var agentActions = new List<UserAgentAction>();
+        var user = userDoc.ToUser();
+        var userAgents = _dc.UserAgents.AsQueryable().Where(x => x.UserId == userId).Select(x => new UserAgent
+        {
+            Id = x.Id,
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions ?? Enumerable.Empty<string>()
+        }).ToList();
+
+        if (!includeAgent)
+        {
+            agentActions = userAgents.Select(x => new UserAgentAction
+            {
+                Id = x.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions
+            }).ToList();
+            user.AgentActions = agentActions;
+            return user;
+        }
+        
+        var agentIds = userAgents.Select(x => x.AgentId)?.Distinct().ToList();
+        if (!agentIds.IsNullOrEmpty())
+        {
+            var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+
+            foreach (var item in userAgents)
+            {
+                var found = agents.FirstOrDefault(x => x.Id == item.AgentId);
+                if (found == null) continue;
+
+                agentActions.Add(new UserAgentAction
+                {
+                    Id = item.Id,
+                    AgentId = found.Id,
+                    Agent = found,
+                    Actions = item.Actions
+                });
+            }
+        }
+
+        user.AgentActions = agentActions;
+        return user;
+    }
+
+    public bool UpdateUser(User user, bool updateUserAgents = false)
+    {
+        if (string.IsNullOrEmpty(user?.Id)) return false;
+
+        var userFilter = Builders<UserDocument>.Filter.Eq(x => x.Id, user.Id);
+        var userUpdate = Builders<UserDocument>.Update
+            .Set(x => x.Type, user.Type)
+            .Set(x => x.Role, user.Role)
+            .Set(x => x.Permissions, user.Permissions)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Users.UpdateOne(userFilter, userUpdate);
+
+        if (updateUserAgents)
+        {
+            var userAgentDocs = user.AgentActions?.Select(x => new UserAgentDocument
+            {
+                Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+                UserId = user.Id,
+                AgentId = x.AgentId,
+                Actions = x.Actions,
+                CreatedTime = DateTime.UtcNow,
+                UpdatedTime = DateTime.UtcNow
+            })?.ToList() ?? [];
+
+            var toDelete = _dc.UserAgents.Find(Builders<UserAgentDocument>.Filter.And(
+                    Builders<UserAgentDocument>.Filter.Eq(x => x.UserId, user.Id),
+                    Builders<UserAgentDocument>.Filter.Nin(x => x.Id, userAgentDocs.Select(x => x.Id))
+                )).ToList();
+
+            _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.In(x => x.Id, toDelete.Select(x => x.Id)));
+            foreach (var doc in userAgentDocs)
+            {
+                var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.Id, doc.Id);
+                var userAgentUpdate = Builders<UserAgentDocument>.Update
+                    .Set(x => x.Id, doc.Id)
+                    .Set(x => x.UserId, user.Id)
+                    .Set(x => x.AgentId, doc.AgentId)
+                    .Set(x => x.Actions, doc.Actions)
+                    .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+                _dc.UserAgents.UpdateOne(userAgentFilter, userAgentUpdate, _options);
+            }
+        }
+
+        return true;
     }
 
     public void AddDashboardConversation(string userId, string conversationId)

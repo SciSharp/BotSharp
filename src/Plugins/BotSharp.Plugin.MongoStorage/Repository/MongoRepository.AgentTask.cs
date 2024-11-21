@@ -8,6 +8,11 @@ public partial class MongoRepository
     #region Task
     public PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
     {
+        if (filter == null)
+        {
+            filter = AgentTaskFilter.Empty();
+        }
+
         var pager = filter.Pager ?? new Pagination();
         var builder = Builders<AgentTaskDocument>.Filter;
         var filters = new List<FilterDefinition<AgentTaskDocument>>() { builder.Empty };

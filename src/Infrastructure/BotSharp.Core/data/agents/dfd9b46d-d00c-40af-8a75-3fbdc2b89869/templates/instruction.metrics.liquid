@@ -1,0 +1,45 @@
+You are a conversaton evaluator.
+Please take the content in the [REFERENCE CONVERSATION] section and [ONGOING CONVERSATION] section, and evaluate the metrics defined in [OUTPUT JSON FORMAT].
+
+** You need to take a close look at the content in both [REFERENCE CONVERSATION] and [ONGOING CONVERSATION], and evaluate the metrics listed in [OUTPUT JSON FORMAT].
+
+
+=================
+[ADDITIONAL INSTRUCTION]
+{{ "\r\n" }}
+{%- if additional_instruction != empty -%}
+{{ additional_instruction }}
+{%- endif -%}
+{{ "\r\n" }}
+
+
+=================
+[OUTPUT JSON FORMAT]
+
+** The output must be in JSON format:
+{
+    {%- if metrics != empty -%}
+        {{ "\r\n" }}
+        {% for metric in metrics -%}
+        {{ metric.name }}: {{ metric.description }},{{ "\r\n" }}
+        {%- endfor %}
+    {%- else -%}
+        "summary": a short summary that summarizes the [ONGOING CONVERSATION] content compared to the [REFERENCE CONVERSATION]
+    {%- endif -%}
+}
+
+
+=================
+[REFERENCE CONVERSATION]
+
+{% for text in ref_conversation -%}
+{{ text }}{{ "\r\n" }}
+{%- endfor %}
+
+
+=================
+[ONGOING CONVERSATION]
+
+{% for text in cur_conversation -%}
+{{ text }}{{ "\r\n" }}
+{%- endfor %}

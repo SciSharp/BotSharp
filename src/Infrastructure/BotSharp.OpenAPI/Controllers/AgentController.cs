@@ -57,25 +57,45 @@ public class AgentController : ControllerBase
             rule.RedirectToAgentName = found.Name;
         }
 
-        var editable = true;
         var userService = _services.GetRequiredService<IUserService>();
-        var user = await userService.GetUser(_user.Id);
-        if (user?.Role != UserRole.Admin)
-        {
-            var userAgents = _agentService.GetAgentsByUser(user?.Id);
-            editable = userAgents?.Select(x => x.Id)?.Contains(targetAgent.Id) ?? false;
-        }
+        var auth = await userService.GetUserAuthorizations(new List<string> { targetAgent.Id });
 
-        targetAgent.Editable = editable;
+        targetAgent.Editable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Edit);
+        targetAgent.Chatable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Chat);
+        targetAgent.Trainable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Train);
+        targetAgent.Evaluable = auth.IsAgentActionAllowed(targetAgent.Id, UserAction.Evaluate);
         return targetAgent;
     }
 
     [HttpGet("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter)
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter, [FromQuery] bool checkAuth = false)
     {
         var agentSetting = _services.GetRequiredService<AgentSettings>();
+        var userService = _services.GetRequiredService<IUserService>();
+
+        List<AgentViewModel> agents;
         var pagedAgents = await _agentService.GetAgents(filter);
-        var agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? new List<AgentViewModel>();
+
+        if (!checkAuth)
+        {
+            agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? [];
+            return new PagedItems<AgentViewModel>
+            {
+                Items = agents,
+                Count = pagedAgents?.Count ?? 0
+            };
+        }
+
+        var auth = await userService.GetUserAuthorizations(pagedAgents.Items.Select(x => x.Id));
+        agents = pagedAgents?.Items?.Select(x =>
+        {
+            var model = AgentViewModel.FromAgent(x);
+            model.Editable = auth.IsAgentActionAllowed(x.Id, UserAction.Edit);
+            model.Chatable = auth.IsAgentActionAllowed(x.Id, UserAction.Chat);
+            model.Trainable = auth.IsAgentActionAllowed(x.Id, UserAction.Train);
+            model.Evaluable = auth.IsAgentActionAllowed(x.Id, UserAction.Evaluate);
+            return model;
+        })?.ToList() ?? [];
 
         return new PagedItems<AgentViewModel>
         {

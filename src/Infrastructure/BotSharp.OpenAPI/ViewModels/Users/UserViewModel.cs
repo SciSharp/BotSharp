@@ -16,16 +16,27 @@ public class UserViewModel
     public string? Phone { get; set; }
     public string Type { get; set; } = UserType.Client;
     public string Role { get; set; } = UserRole.User;
+
     [JsonPropertyName("full_name")]
     public string FullName => $"{FirstName} {LastName}".Trim();
     public string? Source { get; set; }
+
     [JsonPropertyName("external_id")]
     public string? ExternalId { get; set; }
     public string Avatar { get; set; } = "/user/avatar";
+
+    public IEnumerable<string> Permissions { get; set; } = [];
+
+    [JsonPropertyName("agent_actions")]
+    public IEnumerable<UserAgentActionViewModel> AgentActions { get; set; } = [];
+
     [JsonPropertyName("create_date")]
     public DateTime CreateDate { get; set; }
+
     [JsonPropertyName("update_date")]
     public DateTime UpdateDate { get; set; }
+
+    public string RegionCode { get; set; } = "CN";
 
     public static UserViewModel FromUser(User user)
     {
@@ -47,14 +58,17 @@ public class UserViewModel
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Phone = user.Phone,
+            Phone = !string.IsNullOrWhiteSpace(user.Phone) ? user.Phone.Replace("+86", String.Empty) : user.Phone,
             Type = user.Type,
             Role = user.Role,
             Source = user.Source,
             ExternalId = user.ExternalId,
+            Permissions = user.Permissions,
+            AgentActions = user.AgentActions?.Select(x => UserAgentActionViewModel.ToViewModel(x)) ?? [],
             CreateDate = user.CreatedTime,
             UpdateDate = user.UpdatedTime,
-            Avatar = "/user/avatar"
+            Avatar = "/user/avatar",
+            RegionCode = string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode
         };
     }
 }

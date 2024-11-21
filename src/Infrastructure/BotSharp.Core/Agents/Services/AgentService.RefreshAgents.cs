@@ -16,6 +16,13 @@ public partial class AgentService
             return refreshResult;
         }
 
+        var userService = _services.GetRequiredService<IUserService>();
+        var isValid = await userService.IsAdminUser(_user.Id);
+        if (!isValid)
+        {
+            return "Unauthorized user.";
+        }
+
         var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                                     dbSettings.FileRepository,
                                     _agentSettings.DataDir);
@@ -25,10 +32,8 @@ public partial class AgentService
             refreshResult = $"Cannot find the directory: {agentDir}";
             return refreshResult;
         }
-
-        var user = _db.GetUserById(_user.Id);
+        
         var refreshedAgents = new List<string>();
-
         foreach (var dir in Directory.GetDirectories(agentDir))
         {
             try
@@ -54,7 +59,6 @@ public partial class AgentService
                      .SetResponses(responses)
                      .SetSamples(samples);
 
-                var userAgent = BuildUserAgent(agent.Id, user.Id);
                 var tasks = GetTasksFromFile(dir);
 
                 var isAgentDeleted = _db.DeleteAgent(agent.Id);
@@ -62,7 +66,6 @@ public partial class AgentService
                 {
                     await Task.Delay(100);
                     _db.BulkInsertAgents(new List<Agent> { agent });
-                    _db.BulkInsertUserAgents(new List<UserAgent> { userAgent });
                     _db.BulkInsertAgentTasks(tasks);
                     refreshedAgents.Add(agent.Name);
                     _logger.LogInformation($"Agent {agent.Name} has been migrated.");

@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
+using MongoDB.Driver;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -283,6 +284,11 @@ public partial class MongoRepository
 
     public List<Agent> GetAgents(AgentFilter filter)
     {
+        if (filter == null)
+        {
+            filter = AgentFilter.Empty();
+        }
+
         var agents = new List<Agent>();
         var builder = Builders<AgentDocument>.Filter;
         var filters = new List<FilterDefinition<AgentDocument>>() { builder.Empty };
@@ -290,6 +296,11 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter.AgentName))
         {
             filters.Add(builder.Eq(x => x.Name, filter.AgentName));
+        }
+
+        if (!string.IsNullOrEmpty(filter.SimilarName))
+        {
+            filters.Add(builder.Regex(x => x.Name, new BsonRegularExpression(filter.SimilarName, "i")));
         }
 
         if (filter.Disabled.HasValue)
@@ -318,19 +329,36 @@ public partial class MongoRepository
         return agentDocs.Select(x => TransformAgentDocument(x)).ToList();
     }
 
-    public List<Agent> GetAgentsByUser(string userId)
+    public List<UserAgent> GetUserAgents(string userId)
     {
-        var agentIds = (from ua in _dc.UserAgents.AsQueryable()
-                        join u in _dc.Users.AsQueryable() on ua.UserId equals u.Id
-                        where ua.UserId == userId || u.ExternalId == userId
-                        select ua.AgentId).ToList();
+        var found = (from ua in _dc.UserAgents.AsQueryable()
+                    join u in _dc.Users.AsQueryable() on ua.UserId equals u.Id
+                    where ua.UserId == userId || u.ExternalId == userId
+                    select ua).ToList();
 
-        var filter = new AgentFilter
+        if (found.IsNullOrEmpty()) return [];
+
+        var res = found.Select(x => new UserAgent
         {
-            AgentIds = agentIds
-        };
-        var agents = GetAgents(filter);
-        return agents;
+            Id = x.Id,
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions,
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        }).ToList();
+
+        var agentIds = found.Select(x => x.AgentId).Distinct().ToList();
+        var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
+        foreach (var item in res)
+        {
+            var agent = agents.FirstOrDefault(x => x.Id == item.AgentId);
+            if (agent == null) continue;
+
+            item.Agent = agent;
+        }
+
+        return res;
     }
 
     public List<string> GetAgentResponses(string agentId, string prefix, string intent)
@@ -412,12 +440,15 @@ public partial class MongoRepository
     {
         if (userAgents.IsNullOrEmpty()) return;
 
-        var userAgentDocs = userAgents.Select(x => new UserAgentDocument
+        var filtered = userAgents.Where(x => !string.IsNullOrEmpty(x.UserId) && !string.IsNullOrEmpty(x.AgentId)).ToList();
+        if (filtered.IsNullOrEmpty()) return;
+
+        var userAgentDocs = filtered.Select(x => new UserAgentDocument
         {
             Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+            UserId = x.UserId,
             AgentId = x.AgentId,
-            UserId = !string.IsNullOrEmpty(x.UserId) ? x.UserId : string.Empty,
-            Editable = x.Editable,
+            Actions = x.Actions,
             CreatedTime = x.CreatedTime,
             UpdatedTime = x.UpdatedTime
         }).ToList();
@@ -430,6 +461,7 @@ public partial class MongoRepository
         try
         {
             _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.Empty);
+            _dc.RoleAgents.DeleteMany(Builders<RoleAgentDocument>.Filter.Empty);
             _dc.Agents.DeleteMany(Builders<AgentDocument>.Filter.Empty);
             return true;
         }
@@ -446,11 +478,13 @@ public partial class MongoRepository
             if (string.IsNullOrEmpty(agentId)) return false;
 
             var agentFilter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
-            var agentUserFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
+            var userAgentFilter = Builders<UserAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
+            var roleAgentFilter = Builders<RoleAgentDocument>.Filter.Eq(x => x.AgentId, agentId);
             var agentTaskFilter = Builders<AgentTaskDocument>.Filter.Eq(x => x.AgentId, agentId);
 
             _dc.Agents.DeleteOne(agentFilter);
-            _dc.UserAgents.DeleteMany(agentUserFilter);
+            _dc.UserAgents.DeleteMany(userAgentFilter);
+            _dc.RoleAgents.DeleteMany(roleAgentFilter);
             _dc.AgentTasks.DeleteMany(agentTaskFilter);
             return true;
         }

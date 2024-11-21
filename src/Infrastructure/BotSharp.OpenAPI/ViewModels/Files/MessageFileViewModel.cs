@@ -19,6 +19,10 @@ public class MessageFileViewModel
     [JsonPropertyName("file_source")]
     public string FileSource { get; set; }
 
+    [JsonPropertyName("file_download_url")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FileDownloadUrl { get; set; }
+
     public MessageFileViewModel()
     {
         
@@ -32,7 +36,8 @@ public class MessageFileViewModel
             FileName = model.FileName,
             FileExtension = model.FileExtension,
             ContentType = model.ContentType,
-            FileSource = model.FileSource
+            FileSource = model.FileSource,
+            FileDownloadUrl = model.FileDownloadUrl
         };
     }
 }
