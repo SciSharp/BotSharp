@@ -10,39 +10,7 @@
   "isPublic": true,
   "profiles": [ "planning" ],
   "mergeUtility": true,
-  "utilities": [
-    {
-      "name": "two-stage-planner",
-      "functions": [
-        { "name": "plan_primary_stage" },
-        { "name": "plan_secondary_stage" },
-        { "name": "plan_summary" }
-      ],
-      "templates": [
-        { "name": "plan_primary_stage.fn" },
-        { "name": "plan_secondary_stage.fn" },
-        { "name": "plan_summary.fn" }
-      ]
-    },
-    {
-      "name": "sql-dictionary-lookup",
-      "functions": [
-        { "name": "verify_dictionary_term" }
-      ],
-      "templates": [
-        { "name": "verify_dictionary_term.fn" }
-      ]
-    },
-    {
-      "name": "excel-handler",
-      "functions": [
-        { "name": "handle_excel_request" }
-      ],
-      "templates": [
-        { "name": "handle_excel_request.fn" }
-      ]
-    }
-  ],
+  "utilities": [],
   "llmConfig": {
     "provider": "openai",
     "model": "gpt-4o",

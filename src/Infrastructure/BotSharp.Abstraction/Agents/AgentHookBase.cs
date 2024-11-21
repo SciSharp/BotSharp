@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Settings;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Data;
 
@@ -65,63 +66,59 @@ public abstract class AgentHookBase : IAgentHook
         var isConvMode = conv.IsConversationMode();
         if (!isConvMode) return;
 
-        var render = _services.GetRequiredService<ITemplateRender>();
-
         agent.Functions ??= [];
         agent.Utilities ??= [];
 
-        foreach (var utillity in agent.Utilities)
+        var (functions, templates) = GetUtilityContent(agent);
+
+        agent.Functions.AddRange(functions);
+        foreach (var prompt in templates)
         {
-            if (utillity == null || string.IsNullOrWhiteSpace(utillity.Name)) continue;
-
-            var (fns, prompts) = GetUtilityContent(utillity);
-
-            if (!fns.IsNullOrEmpty())
-            {
-                agent.Functions.AddRange(fns);
-            }
-
-            if (!prompts.IsNullOrEmpty())
-            {
-                foreach (var prompt in prompts)
-                {
-                    agent.Instruction += $"\r\n\r\n{prompt}\r\n\r\n";
-                }
-            }
+            agent.Instruction += $"\r\n\r\n{prompt}\r\n\r\n";
         }
     }
 
-    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(AgentUtility utility)
+    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(Agent agent)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var render = _services.GetRequiredService<ITemplateRender>();
+        var (functionNames, templateNames) = GetUniqueContent(agent.Utilities);
 
-        var fns = new List<FunctionDef>();
-        var prompts = new List<string>();
-
-        var agent = db.GetAgent(BuiltInAgentId.UtilityAssistant);
-        if (agent == null)
+        if (agent.MergeUtility)
         {
-            return (fns, prompts);
-        }
-        
-        if (!utility.Functions.IsNullOrEmpty())
-        {
-            var functionNames = utility.Functions?.Select(x => x.Name)?.ToList() ?? [];
-            fns = agent?.Functions?.Where(x => functionNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
-        }
-
-        if (!utility.Templates.IsNullOrEmpty())
-        {
-            foreach (var template in utility.Templates)
+            var routing = _services.GetRequiredService<IRoutingContext>();
+            var entryAgentId = routing.EntryAgentId;
+            if (!string.IsNullOrEmpty(entryAgentId))
             {
-                var prompt = agent?.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(template.Name))?.Content ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(prompt)) continue;
-
-                prompts.Add(prompt);
+                var entryAgent = db.GetAgent(entryAgentId);
+                var (fns, tps) = GetUniqueContent(entryAgent?.Utilities);
+                functionNames = functionNames.Concat(fns).Distinct().ToList();
+                templateNames = templateNames.Concat(tps).Distinct().ToList();
             }
         }
 
-        return (fns, prompts);
+        var ua = db.GetAgent(BuiltInAgentId.UtilityAssistant);
+        var functions = ua?.Functions?.Where(x => functionNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.ToList() ?? [];
+        var templates = ua?.Templates?.Where(x => templateNames.Contains(x.Name, StringComparer.OrdinalIgnoreCase))?.Select(x => x.Content)?.ToList() ?? [];
+        return (functions, templates);
+    }
+
+    private (IEnumerable<string>, IEnumerable<string>) GetUniqueContent(IEnumerable<AgentUtility>? utilities)
+    {
+        if (utilities.IsNullOrEmpty())
+        {
+            return ([], []);
+        }
+
+        utilities = utilities?.Where(x => !string.IsNullOrEmpty(x.Name) && !x.Disabled)?.ToList() ?? [];
+        var functionNames = utilities.SelectMany(x => x.Functions)
+                                     .Where(x => !string.IsNullOrEmpty(x.Name))
+                                     .Select(x => x.Name)
+                                     .Distinct().ToList();
+        var templateNames = utilities.SelectMany(x => x.Templates)
+                                     .Where(x => !string.IsNullOrEmpty(x.Name))
+                                     .Select(x => x.Name)
+                                     .Distinct().ToList();
+
+        return (functionNames, templateNames);
     }
 }

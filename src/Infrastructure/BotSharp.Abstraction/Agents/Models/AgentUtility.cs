@@ -2,13 +2,9 @@ namespace BotSharp.Abstraction.Agents.Models;
 
 public class AgentUtility
 {
-    [JsonPropertyName("name")]
     public string Name { get; set; }
-
-    [JsonPropertyName("functions")]
+    public bool Disabled { get; set; }
     public IEnumerable<UtilityFunction> Functions { get; set; } = [];
-
-    [JsonPropertyName("templates")]
     public IEnumerable<UtilityTemplate> Templates { get; set; } = [];
 
     public AgentUtility()
