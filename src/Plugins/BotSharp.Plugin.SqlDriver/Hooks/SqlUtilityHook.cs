@@ -25,8 +25,8 @@ public class SqlUtilityHook : IAgentUtilityHook
             new AgentUtility
             {
                 Name = UtilityName.SqlExecutor,
-                Functions = new List<UtilityFunction> { new(SQL_SELECT_FN), new(SQL_TABLE_DEFINITION_FN) },
-                Templates = new List<UtilityTemplate> { new($"sql_executor.fn") }
+                Functions = [new(SQL_SELECT_FN), new(SQL_TABLE_DEFINITION_FN)],
+                Templates = [new($"sql_executor.fn")]
             }
         };
 

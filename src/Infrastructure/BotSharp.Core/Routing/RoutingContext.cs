@@ -243,12 +243,16 @@ public class RoutingContext : IRoutingContext
 
     public Stack<string> GetAgentStack()
     {
-        return new Stack<string>(_stack);
+        var copy = _stack.ToList();
+        copy.Reverse();
+        return new Stack<string>(copy);
     }
 
     public void SetAgentStack(Stack<string> stack)
     {
-        _stack = new Stack<string>(stack);
+        var copy = stack.ToList();
+        copy.Reverse();
+        _stack = new Stack<string>(copy);
     }
 
     public void ResetAgentStack()
