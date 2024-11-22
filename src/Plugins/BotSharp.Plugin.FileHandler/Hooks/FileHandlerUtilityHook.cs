@@ -9,7 +9,6 @@ public class FileHandlerUtilityHook : IAgentUtilityHook
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
-
         var items = new List<AgentUtility>
         {
             new AgentUtility
