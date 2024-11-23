@@ -10,7 +10,7 @@ public interface IEventPublisher
     /// <returns></returns>
     Task BroadcastAsync(string channel, string message);
 
-    Task PublishAsync(string channel, string message, EventPriority priority = EventPriority.Medium);
+    Task PublishAsync(string channel, string message, EventPriority? priority = null);
 
     Task ReDispatchAsync(string channel, int count = 10, string order = "asc");
 

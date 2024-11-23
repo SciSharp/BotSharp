@@ -25,27 +25,41 @@ public class RedisSubscriber : IEventSubscriber
         });
     }
 
-    public async Task SubscribeAsync(string channel, string group, Func<string, string, Task> received)
+    public async Task SubscribeAsync(string channel, string group, bool priorityEnabled, Func<string, string, Task> received)
     {
         var db = _redis.GetDatabase();
 
-        await CreateConsumerGroup(db, $"{channel}-{EventPriority.Low}", group);
-        await CreateConsumerGroup(db, $"{channel}-{EventPriority.Medium}", group);
-        await CreateConsumerGroup(db, $"{channel}-{EventPriority.High}", group);
+        if (priorityEnabled)
+        {
+            await CreateConsumerGroup(db, $"{channel}-{EventPriority.Low}", group);
+            await CreateConsumerGroup(db, $"{channel}-{EventPriority.Medium}", group);
+            await CreateConsumerGroup(db, $"{channel}-{EventPriority.High}", group);
+        }
+        else
+        {
+            await CreateConsumerGroup(db, channel, group);
+        }
 
         while (true)
         {
-            if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, received) > 0) 
+            if (priorityEnabled)
             {
-                continue;
-            }
+                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, received) > 0)
+                {
+                    continue;
+                }
 
-            if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, received) > 0)            
+                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, received) > 0)
+                {
+                    continue;
+                }
+
+                await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, received);
+            }
+            else
             {
-                continue;
+                await HandleGroupMessage(db, channel, group, received);
             }
-
-            await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, received);
         }
     }
 

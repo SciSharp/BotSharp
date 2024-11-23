@@ -21,12 +21,15 @@ public class RedisPublisher : IEventPublisher
         await _subscriber.PublishAsync(channel, message);
     }
 
-    public async Task PublishAsync(string channel, string message, EventPriority priority = EventPriority.Medium)
+    public async Task PublishAsync(string channel, string message, EventPriority? priority = null)
     {
         var db = _redis.GetDatabase();
 
         // convert to apporiate channel by priority
-        channel = $"{channel}-{priority}";
+        if (priority != null)
+        {
+            channel = $"{channel}-{priority}";
+        }
 
         if (CheckMessageExists(db, channel, "message", message))
         {
