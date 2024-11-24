@@ -42,6 +42,8 @@ public class RedisSubscriber : IEventSubscriber
 
         while (true)
         {
+            await Task.Delay(100);
+
             if (priorityEnabled)
             {
                 if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, received) > 0)
