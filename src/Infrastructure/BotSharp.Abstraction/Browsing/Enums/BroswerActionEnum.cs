@@ -7,4 +7,5 @@ public enum BroswerActionEnum
     Typing = 3,
     Hover = 4,
     Scroll = 5,
+    DragAndDrop = 6
 }

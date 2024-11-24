@@ -42,30 +42,23 @@ public class RedisSubscriber : IEventSubscriber
 
         while (true)
         {
-            try
+            if (priorityEnabled)
             {
-                if (priorityEnabled)
+                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, received) > 0)
                 {
-                    if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, received) > 0)
-                    {
-                        continue;
-                    }
-
-                    if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, received) > 0)
-                    {
-                        continue;
-                    }
-
-                    await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, received);
+                    continue;
                 }
-                else
+
+                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, received) > 0)
                 {
-                    await HandleGroupMessage(db, channel, group, received);
+                    continue;
                 }
+
+                await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, received);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError($"Error processing message: {ex.Message}\r\n{ex}");
+                await HandleGroupMessage(db, channel, group, received);
             }
         }
     }
