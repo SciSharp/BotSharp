@@ -91,7 +91,10 @@ public class RedisPublisher : IEventPublisher
 
             try
             {
-                var messageId = await db.StreamAddAsync(channel, "message", entry.Values[0].Value);
+                var messageId = await db.StreamAddAsync(channel, [
+                    new NameValueEntry("message", entry.Values[0].Value),
+                    new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
+                ]);
 
                 _logger.LogWarning($"ReDispatched message: {channel} {entry.Values[0].Value} ({messageId})");
 
