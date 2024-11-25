@@ -8,24 +8,15 @@ public partial class PlaywrightWebDriver
         var context = await _instance.GetContext(message.ContextId);
         try
         {
-            var page = args.UseExistingPage ? 
-                _instance.GetPage(message.ContextId, pattern: args.Url) :
-                await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback, 
+            var page = await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback, 
                     responseInMemory: args.ResponseInMemory,
                     responseContainer: args.ResponseContainer,
                     excludeResponseUrls: args.ExcludeResponseUrls,
                     includeResponseUrls: args.IncludeResponseUrls);
 
-            if (args.UseExistingPage && page != null && page.Url == args.Url)
-            {
-                Serilog.Log.Information($"goto existing page: {args.Url}");
-                result.IsSuccess = true;
-                return result;
-            }
-
             Serilog.Log.Information($"goto page: {args.Url}");
 
-            if (args.UseExistingPage && args.OpenNewTab && page != null && page.Url == "about:blank")
+            if (args.OpenNewTab && page != null && page.Url == "about:blank")
             {
                 page = await _instance.NewPage(message, 
                     enableResponseCallback: args.EnableResponseCallback,
@@ -45,17 +36,42 @@ public partial class PlaywrightWebDriver
                     includeResponseUrls: args.IncludeResponseUrls);
             }
 
+            // Active current tab
+            await page.BringToFrontAsync();
+
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
             {
-                Timeout = args.Timeout
+                Timeout = args.Timeout > 0 ? args.Timeout : 30000
             });
+
+            if (args.Selectors != null)
+            {
+                // 使用传入的选择器列表进行并行等待
+                var tasks =args.Selectors.Select(selector =>
+                    page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions
+                    {
+                        Timeout = args.Timeout > 0 ? args.Timeout : 30000
+                    })
+                ).ToArray();
+
+                await Task.WhenAll(tasks);
+
+                // 在此处提取所有选择器的 HTML 内容
+                var contentTasks = args.Selectors.Select(selector => page.InnerHTMLAsync(selector)).ToArray();
+                var contents = await Task.WhenAll(contentTasks);
+
+                result.IsSuccess = true;
+                result.Body = string.Join(", ", contents.Select((content, index) => $"{args.Selectors[index]}: {content}"));
+
+                return result;
+            }
 
             await page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
             if (args.WaitForNetworkIdle)
             {
                 await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
                 {
-                    Timeout = args.Timeout
+                    Timeout = args.Timeout > 0 ? args.Timeout : 30000
                 });
             }
 

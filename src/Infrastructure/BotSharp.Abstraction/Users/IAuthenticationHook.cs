@@ -25,9 +25,10 @@ public interface IAuthenticationHook
     /// <summary>
     /// User authenticated successfully
     /// </summary>
+    /// <param name="user"></param>
     /// <param name="token"></param>
     /// <returns></returns>
-    bool UserAuthenticated(JwtSecurityToken token)
+    bool UserAuthenticated(User user, Token token)
         => true;
 
     /// <summary>

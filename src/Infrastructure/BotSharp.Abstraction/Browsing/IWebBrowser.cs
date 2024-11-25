@@ -12,6 +12,7 @@ public interface IWebBrowser
     Task<BrowserActionResult> ActionOnElement(MessageInfo message, ElementLocatingArgs location, ElementActionArgs action);
     Task<BrowserActionResult> LocateElement(MessageInfo message, ElementLocatingArgs location);
     Task DoAction(MessageInfo message, ElementActionArgs action, BrowserActionResult result);
+    Task PressKey(MessageInfo message, string key);
 
     Task<BrowserActionResult> InputUserText(BrowserActionParams actionParams);
     Task<BrowserActionResult> InputUserPassword(BrowserActionParams actionParams);

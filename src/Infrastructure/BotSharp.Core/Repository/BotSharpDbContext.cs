@@ -8,6 +8,8 @@ namespace BotSharp.Core.Repository;
 
 public class BotSharpDbContext : Database, IBotSharpRepository
 {
+    public IServiceProvider ServiceProvider => throw new NotImplementedException();
+
     #region Plugin
     public PluginConfig GetPluginConfig() => throw new NotImplementedException(); 
     public void SavePluginConfig(PluginConfig config) => throw new NotImplementedException();
@@ -90,12 +92,14 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds)
         => throw new NotImplementedException();
 
+    [SideCar]
     public List<DialogElement> GetConversationDialogs(string conversationId)
         => throw new NotImplementedException();
 
     public ConversationState GetConversationStates(string conversationId)
         => throw new NotImplementedException();
 
+    [SideCar]
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
         => throw new NotImplementedException();
 
@@ -108,9 +112,11 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
         => throw new NotImplementedException();
 
+    [SideCar]
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
         => throw new NotImplementedException();
 
+    [SideCar]
     public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
         => throw new NotImplementedException();
 

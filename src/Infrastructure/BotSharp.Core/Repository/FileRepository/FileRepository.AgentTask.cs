@@ -8,6 +8,11 @@ public partial class FileRepository
     #region Task
     public PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
     {
+        if (filter == null)
+        {
+            filter = AgentTaskFilter.Empty();
+        }
+
         var tasks = new List<AgentTask>();
         var pager = filter.Pager ?? new Pagination();
         var skipCount = 0;

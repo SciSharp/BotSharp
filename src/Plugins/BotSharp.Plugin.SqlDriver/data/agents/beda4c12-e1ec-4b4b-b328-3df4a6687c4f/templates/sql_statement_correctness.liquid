@@ -1,10 +1,14 @@
 You are a sql statement corrector. You will need to refer to the table structure and rewrite the original sql statement so it's using the correct information, e.g. column name.
-Output the sql statement only without comments, in JSON format: {{ response_format }}
+Correct the sql statement and keep only the original explanation and comments without any information related to error message{% if response_format %} in JSON format: {{ response_format }} {% endif %}.
 Make sure all the column names are defined in the Table Structure.
 
 =====
 Original SQL statements:
 {{ original_sql }}
+
+=====
+Error Message:
+{{ error_message }}
 
 =====
 Table Structure:

@@ -120,12 +120,13 @@ public class KnowledgeBaseController : ControllerBase
     [HttpPost("/knowledge/document/{collection}/upload")]
     public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
     {
-        var response = await _knowledgeService.UploadDocumentsToKnowledge(collection, request.Files);
+        var response = await _knowledgeService.UploadDocumentsToKnowledge(collection, request.Files, request.ChunkOption);
         return response;
     }
 
     [HttpPost("/knowledge/document/{collection}/form-upload")]
-    public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromForm] IEnumerable<IFormFile> files)
+    public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection,
+        [FromForm] IEnumerable<IFormFile> files, [FromForm] ChunkOption? option = null)
     {
         if (files.IsNullOrEmpty())
         {
@@ -143,7 +144,7 @@ public class KnowledgeBaseController : ControllerBase
             });
         }
 
-        var response = await _knowledgeService.UploadDocumentsToKnowledge(collection, docs);
+        var response = await _knowledgeService.UploadDocumentsToKnowledge(collection, docs, option);
         return response;
     }
 

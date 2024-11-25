@@ -31,13 +31,6 @@ namespace BotSharp.Plugin.ExcelHandler.Services
         {
             try
             {
-                /*using var mySqlDbConnection = _mySqlDbHelpers.GetDbConnection();
-                var tableNames = GetAllTableSchema(mySqlDbConnection);
-                if (tableNames.IsNullOrEmpty())
-                {
-                    return true;
-                }*/
-                
                 return true;
             }
             catch (Exception ex)
@@ -232,7 +225,7 @@ namespace BotSharp.Plugin.ExcelHandler.Services
                 _columnTypes?.Insert(0, "INT UNSIGNED AUTO_INCREMENT");
             }*/
 
-            var createTableSql = $"CREATE TABLE if not exists {tableName} ( \n";
+            var createTableSql = $"DROP TABLE IF EXISTS {tableName}; CREATE TABLE if not exists {tableName} ( \n";
             createTableSql += string.Join(", \n", headerColumns.Select((x, i) => $"`{x}` {_columnTypes[i]}"));
             var indexSql = string.Join(", \n", headerColumns.Select(x => $"KEY `idx_{tableName}_{x}` (`{x}`)"));
             createTableSql += $", \n{indexSql}\n);";

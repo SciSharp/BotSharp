@@ -70,6 +70,7 @@ public partial class MongoRepository
             || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0;
     }
 
+    [SideCar]
     public List<DialogElement> GetConversationDialogs(string conversationId)
     {
         var dialogs = new List<DialogElement>();
@@ -83,6 +84,7 @@ public partial class MongoRepository
         return formattedDialog ?? new List<DialogElement>();
     }
 
+    [SideCar]
     public void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -159,6 +161,7 @@ public partial class MongoRepository
         return true;
     }
 
+    [SideCar]
     public void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
     {
         if (string.IsNullOrEmpty(conversationId)) return;
@@ -176,6 +179,7 @@ public partial class MongoRepository
         _dc.ConversationStates.UpdateOne(filterState, updateState);
     }
 
+    [SideCar]
     public ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
     {
         if (string.IsNullOrEmpty(conversationId))
@@ -277,6 +281,11 @@ public partial class MongoRepository
 
     public PagedItems<Conversation> GetConversations(ConversationFilter filter)
     {
+        if (filter == null)
+        {
+            filter = ConversationFilter.Empty();
+        }
+
         var convBuilder = Builders<ConversationDocument>.Filter;
         var convFilters = new List<FilterDefinition<ConversationDocument>>() { convBuilder.Empty };
 

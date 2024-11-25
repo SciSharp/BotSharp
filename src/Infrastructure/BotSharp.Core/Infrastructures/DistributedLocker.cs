@@ -5,55 +5,48 @@ namespace BotSharp.Core.Infrastructures;
 
 public class DistributedLocker
 {
-    private readonly BotSharpDatabaseSettings _settings;
-    private static ConnectionMultiplexer connection;
+    private readonly IConnectionMultiplexer _redis;
+    private readonly ILogger _logger;
 
-    public DistributedLocker(BotSharpDatabaseSettings settings)
+    public DistributedLocker(IConnectionMultiplexer redis, ILogger<DistributedLocker> logger)
     {
-        _settings = settings;
+        _redis = redis;
+        _logger = logger;
     }
 
     public async Task<T> Lock<T>(string resource, Func<Task<T>> action, int timeoutInSeconds = 30)
     {
-        await ConnectToRedis();
-
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
+        var @lock = new RedisDistributedLock(resource, _redis.GetDatabase());
         await using (var handle = await @lock.TryAcquireAsync(timeout))
         {
             if (handle == null) 
             {
-                Serilog.Log.Logger.Error($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                _logger.LogWarning($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
             }
             
             return await action();
         }
     }
 
-    public async Task<T> Lock<T>(string resource, Func<T> action, int timeoutInSeconds = 30)
+    public bool Lock(string resource, Action action, int timeoutInSeconds = 30)
     {
-        await ConnectToRedis();
-
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        var @lock = new RedisDistributedLock(resource, connection.GetDatabase());
-        await using (var handle = await @lock.TryAcquireAsync(timeout))
+        var @lock = new RedisDistributedLock(resource, _redis.GetDatabase());
+        using (var handle = @lock.TryAcquire(timeout))
         {
             if (handle == null)
             {
-                Serilog.Log.Logger.Error($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
-                
+                _logger.LogWarning($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                return false;
             }
-            return action();
-        }
-    }
-
-    private async Task ConnectToRedis()
-    {
-        if (connection == null)
-        {
-            connection = await ConnectionMultiplexer.ConnectAsync(_settings.Redis);
+            else
+            {
+                action();
+                return true;
+            }
         }
     }
 }

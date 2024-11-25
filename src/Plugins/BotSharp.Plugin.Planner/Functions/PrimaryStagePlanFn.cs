@@ -96,9 +96,6 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var conv = _services.GetRequiredService<IConversationService>();
         var wholeDialogs = conv.GetDialogHistory();
 
-        // Append text
-        wholeDialogs.Last().Content += "\n\nYou must analyze the table description to infer the table relations. Only output the JSON result.";
-
         var completion = CompletionProvider.GetChatCompletion(_services, 
             provider: plannerAgent.LlmConfig.Provider, 
             model: plannerAgent.LlmConfig.Model);

@@ -4,6 +4,10 @@
   "parameters": {
     "type": "object",
     "properties": {
+      "is_sql_template": {
+        "type": "boolean",
+        "description": "If user request is to generate sql template instead of actual sql statement."
+      },
       "related_tables": {
         "type": "array",
         "description": "table name in planning steps",
@@ -13,6 +17,6 @@
         }
       }
     },
-    "required": [ "related_tables" ]
+    "required": [ "related_tables", "is_sql_template" ]
   }
 }

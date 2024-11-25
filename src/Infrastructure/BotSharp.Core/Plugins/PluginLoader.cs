@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace BotSharp.Core.Plugins;
@@ -125,6 +126,18 @@ public class PluginLoader
     {
         var plugins = GetPlugins(services);
         var pager = filter?.Pager ?? new Pagination();
+
+        // Apply filter
+        if (!filter.Names.IsNullOrEmpty())
+        {
+            plugins = plugins.Where(x => filter.Names.Any(n => x.Name.IsEqualTo(n))).ToList();
+        }
+
+        if (!string.IsNullOrEmpty(filter.SimilarName))
+        {
+            var regex = new Regex(filter.SimilarName, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            plugins = plugins.Where(x => regex.IsMatch(x.Name)).ToList();
+        }
 
         return new PagedItems<PluginDef>
         {

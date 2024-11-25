@@ -1,17 +1,23 @@
 global using System;
 global using System.Collections.Generic;
 global using System.Text;
+global using System.Data.Common;
+global using System.Text.RegularExpressions;
+global using System.Threading.Tasks;
+global using System.Linq;
+global using System.Text.Json;
+
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.Logging;
+
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Plugins;
-global using System.Text.Json;
 global using BotSharp.Abstraction.Conversations.Models;
-global using Microsoft.Extensions.Configuration;
-global using System.Threading.Tasks;
+global using BotSharp.Plugin.SqlDriver.Models;
 global using BotSharp.Abstraction.Functions;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.Templating;
 global using Microsoft.Extensions.DependencyInjection;
-global using System.Linq;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Abstraction.Knowledges;
@@ -21,4 +27,8 @@ global using BotSharp.Plugin.SqlDriver.Hooks;
 global using BotSharp.Plugin.SqlDriver.Services;
 global using BotSharp.Plugin.SqlDriver.Enum;
 global using BotSharp.Plugin.SqlHero.Settings;
-global using System.Drawing;
+global using BotSharp.Abstraction.Agents.Enums;
+global using BotSharp.Abstraction.Instructs;
+global using BotSharp.Abstraction.Instructs.Models;
+global using BotSharp.Abstraction.Routing;
+global using BotSharp.Plugin.SqlDriver.Interfaces;

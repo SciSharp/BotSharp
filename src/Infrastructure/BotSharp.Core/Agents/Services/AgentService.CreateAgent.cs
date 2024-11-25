@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Users.Enums;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -24,7 +25,24 @@ public partial class AgentService
         var agentSettings = _services.GetRequiredService<AgentSettings>();
 
         var user = _db.GetUserById(_user.Id);
+        var userService = _services.GetRequiredService<IUserService>();
+        var auth = await userService.GetUserAuthorizations();
+
         _db.BulkInsertAgents(new List<Agent> { agentRecord });
+        if (auth.IsAdmin || auth.Permissions.Contains(UserPermission.CreateAgent))
+        {
+            _db.BulkInsertUserAgents(new List<UserAgent>
+            {
+                new UserAgent
+                {
+                    UserId = user.Id,
+                    AgentId = agentRecord.Id,
+                    Actions = new List<string> { UserAction.Edit, UserAction.Train, UserAction.Evaluate, UserAction.Chat },
+                    CreatedTime = DateTime.UtcNow,
+                    UpdatedTime = DateTime.UtcNow
+                }
+            });
+        }
 
         Utilities.ClearCache();
         return await Task.FromResult(agentRecord);

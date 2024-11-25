@@ -1,6 +1,8 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Roles.Models;
+using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
 using BotSharp.Abstraction.Users.Models;
@@ -8,16 +10,23 @@ using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Abstraction.Repositories;
 
-public interface IBotSharpRepository
+public interface IBotSharpRepository : IHaveServiceProvider
 {
     #region Plugin
     PluginConfig GetPluginConfig();
     void SavePluginConfig(PluginConfig config);
     #endregion
 
+    #region Role
+    bool RefreshRoles(IEnumerable<Role> roles) => throw new NotImplementedException();
+    IEnumerable<Role> GetRoles(RoleFilter filter) => throw new NotImplementedException();
+    Role? GetRoleDetails(string roleId, bool includeAgent = false) => throw new NotImplementedException();
+    bool UpdateRole(Role role, bool updateRoleAgents = false) => throw new NotImplementedException();
+    #endregion
+
     #region User
     User? GetUserByEmail(string email) => throw new NotImplementedException();
-    User? GetUserByPhone(string phone) => throw new NotImplementedException();
+    User? GetUserByPhone(string phone, string role = null, string regionCode = "CN") => throw new NotImplementedException();
     User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
     User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
@@ -33,7 +42,8 @@ public interface IBotSharpRepository
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
     PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
-    bool UpdateUser(User user, bool isUpdateUserAgents = false) => throw new NotImplementedException();
+    User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
+    bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
     #endregion
 
     #region Agent

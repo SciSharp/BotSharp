@@ -46,4 +46,9 @@ public class BuiltInAgentId
     /// Programming source code generation
     /// </summary>
     public const string CodeDriver = "c0ded7d9-3f9d-4ef6-b7ce-56a892dcef62";
+
+    /// <summary>
+    /// Evaluate prompt and conversation
+    /// </summary>
+    public const string Evaluator = "dfd9b46d-d00c-40af-8a75-3fbdc2b89869";
 }

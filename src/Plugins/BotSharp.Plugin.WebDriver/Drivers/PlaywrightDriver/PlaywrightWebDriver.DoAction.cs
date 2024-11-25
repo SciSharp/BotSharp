@@ -56,6 +56,10 @@ public partial class PlaywrightWebDriver
 
             if (action.PressKey != null)
             {
+                if (action.DelayBeforePressingKey > 0)
+                {
+                    await Task.Delay(action.DelayBeforePressingKey);
+                }
                 await locator.PressAsync(action.PressKey);
             }
         }
@@ -64,6 +68,10 @@ public partial class PlaywrightWebDriver
             await locator.PressSequentiallyAsync(action.Content);
             if (action.PressKey != null)
             {
+                if (action.DelayBeforePressingKey > 0)
+                {
+                    await Task.Delay(action.DelayBeforePressingKey);
+                }
                 await locator.PressAsync(action.PressKey);
             }
         }
