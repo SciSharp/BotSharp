@@ -548,7 +548,7 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var UserByphone = db.GetUserByPhone(phone, regionCode);
+        var UserByphone = db.GetUserByPhone(phone, regionCode: regionCode);
         if (UserByphone != null && UserByphone.Verified)
         {
             return true;
