@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Planning;
 
 namespace BotSharp.Plugin.SqlDriver;
