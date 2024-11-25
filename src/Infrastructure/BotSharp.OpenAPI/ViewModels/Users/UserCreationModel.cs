@@ -13,6 +13,7 @@ public class UserCreationModel
     public string Type { get; set; } = UserType.Client;
     public string Role { get; set; } = UserRole.User;
     public string RegionCode { get; set; } = "CN";
+    public string? AffiliateCode { get; set; } 
     public User ToUser()
     {
         return new User
@@ -25,7 +26,8 @@ public class UserCreationModel
             Password = Password,
             Role = Role,
             Type = Type,
-            RegionCode = RegionCode
+            RegionCode = RegionCode,
+            AffiliateCode = AffiliateCode
         };
     }
 }
