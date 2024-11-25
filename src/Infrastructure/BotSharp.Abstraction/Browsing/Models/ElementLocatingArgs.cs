@@ -36,5 +36,4 @@ public class ElementLocatingArgs
     /// </summary>
     public bool Highlight { get; set; }
     public string HighlightColor { get; set; } = "red";
-    public bool IsImage { get; set; }
 }

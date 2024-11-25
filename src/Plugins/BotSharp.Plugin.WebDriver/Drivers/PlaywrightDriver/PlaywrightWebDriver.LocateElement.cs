@@ -17,18 +17,6 @@ public partial class PlaywrightWebDriver
         ILocator locator = page.Locator("body");
         int count = 0;
 
-        if (location.IsImage)
-        {
-            var handle = await page.QuerySelectorAsync("img");
-            byte[]? imageBytes = handle != null ? await handle.ScreenshotAsync() : null;
-            string? body = null;
-            if (imageBytes?.Any() == true)
-            {
-                body = Convert.ToBase64String(imageBytes);
-            }
-            return new BrowserActionResult { IsSuccess = true, Body = body };
-        }
-
         // check if selector is specified
         if (location.Selector != null)
         {
