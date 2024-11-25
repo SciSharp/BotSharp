@@ -1,10 +1,10 @@
-using BotSharp.Abstraction.Agents.Models;
-using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing.Models;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Translation.Models;
 using Fluid;
+using System.Collections;
+using System.Reflection;
 
 namespace BotSharp.Core.Templating;
 
@@ -48,4 +48,47 @@ public class TemplateRender : ITemplateRender
             return template;
         }
     }
+
+
+    public void Register(Type type)
+    {
+        if (type == null || IsStringType(type)) return;
+
+        if (IsListType(type))
+        {
+            if (type.IsGenericType)
+            {
+                var genericType = type.GetGenericArguments()[0];
+                Register(genericType);
+            }
+        }
+        else if (IsTrackToNextLevel(type))
+        {
+            _options.MemberAccessStrategy.Register(type);
+            var props = type.GetProperties();
+            foreach (var prop in props)
+            {
+                Register(prop.PropertyType);
+            }
+        }
+    }
+
+
+    #region Private methods
+    private static bool IsStringType(Type type)
+    {
+        return type == typeof(string);
+    }
+
+    private static bool IsListType(Type type)
+    {
+        var interfaces = type.GetTypeInfo().ImplementedInterfaces;
+        return type.IsArray || interfaces.Any(x => x.Name == typeof(IEnumerable).Name);
+    }
+
+    private static bool IsTrackToNextLevel(Type type)
+    {
+        return type.IsClass || type.IsInterface || type.IsAbstract;
+    }
+    #endregion
 }
