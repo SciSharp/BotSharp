@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using StackExchange.Redis;
 
 namespace BotSharp.Core.Infrastructures.Events;
@@ -20,9 +21,15 @@ public class RedisPublisher : IEventPublisher
         await _subscriber.PublishAsync(channel, message);
     }
 
-    public async Task PublishAsync(string channel, string message)
+    public async Task PublishAsync(string channel, string message, EventPriority? priority = null)
     {
         var db = _redis.GetDatabase();
+
+        // convert to apporiate channel by priority
+        if (priority != null)
+        {
+            channel = $"{channel}-{priority}";
+        }
 
         if (CheckMessageExists(db, channel, "message", message))
         {
@@ -41,7 +48,7 @@ public class RedisPublisher : IEventPublisher
         _logger.LogInformation($"Published message {channel} {message} ({messageId})");
     }
 
-    private bool CheckMessageExists(IDatabase db, string streamName, string fieldName, string desiredValue)
+    private bool CheckMessageExists(IDatabase db, string channel, string fieldName, string desiredValue)
     {
         // Define the range to fetch all messages
         RedisValue start = "-"; // Start from the smallest ID
@@ -49,7 +56,7 @@ public class RedisPublisher : IEventPublisher
         int count = 10;        // Number of messages to retrieve
 
         // Fetch the latest 10 messages
-        var streamEntries = db.StreamRange(streamName, start, end, count, Order.Descending);
+        var streamEntries = db.StreamRange(channel, start, end, count, Order.Descending);
 
         if (streamEntries.Length == 0)
         {
@@ -84,7 +91,10 @@ public class RedisPublisher : IEventPublisher
 
             try
             {
-                var messageId = await db.StreamAddAsync(channel, "message", entry.Values[0].Value);
+                var messageId = await db.StreamAddAsync(channel, [
+                    new NameValueEntry("message", entry.Values[0].Value),
+                    new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
+                ]);
 
                 _logger.LogWarning($"ReDispatched message: {channel} {entry.Values[0].Value} ({messageId})");
 
