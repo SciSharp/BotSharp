@@ -1,11 +1,30 @@
+/*****************************************************************************
+  Copyright 2024 Written by Haiping Chen. All Rights Reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+******************************************************************************/
+
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing.Planning;
+using BotSharp.Abstraction.Routing.Reasoning;
 using BotSharp.Abstraction.Templating;
 
-namespace BotSharp.Core.Routing.Planning;
+namespace BotSharp.Core.Routing.Reasoning;
 
-public class SequentialPlanner : IRoutingPlaner
+/// <summary>
+/// Sequential tasks focused reasoning approach
+/// </summary>
+public class SequentialReasoner : IRoutingReasoner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
@@ -14,7 +33,7 @@ public class SequentialPlanner : IRoutingPlaner
     public int MaxLoopCount => 100;
     private FunctionCallFromLlm _lastInst;
 
-    public SequentialPlanner(IServiceProvider services, ILogger<NaivePlanner> logger)
+    public SequentialReasoner(IServiceProvider services, ILogger<NaiveReasoner> logger)
     {
         _services = services;
         _logger = logger;
@@ -72,7 +91,7 @@ public class SequentialPlanner : IRoutingPlaner
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
-                        FunctionName = nameof(SequentialPlanner),
+                        FunctionName = nameof(SequentialReasoner),
                         MessageId = messageId
                     }
                 };
@@ -139,7 +158,7 @@ public class SequentialPlanner : IRoutingPlaner
 
         if (message.StopCompletion)
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
+            context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialReasoner)}");
             return false;
         }
 
@@ -154,7 +173,7 @@ public class SequentialPlanner : IRoutingPlaner
 
     private string GetNextStepPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "planner_prompt.sequential").Content;
+        var template = router.Templates.First(x => x.Name == "reasoner.sequential").Content;
 
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>
@@ -169,11 +188,11 @@ public class SequentialPlanner : IRoutingPlaner
         var inst = new DecomposedStep();
 
         var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var model = llmProviderService.GetProviderModel("azure-openai", "gpt-4");
+        var model = llmProviderService.GetProviderModel("openai", "gpt-4o");
 
         // chat completion
         var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: "azure-openai",
+            provider: "openai",
             model: model.Name);
 
         int retryCount = 0;
@@ -185,7 +204,7 @@ public class SequentialPlanner : IRoutingPlaner
                 var response = await completion.GetChatCompletions(new Agent
                 {
                     Id = router.Id,
-                    Name = nameof(SequentialPlanner),
+                    Name = nameof(SequentialReasoner),
                     Instruction = systemPrompt
                 }, dialogs);
 
@@ -208,7 +227,7 @@ public class SequentialPlanner : IRoutingPlaner
 
     private string GetDecomposeTaskPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "planner_prompt.sequential.get_remaining_task").Content;
+        var template = router.Templates.First(x => x.Name == "reasoner.sequential.get_remaining_task").Content;
 
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>

@@ -1,6 +1,6 @@
-namespace BotSharp.Core.Routing.Planning;
+namespace BotSharp.Core.Routing.Reasoning;
 
-public static class PlannerHelper
+public static class ReasonerHelper
 {
     /// <summary>
     /// Sometimes LLM hallucinates and fails to set function names correctly.

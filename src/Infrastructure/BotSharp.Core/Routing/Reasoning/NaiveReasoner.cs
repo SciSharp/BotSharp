@@ -1,16 +1,35 @@
+/*****************************************************************************
+  Copyright 2024 Written by Haiping Chen. All Rights Reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+******************************************************************************/
+
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing.Planning;
+using BotSharp.Abstraction.Routing.Reasoning;
 using BotSharp.Abstraction.Templating;
 
-namespace BotSharp.Core.Routing.Planning;
+namespace BotSharp.Core.Routing.Reasoning;
 
-public class NaivePlanner : IRoutingPlaner
+/// <summary>
+/// simple or unsophisticated methods used to decide which specialized model or module in a system to engage for a given task.
+/// </summary>
+public class NaiveReasoner : IRoutingReasoner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public NaivePlanner(IServiceProvider services, ILogger<NaivePlanner> logger)
+    public NaiveReasoner(IServiceProvider services, ILogger<NaiveReasoner> logger)
     {
         _services = services;
         _logger = logger;
@@ -46,7 +65,7 @@ public class NaivePlanner : IRoutingPlaner
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
-                        FunctionName = nameof(NaivePlanner),
+                        FunctionName = nameof(NaiveReasoner),
                         MessageId = messageId
                     }
                 };
@@ -69,7 +88,7 @@ public class NaivePlanner : IRoutingPlaner
         }
 
         // Fix LLM malformed response
-        PlannerHelper.FixMalformedResponse(_services, inst);
+        ReasonerHelper.FixMalformedResponse(_services, inst);
 
         return inst;
     }
@@ -99,7 +118,7 @@ public class NaivePlanner : IRoutingPlaner
         }
         else
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(NaivePlanner)}");
+            context.Empty(reason: $"Agent queue is cleared by {nameof(NaiveReasoner)}");
             // context.Push(inst.OriginalAgent, "Push user goal agent");
         }
         return true;
@@ -107,7 +126,7 @@ public class NaivePlanner : IRoutingPlaner
 
     private string GetNextStepPrompt(Agent router)
     {
-        var template = router.Templates.First(x => x.Name == "planner_prompt.naive").Content;
+        var template = router.Templates.First(x => x.Name == "reasoner.naive").Content;
 
         var states = _services.GetRequiredService<IConversationStateService>();
         var render = _services.GetRequiredService<ITemplateRender>();

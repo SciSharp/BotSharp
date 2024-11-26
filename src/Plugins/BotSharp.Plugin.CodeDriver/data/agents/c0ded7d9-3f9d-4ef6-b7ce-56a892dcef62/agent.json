@@ -8,7 +8,7 @@
   "updatedDateTime": "2024-11-23T00:00:00Z",
   "disabled": false,
   "isPublic": true,
-  "profiles": [ "database" ],
+  "profiles": [ "coding" ],
   "llmConfig": {
     "provider": "openai",
     "model": "gpt-4o",

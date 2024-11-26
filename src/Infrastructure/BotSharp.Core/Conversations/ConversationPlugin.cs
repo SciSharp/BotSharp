@@ -1,13 +1,13 @@
 using BotSharp.Abstraction.Google.Settings;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Core.Messaging;
-using BotSharp.Core.Routing.Planning;
+using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Translation;
 using Microsoft.Extensions.Configuration;

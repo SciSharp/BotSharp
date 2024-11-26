@@ -1,6 +1,6 @@
-using BotSharp.Abstraction.Routing.Planning;
+using BotSharp.Abstraction.Planning;
 
-namespace BotSharp.Core.Routing.Planning;
+namespace BotSharp.Core.Routing.Reasoning;
 
 public class InstructExecutor : IExecutor
 {

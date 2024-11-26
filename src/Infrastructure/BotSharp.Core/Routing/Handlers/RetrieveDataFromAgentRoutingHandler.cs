@@ -1,5 +1,5 @@
 using BotSharp.Abstraction.Routing.Settings;
-using BotSharp.Core.Routing.Planning;
+using BotSharp.Core.Routing.Reasoning;
 
 namespace BotSharp.Core.Routing.Handlers;
 
@@ -26,7 +26,7 @@ public class RetrieveDataFromAgentRoutingHandler : RoutingHandlerBase//, IRoutin
 
     public List<string> Planers => new List<string>
     {
-        nameof(HFPlanner)
+        nameof(HFReasoner)
     };
 
     public RetrieveDataFromAgentRoutingHandler(IServiceProvider services, ILogger<RetrieveDataFromAgentRoutingHandler> logger, RoutingSettings settings) 
