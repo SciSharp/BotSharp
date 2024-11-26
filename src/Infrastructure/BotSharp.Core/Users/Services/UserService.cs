@@ -525,7 +525,7 @@ public class UserService : IUserService
 
     public async Task<bool> VerifyEmailExisting(string email)
     {
-        if (string.IsNullOrEmpty(email))
+        if (string.IsNullOrWhiteSpace(email))
         {
             return true;
         }
@@ -542,7 +542,7 @@ public class UserService : IUserService
 
     public async Task<bool> VerifyPhoneExisting(string phone, string regionCode)
     {
-        if (string.IsNullOrEmpty(phone))
+        if (string.IsNullOrWhiteSpace(phone))
         {
             return true;
         }
