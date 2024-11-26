@@ -23,7 +23,7 @@ public class User
     public bool Verified { get; set; }
     public string RegionCode { get; set; } = "CN";
     public string? AffiliateId { get; set; }
-    public string? AffiliateCode { get; set; }
+    public string? ReferralCode { get; set; }
     public string? EmployeeId { get; set; }
     public bool IsDisabled { get; set; }
     public IEnumerable<string> Permissions { get; set; } = [];
