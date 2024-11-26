@@ -172,7 +172,7 @@ public class UserService : IUserService
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
         var (id, password) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByPhone(id, type: "internal");
+        var record = db.GetUserByPhone(id, type: UserType.Internal);
         var isCanLogin = record != null && !record.IsDisabled
             && record.Type == UserType.Internal && new List<string>
             {
@@ -548,7 +548,7 @@ public class UserService : IUserService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var UserByphone = db.GetUserByPhone(phone, regionCode);
+        var UserByphone = db.GetUserByPhone(phone, regionCode: regionCode);
         if (UserByphone != null && UserByphone.Verified)
         {
             return true;

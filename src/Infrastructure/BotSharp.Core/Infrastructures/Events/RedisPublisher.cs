@@ -21,7 +21,7 @@ public class RedisPublisher : IEventPublisher
         await _subscriber.PublishAsync(channel, message);
     }
 
-    public async Task PublishAsync(string channel, string message, EventPriority? priority = null)
+    public async Task<string?> PublishAsync(string channel, string message, EventPriority? priority = null)
     {
         var db = _redis.GetDatabase();
 
@@ -34,7 +34,7 @@ public class RedisPublisher : IEventPublisher
         if (CheckMessageExists(db, channel, "message", message))
         {
             _logger.LogError($"The message already exists {channel} {message}");
-            return;
+            return null;
         }
 
         // Add a message to the stream, keeping only the latest 1 million messages
@@ -46,6 +46,8 @@ public class RedisPublisher : IEventPublisher
             maxLength: 1000 * 10000);
 
         _logger.LogInformation($"Published message {channel} {message} ({messageId})");
+
+        return messageId;
     }
 
     private bool CheckMessageExists(IDatabase db, string channel, string fieldName, string desiredValue)
@@ -91,7 +93,10 @@ public class RedisPublisher : IEventPublisher
 
             try
             {
-                var messageId = await db.StreamAddAsync(channel, "message", entry.Values[0].Value);
+                var messageId = await db.StreamAddAsync(channel, [
+                    new NameValueEntry("message", entry.Values[0].Value),
+                    new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
+                ]);
 
                 _logger.LogWarning($"ReDispatched message: {channel} {entry.Values[0].Value} ({messageId})");
 

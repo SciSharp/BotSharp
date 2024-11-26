@@ -11,7 +11,7 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.Email == email.ToLower());
     }
 
-    public User? GetUserByPhone(string phone, string? type = "client", string regionCode = "CN")
+    public User? GetUserByPhone(string phone, string? type = UserType.Client, string regionCode = "CN")
     {
         var query = Users.Where(x => x.Phone == phone);
 

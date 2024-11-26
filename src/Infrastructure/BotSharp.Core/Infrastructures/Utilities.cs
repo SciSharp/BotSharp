@@ -23,7 +23,7 @@ public static class Utilities
 
         var data = sha256.ComputeHash(Encoding.UTF8.GetBytes(text));
         var sb = new StringBuilder();
-        foreach(var c in data)
+        foreach (var c in data)
         {
             sb.Append(c.ToString("x2"));
         }
@@ -47,4 +47,36 @@ public static class Utilities
             memcache.Compact(100);
         }
     }
+
+    public static string HideMiddleDigits(string input, bool isEmail = false)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return input;
+        }
+
+        if (isEmail)
+        {
+            int atIndex = input.IndexOf('@');
+            if (atIndex > 1)
+            {
+                string localPart = input.Substring(0, atIndex);
+                if (localPart.Length > 2)
+                {
+                    string maskedLocalPart = $"{localPart[0]}{new string('*', localPart.Length - 2)}{localPart[^1]}";
+                    return $"{maskedLocalPart}@{input.Substring(atIndex + 1)}";
+                }
+            }
+        }
+        else
+        {
+            if (input.Length > 6)
+            {
+                return $"{input.Substring(0, 3)}{new string('*', input.Length - 6)}{input.Substring(input.Length - 3)}";
+            }
+        }
+
+        return input;
+    }
+
 }
