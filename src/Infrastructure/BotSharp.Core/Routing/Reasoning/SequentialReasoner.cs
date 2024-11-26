@@ -234,9 +234,4 @@ public class SequentialReasoner : IRoutingReasoner
         {
         });
     }
-
-    public Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId)
-    {
-        throw new NotImplementedException();
-    }
 }
