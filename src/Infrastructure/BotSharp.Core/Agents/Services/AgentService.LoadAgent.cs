@@ -67,7 +67,7 @@ public partial class AgentService
                 hook.OnSamplesLoaded(agent.Samples);
             }
 
-            hook.OnAgentUtilityloaded(agent);
+            hook.OnAgentUtilityLoaded(agent);
             hook.OnAgentLoaded(agent);
         }
 

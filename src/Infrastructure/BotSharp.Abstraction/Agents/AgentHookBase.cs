@@ -58,7 +58,7 @@ public abstract class AgentHookBase : IAgentHook
     {
     }
 
-    public virtual void OnAgentUtilityloaded(Agent agent)
+    public virtual void OnAgentUtilityLoaded(Agent agent)
     {
         if (agent.Type == AgentType.Routing) return;
 
