@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Users.Enums;
-using BotSharp.Core.Infrastructures;
 using System.Text.Json.Serialization;
 
 namespace BotSharp.OpenAPI.ViewModels.Users;
@@ -58,8 +57,10 @@ public class UserViewModel
             UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = Utilities.HideMiddleDigits(user.Email, true),
-            Phone = Utilities.HideMiddleDigits((!string.IsNullOrWhiteSpace(user.Phone) ? user.Phone.Replace("+86", String.Empty) : user.Phone)),
+            //Email = Utilities.HideMiddleDigits(user.Email, true),
+            //Phone = Utilities.HideMiddleDigits((!string.IsNullOrWhiteSpace(user.Phone) ? user.Phone.Replace("+86", String.Empty) : user.Phone)),
+            Email = user.Email,
+            Phone = !string.IsNullOrWhiteSpace(user.Phone) ? user.Phone.Replace("+86", String.Empty) : user.Phone,
             Type = user.Type,
             Role = user.Role,
             Source = user.Source,
