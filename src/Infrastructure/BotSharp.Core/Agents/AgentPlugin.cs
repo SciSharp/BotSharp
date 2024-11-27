@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Abstraction.Templating;
 using BotSharp.Abstraction.Users.Enums;
 using Microsoft.Extensions.Configuration;
 
@@ -33,6 +34,8 @@ public class AgentPlugin : IBotSharpPlugin
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
+            var render = provider.GetRequiredService<ITemplateRender>();
+            render.Register(typeof(AgentSettings));
             return settingService.Bind<AgentSettings>("Agent");
         });
     }

@@ -1,5 +1,8 @@
 namespace BotSharp.Abstraction.Users.Enums;
 
+/// <summary>
+/// User actions on agent level
+/// </summary>
 public static class UserAction
 {
     public const string Edit = "edit";

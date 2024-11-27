@@ -59,5 +59,5 @@ public interface IAgentService
 
     PluginDef GetPlugin(string agentId);
 
-    IEnumerable<string> GetAgentUtilities();
+    IEnumerable<AgentUtility> GetAgentUtilityOptions();
 }

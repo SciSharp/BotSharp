@@ -736,4 +736,42 @@ public class UserService : IUserService
         }
         return true;
     }
+
+    public async Task<bool> AddDashboardConversation(string userId, string conversationId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.AddDashboardConversation(userId, conversationId);
+
+        await Task.CompletedTask;
+        return true;
+    }
+    
+    public async Task<bool> RemoveDashboardConversation(string userId, string conversationId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.RemoveDashboardConversation(userId, conversationId);
+
+        await Task.CompletedTask;
+        return true;
+    }
+
+    public async Task UpdateDashboardConversation(string userId, DashboardConversation newDashConv)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dashConv = db.GetDashboard(userId)?.ConversationList.FirstOrDefault(x => string.Equals(x.ConversationId, newDashConv.ConversationId));
+        if (dashConv == null) return;
+        dashConv.Name = newDashConv.Name ?? dashConv.Name;
+        dashConv.Instruction = newDashConv.Instruction ?? dashConv.Instruction;
+        db.UpdateDashboardConversation(userId, dashConv);
+        await Task.CompletedTask;
+        return;
+    }
+
+    public async Task<Dashboard?> GetDashboard(string userId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dash = db.GetDashboard();
+        await Task.CompletedTask;
+        return dash;
+    }
 }

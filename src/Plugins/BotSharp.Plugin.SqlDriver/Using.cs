@@ -6,10 +6,8 @@ global using System.Text.RegularExpressions;
 global using System.Threading.Tasks;
 global using System.Linq;
 global using System.Text.Json;
-
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Logging;
-
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Plugins;
 global using BotSharp.Abstraction.Conversations.Models;
@@ -26,9 +24,10 @@ global using BotSharp.Abstraction.Settings;
 global using BotSharp.Plugin.SqlDriver.Hooks;
 global using BotSharp.Plugin.SqlDriver.Services;
 global using BotSharp.Plugin.SqlDriver.Enum;
-global using BotSharp.Plugin.SqlHero.Settings;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Instructs;
 global using BotSharp.Abstraction.Instructs.Models;
 global using BotSharp.Abstraction.Routing;
 global using BotSharp.Plugin.SqlDriver.Interfaces;
+global using BotSharp.Plugin.SqlDriver.Helpers;
+global using BotSharp.Plugin.SqlDriver.Settings;

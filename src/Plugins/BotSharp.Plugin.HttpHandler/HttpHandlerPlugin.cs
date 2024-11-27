@@ -20,7 +20,6 @@ public class HttpHandlerPlugin : IBotSharpPlugin
             return settingService.Bind<HttpHandlerSettings>("HttpHandler");
         });
 
-        services.AddScoped<IAgentHook, HttpHandlerHook>();
         services.AddScoped<IAgentUtilityHook, HttpHandlerUtilityHook>();
     }
 }
