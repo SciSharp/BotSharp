@@ -11,8 +11,8 @@
   "profiles": [ "tool" ],
   "routingRules": [
     {
-      "type": "planner",
-      "field": "HFPlanner"
+      "type": "reasoner",
+      "field": "HFReasoner"
     }
   ]
 }

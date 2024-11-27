@@ -1,7 +1,7 @@
 {
   "id": "beda4c12-e1ec-4b4b-b328-3df4a6687c4f",
   "name": "SQL Driver",
-  "description": "Execute the sql query in database from the latest dialog.",
+  "description": "Transfer to this Agent is allowed only when executable SQL statements are provided in the context.",
   "iconUrl": "https://cdn-icons-png.flaticon.com/512/3161/3161158.png",
   "type": "task",
   "createdDateTime": "2023-11-15T13:49:00Z",
@@ -18,7 +18,7 @@
       "field": "sql_statement",
       "required": true,
       "field_type": "string",
-      "description": "SQL statement"
+      "description": "SQL statement provided in the context"
     }
   ]
 }

@@ -1,4 +1,4 @@
-using BotSharp.Abstraction.Routing.Planning;
+using BotSharp.Abstraction.Planning;
 using BotSharp.Plugin.Planner.TwoStaging;
 
 namespace BotSharp.Plugin.Planner;
@@ -17,7 +17,7 @@ public class PlannerPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<IRoutingPlaner, TwoStageTaskPlanner>();
+        services.AddScoped<ITaskPlanner, TwoStageTaskPlanner>();
         services.AddScoped<IAgentHook, PlannerAgentHook>();
         services.AddScoped<IAgentUtilityHook, PlannerUtilityHook>();
     }

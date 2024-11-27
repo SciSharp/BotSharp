@@ -1,10 +1,10 @@
 using BotSharp.Abstraction.Infrastructures.Enums;
-using BotSharp.Abstraction.Routing.Planning;
-using BotSharp.Core.Routing.Planning;
+using BotSharp.Abstraction.Planning;
+using BotSharp.Core.Routing.Reasoning;
 
 namespace BotSharp.Plugin.Planner.TwoStaging;
 
-public partial class TwoStageTaskPlanner : IRoutingPlaner
+public partial class TwoStageTaskPlanner : ITaskPlanner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
@@ -40,7 +40,7 @@ public partial class TwoStageTaskPlanner : IRoutingPlaner
         inst = response.Content.JsonContent<FunctionCallFromLlm>();
 
         // Fix LLM malformed response
-        PlannerHelper.FixMalformedResponse(_services, inst);
+        ReasonerHelper.FixMalformedResponse(_services, inst);
 
         return inst;
     }
