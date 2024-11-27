@@ -1,10 +1,8 @@
-using BotSharp.Abstraction.Routing;
-using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing.Planning;
+using BotSharp.Abstraction.Routing.Reasoning;
 using BotSharp.Abstraction.Routing.Settings;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Core.Routing.Hooks;
-using BotSharp.Core.Routing.Planning;
+using BotSharp.Core.Routing.Reasoning;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Routing;
@@ -35,8 +33,10 @@ public class RoutingPlugin : IBotSharpPlugin
         services.AddScoped<IRoutingService, RoutingService>();
         services.AddScoped<IAgentHook, RoutingAgentHook>();
 
-        services.AddScoped<IRoutingPlaner, NaivePlanner>();
-        services.AddScoped<IRoutingPlaner, HFPlanner>();
-        services.AddScoped<IRoutingPlaner, SequentialPlanner>();
+        services.AddScoped<IRoutingReasoner, NaiveReasoner>();
+        services.AddScoped<IRoutingReasoner, HFReasoner>();
+        services.AddScoped<IRoutingReasoner, SequentialReasoner>();
+
+        services.AddScoped<IRoutingReasoner, OneStepForwardReasoner>();
     }
 }

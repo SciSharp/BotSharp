@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Routing;
 
-namespace BotSharp.Abstraction.Routing.Planning;
+namespace BotSharp.Abstraction.Planning;
 
 public interface IExecutor
 {
