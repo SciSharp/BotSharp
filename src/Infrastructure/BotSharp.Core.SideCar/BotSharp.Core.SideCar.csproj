@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+    <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
 </Project>

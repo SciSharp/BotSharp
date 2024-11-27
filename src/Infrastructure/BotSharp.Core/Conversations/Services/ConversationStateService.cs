@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -21,13 +20,14 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// </summary>
     private ConversationState _historyStates;
 
-    public ConversationStateService(ILogger<ConversationStateService> logger,
+    public ConversationStateService(
         IServiceProvider services,
-        IBotSharpRepository db)
+        IBotSharpRepository db,
+        ILogger<ConversationStateService> logger)
     {
-        _logger = logger;
         _services = services;
         _db = db;
+        _logger = logger;
         _curStates = new ConversationState();
         _historyStates = new ConversationState();
     }
@@ -125,17 +125,19 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var curMsgId = routingCtx.MessageId;
 
         _historyStates = _db.GetConversationStates(conversationId);
+
+        var endNodes = new Dictionary<string, string>();
+
+        if (_historyStates.IsNullOrEmpty()) return endNodes;
+
         var dialogs = _db.GetConversationDialogs(conversationId);
-        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.User)
+        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User)
                                  .GroupBy(x => x.MetaData?.MessageId)
                                  .Select(g => g.First())
                                  .OrderBy(x => x.MetaData?.CreateTime)
                                  .ToList();
         var curMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(curMsgId) && x.MetaData?.MessageId == curMsgId);
         curMsgIndex = curMsgIndex < 0 ? userDialogs.Count() : curMsgIndex;
-
-        var endNodes = new Dictionary<string, string>();
-        if (_historyStates.IsNullOrEmpty()) return endNodes;
 
         foreach (var state in _historyStates)
         {

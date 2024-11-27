@@ -15,7 +15,6 @@ public class InterpreterPlugin : IBotSharpAppPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        services.AddScoped<IAgentHook, InterpreterAgentHook>();
         services.AddScoped<IAgentUtilityHook, InterpreterUtilityHook>();
     }
 

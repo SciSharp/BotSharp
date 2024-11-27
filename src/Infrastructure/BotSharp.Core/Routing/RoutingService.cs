@@ -14,21 +14,6 @@ public partial class RoutingService : IRoutingService
     public IRoutingContext Context => _context;
     public Agent Router => _router;
 
-    //public int GetRecursiveCounter()
-    //{
-    //    return _currentRecursionDepth;
-    //}
-
-    //public void SetRecursiveCounter(int counter)
-    //{
-    //    _currentRecursionDepth = counter;
-    //}
-
-    //public void ResetRecursiveCounter()
-    //{
-    //    _currentRecursionDepth = 0;
-    //}
-
     public RoutingService(
         IServiceProvider services,
         RoutingSettings settings,

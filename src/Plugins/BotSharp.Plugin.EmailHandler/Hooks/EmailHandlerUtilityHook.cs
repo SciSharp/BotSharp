@@ -1,18 +1,22 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Plugin.EmailHandler.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.EmailHandler.Hooks
+namespace BotSharp.Plugin.EmailHandler.Hooks;
+
+public class EmailHandlerUtilityHook : IAgentUtilityHook
 {
-    public class EmailHandlerUtilityHook : IAgentUtilityHook
+    private static string EMAIL_READER_FN = "handle_email_reader";
+    private static string EMAIL_SENDER_FN = "handle_email_sender";
+
+    public void AddUtilities(List<AgentUtility> utilities)
     {
-        public void AddUtilities(List<string> utilities)
+        var utility = new AgentUtility
         {
-            utilities.Add(UtilityName.EmailHandler);
-        }
+            Name = UtilityName.EmailHandler,
+            Functions = [new(EMAIL_READER_FN), new(EMAIL_SENDER_FN)],
+            Templates = [new($"{EMAIL_READER_FN}.fn"), new($"{EMAIL_SENDER_FN}.fn")]
+        };
+
+        utilities.Add(utility);
     }
 }

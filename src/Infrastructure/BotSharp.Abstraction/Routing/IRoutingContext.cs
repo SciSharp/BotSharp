@@ -6,6 +6,7 @@ public interface IRoutingContext
     string FirstGoalAgentId();
     bool ContainsAgentId(string agentId);
     string OriginAgentId { get; }
+    string EntryAgentId { get; }
     string ConversationId { get; }
     string MessageId { get; }
     void SetMessageId(string conversationId, string messageId);

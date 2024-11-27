@@ -1,3 +1,5 @@
+using BotSharp.Core.Infrastructures;
+
 namespace BotSharp.Core.SideCar.Services;
 
 public class BotSharpConversationSideCar : IConversationSideCar
@@ -116,7 +118,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         state.ResetCurrentState();
         routing.Context.ResetRecursiveCounter();
         routing.Context.ResetAgentStack();
-
+        Utilities.ClearCache();
     }
 
     private void AfterExecute()
@@ -130,6 +132,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         state.SetCurrentState(node.State);
         routing.Context.SetRecursiveCounter(node.RecursiveCounter);
         routing.Context.SetAgentStack(node.RoutingStack);
+        Utilities.ClearCache();
         enabled = false;
     }
 }

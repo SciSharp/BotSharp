@@ -30,6 +30,8 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
+            var render = provider.GetRequiredService<ITemplateRender>();
+            render.Register(typeof(ConversationSetting));
             return settingService.Bind<ConversationSetting>("Conversation");
         });
 
@@ -48,8 +50,6 @@ public class ConversationPlugin : IBotSharpPlugin
         // Rich content messaging
         services.AddScoped<IRichContentService, RichContentService>();
 
-        // Register template render
-        services.AddSingleton<ITemplateRender, TemplateRender>();
         services.AddScoped<IResponseTemplateService, ResponseTemplateService>();
 
         services.AddScoped<IExecutor, InstructExecutor>();
