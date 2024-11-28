@@ -41,11 +41,23 @@ public class RoutingContext : IRoutingContext
                 var agentService = _services.GetRequiredService<IAgentService>();
                 _routerAgentIds = agentService.GetAgents(new AgentFilter
                 {
-                    Type = AgentType.Routing
+                    Type = AgentType.Routing,
+                    Pager = new Pagination { Size = 100 }
                 }).Result.Items.Select(x => x.Id).ToArray();
             }
 
             return _stack.Where(x => !_routerAgentIds.Contains(x)).LastOrDefault() ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Entry agent
+    /// </summary>
+    public string EntryAgentId
+    {
+        get
+        {
+            return _stack.LastOrDefault() ?? string.Empty;
         }
     }
 
@@ -231,12 +243,16 @@ public class RoutingContext : IRoutingContext
 
     public Stack<string> GetAgentStack()
     {
-        return new Stack<string>(_stack);
+        var copy = _stack.ToList();
+        copy.Reverse();
+        return new Stack<string>(copy);
     }
 
     public void SetAgentStack(Stack<string> stack)
     {
-        _stack = new Stack<string>(stack);
+        var copy = stack.ToList();
+        copy.Reverse();
+        _stack = new Stack<string>(copy);
     }
 
     public void ResetAgentStack()

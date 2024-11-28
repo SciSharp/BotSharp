@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.SqlHero.Settings;
+namespace BotSharp.Plugin.SqlDriver.Settings;
 
 public class SqlDriverSetting
 {

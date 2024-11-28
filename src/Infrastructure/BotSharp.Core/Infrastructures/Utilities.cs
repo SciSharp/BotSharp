@@ -30,10 +30,16 @@ public static class Utilities
         return sb.ToString();
     }
 
-    public static (string, string) SplitAsTuple(this string str, string sep)
+    public static (string, string, string) SplitAsTuple(this string str, string sep)
     {
         var splits = str.Split(sep);
-        return (splits[0], splits[1]);
+
+        if (splits.Length == 2 || string.IsNullOrWhiteSpace(splits[2]))
+        {
+            return (splits[0], splits[1], "CN");
+        }
+
+        return (splits[0], splits[1], splits[2]);
     }
 
     /// <summary>

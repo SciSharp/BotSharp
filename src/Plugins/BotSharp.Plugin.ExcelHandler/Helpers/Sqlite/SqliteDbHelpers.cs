@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using BotSharp.Plugin.SqlDriver.Settings;
 using Microsoft.Data.Sqlite;
-using BotSharp.Plugin.SqlDriver.Models;
-using BotSharp.Plugin.SqlHero.Settings;
 
 namespace BotSharp.Plugin.ExcelHandler.Helpers.Sqlite;
 

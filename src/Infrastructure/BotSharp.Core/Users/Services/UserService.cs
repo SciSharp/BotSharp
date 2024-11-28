@@ -148,7 +148,7 @@ public class UserService : IUserService
     public async Task<Token?> GetAffiliateToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
-        var (id, password) = base64.SplitAsTuple(":");
+        var (id, password, regionCode) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetAffiliateUserByPhone(id);
         var isCanLogin = record != null && !record.IsDisabled && record.Type == UserType.Affiliate;
@@ -170,7 +170,7 @@ public class UserService : IUserService
     public async Task<Token?> GetAdminToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
-        var (id, password) = base64.SplitAsTuple(":");
+        var (id, password, regionCode) = base64.SplitAsTuple(":");
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserByPhone(id, type: UserType.Internal);
         var isCanLogin = record != null && !record.IsDisabled
@@ -210,13 +210,13 @@ public class UserService : IUserService
     public async Task<Token?> GetToken(string authorization)
     {
         var base64 = Encoding.UTF8.GetString(Convert.FromBase64String(authorization));
-        var (id, password) = base64.SplitAsTuple(":");
+        var (id, password, regionCode) = base64.SplitAsTuple(":");
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
         {
-            record = db.GetUserByPhone(id);
+            record = db.GetUserByPhone(id, regionCode: regionCode);
         }
 
         if (record != null && record.Type == UserType.Affiliate)
@@ -525,7 +525,7 @@ public class UserService : IUserService
 
     public async Task<bool> VerifyEmailExisting(string email)
     {
-        if (string.IsNullOrEmpty(email))
+        if (string.IsNullOrWhiteSpace(email))
         {
             return true;
         }
@@ -542,7 +542,7 @@ public class UserService : IUserService
 
     public async Task<bool> VerifyPhoneExisting(string phone, string regionCode)
     {
-        if (string.IsNullOrEmpty(phone))
+        if (string.IsNullOrWhiteSpace(phone))
         {
             return true;
         }
@@ -735,5 +735,43 @@ public class UserService : IUserService
             await hook.DelUsers(userIds);
         }
         return true;
+    }
+
+    public async Task<bool> AddDashboardConversation(string userId, string conversationId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.AddDashboardConversation(userId, conversationId);
+
+        await Task.CompletedTask;
+        return true;
+    }
+    
+    public async Task<bool> RemoveDashboardConversation(string userId, string conversationId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.RemoveDashboardConversation(userId, conversationId);
+
+        await Task.CompletedTask;
+        return true;
+    }
+
+    public async Task UpdateDashboardConversation(string userId, DashboardConversation newDashConv)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dashConv = db.GetDashboard(userId)?.ConversationList.FirstOrDefault(x => string.Equals(x.ConversationId, newDashConv.ConversationId));
+        if (dashConv == null) return;
+        dashConv.Name = newDashConv.Name ?? dashConv.Name;
+        dashConv.Instruction = newDashConv.Instruction ?? dashConv.Instruction;
+        db.UpdateDashboardConversation(userId, dashConv);
+        await Task.CompletedTask;
+        return;
+    }
+
+    public async Task<Dashboard?> GetDashboard(string userId)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dash = db.GetDashboard();
+        await Task.CompletedTask;
+        return dash;
     }
 }

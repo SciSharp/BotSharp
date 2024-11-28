@@ -20,7 +20,10 @@ public class AgentViewModel
     public List<FunctionDef> Functions { get; set; }
     public List<AgentResponse> Responses { get; set; }
     public List<string> Samples { get; set; }
-    public List<string> Utilities { get; set; }
+
+    [JsonPropertyName("merge_utility")]
+    public bool MergeUtility { get; set; }
+    public List<AgentUtility> Utilities { get; set; }
 
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
@@ -33,8 +36,7 @@ public class AgentViewModel
     [JsonPropertyName("icon_url")]
     public string IconUrl { get; set; }
 
-    public List<string> Profiles { get; set; }
-        = new List<string>();
+    public List<string> Profiles { get; set; } = new();
 
     [JsonPropertyName("routing_rules")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -46,10 +48,7 @@ public class AgentViewModel
 
     public PluginDef Plugin { get; set; }
 
-    public bool Editable { get; set; }
-    public bool Chatable { get; set; }
-    public bool Trainable { get; set; }
-    public bool Evaluable { get; set; }
+    public IEnumerable<string>? Actions { get; set; }
 
     [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }
@@ -74,6 +73,7 @@ public class AgentViewModel
             Utilities = agent.Utilities,
             IsPublic= agent.IsPublic,
             Disabled = agent.Disabled,
+            MergeUtility = agent.MergeUtility,
             IconUrl = agent.IconUrl,
             Profiles = agent.Profiles ?? new List<string>(),
             RoutingRules = agent.RoutingRules,

@@ -22,7 +22,14 @@ public partial class MongoRepository
             return null;
         }
 
-        phoneSecond = phone.StartsWith("+86") ? phone.Replace("+86", "") : $"+86{phone}";
+        if (regionCode == "CN")
+        {
+            phoneSecond = (phone ?? "").StartsWith("+86") ? (phone ?? "").Replace("+86", "") : ($"+86{phone ?? ""}");
+        }
+        else
+        {
+            phoneSecond = (phone ?? "").Substring(regionCode == "US" ? 2 : 3);
+        }
 
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond)
         && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
@@ -316,5 +323,52 @@ public partial class MongoRepository
         }
 
         return true;
+    }
+
+    public void AddDashboardConversation(string userId, string conversationId)
+    {
+        var user = _dc.Users.AsQueryable()
+            .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
+        if (user == null) return;
+        var curDash = user.Dashboard ?? new Dashboard();
+        curDash.ConversationList.Add(new DashboardConversation 
+        { 
+            Id = Guid.NewGuid().ToString(),
+            ConversationId = conversationId 
+        });
+
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update.Set(x => x.Dashboard, curDash)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+    }
+
+    public void RemoveDashboardConversation(string userId, string conversationId)
+    {
+        var user = _dc.Users.AsQueryable()
+            .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
+        if (user == null || user.Dashboard == null || user.Dashboard.ConversationList.IsNullOrEmpty()) return;
+        var curDash = user.Dashboard;
+        var unpinConv = user.Dashboard.ConversationList.FirstOrDefault(
+            x => string.Equals(x.ConversationId, conversationId, StringComparison.OrdinalIgnoreCase));
+        if (unpinConv == null) return;
+        curDash.ConversationList.Remove(unpinConv);
+
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update.Set(x => x.Dashboard, curDash)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+    }
+
+    public void UpdateDashboardConversation(string userId, DashboardConversation dashConv)
+    {
+        var user = _dc.Users.AsQueryable()
+            .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
+        if (user == null || user.Dashboard == null || user.Dashboard.ConversationList.IsNullOrEmpty()) return;
+        var curIdx = user.Dashboard.ConversationList.ToList().FindIndex(
+            x => string.Equals(x.ConversationId, dashConv.ConversationId, StringComparison.OrdinalIgnoreCase));
+        if (curIdx < 0) return;
+
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update.Set(x => x.Dashboard.ConversationList[curIdx], dashConv)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
     }
 }

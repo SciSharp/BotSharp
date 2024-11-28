@@ -12,6 +12,7 @@ public class ConversationViewModel
     [JsonPropertyName("agent_name")]
     public string AgentName { get; set; }
 
+    [JsonPropertyName("title")]
     public string Title { get; set; } = string.Empty;
 
     public UserViewModel User {  get; set; } = new UserViewModel();

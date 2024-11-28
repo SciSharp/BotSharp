@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Models;
-using System.Drawing;
 
 namespace BotSharp.Core.Routing;
 
