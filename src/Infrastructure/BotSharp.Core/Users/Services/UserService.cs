@@ -570,7 +570,7 @@ public class UserService : IUserService
 
         if (!string.IsNullOrEmpty(user.Phone))
         {
-            record = db.GetUserByPhone(user.Phone);
+            record = db.GetUserByPhone(user.Phone, regionCode: user.RegionCode);
         }
 
         if (!string.IsNullOrEmpty(user.Email))
@@ -745,7 +745,7 @@ public class UserService : IUserService
         await Task.CompletedTask;
         return true;
     }
-    
+
     public async Task<bool> RemoveDashboardConversation(string userId, string conversationId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
