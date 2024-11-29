@@ -25,7 +25,9 @@ public class RedisSubscriber : IEventSubscriber
         });
     }
 
-    public async Task SubscribeAsync(string channel, string group, bool priorityEnabled, Func<string, string, Task> received)
+    public async Task SubscribeAsync(string channel, string group, bool priorityEnabled, 
+        Func<string, string, Task> received, 
+        CancellationToken? stoppingToken = null)
     {
         var db = _redis.GetDatabase();
 
@@ -43,6 +45,12 @@ public class RedisSubscriber : IEventSubscriber
         while (true)
         {
             await Task.Delay(100);
+
+            if (stoppingToken.HasValue && stoppingToken.Value.IsCancellationRequested)
+            {
+                _logger.LogInformation($"Stopping consumer channel & group: [{channel}, {group}]");
+                break;
+            }
 
             if (priorityEnabled)
             {
