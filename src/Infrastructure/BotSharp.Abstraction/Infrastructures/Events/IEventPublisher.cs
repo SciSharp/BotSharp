@@ -15,4 +15,6 @@ public interface IEventPublisher
     Task ReDispatchAsync(string channel, int count = 10, string order = "asc");
 
     Task ReDispatchPendingAsync(string channel, string group, int count = 10);
+
+    Task RemoveAsync(string channel, int count = 10);
 }
