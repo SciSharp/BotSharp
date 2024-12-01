@@ -25,7 +25,7 @@ public class RedisSubscriber : IEventSubscriber
         });
     }
 
-    public async Task SubscribeAsync(string channel, string group, bool priorityEnabled, 
+    public async Task SubscribeAsync(string channel, string group, int? port, bool priorityEnabled, 
         Func<string, string, Task> received, 
         CancellationToken? stoppingToken = null)
     {
@@ -42,6 +42,12 @@ public class RedisSubscriber : IEventSubscriber
             await CreateConsumerGroup(db, channel, group);
         }
 
+        var consumer = Environment.MachineName;
+        if (port.HasValue)
+        {
+            consumer += $"-{port}";
+        }
+
         while (true)
         {
             await Task.Delay(100);
@@ -54,28 +60,28 @@ public class RedisSubscriber : IEventSubscriber
 
             if (priorityEnabled)
             {
-                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, received) > 0)
+                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, consumer, received) > 0)
                 {
                     continue;
                 }
 
-                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, received) > 0)
+                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, consumer, received) > 0)
                 {
                     continue;
                 }
 
-                await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, received);
+                await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, consumer, received);
             }
             else
             {
-                await HandleGroupMessage(db, channel, group, received);
+                await HandleGroupMessage(db, channel, group, consumer, received);
             }
         }
     }
 
-    private async Task<int> HandleGroupMessage(IDatabase db, string channel, string group, Func<string, string, Task> received)
+    private async Task<int> HandleGroupMessage(IDatabase db, string channel, string group, string consumer, Func<string, string, Task> received)
     {
-        var entries = await db.StreamReadGroupAsync(channel, group, Environment.MachineName, count: 1);
+        var entries = await db.StreamReadGroupAsync(channel, group, consumer, count: 1);
         foreach (var entry in entries)
         {
             _logger.LogInformation($"Consumer {Environment.MachineName} received: {channel} {entry.Values[0].Value}");
