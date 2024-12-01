@@ -158,4 +158,26 @@ public class RedisPublisher : IEventPublisher
             Console.WriteLine($"Redis error: {ex.Message}");
         }
     }
+
+    public async Task RemoveAsync(string channel, int count = 10)
+    {
+        var db = _redis.GetDatabase();
+
+        var entries = await db.StreamRangeAsync(channel, "-", "+", count: count, messageOrder: Order.Ascending);
+        foreach (var entry in entries)
+        {
+            _logger.LogInformation($"Fetched message: {channel} {entry.Values[0].Value} ({entry.Id})");
+
+            try
+            {
+                await db.StreamDeleteAsync(channel, [entry.Id]);
+
+                _logger.LogWarning($"Deleted message: {channel} {entry.Values[0].Value} ({entry.Id})");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}\r\n{ex}");
+            }
+        }
+    }
 }
