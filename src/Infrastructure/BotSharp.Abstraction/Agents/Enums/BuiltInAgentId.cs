@@ -51,4 +51,9 @@ public class BuiltInAgentId
     /// Evaluate prompt and conversation
     /// </summary>
     public const string Evaluator = "dfd9b46d-d00c-40af-8a75-3fbdc2b89869";
+
+    /// <summary>
+    /// Translates user-defined natural language rules into programmatic code
+    /// </summary>
+    public const string RuleEncoder = "6acfb93c-3412-402e-9ba5-c5d3cd8f0161";
 }
