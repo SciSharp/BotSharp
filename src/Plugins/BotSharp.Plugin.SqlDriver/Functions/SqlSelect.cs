@@ -1,6 +1,6 @@
-using BotSharp.Plugin.SqlDriver.Models;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
+using Npgsql;
 using static Dapper.SqlMapper;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
@@ -26,12 +26,15 @@ public class SqlSelect : IFunctionCallback
         }
 
         // check if need to instantely
-        var settings = _services.GetRequiredService<SqlDriverSetting>();
-        var result = settings.DatabaseType switch
+        var dbHook = _services.GetRequiredService<ISqlDriverHook>();
+        var dbType = dbHook.GetDatabaseType(message);
+
+        var result = dbType switch
         {
-            "MySql" => RunQueryInMySql(args),
-            "SqlServer" => RunQueryInSqlServer(args),
-            _ => throw new NotImplementedException($"Database type {settings.DatabaseType} is not supported.")
+            "mysql" => RunQueryInMySql(args),
+            "sqlserver" => RunQueryInSqlServer(args),
+            "redshift" => RunQueryInRedshift(args),
+            _ => throw new NotImplementedException($"Database type {dbType} is not supported.")
         };
 
         if (result == null)
@@ -63,6 +66,18 @@ public class SqlSelect : IFunctionCallback
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
         using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
+        var dictionary = new Dictionary<string, object>();
+        foreach (var p in args.Parameters)
+        {
+            dictionary["@" + p.Name] = p.Value;
+        }
+        return connection.Query(args.Statement, dictionary);
+    }
+
+    private IEnumerable<dynamic> RunQueryInRedshift(SqlStatement args)
+    {
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
+        using var connection = new NpgsqlConnection(settings.RedshiftConnectionString);
         var dictionary = new Dictionary<string, object>();
         foreach (var p in args.Parameters)
         {

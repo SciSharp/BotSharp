@@ -1,14 +1,8 @@
-using BotSharp.Abstraction.Agents.Enums;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
-using BotSharp.Plugin.SqlDriver.Interfaces;
-using BotSharp.Plugin.SqlDriver.Models;
 using Dapper;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Npgsql;
-using System.Data.Common;
 
 namespace BotSharp.Plugin.SqlDriver.Functions;
 
@@ -113,6 +107,7 @@ public class ExecuteQueryFn : IFunctionCallback
         using var connection = new SqlConnection(settings.SqlServerExecutionConnectionString ?? settings.SqlServerConnectionString);
         return connection.Query(string.Join("\r\n", sqlTexts));
     }
+
     private IEnumerable<dynamic> RunQueryInRedshift(string[] sqlTexts)
     {
         var settings = _services.GetRequiredService<SqlDriverSetting>();
