@@ -5,7 +5,8 @@ public partial class PlaywrightWebDriver
     public async Task<BrowserActionResult> ScrollPage(MessageInfo message, PageActionArgs args)
     {
         var result = new BrowserActionResult();
-        await _instance.Wait(message.ContextId);
+        var waitTime = args.WaitTime > 0 ? args.WaitTime : 10;
+        await _instance.Wait(message.ContextId, waitTime, args.WaitForNetworkIdle);
 
         var page = _instance.GetPage(message.ContextId);
 
@@ -31,7 +32,7 @@ public partial class PlaywrightWebDriver
             int scrollY = await page.EvaluateAsync<int>("document.body.scrollHeight");
 
             // Scroll to the bottom
-            await page.Mouse.WheelAsync(0, -scrollY);
+            await page.Mouse.WheelAsync(0, scrollY);
         }
         else if (args.Direction == "top")
         {
