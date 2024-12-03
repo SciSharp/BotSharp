@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Infrastructures;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Utilities;
 
+[DebuggerStepThrough]
 public class Pagination : ICacheKey
 {
     private int _page;

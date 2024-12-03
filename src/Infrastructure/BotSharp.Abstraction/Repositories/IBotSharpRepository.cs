@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Roles.Models;
 using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 
@@ -26,7 +27,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     #region User
     User? GetUserByEmail(string email) => throw new NotImplementedException();
-    User? GetUserByPhone(string phone, string role = null, string regionCode = "CN") => throw new NotImplementedException();
+    User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN") => throw new NotImplementedException();
     User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
     User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
