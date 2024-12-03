@@ -20,14 +20,23 @@ public class SqlDriverPlanningHook : IPlanningHook
         _services = services;
     }
 
-    public async Task OnPlanningCompleted(string planner, RoleDialogModel msg)
+    public async Task OnSourceCodeGenerated(string planner, RoleDialogModel msg, string language)
     {
+        // envoke validate
+        if (language != "sql") 
+        { 
+            return; 
+        }
+
+        var routing = _services.GetRequiredService<IRoutingService>();
+        await routing.InvokeFunction("validate_sql", msg);
+
         await HookEmitter.Emit<ISqlDriverHook>(_services, async (hook) =>
         {
             await hook.SqlGenerated(msg);
         });
 
-       var settings = _services.GetRequiredService<SqlDriverSetting>();
+        var settings = _services.GetRequiredService<SqlDriverSetting>();
         if (!settings.ExecuteSqlSelectAutonomous)
         {
             var conversationStateService = _services.GetRequiredService<IConversationStateService>();
@@ -51,7 +60,6 @@ public class SqlDriverPlanningHook : IPlanningHook
         var response = await completion.GetChatCompletions(agent, wholeDialogs);
 
         // Invoke "execute_sql"
-        var routing = _services.GetRequiredService<IRoutingService>();
         await routing.InvokeFunction(response.FunctionName, response);
 
         msg.CurrentAgentId = agent.Id;
@@ -59,6 +67,11 @@ public class SqlDriverPlanningHook : IPlanningHook
         msg.FunctionArgs = response.FunctionArgs;
         msg.Content = response.Content;
         msg.StopCompletion = response.StopCompletion;
+    }
+
+    public async Task OnPlanningCompleted(string planner, RoleDialogModel msg)
+    {
+       
     }
 
     public async Task<string> GetSummaryAdditionalRequirements(string planner, RoleDialogModel message)
