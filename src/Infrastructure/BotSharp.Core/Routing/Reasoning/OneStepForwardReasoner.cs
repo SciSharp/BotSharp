@@ -34,7 +34,7 @@ public class OneStepForwardReasoner : IRoutingReasoner
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public OneStepForwardReasoner(IServiceProvider services, ILogger<NaiveReasoner> logger)
+    public OneStepForwardReasoner(IServiceProvider services, ILogger<OneStepForwardReasoner> logger)
     {
         _services = services;
         _logger = logger;
@@ -116,7 +116,7 @@ public class OneStepForwardReasoner : IRoutingReasoner
         }
         else
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(NaiveReasoner)}");
+            context.Empty(reason: $"Agent queue is cleared by {nameof(OneStepForwardReasoner)}");
             // context.Push(inst.OriginalAgent, "Push user goal agent");
         }
         return true;
