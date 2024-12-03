@@ -1,0 +1,24 @@
+{
+  "id": "c2o139da-a62a-4355-8605-fdf0ffaca58e",
+  "name": "Crontab",
+  "description": "Convert the user-specified schedule into a Cron expression, accurate to the second level.",
+  "iconUrl": "https://icon-library.com/images/stop-watch-icon/stop-watch-icon-10.jpg",
+  "type": "task",
+  "createdDateTime": "2024-12-03T00:00:00Z",
+  "updatedDateTime": "2024-12-03T00:00:00Z",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "cron" ],
+  "llmConfig": {
+    "provider": "openai",
+    "model": "gpt-4o-mini"
+  },
+  "routingRules": [
+    {
+      "field": "cron_expression",
+      "required": true,
+      "field_type": "string",
+      "description": "A Cron expression, accurate to the second level."
+    }
+  ]
+}

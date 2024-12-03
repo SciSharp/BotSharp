@@ -56,4 +56,9 @@ public class BuiltInAgentId
     /// Translates user-defined natural language rules into programmatic code
     /// </summary>
     public const string RuleEncoder = "6acfb93c-3412-402e-9ba5-c5d3cd8f0161";
+
+    /// <summary>
+    /// Schedule job
+    /// </summary>
+    public const string Crontab = "c2o139da-a62a-4355-8605-fdf0ffaca58e";
 }

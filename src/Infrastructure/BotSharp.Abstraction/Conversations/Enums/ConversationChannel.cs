@@ -7,4 +7,5 @@ public class ConversationChannel
     public const string Phone = "phone";
     public const string Messenger = "messenger";
     public const string Email = "email";
+    public const string Cron = "cron";
 }
