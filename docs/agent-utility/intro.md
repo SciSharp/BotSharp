@@ -8,7 +8,6 @@ The agent utility is a unique feature that can be integrated into agent to enhan
 
 <div id="agent-utility-example">
     <img src="assets/agent-utility-example.png" style="display: block; margin: auto;" />
-    <div style="text-align: center;">Fig 2.1.1 Agent utility example.</div>
 </div>
 <br />
 
@@ -16,11 +15,10 @@ The agent utility is a unique feature that can be integrated into agent to enhan
 In this section, we outline the steps to set up a custom agent utility. We start with the basic code structure and then add essential utility data, such as prompts and functions. The utility hooks are used to incorporate the utility into the agent. Finally, we give a brief overview of the utility implementation.
 
 ### Basic Code Structure
-The basic code structure of a typical agent utility includes prompt/function data, hooks, and function implementation. We can add specific utility prompts and functions in different projects. Note that the agent “6745151e-6d46-4a02-8de4-1c4f21c7da95” is considered as a dedicated utility assistant, and every prompt and function can be optionally used as a utility. [Fig 3.1.1](#agent-utility-code-structure) presents the prompt, function, hooks, and implementation of an http utility.
+The basic code structure of a typical agent utility includes prompt/function data, hooks, and function implementation. We can add specific utility prompts and functions in different projects. Note that the agent “6745151e-6d46-4a02-8de4-1c4f21c7da95” is considered as a dedicated utility assistant, and every prompt and function can be optionally used as a utility. [Fig 3.1.1](#agent-utility-code-structure) presents the structure of prompt, function, hooks, and implementation of an http utility.
 
 <div id="agent-utility-code-structure">
     <img src="assets/agent-utility-code-structure.png" style="display: block; margin: auto;" />
-    <div style="text-align: center;">Fig 3.1.1 Basic code structure of an agent utility</div>
 </div>
 <br />
 
@@ -323,33 +321,73 @@ public class HandleHttpRequestFn : IFunctionCallback
 ### Utility Inheritance
 Here we introduce a new feature: utility inheritance. As we are using the routing-based multi-agent architecture, different agents may come into the call stack while we are handling user requests. With the utility inheritance, the agent can not only use the utilities added to itself but also inherit the utilities from the entry agent, which is the first agent that comes into the call stack, such as a router agent. [Fig 3.5.1](#routing-architecture) illustrates a typical example of routing-based multi-agent architecture, where “Pizza Bot” is the router and "Order Inquery", "Ordering", "Payment" are task agents. When the user starts chatting, “Pizza Bot” first comes into the call stack, with "Order Inquery", "Ordering", or "Payment" joining next depending on what the user actually requests. For example, if we allow "Order Inquery" to inherit utilities, all the utilities from itself as well as “Pizza Bot” will be invoked once the "Order Inquery" agent is in action.
 
-<div  id="routing-architecture">
+<div id="routing-architecture">
     <img src="assets/routing-arch.png" style="display: block; margin: auto;" />
-    <div style="text-align: center;">Fig 3.5.1 An example of routing-based multi-agent architecture.</div>
 </div>
 <br />
 
 ### Agent Setup
-Here we introduce the agent setup with utilities and inheritance. As we introduced in [Section 3.3](#utility-hooks), each utility of an agent is structured with utility name, functions, and prompts. [Fig 3.6.1](#router-utility) and [Fig 3.6.2](#task-agent-utility) presents the utility configuration and utility inheritance of “Pizza Bot” and “Order Inquery”, respectively. As is displayed, we can apply the utility configuration and inheritance via agent files or agent detail ui. Note that we can uncheck the box to disable a utility ([Fig 3.6.1](#router-utility) right).
+Here we introduce the agent setup with utilities and inheritance. As we introduced in [Section 3.3](#utility-hooks), each utility of an agent is structured with utility name, functions, and prompts. [Fig 3.6.1](#router-utility-ui) and [Fig 3.6.2](#task-agent-utility-ui) presents the utility configuration and utility inheritance of “Pizza Bot” and “Order Inquery”, respectively. As is displayed, we can apply the utility configuration and inheritance via agent files or agent detail ui. Note that we can uncheck the box to disable a utility ([Fig 3.6.2](#router-utility-ui)).
 
-<div id="router-utility">
-    <div style="display: flex; justify-content: center;">
-        <div><img src="assets/router-utility.png" /></div>
-        <div><img src="assets/router-utility-ui.png" /></div>
-    </div>
-    <div style="text-align: center;">Fig 3.6.1 Router utility setup of "Pizza Bot".</div>
-    <div style="text-align: center;">(left: agent file, right: agent detail ui)</div>
+```json
+{
+  "id": "8970b1e5-d260-4e2c-90b1-f1415a257c18",
+  "name": "Pizza Bot",
+  "description": "AI assistant that can help customer place pizza order.",
+  "type": "routing",
+  "inheritAgentId": "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a",
+  "createdDateTime": "2023-08-18T10:39:32.2349685Z",
+  "updatedDateTime": "2023-08-18T14:39:32.2349686Z",
+  "iconUrl": "https://cdn-icons-png.flaticon.com/512/6978/6978255.png",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "pizza" ],
+  "utilities": [
+    {
+      "name": "http_handler",
+      "functions": [
+        { "name": "handle_http_request" }
+      ],
+      "templates": [
+        { "name": "handle_http_request.fn" }
+      ]
+    }
+  ],
+  "routingRules": [
+    {
+      "type": "reasoner",
+      "field": "NaiveReasoner"
+    }
+  ]
+}
+```
+<br />
+
+
+<div id="router-utility-ui">
+    <img src="assets/router-utility-ui.png" style="display: block; margin: auto;" />
 </div>
 <br />
 <br />
+<br />
 
-<div style="text-align: center;" id="task-agent-utility">
-    <div style="display: flex; justify-content: center;">
-        <div><img src="assets/task-agent-utility.png" /></div>
-        <div><img src="assets/task-agent-utility-ui.png" /></div>
-    </div>
-    <div style="text-align: center;">Fig 3.6.2 Utility inheritance of "Order Inquery" agent.</div>
-    <div style="text-align: center;">(left: agent file, right: agent detail ui)</div>
+```json
+{
+  "name": "Order Inquiry",
+  "description": "Check the order status like payment, delivery or baking.",
+  "createdDateTime": "2023-08-18T14:39:32.2349685Z",
+  "updatedDateTime": "2023-08-18T14:39:32.2349686Z",
+  "id": "b284db86-e9c2-4c25-a59e-4649797dd130",
+  "disabled": false,
+  "isPublic": true,
+  "mergeUtility": true,
+  "profiles": [ "pizza" ]
+}
+```
+<br />
+
+<div id="task-agent-utility-ui">
+    <img src="assets/task-agent-utility-ui.png" style="display: block; margin: auto;" />
 </div>
 <br />
 
@@ -381,11 +419,10 @@ public class HttpHandlerPlugin : IBotSharpPlugin
 }
 ```
 
-[Fig 4.1.2](#register-assembly) shows the utility assembly registration in “appsettings.json”. It is important to note that we are required to add the project reference to the Startup project, e.g., WebStarter. Moreover, we are required to add any new custom agent utility in the “Plugin” folder instead of the “BotSharp” folder.
+[Fig 4.1.2](#register-assembly) demonstrates the utility assembly registration in “appsettings.json”. It is important to note that we are required to add the project reference to the Startup project, e.g., WebStarter. Moreover, we are required to add any new custom agent utility in the “Plugin” folder instead of the “BotSharp” folder.
 
 <div style="text-align: center;" id="register-assembly">
     <img src="assets/register-assembly.png" />
-    <div>Fig 4.1.2 Register assembly.</div>
 </div>
 <br />
 
@@ -395,7 +432,6 @@ In this section, we demonstrate an http utility. After we set up and integrate t
 
 <div style="text-align: center;" id="add-utility">
     <img src="assets/add-utility.png" />
-    <div>Fig 5.1.1 Add http utility in Chatbot.</div>
 </div>
 <br />
 
@@ -403,7 +439,6 @@ Once we add the utility, we can initialize a conversation by clicking the bot ic
 
 <div style="text-align: center;" id="chat-window-demo">
     <img src="assets/chat-window-demo.png" />
-    <div>Fig 5.1.2 Chat window with Chatbot and http utility.</div>
 </div>
 <br />
 
@@ -411,7 +446,6 @@ Here we use dummy rest APIs (source: https://dummy.restapiexample.com/) for the 
 
 <div style="text-align: center;" id="dummy-http">
     <img src="assets/dummy-http.png" />
-    <div>Fig 5.1.3 Send dummy http requests.</div>
 </div>
 <br />
 
