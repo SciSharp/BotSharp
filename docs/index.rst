@@ -115,7 +115,7 @@ The main documentation for the site is organized into the following sections:
    architecture/plugin
    architecture/hooks
    architecture/routing
-   architecture/agent-utility/intro
+   architecture/agent-utility
    architecture/logging
    architecture/data-persistence
 
