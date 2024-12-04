@@ -7,7 +7,7 @@ This document aims to introduce the agent utility concept and provide an instruc
 The agent utility is a unique feature that can be integrated into agent to enhance its capability. Its core principle is that it can dynamically and seamlessly add extra prompts and add task-oriented functions (or tools) during conversation, without disrupting the agent’s primary purpose. In other words, the agent utility can perform extra tasks based on the context of conversation. Typical examples of agent utility include reading images/pdf, generating image, and sending http requests. [Fig 2.1.1](#agent-utility-example) demonstrates an example of these utilities. In this example, “Chatbot” is a simple agent to answer user questions and the utilities extend its capability to explain image content, generate requested image, and send a specific http request.
 
 <div id="agent-utility-example">
-    <img src="assets/agent-utility-example.png" style="display: block; margin: auto;" />
+    <img src="assets/agent-utility/agent-utility-example.png" style="display: block; margin: auto;" />
 </div>
 <br />
 
@@ -18,7 +18,7 @@ In this section, we outline the steps to set up a custom agent utility. We start
 The basic code structure of a typical agent utility includes prompt/function data, hooks, and function implementation. We can add specific utility prompts and functions in different projects. Note that the agent “6745151e-6d46-4a02-8de4-1c4f21c7da95” is considered as a dedicated utility assistant, and every prompt and function can be optionally used as a utility. [Fig 3.1.1](#agent-utility-code-structure) presents the structure of prompt, function, hooks, and implementation of an http utility.
 
 <div id="agent-utility-code-structure">
-    <img src="assets/agent-utility-code-structure.png" style="display: block; margin: auto;" />
+    <img src="assets/agent-utility/agent-utility-code-structure.png" style="display: block; margin: auto;" />
 </div>
 <br />
 
@@ -322,7 +322,7 @@ public class HandleHttpRequestFn : IFunctionCallback
 Here we introduce a new feature: utility inheritance. As we are using the routing-based multi-agent architecture, different agents may come into the call stack while we are handling user requests. With the utility inheritance, the agent can not only use the utilities added to itself but also inherit the utilities from the entry agent, which is the first agent that comes into the call stack, such as a router agent. [Fig 3.5.1](#routing-architecture) illustrates a typical example of routing-based multi-agent architecture, where “Pizza Bot” is the router and "Order Inquery", "Ordering", "Payment" are task agents. When the user starts chatting, “Pizza Bot” first comes into the call stack, with "Order Inquery", "Ordering", or "Payment" joining next depending on what the user actually requests. For example, if we allow "Order Inquery" to inherit utilities, all the utilities from itself as well as “Pizza Bot” will be invoked once the "Order Inquery" agent is in action.
 
 <div id="routing-architecture">
-    <img src="assets/routing-arch.png" style="display: block; margin: auto;" />
+    <img src="assets/agent-utility/routing-arch.png" style="display: block; margin: auto;" />
 </div>
 <br />
 
@@ -365,7 +365,7 @@ Here we introduce the agent setup with utilities and inheritance. As we introduc
 
 
 <div id="router-utility-ui">
-    <img src="assets/router-utility-ui.png" style="display: block; margin: auto;" />
+    <img src="assets/agent-utility/router-utility-ui.png" style="display: block; margin: auto;" />
 </div>
 <br />
 <br />
@@ -387,7 +387,7 @@ Here we introduce the agent setup with utilities and inheritance. As we introduc
 <br />
 
 <div id="task-agent-utility-ui">
-    <img src="assets/task-agent-utility-ui.png" style="display: block; margin: auto;" />
+    <img src="assets/agent-utility/task-agent-utility-ui.png" style="display: block; margin: auto;" />
 </div>
 <br />
 
@@ -422,7 +422,7 @@ public class HttpHandlerPlugin : IBotSharpPlugin
 [Fig 4.1.2](#register-assembly) demonstrates the utility assembly registration in “appsettings.json”. It is important to note that we are required to add the project reference to the Startup project, e.g., WebStarter. Moreover, we are required to add any new custom agent utility in the “Plugin” folder instead of the “BotSharp” folder.
 
 <div style="text-align: center;" id="register-assembly">
-    <img src="assets/register-assembly.png" />
+    <img src="assets/agent-utility/register-assembly.png" />
 </div>
 <br />
 
@@ -431,21 +431,21 @@ public class HttpHandlerPlugin : IBotSharpPlugin
 In this section, we demonstrate an http utility. After we set up and integrate the custom agent utility in backend, we can start the BotSharp-UI and go to any specific agent. [Fig 5.1.1](#add-utility) shows an example of the “Chatbot” agent, where we can add any registered utilities in the highlight section.
 
 <div style="text-align: center;" id="add-utility">
-    <img src="assets/add-utility.png" />
+    <img src="assets/agent-utility/add-utility.png" />
 </div>
 <br />
 
 Once we add the utility, we can initialize a conversation by clicking the bot icon at the top left corner. [Fig 5.1.2](#chat-window-demo) shows the conversation window, where we can find the number of utilities at the left panel. We can also click the agent name to go back to the agent page.
 
 <div style="text-align: center;" id="chat-window-demo">
-    <img src="assets/chat-window-demo.png" />
+    <img src="assets/agent-utility/chat-window-demo.png" />
 </div>
 <br />
 
 Here we use dummy rest APIs (source: https://dummy.restapiexample.com/) for the demo purpose. [Fig 5.1.3](#dummy-http) displays the various http requests sent in the conversation with “Chatbot”. We can see that the “Http Handler” utility has successfully extends the agent to send http request and receive response.
 
 <div style="text-align: center;" id="dummy-http">
-    <img src="assets/dummy-http.png" />
+    <img src="assets/agent-utility/dummy-http.png" />
 </div>
 <br />
 
