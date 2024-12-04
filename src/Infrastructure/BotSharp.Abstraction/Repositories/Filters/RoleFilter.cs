@@ -15,4 +15,9 @@ public class RoleFilter
     {
         return new RoleFilter();
     }
+
+    public bool IsInit()
+    {
+        return Names.IsNullOrEmpty();
+    }
 }
