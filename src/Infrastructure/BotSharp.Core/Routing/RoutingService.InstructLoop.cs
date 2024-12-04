@@ -97,14 +97,20 @@ public partial class RoutingService
     {
         var rule = router.RoutingRules.FirstOrDefault(x => x.Type == RuleType.Reasoner);
 
+        if (rule == null)
+        {
+            _logger.LogError($"Can't find any reasoner");
+            return _services.GetServices<IRoutingReasoner>().First(x => x.Name == "Naive Reasoner");
+        }
+
         var reasoner = _services.GetServices<IRoutingReasoner>().
             FirstOrDefault(x => x.GetType().Name.EndsWith(rule.Field));
 
         if (reasoner == null)
         {
-            _logger.LogError($"Can't find specific planner named {rule.Field}");
+            _logger.LogError($"Can't find specific reasoner named {rule.Field}");
             // Default use NaiveReasoner
-            return _services.GetRequiredService<NaiveReasoner>();
+            return _services.GetServices<IRoutingReasoner>().First(x => x.Name == "Naive Reasoner");
         }
 
         return reasoner;
