@@ -1,5 +1,5 @@
 {
-  "name": "sql_table_definition",
+  "name": "util-db-sql_table_definition",
   "description": "Get table structure from database by table name",
   "parameters": {
     "type": "object",

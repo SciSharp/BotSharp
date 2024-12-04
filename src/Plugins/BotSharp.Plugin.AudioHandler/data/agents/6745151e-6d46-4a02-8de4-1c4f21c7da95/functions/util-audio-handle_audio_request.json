@@ -1,5 +1,5 @@
 {
-  "name": "handle_audio_request",
+  "name": "util-audio-handle_audio_request",
   "description": "If the user requests to transcribe or summarize audio content, you need to call this function to transcribe the audio content to raw texts or provide sunmmary based on raw texts transcribed from audio",
   "parameters": {
     "type": "object",

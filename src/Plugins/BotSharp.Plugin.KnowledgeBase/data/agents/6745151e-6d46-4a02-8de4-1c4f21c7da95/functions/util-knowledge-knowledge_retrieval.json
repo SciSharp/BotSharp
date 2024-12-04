@@ -1,5 +1,5 @@
 {
-  "name": "knowledge_retrieval",
+  "name": "util-knowledge-knowledge_retrieval",
   "description": "Retrieve related domain knowledge to handle user request",
   "parameters": {
     "type": "object",

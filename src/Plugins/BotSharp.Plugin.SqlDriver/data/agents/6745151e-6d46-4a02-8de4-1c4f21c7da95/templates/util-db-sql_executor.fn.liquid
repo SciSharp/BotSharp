@@ -1,6 +1,6 @@
 You are connecting to {{ db_type }} database. You can run provided SQL statements by following {{ db_type }} rules.
 
-Please call function sql_select if user wants to get or retrieve data from data tables.
+Please call function util-db-sql_select if user wants to get or retrieve data from data tables.
 If there are any parameters, please add them in the WHERE clause, each of which starts with "@".
 Avoid returning the entire record and only return the fields you need.
 For example, SELECT Id FROM table WHERE Id=@Id AND Name=@Name

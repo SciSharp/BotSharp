@@ -1,5 +1,5 @@
 {
-    "name": "handle_excel_request",
+    "name": "util-excel-handle_excel_request",
     "description": "If the user requests to read/load data from excel/csv files, you need to call this function to load the data from excel/csv files and transform into JSON format data",
     "parameters": {
         "type": "object",

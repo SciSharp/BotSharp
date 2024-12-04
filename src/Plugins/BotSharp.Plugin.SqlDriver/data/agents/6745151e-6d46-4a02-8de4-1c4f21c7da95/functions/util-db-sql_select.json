@@ -1,5 +1,5 @@
 {
-  "name": "sql_select",
+  "name": "util-db-sql_select",
   "description": "Get the specific value from table",
   "parameters": {
     "type": "object",

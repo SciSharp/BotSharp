@@ -1,5 +1,5 @@
 {
-  "name": "handle_http_request",
+  "name": "util-http-handle_http_request",
   "description": "If the user requests to send an http request, you need to capture the http method and request content, and then call this function to send the http request.",
   "parameters": {
     "type": "object",

@@ -4,7 +4,8 @@ namespace BotSharp.Plugin.HttpHandler.Hooks;
 
 public class HttpHandlerUtilityHook : IAgentUtilityHook
 {
-    private static string HTTP_HANDLER_FN = "handle_http_request";
+    private static string PREFIX = "util-http-";
+    private static string HTTP_HANDLER_FN = $"{PREFIX}handle_http_request";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {

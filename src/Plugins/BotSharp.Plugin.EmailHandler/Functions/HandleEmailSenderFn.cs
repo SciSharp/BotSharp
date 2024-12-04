@@ -6,7 +6,7 @@ namespace BotSharp.Plugin.EmailHandler.Functions;
 
 public class HandleEmailSenderFn : IFunctionCallback
 {
-    public string Name => "handle_email_sender";
+    public string Name => "util-email-handle_email_sender";
     public string Indication => "Handling email send request";
 
     private readonly IServiceProvider _services;

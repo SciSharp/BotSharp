@@ -2,5 +2,5 @@ namespace BotSharp.Plugin.AudioHandler.Enums;
 
 public class UtilityName
 {
-    public const string AudioHandler = "audio-handler";
+    public const string AudioHandler = "audio.audio-handler";
 }
