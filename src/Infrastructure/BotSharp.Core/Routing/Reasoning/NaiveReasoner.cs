@@ -29,6 +29,8 @@ public class NaiveReasoner : IRoutingReasoner
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
+    public string Name => "Naive Reasoner";
+
     public NaiveReasoner(IServiceProvider services, ILogger<NaiveReasoner> logger)
     {
         _services = services;
