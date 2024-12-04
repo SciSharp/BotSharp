@@ -1,5 +1,5 @@
 {
-  "name": "edit_image",
+  "name": "util-file-edit_image",
   "description": "If the user requests you editting or changing an image or a picture, you can call this function to edit an image.",
   "parameters": {
     "type": "object",

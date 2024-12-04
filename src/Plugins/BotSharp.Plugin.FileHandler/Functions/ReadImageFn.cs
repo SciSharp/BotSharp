@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class ReadImageFn : IFunctionCallback
 {
-    public string Name => "read_image";
+    public string Name => "util-file-read_image";
     public string Indication => "Reading images";
 
     private readonly IServiceProvider _services;

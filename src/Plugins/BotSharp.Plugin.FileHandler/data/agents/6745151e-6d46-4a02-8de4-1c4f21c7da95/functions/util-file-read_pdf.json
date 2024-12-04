@@ -1,5 +1,5 @@
 {
-  "name": "read_pdf",
+  "name": "util-file-read_pdf",
   "description": "If the user's request is related to analyzing pdf files, you can call this function to analyze pdf.",
   "parameters": {
     "type": "object",

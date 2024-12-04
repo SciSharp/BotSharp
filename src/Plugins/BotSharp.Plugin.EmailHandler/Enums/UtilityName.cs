@@ -1,13 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace BotSharp.Plugin.EmailHandler.Enums;
 
-namespace BotSharp.Plugin.EmailHandler.Enums
+public class UtilityName
 {
-    public class UtilityName
-    {
-        public const string EmailHandler = "email-handler";
-    }
+    public const string EmailHandler = "email.email-handler";
 }

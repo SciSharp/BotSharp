@@ -1,5 +1,5 @@
 {
-  "name": "twilio_outbound_phone_call",
+  "name": "util-twilio-twilio_outbound_phone_call",
   "description": "If the user wants to initiate a phone call, you need to capture the phone number and compose the message the users wants to send. Then call this function to make an outbound call via Twilio.",
   "parameters": {
     "type": "object",

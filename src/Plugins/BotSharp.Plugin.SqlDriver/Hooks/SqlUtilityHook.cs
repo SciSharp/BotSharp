@@ -2,9 +2,11 @@ namespace BotSharp.Plugin.SqlDriver.Hooks;
 
 public class SqlUtilityHook : IAgentUtilityHook
 {
-    private const string SQL_TABLE_DEFINITION_FN = "sql_table_definition";
-    private const string VERIFY_DICTIONARY_TERM_FN = "verify_dictionary_term";
-    private const string SQL_SELECT_FN = "sql_select";
+    private const string PREFIX = "util-db-";
+    private const string SQL_TABLE_DEFINITION_FN = $"{PREFIX}sql_table_definition";
+    private const string VERIFY_DICTIONARY_TERM_FN = $"{PREFIX}verify_dictionary_term";
+    private const string SQL_SELECT_FN = $"{PREFIX}sql_select";
+    private const string SQL_EXECUTOR_FN = $"{PREFIX}sql_executor";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
@@ -26,7 +28,7 @@ public class SqlUtilityHook : IAgentUtilityHook
             {
                 Name = UtilityName.SqlExecutor,
                 Functions = [new(SQL_SELECT_FN), new(SQL_TABLE_DEFINITION_FN)],
-                Templates = [new($"sql_executor.fn")]
+                Templates = [new($"{SQL_EXECUTOR_FN}.fn")]
             }
         };
 

@@ -116,13 +116,14 @@ public abstract class AgentHookBase : IAgentHook
             return ([], []);
         }
 
+        var prefix = "util-";
         utilities = utilities?.Where(x => !string.IsNullOrEmpty(x.Name) && !x.Disabled)?.ToList() ?? [];
         var functionNames = utilities.SelectMany(x => x.Functions)
-                                     .Where(x => !string.IsNullOrEmpty(x.Name))
+                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(prefix))
                                      .Select(x => x.Name)
                                      .Distinct().ToList();
         var templateNames = utilities.SelectMany(x => x.Templates)
-                                     .Where(x => !string.IsNullOrEmpty(x.Name))
+                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(prefix))
                                      .Select(x => x.Name)
                                      .Distinct().ToList();
 

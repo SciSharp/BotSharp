@@ -1,5 +1,5 @@
 {
-  "name": "handle_email_reader",
+  "name": "util-email-handle_email_reader",
   "description": "If the user wants to read messages from email inbox or user wants to mark an email message as read.If message id is provided, capture it but it is not required. Then call this function to read the email message or mark any message as read.",
   "parameters": {
     "type": "object",

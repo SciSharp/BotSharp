@@ -16,7 +16,7 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
         private readonly BotSharpOptions _options;
         private readonly TwilioSetting _twilioSetting;
 
-        public string Name => "twilio_outbound_phone_call";
+        public string Name => "util-twilio-twilio_outbound_phone_call";
         public string Indication => "Dialing the number";
 
         public HandleOutboundPhoneCallFn(

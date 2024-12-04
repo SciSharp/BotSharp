@@ -2,7 +2,8 @@ namespace BotSharp.Plugin.ExcelHandler.Hooks;
 
 public class ExcelHandlerUtilityHook : IAgentUtilityHook
 {
-    private const string HANDLER_EXCEL = "handle_excel_request";
+    private static string PREFIX = "util-excel-";
+    private static string HANDLER_EXCEL = $"{PREFIX}handle_excel_request";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {
