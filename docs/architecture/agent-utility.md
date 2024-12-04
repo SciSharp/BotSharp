@@ -419,7 +419,7 @@ public class HttpHandlerPlugin : IBotSharpPlugin
 }
 ```
 
-[Fig 4.1.2](#register-assembly) demonstrates the utility assembly registration in “appsettings.json”. It is important to note that we are required to add the project reference to the Startup project, e.g., WebStarter. Moreover, we are required to add any new custom agent utility in the “Plugin” folder instead of the “BotSharp” folder.
+[Fig 4.1.1](#register-assembly) demonstrates the utility assembly registration in “appsettings.json”. It is important to note that we are required to add the project reference to the Startup project, e.g., WebStarter. Moreover, we are required to add any new custom agent utility in the “Plugin” folder instead of the “BotSharp” folder.
 
 <div style="text-align: center;" id="register-assembly">
     <img src="assets/agent-utility/register-assembly.png" />
