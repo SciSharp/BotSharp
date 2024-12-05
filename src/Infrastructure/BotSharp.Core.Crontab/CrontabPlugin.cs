@@ -14,6 +14,8 @@
   limitations under the License.
 ******************************************************************************/
 
+using BotSharp.Core.Crontab.Hooks;
+
 namespace BotSharp.Core.Crontab;
 
 /// <summary>
@@ -27,13 +29,9 @@ public class CrontabPlugin : IBotSharpPlugin
     public string Description => "Crontab plugin is a time-based job scheduler in agent framework. The cron system is used to trigger AI Agent to do specific task periodically.";
     public string IconUrl => "https://icon-library.com/images/stop-watch-icon/stop-watch-icon-10.jpg";
 
-    public string[] AgentIds =
-    [
-        BuiltInAgentId.Crontab
-    ];
-
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        services.AddScoped<IAgentUtilityHook, CrontabUtilityHook>();
         services.AddScoped<ICrontabService, CrontabService>();
         services.AddHostedService<CrontabWatcher>();
     }

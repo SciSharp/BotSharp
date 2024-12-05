@@ -15,6 +15,8 @@
 ******************************************************************************/
 
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Crontab.Models;
 using BotSharp.Core.Infrastructures;
 
@@ -56,22 +58,38 @@ public class CrontabService : ICrontabService
 
     public async Task<List<CrontabItem>> GetCrontable()
     {
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conv = await convService.GetConversation("73a9ee27-d597-4739-958f-3bd79760ac8e");
+        if (!conv.States.ContainsKey("cron_expression"))
+        {
+            return [];
+        }
+
         return 
         [
             new CrontabItem 
             {
-                Cron = "*/30 * * * * *",
-                AgentId = BuiltInAgentId.AIAssistant,
+                Topic = conv.States["topic"],
+                Cron = conv.States["cron_expression"],
+                Description = conv.States["description"],
+                Script = conv.States["script"],
+                Language = conv.States["language"]
             }
         ];
     }
 
     public async Task ScheduledTimeArrived(CrontabItem item)
     {
-        _logger.LogInformation("ScheduledTimeArrived");
-        await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
+        _logger.LogDebug($"ScheduledTimeArrived {item}");
+
+        var hooks = _services.GetServices<ICrontabHook>();
+        foreach(var hook in hooks)
+        {
+            await hook.OnCronTriggered(item);
+        }
+        /*await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
             await hook.OnCronTriggered(item)
-        );
+        );*/
         await Task.Delay(1000 * 10);
     }
 }
