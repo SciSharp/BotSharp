@@ -15,6 +15,7 @@ Don't run the planning process repeatedly if you have already got the result of 
 Function verify_dictionary_term CAN'T generate INSERT SQL Statement.
 The table name must come from the relevant knowledge. has_found_relevant_knowledge must be true.
 Do not introduce your actions or intentions in any way.
+Only extract the Data related request, ignore the other request, such as schedule job, make phone call etc.
 
 {% if global_knowledges != empty -%}
 =====
