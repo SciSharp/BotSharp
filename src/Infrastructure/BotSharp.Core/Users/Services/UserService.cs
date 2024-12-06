@@ -696,7 +696,7 @@ public class UserService : IUserService
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
-        var existPhone = db.GetUserByPhone(phone);
+        var existPhone = db.GetUserByPhone(phone, regionCode: regionCode);
 
         if (record == null || (existPhone != null && existPhone.RegionCode == regionCode))
         {
