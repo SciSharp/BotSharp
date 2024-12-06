@@ -5,7 +5,7 @@ namespace BotSharp.Core.Crontab.Hooks;
 
 public class CrontabUtilityHook : IAgentUtilityHook
 {
-    private const string PREFIX = "util-crontab-";
+    public const string PREFIX = "util-crontab-";
     private const string SCHEDULE_TASK_FN = $"{PREFIX}schedule_task";
     
     public void AddUtilities(List<AgentUtility> utilities)

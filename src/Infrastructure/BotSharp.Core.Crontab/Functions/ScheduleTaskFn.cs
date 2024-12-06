@@ -1,11 +1,12 @@
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users;
+using BotSharp.Core.Crontab.Hooks;
 
 namespace BotSharp.Core.Crontab.Functions;
 
 public class ScheduleTaskFn : IFunctionCallback
 {
-    public string Name => "schedule_task";
+    public string Name => $"{CrontabUtilityHook.PREFIX}schedule_task";
     private readonly IServiceProvider _services;
 
     public ScheduleTaskFn(IServiceProvider services)
