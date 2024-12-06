@@ -127,7 +127,8 @@ public class UserService : IUserService
     public async Task<bool> UpdatePassword(string password, string verificationCode)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByUserName(_user.UserName);
+
+        var record = db.GetUserById(_user.Id);
 
         if (record == null)
         {
