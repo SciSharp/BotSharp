@@ -8,6 +8,10 @@
         "type": "boolean",
         "description": "If user request is to generate sql template instead of actual sql statement."
       },
+      "contains_sql_statements": {
+        "type": "boolean",
+        "description": "Set to true if the response contains sql statements."
+      },
       "related_tables": {
         "type": "array",
         "description": "table name in planning steps",
@@ -17,6 +21,6 @@
         }
       }
     },
-    "required": [ "related_tables", "is_sql_template" ]
+    "required": [ "related_tables", "is_sql_template", "contains_sql_statements" ]
   }
 }

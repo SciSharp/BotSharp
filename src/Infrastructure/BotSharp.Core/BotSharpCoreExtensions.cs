@@ -25,7 +25,7 @@ public static class BotSharpCoreExtensions
         config.Bind("Interpreter", interpreterSettings);
         services.AddSingleton(x => interpreterSettings);
 
-        services.AddSingleton<DistributedLocker>();
+        services.AddSingleton<IDistributedLocker, DistributedLocker>();
         // Register template render
         services.AddSingleton<ITemplateRender, TemplateRender>();
 

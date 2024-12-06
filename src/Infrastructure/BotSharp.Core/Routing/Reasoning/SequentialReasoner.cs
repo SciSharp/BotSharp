@@ -33,7 +33,7 @@ public class SequentialReasoner : IRoutingReasoner
     public int MaxLoopCount => 100;
     private FunctionCallFromLlm _lastInst;
 
-    public SequentialReasoner(IServiceProvider services, ILogger<NaiveReasoner> logger)
+    public SequentialReasoner(IServiceProvider services, ILogger<SequentialReasoner> logger)
     {
         _services = services;
         _logger = logger;

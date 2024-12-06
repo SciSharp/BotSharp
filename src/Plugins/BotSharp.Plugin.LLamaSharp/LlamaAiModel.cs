@@ -36,7 +36,6 @@ public class LlamaAiModel
         _params = new ModelParams(Path.Combine(_settings.ModelDir, model))
         {
             ContextSize = (uint)_settings.MaxContextLength,
-            Seed = 1337,
             GpuLayerCount = _settings.NumberOfGpuLayer
         };
 

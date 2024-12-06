@@ -71,7 +71,14 @@ public abstract class AgentHookBase : IAgentHook
 
         var (functions, templates) = GetUtilityContent(agent);
 
-        agent.Functions.AddRange(functions);
+        foreach (var fn in functions)
+        {
+            if (!agent.Functions.Any(x => x.Name.Equals(fn.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                agent.Functions.Add(fn);
+            }
+        }
+
         foreach (var prompt in templates)
         {
             agent.Instruction += $"\r\n\r\n{prompt}\r\n\r\n";
