@@ -21,6 +21,11 @@ public class AgentUtility
         Functions = functions ?? [];
         Templates = templates ?? [];
     }
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }
 
 
