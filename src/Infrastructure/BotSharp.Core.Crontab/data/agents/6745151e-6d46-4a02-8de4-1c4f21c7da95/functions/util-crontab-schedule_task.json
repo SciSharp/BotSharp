@@ -1,5 +1,5 @@
 {
-  "name": "schedule_task",
+  "name": "util-crontab-schedule_task",
   "description": "Set up a scheduled task",
   "parameters": {
     "type": "object",

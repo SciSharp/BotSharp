@@ -60,7 +60,7 @@ public class CrontabService : ICrontabService
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation("73a9ee27-d597-4739-958f-3bd79760ac8e");
-        if (!conv.States.ContainsKey("cron_expression"))
+        if (conv == null || !conv.States.ContainsKey("cron_expression"))
         {
             return [];
         }
