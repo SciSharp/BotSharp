@@ -474,7 +474,7 @@ public class UserService : IUserService
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
         {
-            record = db.GetUserByPhone(id);
+            record = db.GetUserByPhone(id, regionCode: string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode);
         }
 
         if (record == null)
