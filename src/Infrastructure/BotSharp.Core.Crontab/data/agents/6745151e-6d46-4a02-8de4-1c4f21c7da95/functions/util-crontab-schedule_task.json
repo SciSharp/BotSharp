@@ -1,0 +1,31 @@
+{
+  "name": "util-crontab-schedule_task",
+  "description": "Set up a scheduled task",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "cron_expression": {
+        "type": "string",
+        "description": "cron expression include seconds"
+      },
+      "topic": {
+        "type": "string",
+        "description": "task topic in 1-3 keywords related to business entities"
+      },
+      "description": {
+        "type": "string",
+        "description": "task description without cron infromation, should include all key business entities"
+      },
+      "script": {
+        "type": "string",
+        "description": "task related script, commands or provided function with parameters"
+      },
+      "language": {
+        "type": "string",
+        "enum": ["sql", "function"],
+        "description": "script programming language"
+      }
+    },
+    "required": [ "cron_expression", "topic", "description", "script", "language" ]
+  }
+}
