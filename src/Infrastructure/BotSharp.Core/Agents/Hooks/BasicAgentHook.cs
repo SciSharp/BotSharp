@@ -1,10 +1,10 @@
 namespace BotSharp.Core.Agents.Hooks;
 
-public class CommonAgentHook : AgentHookBase
+public class BasicAgentHook : AgentHookBase
 {
     public override string SelfId => string.Empty;
 
-    public CommonAgentHook(IServiceProvider services, AgentSettings settings)
+    public BasicAgentHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
