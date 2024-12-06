@@ -62,7 +62,7 @@ public class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(user.Phone))
         {
-            record = db.GetUserByPhone(user.Phone);
+            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Email))
