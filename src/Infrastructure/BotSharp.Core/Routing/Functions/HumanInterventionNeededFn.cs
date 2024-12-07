@@ -15,9 +15,9 @@ public class HumanInterventionNeededFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var hooks = _services.GetServices<IConversationHook>()
-            .OrderBy(x => x.Priority)
-            .ToList();
+        var hooks = _services
+            .GetRequiredService<ConversationHookProvider>()
+            .HooksOrderByPriority;
 
         foreach (var hook in hooks)
         {
