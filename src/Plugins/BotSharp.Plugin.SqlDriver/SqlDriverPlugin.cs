@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Planning;
+using BotSharp.Core.Crontab.Abstraction;
 
 namespace BotSharp.Plugin.SqlDriver;
 
@@ -29,5 +30,6 @@ public class SqlDriverPlugin : IBotSharpPlugin
         services.AddScoped<IAgentHook, SqlDriverAgentHook>();
         services.AddScoped<IConversationHook, SqlDriverConversationHook>();
         services.AddScoped<IAgentUtilityHook, SqlUtilityHook>();
+        services.AddScoped<ICrontabHook, SqlDriverCrontabHook>();
     }
 }

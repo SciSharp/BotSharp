@@ -62,7 +62,7 @@ public class CrontabWatcher : BackgroundService
 
             if (matches)
             {
-                _logger.LogInformation($"The current time matches the cron expression {item}");
+                _logger.LogDebug($"The current time matches the cron expression {item}");
                 cron.ScheduledTimeArrived(item);
             }
         }
