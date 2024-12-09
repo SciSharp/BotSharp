@@ -1,0 +1,14 @@
+{
+  "name": "util-file-read_image",
+  "description": "If the user's request is related to analyzing images, you can call this function to analyze images.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "user_request": {
+        "type": "string",
+        "description": "The request posted by user, which is related to analyzing requested images. User can request for multiple images to process at one time."
+      }
+    },
+    "required": [ "user_request" ]
+  }
+}

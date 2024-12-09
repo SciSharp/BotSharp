@@ -1,0 +1,60 @@
+{
+  "name": "util-db-sql_select",
+  "description": "Get the specific value from table",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "sql_statement": {
+        "type": "string",
+        "description": "SQL statement with SELECT"
+      },
+      "reason": {
+        "type": "string",
+        "description": "reason"
+      },
+      "table": {
+        "type": "string",
+        "description": "related table"
+      },
+      "generated_without_table_definition": {
+        "type": "boolean",
+        "description": "sql is generated before retrieving table definition"
+      },
+      "parameters": {
+        "type": "array",
+        "description": "data criteria for the query",
+        "items": {
+          "type": "object",
+          "description": "the name and value for the parameter",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "field name"
+            },
+            "value": {
+              "type": "string",
+              "description": "real value inferred by the context"
+            }
+          },
+          "required": [ "name", "value" ]
+        }
+      },
+      "return_field": {
+        "type": "object",
+        "description": "the name and alias for the return field",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "field in the table"
+          },
+          "alias": {
+            "type": "string",
+            "description": "meaningful field alias"
+          }
+        },
+        "required": [ "name", "value" ]
+      }
+    },
+    "required": [ "sql_statement", "reason", "table", "parameters", "return_field" ]
+  }
+}

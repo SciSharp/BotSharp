@@ -17,7 +17,6 @@ public class AudioHandlerPlugin : IBotSharpPlugin
         });
 
         services.AddScoped<IAudioCompletion, NativeWhisperProvider>();
-        services.AddScoped<IAgentHook, AudioHandlerHook>();
         services.AddScoped<IAgentUtilityHook, AudioHandlerUtilityHook>();
     }
 }

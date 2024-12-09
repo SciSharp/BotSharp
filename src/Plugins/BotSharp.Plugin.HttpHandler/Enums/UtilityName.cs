@@ -2,5 +2,5 @@ namespace BotSharp.Plugin.HttpHandler.Enums;
 
 public class UtilityName
 {
-    public const string HttpHandler = "http-handler";
+    public const string HttpHandler = "http.http-handler";
 }

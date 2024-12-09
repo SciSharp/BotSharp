@@ -50,7 +50,9 @@ public class SharpCacheAttribute : MoAttribute
         }
 
         var httpContext = Services.GetRequiredService<IHttpContextAccessor>();
-        if (httpContext.HttpContext.Response.Headers["Cache-Control"].ToString().Contains("no-store"))
+        if (httpContext != null &&
+            httpContext.HttpContext != null &&
+            httpContext.HttpContext.Response.Headers["Cache-Control"].ToString().Contains("no-store"))
         {
             return;
         }

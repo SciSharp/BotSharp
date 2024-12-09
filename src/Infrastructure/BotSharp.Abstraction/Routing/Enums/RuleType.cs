@@ -13,6 +13,11 @@ public class RuleType
     public const string DataValidation = "data-validation";
 
     /// <summary>
+    /// The reasoning approach name for next step
+    /// </summary>
+    public const string Reasoner = "reasoner";
+
+    /// <summary>
     /// The planning approach name for next step
     /// </summary>
     public const string Planner = "planner";

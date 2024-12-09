@@ -1,4 +1,6 @@
 using System.IO;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
@@ -19,7 +21,7 @@ public class TextEmbeddingProvider : ITextEmbedding
         _settings = settings;
     }
 
-    public Task<float[]> GetVectorAsync(string text)
+    public async Task<float[]> GetVectorAsync(string text)
     {
         if (_embedder == null)
         {
@@ -29,10 +31,10 @@ public class TextEmbeddingProvider : ITextEmbedding
             _embedder = new LLamaEmbedder(weights, @params);
         }
 
-        return _embedder.GetEmbeddings(text);
+        return (await _embedder.GetEmbeddings(text)).First();
     }
 
-    public Task<List<float[]>> GetVectorsAsync(List<string> texts)
+    public async Task<List<float[]>> GetVectorsAsync(List<string> texts)
     {
         throw new NotImplementedException();
     }

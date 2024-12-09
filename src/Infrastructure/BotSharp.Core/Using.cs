@@ -14,7 +14,7 @@ global using BotSharp.Abstraction.Routing;
 global using BotSharp.Abstraction.Plugins;
 global using BotSharp.Abstraction.Agents;
 global using BotSharp.Abstraction.Conversations;
-global using BotSharp.Abstraction.Knowledges;
+global using BotSharp.Abstraction.Crontab.Models;
 global using BotSharp.Abstraction.Users;
 global using BotSharp.Abstraction.Roles;
 global using BotSharp.Abstraction.Roles.Models;

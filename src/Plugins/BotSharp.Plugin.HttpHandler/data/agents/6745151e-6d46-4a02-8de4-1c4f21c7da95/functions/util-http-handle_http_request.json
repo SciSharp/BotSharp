@@ -1,0 +1,22 @@
+{
+  "name": "util-http-handle_http_request",
+  "description": "If the user requests to send an http request, you need to capture the http method and request content, and then call this function to send the http request.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "request_url": {
+        "type": "string",
+        "description": "The http url that is requested. It can be an absolute url that starts with 'http' or 'https', or a relative url that starts with '/'"
+      },
+      "http_method": {
+        "type": "string",
+        "description": "The http method that is requested, e.g., GET, POST, PUT, and DELETE."
+      },
+      "request_content": {
+        "type": "string",
+        "description": "The http request content. It must be in serialized json string."
+      }
+    },
+    "required": [ "request_url", "http_method" ]
+  }
+}

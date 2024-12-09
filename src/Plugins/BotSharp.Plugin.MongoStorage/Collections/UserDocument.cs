@@ -26,6 +26,8 @@ public class UserDocument : MongoBase
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
 
+    public Dashboard? Dashboard { get; set; }
+
     public User ToUser()
     {
         return new User
@@ -49,6 +51,8 @@ public class UserDocument : MongoBase
             Verified = Verified,
             RegionCode = RegionCode,
             Permissions = Permissions,
+            CreatedTime = CreatedTime,
+            UpdatedTime = UpdatedTime,
         };
     }
 }

@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.KnowledgeBase.Functions;
 
 public class KnowledgeRetrievalFn : IFunctionCallback
 {
-    public string Name => "knowledge_retrieval";
+    public string Name => "util-knowledge-knowledge_retrieval";
 
     public string Indication => "searching my brain";
 

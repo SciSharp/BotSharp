@@ -39,7 +39,15 @@ public class RoleService : IRoleService
     public async Task<IEnumerable<Role>> GetRoles(RoleFilter filter)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
+
         var roles = db.GetRoles(filter);
+        if (filter.IsInit() && roles.IsNullOrEmpty())
+        {
+            await RefreshRoles();
+            await Task.Delay(100);
+            roles = db.GetRoles(filter);
+        }
+
         return roles;
     }
 

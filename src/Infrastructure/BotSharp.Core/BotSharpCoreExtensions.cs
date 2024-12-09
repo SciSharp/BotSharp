@@ -12,6 +12,8 @@ using BotSharp.Core.Processors;
 using StackExchange.Redis;
 using BotSharp.Core.Infrastructures.Events;
 using BotSharp.Core.Roles.Services;
+using BotSharp.Abstraction.Templating;
+using BotSharp.Core.Templating;
 
 namespace BotSharp.Core;
 
@@ -23,7 +25,9 @@ public static class BotSharpCoreExtensions
         config.Bind("Interpreter", interpreterSettings);
         services.AddSingleton(x => interpreterSettings);
 
-        services.AddSingleton<DistributedLocker>();
+        services.AddSingleton<IDistributedLocker, DistributedLocker>();
+        // Register template render
+        services.AddSingleton<ITemplateRender, TemplateRender>();
 
         services.AddScoped<ISettingService, SettingService>();
         services.AddScoped<IRoleService, RoleService>();

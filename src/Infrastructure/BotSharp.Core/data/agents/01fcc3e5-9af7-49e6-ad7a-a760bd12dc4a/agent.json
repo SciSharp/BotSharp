@@ -8,11 +8,11 @@
   "iconUrl": "https://cdn.iconscout.com/icon/premium/png-256-thumb/route-1613278-1368497.png",
   "disabled": false,
   "isPublic": true,
-  "profiles": [ "tool" ],
+  "profiles": [ "planning", "fallback", "human" ],
   "routingRules": [
     {
-      "type": "planner",
-      "field": "HFPlanner"
+      "type": "reasoner",
+      "field": "HFReasoner"
     }
   ]
 }
