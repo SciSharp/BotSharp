@@ -1,6 +1,5 @@
+using BotSharp.Abstraction.Crontab.Models;
 using BotSharp.Core.Crontab.Abstraction;
-using BotSharp.Core.Crontab.Models;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace BotSharp.Plugin.SqlDriver.Hooks;
 

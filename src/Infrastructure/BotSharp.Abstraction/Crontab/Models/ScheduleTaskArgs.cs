@@ -1,6 +1,4 @@
-using System.Text.Json.Serialization;
-
-namespace BotSharp.Core.Crontab.Models;
+namespace BotSharp.Abstraction.Crontab.Models;
 
 public class ScheduleTaskArgs
 {

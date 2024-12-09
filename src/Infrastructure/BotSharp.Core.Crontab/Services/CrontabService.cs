@@ -17,7 +17,6 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Core.Crontab.Models;
 using BotSharp.Core.Infrastructures;
 
 
