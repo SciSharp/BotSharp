@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class ReadPdfFn : IFunctionCallback
 {
-    public string Name => "read_pdf";
+    public string Name => "util-file-read_pdf";
     public string Indication => "Reading pdf";
 
     private readonly IServiceProvider _services;

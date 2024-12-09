@@ -2,7 +2,8 @@ namespace BotSharp.Plugin.AudioHandler.Hooks;
 
 public class AudioHandlerUtilityHook : IAgentUtilityHook
 {
-    private const string HANDLER_AUDIO = "handle_audio_request";
+    private const string PREFIX = "util-audio-";
+    private const string HANDLER_AUDIO = $"{PREFIX}handle_audio_request";
 
     public void AddUtilities(List<AgentUtility> utilities)
     {

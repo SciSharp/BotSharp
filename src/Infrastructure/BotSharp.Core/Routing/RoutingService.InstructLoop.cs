@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Reasoning;
-using BotSharp.Core.Routing.Reasoning;
 
 namespace BotSharp.Core.Routing;
 
@@ -21,7 +20,7 @@ public partial class RoutingService
         var states = _services.GetRequiredService<IConversationStateService>();
         var executor = _services.GetRequiredService<IExecutor>();
 
-        var planner = GetReasoner(_router);
+        var reasoner = GetReasoner(_router);
 
         _context.Push(_router.Id);
 
@@ -46,7 +45,7 @@ public partial class RoutingService
 
         // Get first instruction
         _router.TemplateDict["conversation"] = await GetConversationContent(dialogs);
-        var inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
+        var inst = await reasoner.GetNextInstruction(_router, message.MessageId, dialogs);
 
         int loopCount = 1;
         while (true)
@@ -63,30 +62,30 @@ public partial class RoutingService
 #else
             _logger.LogInformation($"*** Next Instruction *** {inst}");
 #endif
-            await planner.AgentExecuting(_router, inst, message, dialogs);
+            await reasoner.AgentExecuting(_router, inst, message, dialogs);
 
             // Handover to Task Agent
             if (inst.HandleDialogsByPlanner)
             {
-                var dialogWithoutContext = planner.BeforeHandleContext(inst, message, dialogs);
+                var dialogWithoutContext = reasoner.BeforeHandleContext(inst, message, dialogs);
                 response = await executor.Execute(this, inst, message, dialogWithoutContext);
-                planner.AfterHandleContext(dialogs, dialogWithoutContext);
+                reasoner.AfterHandleContext(dialogs, dialogWithoutContext);
             }
             else
             {
                 response = await executor.Execute(this, inst, message, dialogs);
             }
 
-            await planner.AgentExecuted(_router, inst, response, dialogs);
+            await reasoner.AgentExecuted(_router, inst, response, dialogs);
 
-            if (loopCount >= planner.MaxLoopCount || _context.IsEmpty)
+            if (loopCount >= reasoner.MaxLoopCount || _context.IsEmpty)
             {
                 break;
             }
 
             // Get next instruction from Planner
             _router.TemplateDict["conversation"] = await GetConversationContent(dialogs);
-            inst = await planner.GetNextInstruction(_router, message.MessageId, dialogs);
+            inst = await reasoner.GetNextInstruction(_router, message.MessageId, dialogs);
             loopCount++;
         }
 
@@ -103,8 +102,7 @@ public partial class RoutingService
             return _services.GetServices<IRoutingReasoner>().First(x => x.Name == "Naive Reasoner");
         }
 
-        var reasoner = _services.GetServices<IRoutingReasoner>().
-            FirstOrDefault(x => x.GetType().Name.EndsWith(rule.Field));
+        var reasoner = _services.GetServices<IRoutingReasoner>().FirstOrDefault(x => x.GetType().Name.EndsWith(rule.Field));
 
         if (reasoner == null)
         {

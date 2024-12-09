@@ -62,7 +62,7 @@ public class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(user.Phone))
         {
-            record = db.GetUserByPhone(user.Phone);
+            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Email))
@@ -127,7 +127,8 @@ public class UserService : IUserService
     public async Task<bool> UpdatePassword(string password, string verificationCode)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByUserName(_user.UserName);
+
+        var record = db.GetUserById(_user.Id);
 
         if (record == null)
         {
@@ -473,7 +474,7 @@ public class UserService : IUserService
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
         {
-            record = db.GetUserByPhone(id);
+            record = db.GetUserByPhone(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
         }
 
         if (record == null)
@@ -646,7 +647,7 @@ public class UserService : IUserService
 
         if (!string.IsNullOrEmpty(user.Phone))
         {
-            record = db.GetUserByPhone(user.Phone);
+            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
 
         if (record == null)
@@ -695,7 +696,7 @@ public class UserService : IUserService
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
-        var existPhone = db.GetUserByPhone(phone);
+        var existPhone = db.GetUserByPhone(phone, regionCode: regionCode);
 
         if (record == null || (existPhone != null && existPhone.RegionCode == regionCode))
         {

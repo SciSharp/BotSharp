@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.EmailReader.Functions;
 
 public class HandleEmailReaderFn : IFunctionCallback
 {
-    public string Name => "handle_email_reader";
+    public string Name => "util-email-handle_email_reader";
     public readonly static string PROMPT_SUMMARY = "Provide a text summary of the following content.";
     public readonly static string RICH_CONTENT_SUMMARIZE = "is_email_summarize: true. messageId";
     public readonly static string RICH_CONTENT_READ_EMAIL = "Read the email by messageId";

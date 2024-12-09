@@ -1,0 +1,14 @@
+{
+  "name": "util-file-generate_image",
+  "description": "If the user requests you providing or generating image or picture, you can call this function to generate image.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "image_description": {
+        "type": "string",
+        "description": "The image description that user requests."
+      }
+    },
+    "required": [ "image_description" ]
+  }
+}

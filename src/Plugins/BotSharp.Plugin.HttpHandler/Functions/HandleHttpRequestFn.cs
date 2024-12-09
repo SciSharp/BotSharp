@@ -7,7 +7,7 @@ namespace BotSharp.Plugin.HttpHandler.Functions;
 
 public class HandleHttpRequestFn : IFunctionCallback
 {
-    public string Name => "handle_http_request";
+    public string Name => "util-http-handle_http_request";
     public string Indication => "Handling http request";
 
     private readonly IServiceProvider _services;
