@@ -145,4 +145,9 @@ public interface IBotSharpRepository : IHaveServiceProvider
     bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null);
     PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
     #endregion
+
+    #region Crontab
+    bool InsertCrontabItem(CrontabItem item) => throw new NotImplementedException();
+    PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter) => throw new NotImplementedException();
+    #endregion
 }
