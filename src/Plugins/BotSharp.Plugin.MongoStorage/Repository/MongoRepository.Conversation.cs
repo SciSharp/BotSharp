@@ -56,6 +56,7 @@ public partial class MongoRepository
         var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterContentLog = Builders<ConversationContentLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterStateLog = Builders<ConversationStateLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        var conbTabItems = Builders<CrontabItemDocument>.Filter.In(x => x.ConversationId, conversationIds);
 
         var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
@@ -63,11 +64,13 @@ public partial class MongoRepository
         var stateLogDeleted = _dc.StateLogs.DeleteMany(filterStateLog);
         var statesDeleted = _dc.ConversationStates.DeleteMany(filterSates);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
+        var cronDeleted = _dc.CrontabItems.DeleteMany(conbTabItems);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
 
         return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
             || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
-            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0;
+            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0
+            || convDeleted.DeletedCount > 0;
     }
 
     [SideCar]

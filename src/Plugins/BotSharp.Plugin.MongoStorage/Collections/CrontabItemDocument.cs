@@ -19,7 +19,6 @@ public class CrontabItemDocument : MongoBase
     {
         return new CrontabItem
         {
-            Id = item.Id,
             UserId = item.UserId,
             AgentId = item.AgentId,
             ConversationId = item.ConversationId,
@@ -37,7 +36,6 @@ public class CrontabItemDocument : MongoBase
     {
         return new CrontabItemDocument
         {
-            Id = item.Id,
             UserId = item.UserId,
             AgentId = item.AgentId,
             ConversationId = item.ConversationId,

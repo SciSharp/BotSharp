@@ -14,8 +14,8 @@ public partial class MongoRepository
 
         try
         {
-            item.Id = Guid.NewGuid().ToString();
             var cronDoc = CrontabItemDocument.ToMongoModel(item);
+            cronDoc.Id = Guid.NewGuid().ToString();
             _dc.CrontabItems.InsertOne(cronDoc);
             return true;
         }
