@@ -5,9 +5,9 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public bool InsertCrontabItem(CrontabItem item)
+    public bool UpsertCrontabItem(CrontabItem item)
     {
-        if (item == null)
+        if (item == null || string.IsNullOrWhiteSpace(item.ConversationId))
         {
             return false;
         }
@@ -16,7 +16,12 @@ public partial class MongoRepository
         {
             var cronDoc = CrontabItemDocument.ToMongoModel(item);
             cronDoc.Id = Guid.NewGuid().ToString();
-            _dc.CrontabItems.InsertOne(cronDoc);
+
+            var filter = Builders<CrontabItemDocument>.Filter.Eq(x => x.ConversationId, item.ConversationId);
+            var result = _dc.CrontabItems.ReplaceOne(filter, cronDoc, new ReplaceOptions
+            {
+                IsUpsert = true
+            });
             return true;
         }
         catch (Exception ex)
@@ -24,6 +29,19 @@ public partial class MongoRepository
             _logger.LogError($"Error when saving crontab item: {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
+    }
+
+
+    public bool DeleteCrontabItem(string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            return false;
+        }
+
+        var filter = Builders<CrontabItemDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var result = _dc.CrontabItems.DeleteMany(filter);
+        return result.DeletedCount > 0;
     }
 
 
@@ -37,7 +55,7 @@ public partial class MongoRepository
         var cronBuilder = Builders<CrontabItemDocument>.Filter;
         var cronFilters = new List<FilterDefinition<CrontabItemDocument>>() { cronBuilder.Empty };
 
-        // Filter conversations
+        // Filter cron
         if (filter?.AgentIds != null)
         {
             cronFilters.Add(cronBuilder.In(x => x.AgentId, filter.AgentIds));

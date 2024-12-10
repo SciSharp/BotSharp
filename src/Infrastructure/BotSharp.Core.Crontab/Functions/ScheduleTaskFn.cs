@@ -33,7 +33,7 @@ public class ScheduleTaskFn : IFunctionCallback
         };
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        // var ret = db.InsertCrontabItem(crontabItem);
+        // var ret = db.UpsertCrontabItem(crontabItem);
 
         return true;
     }
