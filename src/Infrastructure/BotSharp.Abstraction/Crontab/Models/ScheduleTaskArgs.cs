@@ -12,7 +12,7 @@ public class ScheduleTaskArgs
     public string Description { get; set; } = null!;
 
     [JsonPropertyName("to_do_list")]
-    public ScheduleTaskItemArgs[] Tasks { get; set; } = null!; 
+    public ScheduleTaskItemArgs[] Tasks { get; set; } = []; 
 }
 
 public class ScheduleTaskItemArgs

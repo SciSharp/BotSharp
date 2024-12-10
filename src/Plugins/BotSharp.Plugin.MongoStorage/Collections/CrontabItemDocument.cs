@@ -11,13 +11,13 @@ public class CrontabItemDocument : MongoBase
     public string Cron { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
+    public IEnumerable<CronTaskMongoElement> Tasks { get; set; } = [];
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
     public static CrontabItem ToDomainModel(CrontabItemDocument item)
     {
         return new CrontabItem
         {
-            Id = item.Id,
             UserId = item.UserId,
             AgentId = item.AgentId,
             ConversationId = item.ConversationId,
@@ -25,6 +25,7 @@ public class CrontabItemDocument : MongoBase
             Cron = item.Cron,
             Title = item.Title,
             Description = item.Description,
+            Tasks = item.Tasks?.Select(x => CronTaskMongoElement.ToDomainElement(x))?.ToArray() ?? [],
             CreatedTime = item.CreatedTime
         };
     }
@@ -33,7 +34,6 @@ public class CrontabItemDocument : MongoBase
     {
         return new CrontabItemDocument
         {
-            Id = item.Id,
             UserId = item.UserId,
             AgentId = item.AgentId,
             ConversationId = item.ConversationId,
@@ -41,6 +41,7 @@ public class CrontabItemDocument : MongoBase
             Cron = item.Cron,
             Title = item.Title,
             Description = item.Description,
+            Tasks = item.Tasks?.Select(x => CronTaskMongoElement.ToMongoElement(x))?.ToList() ?? [],
             CreatedTime = item.CreatedTime
         };
     }

@@ -55,8 +55,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string PLUGIN_CONFIG_FILE = "config.json";
     private const string STATS_FILE = "stats.json";
 
-    private const string CRONTAB_FOLDER = "crontabs";
-    private const string CRONTAB_FILE = "crontab.json";
+    private const string CRON_FILE = "cron.json";
 
     public FileRepository(
         IServiceProvider services,

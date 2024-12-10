@@ -5,30 +5,24 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public bool InsertCrontabItem(CrontabItem item)
+    public bool InsertCrontabItem(CrontabItem cron)
     {
-        if (item == null)
+        if (cron == null || string.IsNullOrWhiteSpace(cron.ConversationId))
         {
             return false;
         }
 
         try
         {
-            var baseDir = Path.Combine(_dbSettings.FileRepository, CRONTAB_FOLDER);
-            item.Id = Guid.NewGuid().ToString();
-            var dir = Path.Combine(baseDir, item.Id);
-
-            if (Directory.Exists(dir))
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, cron.ConversationId);
+            if (!Directory.Exists(baseDir))
             {
                 return false;
             }
 
-            Directory.CreateDirectory(dir);
-            Thread.Sleep(50);
-
-            var itemFile = Path.Combine(dir, CRONTAB_FILE);
-            var json = JsonSerializer.Serialize(item, _options);
-            File.WriteAllText(itemFile, json);
+            var cronFile = Path.Combine(baseDir, CRON_FILE);
+            var json = JsonSerializer.Serialize(cron, _options);
+            File.WriteAllText(cronFile, json);
             return true;
         }
         catch (Exception ex)
@@ -48,17 +42,17 @@ public partial class FileRepository
         }
 
         var records = new List<CrontabItem>();
-        var dir = Path.Combine(_dbSettings.FileRepository, CRONTAB_FOLDER);
+        var baseDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
 
-        if (!Directory.Exists(dir))
+        if (!Directory.Exists(baseDir))
         {
-            Directory.CreateDirectory(dir);
+            Directory.CreateDirectory(baseDir);
         }
 
-        var totalDirs = Directory.GetDirectories(dir);
+        var totalDirs = Directory.GetDirectories(baseDir);
         foreach (var d in totalDirs)
         {
-            var file = Path.Combine(d, CRONTAB_FILE);
+            var file = Path.Combine(d, CRON_FILE);
             if (!File.Exists(file)) continue;
 
             var json = File.ReadAllText(file);
@@ -77,10 +71,6 @@ public partial class FileRepository
             if (filter?.UserIds != null)
             {
                 matched = matched && filter.UserIds.Contains(record.UserId);
-            }
-            if (filter?.Titles != null)
-            {
-                matched = matched && filter.Titles.Contains(record.Title);
             }
 
             if (!matched) continue;

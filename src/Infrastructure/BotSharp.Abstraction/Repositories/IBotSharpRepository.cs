@@ -147,7 +147,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Crontab
-    bool InsertCrontabItem(CrontabItem item) => throw new NotImplementedException();
+    bool InsertCrontabItem(CrontabItem cron) => throw new NotImplementedException();
     PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter) => throw new NotImplementedException();
     #endregion
 }

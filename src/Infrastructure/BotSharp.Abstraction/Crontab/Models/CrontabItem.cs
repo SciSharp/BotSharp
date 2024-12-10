@@ -2,9 +2,6 @@ namespace BotSharp.Abstraction.Crontab.Models;
 
 public class CrontabItem : ScheduleTaskArgs
 {
-    [JsonPropertyName("id")]
-    public string Id { get; set; }
-
     [JsonPropertyName("user_id")]
     public string UserId { get; set; } = null!;
 
