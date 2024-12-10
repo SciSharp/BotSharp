@@ -13,6 +13,9 @@ public class RoutableAgent
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = AgentType.Task;
+
     [JsonPropertyName("profiles")]
     public List<string> Profiles { get; set; }
         = new List<string>();

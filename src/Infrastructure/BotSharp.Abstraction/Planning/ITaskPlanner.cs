@@ -8,6 +8,7 @@ namespace BotSharp.Abstraction.Planning;
 /// </summary>
 public interface ITaskPlanner
 {
+    string Name => "Unamed Task Planner";
     Task<FunctionCallFromLlm> GetNextInstruction(Agent router, string messageId, List<RoleDialogModel> dialogs);
     Task<bool> AgentExecuting(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs);
     Task<bool> AgentExecuted(Agent router, FunctionCallFromLlm inst, RoleDialogModel message, List<RoleDialogModel> dialogs);

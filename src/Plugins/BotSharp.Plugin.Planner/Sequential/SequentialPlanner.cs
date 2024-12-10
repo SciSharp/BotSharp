@@ -14,26 +14,23 @@
   limitations under the License.
 ******************************************************************************/
 
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.Routing.Models;
-using BotSharp.Abstraction.Routing.Reasoning;
-using BotSharp.Abstraction.Templating;
-
-namespace BotSharp.Core.Routing.Reasoning;
+namespace BotSharp.Plugin.Planner.Sequential;
 
 /// <summary>
-/// Sequential tasks focused reasoning approach
+/// A Sequential Planner for a large language model (LLM) is a framework or methodology to execute some list tasks in a predefined order by the user, 
+/// LLM can follow to produce an organized and coherent output. 
+/// Sequential Planners are useful for tasks that involve multiple stages of reasoning, information retrieval, or interdependent subtasks.
 /// </summary>
-public class SequentialReasoner : IRoutingReasoner
+public class SequentialPlanner : ITaskPlanner
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
-
+    public string Name => "Sequential-Planner";
     public bool HideDialogContext => true;
     public int MaxLoopCount => 100;
     private FunctionCallFromLlm _lastInst;
 
-    public SequentialReasoner(IServiceProvider services, ILogger<SequentialReasoner> logger)
+    public SequentialPlanner(IServiceProvider services, ILogger<SequentialPlanner> logger)
     {
         _services = services;
         _logger = logger;
@@ -91,7 +88,7 @@ public class SequentialReasoner : IRoutingReasoner
                 {
                     new RoleDialogModel(AgentRole.User, next)
                     {
-                        FunctionName = nameof(SequentialReasoner),
+                        FunctionName = nameof(SequentialPlanner),
                         MessageId = messageId
                     }
                 };
@@ -158,7 +155,7 @@ public class SequentialReasoner : IRoutingReasoner
 
         if (message.StopCompletion)
         {
-            context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialReasoner)}");
+            context.Empty(reason: $"Agent queue is cleared by {nameof(SequentialPlanner)}");
             return false;
         }
 
@@ -204,7 +201,7 @@ public class SequentialReasoner : IRoutingReasoner
                 var response = await completion.GetChatCompletions(new Agent
                 {
                     Id = router.Id,
-                    Name = nameof(SequentialReasoner),
+                    Name = nameof(SequentialPlanner),
                     Instruction = systemPrompt
                 }, dialogs);
 

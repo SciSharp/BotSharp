@@ -9,10 +9,8 @@ public class CrontabItemDocument : MongoBase
     public string ConversationId { get; set; }
     public string ExecutionResult { get; set; }
     public string Cron { get; set; }
-    public string Topic { get; set; }
+    public string Title { get; set; }
     public string Description { get; set; }
-    public string Script { get; set; }
-    public string Language { get; set; }
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
     public static CrontabItem ToDomainModel(CrontabItemDocument item)
@@ -24,10 +22,8 @@ public class CrontabItemDocument : MongoBase
             ConversationId = item.ConversationId,
             ExecutionResult = item.ExecutionResult,
             Cron = item.Cron,
-            Topic = item.Topic,
+            Title = item.Title,
             Description = item.Description,
-            Script = item.Script,
-            Language = item.Language,
             CreatedTime = item.CreatedTime
         };
     }
@@ -41,10 +37,8 @@ public class CrontabItemDocument : MongoBase
             ConversationId = item.ConversationId,
             ExecutionResult = item.ExecutionResult,
             Cron = item.Cron,
-            Topic = item.Topic,
+            Title = item.Title,
             Description = item.Description,
-            Script = item.Script,
-            Language = item.Language,
             CreatedTime = item.CreatedTime
         };
     }

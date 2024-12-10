@@ -12,7 +12,11 @@
   "routingRules": [
     {
       "type": "reasoner",
-      "field": "HFReasoner"
+      "field": "One-Step-Forward-Reasoner"
+    },
+    {
+      "type": "planner",
+      "field": "Sequential-Planner"
     }
   ]
 }

@@ -15,7 +15,8 @@ Thinking process:
 4. Output all the subtasks as much detail as possible in JSON: [{{ response_format }}]
 5. You can NOT generate the final query before calling function plan_summary.
 
-Note:If the task includes repeat steps,e.g.same steps for multiple elements, only generate a single detailed solution without repeating steps for each elements. You can add multiple items in the input and output args.
+Note:
+* If the task includes repeat steps,e.g.same steps for multiple elements, only generate a single detailed solution without repeating steps for each elements.
 
 {% if global_knowledges != empty -%}
 =====

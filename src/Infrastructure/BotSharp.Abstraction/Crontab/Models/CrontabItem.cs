@@ -19,6 +19,6 @@ public class CrontabItem : ScheduleTaskArgs
 
     public override string ToString()
     {
-        return $"{Topic}: {Description} [AgentId: {AgentId}, UserId: {UserId}]";
+        return $"{Title}: {Description} [AgentId: {AgentId}, UserId: {UserId}]";
     }
 }

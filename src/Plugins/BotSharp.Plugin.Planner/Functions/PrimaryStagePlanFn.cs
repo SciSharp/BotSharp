@@ -49,8 +49,8 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var prompt = await GetFirstStagePlanPrompt(message, task.Requirements, knowledges);
         var plannerAgent = new Agent
         {
-            Id = BuiltInAgentId.Planner,
-            Name = "FirstStagePlanner",
+            Id = message.CurrentAgentId,
+            Name = Name,
             Instruction = prompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig
@@ -70,7 +70,7 @@ public class PrimaryStagePlanFn : IFunctionCallback
         var render = _services.GetRequiredService<ITemplateRender>();
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
-        var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
+        var agent = await agentService.GetAgent(PlannerAgentId.TwoStagePlanner);
         var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.1st.plan")?.Content ?? string.Empty;
         var responseFormat = JsonSerializer.Serialize(new FirstStagePlan{});
 
