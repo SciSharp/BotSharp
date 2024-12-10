@@ -24,6 +24,7 @@ namespace BotSharp.Core.Routing.Reasoning;
 /// </summary>
 public class HFReasoner : IRoutingReasoner
 {
+    public string Name => "Human-Feedback Reasoner";
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 

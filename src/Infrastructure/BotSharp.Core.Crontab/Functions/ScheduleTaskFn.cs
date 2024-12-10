@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Users;
 using BotSharp.Core.Crontab.Hooks;
@@ -22,15 +23,17 @@ public class ScheduleTaskFn : IFunctionCallback
         var user = _services.GetRequiredService<IUserIdentity>();
         var crontabItem = new CrontabItem
         {
-            Topic = args.Topic,
+            Title = args.Title,
             Description = args.Description,
             Cron = args.Cron,
-            Script = args.Script,
-            Language = args.Language,
             UserId = user.Id,
             AgentId = routing.EntryAgentId,
-            ConversationId = routing.ConversationId
+            ConversationId = routing.ConversationId,
+            Tasks = args.Tasks,
         };
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        // var ret = db.InsertCrontabItem(crontabItem);
 
         return true;
     }

@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Crontab.Models;
 using System.IO;
 
 namespace BotSharp.Core.Repository;
@@ -77,9 +78,9 @@ public partial class FileRepository
             {
                 matched = matched && filter.UserIds.Contains(record.UserId);
             }
-            if (filter?.Topics != null)
+            if (filter?.Titles != null)
             {
-                matched = matched && filter.Topics.Contains(record.Topic);
+                matched = matched && filter.Titles.Contains(record.Title);
             }
 
             if (!matched) continue;
