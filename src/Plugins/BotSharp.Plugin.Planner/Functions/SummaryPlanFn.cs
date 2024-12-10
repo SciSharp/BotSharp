@@ -1,8 +1,5 @@
-using BotSharp.Abstraction.Planning;
 using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
-using static System.Net.Mime.MediaTypeNames;
-using System.Text.RegularExpressions;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
@@ -62,8 +59,8 @@ public class SummaryPlanFn : IFunctionCallback
 
         var plannerAgent = new Agent
         {
-            Id = BuiltInAgentId.Planner,
-            Name = "SummaryPlanner",
+            Id = PlannerAgentId.TwoStagePlanner,
+            Name = Name,
             Instruction = prompt,
             LlmConfig = currentAgent.LlmConfig
         };
@@ -93,7 +90,7 @@ public class SummaryPlanFn : IFunctionCallback
         var render = _services.GetRequiredService<ITemplateRender>();
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
-        var agent = await agentService.GetAgent(BuiltInAgentId.Planner);
+        var agent = await agentService.GetAgent(PlannerAgentId.TwoStagePlanner);
         var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
 
         var additionalRequirements = new List<string>();

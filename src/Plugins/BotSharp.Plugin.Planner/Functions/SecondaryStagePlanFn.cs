@@ -53,8 +53,8 @@ public class SecondaryStagePlanFn : IFunctionCallback
 
         var plannerAgent = new Agent
         {
-            Id = BuiltInAgentId.Planner,
-            Name = "SecondStagePlanner",
+            Id = PlannerAgentId.TwoStagePlanner,
+            Name = Name,
             Instruction = prompt,
             TemplateDict = new Dictionary<string, object>(),
             LlmConfig = currentAgent.LlmConfig

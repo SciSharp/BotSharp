@@ -2,7 +2,7 @@ namespace BotSharp.Plugin.Planner.Hooks;
 
 public class PlannerAgentHook : AgentHookBase
 {
-    public override string SelfId => BuiltInAgentId.Planner;
+    public override string SelfId => PlannerAgentId.TwoStagePlanner;
 
     public PlannerAgentHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
@@ -19,7 +19,7 @@ public class PlannerAgentHook : AgentHookBase
         {
             var k = hook.GetGlobalKnowledges(new RoleDialogModel(AgentRole.User, template)
             {
-                CurrentAgentId = BuiltInAgentId.Planner
+                CurrentAgentId = PlannerAgentId.TwoStagePlanner
             }).Result;
             Knowledges.AddRange(k);
         }
