@@ -80,9 +80,9 @@ public class BotSharpConversationSideCar : IConversationSideCar
     }
 
     public async Task<RoleDialogModel> SendMessage(string agentId, string text,
-        PostbackMessageModel? postback = null, List<MessageState>? states = null)
+        PostbackMessageModel? postback = null, List<MessageState>? states = null, List<DialogElement>? dialogs = null)
     {
-        BeforeExecute();
+        BeforeExecute(dialogs);
         var response = await InnerExecute(agentId, text, postback, states);
         AfterExecute();
         return response;
@@ -114,7 +114,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         return response;
     }
 
-    private void BeforeExecute()
+    private void BeforeExecute(List<DialogElement>? dialogs)
     {
         enabled = true;
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -123,8 +123,8 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var node = new ConversationContext
         {
             State = state.GetCurrentState(),
-            Dialogs = new(),
-            Breakpoints = new(),
+            Dialogs = dialogs ?? [],
+            Breakpoints = [],
             RecursiveCounter = routing.Context.GetRecursiveCounter(),
             RoutingStack = routing.Context.GetAgentStack()
         };
