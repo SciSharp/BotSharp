@@ -21,7 +21,7 @@ public partial class FileRepository
             }
 
             var cronFile = Path.Combine(baseDir, CRON_FILE);
-            var json = JsonSerializer.Serialize(cronFile, _options);
+            var json = JsonSerializer.Serialize(cron, _options);
             File.WriteAllText(cronFile, json);
             return true;
         }
@@ -71,10 +71,6 @@ public partial class FileRepository
             if (filter?.UserIds != null)
             {
                 matched = matched && filter.UserIds.Contains(record.UserId);
-            }
-            if (filter?.Titles != null)
-            {
-                matched = matched && filter.Titles.Contains(record.Title);
             }
 
             if (!matched) continue;

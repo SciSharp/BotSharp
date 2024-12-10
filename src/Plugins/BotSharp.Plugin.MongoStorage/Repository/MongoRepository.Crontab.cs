@@ -46,10 +46,6 @@ public partial class MongoRepository
         {
             cronFilters.Add(cronBuilder.In(x => x.ConversationId, filter.ConversationIds));
         }
-        if (filter?.Titles != null)
-        {
-            cronFilters.Add(cronBuilder.In(x => x.Title, filter.Titles));
-        }
         if (filter?.UserIds != null)
         {
             cronFilters.Add(cronBuilder.In(x => x.UserId, filter.UserIds));

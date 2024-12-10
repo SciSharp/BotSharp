@@ -11,9 +11,6 @@ public class CrontabItemFilter : Pagination
     [JsonPropertyName("conversation_ids")]
     public IEnumerable<string>? ConversationIds { get; set; }
 
-    [JsonPropertyName("titles")]
-    public IEnumerable<string>? Titles { get; set; }
-
     public CrontabItemFilter()
     {
         
