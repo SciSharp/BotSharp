@@ -1,11 +1,10 @@
-using BotSharp.Abstraction.Crontab.Models;
 using System.IO;
 
 namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public bool InsertCrontabItem(CrontabItem cron)
+    public bool UpsertCrontabItem(CrontabItem cron)
     {
         if (cron == null || string.IsNullOrWhiteSpace(cron.ConversationId))
         {
@@ -28,6 +27,37 @@ public partial class FileRepository
         catch (Exception ex)
         {
             _logger.LogError($"Error when saving crontab item: {ex.Message}\r\n{ex.InnerException}");
+            return false;
+        }
+    }
+
+    public bool DeleteCrontabItem(string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            return false;
+        }
+
+        try
+        {
+            var baseDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir, conversationId);
+            if (!Directory.Exists(baseDir))
+            {
+                return false;
+            }
+
+            var cronFile = Path.Combine(baseDir, CRON_FILE);
+            if (!File.Exists(cronFile))
+            {
+                return false;
+            }
+
+            File.Delete(cronFile);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error when deleting crontab item (${conversationId}): {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }
