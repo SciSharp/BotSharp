@@ -16,7 +16,7 @@
     },
     {
       "type": "planner",
-      "field": "Sequential-Planner"
+      "field": "Two-Stage-Planner"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "id": "3e75e818-a139-48a8-9e22-4662548c13a3",
   "name": "Sequential-Planner",
-  "description": "Plan an ordered plan steps to execute some tasks in a predefined order by the user",
+  "description": "Plan an execution steps for the user complex task, especially if the tasks are in a predefined order by the user",
   "type": "planning",
   "createdDateTime": "2023-08-27T10:39:00Z",
   "updatedDateTime": "2023-08-27T14:39:00Z",

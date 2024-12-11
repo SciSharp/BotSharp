@@ -5,15 +5,15 @@ internal static class SqlDriverHelper
     internal static string GetDatabaseType(IServiceProvider services)
     {
         var settings = services.GetRequiredService<SqlDriverSetting>();
-        var dbType = "MySQL";
+        var dbType = "mysql";
 
         if (!string.IsNullOrWhiteSpace(settings?.SqlServerConnectionString))
         {
-            dbType = "SQL Server";
+            dbType = "sqlserver";
         }
         else if (!string.IsNullOrWhiteSpace(settings?.SqlLiteConnectionString))
         {
-            dbType = "SQL Lite";
+            dbType = "sqllite";
         }
         return dbType;
     }
