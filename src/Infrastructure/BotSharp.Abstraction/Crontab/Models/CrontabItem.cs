@@ -2,9 +2,6 @@ namespace BotSharp.Abstraction.Crontab.Models;
 
 public class CrontabItem : ScheduleTaskArgs
 {
-    [JsonPropertyName("id")]
-    public string Id { get; set; }
-
     [JsonPropertyName("user_id")]
     public string UserId { get; set; } = null!;
 
@@ -22,6 +19,6 @@ public class CrontabItem : ScheduleTaskArgs
 
     public override string ToString()
     {
-        return $"{Topic}: {Description} [AgentId: {AgentId}, UserId: {UserId}]";
+        return $"{Title}: {Description} [AgentId: {AgentId}, UserId: {UserId}]";
     }
 }

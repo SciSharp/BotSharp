@@ -5,18 +5,23 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public bool InsertCrontabItem(CrontabItem item)
+    public bool UpsertCrontabItem(CrontabItem item)
     {
-        if (item == null)
+        if (item == null || string.IsNullOrWhiteSpace(item.ConversationId))
         {
             return false;
         }
 
         try
         {
-            item.Id = Guid.NewGuid().ToString();
             var cronDoc = CrontabItemDocument.ToMongoModel(item);
-            _dc.CrontabItems.InsertOne(cronDoc);
+            cronDoc.Id = Guid.NewGuid().ToString();
+
+            var filter = Builders<CrontabItemDocument>.Filter.Eq(x => x.ConversationId, item.ConversationId);
+            var result = _dc.CrontabItems.ReplaceOne(filter, cronDoc, new ReplaceOptions
+            {
+                IsUpsert = true
+            });
             return true;
         }
         catch (Exception ex)
@@ -24,6 +29,19 @@ public partial class MongoRepository
             _logger.LogError($"Error when saving crontab item: {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
+    }
+
+
+    public bool DeleteCrontabItem(string conversationId)
+    {
+        if (string.IsNullOrWhiteSpace(conversationId))
+        {
+            return false;
+        }
+
+        var filter = Builders<CrontabItemDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var result = _dc.CrontabItems.DeleteMany(filter);
+        return result.DeletedCount > 0;
     }
 
 
@@ -37,7 +55,7 @@ public partial class MongoRepository
         var cronBuilder = Builders<CrontabItemDocument>.Filter;
         var cronFilters = new List<FilterDefinition<CrontabItemDocument>>() { cronBuilder.Empty };
 
-        // Filter conversations
+        // Filter cron
         if (filter?.AgentIds != null)
         {
             cronFilters.Add(cronBuilder.In(x => x.AgentId, filter.AgentIds));
@@ -45,10 +63,6 @@ public partial class MongoRepository
         if (filter?.ConversationIds != null)
         {
             cronFilters.Add(cronBuilder.In(x => x.ConversationId, filter.ConversationIds));
-        }
-        if (filter?.Topics != null)
-        {
-            cronFilters.Add(cronBuilder.In(x => x.Topic, filter.Topics));
         }
         if (filter?.UserIds != null)
         {

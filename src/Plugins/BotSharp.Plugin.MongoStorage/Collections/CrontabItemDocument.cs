@@ -9,26 +9,23 @@ public class CrontabItemDocument : MongoBase
     public string ConversationId { get; set; }
     public string ExecutionResult { get; set; }
     public string Cron { get; set; }
-    public string Topic { get; set; }
+    public string Title { get; set; }
     public string Description { get; set; }
-    public string Script { get; set; }
-    public string Language { get; set; }
+    public IEnumerable<CronTaskMongoElement> Tasks { get; set; } = [];
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
     public static CrontabItem ToDomainModel(CrontabItemDocument item)
     {
         return new CrontabItem
         {
-            Id = item.Id,
             UserId = item.UserId,
             AgentId = item.AgentId,
             ConversationId = item.ConversationId,
             ExecutionResult = item.ExecutionResult,
             Cron = item.Cron,
-            Topic = item.Topic,
+            Title = item.Title,
             Description = item.Description,
-            Script = item.Script,
-            Language = item.Language,
+            Tasks = item.Tasks?.Select(x => CronTaskMongoElement.ToDomainElement(x))?.ToArray() ?? [],
             CreatedTime = item.CreatedTime
         };
     }
@@ -37,16 +34,14 @@ public class CrontabItemDocument : MongoBase
     {
         return new CrontabItemDocument
         {
-            Id = item.Id,
             UserId = item.UserId,
             AgentId = item.AgentId,
             ConversationId = item.ConversationId,
             ExecutionResult = item.ExecutionResult,
             Cron = item.Cron,
-            Topic = item.Topic,
+            Title = item.Title,
             Description = item.Description,
-            Script = item.Script,
-            Language = item.Language,
+            Tasks = item.Tasks?.Select(x => CronTaskMongoElement.ToMongoElement(x))?.ToList() ?? [],
             CreatedTime = item.CreatedTime
         };
     }
