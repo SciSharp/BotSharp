@@ -112,7 +112,7 @@ public class UserService : IUserService
             db.UpdateExistUser(hasRegisterId, record);
         }
 
-        _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}");
+        _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
         Utilities.ClearCache();
 
         var hooks = _services.GetServices<IAuthenticationHook>();
