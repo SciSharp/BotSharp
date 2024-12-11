@@ -1,12 +1,16 @@
 {
   "name": "util-crontab-schedule_task",
-  "description": "Set up a scheduled task",
+  "description": "Set up or cancel a scheduled task",
   "parameters": {
     "type": "object",
     "properties": {
       "cron_expression": {
         "type": "string",
-        "description": "cron expression include seconds"
+        "description": "cron expression. Set value as empty if user wants to cancel schedule."
+      },
+      "less_than_60_seconds": {
+        "type": "boolean",
+        "description": "whether schedule interval is less than 60 seconds"
       },
       "title": {
         "type": "string",
@@ -39,6 +43,6 @@
         }
       }
     },
-    "required": [ "cron_expression", "title", "description", "to_do_list" ]
+    "required": [ "cron_expression", "include_seconds", "title", "description", "to_do_list" ]
   }
 }
