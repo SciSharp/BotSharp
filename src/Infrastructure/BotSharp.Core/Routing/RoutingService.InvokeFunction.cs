@@ -18,9 +18,9 @@ public partial class RoutingService
         var clonedMessage = RoleDialogModel.From(message);
         clonedMessage.FunctionName = name;
 
-        var hooks = _services.GetServices<IConversationHook>()
-            .OrderBy(x => x.Priority)
-            .ToList();
+        var hooks = _services
+            .GetRequiredService<ConversationHookProvider>()
+            .HooksOrderByPriority;
 
         var progressService = _services.GetService<IConversationProgressService>();
 

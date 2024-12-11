@@ -31,9 +31,9 @@ public partial class ConversationService : IConversationService
             states.CleanStates(excludedStates);
         }
 
-        var hooks = _services.GetServices<IConversationHook>()
-            .OrderBy(x => x.Priority)
-            .ToList();
+        var hooks = _services
+            .GetRequiredService<ConversationHookProvider>()
+            .HooksOrderByPriority;
 
         // Before executing functions
         foreach (var hook in hooks)
