@@ -1,5 +1,5 @@
+using BotSharp.Abstraction.Crontab.Models;
 using BotSharp.Core.Crontab.Abstraction;
-using BotSharp.Core.Crontab.Models;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BotSharp.Plugin.ChatHub.Hooks;

@@ -33,11 +33,6 @@ public class BuiltInAgentId
     public const string Learner = "01acc3e5-0af7-49e6-ad7a-a760bd12dc40";
 
     /// <summary>
-    /// Plan feasible implementation steps for complex problems
-    /// </summary>
-    public const string Planner = "282a7128-69a1-44b0-878c-a9159b88f3b9";
-
-    /// <summary>
     /// SQL statement generation
     /// </summary>
     public const string SqlDriver = "beda4c12-e1ec-4b4b-b328-3df4a6687c4f";

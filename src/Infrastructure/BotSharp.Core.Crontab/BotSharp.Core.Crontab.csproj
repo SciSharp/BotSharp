@@ -21,12 +21,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NCrontab" Version="3.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>
