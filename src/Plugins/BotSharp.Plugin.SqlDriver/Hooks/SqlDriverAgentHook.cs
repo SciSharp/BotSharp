@@ -4,7 +4,7 @@ namespace BotSharp.Plugin.SqlDriver.Hooks;
 
 public class SqlDriverAgentHook : AgentHookBase, IAgentHook
 {
-    public override string SelfId => BuiltInAgentId.Planner;
+    public override string SelfId => string.Empty;
 
     public SqlDriverAgentHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)

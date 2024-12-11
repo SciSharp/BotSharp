@@ -1,6 +1,7 @@
+using BotSharp.Abstraction.Crontab.Models;
+using BotSharp.Abstraction.Models;
+using BotSharp.Abstraction.SideCar;
 using BotSharp.Core.Crontab.Abstraction;
-using BotSharp.Core.Crontab.Models;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace BotSharp.Plugin.SqlDriver.Hooks;
 
@@ -16,15 +17,21 @@ public class SqlDriverCrontabHook : ICrontabHook
 
     public async Task OnCronTriggered(CrontabItem item)
     {
-        if (item.Language != "sql")
+        /*var conv = _services.GetRequiredService<IConversationService>();
+        conv.SetConversationId("abd9df25-2210-4e4d-80d7-48b6a3b905a8", []);
+
+        if (item.Language == "text")
+        {
+            var sidecar = _services.GetService<IConversationSideCar>();
+            var response = await sidecar.SendMessage(BuiltInAgentId.AIAssistant, item.Description, states: new List<MessageState>());
+            return;
+        }
+        else if (item.Language != "sql")
         {
             return;
         }
 
         _logger.LogWarning($"Crontab item triggered: {item.Topic}. Run {item.Language}: {item.Script}");
-
-        var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId("73a9ee27-d597-4739-958f-3bd79760ac8e", []);
 
         var message = new RoleDialogModel(AgentRole.User, $"Run the query")
         {
@@ -42,6 +49,6 @@ public class SqlDriverCrontabHook : ICrontabHook
         item.ConversationId = conv.ConversationId;
         item.AgentId = BuiltInAgentId.SqlDriver;
         item.UserId = "41021346";
-        item.ExecutionResult = message.Content;
+        item.ExecutionResult = message.Content;*/
     }
 }

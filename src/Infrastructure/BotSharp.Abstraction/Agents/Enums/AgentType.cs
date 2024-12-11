@@ -10,7 +10,7 @@ public class AgentType
     /// <summary>
     /// Planning agent
     /// </summary>
-    public const string Planning = "plan";
+    public const string Planning = "planning";
 
     public const string Evaluating = "evaluation";
 
