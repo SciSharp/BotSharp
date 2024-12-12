@@ -24,7 +24,8 @@ public class ReadImageFn : IFunctionCallback
 
         var wholeDialogs = conv.GetDialogHistory();
         var dialogs = AssembleFiles(conv.ConversationId, args?.ImageUrls, wholeDialogs);
-        var agent = await agentService.LoadAgent(message.CurrentAgentId ?? BuiltInAgentId.UtilityAssistant);
+        var agentId = !string.IsNullOrWhiteSpace(message.CurrentAgentId) ? message.CurrentAgentId : BuiltInAgentId.UtilityAssistant;
+        var agent = await agentService.LoadAgent(agentId);
         var fileAgent = new Agent
         {
             Id = agent?.Id ?? Guid.Empty.ToString(),
