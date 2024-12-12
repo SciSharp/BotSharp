@@ -17,38 +17,37 @@ public class SqlDriverCrontabHook : ICrontabHook
 
     public async Task OnCronTriggered(CrontabItem item)
     {
-        /*var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId("abd9df25-2210-4e4d-80d7-48b6a3b905a8", []);
+        var conv = _services.GetRequiredService<IConversationService>();
+        conv.SetConversationId(item.ConversationId, []);
 
-        if (item.Language == "text")
-        {
-            var sidecar = _services.GetService<IConversationSideCar>();
-            var response = await sidecar.SendMessage(BuiltInAgentId.AIAssistant, item.Description, states: new List<MessageState>());
-            return;
-        }
-        else if (item.Language != "sql")
-        {
-            return;
-        }
+        _logger.LogWarning($"Crontab item triggered: {item.Title}. {item.Description}");
 
-        _logger.LogWarning($"Crontab item triggered: {item.Topic}. Run {item.Language}: {item.Script}");
-
-        var message = new RoleDialogModel(AgentRole.User, $"Run the query")
+        foreach (var task in item.Tasks)
         {
-            FunctionName = "sql_select",
-            FunctionArgs = JsonSerializer.Serialize(new SqlStatement
+            if (task.Language == "text")
             {
-                Statement = item.Script,
-                Reason = item.Description
-            })
-        };
-        var routing = _services.GetRequiredService<IRoutingService>();
-        routing.Context.Push("ec46f15b-8790-400f-a37f-1e7995b7d6e2");
-        await routing.InvokeFunction("sql_select", message);
+                var sidecar = _services.GetService<IConversationSideCar>();
+                var response = await sidecar.SendMessage(BuiltInAgentId.AIAssistant, $"{item.ExecutionResult}\r\n{task.Script}", states: new List<MessageState>());
+            }
+            else if (task.Language == "sql")
+            {
+                var message = new RoleDialogModel(AgentRole.User, $"Run the query")
+                {
+                    FunctionName = "sql_select",
+                    FunctionArgs = JsonSerializer.Serialize(new SqlStatement
+                    {
+                        Statement = task.Script,
+                        Reason = item.Description
+                    })
+                };
+                var routing = _services.GetRequiredService<IRoutingService>();
+                routing.Context.Push(BuiltInAgentId.SqlDriver);
+                await routing.InvokeFunction("sql_select", message);
 
-        item.ConversationId = conv.ConversationId;
-        item.AgentId = BuiltInAgentId.SqlDriver;
-        item.UserId = "41021346";
-        item.ExecutionResult = message.Content;*/
+                item.AgentId = BuiltInAgentId.SqlDriver;
+                item.UserId = "41021346";
+                item.ExecutionResult += message.Content + "\r\n";
+            }
+        }
     }
 }
