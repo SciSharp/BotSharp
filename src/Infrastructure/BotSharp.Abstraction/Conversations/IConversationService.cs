@@ -12,6 +12,7 @@ public interface IConversationService
     Task<Conversation> GetConversation(string id);
     Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter);
     Task<Conversation> UpdateConversationTitle(string id, string title);
+    Task<Conversation> UpdateConversationTitleAlias(string id, string titleAlias);
     Task<bool> UpdateConversationTags(string conversationId, List<string> tags);
     Task<bool> UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
     Task<List<Conversation>> GetLastConversations();
