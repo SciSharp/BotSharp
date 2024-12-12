@@ -7,6 +7,7 @@ public partial class AgentService
 {
     public static ConcurrentDictionary<string, Dictionary<string, string>> AgentParameterTypes = new();
 
+    [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id)
     {
         if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
@@ -14,26 +15,6 @@ public partial class AgentService
             return null;
         }
 
-        Agent agent = await GetLoadAgent(id);
-        OnAgentLoadFilter(agent);
-        return agent;
-    }
-
-    private void OnAgentLoadFilter(Agent? agent)
-    {
-        if (agent != null && agent.Type == AgentType.Routing)
-        {
-            var hooks = _services.GetServices<IAgentHook>();
-            foreach (var hook in hooks)
-            {
-                hook.OnAgentLoadFilter(agent);
-            }
-        }
-    }
-
-    [MemoryCache(10 * 60, perInstanceCache: true)]
-    private async Task<Agent> GetLoadAgent(string id)
-    {
         var hooks = _services.GetServices<IAgentHook>();
 
         // Before agent is loaded.
