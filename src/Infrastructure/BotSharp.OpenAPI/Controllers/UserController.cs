@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,17 +13,20 @@ public class UserController : ControllerBase
     private readonly IUserService _userService;
     private readonly IUserIdentity _user;
     private readonly AccountSetting _setting;
+    private readonly IWeChatUserService _weChatUserService;
 
     public UserController(
         IUserService userService,
         IServiceProvider services,
         IUserIdentity user,
-        AccountSetting setting)
+        AccountSetting setting,
+        IWeChatUserService weChatUserService)
     {
         _services = services;
         _userService = userService;
         _user = user;
         _setting = setting;
+        _weChatUserService = weChatUserService;
     }
 
     [AllowAnonymous]
@@ -70,6 +72,16 @@ public class UserController : ControllerBase
     {
         var createdUser = await _userService.CreateUser(user.ToUser());
         return UserViewModel.FromUser(createdUser);
+    }
+
+    [HttpPost("/user/wechat")]
+    public async Task CreateWeChatUser(string code)
+    {
+        // Get WeChat User Info
+
+
+        WeChatUser wechatUser = new();
+        var user = await _weChatUserService.CreateWeChatUser(wechatUser);
     }
 
     [AllowAnonymous]
