@@ -2,27 +2,23 @@ namespace BotSharp.Abstraction.Conversations;
 
 public abstract class ConversationHookBase : IConversationHook
 {
-    protected Agent _agent;
-    public Agent Agent => _agent;
+    public Agent Agent { get; private set; }
 
-    protected Conversation _conversation;
-    public Conversation Conversation => _conversation;
+    public Conversation Conversation { get; private set; }
 
-    protected List<RoleDialogModel> _dialogs;
-    public List<RoleDialogModel> Dialogs => _dialogs;
+    public List<RoleDialogModel> Dialogs { get; private set; }
 
-    protected int _priority = 0;
-    public int Priority => _priority;
+    public int Priority { get; protected set; } = 0;
 
     public IConversationHook SetAgent(Agent agent)
     {
-        _agent = agent;
+        Agent = agent;
         return this;
     }
 
     public IConversationHook SetConversation(Conversation conversation)
     {
-        _conversation = conversation;
+        Conversation = conversation;
         return this;
     }
 
@@ -37,7 +33,7 @@ public abstract class ConversationHookBase : IConversationHook
 
     public virtual Task OnDialogsLoaded(List<RoleDialogModel> dialogs)
     {
-        _dialogs = dialogs;
+        Dialogs = dialogs;
         return Task.CompletedTask;
     }
 

@@ -28,7 +28,7 @@ public partial class ConversationService
         var dialogs = conv.GetDialogHistory();
 
         var statistics = _services.GetRequiredService<ITokenStatistics>();
-        var hooks = _services.GetServices<IConversationHook>().ToList();
+        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
 
         RoleDialogModel response = message;
         bool stopCompletion = false;
@@ -44,9 +44,7 @@ public partial class ConversationService
             message.Payload = replyMessage.Payload;
         }
 
-        // Before chat completion hook
-        hooks = ReOrderConversationHooks(hooks);
-        foreach (var hook in hooks)
+        foreach (var hook in hookProvider.HooksOrderByPriority)
         {
             hook.SetAgent(agent)
                 .SetConversation(conversation);
