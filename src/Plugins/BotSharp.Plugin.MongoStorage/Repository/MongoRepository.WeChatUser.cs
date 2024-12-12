@@ -36,5 +36,27 @@ public partial class MongoRepository
         return weChatUserInfo.ToWeChatUser();
     }
 
-    
+    public WeChatUser? UpdateWeChatUser(WeChatUser weChatUser)
+    {
+        if (weChatUser == null) return null;
+
+        var filter = Builders<WeChatUserDocument>.Filter.Eq(x => x.Id, weChatUser.Id);
+        var update = Builders<WeChatUserDocument>.Update
+            .Set(x => x.OpenId, weChatUser.OpenId)
+            .Set(x => x.SessionKey, weChatUser.SessionKey)
+            .Set(x => x.UnionId, weChatUser.UnionId)
+            .Set(x => x.Sex, weChatUser.Sex)
+            .Set(x => x.Province, weChatUser.Province)
+            .Set(x => x.City, weChatUser.City)
+            .Set(x => x.NickName, weChatUser.NickName)
+            .Set(x => x.Headimgurl, weChatUser.Headimgurl)
+            .Set(x => x.PhoneNumber, weChatUser.PhoneNumber)
+            .Set(x => x.Country, weChatUser.Country)
+            .Set(x => x.Privilege, weChatUser.Privilege)
+            .Set(x => x.UpdatedAt, DateTime.UtcNow);
+
+        _dc.WeChatUsers.UpdateOne(filter, update);
+
+        return weChatUser;
+    }
 }
