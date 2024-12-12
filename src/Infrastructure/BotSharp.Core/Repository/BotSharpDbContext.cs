@@ -105,6 +105,8 @@ public class BotSharpDbContext : Database, IBotSharpRepository
 
     public void UpdateConversationTitle(string conversationId, string title)
         => throw new NotImplementedException();
+    public void UpdateConversationTitleAlias(string conversationId, string titleAlias)
+        => throw new NotImplementedException();
 
     public bool UpdateConversationTags(string conversationId, List<string> tags)
         => throw new NotImplementedException();

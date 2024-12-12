@@ -51,6 +51,14 @@ public partial class ConversationService : IConversationService
         return conversation;
     }
 
+    public async Task<Conversation> UpdateConversationTitleAlias(string id, string titleAlias)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.UpdateConversationTitleAlias(id, titleAlias);
+        var conversation = db.GetConversation(id);
+        return conversation;
+    }
+
     public async Task<bool> UpdateConversationTags(string conversationId, List<string> tags)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
