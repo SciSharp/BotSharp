@@ -13,10 +13,16 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
+  </ItemGroup>
 </Project>
