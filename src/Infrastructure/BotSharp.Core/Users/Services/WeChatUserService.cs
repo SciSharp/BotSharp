@@ -40,7 +40,7 @@ public class WeChatUserService : IWeChatUserService
 
     public async Task<WeChatUser> WeChatUserLogin(string code)
     {
-        // 实现获取 access_token 和 openid，再获取用户信息
+        // Implement obtaining access_token and openid, and then obtaining user information
         if (string.IsNullOrEmpty(code))
         {
             _logger.LogError("Create WeChatUser Error: code is empty, Please check if the code has been obtained correctly!");
@@ -52,7 +52,7 @@ public class WeChatUserService : IWeChatUserService
 
         try
         {
-            // Step 1: 使用 code 获取 access_token 和 openid
+            // Step 1: Use the code to obtain the access_token and openid
             var tokenUrl = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={appId}&secret={appSecret}&code={code}&grant_type=authorization_code";
 
             using var httpClient = new HttpClient();
@@ -74,7 +74,7 @@ public class WeChatUserService : IWeChatUserService
             var userInfoResponse = await httpClient.GetStringAsync(userInfoUrl);
             var userInfo = JObject.Parse(userInfoResponse);
 
-            // 提取用户信息
+            // Retrieve user information
             var nickname = userInfo["nickname"]?.ToString() ?? string.Empty;
             var avatar = userInfo["headimgurl"]?.ToString() ?? string.Empty;
             var country = userInfo["country"]?.ToString() ?? string.Empty;
@@ -84,7 +84,7 @@ public class WeChatUserService : IWeChatUserService
             var privilege = userInfo["privilege"]?.ToString() ?? string.Empty;
             var unionId = userInfo["unionId"]?.ToString() ?? string.Empty;
 
-            // 创建或更新 WeChatUser
+            // Create or update WeChatUser
             var weChatUser = new WeChatUser
             {
                 OpenId = openId,

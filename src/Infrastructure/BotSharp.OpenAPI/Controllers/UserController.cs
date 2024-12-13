@@ -74,25 +74,20 @@ public class UserController : ControllerBase
         return UserViewModel.FromUser(createdUser);
     }
 
+    [AllowAnonymous]
     [HttpPost("/user/wechat")]
-    public async Task CreateWeChatUser(string code)
+    public async Task<UserViewModel> CreateWeChatUser(string code)
     {
         // Get WeChat User Info
-        var wechatUser = await _weChatUserService.WeChatUserLogin(code);
-        if (wechatUser == null)
-        {
-            return;
-        }
+        var wechatUserInfo = await _weChatUserService.WeChatUserLogin(code);
 
-        var weChatUser = await _weChatUserService.CreateWeChatUser(wechatUser);
-
-        if (wechatUser == null)
-        {
-            return;
-        }
+        // Create WeChatUser
+        var weChatUser = await _weChatUserService.CreateWeChatUser(wechatUserInfo);
 
         // Create User
         var createdUser = await _userService.CreateUser(weChatUser.ToUser());
+
+        return UserViewModel.FromUser(createdUser);
     }
 
     [AllowAnonymous]
