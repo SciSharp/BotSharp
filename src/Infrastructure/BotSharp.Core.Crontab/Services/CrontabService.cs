@@ -15,6 +15,7 @@
 ******************************************************************************/
 
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Core.Infrastructures;
 using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Core.Crontab.Services;
@@ -45,14 +46,9 @@ public class CrontabService : ICrontabService
     {
         _logger.LogDebug($"ScheduledTimeArrived {item}");
 
-        var hooks = _services.GetServices<ICrontabHook>();
-        foreach(var hook in hooks)
-        {
-            await hook.OnCronTriggered(item);
-        }
-        /*await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
+        await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
             await hook.OnCronTriggered(item)
-        );*/
+        );
         await Task.Delay(1000 * 10);
     }
 }

@@ -4,7 +4,7 @@
 This document aims to introduce the agent utility concept and provide an instruction on adding custom agent utilities in AI project “BotSharp”. We will start by explaining the mechanism of agent utility in [Section 2](#agent-utility). Then, we illustrate the custom agent utility setup and integration in [Section 3](#agent-utility-setup) and [Section 4](#agent-utility-integration), respectively. A use case will be demonstrated in [Section 5](#use-case-demo). We wrap up the document with a short summary.
 
 ## Agent Utility
-The agent utility is a unique feature that can be integrated into agent to enhance its capability. Its core principle is that it can dynamically and seamlessly add extra prompts and add task-oriented functions (or tools) during conversation, without disrupting the agent’s primary purpose. In other words, the agent utility can perform extra tasks based on the context of conversation. Typical examples of agent utility include reading images/pdf, generating image, and sending http requests. [Fig 2.1.1](#agent-utility-example) demonstrates an example of these utilities. In this example, “Chatbot” is a simple agent to answer user questions and the utilities extend its capability to explain image content, generate requested image, and send a specific http request.
+The agent utility is a unique feature that can be integrated into agent to enhance its capability. Its core principle is that it can dynamically and seamlessly add extra prompts and add task-oriented functions (or tools) during conversation, without disrupting the agent’s primary purpose. In other words, the agent utility can perform extra tasks based on the context of conversation. Typical examples of agent utility include reading images/pdf, generating image, and sending http requests. [Fig 2.1.1](#agent-utility-example) demonstrates an example of these utilities. In this example, “Chatbot” is a simple agent to answer user questions, and the utilities extend its capability to explain image content, generate requested image, and send a specific http request.
 
 <div id="agent-utility-example">
     <img src="assets/agent-utility/agent-utility-example.png" style="display: block; margin: auto;" />
@@ -15,7 +15,7 @@ The agent utility is a unique feature that can be integrated into agent to enhan
 In this section, we outline the steps to set up a custom agent utility. We start with the basic code structure and then add essential utility data, such as prompts and functions. The utility hooks are used to incorporate the utility into the agent. Finally, we give a brief overview of the utility implementation.
 
 ### Basic Code Structure
-The basic code structure of a typical agent utility includes prompt/function data, hooks, and function implementation. We can add specific utility prompts and functions in different projects. Note that the agent “6745151e-6d46-4a02-8de4-1c4f21c7da95” is considered as a dedicated utility assistant, and every prompt and function can be optionally used as a utility. [Fig 3.1.1](#agent-utility-code-structure) presents the structure of prompt, function, hooks, and implementation of an http utility.
+The basic code structure of a typical agent utility includes prompt/function data, hooks, and function implementation. We can add specific utility prompts and functions in different projects. Note that the agent **“6745151e-6d46-4a02-8de4-1c4f21c7da95”** is considered as a dedicated utility assistant, and every prompt and function can be optionally used as a utility. [Fig 3.1.1](#agent-utility-code-structure) presents the structure of prompt, function, hooks, and implementation of an http utility.
 
 <div id="agent-utility-code-structure">
     <img src="assets/agent-utility/agent-utility-code-structure.png" style="display: block; margin: auto;" />
@@ -23,7 +23,7 @@ The basic code structure of a typical agent utility includes prompt/function dat
 <br />
 
 ### Utility Data
-For a typical agent utility, it is essential to add at least a prompt and a function. The prompt is added under the “templates” folder and its recommended name is “[function name].fn.liquid”, while the function is added under the “functions” folder and its recommended name is “[function name].json”. Once we compile the project, we can find the aggregated utility assistant folder at location: “\BotSharp\src\WebStarter\bin\Debug\net8.0\data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95”.
+For a typical agent utility, it is essential to add at least one prompt and one function. The utility name is formatted as **“[plugin name].[utility name]”**, such as “http.http-handler”. The prompt is added under the “templates” folder and its recommended name is **“util-[plugin name]-[function name].fn.liquid”**, while the function is added under the “functions” folder and its recommended name is **“util-[plugin name]-[function name].json”**. Once we compile the project, we can find the aggregated utility assistant folder at location: **“\BotSharp\src\WebStarter\bin\Debug\net8.0\data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95”**.
 
 ### Utility Hooks
 The utility hooks are used to connect the agent utility to the agent system. The code snippet below demonstrates an implementation of the http utility hook, where we define the utility name, prompts and functions. Note that each utility can be used across different agents.
@@ -50,7 +50,7 @@ public class HttpHandlerPlugin : IBotSharpPlugin
 }
 ```
 
-The agent hook is used to append the utility prompt and function during the conversation. Note that the utility data is only allowed to be included in the context of conversation. The utility mechanism is implemented in the “OnAgentUtilityLoaded” hook, and it is invoked when we load any agent.
+The agent hook is used to append the utility prompt and function during the conversation. **Note that the utility data is only allowed to be included in the context of conversation**. The utility mechanism is implemented in the **“OnAgentUtilityLoaded”** hook, and it is invoked when we load any agent.
 
 ```csharp
 public async Task<Agent> LoadAgent(string id)
@@ -128,7 +128,7 @@ Here we introduce a simple utility function implementation. The actual content d
 ```csharp
 public class HandleHttpRequestFn : IFunctionCallback
 {
-    public string Name => "handle_http_request";
+    public string Name => "util-http-handle_http_request";
     public string Indication => "Handling http request";
 
     private readonly IServiceProvider _services;
@@ -344,12 +344,12 @@ Here we introduce the agent setup with utilities and inheritance. As we introduc
   "profiles": [ "pizza" ],
   "utilities": [
     {
-      "name": "http_handler",
+      "name": "http.http-handler",
       "functions": [
-        { "name": "handle_http_request" }
+        { "name": "util-http-handle_http_request" }
       ],
       "templates": [
-        { "name": "handle_http_request.fn" }
+        { "name": "util-http-handle_http_request.fn" }
       ]
     }
   ],
