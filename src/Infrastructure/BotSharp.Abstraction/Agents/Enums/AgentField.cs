@@ -17,7 +17,8 @@ public enum AgentField
     Response,
     Sample,
     LlmConfig,
-    Utility
+    Utility,
+    MaxMessageCount
 }
 
 public enum AgentTaskField

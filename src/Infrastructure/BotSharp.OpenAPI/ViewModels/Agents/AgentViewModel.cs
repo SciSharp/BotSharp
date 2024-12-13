@@ -46,6 +46,10 @@ public class AgentViewModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentLlmConfig? LlmConfig { get; set; }
 
+    [JsonPropertyName("max_message_count")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxMessageCount { get; set; }
+
     public PluginDef Plugin { get; set; }
 
     public IEnumerable<string>? Actions { get; set; }
@@ -75,6 +79,7 @@ public class AgentViewModel
             Disabled = agent.Disabled,
             MergeUtility = agent.MergeUtility,
             IconUrl = agent.IconUrl,
+            MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles ?? new List<string>(),
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,
