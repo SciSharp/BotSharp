@@ -7,6 +7,14 @@
       "user_request": {
         "type": "string",
         "description": "The request posted by user, which is related to analyzing requested images. User can request for multiple images to process at one time."
+      },
+      "image_urls": {
+        "type": "array",
+        "description": "The image, photo or picture urls that user requests for analysis. They typically start with 'http' or 'https'. If user doesn't include any url, then leave this array empty. Please remove any duplicated urls",
+        "items": {
+          "type": "string",
+          "description": "The image, photo or picture url that user requests for analysis. It typically starts with http or https."
+        }
       }
     },
     "required": [ "user_request" ]
