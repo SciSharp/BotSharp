@@ -53,7 +53,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
-    Agent? GetAgent(string agentId);
+    Agent? GetAgent(string agentId, bool basicsOnly = false);
     List<Agent> GetAgents(AgentFilter filter);
     List<UserAgent> GetUserAgents(string userId);
     void BulkInsertAgents(List<Agent> agents);

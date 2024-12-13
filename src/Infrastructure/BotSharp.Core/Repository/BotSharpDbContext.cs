@@ -16,7 +16,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     #endregion
 
     #region Agent
-    public Agent GetAgent(string agentId)
+    public Agent GetAgent(string agentId, bool basicsOnly = false)
         => throw new NotImplementedException();
 
     public List<Agent> GetAgents(AgentFilter filter)
