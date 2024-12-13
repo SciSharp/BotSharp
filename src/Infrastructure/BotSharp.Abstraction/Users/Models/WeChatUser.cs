@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Users.Enums;
+
 namespace BotSharp.Abstraction.Users.Models;
 
 public class WeChatUser
@@ -8,8 +10,6 @@ public class WeChatUser
     /// User unique identifier (unique under the current application)
     /// </summary>
     public string OpenId { get; set; } = string.Empty;
-
-    public string SessionKey { get; set; } = string.Empty;
 
     /// <summary>
     /// User unique identifier (cross application unique, requiring open platform binding)
@@ -52,4 +52,22 @@ public class WeChatUser
     public DateTime? UpdatedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public User ToUser()
+    {
+        return new User
+        {
+            Id = Id,
+            Phone = PhoneNumber,
+            UserName = PhoneNumber,
+            FirstName = PhoneNumber,
+            LastName = PhoneNumber,
+            Email = null,
+            Password = string.Empty,
+            Role = UserRole.User,
+            Type = UserType.Client,
+            RegionCode = "CN",
+            ReferralCode = null,
+        };
+    }
 }

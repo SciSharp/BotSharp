@@ -11,8 +11,6 @@ public class WeChatUserDocument : MongoBase
     /// </summary>
     public string OpenId { get; set; } = string.Empty;
 
-    public string SessionKey { get; set; } = string.Empty;
-
     /// <summary>
     /// User unique identifier (cross application unique, requiring open platform binding)
     /// </summary>
@@ -61,7 +59,6 @@ public class WeChatUserDocument : MongoBase
         {
             Id = Id,
             OpenId = OpenId,
-            SessionKey = SessionKey,
             UnionId = UnionId,
             Sex = Sex,
             Province = Province,

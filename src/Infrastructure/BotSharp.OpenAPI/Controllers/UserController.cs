@@ -78,10 +78,21 @@ public class UserController : ControllerBase
     public async Task CreateWeChatUser(string code)
     {
         // Get WeChat User Info
+        var wechatUser = await _weChatUserService.WeChatUserLogin(code);
+        if (wechatUser == null)
+        {
+            return;
+        }
 
+        var weChatUser = await _weChatUserService.CreateWeChatUser(wechatUser);
 
-        WeChatUser wechatUser = new();
-        var user = await _weChatUserService.CreateWeChatUser(wechatUser);
+        if (wechatUser == null)
+        {
+            return;
+        }
+
+        // Create User
+        var createdUser = await _userService.CreateUser(weChatUser.ToUser());
     }
 
     [AllowAnonymous]

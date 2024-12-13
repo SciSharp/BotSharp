@@ -10,15 +10,12 @@ public partial class MongoRepository
         return weChatUser != null ? weChatUser.ToWeChatUser() : null;
     }
 
-    public WeChatUser? CreateWeChatUser(WeChatUser weChatUser)
+    public WeChatUser CreateWeChatUser(WeChatUser weChatUser)
     {
-        if (weChatUser == null) return null;
-
         var weChatUserInfo = new WeChatUserDocument
         {
             Id = weChatUser.Id ?? Guid.NewGuid().ToString(),
             OpenId = weChatUser.OpenId,
-            SessionKey = weChatUser.SessionKey,
             UnionId = weChatUser.UnionId,
             Sex = weChatUser.Sex,
             Province = weChatUser.Province,
@@ -43,7 +40,6 @@ public partial class MongoRepository
         var filter = Builders<WeChatUserDocument>.Filter.Eq(x => x.Id, weChatUser.Id);
         var update = Builders<WeChatUserDocument>.Update
             .Set(x => x.OpenId, weChatUser.OpenId)
-            .Set(x => x.SessionKey, weChatUser.SessionKey)
             .Set(x => x.UnionId, weChatUser.UnionId)
             .Set(x => x.Sex, weChatUser.Sex)
             .Set(x => x.Province, weChatUser.Province)

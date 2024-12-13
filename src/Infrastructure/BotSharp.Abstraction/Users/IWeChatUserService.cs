@@ -9,4 +9,6 @@ public interface IWeChatUserService
     Task<WeChatUser?> CreateWeChatUser(WeChatUser weChatUser);
 
     Task<WeChatUser?> UpdateWeChatUser(WeChatUser weChatUser);
+
+    Task<WeChatUser> WeChatUserLogin(string code);
 }
