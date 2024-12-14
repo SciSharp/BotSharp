@@ -61,9 +61,9 @@ public partial class MongoRepository
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
-    public User? GetUserByUserName(string userName)
+    public User? GetUserByUserName(string userName, string regionCode = "CN")
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.UserName == userName.ToLower());
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.UserName == userName.ToLower() && x.RegionCode == regionCode.ToLower());
         return user != null ? user.ToUser() : null;
     }
 
@@ -331,10 +331,10 @@ public partial class MongoRepository
             .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
         if (user == null) return;
         var curDash = user.Dashboard ?? new Dashboard();
-        curDash.ConversationList.Add(new DashboardConversation 
-        { 
+        curDash.ConversationList.Add(new DashboardConversation
+        {
             Id = Guid.NewGuid().ToString(),
-            ConversationId = conversationId 
+            ConversationId = conversationId
         });
 
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
