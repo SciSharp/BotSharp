@@ -46,7 +46,7 @@ namespace UnitTest
 
         class TestHookB : ConversationHookBase
         {
-            public TestHookA()
+            public TestHookB()
             {
                 Priority = 2;
             }
@@ -54,7 +54,7 @@ namespace UnitTest
 
         class TestHookC : ConversationHookBase
         {
-            public TestHookA()
+            public TestHookC()
             {
                 Priority = 3;
             }
