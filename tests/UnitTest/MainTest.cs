@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Conversations;
-using BotSharp.Core.Evaluations;
-using BotSharp.Plugin.ChatHub.Hooks;
 
 namespace UnitTest
 {    
@@ -13,18 +11,53 @@ namespace UnitTest
         {
             var services = new ServiceCollection();
 
-            services.AddSingleton<IConversationHook, EvaluationConversationHook>();
-            services.AddSingleton<IConversationHook, WelcomeHook>();
-            services.AddSingleton<IConversationHook, ChatHubConversationHook>();
+            services.AddSingleton<IConversationHook, TestHookC>();
+            services.AddSingleton<IConversationHook, TestHookA>();
+            services.AddSingleton<IConversationHook, TestHookB>();
+            
             services.AddSingleton<ConversationHookProvider>();
 
             var serviceProvider = services.BuildServiceProvider();
             var conversationHookProvider = serviceProvider.GetService<ConversationHookProvider>();
-            
+
             Assert.AreEqual(3, conversationHookProvider.Hooks.Count());
 
-            // ChatHubConversationHook has the top priority
-            Assert.IsInstanceOfType<ChatHubConversationHook>(conversationHookProvider.HooksOrderByPriority.FirstOrDefault());
+            var prevHook = default(IConversationHook);
+
+            // Assert priority
+            foreach (var hook in conversationHookProvider.HooksOrderByPriority)
+            {
+                if (prevHook != null)
+                {
+                    Assert.IsTrue(prevHook.Priority < hook.Priority);
+                }
+
+                prevHook = hook;
+            }
+        }
+
+        class TestHookA : ConversationHookBase
+        {
+            public TestHookA()
+            {
+                Priority = 1;
+            }
+        }
+
+        class TestHookB : ConversationHookBase
+        {
+            public TestHookA()
+            {
+                Priority = 2;
+            }
+        }
+
+        class TestHookC : ConversationHookBase
+        {
+            public TestHookA()
+            {
+                Priority = 3;
+            }
         }
     }
 }

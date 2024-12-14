@@ -22,7 +22,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
-    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
-    <ProjectReference Include="..\..\src\Plugins\BotSharp.Plugin.ChatHub\BotSharp.Plugin.ChatHub.csproj" />
   </ItemGroup>
 </Project>
