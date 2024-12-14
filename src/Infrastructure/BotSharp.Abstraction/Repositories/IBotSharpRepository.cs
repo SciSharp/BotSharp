@@ -50,10 +50,6 @@ public interface IBotSharpRepository : IHaveServiceProvider
     User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
     bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
 
-    WeChatUser? GetWeChatUser(string openId) => throw new NotImplementedException();
-    WeChatUser CreateWeChatUser(WeChatUser weChatUser) => throw new NotImplementedException();
-    WeChatUser? UpdateWeChatUser(WeChatUser weChatUser) => throw new NotImplementedException();
-
     #endregion
 
     #region Agent

@@ -13,20 +13,17 @@ public class UserController : ControllerBase
     private readonly IUserService _userService;
     private readonly IUserIdentity _user;
     private readonly AccountSetting _setting;
-    private readonly IWeChatUserService _weChatUserService;
 
     public UserController(
         IUserService userService,
         IServiceProvider services,
         IUserIdentity user,
-        AccountSetting setting,
-        IWeChatUserService weChatUserService)
+        AccountSetting setting)
     {
         _services = services;
         _userService = userService;
         _user = user;
         _setting = setting;
-        _weChatUserService = weChatUserService;
     }
 
     [AllowAnonymous]
@@ -71,22 +68,6 @@ public class UserController : ControllerBase
     public async Task<UserViewModel> CreateUser(UserCreationModel user)
     {
         var createdUser = await _userService.CreateUser(user.ToUser());
-        return UserViewModel.FromUser(createdUser);
-    }
-
-    [AllowAnonymous]
-    [HttpPost("/user/wechat")]
-    public async Task<UserViewModel> CreateWeChatUser(string code)
-    {
-        // Get WeChat User Info
-        var wechatUserInfo = await _weChatUserService.WeChatUserLogin(code);
-
-        // Create WeChatUser
-        var weChatUser = await _weChatUserService.CreateWeChatUser(wechatUserInfo);
-
-        // Create User
-        var createdUser = await _userService.CreateUser(weChatUser.ToUser());
-
         return UserViewModel.FromUser(createdUser);
     }
 

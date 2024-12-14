@@ -169,6 +169,4 @@ public class MongoDbContext
     public IMongoCollection<CrontabItemDocument> CrontabItems
         => Database.GetCollection<CrontabItemDocument>($"{_collectionPrefix}_CronTabItems");
 
-    public IMongoCollection<WeChatUserDocument> WeChatUsers
-        => Database.GetCollection<WeChatUserDocument>($"{_collectionPrefix}_WeChatUsers");
 }
