@@ -153,7 +153,10 @@ public partial class ConversationService : IConversationService
             }
         }
 
-        return dialogs.TakeLast(lastCount).ToList();
+        var agentMsgCount = GetAgentMessageCount();
+        var count = agentMsgCount.HasValue && agentMsgCount.Value > 0 ? agentMsgCount.Value : lastCount;
+
+        return dialogs.TakeLast(count).ToList();
     }
 
     public void SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false)
@@ -191,5 +194,17 @@ public partial class ConversationService : IConversationService
     public bool IsConversationMode()
     {
         return !string.IsNullOrWhiteSpace(_conversationId);
+    }
+
+
+    private int? GetAgentMessageCount()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
+        if (string.IsNullOrEmpty(routingCtx.EntryAgentId)) return null;
+
+        var agent = db.GetAgent(routingCtx.EntryAgentId, basicsOnly: true);
+        return agent?.MaxMessageCount;
     }
 }

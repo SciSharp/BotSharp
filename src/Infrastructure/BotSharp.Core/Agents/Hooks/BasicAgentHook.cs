@@ -47,7 +47,7 @@ public class BasicAgentHook : AgentHookBase
             var entryAgentId = routing.EntryAgentId;
             if (!string.IsNullOrEmpty(entryAgentId))
             {
-                var entryAgent = db.GetAgent(entryAgentId);
+                var entryAgent = db.GetAgent(entryAgentId, basicsOnly: true);
                 var (fns, tps) = GetUniqueContent(entryAgent?.Utilities);
                 functionNames = functionNames.Concat(fns).Distinct().ToList();
                 templateNames = templateNames.Concat(tps).Distinct().ToList();
