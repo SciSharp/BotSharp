@@ -77,7 +77,7 @@ public class WeChatUserService : IWeChatUserService
             // Retrieve user information
             var nickname = userInfo["nickname"]?.ToString() ?? string.Empty;
             var avatar = userInfo["headimgurl"]?.ToString() ?? string.Empty;
-            var country = userInfo["country"]?.ToString() ?? string.Empty;
+            var country = userInfo["country"]?.ToString() ?? "CN";
             var province = userInfo["province"]?.ToString() ?? string.Empty;
             var city = userInfo["city"]?.ToString() ?? string.Empty;
             var sex = userInfo["sex"]?.ToString() ?? "0";
@@ -92,7 +92,7 @@ public class WeChatUserService : IWeChatUserService
                 Sex = int.Parse(sex),
                 Province = province,
                 City = city,
-                Country = country,
+                Country = ((country != "CN" && country.Contains("CN")) ? "CN" : country),
                 Headimgurl = avatar,
                 Privilege = privilege.Split(','),
                 UnionId = unionId
@@ -105,7 +105,7 @@ public class WeChatUserService : IWeChatUserService
             _logger.LogError($"Create WeChatUser Error: {ex.Message}");
             throw new Exception($"Failed to create WeChatUser: {ex.Message}", ex);
         }
-        
+
     }
 
 
