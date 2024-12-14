@@ -103,7 +103,8 @@ public partial class ConversationService : IConversationService
 
         db.CreateNewConversation(record);
 
-        var hooks = _services.GetServices<IConversationHook>().ToList();
+        var hooks = _services.GetServices<IConversationHook>();
+
         foreach (var hook in hooks)
         {
             // If user connect agent first time
