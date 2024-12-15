@@ -506,6 +506,20 @@ public class UserService : IUserService
         return token;
     }
 
+    public async Task<Token> CreateTokenByUser(User user)
+    {
+        var accessToken = GenerateJwtToken(user);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var token = new Token
+        {
+            AccessToken = accessToken,
+            ExpireTime = jwt.Payload.Exp.Value,
+            TokenType = "Bearer",
+            Scope = "api"
+        };
+        return token;
+    }
+
     public async Task<bool> VerifyUserNameExisting(string userName)
     {
         if (string.IsNullOrEmpty(userName))
