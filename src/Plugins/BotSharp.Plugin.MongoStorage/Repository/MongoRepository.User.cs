@@ -102,7 +102,6 @@ public partial class MongoRepository
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update
-            .Set(x => x.UserName, user.UserName)
             .Set(x => x.Email, user.Email)
             .Set(x => x.Phone, user.Phone)
             .Set(x => x.Salt, user.Salt)
