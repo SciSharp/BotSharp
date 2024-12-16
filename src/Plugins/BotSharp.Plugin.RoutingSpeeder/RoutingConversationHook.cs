@@ -42,7 +42,7 @@ public class RoutingConversationHook: ConversationHookBase
 
         // Render by template
         var templateService = _services.GetRequiredService<IResponseTemplateService>();
-        var response = await templateService.RenderIntentResponse(_agent.Id, message);
+        var response = await templateService.RenderIntentResponse(Agent.Id, message);
 
         if (!string.IsNullOrEmpty(response))
         {
@@ -54,7 +54,7 @@ public class RoutingConversationHook: ConversationHookBase
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var routerSettings = _services.GetRequiredService<RoutingSettings>();
-        bool saveFlag = _agent.Type != AgentType.Routing;
+        bool saveFlag = Agent.Type != AgentType.Routing;
 
         if (saveFlag)
         {
@@ -63,7 +63,7 @@ public class RoutingConversationHook: ConversationHookBase
             var rootDataPath = agentService.GetDataDir();
 
             string rawDataDir = Path.Combine(rootDataPath, "raw_data", $"agent.{message.CurrentAgentId}.txt");
-            var lastThreeDialogs = _dialogs.Where(x => x.Role == AgentRole.User || x.Role == AgentRole.Assistant)
+            var lastThreeDialogs = Dialogs.Where(x => x.Role == AgentRole.User || x.Role == AgentRole.Assistant)
                 .Select(x => x.Content.Replace('\r', ' ').Replace('\n', ' '))
                 .TakeLast(3)
                 .ToArray();

@@ -13,6 +13,7 @@ public class Conversation
     /// </summary>
     public string? TaskId { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string TitleAlias { get; set; } = string.Empty;
 
     [JsonIgnore]
     public List<DialogElement> Dialogs { get; set; } = new();

@@ -51,6 +51,8 @@ public class AgentCreationModel
 
     public bool MergeUtility { get; set; }
 
+    public int? MaxMessageCount { get; set; }
+
     public List<AgentUtility> Utilities { get; set; } = new();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new();
     public AgentLlmConfig? LlmConfig { get; set; }
@@ -72,6 +74,7 @@ public class AgentCreationModel
             Type = Type,
             Disabled = Disabled,
             MergeUtility = MergeUtility,
+            MaxMessageCount = MaxMessageCount,
             Profiles = Profiles,
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),
             LlmConfig = LlmConfig

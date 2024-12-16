@@ -57,6 +57,9 @@ public class AgentUpdateModel
 
     public bool Disabled { get; set; }
 
+    [JsonPropertyName("max_message_count")]
+    public int? MaxMessageCount { get; set; }
+
     /// <summary>
     /// Profile by channel
     /// </summary>
@@ -77,6 +80,7 @@ public class AgentUpdateModel
             IsPublic = IsPublic,
             Disabled = Disabled,
             MergeUtility = MergeUtility,
+            MaxMessageCount = MaxMessageCount,
             Type = Type,
             Profiles = Profiles ?? new List<string>(),
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),

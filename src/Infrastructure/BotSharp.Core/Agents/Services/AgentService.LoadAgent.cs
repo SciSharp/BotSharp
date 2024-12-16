@@ -5,7 +5,7 @@ namespace BotSharp.Core.Agents.Services;
 
 public partial class AgentService
 {
-    public static ConcurrentDictionary<string, Dictionary<string,string>> AgentParameterTypes = new();
+    public static ConcurrentDictionary<string, Dictionary<string, string>> AgentParameterTypes = new();
 
     [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id)
@@ -106,14 +106,14 @@ public partial class AgentService
     {
         var agentId = agent.Id ?? agent.Name;
         if (AgentParameterTypes.ContainsKey(agentId)) return;
-        
+
         AddOrUpdateRoutesParameters(agentId, agent.RoutingRules);
         AddOrUpdateFunctionsParameters(agentId, agent.Functions);
     }
 
     private void AddOrUpdateRoutesParameters(string agentId, List<RoutingRule> routingRules)
     {
-        if(!AgentParameterTypes.TryGetValue(agentId, out var parameterTypes))
+        if (!AgentParameterTypes.TryGetValue(agentId, out var parameterTypes))
         {
             parameterTypes = new();
         }

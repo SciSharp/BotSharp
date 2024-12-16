@@ -29,6 +29,7 @@ public class ChatHubConversationHook : ConversationHookBase
         _chatHub = chatHub;
         _user = user;
         _options = options;
+        Priority = -1; // Make sure this hook is the top one.
     }
 
     public override async Task OnConversationInitialized(Conversation conversation)

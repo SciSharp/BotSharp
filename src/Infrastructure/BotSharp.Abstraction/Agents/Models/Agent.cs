@@ -104,6 +104,12 @@ public class Agent
     /// </summary>
     public string? InheritAgentId { get; set; }
 
+    /// <summary>
+    /// Maximum message count when load conversation
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxMessageCount { get; set; }
+
     public List<RoutingRule> RoutingRules { get; set; } = new();
 
     /// <summary>
@@ -133,6 +139,8 @@ public class Agent
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
+            MergeUtility = agent.MergeUtility,
+            MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,
