@@ -61,9 +61,9 @@ public partial class MongoRepository
         return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
     }
 
-    public User? GetUserByUserName(string userName, string regionCode = "CN")
+    public User? GetUserByUserName(string userName)
     {
-        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.UserName == userName.ToLower() && x.RegionCode == regionCode.ToLower());
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.UserName == userName.ToLower());
         return user != null ? user.ToUser() : null;
     }
 

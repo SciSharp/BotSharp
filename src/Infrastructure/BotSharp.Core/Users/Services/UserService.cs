@@ -50,7 +50,7 @@ public class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(user.UserName))
         {
-            record = db.GetUserByUserName(user.UserName, regionCode: user.RegionCode);
+            record = db.GetUserByUserName(user.UserName);
         }
 
         if (record != null && record.Verified)
@@ -214,7 +214,7 @@ public class UserService : IUserService
         var (id, password, regionCode) = base64.SplitAsTuple(":");
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id, regionCode: regionCode);
+        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
         {
             record = db.GetUserByPhone(id, regionCode: regionCode);
@@ -384,7 +384,7 @@ public class UserService : IUserService
         }
         else if (_user.UserName != null)
         {
-            user = db.GetUserByUserName(_user.UserName, _user.RegionCode);
+            user = db.GetUserByUserName(_user.UserName);
         }
         else if (_user.Email != null)
         {
@@ -471,7 +471,7 @@ public class UserService : IUserService
     {
         var id = model.UserName;
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
+        var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
         {
             record = db.GetUserByPhone(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
@@ -515,7 +515,7 @@ public class UserService : IUserService
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        var user = db.GetUserByUserName(userName, regionCode: "CN");
+        var user = db.GetUserByUserName(userName);
         if (user != null && user.Verified)
         {
             return true;

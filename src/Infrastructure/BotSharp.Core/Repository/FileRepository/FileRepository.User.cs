@@ -48,9 +48,9 @@ public partial class FileRepository
         return Users.Where(x => x.AffiliateId == affiliateId).ToList();
     }
 
-    public User? GetUserByUserName(string userName = null, string regionCode = "CN")
+    public User? GetUserByUserName(string userName = null)
     {
-        return Users.FirstOrDefault(x => x.UserName == userName.ToLower() && x.RegionCode == regionCode.ToLower());
+        return Users.FirstOrDefault(x => x.UserName == userName.ToLower());
     }
 
     public Dashboard? GetDashboard(string id = null)

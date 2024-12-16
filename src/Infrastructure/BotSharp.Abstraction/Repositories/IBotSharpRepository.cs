@@ -32,7 +32,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
     List<User> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
-    User? GetUserByUserName(string userName, string regionCode = "CN") => throw new NotImplementedException();
+    User? GetUserByUserName(string userName) => throw new NotImplementedException();
     Dashboard? GetDashboard(string id = null) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
