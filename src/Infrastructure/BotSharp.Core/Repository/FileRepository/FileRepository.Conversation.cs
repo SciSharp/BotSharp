@@ -134,6 +134,22 @@ namespace BotSharp.Core.Repository
                 }
             }
         }
+        public void UpdateConversationTitleAlias(string conversationId, string titleAlias)
+        {
+            var convDir = FindConversationDirectory(conversationId);
+            if (!string.IsNullOrEmpty(convDir))
+            {
+                var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+                var content = File.ReadAllText(convFile);
+                var record = JsonSerializer.Deserialize<Conversation>(content, _options);
+                if (record != null)
+                {
+                    record.TitleAlias = titleAlias;
+                    record.UpdatedTime = DateTime.UtcNow;
+                    File.WriteAllText(convFile, JsonSerializer.Serialize(record, _options));
+                }
+            }
+        }
 
         public bool UpdateConversationTags(string conversationId, List<string> tags)
         {
@@ -355,6 +371,10 @@ namespace BotSharp.Core.Repository
                 if (filter?.Title != null)
                 {
                     matched = matched && record.Title.Contains(filter.Title);
+                }
+                if (filter?.TitleAlias != null)
+                {
+                    matched = matched && record.TitleAlias.Contains(filter.TitleAlias);
                 }
                 if (filter?.AgentId != null)
                 {
