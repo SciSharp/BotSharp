@@ -16,7 +16,7 @@
     },
     {
       "type": "planner",
-      "field": "Two-Stage-Planner"
+      "field": "SQL-Planner"
     }
   ]
 }
