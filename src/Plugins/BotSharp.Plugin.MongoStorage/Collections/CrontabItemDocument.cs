@@ -13,7 +13,7 @@ public class CrontabItemDocument : MongoBase
     public string Description { get; set; }
     public int ExecutionCount { get; set; }
     public int MaxExecutionCount { get; set; }
-    public int ExpireSeconds { get; set; } = 60;
+    public int ExpireSeconds { get; set; }
     public IEnumerable<CronTaskMongoElement> Tasks { get; set; } = [];
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
