@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;

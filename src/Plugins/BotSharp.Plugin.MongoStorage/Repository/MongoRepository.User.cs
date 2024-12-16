@@ -112,6 +112,14 @@ public partial class MongoRepository
         _dc.Users.UpdateOne(filter, update);
     }
 
+    public void UpdateUserName(string userId, string userName)
+    {
+        var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
+        var update = Builders<UserDocument>.Update
+            .Set(x => x.UserName, userName);
+        _dc.Users.UpdateOne(filter, update);
+    }
+
     public void UpdateUserVerified(string userId)
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
@@ -331,10 +339,10 @@ public partial class MongoRepository
             .FirstOrDefault(x => x.Id == userId || (x.ExternalId != null && x.ExternalId == userId));
         if (user == null) return;
         var curDash = user.Dashboard ?? new Dashboard();
-        curDash.ConversationList.Add(new DashboardConversation 
-        { 
+        curDash.ConversationList.Add(new DashboardConversation
+        {
             Id = Guid.NewGuid().ToString(),
-            ConversationId = conversationId 
+            ConversationId = conversationId
         });
 
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
