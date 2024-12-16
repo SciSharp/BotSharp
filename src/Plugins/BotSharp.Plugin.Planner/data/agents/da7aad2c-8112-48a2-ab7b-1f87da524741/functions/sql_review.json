@@ -1,0 +1,22 @@
+{
+  "name": "sql_review",
+  "description": "Verify and optimize sql statement",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "sql_statement": {
+        "type": "string",
+        "description": "sql statement, must including sql identifier that wrapped with ```sql \r\n```"
+      },
+      "is_sql_template": {
+        "type": "boolean",
+        "description": "If user request is to generate sql template instead of actual sql statement."
+      },
+      "contains_sql_statements": {
+        "type": "boolean",
+        "description": "Set to true if the response contains sql statements."
+      }
+    },
+    "required": [ "sql_statement", "is_sql_template", "contains_sql_statements" ]
+  }
+}
