@@ -39,10 +39,7 @@ public class RedisPublisher : IEventPublisher
 
         // Add a message to the stream, keeping only the latest 1 million messages
         var messageId = await db.StreamAddAsync(channel, 
-            [
-                new NameValueEntry("message", message),
-                new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
-            ],
+            AssembleMessage(message),
             maxLength: 1000 * 10000);
 
         _logger.LogInformation($"Published message {channel} {message} ({messageId})");
@@ -82,6 +79,17 @@ public class RedisPublisher : IEventPublisher
         return exists;
     }
 
+    private NameValueEntry[] AssembleMessage(RedisValue message, int retry = 0)
+    {
+        return
+        [
+            new NameValueEntry("message", message),
+            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o")),
+            new NameValueEntry("machine", Environment.MachineName),
+            new NameValueEntry("retry", retry),
+        ];
+    }
+
     public async Task ReDispatchAsync(string channel, int count = 10, string order = "asc")
     {
         var db = _redis.GetDatabase();
@@ -93,10 +101,12 @@ public class RedisPublisher : IEventPublisher
 
             try
             {
-                var messageId = await db.StreamAddAsync(channel, [
-                    new NameValueEntry("message", entry.Values[0].Value),
-                    new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
-                ]);
+                var message = entry.Values.First(x => x.Name == "message").Value;
+                var retryKv = entry.Values.FirstOrDefault(x => x.Name == "retry");
+                int.TryParse(retryKv.Value, out int retry);
+                var messageId = await db.StreamAddAsync(channel, 
+                    AssembleMessage(message, retry: retry + 1),
+                    maxLength: 1000 * 10000);
 
                 _logger.LogWarning($"ReDispatched message: {channel} {entry.Values[0].Value} ({messageId})");
 
