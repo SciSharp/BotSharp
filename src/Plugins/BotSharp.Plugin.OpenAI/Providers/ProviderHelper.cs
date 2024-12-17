@@ -9,8 +9,10 @@ public class ProviderHelper
     {
         var settingsService = services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(provider, model);
-        var client = new OpenAIClient(new ApiKeyCredential(settings.ApiKey));
-        return client;
+        var options = string.IsNullOrEmpty(settings.Endpoint)
+            ? null
+            : new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint) };
+        return new OpenAIClient(new ApiKeyCredential(settings.ApiKey), options);
     }
 
     public static List<RoleDialogModel> GetChatSamples(List<string> lines)
