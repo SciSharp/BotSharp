@@ -84,8 +84,7 @@ public class RedisPublisher : IEventPublisher
         return
         [
             new NameValueEntry("message", message),
-            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o")),
-            new NameValueEntry("machine", Environment.MachineName)
+            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
         ];
     }
 
