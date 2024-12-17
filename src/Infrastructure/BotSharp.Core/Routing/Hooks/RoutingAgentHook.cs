@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Routing.Enums;
 using BotSharp.Abstraction.Routing.Settings;
 
@@ -25,6 +24,14 @@ public class RoutingAgentHook : AgentHookBase
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var agents = routing.GetRoutableAgents(_agent.Profiles);
+
+        // 过滤 Planner
+        var planningRule = _agent.RoutingRules.FirstOrDefault(x => x.Type == "planner");
+        if (planningRule != null)
+        {
+            var planners = agents.Where(x => x.Type == AgentType.Planning && x.Name != planningRule.Field).ToArray();
+            agents = agents.Except(planners).ToArray();
+        }
 
         // Postprocess agent required fields, remove it if the states exists
         var states = _services.GetRequiredService<IConversationStateService>();

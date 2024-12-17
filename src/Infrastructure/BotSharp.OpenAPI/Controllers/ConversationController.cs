@@ -223,6 +223,30 @@ public class ConversationController : ControllerBase
         return response != null;
     }
 
+    [HttpPut("/conversation/{conversationId}/update-title-alias")]
+    public async Task<bool> UpdateConversationTitleAlias([FromRoute] string conversationId, [FromBody] UpdateConversationTitleAliasModel newTile)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+        var conversationService = _services.GetRequiredService<IConversationService>();
+
+        var user = await userService.GetUser(_user.Id);
+        var filter = new ConversationFilter
+        {
+            Id = conversationId,
+            UserId = user.Role != UserRole.Admin ? user.Id : null
+        };
+        var conversations = await conversationService.GetConversations(filter);
+
+        if (conversations.Items.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var response = await conversationService.UpdateConversationTitleAlias(conversationId, newTile.NewTitleAlias);
+        return response != null;
+    }
+
+
     [HttpPut("/conversation/{conversationId}/update-tags")]
     public async Task<bool> UpdateConversationTags([FromRoute] string conversationId, [FromBody] UpdateConversationRequest request)
     {
@@ -508,6 +532,28 @@ public class ConversationController : ControllerBase
         stream.Position = 0;
 
         return new FileStreamResult(stream, contentType) { FileDownloadName = fName };
+    }
+    #endregion
+
+    #region miscellaneous
+    [HttpPut("/agent/{agentId}/conversation/{conversationId}/dashboard")]
+    public async Task<bool> PinConversationToDashboard([FromRoute] string agentId, [FromRoute] string conversationId)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+
+        var user = await userService.GetUser(_user.Id);
+        var pinned = await userService.AddDashboardConversation(user.Id, conversationId);
+        return pinned;
+    }
+
+    [HttpDelete("/agent/{agentId}/conversation/{conversationId}/dashboard")]
+    public async Task<bool> UnpinConversationFromDashboard([FromRoute] string agentId, [FromRoute] string conversationId)
+    {
+        var userService = _services.GetRequiredService<IUserService>();
+
+        var user = await userService.GetUser(_user.Id);
+        var unpinned = await userService.RemoveDashboardConversation(user.Id, conversationId);
+        return unpinned;
     }
     #endregion
 

@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.AudioHandler.Functions;
 
 public class HandleAudioRequestFn : IFunctionCallback
 {
-    public string Name => "handle_audio_request";
+    public string Name => "util-audio-handle_audio_request";
     public string Indication => "Handling audio request";
 
     private readonly IServiceProvider _serviceProvider;

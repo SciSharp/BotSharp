@@ -31,10 +31,13 @@ public class AgentUpdateModel
     /// </summary>
     public List<string>? Samples { get; set; }
 
+    [JsonPropertyName("merge_utility")]
+    public bool MergeUtility { get; set; }
+
     /// <summary>
     /// Utilities
     /// </summary>
-    public List<string>? Utilities { get; set; }
+    public List<AgentUtility>? Utilities { get; set; }
 
     /// <summary>
     /// Functions
@@ -53,6 +56,9 @@ public class AgentUpdateModel
     public bool AllowRouting { get; set; }
 
     public bool Disabled { get; set; }
+
+    [JsonPropertyName("max_message_count")]
+    public int? MaxMessageCount { get; set; }
 
     /// <summary>
     /// Profile by channel
@@ -73,6 +79,8 @@ public class AgentUpdateModel
             Description = Description ?? string.Empty,
             IsPublic = IsPublic,
             Disabled = Disabled,
+            MergeUtility = MergeUtility,
+            MaxMessageCount = MaxMessageCount,
             Type = Type,
             Profiles = Profiles ?? new List<string>(),
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),
@@ -81,7 +89,7 @@ public class AgentUpdateModel
             Templates = Templates ?? new List<AgentTemplate>(),
             Functions = Functions ?? new List<FunctionDef>(),
             Responses = Responses ?? new List<AgentResponse>(),
-            Utilities = Utilities ?? new List<string>(),
+            Utilities = Utilities ?? new List<AgentUtility>(),
             LlmConfig = LlmConfig
         };
 

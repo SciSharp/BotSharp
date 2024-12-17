@@ -15,7 +15,7 @@ public static class HookEmitter
         {
             try
             {
-                logger.LogInformation($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
+                logger.LogDebug($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
                 action(hook);
 
                 if (option.OnlyOnce)
@@ -43,7 +43,7 @@ public static class HookEmitter
         {
             try
             {
-                logger.LogInformation($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
+                logger.LogDebug($"Emit hook action on {action.Method.Name}({hook.GetType().Name})");
                 await action(hook);
 
                 if (option.OnlyOnce)

@@ -55,7 +55,10 @@ namespace BotSharp.Core.Repository
                     UpdateAgentLlmConfig(agent.Id, agent.LlmConfig);
                     break;
                 case AgentField.Utility:
-                    UpdateAgentUtilities(agent.Id, agent.Utilities);
+                    UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
+                    break;
+                case AgentField.MaxMessageCount:
+                    UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                     break;
                 case AgentField.All:
                     UpdateAgentAllFields(agent);
@@ -151,13 +154,14 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentUtilities(string agentId, List<string> utilities)
+        private void UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
         {
             if (utilities == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
+            agent.MergeUtility = mergeUtility;
             agent.Utilities = utilities;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
@@ -282,6 +286,17 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
+        private void UpdateAgentMaxMessageCount(string agentId, int? maxMessageCount)
+        {
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            agent.MaxMessageCount = maxMessageCount;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
         private void UpdateAgentAllFields(Agent inputAgent)
         {
             var (agent, agentFile) = GetAgentFromFile(inputAgent.Id);
@@ -291,11 +306,13 @@ namespace BotSharp.Core.Repository
             agent.Description = inputAgent.Description;
             agent.IsPublic = inputAgent.IsPublic;
             agent.Disabled = inputAgent.Disabled;
+            agent.MergeUtility = inputAgent.MergeUtility;
             agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
             agent.Utilities = inputAgent.Utilities;
             agent.RoutingRules = inputAgent.RoutingRules;
             agent.LlmConfig = inputAgent.LlmConfig;
+            agent.MaxMessageCount = inputAgent.MaxMessageCount;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
@@ -327,7 +344,7 @@ namespace BotSharp.Core.Repository
             return responses;
         }
 
-        public Agent? GetAgent(string agentId)
+        public Agent? GetAgent(string agentId, bool basicsOnly = false)
         {
             var agentDir = Path.Combine(_dbSettings.FileRepository, _agentSettings.DataDir);
             var dir = Directory.GetDirectories(agentDir).FirstOrDefault(x => x.Split(Path.DirectorySeparatorChar).Last() == agentId);
@@ -339,6 +356,8 @@ namespace BotSharp.Core.Repository
 
                 var record = JsonSerializer.Deserialize<Agent>(json, _options);
                 if (record == null) return null;
+
+                if (basicsOnly) return record;
 
                 var (defaultInstruction, channelInstructions) = FetchInstructions(dir);
                 var functions = FetchFunctions(dir);

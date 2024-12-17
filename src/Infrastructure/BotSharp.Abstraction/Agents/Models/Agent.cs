@@ -87,18 +87,28 @@ public class Agent
     /// <summary>
     /// Profile by channel
     /// </summary>
-    public List<string> Profiles { get; set; }
-        = new List<string>();
+    public List<string> Profiles { get; set; } = new();
+
+    /// <summary>
+    /// Merge utilities from entry agent
+    /// </summary>
+    public bool MergeUtility { get; set; }
 
     /// <summary>
     /// Agent utilities
     /// </summary>
-    public List<string> Utilities { get; set; } = new();
+    public List<AgentUtility> Utilities { get; set; } = new();
 
     /// <summary>
     /// Inherit from agent
     /// </summary>
     public string? InheritAgentId { get; set; }
+
+    /// <summary>
+    /// Maximum message count when load conversation
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxMessageCount { get; set; }
 
     public List<RoutingRule> RoutingRules { get; set; } = new();
 
@@ -129,6 +139,8 @@ public class Agent
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
+            MergeUtility = agent.MergeUtility,
+            MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,
@@ -173,9 +185,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetUtilities(List<string> utilities)
+    public Agent SetUtilities(List<AgentUtility> utilities)
     {
-        Utilities = utilities ?? new List<string>();
+        Utilities = utilities ?? new List<AgentUtility>();
         return this;
     }
 
@@ -212,6 +224,12 @@ public class Agent
     public Agent SetDisabled(bool disabled)
     {
         Disabled = disabled;
+        return this;
+    }
+
+    public Agent SetMergeUtility(bool merge)
+    {
+        MergeUtility = merge;
         return this;
     }
 

@@ -34,7 +34,7 @@ public class RateLimitConversationHook : ConversationHookBase
         }
 
         // Check message sending frequency
-        var userSents = _dialogs.Where(x => x.Role == AgentRole.User)
+        var userSents = Dialogs.Where(x => x.Role == AgentRole.User)
             .TakeLast(2).ToList();
 
         if (userSents.Count > 1)

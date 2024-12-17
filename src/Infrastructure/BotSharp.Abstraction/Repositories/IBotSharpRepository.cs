@@ -5,6 +5,7 @@ using BotSharp.Abstraction.Roles.Models;
 using BotSharp.Abstraction.Shared;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
+using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.VectorStorage.Models;
 
@@ -26,15 +27,19 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     #region User
     User? GetUserByEmail(string email) => throw new NotImplementedException();
-    User? GetUserByPhone(string phone, string role = null, string regionCode = "CN") => throw new NotImplementedException();
+    User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN") => throw new NotImplementedException();
     User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
     User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
     List<User> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
+    Dashboard? GetDashboard(string id = null) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
     void UpdateUserVerified(string userId) => throw new NotImplementedException();
+    void AddDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
+    void RemoveDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
+    void UpdateDashboardConversation(string userId, DashboardConversation dashConv) => throw new NotImplementedException();
     void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
     void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
     void UpdateUserEmail(string userId, string email) => throw new NotImplementedException();
@@ -48,7 +53,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
-    Agent? GetAgent(string agentId);
+    Agent? GetAgent(string agentId, bool basicsOnly = false);
     List<Agent> GetAgents(AgentFilter filter);
     List<UserAgent> GetUserAgents(string userId);
     void BulkInsertAgents(List<Agent> agents);
@@ -81,6 +86,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     Conversation GetConversation(string conversationId);
     PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
+    void UpdateConversationTitleAlias(string conversationId, string titleAlias);
     bool UpdateConversationTags(string conversationId, List<string> tags);
     bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
@@ -139,5 +145,11 @@ public interface IBotSharpRepository : IHaveServiceProvider
     /// <returns></returns>
     bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null);
     PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
+    #endregion
+
+    #region Crontab
+    bool UpsertCrontabItem(CrontabItem cron) => throw new NotImplementedException();
+    bool DeleteCrontabItem(string conversationId) => throw new NotImplementedException();
+    PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter) => throw new NotImplementedException();
     #endregion
 }

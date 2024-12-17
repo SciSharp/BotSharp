@@ -1,5 +1,20 @@
+/*****************************************************************************
+  Copyright 2024 Written by Jicheng Lu. All Rights Reserved.
+ 
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+ 
+      http://www.apache.org/licenses/LICENSE-2.0
+ 
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+******************************************************************************/
+
 using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -21,13 +36,14 @@ public class ConversationStateService : IConversationStateService, IDisposable
     /// </summary>
     private ConversationState _historyStates;
 
-    public ConversationStateService(ILogger<ConversationStateService> logger,
+    public ConversationStateService(
         IServiceProvider services,
-        IBotSharpRepository db)
+        IBotSharpRepository db,
+        ILogger<ConversationStateService> logger)
     {
-        _logger = logger;
         _services = services;
         _db = db;
+        _logger = logger;
         _curStates = new ConversationState();
         _historyStates = new ConversationState();
     }
@@ -125,17 +141,19 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var curMsgId = routingCtx.MessageId;
 
         _historyStates = _db.GetConversationStates(conversationId);
+
+        var endNodes = new Dictionary<string, string>();
+
+        if (_historyStates.IsNullOrEmpty()) return endNodes;
+
         var dialogs = _db.GetConversationDialogs(conversationId);
-        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User || x.MetaData?.Role == UserRole.User)
+        var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User)
                                  .GroupBy(x => x.MetaData?.MessageId)
                                  .Select(g => g.First())
                                  .OrderBy(x => x.MetaData?.CreateTime)
                                  .ToList();
         var curMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(curMsgId) && x.MetaData?.MessageId == curMsgId);
         curMsgIndex = curMsgIndex < 0 ? userDialogs.Count() : curMsgIndex;
-
-        var endNodes = new Dictionary<string, string>();
-        if (_historyStates.IsNullOrEmpty()) return endNodes;
 
         foreach (var state in _historyStates)
         {

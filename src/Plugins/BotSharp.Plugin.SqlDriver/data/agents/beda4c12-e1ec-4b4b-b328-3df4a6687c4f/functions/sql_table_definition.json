@@ -4,11 +4,15 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "table": {
-        "type": "string",
-        "description": "table need to check"
+      "tables": {
+        "type": "array",
+        "description": "table name in planning steps",
+        "items": {
+          "type": "string",
+          "description": "table name"
+        }
       }
     },
-    "required": [ "table" ]
+    "required": [ "tables" ]
   }
 }

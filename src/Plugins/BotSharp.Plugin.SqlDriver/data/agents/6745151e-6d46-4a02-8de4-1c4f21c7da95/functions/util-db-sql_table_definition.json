@@ -1,0 +1,22 @@
+{
+  "name": "util-db-sql_table_definition",
+  "description": "Get table structure from database by table name",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "tables": {
+        "type": "array",
+        "description": "table name in planning steps",
+        "items": {
+          "type": "string",
+          "description": "table name"
+        }
+      },
+      "reason": {
+        "type": "string",
+        "description": "the reason why you need to call sql_table_definition"
+      }
+    },
+    "required": [ "tables", "reason" ]
+  }
+}

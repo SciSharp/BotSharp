@@ -2,7 +2,6 @@ using System.Linq.Dynamic.Core;
 using BotSharp.Abstraction.Files.Enums;
 using BotSharp.Abstraction.Files.Models;
 using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Plugin.ExcelHandler.Helpers.Sqlite;
 using BotSharp.Plugin.ExcelHandler.Models;
 using BotSharp.Plugin.ExcelHandler.Services;
 using NPOI.SS.UserModel;
@@ -12,7 +11,7 @@ namespace BotSharp.Plugin.ExcelHandler.Functions;
 
 public class HandleExcelRequestFn : IFunctionCallback
 {
-    public string Name => "handle_excel_request";
+    public string Name => "util-excel-handle_excel_request";
     public string Indication => "Handling excel request";
 
     private readonly IServiceProvider _serviceProvider;

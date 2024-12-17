@@ -1,12 +1,12 @@
 {
   "name": "sql_select",
-  "description": "Execute the reporting related query in the database and get the result",
+  "description": "Execute the provided query in the database and get the result.",
   "parameters": {
     "type": "object",
     "properties": {
       "sql_statement": {
         "type": "string",
-        "description": "SQL statement with SELECT"
+        "description": "SQL statement with SELECT provided in context."
       },
       "reason": {
         "type": "string",

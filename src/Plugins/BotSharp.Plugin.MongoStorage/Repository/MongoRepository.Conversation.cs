@@ -56,6 +56,7 @@ public partial class MongoRepository
         var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterContentLog = Builders<ConversationContentLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterStateLog = Builders<ConversationStateLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
+        var conbTabItems = Builders<CrontabItemDocument>.Filter.In(x => x.ConversationId, conversationIds);
 
         var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
@@ -63,11 +64,13 @@ public partial class MongoRepository
         var stateLogDeleted = _dc.StateLogs.DeleteMany(filterStateLog);
         var statesDeleted = _dc.ConversationStates.DeleteMany(filterSates);
         var dialogDeleted = _dc.ConversationDialogs.DeleteMany(filterDialog);
+        var cronDeleted = _dc.CrontabItems.DeleteMany(conbTabItems);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
 
         return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
             || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
-            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0;
+            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0
+            || convDeleted.DeletedCount > 0;
     }
 
     [SideCar]
@@ -108,6 +111,17 @@ public partial class MongoRepository
         var updateConv = Builders<ConversationDocument>.Update
             .Set(x => x.UpdatedTime, DateTime.UtcNow)
             .Set(x => x.Title, title);
+
+        _dc.Conversations.UpdateOne(filterConv, updateConv);
+    }
+    public void UpdateConversationTitleAlias(string conversationId, string titleAlias)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var updateConv = Builders<ConversationDocument>.Update
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.TitleAlias, titleAlias);
 
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
@@ -297,6 +311,10 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter?.Title))
         {
             convFilters.Add(convBuilder.Regex(x => x.Title, new BsonRegularExpression(filter.Title, "i")));
+        }
+        if (!string.IsNullOrEmpty(filter?.TitleAlias))
+        {
+            convFilters.Add(convBuilder.Regex(x => x.Title, new BsonRegularExpression(filter.TitleAlias, "i")));
         }
         if (!string.IsNullOrEmpty(filter?.AgentId))
         {

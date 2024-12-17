@@ -49,7 +49,11 @@ public abstract class AgentHookBase : IAgentHook
         return true;
     }
 
-    public virtual void  OnAgentLoaded(Agent agent)
+    public virtual void OnAgentLoaded(Agent agent)
+    {
+    }
+
+    public virtual void OnAgentUtilityLoaded(Agent agent)
     {
     }
 }

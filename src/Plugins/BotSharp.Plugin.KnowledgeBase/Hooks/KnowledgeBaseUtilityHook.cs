@@ -2,8 +2,18 @@ namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeBaseUtilityHook : IAgentUtilityHook
 {
-    public void AddUtilities(List<string> utilities)
+    private static string PREFIX = "util-knowledge-";
+    private static string KNOWLEDGE_RETRIEVAL_FN = $"{PREFIX}knowledge_retrieval";
+
+    public void AddUtilities(List<AgentUtility> utilities)
     {
-        utilities.Add(UtilityName.KnowledgeRetrieval);
+        var utility = new AgentUtility
+        {
+            Name = UtilityName.KnowledgeRetrieval,
+            Functions = [new(KNOWLEDGE_RETRIEVAL_FN)],
+            Templates = [new($"{KNOWLEDGE_RETRIEVAL_FN}.fn")]
+        };
+
+        utilities.Add(utility);
     }
 }

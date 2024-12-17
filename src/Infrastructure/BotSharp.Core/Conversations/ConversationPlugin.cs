@@ -1,13 +1,13 @@
 using BotSharp.Abstraction.Google.Settings;
 using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Messaging;
+using BotSharp.Abstraction.Planning;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Routing.Planning;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Instructs;
 using BotSharp.Core.Messaging;
-using BotSharp.Core.Routing.Planning;
+using BotSharp.Core.Routing.Reasoning;
 using BotSharp.Core.Templating;
 using BotSharp.Core.Translation;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +30,8 @@ public class ConversationPlugin : IBotSharpPlugin
         services.AddScoped(provider =>
         {
             var settingService = provider.GetRequiredService<ISettingService>();
+            var render = provider.GetRequiredService<ITemplateRender>();
+            render.Register(typeof(ConversationSetting));
             return settingService.Bind<ConversationSetting>("Conversation");
         });
 
@@ -48,8 +50,6 @@ public class ConversationPlugin : IBotSharpPlugin
         // Rich content messaging
         services.AddScoped<IRichContentService, RichContentService>();
 
-        // Register template render
-        services.AddSingleton<ITemplateRender, TemplateRender>();
         services.AddScoped<IResponseTemplateService, ResponseTemplateService>();
 
         services.AddScoped<IExecutor, InstructExecutor>();

@@ -1,9 +1,10 @@
+using BotSharp.Abstraction.Infrastructures;
 using Medallion.Threading.Redis;
 using StackExchange.Redis;
 
 namespace BotSharp.Core.Infrastructures;
 
-public class DistributedLocker
+public class DistributedLocker : IDistributedLocker
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger _logger;
@@ -14,7 +15,7 @@ public class DistributedLocker
         _logger = logger;
     }
 
-    public async Task<T> Lock<T>(string resource, Func<Task<T>> action, int timeoutInSeconds = 30)
+    public async Task<bool> LockAsync(string resource, Func<Task> action, int timeoutInSeconds = 30)
     {
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
@@ -24,9 +25,11 @@ public class DistributedLocker
             if (handle == null) 
             {
                 _logger.LogWarning($"Acquire lock for {resource} failed due to after {timeout}s timeout.");
+                return false;
             }
             
-            return await action();
+            await action();
+            return true;
         }
     }
 

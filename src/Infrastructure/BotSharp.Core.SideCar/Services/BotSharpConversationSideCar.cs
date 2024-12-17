@@ -1,3 +1,21 @@
+/*****************************************************************************
+  Copyright 2024 Written by Jicheng Lu. All Rights Reserved.
+ 
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+ 
+      http://www.apache.org/licenses/LICENSE-2.0
+ 
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+******************************************************************************/
+
+using BotSharp.Core.Infrastructures;
+
 namespace BotSharp.Core.SideCar.Services;
 
 public class BotSharpConversationSideCar : IConversationSideCar
@@ -62,9 +80,9 @@ public class BotSharpConversationSideCar : IConversationSideCar
     }
 
     public async Task<RoleDialogModel> SendMessage(string agentId, string text,
-        PostbackMessageModel? postback = null, List<MessageState>? states = null)
+        PostbackMessageModel? postback = null, List<MessageState>? states = null, List<DialogElement>? dialogs = null)
     {
-        BeforeExecute();
+        BeforeExecute(dialogs);
         var response = await InnerExecute(agentId, text, postback, states);
         AfterExecute();
         return response;
@@ -96,7 +114,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         return response;
     }
 
-    private void BeforeExecute()
+    private void BeforeExecute(List<DialogElement>? dialogs)
     {
         enabled = true;
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -105,8 +123,8 @@ public class BotSharpConversationSideCar : IConversationSideCar
         var node = new ConversationContext
         {
             State = state.GetCurrentState(),
-            Dialogs = new(),
-            Breakpoints = new(),
+            Dialogs = dialogs ?? [],
+            Breakpoints = [],
             RecursiveCounter = routing.Context.GetRecursiveCounter(),
             RoutingStack = routing.Context.GetAgentStack()
         };
@@ -116,7 +134,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         state.ResetCurrentState();
         routing.Context.ResetRecursiveCounter();
         routing.Context.ResetAgentStack();
-
+        Utilities.ClearCache();
     }
 
     private void AfterExecute()
@@ -130,6 +148,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         state.SetCurrentState(node.State);
         routing.Context.SetRecursiveCounter(node.RecursiveCounter);
         routing.Context.SetAgentStack(node.RoutingStack);
+        Utilities.ClearCache();
         enabled = false;
     }
 }

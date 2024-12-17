@@ -2,9 +2,11 @@ using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
+using System.Diagnostics;
 
 namespace BotSharp.Abstraction.Conversations.Models;
 
+[DebuggerStepThrough]
 public class RoleDialogModel : ITrackableMessage
 {
     /// <summary>

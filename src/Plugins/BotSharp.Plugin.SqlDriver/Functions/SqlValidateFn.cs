@@ -62,7 +62,7 @@ public class SqlValidateFn : IFunctionCallback
                 {
                     Provider = agent?.LlmConfig?.Provider ?? "openai",
                     Model = agent?.LlmConfig?.Model ?? "gpt-4o",
-                    Message = "Correct SQL Statement",
+                    Message = "Correct SQL Statement and keep the comments/explanations",
                     Data = new Dictionary<string, object>
                     {
                         { "original_sql", message.Content },
