@@ -79,14 +79,13 @@ public class RedisPublisher : IEventPublisher
         return exists;
     }
 
-    private NameValueEntry[] AssembleMessage(RedisValue message, int retry = 0)
+    private NameValueEntry[] AssembleMessage(RedisValue message)
     {
         return
         [
             new NameValueEntry("message", message),
             new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o")),
-            new NameValueEntry("machine", Environment.MachineName),
-            new NameValueEntry("retry", retry),
+            new NameValueEntry("machine", Environment.MachineName)
         ];
     }
 
@@ -102,10 +101,8 @@ public class RedisPublisher : IEventPublisher
             try
             {
                 var message = entry.Values.First(x => x.Name == "message").Value;
-                var retryKv = entry.Values.FirstOrDefault(x => x.Name == "retry");
-                int.TryParse(retryKv.Value, out int retry);
                 var messageId = await db.StreamAddAsync(channel, 
-                    AssembleMessage(message, retry: retry + 1),
+                    AssembleMessage(message),
                     maxLength: 1000 * 10000);
 
                 _logger.LogWarning($"ReDispatched message: {channel} {entry.Values[0].Value} ({messageId})");
