@@ -15,6 +15,9 @@ public class ConversationViewModel
     [JsonPropertyName("title")]
     public string Title { get; set; } = string.Empty;
 
+    [JsonPropertyName("title_alias")]
+    public string TitleAlias { get; set; } = string.Empty;
+
     public UserViewModel User {  get; set; } = new UserViewModel();
 
     public string Event { get; set; }
@@ -48,6 +51,7 @@ public class ConversationViewModel
             },
             AgentId = sess.AgentId,
             Title = sess.Title,
+            TitleAlias = sess.TitleAlias,
             Channel = sess.Channel,
             Status = sess.Status,
             TaskId = sess.TaskId,

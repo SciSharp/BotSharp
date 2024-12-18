@@ -3,17 +3,17 @@ using BotSharp.Plugin.Planner.TwoStaging.Models;
 
 namespace BotSharp.Plugin.Planner.Functions;
 
-public class SummaryPlanFn : IFunctionCallback
+public class SqlGenerationFn : IFunctionCallback
 {
-    public string Name => "plan_summary";
-    public string Indication => "Organizing and summarizing the final output results.";
+    public string Name => "sql_generation";
+    public string Indication => "Organizing and summarizing the final SQL statements.";
 
     private readonly IServiceProvider _services;
-    private readonly ILogger<SummaryPlanFn> _logger;
+    private readonly ILogger<SqlGenerationFn> _logger;
 
-    public SummaryPlanFn(
+    public SqlGenerationFn(
         IServiceProvider services,
-        ILogger<SummaryPlanFn> logger)
+        ILogger<SqlGenerationFn> logger)
     {
         _services = services;
         _logger = logger;
@@ -68,9 +68,9 @@ public class SummaryPlanFn : IFunctionCallback
         var summary = await GetAiResponse(plannerAgent);
         message.Content = summary.Content;
 
-        await HookEmitter.Emit<IPlanningHook>(_services, async hook =>
+        /*await HookEmitter.Emit<IPlanningHook>(_services, async hook =>
             await hook.OnPlanningCompleted(nameof(TwoStageTaskPlanner), message)
-        );
+        );*/
 
         return true;
     }

@@ -28,7 +28,7 @@ public partial class ConversationService
         var dialogs = conv.GetDialogHistory();
 
         var statistics = _services.GetRequiredService<ITokenStatistics>();
-        var hooks = _services.GetServices<IConversationHook>().ToList();
+        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
 
         RoleDialogModel response = message;
         bool stopCompletion = false;
@@ -44,9 +44,7 @@ public partial class ConversationService
             message.Payload = replyMessage.Payload;
         }
 
-        // Before chat completion hook
-        hooks = ReOrderConversationHooks(hooks);
-        foreach (var hook in hooks)
+        foreach (var hook in hookProvider.HooksOrderByPriority)
         {
             hook.SetAgent(agent)
                 .SetConversation(conversation);
@@ -172,19 +170,5 @@ public partial class ConversationService
 
         // Add to dialog history
         _storage.Append(_conversationId, response);
-    }
-
-    private List<IConversationHook> ReOrderConversationHooks(List<IConversationHook> hooks)
-    {
-        var target = "ChatHubConversationHook";
-        var chathub = hooks.FirstOrDefault(x => x.GetType().Name == target);
-        var otherHooks = hooks.Where(x => x.GetType().Name != target).ToList();
-
-        if (chathub != null)
-        {
-            var newHooks = new List<IConversationHook> { chathub }.Concat(otherHooks);
-            return newHooks.ToList();
-        }
-        return hooks;
     }
 }

@@ -69,6 +69,36 @@
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\templates\util-planner-plan_summary.fn.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\agent.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\plan_primary_stage.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\plan_secondary_stage.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\sql_review.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\sql_generation.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\instructions\instruction.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.1st.plan.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.2nd.plan.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.next.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.summarize.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

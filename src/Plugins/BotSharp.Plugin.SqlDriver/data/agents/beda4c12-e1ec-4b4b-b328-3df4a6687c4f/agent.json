@@ -1,7 +1,7 @@
 {
   "id": "beda4c12-e1ec-4b4b-b328-3df4a6687c4f",
   "name": "SQL Driver",
-  "description": "Transfer to this Agent only when executable SQL statements are explicitly provided in the context.",
+  "description": "Transfer to this Agent when user mentions to execute the sql statement. Only call when executable SQL statements are explicitly provided in the context.",
   "iconUrl": "https://cdn-icons-png.flaticon.com/512/3161/3161158.png",
   "type": "task",
   "createdDateTime": "2023-11-15T13:49:00Z",
