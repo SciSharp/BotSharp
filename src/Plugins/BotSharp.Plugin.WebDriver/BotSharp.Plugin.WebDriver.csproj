@@ -12,15 +12,12 @@
 
   <ItemGroup>
     <Compile Remove="Drivers\SeleniumDriver\**" />
-    <Compile Remove="packages\**" />
     <EmbeddedResource Remove="Drivers\SeleniumDriver\**" />
-    <EmbeddedResource Remove="packages\**" />
     <None Remove="Drivers\SeleniumDriver\**" />
-    <None Remove="packages\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Playwright" Version="1.48.0" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.49.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
   </ItemGroup>
 

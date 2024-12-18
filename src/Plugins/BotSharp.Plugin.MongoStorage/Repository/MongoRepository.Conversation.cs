@@ -114,6 +114,17 @@ public partial class MongoRepository
 
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
+    public void UpdateConversationTitleAlias(string conversationId, string titleAlias)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var updateConv = Builders<ConversationDocument>.Update
+            .Set(x => x.UpdatedTime, DateTime.UtcNow)
+            .Set(x => x.TitleAlias, titleAlias);
+
+        _dc.Conversations.UpdateOne(filterConv, updateConv);
+    }
 
     public bool UpdateConversationTags(string conversationId, List<string> tags)
     {
@@ -300,6 +311,10 @@ public partial class MongoRepository
         if (!string.IsNullOrEmpty(filter?.Title))
         {
             convFilters.Add(convBuilder.Regex(x => x.Title, new BsonRegularExpression(filter.Title, "i")));
+        }
+        if (!string.IsNullOrEmpty(filter?.TitleAlias))
+        {
+            convFilters.Add(convBuilder.Regex(x => x.Title, new BsonRegularExpression(filter.TitleAlias, "i")));
         }
         if (!string.IsNullOrEmpty(filter?.AgentId))
         {

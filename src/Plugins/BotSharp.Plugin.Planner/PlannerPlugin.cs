@@ -1,4 +1,5 @@
 using BotSharp.Plugin.Planner.Sequential;
+using BotSharp.Plugin.Planner.SqlGeneration;
 using BotSharp.Plugin.Planner.TwoStaging;
 
 namespace BotSharp.Plugin.Planner;
@@ -16,13 +17,15 @@ public class PlannerPlugin : IBotSharpPlugin
     public string[] AgentIds => 
     [ 
         PlannerAgentId.TwoStagePlanner,
-        PlannerAgentId.SequentialPlanner
+        PlannerAgentId.SequentialPlanner,
+        PlannerAgentId.SqlPlanner
     ];
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<ITaskPlanner, SequentialPlanner>();
         services.AddScoped<ITaskPlanner, TwoStageTaskPlanner>();
+        services.AddScoped<ITaskPlanner, SqlGenerationPlanner>();
         services.AddScoped<IAgentHook, PlannerAgentHook>();
         services.AddScoped<IAgentUtilityHook, PlannerUtilityHook>();
     }
