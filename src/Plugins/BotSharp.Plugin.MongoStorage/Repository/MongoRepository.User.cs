@@ -159,7 +159,7 @@ public partial class MongoRepository
         var update = Builders<UserDocument>.Update.Set(x => x.Phone, phone)
             .Set(x => x.UpdatedTime, DateTime.UtcNow)
             .Set(x => x.RegionCode, regionCode)
-            .Set(x => x.UserName, phone)
+            //.Set(x => x.UserName, phone)
             .Set(x => x.FirstName, phone);
         _dc.Users.UpdateOne(filter, update);
     }
