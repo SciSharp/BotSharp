@@ -243,7 +243,7 @@ public class UserController : ControllerBase
         var file = fileStorage.GetUserAvatar();
         if (string.IsNullOrEmpty(file))
         {
-            return NotFound();
+            return NoContent();
         }
         return BuildFileResult(file);
     }
