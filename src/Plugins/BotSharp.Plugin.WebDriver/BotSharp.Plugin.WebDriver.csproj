@@ -3,18 +3,12 @@
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Drivers\SeleniumDriver\**" />
-    <EmbeddedResource Remove="Drivers\SeleniumDriver\**" />
-    <None Remove="Drivers\SeleniumDriver\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" Version="1.49.0" />

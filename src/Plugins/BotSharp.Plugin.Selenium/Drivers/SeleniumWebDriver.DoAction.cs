@@ -1,7 +1,6 @@
-using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 
-namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
+namespace BotSharp.Plugin.Selenium.Drivers;
 
 public partial class SeleniumWebDriver
 {
