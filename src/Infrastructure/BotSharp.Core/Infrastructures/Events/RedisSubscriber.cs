@@ -105,6 +105,8 @@ public class RedisSubscriber : IEventSubscriber
             catch (Exception ex)
             {
                 _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}\r\n{ex}");
+                // Slow down the consumer if there are errors
+                await Task.Delay(1000 * 10);
             }
         }
 
