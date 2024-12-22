@@ -11,13 +11,17 @@ public partial class AgentService
         var render = _services.GetRequiredService<ITemplateRender>();
         var conv = _services.GetRequiredService<IConversationService>();
 
+        // merge instructions
+        var texts = new List<string> { agent.Instruction };
+        texts.AddRange(agent.SecondaryInstructions ?? []);
+
         // update states
         foreach (var t in conv.States.GetStates())
         {
             agent.TemplateDict[t.Key] = t.Value;
         }
 
-        var res = render.Render(agent.Instruction, agent.TemplateDict);
+        var res = render.Render(string.Join("\r\n", texts), agent.TemplateDict);
         return res;
     }
 

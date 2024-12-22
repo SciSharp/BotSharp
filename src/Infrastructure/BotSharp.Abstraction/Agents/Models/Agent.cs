@@ -118,6 +118,12 @@ public class Agent
     [JsonIgnore]
     public Dictionary<string, object> TemplateDict { get; set; } = new();
 
+    [JsonIgnore]
+    public List<FunctionDef> SecondaryFunctions { get; set; } = [];
+
+    [JsonIgnore]
+    public List<string> SecondaryInstructions { get; set; } = [];
+
     public override string ToString()
         => $"{Name} {Id}";
 
