@@ -202,13 +202,13 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
         if (!funcPrompts.IsNullOrEmpty())
         {
-            prompt += "\r\n[FUNCTIONS]\r\n";
+            prompt += "\r\n\r\n[FUNCTIONS]\r\n";
             prompt += string.Join("\r\n", funcPrompts);
         }
 
         if (!convPrompts.IsNullOrEmpty())
         {
-            prompt += "\r\n[CONVERSATION]\r\n";
+            prompt += "\r\n\r\n[CONVERSATION]\r\n";
             prompt += string.Join("\r\n", convPrompts);
         }
 
