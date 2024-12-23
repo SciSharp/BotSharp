@@ -45,28 +45,36 @@ public class PlaywrightInstance : IDisposable
             _playwright = await Playwright.CreateAsync();
         }
 
-        string tempFolderPath = $"{Path.GetTempPath()}\\playwright\\{ctxId}";
-
-        _contexts[ctxId] = await _playwright.Chromium.LaunchPersistentContextAsync(tempFolderPath, new BrowserTypeLaunchPersistentContextOptions
+        if (!string.IsNullOrEmpty(args.RemoteHostUrl))
         {
-            Headless = args.Headless,
-            Channel = "chrome",
-            ViewportSize = new ViewportSize
+            var browser = await _playwright.Chromium.ConnectOverCDPAsync(args.RemoteHostUrl);
+            _contexts[ctxId] = browser.Contexts[0];
+        }
+        else
+        {
+            string userDataDir = args.UserDataDir ?? $"{Path.GetTempPath()}\\playwright\\{ctxId}";
+            _contexts[ctxId] = await _playwright.Chromium.LaunchPersistentContextAsync(userDataDir, new BrowserTypeLaunchPersistentContextOptions
             {
-                Width = 1600,
-                Height = 900
-            },
-            IgnoreDefaultArgs =
-            [
-                "--enable-automation",
-            ],
-            Args =
-            [
-                "--disable-infobars",
-                "--test-type"
-                // "--start-maximized"
-            ]
-        });
+                Headless = args.Headless,
+                Channel = "chrome",
+                ViewportSize = new ViewportSize
+                {
+                    Width = 1600,
+                    Height = 900
+                },
+                IgnoreDefaultArgs =
+                [
+                    "--enable-automation",
+                ],
+                Args =
+                [
+                    "--disable-infobars",
+                    "--test-type"
+                    // "--start-maximized"
+                ]
+            });
+        }
+
         _pages[ctxId] = new List<IPage>();
 
         _contexts[ctxId].Page += async (sender, page) =>

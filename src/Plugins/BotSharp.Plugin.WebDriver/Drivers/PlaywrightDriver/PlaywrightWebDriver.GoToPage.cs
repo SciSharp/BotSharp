@@ -8,22 +8,30 @@ public partial class PlaywrightWebDriver
         var context = await _instance.GetContext(message.ContextId);
         try
         {
-            var page = await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback,
-                    responseInMemory: args.ResponseInMemory,
-                    responseContainer: args.ResponseContainer,
-                    excludeResponseUrls: args.ExcludeResponseUrls,
-                    includeResponseUrls: args.IncludeResponseUrls);
-
-            Serilog.Log.Information($"goto page: {args.Url}");
-
-            if (args.OpenNewTab && page != null && page.Url == "about:blank")
+            IPage? page = null;
+            if (!args.OpenNewTab && !args.EnableResponseCallback)
             {
-                page = await _instance.NewPage(message,
-                    enableResponseCallback: args.EnableResponseCallback,
+                page = _instance.Contexts[message.ContextId].Pages.LastOrDefault();
+            }
+            else
+            {
+                page = await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback,
                     responseInMemory: args.ResponseInMemory,
                     responseContainer: args.ResponseContainer,
                     excludeResponseUrls: args.ExcludeResponseUrls,
                     includeResponseUrls: args.IncludeResponseUrls);
+
+                Serilog.Log.Information($"goto page: {args.Url}");
+
+                if (args.OpenNewTab && page != null && page.Url == "about:blank")
+                {
+                    page = await _instance.NewPage(message,
+                        enableResponseCallback: args.EnableResponseCallback,
+                        responseInMemory: args.ResponseInMemory,
+                        responseContainer: args.ResponseContainer,
+                        excludeResponseUrls: args.ExcludeResponseUrls,
+                        includeResponseUrls: args.IncludeResponseUrls);
+                }
             }
 
             if (page == null)
