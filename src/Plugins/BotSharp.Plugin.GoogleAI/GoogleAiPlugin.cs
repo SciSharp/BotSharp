@@ -1,9 +1,9 @@
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Abstraction.Settings;
-using BotSharp.Plugin.GoogleAI.Providers;
-using BotSharp.Plugin.GoogleAI.Settings;
+using BotSharp.Plugin.GoogleAi.Providers.Chat;
+using BotSharp.Plugin.GoogleAi.Providers.Text;
 
-namespace BotSharp.Plugin.GoogleAI;
+namespace BotSharp.Plugin.GoogleAi;
 
 public class GoogleAiPlugin : IBotSharpPlugin
 {
@@ -19,7 +19,9 @@ public class GoogleAiPlugin : IBotSharpPlugin
             return settingService.Bind<GoogleAiSettings>("GoogleAi");
         });
 
-        services.AddScoped<IChatCompletion, ChatCompletionProvider>();
-        services.AddScoped<ITextCompletion, TextCompletionProvider>();
+        services.AddScoped<ITextCompletion, PalmTextCompletionProvider>();
+        services.AddScoped<ITextCompletion, GeminiTextCompletionProvider>();
+        services.AddScoped<IChatCompletion, PalmChatCompletionProvider>();
+        services.AddScoped<IChatCompletion, GeminiChatCompletionProvider>();
     }
 }
