@@ -102,11 +102,11 @@ public class GeminiChatCompletionProvider : IChatCompletion
         aiModel.UseGrounding = googleSettings.Gemini.UseGrounding;
 
         // Assembly messages
-        var prompt = string.Empty;
         var contents = new List<Content>();
         var tools = new List<Tool>();
         var funcDeclarations = new List<FunctionDeclaration>();
 
+        var systemPrompts = new List<string>();
         if (!string.IsNullOrEmpty(agent.Instruction))
         {
             var instruction = agentService.RenderedInstruction(agent);
@@ -115,10 +115,10 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 Role = AgentRole.User
             });
 
-            prompt += $"{instruction}\r\n";
+            systemPrompts.Add(instruction);
         }
 
-        prompt += "\r\n[FUNCTIONS]\r\n";
+        var funcPrompts = new List<string>();
         foreach (var function in agent.Functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
@@ -137,7 +137,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 }
             });
 
-            prompt += $"{function.Name}: {function.Description} {def}\r\n\r\n";
+            funcPrompts.Add($"{function.Name}: {function.Description} {def}");
         }
 
         if (!funcDeclarations.IsNullOrEmpty())
@@ -145,7 +145,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             tools.Add(new Tool { FunctionDeclarations = funcDeclarations });
         }
 
-        prompt += "\r\n[CONVERSATIONS]\r\n";
+        var convPrompts = new List<string>();
         foreach (var message in conversations)
         {
             if (message.Role == AgentRole.Function)
@@ -163,7 +163,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                     }
                 });
 
-                prompt += $"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs})\r\n";
+                convPrompts.Add($"{AgentRole.Assistant}: Call function {message.FunctionName}({message.FunctionArgs})");
             }
             else if (message.Role == AgentRole.User)
             {
@@ -172,7 +172,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 {
                     Role = AgentRole.User
                 });
-                prompt += $"{AgentRole.User}: {text}\r\n";
+                convPrompts.Add($"{AgentRole.User}: {text}");
             }
             else if (message.Role == AgentRole.Assistant)
             {
@@ -180,7 +180,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 {
                     Role = AgentRole.Model
                 });
-                prompt += $"{AgentRole.Assistant}: {message.Content}\r\n";
+                convPrompts.Add($"{AgentRole.Assistant}: {message.Content}");
             }
         }
 
@@ -189,6 +189,29 @@ public class GeminiChatCompletionProvider : IChatCompletion
             Contents = contents,
             Tools = tools
         };
+
+        var prompt = GetPrompt(systemPrompts, funcPrompts, convPrompts);
         return (prompt, request);
+    }
+
+    private string GetPrompt(IEnumerable<string> systemPrompts, IEnumerable<string> funcPrompts, IEnumerable<string> convPrompts)
+    {
+        var prompt = string.Empty;
+
+        prompt = string.Join("\r\n\r\n", systemPrompts);
+
+        if (!funcPrompts.IsNullOrEmpty())
+        {
+            prompt += "\r\n[FUNCTIONS]\r\n";
+            prompt += string.Join("\r\n", funcPrompts);
+        }
+
+        if (!convPrompts.IsNullOrEmpty())
+        {
+            prompt += "\r\n[CONVERSATION]\r\n";
+            prompt += string.Join("\r\n", convPrompts);
+        }
+
+        return prompt;
     }
 }
