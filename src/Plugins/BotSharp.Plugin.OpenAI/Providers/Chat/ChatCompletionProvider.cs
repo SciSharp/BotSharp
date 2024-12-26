@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Files.Utilities;
+using BotSharp.Abstraction.Templating;
 using OpenAI.Chat;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 
@@ -208,7 +210,8 @@ public class ChatCompletionProvider : IChatCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-        foreach (var function in agent.Functions)
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
 
@@ -220,10 +223,10 @@ public class ChatCompletionProvider : IChatCompletion
                 functionParameters: BinaryData.FromObjectAsJson(property)));
         }
 
-        if (!string.IsNullOrEmpty(agent.Instruction))
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
-            var instruction = agentService.RenderedInstruction(agent);
-            messages.Add(new SystemChatMessage(instruction));
+            var text = agentService.RenderedInstruction(agent);
+            messages.Add(new SystemChatMessage(text));
         }
 
         if (!string.IsNullOrEmpty(agent.Knowledges))

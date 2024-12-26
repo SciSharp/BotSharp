@@ -99,7 +99,7 @@ public class PalmChatCompletionProvider : IChatCompletion
 
         var agentService = _services.GetRequiredService<IAgentService>();
 
-        if (!string.IsNullOrEmpty(agent.Instruction))
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
             prompt += agentService.RenderedInstruction(agent);
         }
@@ -110,10 +110,11 @@ public class PalmChatCompletionProvider : IChatCompletion
         var messages = conversations.Select(c => new PalmChatMessage(c.Content, c.Role == AgentRole.User ? "user" : "AI"))
             .ToList();
 
-        if (agent.Functions != null && agent.Functions.Count > 0)
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        if (!functions.IsNullOrEmpty())
         {
             prompt += "\r\n\r\n[Functions] defined in JSON Schema:\r\n";
-            prompt += JsonSerializer.Serialize(agent.Functions, new JsonSerializerOptions
+            prompt += JsonSerializer.Serialize(functions, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
