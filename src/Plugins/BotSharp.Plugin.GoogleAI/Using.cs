@@ -11,3 +11,4 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using System.Text.Json.Serialization;
 global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Plugin.GoogleAi.Settings;

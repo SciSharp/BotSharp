@@ -3,44 +3,44 @@ using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Loggers;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Routing;
-using BotSharp.Plugin.GoogleAI.Settings;
 using LLMSharp.Google.Palm;
-using Microsoft.Extensions.Logging;
 using LLMSharp.Google.Palm.DiscussService;
+using Microsoft.Extensions.Logging;
 
-namespace BotSharp.Plugin.GoogleAI.Providers;
+namespace BotSharp.Plugin.GoogleAi.Providers.Chat;
 
-public class ChatCompletionProvider : IChatCompletion
+public class PalmChatCompletionProvider : IChatCompletion
 {
-    public string Provider => "google-ai";
     private readonly IServiceProvider _services;
-    private readonly GoogleAiSettings _settings;
-    private readonly ILogger _logger;
+    private readonly ILogger<PalmChatCompletionProvider> _logger;
+
     private string _model;
 
-    public ChatCompletionProvider(IServiceProvider services, 
-        GoogleAiSettings settings,
-        ILogger<ChatCompletionProvider> logger)
+    public string Provider => "google-ai";
+
+    public PalmChatCompletionProvider(
+        IServiceProvider services,
+        ILogger<PalmChatCompletionProvider> logger)
     {
         _services = services;
-        _settings = settings;
         _logger = logger;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
     {
-        var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
         // Before chat completion hook
-        Task.WaitAll(hooks.Select(hook =>
-            hook.BeforeGenerating(agent, conversations)).ToArray());
+        foreach (var hook in contentHooks)
+        {
+            await hook.BeforeGenerating(agent, conversations);
+        }
 
-        var client = new GooglePalmClient(apiKey: _settings.PaLM.ApiKey);
-
+        var client = ProviderHelper.GetPalmClient(_services);
         var (prompt, messages, hasFunctions) = PrepareOptions(agent, conversations);
 
         RoleDialogModel msg;
-        
+
         if (hasFunctions)
         {
             // use text completion
@@ -80,12 +80,15 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         // After chat completion hook
-        Task.WaitAll(hooks.Select(hook =>
-            hook.AfterGenerated(msg, new TokenStatsModel
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(msg, new TokenStatsModel
             {
                 Prompt = prompt,
+                Provider = Provider,
                 Model = _model
-            })).ToArray());
+            });
+        }
 
         return msg;
     }
