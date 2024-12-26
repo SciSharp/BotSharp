@@ -13,7 +13,7 @@ public class PalmTextCompletionProvider : ITextCompletion
 
     private string _model;
 
-    public string Provider => "google-ai";
+    public string Provider => "google-palm";
 
     public PalmTextCompletionProvider(
         IServiceProvider services,
@@ -38,7 +38,7 @@ public class PalmTextCompletionProvider : ITextCompletion
             await hook.BeforeGenerating(agent, new List<RoleDialogModel> { userMessage });
         }
 
-        var client = ProviderHelper.GetPalmClient(_services);
+        var client = ProviderHelper.GetPalmClient(Provider, _model, _services);
         _tokenStatistics.StartTimer();
         var response = await client.GenerateTextAsync(text, null);
         _tokenStatistics.StopTimer();

@@ -13,7 +13,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
     private string _model;
 
-    public string Provider => "google-gemini";
+    public string Provider => "google-ai";
 
     public GeminiChatCompletionProvider(
         IServiceProvider services,
@@ -33,7 +33,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetGeminiClient(_services);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var aiModel = client.GenerativeModel(_model);
         var (prompt, request) = PrepareOptions(aiModel, agent, conversations);
 
