@@ -13,7 +13,7 @@ public class GeminiTextCompletionProvider : ITextCompletion
     private readonly ITokenStatistics _tokenStatistics;
     private string _model;
 
-    public string Provider => "google-gemini";
+    public string Provider => "google-ai";
 
     public GeminiTextCompletionProvider(
         IServiceProvider services,
@@ -45,7 +45,7 @@ public class GeminiTextCompletionProvider : ITextCompletion
             await hook.BeforeGenerating(agent, new List<RoleDialogModel> { userMessage });
         }
 
-        var client = ProviderHelper.GetGeminiClient(_services);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var aiModel = client.GenerativeModel(_model);
         PrepareOptions(aiModel);
 

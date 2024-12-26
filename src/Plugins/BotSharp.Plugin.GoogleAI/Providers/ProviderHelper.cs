@@ -5,17 +5,19 @@ namespace BotSharp.Plugin.GoogleAi.Providers;
 
 public static class ProviderHelper
 {
-    public static GoogleAI GetGeminiClient(IServiceProvider services)
+    public static GoogleAI GetGeminiClient(string provider, string model, IServiceProvider services)
     {
-        var settings = services.GetRequiredService<GoogleAiSettings>();
-        var client = new GoogleAI(settings.Gemini.ApiKey);
+        var settingsService = services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(provider, model);
+        var client = new GoogleAI(settings.ApiKey);
         return client;
     }
 
-    public static GooglePalmClient GetPalmClient(IServiceProvider services)
+    public static GooglePalmClient GetPalmClient(string provider, string model, IServiceProvider services)
     {
-        var settings = services.GetRequiredService<GoogleAiSettings>();
-        var client = new GooglePalmClient(settings.PaLM.ApiKey);
+        var settingsService = services.GetRequiredService<ILlmProviderService>();
+        var settings = settingsService.GetSetting(provider, model);
+        var client = new GooglePalmClient(settings.ApiKey);
         return client;
     }
 }

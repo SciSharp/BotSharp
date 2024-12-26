@@ -16,7 +16,7 @@ public class PalmChatCompletionProvider : IChatCompletion
 
     private string _model;
 
-    public string Provider => "google-ai";
+    public string Provider => "google-palm";
 
     public PalmChatCompletionProvider(
         IServiceProvider services,
@@ -36,7 +36,7 @@ public class PalmChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetPalmClient(_services);
+        var client = ProviderHelper.GetPalmClient(Provider, _model, _services);
         var (prompt, messages, hasFunctions) = PrepareOptions(agent, conversations);
 
         RoleDialogModel msg;
