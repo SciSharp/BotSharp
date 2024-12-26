@@ -12,8 +12,9 @@ public partial class AgentService
         var conv = _services.GetRequiredService<IConversationService>();
 
         // merge instructions
-        var texts = new List<string> { agent.Instruction };
-        texts.AddRange(agent.SecondaryInstructions ?? []);
+        var instructions = new List<string> { agent.Instruction };
+        var secondaryInstructions = agent.SecondaryInstructions?.Where(x => !string.IsNullOrWhiteSpace(x)).ToList() ?? [];
+        instructions.AddRange(secondaryInstructions);
 
         // update states
         foreach (var t in conv.States.GetStates())
@@ -21,7 +22,7 @@ public partial class AgentService
             agent.TemplateDict[t.Key] = t.Value;
         }
 
-        var res = render.Render(string.Join("\r\n", texts), agent.TemplateDict);
+        var res = render.Render(string.Join("\r\n", instructions), agent.TemplateDict);
         return res;
     }
 

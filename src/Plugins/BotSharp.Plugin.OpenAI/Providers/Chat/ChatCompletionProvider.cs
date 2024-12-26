@@ -210,7 +210,6 @@ public class ChatCompletionProvider : IChatCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-
         var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
         foreach (var function in functions)
         {

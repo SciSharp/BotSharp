@@ -230,7 +230,8 @@ public class ChatCompletionProvider : IChatCompletion
             MaxOutputTokenCount = maxTokens
         };
 
-        foreach (var function in agent.Functions)
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
 
@@ -242,7 +243,7 @@ public class ChatCompletionProvider : IChatCompletion
                 functionParameters: BinaryData.FromObjectAsJson(property)));
         }
 
-        if (!string.IsNullOrEmpty(agent.Instruction))
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
             var instruction = agentService.RenderedInstruction(agent);
             messages.Add(new SystemChatMessage(instruction));
