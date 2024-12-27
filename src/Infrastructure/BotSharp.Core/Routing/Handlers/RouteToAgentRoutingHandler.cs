@@ -31,7 +31,7 @@ public class RouteToAgentRoutingHandler : RoutingHandlerBase, IRoutingHandler
             type: "boolean",
             required: true),
         new ParameterPropertyDef("is_new_task",
-            "whether the user is requesting a new task that is different from the previous topic.", 
+            "whether the user is requesting a new task that is different from the previous topic. Set the first round of conversation to false.", 
             type: "boolean")
     };
 
