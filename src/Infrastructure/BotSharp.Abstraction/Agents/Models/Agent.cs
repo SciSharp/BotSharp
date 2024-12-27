@@ -100,6 +100,11 @@ public class Agent
     public List<AgentUtility> Utilities { get; set; } = new();
 
     /// <summary>
+    /// Agent knowledge bases
+    /// </summary>
+    public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = [];
+
+    /// <summary>
     /// Inherit from agent
     /// </summary>
     public string? InheritAgentId { get; set; }
