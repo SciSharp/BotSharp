@@ -79,12 +79,22 @@ public class RedisPublisher : IEventPublisher
         return exists;
     }
 
-    private NameValueEntry[] AssembleMessage(RedisValue message)
+    public static NameValueEntry[] AssembleMessage(RedisValue message)
     {
         return
         [
             new NameValueEntry("message", message),
             new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
+        ];
+    }
+
+    public static NameValueEntry[] AssembleErrorMessage(RedisValue message, string error)
+    {
+        return
+        [
+            new NameValueEntry("message", message),
+            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o")),
+            new NameValueEntry("error", error)
         ];
     }
 

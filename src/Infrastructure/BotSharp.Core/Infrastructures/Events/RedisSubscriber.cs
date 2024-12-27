@@ -42,6 +42,8 @@ public class RedisSubscriber : IEventSubscriber
             await CreateConsumerGroup(db, channel, group);
         }
 
+        await CreateConsumerGroup(db, $"{channel}-Error", group);
+
         var consumer = Environment.MachineName;
         if (port.HasValue)
         {
@@ -98,15 +100,23 @@ public class RedisSubscriber : IEventSubscriber
             try
             {
                 await received(channel, entry.Values[0].Value);
-
-                // Optionally delete the message to save space
-                await db.StreamDeleteAsync(channel, [entry.Id]);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}\r\n{ex}");
+                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id} {entry.Values[0].Value}");
+
+                // Add a message to the Error stream, keeping only the latest 1 million messages
+                await db.StreamAddAsync($"{channel}-Error",
+                    RedisPublisher.AssembleErrorMessage(entry.Values[0].Value, ex.Message),
+                    messageId: entry.Id,
+                    maxLength: 1000 * 10000);
+
                 // Slow down the consumer if there are errors
                 await Task.Delay(1000 * 10);
+            }
+            finally
+            {
+                await db.StreamDeleteAsync(channel, [entry.Id]);
             }
         }
 
