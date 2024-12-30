@@ -33,6 +33,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
     List<User> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
+    void UpdateUserName(string userId, string userName) => throw new NotImplementedException();
     Dashboard? GetDashboard(string id = null) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
@@ -49,11 +50,12 @@ public interface IBotSharpRepository : IHaveServiceProvider
     PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
     User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
     bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
+
     #endregion
 
     #region Agent
     void UpdateAgent(Agent agent, AgentField field);
-    Agent? GetAgent(string agentId);
+    Agent? GetAgent(string agentId, bool basicsOnly = false);
     List<Agent> GetAgents(AgentFilter filter);
     List<UserAgent> GetUserAgents(string userId);
     void BulkInsertAgents(List<Agent> agents);
@@ -86,6 +88,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     Conversation GetConversation(string conversationId);
     PagedItems<Conversation> GetConversations(ConversationFilter filter);
     void UpdateConversationTitle(string conversationId, string title);
+    void UpdateConversationTitleAlias(string conversationId, string titleAlias);
     bool UpdateConversationTags(string conversationId, List<string> tags);
     bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
@@ -144,5 +147,11 @@ public interface IBotSharpRepository : IHaveServiceProvider
     /// <returns></returns>
     bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null);
     PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
+    #endregion
+
+    #region Crontab
+    bool UpsertCrontabItem(CrontabItem cron) => throw new NotImplementedException();
+    bool DeleteCrontabItem(string conversationId) => throw new NotImplementedException();
+    PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter) => throw new NotImplementedException();
     #endregion
 }

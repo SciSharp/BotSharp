@@ -102,7 +102,7 @@ public partial class RoutingService
             return _services.GetServices<IRoutingReasoner>().First(x => x.Name == "Naive Reasoner");
         }
 
-        var reasoner = _services.GetServices<IRoutingReasoner>().FirstOrDefault(x => x.GetType().Name.EndsWith(rule.Field));
+        var reasoner = _services.GetServices<IRoutingReasoner>().FirstOrDefault(x => x.Name == rule.Field);
 
         if (reasoner == null)
         {

@@ -46,24 +46,34 @@ public class CrontabWatcher : BackgroundService
         var crons = await cron.GetCrontable();
         foreach (var item in crons)
         {
-            var schedule = CrontabSchedule.Parse(item.Cron, new CrontabSchedule.ParseOptions
+            try
             {
-                IncludingSeconds = true // Ensure you account for seconds
-            });
+                // strip seconds from cron expression
+                item.Cron = string.Join(" ", item.Cron.Split(' ').TakeLast(5));
+                var schedule = CrontabSchedule.Parse(item.Cron, new CrontabSchedule.ParseOptions
+                {
+                    IncludingSeconds = false // Ensure you account for seconds
+                });
 
-            // Get the current time
-            var currentTime = DateTime.UtcNow;
+                // Get the current time
+                var currentTime = DateTime.UtcNow;
 
-            // Get the next occurrence from the schedule
-            var nextOccurrence = schedule.GetNextOccurrence(currentTime.AddSeconds(-1));
+                // Get the next occurrence from the schedule
+                var nextOccurrence = schedule.GetNextOccurrence(currentTime.AddSeconds(-1));
 
-            // Check if the current time matches the schedule
-            bool matches = currentTime >= nextOccurrence && currentTime < nextOccurrence.AddSeconds(1);
+                // Check if the current time matches the schedule
+                bool matches = currentTime >= nextOccurrence && currentTime < nextOccurrence.AddSeconds(1);
 
-            if (matches)
+                if (matches)
+                {
+                    _logger.LogDebug($"The current time matches the cron expression {item}");
+                    cron.ScheduledTimeArrived(item);
+                }
+            }
+            catch (Exception ex)
             {
-                _logger.LogDebug($"The current time matches the cron expression {item}");
-                cron.ScheduledTimeArrived(item);
+                _logger.LogWarning($"Error when running cron task ({item.ConversationId}, {item.Title}, {item.Cron}): {ex.Message}\r\n{ex.InnerException}");
+                continue;
             }
         }
     }

@@ -51,6 +51,14 @@ public partial class ConversationService : IConversationService
         return conversation;
     }
 
+    public async Task<Conversation> UpdateConversationTitleAlias(string id, string titleAlias)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.UpdateConversationTitleAlias(id, titleAlias);
+        var conversation = db.GetConversation(id);
+        return conversation;
+    }
+
     public async Task<bool> UpdateConversationTags(string conversationId, List<string> tags)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -103,7 +111,8 @@ public partial class ConversationService : IConversationService
 
         db.CreateNewConversation(record);
 
-        var hooks = _services.GetServices<IConversationHook>().ToList();
+        var hooks = _services.GetServices<IConversationHook>();
+
         foreach (var hook in hooks)
         {
             // If user connect agent first time
@@ -153,7 +162,10 @@ public partial class ConversationService : IConversationService
             }
         }
 
-        return dialogs.TakeLast(lastCount).ToList();
+        var agentMsgCount = GetAgentMessageCount();
+        var count = agentMsgCount.HasValue && agentMsgCount.Value > 0 ? agentMsgCount.Value : lastCount;
+
+        return dialogs.TakeLast(count).ToList();
     }
 
     public void SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false)
@@ -191,5 +203,17 @@ public partial class ConversationService : IConversationService
     public bool IsConversationMode()
     {
         return !string.IsNullOrWhiteSpace(_conversationId);
+    }
+
+
+    private int? GetAgentMessageCount()
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+
+        if (string.IsNullOrEmpty(routingCtx.EntryAgentId)) return null;
+
+        var agent = db.GetAgent(routingCtx.EntryAgentId, basicsOnly: true);
+        return agent?.MaxMessageCount;
     }
 }

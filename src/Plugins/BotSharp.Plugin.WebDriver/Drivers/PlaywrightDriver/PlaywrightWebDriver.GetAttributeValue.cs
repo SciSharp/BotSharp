@@ -19,4 +19,25 @@ public partial class PlaywrightWebDriver
             Body = value ?? string.Empty
         };
     }
+
+    public async Task<BrowserActionResult> SetAttributeValue(MessageInfo message, ElementLocatingArgs location)
+    {
+        var page = _instance.GetPage(message.ContextId);
+        ILocator locator = page.Locator(location.Selector);
+        var elementCount = await locator.CountAsync();
+
+        if (elementCount > 0)
+        {
+            foreach (var element in await locator.AllAsync())
+            {
+                var script = $"element => element.{location.AttributeName} = '{location.AttributeValue}'";
+                var result = await locator.EvaluateAsync(script);
+            }
+        }
+
+        return new BrowserActionResult
+        {
+            IsSuccess = true
+        };
+    }
 }

@@ -1,0 +1,19 @@
+{
+  "id": "3e75e818-a139-48a8-9e22-4662548c13a3",
+  "name": "Sequential-Planner",
+  "description": "Plan an execution steps for the user complex task, especially if the tasks are in a predefined order by the user",
+  "type": "planning",
+  "createdDateTime": "2023-08-27T10:39:00Z",
+  "updatedDateTime": "2023-08-27T14:39:00Z",
+  "iconUrl": "https://www.shutterstock.com/image-vector/sequential-process-glyph-icon-order-260nw-1015790182.jpg",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "planning" ],
+  "mergeUtility": true,
+  "utilities": [],
+  "llmConfig": {
+    "provider": "openai",
+    "model": "gpt-4o-2024-11-20",
+    "max_recursion_depth": 10
+  }
+}

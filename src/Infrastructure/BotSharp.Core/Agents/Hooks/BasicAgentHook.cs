@@ -4,6 +4,8 @@ public class BasicAgentHook : AgentHookBase
 {
     public override string SelfId => string.Empty;
 
+    private const string UTIL_PREFIX = "util-";
+
     public BasicAgentHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
@@ -17,22 +19,23 @@ public class BasicAgentHook : AgentHookBase
         var isConvMode = conv.IsConversationMode();
         if (!isConvMode) return;
 
-        agent.Functions ??= [];
+        agent.SecondaryFunctions ??= [];
+        agent.SecondaryInstructions ??= [];
         agent.Utilities ??= [];
 
         var (functions, templates) = GetUtilityContent(agent);
 
         foreach (var fn in functions)
         {
-            if (!agent.Functions.Any(x => x.Name.Equals(fn.Name, StringComparison.OrdinalIgnoreCase)))
+            if (!agent.SecondaryFunctions.Any(x => x.Name.Equals(fn.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                agent.Functions.Add(fn);
+                agent.SecondaryFunctions.Add(fn);
             }
         }
 
         foreach (var prompt in templates)
         {
-            agent.Instruction += $"\r\n\r\n{prompt}\r\n\r\n";
+            agent.SecondaryInstructions.Add(prompt);
         }
     }
 
@@ -47,7 +50,7 @@ public class BasicAgentHook : AgentHookBase
             var entryAgentId = routing.EntryAgentId;
             if (!string.IsNullOrEmpty(entryAgentId))
             {
-                var entryAgent = db.GetAgent(entryAgentId);
+                var entryAgent = db.GetAgent(entryAgentId, basicsOnly: true);
                 var (fns, tps) = GetUniqueContent(entryAgent?.Utilities);
                 functionNames = functionNames.Concat(fns).Distinct().ToList();
                 templateNames = templateNames.Concat(tps).Distinct().ToList();
@@ -67,14 +70,13 @@ public class BasicAgentHook : AgentHookBase
             return ([], []);
         }
 
-        var prefix = "util-";
         utilities = utilities?.Where(x => !string.IsNullOrEmpty(x.Name) && !x.Disabled)?.ToList() ?? [];
         var functionNames = utilities.SelectMany(x => x.Functions)
-                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(prefix))
+                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
                                      .Select(x => x.Name)
                                      .Distinct().ToList();
         var templateNames = utilities.SelectMany(x => x.Templates)
-                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(prefix))
+                                     .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith(UTIL_PREFIX))
                                      .Select(x => x.Name)
                                      .Distinct().ToList();
 

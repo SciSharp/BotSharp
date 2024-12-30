@@ -28,6 +28,7 @@ public partial class AgentService
         record.IsPublic = agent.IsPublic;
         record.Disabled = agent.Disabled;
         record.MergeUtility = agent.MergeUtility;
+        record.MaxMessageCount = agent.MaxMessageCount;
         record.Type = agent.Type;
         record.Profiles = agent.Profiles ?? [];
         record.RoutingRules = agent.RoutingRules ?? [];
@@ -38,6 +39,7 @@ public partial class AgentService
         record.Responses = agent.Responses ?? [];
         record.Samples = agent.Samples ?? [];
         record.Utilities = agent.Utilities ?? [];
+        record.KnowledgeBases = agent.KnowledgeBases ?? [];
         if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)
         {
             record.LlmConfig = agent.LlmConfig;

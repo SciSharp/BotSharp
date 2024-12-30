@@ -25,6 +25,9 @@ public class AgentViewModel
     public bool MergeUtility { get; set; }
     public List<AgentUtility> Utilities { get; set; }
 
+    [JsonPropertyName("knowledge_bases")]
+    public List<AgentKnowledgeBase> KnowledgeBases { get; set; }
+
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
 
@@ -45,6 +48,10 @@ public class AgentViewModel
     [JsonPropertyName("llm_config")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AgentLlmConfig? LlmConfig { get; set; }
+
+    [JsonPropertyName("max_message_count")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxMessageCount { get; set; }
 
     public PluginDef Plugin { get; set; }
 
@@ -71,10 +78,12 @@ public class AgentViewModel
             Responses = agent.Responses,
             Samples = agent.Samples,
             Utilities = agent.Utilities,
+            KnowledgeBases = agent.KnowledgeBases,
             IsPublic= agent.IsPublic,
             Disabled = agent.Disabled,
             MergeUtility = agent.MergeUtility,
             IconUrl = agent.IconUrl,
+            MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles ?? new List<string>(),
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,

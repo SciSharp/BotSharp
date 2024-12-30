@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="LLMSharp.Google.Palm" Version="1.0.2" />
+    <PackageReference Include="Mscc.GenerativeAI" Version="2.0.1" />
   </ItemGroup>
   
   <ItemGroup>

@@ -9,7 +9,7 @@ public partial class MongoRepository
 {
     public void UpdateAgent(Agent agent, AgentField field)
     {
-        if (agent == null || string.IsNullOrEmpty(agent.Id)) return;
+        if (agent == null || string.IsNullOrWhiteSpace(agent.Id)) return;
 
         switch (field)
         {
@@ -57,6 +57,12 @@ public partial class MongoRepository
                 break;
             case AgentField.Utility:
                 UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
+                break;
+            case AgentField.KnowledgeBase:
+                UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
+                break;
+            case AgentField.MaxMessageCount:
+                UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                 break;
             case AgentField.All:
                 UpdateAgentAllFields(agent);
@@ -158,10 +164,8 @@ public partial class MongoRepository
 
     private void UpdateAgentInstructions(string agentId, string instruction, List<ChannelInstruction>? channelInstructions)
     {
-        if (string.IsNullOrWhiteSpace(agentId)) return;
-
         var instructionElements = channelInstructions?.Select(x => ChannelInstructionMongoElement.ToMongoElement(x))?
-                                                      .ToList() ?? new List<ChannelInstructionMongoElement>();
+                                                      .ToList() ?? [];
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
@@ -200,7 +204,7 @@ public partial class MongoRepository
 
     private void UpdateAgentResponses(string agentId, List<AgentResponse> responses)
     {
-        if (responses == null) return;
+        if (responses == null || string.IsNullOrWhiteSpace(agentId)) return;
 
         var responsesToUpdate = responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList();
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
@@ -238,12 +242,36 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
+    private void UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
+    {
+        if (knowledgeBases == null) return;
+
+        var elements = knowledgeBases?.Select(x => AgentKnowledgeBaseMongoElement.ToMongoElement(x))?.ToList() ?? [];
+
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.KnowledgeBases, elements)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
     private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
     {
         var llmConfig = AgentLlmConfigMongoElement.ToMongoElement(config);
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update
             .Set(x => x.LlmConfig, llmConfig)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
+    private void UpdateAgentMaxMessageCount(string agentId, int? maxMessageCount)
+    {
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.MaxMessageCount, maxMessageCount)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
@@ -258,6 +286,7 @@ public partial class MongoRepository
             .Set(x => x.Disabled, agent.Disabled)
             .Set(x => x.MergeUtility, agent.MergeUtility)
             .Set(x => x.Type, agent.Type)
+            .Set(x => x.MaxMessageCount, agent.MaxMessageCount)
             .Set(x => x.Profiles, agent.Profiles)
             .Set(x => x.RoutingRules, agent.RoutingRules.Select(r => RoutingRuleMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Instruction, agent.Instruction)
@@ -267,6 +296,7 @@ public partial class MongoRepository
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Samples, agent.Samples)
             .Set(x => x.Utilities, agent.Utilities.Select(u => AgentUtilityMongoElement.ToMongoElement(u)).ToList())
+            .Set(x => x.KnowledgeBases, agent.KnowledgeBases.Select(u => AgentKnowledgeBaseMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.LlmConfig, AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig))
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
@@ -277,7 +307,7 @@ public partial class MongoRepository
     #endregion
 
 
-    public Agent? GetAgent(string agentId)
+    public Agent? GetAgent(string agentId, bool basicsOnly = false)
     {
         var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
         if (agent == null) return null;
@@ -420,6 +450,7 @@ public partial class MongoRepository
             InheritAgentId = x.InheritAgentId,
             Disabled = x.Disabled,
             MergeUtility = x.MergeUtility,
+            MaxMessageCount = x.MaxMessageCount,
             Profiles = x.Profiles,
             RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
             LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
@@ -513,6 +544,7 @@ public partial class MongoRepository
             Type = agentDoc.Type,
             InheritAgentId = agentDoc.InheritAgentId,
             Profiles = agentDoc.Profiles,
+            MaxMessageCount = agentDoc.MaxMessageCount
         };
     }
 }

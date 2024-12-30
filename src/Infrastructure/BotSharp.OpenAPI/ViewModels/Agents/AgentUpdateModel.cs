@@ -40,6 +40,13 @@ public class AgentUpdateModel
     public List<AgentUtility>? Utilities { get; set; }
 
     /// <summary>
+    /// knowledge bases
+    /// </summary>
+    /// 
+    [JsonPropertyName("knowledge_bases")]
+    public List<AgentKnowledgeBase>? KnowledgeBases { get; set; }
+
+    /// <summary>
     /// Functions
     /// </summary>
     public List<FunctionDef>? Functions { get; set; }
@@ -56,6 +63,9 @@ public class AgentUpdateModel
     public bool AllowRouting { get; set; }
 
     public bool Disabled { get; set; }
+
+    [JsonPropertyName("max_message_count")]
+    public int? MaxMessageCount { get; set; }
 
     /// <summary>
     /// Profile by channel
@@ -77,6 +87,7 @@ public class AgentUpdateModel
             IsPublic = IsPublic,
             Disabled = Disabled,
             MergeUtility = MergeUtility,
+            MaxMessageCount = MaxMessageCount,
             Type = Type,
             Profiles = Profiles ?? new List<string>(),
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),
@@ -86,6 +97,7 @@ public class AgentUpdateModel
             Functions = Functions ?? new List<FunctionDef>(),
             Responses = Responses ?? new List<AgentResponse>(),
             Utilities = Utilities ?? new List<AgentUtility>(),
+            KnowledgeBases = KnowledgeBases ?? [],
             LlmConfig = LlmConfig
         };
 

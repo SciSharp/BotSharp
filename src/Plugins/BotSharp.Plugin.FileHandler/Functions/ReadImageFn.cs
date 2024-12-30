@@ -23,22 +23,26 @@ public class ReadImageFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
 
         var wholeDialogs = conv.GetDialogHistory();
-        var dialogs = AssembleFiles(conv.ConversationId, wholeDialogs);
-        var agent = await agentService.LoadAgent(BuiltInAgentId.UtilityAssistant);
-        var fileAgent = new Agent
+        var dialogs = AssembleFiles(conv.ConversationId, args?.ImageUrls, wholeDialogs);
+        var agent = new Agent
         {
-            Id = agent?.Id ?? Guid.Empty.ToString(),
-            Name = agent?.Name ?? "Unkown",
+            Id = BuiltInAgentId.UtilityAssistant,
+            Name = "Utility Agent",
             Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please describe the image(s).",
             TemplateDict = new Dictionary<string, object>()
         };
 
-        var response = await GetChatCompletion(fileAgent, dialogs);
+        if (!string.IsNullOrEmpty(message.CurrentAgentId))
+        {
+            agent = await agentService.LoadAgent(message.CurrentAgentId, loadUtility: false);
+        }
+
+        var response = await GetChatCompletion(agent, dialogs);
         message.Content = response;
         return true;
     }
 
-    private List<RoleDialogModel> AssembleFiles(string conversationId, List<RoleDialogModel> dialogs)
+    private List<RoleDialogModel> AssembleFiles(string conversationId, IEnumerable<string>? imageUrls, List<RoleDialogModel> dialogs)
     {
         if (dialogs.IsNullOrEmpty())
         {
@@ -64,6 +68,18 @@ public class ReadImageFn : IFunctionCallback
                 FileUrl = x.FileUrl,
                 FileStorageUrl = x.FileStorageUrl
             }).ToList();
+        }
+
+        if (!imageUrls.IsNullOrEmpty())
+        {
+            var lastDialog = dialogs.Last();
+            var files = lastDialog.Files ?? [];
+            var addnFiles = imageUrls.Select(x => x?.Trim())
+                                     .Where(x => !string.IsNullOrWhiteSpace(x))
+                                     .Select(x => new BotSharpFile { FileUrl = x }).ToList();
+            
+            files.AddRange(addnFiles);
+            lastDialog.Files = files;
         }
 
         return dialogs;

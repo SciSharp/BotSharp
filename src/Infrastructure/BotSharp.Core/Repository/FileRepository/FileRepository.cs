@@ -55,6 +55,8 @@ public partial class FileRepository : IBotSharpRepository
     private const string PLUGIN_CONFIG_FILE = "config.json";
     private const string STATS_FILE = "stats.json";
 
+    private const string CRON_FILE = "cron.json";
+
     public FileRepository(
         IServiceProvider services,
         BotSharpDatabaseSettings dbSettings,
@@ -88,7 +90,6 @@ public partial class FileRepository : IBotSharpRepository
     private List<Agent> _agents = new List<Agent>();
     private List<RoleAgent> _roleAgents = new List<RoleAgent>();
     private List<UserAgent> _userAgents = new List<UserAgent>();
-    private List<Conversation> _conversations = new List<Conversation>();
     private PluginConfig? _pluginConfig = null;
 
     private IQueryable<Role> Roles

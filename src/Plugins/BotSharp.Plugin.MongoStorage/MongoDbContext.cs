@@ -36,7 +36,7 @@ public class MongoDbContext
                 Key = x.Split("=")[0],
                 Value = x.Split("=")[1]
             }).ToList();
-            
+
             var source = queries.FirstOrDefault(x => x.Key.IsEqualTo(DB_NAME_INDEX));
             if (source != null)
             {
@@ -165,4 +165,8 @@ public class MongoDbContext
 
     public IMongoCollection<RoleAgentDocument> RoleAgents
         => Database.GetCollection<RoleAgentDocument>($"{_collectionPrefix}_RoleAgents");
+
+    public IMongoCollection<CrontabItemDocument> CrontabItems
+        => Database.GetCollection<CrontabItemDocument>($"{_collectionPrefix}_CronTabItems");
+
 }

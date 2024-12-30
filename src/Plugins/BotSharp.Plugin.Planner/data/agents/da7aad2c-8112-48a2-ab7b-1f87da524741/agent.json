@@ -1,0 +1,19 @@
+{
+  "id": "da7aad2c-8112-48a2-ab7b-1f87da524741",
+  "name": "SQL-Planner",
+  "description": "Plan feasible steps for user task related to sql generation, generate sql statement and/or review the sql statement that can be derived from context",
+  "type": "planning",
+  "createdDateTime": "2023-08-27T10:39:00Z",
+  "updatedDateTime": "2023-08-27T14:39:00Z",
+  "iconUrl": "https://e7.pngegg.com/pngimages/775/350/png-clipart-action-plan-computer-icons-plan-miscellaneous-text-thumbnail.png",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "planning" ],
+  "mergeUtility": true,
+  "utilities": [],
+  "llmConfig": {
+    "provider": "openai",
+    "model": "gpt-4o-2024-11-20",
+    "max_recursion_depth": 10
+  }
+}

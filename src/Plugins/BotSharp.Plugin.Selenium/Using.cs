@@ -1,0 +1,23 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Text;
+global using System.Threading.Tasks;
+global using System.Text.Json;
+global using System.Linq;
+global using System.Text.RegularExpressions;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using BotSharp.Abstraction.Browsing.Enums;
+global using BotSharp.Abstraction.Conversations;
+global using BotSharp.Abstraction.Plugins;
+global using BotSharp.Abstraction.Conversations.Models;
+global using BotSharp.Abstraction.Functions;
+global using BotSharp.Abstraction.Agents.Models;
+global using BotSharp.Abstraction.Templating;
+global using BotSharp.Abstraction.Agents;
+global using BotSharp.Abstraction.Utilities;
+global using BotSharp.Abstraction.Browsing.Models;
+global using BotSharp.Abstraction.Browsing;
+
+global using OpenQA.Selenium;

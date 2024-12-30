@@ -9,5 +9,6 @@ public interface IConversationSideCar
     List<DialogElement> GetConversationDialogs(string conversationId);
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
     ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
-    Task<RoleDialogModel> SendMessage(string agentId, string text, PostbackMessageModel? postback = null, List<MessageState>? states = null);
+    Task<RoleDialogModel> SendMessage(string agentId, string text,
+        PostbackMessageModel? postback = null, List<MessageState>? states = null, List<DialogElement>? dialogs = null);
 }

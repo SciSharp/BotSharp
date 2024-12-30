@@ -113,6 +113,7 @@ public partial class PlaywrightWebDriver
                     }
 
                     // Release mouse button
+                    await Task.Delay(1000);
                     await mouse.UpAsync();
                 }
                 else

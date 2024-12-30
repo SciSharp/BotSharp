@@ -29,7 +29,7 @@ namespace BotSharp.Core.Routing.Reasoning;
 /// </summary>
 public class OneStepForwardReasoner : IRoutingReasoner
 {
-    public string Name => "one-step-forward";
+    public string Name => "One-Step-Forward-Reasoner";
 
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;

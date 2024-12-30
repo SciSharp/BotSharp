@@ -45,28 +45,36 @@ public class PlaywrightInstance : IDisposable
             _playwright = await Playwright.CreateAsync();
         }
 
-        string tempFolderPath = $"{Path.GetTempPath()}\\playwright\\{ctxId}";
-
-        _contexts[ctxId] = await _playwright.Chromium.LaunchPersistentContextAsync(tempFolderPath, new BrowserTypeLaunchPersistentContextOptions
+        if (!string.IsNullOrEmpty(args.RemoteHostUrl))
         {
-            Headless = args.Headless,
-            Channel = "chrome",
-            ViewportSize = new ViewportSize
+            var browser = await _playwright.Chromium.ConnectOverCDPAsync(args.RemoteHostUrl);
+            _contexts[ctxId] = browser.Contexts[0];
+        }
+        else
+        {
+            string userDataDir = args.UserDataDir ?? $"{Path.GetTempPath()}\\playwright\\{ctxId}";
+            _contexts[ctxId] = await _playwright.Chromium.LaunchPersistentContextAsync(userDataDir, new BrowserTypeLaunchPersistentContextOptions
             {
-                Width = 1600,
-                Height = 900
-            },
-            IgnoreDefaultArgs =
-            [
-                "--enable-automation",
-            ],
-            Args =
-            [
-                "--disable-infobars",
-                "--test-type"
-                // "--start-maximized"
-            ]
-        });
+                Headless = args.Headless,
+                Channel = "chrome",
+                ViewportSize = new ViewportSize
+                {
+                    Width = 1600,
+                    Height = 900
+                },
+                IgnoreDefaultArgs =
+                [
+                    "--enable-automation",
+                ],
+                Args =
+                [
+                    "--disable-infobars",
+                    "--test-type"
+                    // "--start-maximized"
+                ]
+            });
+        }
+
         _pages[ctxId] = new List<IPage>();
 
         _contexts[ctxId].Page += async (sender, page) =>
@@ -100,12 +108,7 @@ public class PlaywrightInstance : IDisposable
         return _contexts[ctxId];
     }
 
-    public async Task<IPage> NewPage(MessageInfo message, 
-        bool enableResponseCallback = false, 
-        bool responseInMemory = false,
-        List<WebPageResponseData>? responseContainer = null,
-        string[]? excludeResponseUrls = null, 
-        string[]? includeResponseUrls = null)
+    public async Task<IPage> NewPage(MessageInfo message, PageActionArgs args)
     {
         var context = await GetContext(message.ContextId);
         var page = await context.NewPageAsync();
@@ -115,68 +118,73 @@ public class PlaywrightInstance : IDisposable
         var js = @"Object.defineProperties(navigator, {webdriver:{get:()=>false}});";
         await page.AddInitScriptAsync(js);
 
-        if (!enableResponseCallback)
+        if (!args.EnableResponseCallback)
         {
             return page;
         }
 
         page.Response += async (sender, e) =>
         {
-            if (e.Status != 204 &&
-                e.Headers.ContainsKey("content-type") &&
-                (e.Request.ResourceType == "fetch" || e.Request.ResourceType == "xhr") &&
-                (excludeResponseUrls == null || !excludeResponseUrls.Any(url => e.Url.ToLower().Contains(url))) &&
-                (includeResponseUrls == null || includeResponseUrls.Any(url => e.Url.ToLower().Contains(url))))
-            {
-                Serilog.Log.Information($"{e.Request.Method}: {e.Url}");
-                
-                try
-                {
-                    var result = new WebPageResponseData
-                    {
-                        Url = e.Url.ToLower(),
-                        PostData = e.Request?.PostData ?? string.Empty,
-                        ResponseInMemory = responseInMemory
-                    };
-
-                    if (e.Headers["content-type"].Contains("application/json"))
-                    {
-                        if (e.Status == 200 && e.Ok)
-                        {
-                            var json = await e.JsonAsync();
-                            result.ResponseData = JsonSerializer.Serialize(json);
-                        }
-                    }
-                    else
-                    {
-                        var html = await e.TextAsync();
-                        result.ResponseData = html;
-                    }
-
-                    if (responseContainer != null && responseInMemory)
-                    {
-                        responseContainer.Add(result);
-                    }
-
-                    Serilog.Log.Warning($"Response status: {e.Status} {e.StatusText}, OK: {e.Ok}");
-                    var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
-                    foreach (var hook in webPageResponseHooks)
-                    {
-                        hook.OnDataFetched(message, result);
-                    }
-                }
-                catch (ObjectDisposedException ex)
-                {
-                    Serilog.Log.Information(ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Error($"{e.Url}\r\n" + ex.ToString());
-                }
-            }
+            await HandleFetchResponse(e, message, args);
         };
 
         return page;
+    }
+
+    public async Task HandleFetchResponse(IResponse response, MessageInfo message, PageActionArgs args)
+    {
+        if (response.Status != 204 &&
+                        response.Headers.ContainsKey("content-type") &&
+                        (response.Request.ResourceType == "fetch" || response.Request.ResourceType == "xhr") &&
+                        (args.ExcludeResponseUrls == null || !args.ExcludeResponseUrls.Any(url => response.Url.ToLower().Contains(url))) &&
+                        (args.IncludeResponseUrls == null || args.IncludeResponseUrls.Any(url => response.Url.ToLower().Contains(url))))
+        {
+            Serilog.Log.Information($"{response.Request.Method}: {response.Url}");
+
+            try
+            {
+                var result = new WebPageResponseData
+                {
+                    Url = response.Url.ToLower(),
+                    PostData = response.Request?.PostData ?? string.Empty,
+                    ResponseInMemory = args.ResponseInMemory
+                };
+
+                if (response.Headers["content-type"].Contains("application/json"))
+                {
+                    if (response.Status == 200 && response.Ok)
+                    {
+                        var json = await response.JsonAsync();
+                        result.ResponseData = JsonSerializer.Serialize(json);
+                    }
+                }
+                else
+                {
+                    var html = await response.TextAsync();
+                    result.ResponseData = html;
+                }
+
+                if (args.ResponseContainer != null && args.ResponseInMemory)
+                {
+                    args.ResponseContainer.Add(result);
+                }
+
+                Serilog.Log.Warning($"Response status: {response.Status} {response.StatusText}, OK: {response.Ok}");
+                var webPageResponseHooks = _services.GetServices<IWebPageResponseHook>();
+                foreach (var hook in webPageResponseHooks)
+                {
+                    hook.OnDataFetched(message, result);
+                }
+            }
+            catch (ObjectDisposedException ex)
+            {
+                Serilog.Log.Information(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error($"{response.Url}\r\n" + ex.ToString());
+            }
+        }
     }
 
     /// <summary>
