@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
-using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.OpenAPI.ViewModels.Agents;
 
@@ -55,6 +54,7 @@ public class AgentCreationModel
 
     public List<AgentUtility> Utilities { get; set; } = new();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new();
+    public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = new();
     public AgentLlmConfig? LlmConfig { get; set; }
 
     public Agent ToAgent()
@@ -76,8 +76,9 @@ public class AgentCreationModel
             MergeUtility = MergeUtility,
             MaxMessageCount = MaxMessageCount,
             Profiles = Profiles,
-            RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),
-            LlmConfig = LlmConfig
+            LlmConfig = LlmConfig,
+            KnowledgeBases = KnowledgeBases,
+            RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? [],
         };
     }
 }

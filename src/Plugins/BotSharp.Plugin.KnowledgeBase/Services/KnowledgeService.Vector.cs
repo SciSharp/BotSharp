@@ -69,25 +69,25 @@ public partial class KnowledgeService
         }
     }
 
-    public async Task<IEnumerable<string>> GetVectorCollections(string type)
+    public async Task<IEnumerable<VectorCollectionConfig>> GetVectorCollections(string? type = null)
     {
         try
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var collectionNames = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
+            var configs = db.GetKnowledgeCollectionConfigs(new VectorCollectionConfigFilter
             {
-                CollectionTypes = new[] { type },
-                VectorStroageProviders = new[] { _settings.VectorDb.Provider }
-            }).Select(x => x.Name).ToList();
+                CollectionTypes = !string.IsNullOrEmpty(type) ? [type] : null,
+                VectorStroageProviders = [_settings.VectorDb.Provider]
+            }).ToList();
 
             var vectorDb = GetVectorDb();
-            var vectorCollections = await vectorDb.GetCollections();
-            return vectorCollections.Where(x => collectionNames.Contains(x));
+            var dbCollections = await vectorDb.GetCollections();
+            return configs.Where(x => dbCollections.Contains(x.Name));
         }
         catch (Exception ex)
         {
             _logger.LogWarning($"Error when getting vector db collections. {ex.Message}\r\n{ex.InnerException}");
-            return Enumerable.Empty<string>();
+            return Enumerable.Empty<VectorCollectionConfig>();
         }
     }
 

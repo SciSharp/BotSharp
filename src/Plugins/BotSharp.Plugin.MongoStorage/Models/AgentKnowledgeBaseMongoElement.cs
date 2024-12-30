@@ -5,13 +5,16 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 public class AgentKnowledgeBaseMongoElement
 {
     public string Name { get; set; }
+    public string Type { get; set; }
     public bool Disabled { get; set; }
+
     public static AgentKnowledgeBaseMongoElement ToMongoElement(AgentKnowledgeBase knowledgeBase)
     {
         return new AgentKnowledgeBaseMongoElement
         {
-            Name = knowledgeBase.Name ?? string.Empty,
-            Disabled = knowledgeBase.Disabled,
+            Name = knowledgeBase.Name,
+            Type = knowledgeBase.Type,
+            Disabled = knowledgeBase.Disabled
         };
     }
 
@@ -20,6 +23,7 @@ public class AgentKnowledgeBaseMongoElement
         return new AgentKnowledgeBase
         {
             Name = knowledgeBase.Name,
+            Type = knowledgeBase.Type,
             Disabled = knowledgeBase.Disabled
         };
     }
