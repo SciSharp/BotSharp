@@ -26,9 +26,10 @@ public class KnowledgeBaseController : ControllerBase
     }
 
     [HttpGet("knowledge/vector/collections")]
-    public async Task<IEnumerable<string>> GetVectorCollections([FromQuery] string type)
+    public async Task<IEnumerable<VectorCollectionConfigViewModel>> GetVectorCollections([FromQuery] string? type = null)
     {
-        return await _knowledgeService.GetVectorCollections(type);
+        var collections = await _knowledgeService.GetVectorCollections(type);
+        return collections.Select(x => VectorCollectionConfigViewModel.From(x));
     }
 
     [HttpPost("knowledge/vector/create-collection")]
