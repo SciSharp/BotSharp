@@ -13,7 +13,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
 
     private string _model;
 
-    public string Provider => "google-gemini";
+    public string Provider => "google-ai";
 
     public GeminiChatCompletionProvider(
         IServiceProvider services,
@@ -33,7 +33,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             await hook.BeforeGenerating(agent, conversations);
         }
 
-        var client = ProviderHelper.GetGeminiClient(_services);
+        var client = ProviderHelper.GetGeminiClient(Provider, _model, _services);
         var aiModel = client.GenerativeModel(_model);
         var (prompt, request) = PrepareOptions(aiModel, agent, conversations);
 
@@ -107,7 +107,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
         var funcDeclarations = new List<FunctionDeclaration>();
 
         var systemPrompts = new List<string>();
-        if (!string.IsNullOrEmpty(agent.Instruction))
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
             var instruction = agentService.RenderedInstruction(agent);
             contents.Add(new Content(instruction)
@@ -119,7 +119,8 @@ public class GeminiChatCompletionProvider : IChatCompletion
         }
 
         var funcPrompts = new List<string>();
-        foreach (var function in agent.Functions)
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        foreach (var function in functions)
         {
             if (!agentService.RenderFunction(agent, function)) continue;
 

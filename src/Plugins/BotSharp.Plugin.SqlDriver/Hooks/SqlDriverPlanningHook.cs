@@ -23,9 +23,9 @@ public class SqlDriverPlanningHook : IPlanningHook
     public async Task OnSourceCodeGenerated(string planner, RoleDialogModel msg, string language)
     {
         // envoke validate
-        if (language != "sql") 
-        { 
-            return; 
+        if (language != "sql")
+        {
+            return;
         }
 
         var routing = _services.GetRequiredService<IRoutingService>();
@@ -42,7 +42,7 @@ public class SqlDriverPlanningHook : IPlanningHook
             var conversationStateService = _services.GetRequiredService<IConversationStateService>();
             var conversationId = conversationStateService.GetConversationId();
             msg.PostbackFunctionName = "execute_sql";
-            msg.RichContent = BuildRunQueryButton(planner, msg.Content);
+            msg.RichContent = BuildRunQueryButton(conversationId, msg.Content);
             msg.StopCompletion = true;
             return;
         }
@@ -71,7 +71,7 @@ public class SqlDriverPlanningHook : IPlanningHook
 
     public async Task OnPlanningCompleted(string planner, RoleDialogModel msg)
     {
-       
+
     }
 
     public async Task<string> GetSummaryAdditionalRequirements(string planner, RoleDialogModel message)
@@ -91,8 +91,27 @@ public class SqlDriverPlanningHook : IPlanningHook
         string pattern = @"```sql\s*([\s\S]*?)\s*```";
         var sql = Regex.Match(text, pattern).Groups[1].Value;
         var state = _services.GetRequiredService<IConversationStateService>();
-        var deleteTable = state.GetState("tmp_table");
-        var deleteSql = $"DROP TABLE IF EXISTS {deleteTable};";
+        var tmpTable = state.GetState("tmp_table");
+
+        var elements = new List<ElementButton>() { };
+        elements.Add(new ElementButton
+        {
+            Type = "text",
+            Title = "Execute SQL Statement",
+            Payload = sql,
+            IsPrimary = true
+        });
+
+        if (tmpTable != string.Empty)
+        {
+            var deleteSql = $"DROP TABLE IF EXISTS {tmpTable};";
+            elements.Add(new ElementButton
+            {
+                Type = "text",
+                Title = "Delete Temp Table",
+                Payload = deleteSql
+            });
+        }
 
         return new RichContent<IRichMessage>
         {
@@ -105,23 +124,9 @@ public class SqlDriverPlanningHook : IPlanningHook
             Message = new ButtonTemplateMessage
             {
                 Text = text,
-                Buttons = new List<ElementButton>
-                {
-                    new ElementButton
-                    {
-                        Type = "text",
-                        Title = "Execute the SQL Statement",
-                        Payload = sql,
-                        IsPrimary = true
-                    },
-                    new ElementButton
-                    {
-                        Type = "text",
-                        Title = "Purge Cache",
-                        Payload = deleteSql
-                    }
-                }.ToArray()
+                Buttons = elements.ToArray()
             }
         };
+
     }
 }

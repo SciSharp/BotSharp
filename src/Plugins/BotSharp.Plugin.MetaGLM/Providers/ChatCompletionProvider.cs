@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Utilities;
+
 namespace BotSharp.Plugin.MetaGLM.Providers;
 
 public class ChatCompletionProvider : IChatCompletion
@@ -86,7 +88,7 @@ public class ChatCompletionProvider : IChatCompletion
         List<MessageItem> messages = new List<MessageItem>();
         List<FunctionTool> toolcalls = new List<FunctionTool>();
 
-        if (!string.IsNullOrEmpty(agent.Instruction))
+        if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
             var instruction = agentService.RenderedInstruction(agent);
             messages.Add(new MessageItem("system", instruction));
@@ -105,7 +107,8 @@ public class ChatCompletionProvider : IChatCompletion
                 new MessageItem("assistant", message.Content));
         }
 
-        foreach (var function in agent.Functions)
+        var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+        foreach (var function in functions)
         {
             var functionTool  = ConvertToFunctionTool(function);
             toolcalls.Add(functionTool);

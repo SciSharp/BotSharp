@@ -24,17 +24,20 @@ public class ReadImageFn : IFunctionCallback
 
         var wholeDialogs = conv.GetDialogHistory();
         var dialogs = AssembleFiles(conv.ConversationId, args?.ImageUrls, wholeDialogs);
-        var agentId = !string.IsNullOrWhiteSpace(message.CurrentAgentId) ? message.CurrentAgentId : BuiltInAgentId.UtilityAssistant;
-        var agent = await agentService.LoadAgent(agentId);
-        var fileAgent = new Agent
+        var agent = new Agent
         {
-            Id = agent?.Id ?? Guid.Empty.ToString(),
-            Name = agent?.Name ?? "Unkown",
+            Id = BuiltInAgentId.UtilityAssistant,
+            Name = "Utility Agent",
             Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please describe the image(s).",
             TemplateDict = new Dictionary<string, object>()
         };
 
-        var response = await GetChatCompletion(fileAgent, dialogs);
+        if (!string.IsNullOrEmpty(message.CurrentAgentId))
+        {
+            agent = await agentService.LoadAgent(message.CurrentAgentId, loadUtility: false);
+        }
+
+        var response = await GetChatCompletion(agent, dialogs);
         message.Content = response;
         return true;
     }

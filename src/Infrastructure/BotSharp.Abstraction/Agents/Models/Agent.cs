@@ -100,6 +100,11 @@ public class Agent
     public List<AgentUtility> Utilities { get; set; } = new();
 
     /// <summary>
+    /// Agent knowledge bases
+    /// </summary>
+    public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = [];
+
+    /// <summary>
     /// Inherit from agent
     /// </summary>
     public string? InheritAgentId { get; set; }
@@ -117,6 +122,12 @@ public class Agent
     /// </summary>
     [JsonIgnore]
     public Dictionary<string, object> TemplateDict { get; set; } = new();
+
+    [JsonIgnore]
+    public List<FunctionDef> SecondaryFunctions { get; set; } = [];
+
+    [JsonIgnore]
+    public List<string> SecondaryInstructions { get; set; } = [];
 
     public override string ToString()
         => $"{Name} {Id}";

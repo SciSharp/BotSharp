@@ -25,6 +25,9 @@ public class AgentViewModel
     public bool MergeUtility { get; set; }
     public List<AgentUtility> Utilities { get; set; }
 
+    [JsonPropertyName("knowledge_bases")]
+    public List<AgentKnowledgeBase> KnowledgeBases { get; set; }
+
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
 
@@ -75,6 +78,7 @@ public class AgentViewModel
             Responses = agent.Responses,
             Samples = agent.Samples,
             Utilities = agent.Utilities,
+            KnowledgeBases = agent.KnowledgeBases,
             IsPublic= agent.IsPublic,
             Disabled = agent.Disabled,
             MergeUtility = agent.MergeUtility,
