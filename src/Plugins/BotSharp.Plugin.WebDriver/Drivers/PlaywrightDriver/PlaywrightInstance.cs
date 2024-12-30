@@ -150,17 +150,20 @@ public class PlaywrightInstance : IDisposable
                     ResponseInMemory = args.ResponseInMemory
                 };
 
+                var html = await response.TextAsync();
                 if (response.Headers["content-type"].Contains("application/json"))
                 {
                     if (response.Status == 200 && response.Ok)
-                    {
-                        var json = await response.JsonAsync();
-                        result.ResponseData = JsonSerializer.Serialize(json);
+                    {                        
+                        if (!string.IsNullOrWhiteSpace(html))
+                        {
+                            var json = await response.JsonAsync();
+                            result.ResponseData = JsonSerializer.Serialize(json);
+                        }
                     }
                 }
                 else
                 {
-                    var html = await response.TextAsync();
                     result.ResponseData = html;
                 }
 
