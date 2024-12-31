@@ -180,20 +180,7 @@ public class RedisPublisher : IEventPublisher
         var db = _redis.GetDatabase();
 
         var entries = await db.StreamRangeAsync(channel, "-", "+", count: count, messageOrder: Order.Ascending);
-        foreach (var entry in entries)
-        {
-            _logger.LogInformation($"Fetched message: {channel} {entry.Values[0].Value} ({entry.Id})");
-
-            try
-            {
-                await db.StreamDeleteAsync(channel, [entry.Id]);
-
-                _logger.LogWarning($"Deleted message: {channel} {entry.Values[0].Value} ({entry.Id})");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}\r\n{ex}");
-            }
-        }
+        var deletedCount = await db.StreamDeleteAsync(channel, entries.Select(x => x.Id).ToArray());
+        _logger.LogWarning($"Deleted {deletedCount} messages from Redis stream {channel}");
     }
 }

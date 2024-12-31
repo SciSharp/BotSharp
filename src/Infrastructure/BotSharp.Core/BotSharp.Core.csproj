@@ -190,7 +190,7 @@
   <ItemGroup>
     <PackageReference Include="Aspects.Cache" Version="2.0.4" />
     <PackageReference Include="DistributedLock.Redis" Version="1.0.3" />
-    <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.7.1" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.8.0" />
     <PackageReference Include="Fluid.Core" Version="2.11.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />

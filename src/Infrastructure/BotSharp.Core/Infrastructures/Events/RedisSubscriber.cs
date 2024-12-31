@@ -116,7 +116,8 @@ public class RedisSubscriber : IEventSubscriber
             }
             finally
             {
-                await db.StreamDeleteAsync(channel, [entry.Id]);
+                var deletedCount = await db.StreamDeleteAsync(channel, [entry.Id]);
+                _logger.LogInformation($"Handled message {entry.Id}: {deletedCount == 1}");
             }
         }
 
