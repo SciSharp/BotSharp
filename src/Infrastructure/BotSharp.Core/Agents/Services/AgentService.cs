@@ -8,20 +8,17 @@ public partial class AgentService : IAgentService
     private readonly IServiceProvider _services;
     private readonly IBotSharpRepository _db;
     private readonly ILogger _logger;
-    private readonly IUserIdentity _user;
     private readonly AgentSettings _agentSettings;
     private readonly JsonSerializerOptions _options;
 
     public AgentService(IServiceProvider services,
         IBotSharpRepository db,
         ILogger<AgentService> logger, 
-        IUserIdentity user, 
         AgentSettings agentSettings)
     {
         _services = services;
         _db = db;
         _logger = logger;
-        _user = user;
         _agentSettings = agentSettings;
         _options = new JsonSerializerOptions
         {
