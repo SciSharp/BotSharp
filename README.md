@@ -23,7 +23,7 @@ It's written in C# running on .Net Core that is full cross-platform framework, t
 * Built-in multi-agents and conversation with state management.
 * Support multiple LLM Planning approaches to handle different tasks from simple to complex.
 * Built-in RAG related interfaces, Memory based vector searching.
-* Support multiple AI platforms (ChatGPT 3.5 / 4.0, PaLM 2, LLaMA 3, Claude Sonnet 3.5, HuggingFace).
+* Support multiple AI platforms (ChatGPT 3.5/ 4o/ o1, Gemini 2, LLaMA 3, Claude Sonnet 3.5, HuggingFace).
 * Allow multiple agents with different responsibilities cooperate to complete complex tasks. 
 * Build, test, evaluate and audit your LLM agent in one place.
 * Build-in `BotSharp UI` written in [SvelteKit](https://kit.svelte.dev/).

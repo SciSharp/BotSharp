@@ -105,6 +105,11 @@ public static class BotSharpCoreExtensions
         var dbSettings = new BotSharpDatabaseSettings();
         config.Bind("Database", dbSettings);
 
+        if (string.IsNullOrEmpty(dbSettings.Redis))
+        {
+            return;
+        }
+
         services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(dbSettings.Redis));
         services.AddSingleton<IEventPublisher, RedisPublisher>();
         services.AddSingleton<IEventSubscriber, RedisSubscriber>();
