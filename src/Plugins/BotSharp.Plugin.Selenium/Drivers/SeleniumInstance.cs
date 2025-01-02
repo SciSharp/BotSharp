@@ -1,7 +1,7 @@
 using OpenQA.Selenium.Chrome;
 using System.IO;
 
-namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
+namespace BotSharp.Plugin.Selenium.Drivers;
 
 public class SeleniumInstance : IDisposable
 {

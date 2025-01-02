@@ -1,5 +1,3 @@
-using SQLitePCL;
-
 namespace BotSharp.Plugin.WebDriver.Functions;
 
 public class OpenBrowserFn : IFunctionCallback

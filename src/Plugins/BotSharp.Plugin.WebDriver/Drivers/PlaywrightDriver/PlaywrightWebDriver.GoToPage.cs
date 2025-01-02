@@ -8,32 +8,41 @@ public partial class PlaywrightWebDriver
         var context = await _instance.GetContext(message.ContextId);
         try
         {
-            var page = await _instance.NewPage(message, enableResponseCallback: args.EnableResponseCallback,
-                    responseInMemory: args.ResponseInMemory,
-                    responseContainer: args.ResponseContainer,
-                    excludeResponseUrls: args.ExcludeResponseUrls,
-                    includeResponseUrls: args.IncludeResponseUrls);
-
-            Serilog.Log.Information($"goto page: {args.Url}");
-
-            if (args.OpenNewTab && page != null && page.Url == "about:blank")
+            IPage? page = null;
+            if (!args.OpenNewTab)
             {
-                page = await _instance.NewPage(message,
-                    enableResponseCallback: args.EnableResponseCallback,
-                    responseInMemory: args.ResponseInMemory,
-                    responseContainer: args.ResponseContainer,
-                    excludeResponseUrls: args.ExcludeResponseUrls,
-                    includeResponseUrls: args.IncludeResponseUrls);
+                page = _instance.Contexts[message.ContextId].Pages.LastOrDefault();
+
+                if (page != null)
+                {
+                    await page.EvaluateAsync(@"() => {
+                        window.open('', '_blank');
+                    }");
+
+                    if (args.EnableResponseCallback)
+                    {
+                        page.Response += async (sender, e) =>
+                        {
+                            await _instance.HandleFetchResponse(e, message, args);
+                        };
+                    }
+                }
+            }
+            else
+            {
+                page = await _instance.NewPage(message, args);
+
+                Serilog.Log.Information($"goto page: {args.Url}");
+
+                if (args.OpenNewTab && page != null && page.Url == "about:blank")
+                {
+                    page = await _instance.NewPage(message, args);
+                }
             }
 
             if (page == null)
             {
-                page = await _instance.NewPage(message,
-                    enableResponseCallback: args.EnableResponseCallback,
-                    responseInMemory: args.ResponseInMemory,
-                    responseContainer: args.ResponseContainer,
-                    excludeResponseUrls: args.ExcludeResponseUrls,
-                    includeResponseUrls: args.IncludeResponseUrls);
+                page = await _instance.NewPage(message, args);
             }
 
             // Active current tab

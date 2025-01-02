@@ -33,6 +33,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
     List<User> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
     User? GetUserByUserName(string userName) => throw new NotImplementedException();
+    void UpdateUserName(string userId, string userName) => throw new NotImplementedException();
     Dashboard? GetDashboard(string id = null) => throw new NotImplementedException();
     void CreateUser(User user) => throw new NotImplementedException();
     void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
@@ -49,6 +50,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
     User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
     bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
+
     #endregion
 
     #region Agent

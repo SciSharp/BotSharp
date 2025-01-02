@@ -1,10 +1,25 @@
 using HtmlAgilityPack;
-using System.Net.Http;
 
 namespace BotSharp.Plugin.WebDriver;
 
 public static class WebPageHelper
 {
+    public static HtmlNode GetElement(string html, string selector)
+    {
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(html);
+
+        return htmlDoc.DocumentNode.SelectSingleNode(selector);
+    }
+
+    public static HtmlNodeCollection GetElements(string html, string selector)
+    {
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(html);
+
+        return htmlDoc.DocumentNode.SelectNodes(selector);
+    }
+
     public static string RemoveElements(string html, string selector)
     {
         var htmlDoc = new HtmlDocument();

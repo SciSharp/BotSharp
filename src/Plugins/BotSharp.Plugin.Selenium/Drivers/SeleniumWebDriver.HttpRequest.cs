@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
+namespace BotSharp.Plugin.Selenium.Drivers;
 
 public partial class SeleniumWebDriver
 {

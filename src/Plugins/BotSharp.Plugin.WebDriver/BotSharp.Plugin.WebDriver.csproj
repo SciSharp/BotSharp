@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
@@ -11,16 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Drivers\SeleniumDriver\**" />
-    <Compile Remove="packages\**" />
-    <EmbeddedResource Remove="Drivers\SeleniumDriver\**" />
-    <EmbeddedResource Remove="packages\**" />
-    <None Remove="Drivers\SeleniumDriver\**" />
-    <None Remove="packages\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Playwright" Version="1.48.0" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.49.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
   </ItemGroup>
 
