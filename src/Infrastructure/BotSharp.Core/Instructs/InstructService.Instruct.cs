@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
 using System.Collections;
 using System.Reflection;
@@ -19,6 +20,8 @@ public partial class InstructService
 
         try
         {
+            var botsharpOptions = _services.GetRequiredService<BotSharpOptions>();
+
             if (IsStringType(type))
             {
                 result = response.Content as T;
@@ -28,7 +31,8 @@ public partial class InstructService
                 var text = response.Content.JsonArrayContent();
                 if (!string.IsNullOrWhiteSpace(text))
                 {
-                    result = JsonSerializer.Deserialize<T>(text, _options.JsonSerializerOptions);
+                    
+                    result = JsonSerializer.Deserialize<T>(text, botsharpOptions.JsonSerializerOptions);
                 }
             }
             else
@@ -36,7 +40,7 @@ public partial class InstructService
                 var text = response.Content.JsonContent();
                 if (!string.IsNullOrWhiteSpace(text))
                 {
-                    result = JsonSerializer.Deserialize<T>(text, _options.JsonSerializerOptions);
+                    result = JsonSerializer.Deserialize<T>(text, botsharpOptions.JsonSerializerOptions);
                 }
             }
         }

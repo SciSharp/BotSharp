@@ -24,7 +24,7 @@ public class CrontabWatcher : BackgroundService
         {
             var locker = scope.ServiceProvider.GetRequiredService<IDistributedLocker>();
 
-            while (!stoppingToken.IsCancellationRequested)
+            /*while (!stoppingToken.IsCancellationRequested)
             {
                 var delay = Task.Delay(1000, stoppingToken);
 
@@ -34,7 +34,7 @@ public class CrontabWatcher : BackgroundService
                 });
 
                 await delay;
-            }
+            }*/
 
             _logger.LogWarning("Crontab Watcher background service is stopped.");
         }
