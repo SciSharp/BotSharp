@@ -9,7 +9,8 @@ public partial class AgentService
 {
     public async Task<Agent> CreateAgent(Agent agent)
     {
-        var userAgents = _db.GetUserAgents(_user.Id);
+        var userIdentity = _services.GetRequiredService<IUserIdentity>();
+        var userAgents = _db.GetUserAgents(userIdentity.Id);
         var found = userAgents?.FirstOrDefault(x => x.Agent != null && x.Agent.Name.IsEqualTo(agent.Name));
         if (found != null)
         {
@@ -24,7 +25,7 @@ public partial class AgentService
         var dbSettings = _services.GetRequiredService<BotSharpDatabaseSettings>();
         var agentSettings = _services.GetRequiredService<AgentSettings>();
 
-        var user = _db.GetUserById(_user.Id);
+        var user = _db.GetUserById(userIdentity.Id);
         var userService = _services.GetRequiredService<IUserService>();
         var auth = await userService.GetUserAuthorizations();
 

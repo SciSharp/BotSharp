@@ -1,3 +1,5 @@
+using BotSharp.Core.Rules.Engines;
+
 namespace BotSharp.Core.Rules;
 
 public class RulesPlugin : IBotSharpPlugin
@@ -9,11 +11,11 @@ public class RulesPlugin : IBotSharpPlugin
 
     public string[] AgentIds =
     [
-        BuiltInAgentId.RuleEncoder
+        BuiltInAgentId.RulesInterpreter
     ];
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-
+        services.AddScoped<IRuleEngine, RuleEngine>();
     }
 }
