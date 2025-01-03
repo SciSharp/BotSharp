@@ -79,6 +79,7 @@ BotSharp uses component design, the kernel is kept to a minimum, and business fu
 #### Data Storages
 - BotSharp.Core.Repository
 - BotSharp.Plugin.MongoStorage
+- [BotSharp.Plugin.LiteDBStorage](https://github.com/GreenShadeZhang/BotSharp/tree/dev_litedb/src/Plugins/BotSharp.Plugin.LiteDBStorage)
 - BotSharp.Plugin.TencentCos
 
 #### LLMs
