@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Core.Infrastructures;
+using BotSharp.Core.Rules.Hooks;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -152,6 +154,24 @@ public class AgentController : ControllerBase
     [HttpGet("/agent/utility/options")]
     public IEnumerable<AgentUtility> GetAgentUtilityOptions()
     {
-        return _agentService.GetAgentUtilityOptions();
+        var utilities = new List<AgentUtility>();
+        var hooks = _services.GetServices<IAgentUtilityHook>();
+        foreach (var hook in hooks)
+        {
+            hook.AddUtilities(utilities);
+        }
+        return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
+    }
+
+    [HttpGet("/agent/event-rule/options")]
+    public IEnumerable<AgentEventRule> GetAgentEventRuleOptions()
+    {
+        var rules = new List<AgentEventRule>();
+        var hooks = _services.GetServices<IEventRuleHook>();
+        foreach (var hook in hooks)
+        {
+            hook.AddRules(rules);
+        }
+        return rules.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
     }
 }

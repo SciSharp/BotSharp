@@ -19,6 +19,7 @@ public enum AgentField
     LlmConfig,
     Utility,
     KnowledgeBase,
+    EventRule,
     MaxMessageCount
 }
 
