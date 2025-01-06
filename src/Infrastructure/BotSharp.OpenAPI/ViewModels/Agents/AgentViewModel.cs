@@ -28,6 +28,9 @@ public class AgentViewModel
     [JsonPropertyName("knowledge_bases")]
     public List<AgentKnowledgeBase> KnowledgeBases { get; set; }
 
+    [JsonPropertyName("event_rules")]
+    public List<AgentEventRule> EventRules { get; set; }
+
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
 
@@ -72,20 +75,21 @@ public class AgentViewModel
             Description = agent.Description,
             Type = agent.Type,
             Instruction = agent.Instruction,
-            ChannelInstructions = agent.ChannelInstructions,
-            Templates = agent.Templates,
-            Functions = agent.Functions,
-            Responses = agent.Responses,
-            Samples = agent.Samples,
-            Utilities = agent.Utilities,
-            KnowledgeBases = agent.KnowledgeBases,
+            ChannelInstructions = agent.ChannelInstructions ?? [],
+            Templates = agent.Templates ?? [],
+            Functions = agent.Functions ?? [],
+            Responses = agent.Responses ?? [],
+            Samples = agent.Samples ?? [],
+            Utilities = agent.Utilities ?? [],
+            KnowledgeBases = agent.KnowledgeBases ?? [],
             IsPublic= agent.IsPublic,
             Disabled = agent.Disabled,
             MergeUtility = agent.MergeUtility,
             IconUrl = agent.IconUrl,
             MaxMessageCount = agent.MaxMessageCount,
-            Profiles = agent.Profiles ?? new List<string>(),
-            RoutingRules = agent.RoutingRules,
+            Profiles = agent.Profiles ?? [],
+            RoutingRules = agent.RoutingRules ?? [],
+            EventRules = agent.EventRules ?? [],
             LlmConfig = agent.LlmConfig,
             Plugin = agent.Plugin,
             CreatedDateTime = agent.CreatedDateTime,

@@ -55,6 +55,7 @@ public class AgentCreationModel
     public List<AgentUtility> Utilities { get; set; } = new();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new();
     public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = new();
+    public List<AgentEventRule> EventRules { get; set; } = new();
     public AgentLlmConfig? LlmConfig { get; set; }
 
     public Agent ToAgent()
@@ -78,6 +79,7 @@ public class AgentCreationModel
             Profiles = Profiles,
             LlmConfig = LlmConfig,
             KnowledgeBases = KnowledgeBases,
+            EventRules = EventRules,
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? [],
         };
     }
