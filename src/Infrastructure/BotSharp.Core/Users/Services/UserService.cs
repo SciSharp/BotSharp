@@ -482,7 +482,7 @@ public class UserService : IUserService
             return default;
         }
 
-        if (record.VerificationCode != model.VerificationCode)
+        if (record.VerificationCode != model.VerificationCode || DateTime.UtcNow > record.VerificationCodeExpireAt)
         {
             return default;
         }
@@ -669,7 +669,7 @@ public class UserService : IUserService
             return false;
         }
 
-        if (user.VerificationCode != record.VerificationCode)
+        if (user.VerificationCode != record.VerificationCode || DateTime.UtcNow > record.VerificationCodeExpireAt)
         {
             return false;
         }
