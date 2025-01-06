@@ -58,6 +58,9 @@ public partial class MongoRepository
             case AgentField.Utility:
                 UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                 break;
+            case AgentField.KnowledgeBase:
+                UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
+                break;
             case AgentField.MaxMessageCount:
                 UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                 break;
@@ -239,6 +242,20 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
+    private void UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
+    {
+        if (knowledgeBases == null) return;
+
+        var elements = knowledgeBases?.Select(x => AgentKnowledgeBaseMongoElement.ToMongoElement(x))?.ToList() ?? [];
+
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.KnowledgeBases, elements)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Agents.UpdateOne(filter, update);
+    }
+
     private void UpdateAgentLlmConfig(string agentId, AgentLlmConfig? config)
     {
         var llmConfig = AgentLlmConfigMongoElement.ToMongoElement(config);
@@ -279,6 +296,7 @@ public partial class MongoRepository
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Samples, agent.Samples)
             .Set(x => x.Utilities, agent.Utilities.Select(u => AgentUtilityMongoElement.ToMongoElement(u)).ToList())
+            .Set(x => x.KnowledgeBases, agent.KnowledgeBases.Select(u => AgentKnowledgeBaseMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.LlmConfig, AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig))
             .Set(x => x.IsPublic, agent.IsPublic)
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
@@ -421,21 +439,22 @@ public partial class MongoRepository
             IconUrl = x.IconUrl,
             Description = x.Description,
             Instruction = x.Instruction,
-            ChannelInstructions = x.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
-            Templates = x.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
-            Functions = x.Functions?.Select(f => FunctionDefMongoElement.ToMongoElement(f))?.ToList() ?? [],
-            Responses = x.Responses?.Select(r => AgentResponseMongoElement.ToMongoElement(r))?.ToList() ?? [],
-            Samples = x.Samples ?? new List<string>(),
-            Utilities = x.Utilities?.Select(u => AgentUtilityMongoElement.ToMongoElement(u))?.ToList() ?? [],
+            Samples = x.Samples ?? [],
             IsPublic = x.IsPublic,
             Type = x.Type,
             InheritAgentId = x.InheritAgentId,
             Disabled = x.Disabled,
             MergeUtility = x.MergeUtility,
             MaxMessageCount = x.MaxMessageCount,
-            Profiles = x.Profiles,
-            RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
+            Profiles = x.Profiles ?? [],
             LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
+            ChannelInstructions = x.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
+            Templates = x.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
+            Functions = x.Functions?.Select(f => FunctionDefMongoElement.ToMongoElement(f))?.ToList() ?? [],
+            Responses = x.Responses?.Select(r => AgentResponseMongoElement.ToMongoElement(r))?.ToList() ?? [],
+            RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
+            Utilities = x.Utilities?.Select(u => AgentUtilityMongoElement.ToMongoElement(u))?.ToList() ?? [],
+            KnowledgeBases = x.KnowledgeBases?.Select(k => AgentKnowledgeBaseMongoElement.ToMongoElement(k))?.ToList() ?? [],
             CreatedTime = x.CreatedDateTime,
             UpdatedTime = x.UpdatedDateTime
         }).ToList();
@@ -512,21 +531,22 @@ public partial class MongoRepository
             IconUrl = agentDoc.IconUrl,
             Description = agentDoc.Description,
             Instruction = agentDoc.Instruction,
-            ChannelInstructions = agentDoc.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToDomainElement(i))?.ToList() ?? [],
-            Templates = agentDoc.Templates?.Select(t => AgentTemplateMongoElement.ToDomainElement(t))?.ToList() ?? [],
-            Functions = agentDoc.Functions?.Select(f => FunctionDefMongoElement.ToDomainElement(f)).ToList() ?? [],
-            Responses = agentDoc.Responses?.Select(r => AgentResponseMongoElement.ToDomainElement(r))?.ToList() ?? [],
-            RoutingRules = agentDoc.RoutingRules?.Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))?.ToList() ?? [],
-            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig),
             Samples = agentDoc.Samples ?? [],
-            Utilities = agentDoc.Utilities?.Select(u => AgentUtilityMongoElement.ToDomainElement(u))?.ToList() ?? [],
             IsPublic = agentDoc.IsPublic,
             Disabled = agentDoc.Disabled,
             MergeUtility = agentDoc.MergeUtility,
             Type = agentDoc.Type,
             InheritAgentId = agentDoc.InheritAgentId,
             Profiles = agentDoc.Profiles,
-            MaxMessageCount = agentDoc.MaxMessageCount
+            MaxMessageCount = agentDoc.MaxMessageCount,
+            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig),
+            ChannelInstructions = agentDoc.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToDomainElement(i))?.ToList() ?? [],
+            Templates = agentDoc.Templates?.Select(t => AgentTemplateMongoElement.ToDomainElement(t))?.ToList() ?? [],
+            Functions = agentDoc.Functions?.Select(f => FunctionDefMongoElement.ToDomainElement(f)).ToList() ?? [],
+            Responses = agentDoc.Responses?.Select(r => AgentResponseMongoElement.ToDomainElement(r))?.ToList() ?? [],
+            RoutingRules = agentDoc.RoutingRules?.Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))?.ToList() ?? [],
+            Utilities = agentDoc.Utilities?.Select(u => AgentUtilityMongoElement.ToDomainElement(u))?.ToList() ?? [],
+            KnowledgeBases = agentDoc.KnowledgeBases?.Select(x => AgentKnowledgeBaseMongoElement.ToDomainElement(x))?.ToList() ?? []
         };
     }
 }

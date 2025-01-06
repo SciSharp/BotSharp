@@ -100,6 +100,11 @@ public class Agent
     public List<AgentUtility> Utilities { get; set; } = new();
 
     /// <summary>
+    /// Agent knowledge bases
+    /// </summary>
+    public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = [];
+
+    /// <summary>
     /// Inherit from agent
     /// </summary>
     public string? InheritAgentId { get; set; }
@@ -117,6 +122,12 @@ public class Agent
     /// </summary>
     [JsonIgnore]
     public Dictionary<string, object> TemplateDict { get; set; } = new();
+
+    [JsonIgnore]
+    public List<FunctionDef> SecondaryFunctions { get; set; } = [];
+
+    [JsonIgnore]
+    public List<string> SecondaryInstructions { get; set; } = [];
 
     public override string ToString()
         => $"{Name} {Id}";
@@ -144,6 +155,7 @@ public class Agent
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
             LlmConfig = agent.LlmConfig,
+            KnowledgeBases = agent.KnowledgeBases,
             CreatedDateTime = agent.CreatedDateTime,
             UpdatedDateTime = agent.UpdatedDateTime,
         };
@@ -157,43 +169,49 @@ public class Agent
 
     public Agent SetChannelInstructions(List<ChannelInstruction> instructions)
     {
-        ChannelInstructions = instructions ?? new List<ChannelInstruction>();
+        ChannelInstructions = instructions ?? [];
         return this;
     }
 
     public Agent SetTemplates(List<AgentTemplate> templates)
     {
-        Templates = templates ?? new List<AgentTemplate>();
+        Templates = templates ?? [];
         return this;
     }
 
     public Agent SetTasks(List<AgentTask> tasks)
     {
-        Tasks = tasks ?? new List<AgentTask>();
+        Tasks = tasks ?? [];
         return this;
     }
 
     public Agent SetFunctions(List<FunctionDef> functions)
     {
-        Functions = functions ?? new List<FunctionDef>();
+        Functions = functions ?? [];
         return this;
     }
 
     public Agent SetSamples(List<string> samples)
     {
-        Samples = samples ?? new List<string>();
+        Samples = samples ?? [];
         return this;
     }
 
     public Agent SetUtilities(List<AgentUtility> utilities)
     {
-        Utilities = utilities ?? new List<AgentUtility>();
+        Utilities = utilities ?? [];
+        return this;
+    }
+
+    public Agent SetKnowledgeBases(List<AgentKnowledgeBase> knowledgeBases)
+    {
+        knowledgeBases = knowledgeBases ?? [];
         return this;
     }
 
     public Agent SetResponses(List<AgentResponse> responses)
     {
-        Responses = responses ?? new List<AgentResponse>(); ;
+        Responses = responses ?? [];
         return this;
     }
 
@@ -241,13 +259,13 @@ public class Agent
 
     public Agent SetProfiles(List<string> profiles)
     {
-        Profiles = profiles ?? new List<string>();
+        Profiles = profiles ?? [];
         return this;
     }
 
     public Agent SetRoutingRules(List<RoutingRule> rules)
     {
-        RoutingRules = rules ?? new List<RoutingRule>();
+        RoutingRules = rules ?? [];
         return this;
     }
 

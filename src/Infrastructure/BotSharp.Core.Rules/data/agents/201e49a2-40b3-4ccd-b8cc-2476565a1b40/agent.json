@@ -1,0 +1,13 @@
+{
+  "id": "201e49a2-40b3-4ccd-b8cc-2476565a1b40",
+  "name": "Rules Agent",
+  "description": "Utility assistant that can be used to complete many different tasks",
+  "type": "static",
+  "createdDateTime": "2024-12-30T00:00:00Z",
+  "updatedDateTime": "2024-12-30T00:00:00Z",
+  "iconUrl": "https://cdn-icons-png.flaticon.com/512/3143/3143414.png",
+  "disabled": false,
+  "isPublic": true,
+  "profiles": [ "rules" ],
+  "routingRules": []
+}

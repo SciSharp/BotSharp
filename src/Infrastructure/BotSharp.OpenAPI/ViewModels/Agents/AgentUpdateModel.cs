@@ -40,6 +40,13 @@ public class AgentUpdateModel
     public List<AgentUtility>? Utilities { get; set; }
 
     /// <summary>
+    /// knowledge bases
+    /// </summary>
+    /// 
+    [JsonPropertyName("knowledge_bases")]
+    public List<AgentKnowledgeBase>? KnowledgeBases { get; set; }
+
+    /// <summary>
     /// Functions
     /// </summary>
     public List<FunctionDef>? Functions { get; set; }
@@ -90,6 +97,7 @@ public class AgentUpdateModel
             Functions = Functions ?? new List<FunctionDef>(),
             Responses = Responses ?? new List<AgentResponse>(),
             Utilities = Utilities ?? new List<AgentUtility>(),
+            KnowledgeBases = KnowledgeBases ?? [],
             LlmConfig = LlmConfig
         };
 

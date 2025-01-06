@@ -50,5 +50,5 @@ public class BuiltInAgentId
     /// <summary>
     /// Translates user-defined natural language rules into programmatic code
     /// </summary>
-    public const string RuleEncoder = "6acfb93c-3412-402e-9ba5-c5d3cd8f0161";
+    public const string RulesInterpreter = "201e49a2-40b3-4ccd-b8cc-2476565a1b40";
 }

@@ -18,7 +18,7 @@ public interface IAgentService
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<Agent> LoadAgent(string id);
+    Task<Agent> LoadAgent(string id, bool loadUtility = true);
 
     /// <summary>
     /// Inherit from an agent

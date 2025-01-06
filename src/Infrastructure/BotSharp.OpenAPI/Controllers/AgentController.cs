@@ -10,7 +10,10 @@ public class AgentController : ControllerBase
     private readonly IUserIdentity _user;
     private readonly IServiceProvider _services;
 
-    public AgentController(IAgentService agentService, IUserIdentity user, IServiceProvider services)
+    public AgentController(
+        IAgentService agentService,
+        IUserIdentity user,
+        IServiceProvider services)
     {
         _agentService = agentService;
         _user = user;

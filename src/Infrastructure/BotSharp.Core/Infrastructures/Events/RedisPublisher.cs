@@ -39,10 +39,7 @@ public class RedisPublisher : IEventPublisher
 
         // Add a message to the stream, keeping only the latest 1 million messages
         var messageId = await db.StreamAddAsync(channel, 
-            [
-                new NameValueEntry("message", message),
-                new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
-            ],
+            AssembleMessage(message),
             maxLength: 1000 * 10000);
 
         _logger.LogInformation($"Published message {channel} {message} ({messageId})");
@@ -82,6 +79,25 @@ public class RedisPublisher : IEventPublisher
         return exists;
     }
 
+    public static NameValueEntry[] AssembleMessage(RedisValue message)
+    {
+        return
+        [
+            new NameValueEntry("message", message),
+            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
+        ];
+    }
+
+    public static NameValueEntry[] AssembleErrorMessage(RedisValue message, string error)
+    {
+        return
+        [
+            new NameValueEntry("message", message),
+            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o")),
+            new NameValueEntry("error", error)
+        ];
+    }
+
     public async Task ReDispatchAsync(string channel, int count = 10, string order = "asc")
     {
         var db = _redis.GetDatabase();
@@ -93,10 +109,10 @@ public class RedisPublisher : IEventPublisher
 
             try
             {
-                var messageId = await db.StreamAddAsync(channel, [
-                    new NameValueEntry("message", entry.Values[0].Value),
-                    new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
-                ]);
+                var message = entry.Values.First(x => x.Name == "message").Value;
+                var messageId = await db.StreamAddAsync(channel, 
+                    AssembleMessage(message),
+                    maxLength: 1000 * 10000);
 
                 _logger.LogWarning($"ReDispatched message: {channel} {entry.Values[0].Value} ({messageId})");
 
@@ -164,20 +180,7 @@ public class RedisPublisher : IEventPublisher
         var db = _redis.GetDatabase();
 
         var entries = await db.StreamRangeAsync(channel, "-", "+", count: count, messageOrder: Order.Ascending);
-        foreach (var entry in entries)
-        {
-            _logger.LogInformation($"Fetched message: {channel} {entry.Values[0].Value} ({entry.Id})");
-
-            try
-            {
-                await db.StreamDeleteAsync(channel, [entry.Id]);
-
-                _logger.LogWarning($"Deleted message: {channel} {entry.Values[0].Value} ({entry.Id})");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}\r\n{ex}");
-            }
-        }
+        var deletedCount = await db.StreamDeleteAsync(channel, entries.Select(x => x.Id).ToArray());
+        _logger.LogWarning($"Deleted {deletedCount} messages from Redis stream {channel}");
     }
 }

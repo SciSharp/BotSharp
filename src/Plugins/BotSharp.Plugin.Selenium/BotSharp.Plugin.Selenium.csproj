@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>$(LangVersion)</LangVersion>
+    <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
+    <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
+    <OutputPath>$(SolutionDir)packages</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Selenium.WebDriver" Version="4.27.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
+  </ItemGroup>
+
+</Project>

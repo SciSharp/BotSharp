@@ -57,6 +57,9 @@ namespace BotSharp.Core.Repository
                 case AgentField.Utility:
                     UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                     break;
+                case AgentField.KnowledgeBase:
+                    UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
+                    break;
                 case AgentField.MaxMessageCount:
                     UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
                     break;
@@ -163,6 +166,19 @@ namespace BotSharp.Core.Repository
 
             agent.MergeUtility = mergeUtility;
             agent.Utilities = utilities;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+        }
+
+        private void UpdateAgentKnowledgeBases(string agentId, List<AgentKnowledgeBase> knowledgeBases)
+        {
+            if (knowledgeBases == null) return;
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return;
+
+            agent.KnowledgeBases = knowledgeBases;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
@@ -310,6 +326,7 @@ namespace BotSharp.Core.Repository
             agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
             agent.Utilities = inputAgent.Utilities;
+            agent.KnowledgeBases = inputAgent.KnowledgeBases;
             agent.RoutingRules = inputAgent.RoutingRules;
             agent.LlmConfig = inputAgent.LlmConfig;
             agent.MaxMessageCount = inputAgent.MaxMessageCount;

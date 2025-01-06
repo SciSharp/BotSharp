@@ -66,7 +66,8 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
 
         if (_services.GetService<IAgentService>() is { } agentService)
         {
-            foreach (var function in agent.Functions)
+            var functions = agent.Functions.Concat(agent.SecondaryFunctions ?? []);
+            foreach (var function in functions)
             {
                 if (agentService.RenderFunction(agent, function))
                 {

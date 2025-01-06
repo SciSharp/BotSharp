@@ -42,6 +42,8 @@ public class RedisSubscriber : IEventSubscriber
             await CreateConsumerGroup(db, channel, group);
         }
 
+        await CreateConsumerGroup(db, $"{channel}-Error", group);
+
         var consumer = Environment.MachineName;
         if (port.HasValue)
         {
@@ -58,28 +60,36 @@ public class RedisSubscriber : IEventSubscriber
                 break;
             }
 
-            if (priorityEnabled)
+            try
             {
-                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, consumer, received) > 0)
+                if (priorityEnabled)
                 {
-                    continue;
-                }
+                    if (await HandleGroupMessage(db, $"{channel}-{EventPriority.High}", group, consumer, received, $"{channel}-Error") > 0)
+                    {
+                        continue;
+                    }
 
-                if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, consumer, received) > 0)
+                    if (await HandleGroupMessage(db, $"{channel}-{EventPriority.Medium}", group, consumer, received, $"{channel}-Error") > 0)
+                    {
+                        continue;
+                    }
+
+                    await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, consumer, received, $"{channel}-Error");
+                }
+                else
                 {
-                    continue;
+                    await HandleGroupMessage(db, channel, group, consumer, received, $"{channel}-Error");
                 }
-
-                await HandleGroupMessage(db, $"{channel}-{EventPriority.Low}", group, consumer, received);
             }
-            else
+            catch (Exception ex)
             {
-                await HandleGroupMessage(db, channel, group, consumer, received);
+                _logger.LogError($"Error processing message: {ex.Message}\r\n{ex}");
+                await Task.Delay(1000 * 60);
             }
         }
     }
 
-    private async Task<int> HandleGroupMessage(IDatabase db, string channel, string group, string consumer, Func<string, string, Task> received)
+    private async Task<int> HandleGroupMessage(IDatabase db, string channel, string group, string consumer, Func<string, string, Task> received, string errorChannel)
     {
         var entries = await db.StreamReadGroupAsync(channel, group, consumer, count: 1);
         foreach (var entry in entries)
@@ -90,13 +100,24 @@ public class RedisSubscriber : IEventSubscriber
             try
             {
                 await received(channel, entry.Values[0].Value);
-
-                // Optionally delete the message to save space
-                await db.StreamDeleteAsync(channel, [entry.Id]);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id}\r\n{ex}");
+                _logger.LogError($"Error processing message: {ex.Message}, event id: {channel} {entry.Id} {entry.Values[0].Value}");
+
+                // Add a message to the Error stream, keeping only the latest 1 million messages
+                await db.StreamAddAsync(errorChannel,
+                    RedisPublisher.AssembleErrorMessage(entry.Values[0].Value, ex.Message),
+                    messageId: entry.Id,
+                    maxLength: 1000 * 10000);
+
+                // Slow down the consumer if there are errors
+                await Task.Delay(1000 * 10);
+            }
+            finally
+            {
+                var deletedCount = await db.StreamDeleteAsync(channel, [entry.Id]);
+                _logger.LogInformation($"Handled message {entry.Id}: {deletedCount == 1}");
             }
         }
 

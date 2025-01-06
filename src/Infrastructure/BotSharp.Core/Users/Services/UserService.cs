@@ -62,7 +62,7 @@ public class UserService : IUserService
 
         if (!string.IsNullOrWhiteSpace(user.Phone))
         {
-            record = db.GetUserByPhone(user.Phone);
+            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Email))
@@ -112,7 +112,7 @@ public class UserService : IUserService
             db.UpdateExistUser(hasRegisterId, record);
         }
 
-        _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}");
+        _logger.LogWarning($"Created new user account: {record.Id} {record.UserName}, RegionCode: {record.RegionCode}");
         Utilities.ClearCache();
 
         var hooks = _services.GetServices<IAuthenticationHook>();
@@ -127,7 +127,8 @@ public class UserService : IUserService
     public async Task<bool> UpdatePassword(string password, string verificationCode)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var record = db.GetUserByUserName(_user.UserName);
+
+        var record = db.GetUserById(_user.Id);
 
         if (record == null)
         {
@@ -473,7 +474,7 @@ public class UserService : IUserService
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
         if (record == null)
         {
-            record = db.GetUserByPhone(id);
+            record = db.GetUserByPhone(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
         }
 
         if (record == null)
@@ -494,6 +495,20 @@ public class UserService : IUserService
         db.UpdateUserVerified(record.Id);
 
         var accessToken = GenerateJwtToken(record);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        var token = new Token
+        {
+            AccessToken = accessToken,
+            ExpireTime = jwt.Payload.Exp.Value,
+            TokenType = "Bearer",
+            Scope = "api"
+        };
+        return token;
+    }
+
+    public async Task<Token> CreateTokenByUser(User user)
+    {
+        var accessToken = GenerateJwtToken(user);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
         var token = new Token
         {
@@ -646,7 +661,7 @@ public class UserService : IUserService
 
         if (!string.IsNullOrEmpty(user.Phone))
         {
-            record = db.GetUserByPhone(user.Phone);
+            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
 
         if (record == null)
@@ -695,7 +710,7 @@ public class UserService : IUserService
         var curUser = await GetMyProfile();
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = db.GetUserById(curUser.Id);
-        var existPhone = db.GetUserByPhone(phone);
+        var existPhone = db.GetUserByPhone(phone, regionCode: regionCode);
 
         if (record == null || (existPhone != null && existPhone.RegionCode == regionCode))
         {
