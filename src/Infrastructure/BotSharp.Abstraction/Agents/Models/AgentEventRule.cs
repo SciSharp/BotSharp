@@ -8,6 +8,6 @@ public class AgentEventRule
     [JsonPropertyName("event_name")]
     public string EventName { get; set; }
 
-    [JsonPropertyName("event_type")]
+    [JsonPropertyName("entity_type")]
     public string EntityType { get; set; }
 }
