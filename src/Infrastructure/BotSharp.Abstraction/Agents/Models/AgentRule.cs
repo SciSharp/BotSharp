@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Agents.Models;
 
-public class AgentEventRule
+public class AgentRule
 {
     public string Name { get; set; }
     public bool Disabled { get; set; }

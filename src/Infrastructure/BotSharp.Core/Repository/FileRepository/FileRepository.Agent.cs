@@ -60,8 +60,8 @@ namespace BotSharp.Core.Repository
                 case AgentField.KnowledgeBase:
                     UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
                     break;
-                case AgentField.EventRule:
-                    UpdateAgentEventRules(agent.Id, agent.EventRules);
+                case AgentField.Rule:
+                    UpdateAgentRules(agent.Id, agent.Rules);
                     break;
                 case AgentField.MaxMessageCount:
                     UpdateAgentMaxMessageCount(agent.Id, agent.MaxMessageCount);
@@ -187,14 +187,14 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(agentFile, json);
         }
 
-        private void UpdateAgentEventRules(string agentId, List<AgentEventRule> rules)
+        private void UpdateAgentRules(string agentId, List<AgentRule> rules)
         {
             if (rules == null) return;
 
             var (agent, agentFile) = GetAgentFromFile(agentId);
             if (agent == null) return;
 
-            agent.EventRules = rules;
+            agent.Rules = rules;
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
@@ -344,7 +344,7 @@ namespace BotSharp.Core.Repository
             agent.Utilities = inputAgent.Utilities;
             agent.KnowledgeBases = inputAgent.KnowledgeBases;
             agent.RoutingRules = inputAgent.RoutingRules;
-            agent.EventRules = inputAgent.EventRules;
+            agent.Rules = inputAgent.Rules;
             agent.LlmConfig = inputAgent.LlmConfig;
             agent.MaxMessageCount = inputAgent.MaxMessageCount;
             agent.UpdatedDateTime = DateTime.UtcNow;

@@ -102,7 +102,7 @@ public class Agent
     /// <summary>
     /// Agent rules
     /// </summary>
-    public List<AgentEventRule> EventRules { get; set; } = new();
+    public List<AgentRule> Rules { get; set; } = new();
 
     /// <summary>
     /// Agent knowledge bases
@@ -159,7 +159,7 @@ public class Agent
             MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
-            EventRules = agent.EventRules,
+            Rules = agent.Rules,
             LlmConfig = agent.LlmConfig,
             KnowledgeBases = agent.KnowledgeBases,
             CreatedDateTime = agent.CreatedDateTime,
@@ -275,9 +275,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetEventRules(List<AgentEventRule> rules)
+    public Agent SetRules(List<AgentRule> rules)
     {
-        EventRules = rules ?? [];
+        Rules = rules ?? [];
         return this;
     }
 

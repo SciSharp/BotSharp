@@ -28,8 +28,8 @@ public class AgentViewModel
     [JsonPropertyName("knowledge_bases")]
     public List<AgentKnowledgeBase> KnowledgeBases { get; set; }
 
-    [JsonPropertyName("event_rules")]
-    public List<AgentEventRule> EventRules { get; set; }
+    [JsonPropertyName("rules")]
+    public List<AgentRule> Rules { get; set; }
 
     [JsonPropertyName("is_public")]
     public bool IsPublic { get; set; }
@@ -89,7 +89,7 @@ public class AgentViewModel
             MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles ?? [],
             RoutingRules = agent.RoutingRules ?? [],
-            EventRules = agent.EventRules ?? [],
+            Rules = agent.Rules ?? [],
             LlmConfig = agent.LlmConfig,
             Plugin = agent.Plugin,
             CreatedDateTime = agent.CreatedDateTime,
