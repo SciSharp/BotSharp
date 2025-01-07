@@ -46,7 +46,7 @@ public class HandleHttpRequestFn : IFunctionCallback
         catch (Exception ex)
         {
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
-            _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
+            _logger.LogError($"{msg}\n(Error: {ex.Message}\r\n{ex.InnerException})");
             message.Content = msg;
             return false;
         }
@@ -71,10 +71,13 @@ public class HandleHttpRequestFn : IFunctionCallback
 
     private void AddRequestHeaders(HttpClient client)
     {
-        client.DefaultRequestHeaders.Add("Authorization", $"{_context.HttpContext.Request.Headers["Authorization"]}");
+        var auth = $"{_context.HttpContext.Request.Headers["Authorization"]}";
+        var origin = $"{_context.HttpContext.Request.Headers["Origin"]}";
+
+        client.DefaultRequestHeaders.Add("Authorization", auth);
 
         var settings = _services.GetRequiredService<HttpHandlerSettings>();
-        var origin = !string.IsNullOrEmpty(settings.Origin) ? settings.Origin : $"{_context.HttpContext.Request.Headers["Origin"]}";
+        origin = !string.IsNullOrEmpty(origin) ? origin : settings.Origin;
         if (!string.IsNullOrEmpty(origin))
         {
             client.DefaultRequestHeaders.Add("Origin", origin);
