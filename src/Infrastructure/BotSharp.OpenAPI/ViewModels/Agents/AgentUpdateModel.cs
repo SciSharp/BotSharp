@@ -75,6 +75,9 @@ public class AgentUpdateModel
     [JsonPropertyName("routing_rules")]
     public List<RoutingRuleUpdateModel>? RoutingRules { get; set; }
 
+    [JsonPropertyName("event_rules")]
+    public List<AgentEventRule>? EventRules { get; set; }
+
     [JsonPropertyName("llm_config")]
     public AgentLlmConfig? LlmConfig { get; set; }
 
@@ -89,15 +92,16 @@ public class AgentUpdateModel
             MergeUtility = MergeUtility,
             MaxMessageCount = MaxMessageCount,
             Type = Type,
-            Profiles = Profiles ?? new List<string>(),
-            RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? new List<RoutingRule>(),
+            Profiles = Profiles ?? [],
+            RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? [],
             Instruction = Instruction ?? string.Empty,
-            ChannelInstructions = ChannelInstructions ?? new List<ChannelInstruction>(),
-            Templates = Templates ?? new List<AgentTemplate>(),
-            Functions = Functions ?? new List<FunctionDef>(),
-            Responses = Responses ?? new List<AgentResponse>(),
-            Utilities = Utilities ?? new List<AgentUtility>(),
+            ChannelInstructions = ChannelInstructions ?? [],
+            Templates = Templates ?? [],
+            Functions = Functions ?? [],
+            Responses = Responses ?? [],
+            Utilities = Utilities ?? [],
             KnowledgeBases = KnowledgeBases ?? [],
+            EventRules = EventRules ?? [],
             LlmConfig = LlmConfig
         };
 

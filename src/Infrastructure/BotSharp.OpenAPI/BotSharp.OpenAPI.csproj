@@ -48,6 +48,7 @@
 
   <ItemGroup>    
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
+    <ProjectReference Include="..\BotSharp.Core.Rules\BotSharp.Core.Rules.csproj" />
   </ItemGroup>
 
   <ItemGroup>
