@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Translation;
 using BotSharp.OpenAPI.ViewModels.Translations;
 
@@ -21,8 +22,8 @@ public class TranslationController : ControllerBase
     [HttpPost("/translate")]
     public async Task<TranslationResponseModel> Translate([FromBody] TranslationRequestModel model)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(BuiltInAgentId.AIAssistant);
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var agent = db.GetAgent(BuiltInAgentId.AIAssistant);
         var translator = _services.GetRequiredService<ITranslationService>();
         var states = _services.GetRequiredService<IConversationStateService>();
         states.SetState("max_tokens", "8192");
@@ -36,8 +37,8 @@ public class TranslationController : ControllerBase
     [HttpPost("/translate/long-text")]
     public async Task SendMessageSse([FromBody] TranslationLongTextRequestModel model)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(BuiltInAgentId.AIAssistant);
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var agent = db.GetAgent(BuiltInAgentId.AIAssistant);
         var translator = _services.GetRequiredService<ITranslationService>();
 
         Response.StatusCode = 200;
