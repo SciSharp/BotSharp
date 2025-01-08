@@ -53,15 +53,4 @@ public partial class AgentService : IAgentService
         var userAgents = _db.GetUserAgents(userId);
         return userAgents;
     }
-
-    public IEnumerable<AgentUtility> GetAgentUtilityOptions()
-    {
-        var utilities = new List<AgentUtility>();
-        var hooks = _services.GetServices<IAgentUtilityHook>();
-        foreach (var hook in hooks)
-        {
-            hook.AddUtilities(utilities);
-        }
-        return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
-    }
 }

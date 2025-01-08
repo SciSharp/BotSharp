@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Users.Enums;
 using BotSharp.Abstraction.Users.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -244,7 +243,7 @@ public class UserController : ControllerBase
         var file = fileStorage.GetUserAvatar();
         if (string.IsNullOrEmpty(file))
         {
-            return NotFound();
+            return NoContent();
         }
         return BuildFileResult(file);
     }

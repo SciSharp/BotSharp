@@ -58,6 +58,4 @@ public interface IAgentService
     Task<List<UserAgent>> GetUserAgents(string userId);
 
     PluginDef GetPlugin(string agentId);
-
-    IEnumerable<AgentUtility> GetAgentUtilityOptions();
 }

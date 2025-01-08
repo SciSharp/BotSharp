@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Users.Models;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace BotSharp.Abstraction.Users;

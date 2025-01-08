@@ -14,6 +14,13 @@ public partial class PlaywrightWebDriver
     {
         var result = new BrowserActionResult();
         var page = _instance.GetPage(message.ContextId);
+        if (page == null)
+        {
+            return new BrowserActionResult
+            {
+                IsSuccess = false
+            };
+        }
         ILocator locator = page.Locator("body");
         int count = 0;
 

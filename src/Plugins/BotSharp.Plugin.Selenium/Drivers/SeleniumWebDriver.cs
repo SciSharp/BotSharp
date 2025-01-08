@@ -1,4 +1,4 @@
-namespace BotSharp.Plugin.WebDriver.Drivers.SeleniumDriver;
+namespace BotSharp.Plugin.Selenium.Drivers;
 
 public partial class SeleniumWebDriver : IWebBrowser
 {
@@ -83,6 +83,11 @@ public partial class SeleniumWebDriver : IWebBrowser
     }
 
     public void SetServiceProvider(IServiceProvider services)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task PressKey(MessageInfo message, string key)
     {
         throw new NotImplementedException();
     }

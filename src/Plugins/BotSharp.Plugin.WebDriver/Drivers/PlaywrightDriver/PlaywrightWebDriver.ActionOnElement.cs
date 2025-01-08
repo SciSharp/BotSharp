@@ -9,6 +9,7 @@ public partial class PlaywrightWebDriver
         if (result.IsSuccess)
         {
             await DoAction(message, action, result);
+            result.UrlAfterAction = _instance.GetPage(message.ContextId)?.Url;
         }
         return result;
     }
