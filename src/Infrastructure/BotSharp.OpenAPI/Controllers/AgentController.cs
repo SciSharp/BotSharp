@@ -170,6 +170,6 @@ public class AgentController : ControllerBase
         {
             hook.AddRules(rules);
         }
-        return rules.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
+        return rules.Where(x => !string.IsNullOrWhiteSpace(x.TriggerName)).OrderBy(x => x.TriggerName).ToList();
     }
 }
