@@ -2,7 +2,10 @@ namespace BotSharp.Abstraction.Agents.Models;
 
 public class AgentRule
 {
-    public string Name { get; set; }
+    [JsonPropertyName("trigger_name")]
+    public string TriggerName { get; set; }
+
+    [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
 
     [JsonPropertyName("event_name")]
@@ -10,4 +13,7 @@ public class AgentRule
 
     [JsonPropertyName("entity_type")]
     public string EntityType { get; set; }
+
+    [JsonPropertyName("criteria")]
+    public string Criteria { get; set; }
 }
