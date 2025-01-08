@@ -8,6 +8,7 @@ public class AgentRuleMongoElement
     public bool Disabled { get; set; }
     public string EventName { get; set; }
     public string EntityType { get; set; }
+    public string Criteria { get; set; }
 
     public static AgentRuleMongoElement ToMongoElement(AgentRule rule)
     {
@@ -16,7 +17,8 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             EventName = rule.EventName,
-            EntityType = rule.EntityType
+            EntityType = rule.EntityType,
+            Criteria = rule.Criteria
         };
     }
 
@@ -27,7 +29,8 @@ public class AgentRuleMongoElement
             TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
             EventName = rule.EventName,
-            EntityType = rule.EntityType
+            EntityType = rule.EntityType,
+            Criteria = rule.Criteria
         };
     }
 }
