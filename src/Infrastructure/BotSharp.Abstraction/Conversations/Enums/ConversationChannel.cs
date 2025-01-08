@@ -8,4 +8,5 @@ public class ConversationChannel
     public const string Messenger = "messenger";
     public const string Email = "email";
     public const string Cron = "cron";
+    public const string Database = "database";
 }

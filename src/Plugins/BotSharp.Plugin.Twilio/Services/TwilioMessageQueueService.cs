@@ -65,6 +65,7 @@ namespace BotSharp.Plugin.Twilio.Services
             var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
             httpContext.HttpContext = new DefaultHttpContext();
             httpContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
+            httpContext.HttpContext.Request.Headers["X-Twilio-BotSharp"] = "LOST";
 
             AssistantMessage reply = null;
             var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
