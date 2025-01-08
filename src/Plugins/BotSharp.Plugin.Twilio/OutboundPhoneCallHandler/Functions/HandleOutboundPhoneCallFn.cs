@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Options;
+using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
@@ -49,10 +50,28 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
                 return false;
             }
 
+            var convService = _services.GetRequiredService<IConversationService>();
+            var convStorage = _services.GetRequiredService<IConversationStorage>();
+            var routing = _services.GetRequiredService<IRoutingContext>();
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
-            var convService = _services.GetRequiredService<IConversationService>();
-            var conversationId = convService.ConversationId;
+
+            // Fork conversation
+            var entryAgentId = routing.EntryAgentId;
+            var newConv = await convService.NewConversation(new Abstraction.Conversations.Models.Conversation
+            {
+                AgentId = entryAgentId,
+                Channel = ConversationChannel.Phone
+            });
+            var conversationId = newConv.Id;
+            convStorage.Append(conversationId, new RoleDialogModel(AgentRole.User, "Hi, I'm calling to check my work order quote status, please help me locate my work order number and let me know what to do next.")
+            {
+                CurrentAgentId = entryAgentId
+            });
+            convStorage.Append(conversationId, new RoleDialogModel(AgentRole.Assistant, args.InitialMessage)
+            {
+                CurrentAgentId = entryAgentId
+            });
 
             // Generate audio
             var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
@@ -72,7 +91,7 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
                 to: new PhoneNumber(args.PhoneNumber),
                 from: new PhoneNumber(_twilioSetting.PhoneNumber));
 
-            message.Content = $"The generated phone message: {args.InitialMessage}" ?? message.Content;
+            message.Content = $"The generated phone message: {args.InitialMessage}. \r\n[Conversation ID: {conversationId}]" ?? message.Content;
             message.StopCompletion = true;
             return true;
         }
