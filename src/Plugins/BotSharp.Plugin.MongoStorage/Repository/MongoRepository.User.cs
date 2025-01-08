@@ -132,6 +132,7 @@ public partial class MongoRepository
     {
         var filter = Builders<UserDocument>.Filter.Eq(x => x.Id, userId);
         var update = Builders<UserDocument>.Update.Set(x => x.VerificationCode, verficationCode)
+            .Set(x => x.VerificationCodeExpireAt, DateTime.UtcNow.AddMinutes(5))
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
         _dc.Users.UpdateOne(filter, update);
     }
