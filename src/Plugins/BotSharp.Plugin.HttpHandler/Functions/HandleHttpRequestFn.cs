@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Mime;
+using BotSharp.Abstraction.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +14,6 @@ public class HandleHttpRequestFn : IFunctionCallback
     private readonly IServiceProvider _services;
     private readonly ILogger<HandleHttpRequestFn> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IHttpContextAccessor _context;
     private readonly BotSharpOptions _options;
 
     public HandleHttpRequestFn(IServiceProvider services,
@@ -25,7 +25,6 @@ public class HandleHttpRequestFn : IFunctionCallback
         _services = services;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _context = context;
         _options = options;
     }
 
@@ -46,7 +45,7 @@ public class HandleHttpRequestFn : IFunctionCallback
         catch (Exception ex)
         {
             var msg = $"Fail when sending http request. Url: {url}, method: {method}, content: {content}";
-            _logger.LogWarning($"{msg}\n(Error: {ex.Message})");
+            _logger.LogError($"{msg}\n(Error: {ex.Message}\r\n{ex.InnerException})");
             message.Content = msg;
             return false;
         }
@@ -57,7 +56,7 @@ public class HandleHttpRequestFn : IFunctionCallback
         if (string.IsNullOrEmpty(url)) return null;
 
         using var client = _httpClientFactory.CreateClient();
-        AddRequestHeaders(client);
+        PrepareRequestHeaders(client);
 
         var (uri, request) = BuildHttpRequest(url, method, content);
         var response = await client.SendAsync(request);
@@ -69,15 +68,12 @@ public class HandleHttpRequestFn : IFunctionCallback
         return response;
     }
 
-    private void AddRequestHeaders(HttpClient client)
+    private void PrepareRequestHeaders(HttpClient client)
     {
-        client.DefaultRequestHeaders.Add("Authorization", $"{_context.HttpContext.Request.Headers["Authorization"]}");
-
-        var settings = _services.GetRequiredService<HttpHandlerSettings>();
-        var origin = !string.IsNullOrEmpty(settings.Origin) ? settings.Origin : $"{_context.HttpContext.Request.Headers["Origin"]}";
-        if (!string.IsNullOrEmpty(origin))
+        var hooks = _services.GetServices<IHttpRequestHook>();
+        foreach (var hook in hooks)
         {
-            client.DefaultRequestHeaders.Add("Origin", origin);
+            hook.OnAddHttpHeaders(client.DefaultRequestHeaders);
         }
     }
 

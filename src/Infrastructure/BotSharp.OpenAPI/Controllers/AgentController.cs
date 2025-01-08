@@ -152,6 +152,24 @@ public class AgentController : ControllerBase
     [HttpGet("/agent/utility/options")]
     public IEnumerable<AgentUtility> GetAgentUtilityOptions()
     {
-        return _agentService.GetAgentUtilityOptions();
+        var utilities = new List<AgentUtility>();
+        var hooks = _services.GetServices<IAgentUtilityHook>();
+        foreach (var hook in hooks)
+        {
+            hook.AddUtilities(utilities);
+        }
+        return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
+    }
+
+    [HttpGet("/agent/rule/options")]
+    public IEnumerable<AgentRule> GetAgentRuleOptions()
+    {
+        var rules = new List<AgentRule>();
+        var hooks = _services.GetServices<IAgentRuleHook>();
+        foreach (var hook in hooks)
+        {
+            hook.AddRules(rules);
+        }
+        return rules.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
     }
 }

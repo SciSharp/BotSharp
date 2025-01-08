@@ -100,6 +100,11 @@ public class Agent
     public List<AgentUtility> Utilities { get; set; } = new();
 
     /// <summary>
+    /// Agent rules
+    /// </summary>
+    public List<AgentRule> Rules { get; set; } = new();
+
+    /// <summary>
     /// Agent knowledge bases
     /// </summary>
     public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = [];
@@ -154,6 +159,7 @@ public class Agent
             MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles,
             RoutingRules = agent.RoutingRules,
+            Rules = agent.Rules,
             LlmConfig = agent.LlmConfig,
             KnowledgeBases = agent.KnowledgeBases,
             CreatedDateTime = agent.CreatedDateTime,
@@ -266,6 +272,12 @@ public class Agent
     public Agent SetRoutingRules(List<RoutingRule> rules)
     {
         RoutingRules = rules ?? [];
+        return this;
+    }
+
+    public Agent SetRules(List<AgentRule> rules)
+    {
+        Rules = rules ?? [];
         return this;
     }
 
