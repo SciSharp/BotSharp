@@ -8,12 +8,6 @@ public class AgentRule
     [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
 
-    [JsonPropertyName("event_name")]
-    public string EventName { get; set; }
-
-    [JsonPropertyName("entity_type")]
-    public string EntityType { get; set; }
-
     [JsonPropertyName("criteria")]
     public string Criteria { get; set; }
 }
