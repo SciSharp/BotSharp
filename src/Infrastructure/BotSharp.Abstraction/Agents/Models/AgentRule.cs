@@ -13,4 +13,7 @@ public class AgentRule
 
     [JsonPropertyName("entity_type")]
     public string EntityType { get; set; }
+
+    [JsonPropertyName("criteria")]
+    public string Criteria { get; set; }
 }
