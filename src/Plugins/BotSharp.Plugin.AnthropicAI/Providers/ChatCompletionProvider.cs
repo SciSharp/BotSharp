@@ -1,7 +1,6 @@
 using Anthropic.SDK.Common;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.MLTasks.Settings;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -48,6 +47,7 @@ public class ChatCompletionProvider : IChatCompletion
 
         if (response.StopReason == "tool_use")
         {
+            var content = response.Content.OfType<TextContent>().FirstOrDefault();
             var toolResult = response.Content.OfType<ToolUseContent>().First();
 
             responseMessage = new RoleDialogModel(AgentRole.Function, response.FirstMessage?.Text ?? string.Empty)
@@ -56,7 +56,8 @@ public class ChatCompletionProvider : IChatCompletion
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolResult.Id,
                 FunctionName = toolResult.Name,
-                FunctionArgs = JsonSerializer.Serialize(toolResult.Input)
+                FunctionArgs = JsonSerializer.Serialize(toolResult.Input),
+                Indication = content.Text
             };
         }
         else
@@ -161,7 +162,7 @@ public class ChatCompletionProvider : IChatCompletion
                         new ToolResultContent()
                         {
                             ToolUseId = conv.ToolCallId,
-                            Content = conv.Content
+                            Content = [new TextContent() { Text = conv.Content }]
                         }
                     }
                 });

@@ -58,7 +58,8 @@ public class ChatCompletionProvider : IChatCompletion
                     CurrentAgentId = agent.Id,
                     MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                     FunctionName = toolCall?.FunctionName,
-                    FunctionArgs = toolCall?.FunctionArguments?.ToString()
+                    FunctionArgs = toolCall?.FunctionArguments?.ToString(),
+                    Indication = value.Content.FirstOrDefault()?.Text
                 };
 
                 // Somethings LLM will generate a function name with agent name.
@@ -160,8 +161,10 @@ public class ChatCompletionProvider : IChatCompletion
             var funcContextIn = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString()
+                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
+                Indication = value.Content.FirstOrDefault()?.Text
             };
 
             // Somethings LLM will generate a function name with agent name.

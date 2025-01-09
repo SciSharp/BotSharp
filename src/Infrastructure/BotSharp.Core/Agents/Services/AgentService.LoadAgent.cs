@@ -7,7 +7,7 @@ public partial class AgentService
 {
     public static ConcurrentDictionary<string, Dictionary<string, string>> AgentParameterTypes = new();
 
-    [MemoryCache(10 * 60, perInstanceCache: true)]
+    // [MemoryCache(10 * 60, perInstanceCache: true)]
     public async Task<Agent> LoadAgent(string id, bool loadUtility = true)
     {
         if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())

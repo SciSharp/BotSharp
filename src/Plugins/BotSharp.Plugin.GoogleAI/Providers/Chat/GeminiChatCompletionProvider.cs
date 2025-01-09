@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Loggers;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Mscc.GenerativeAI;
 
@@ -125,6 +126,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             if (!agentService.RenderFunction(agent, function)) continue;
 
             var def = agentService.RenderFunctionProperty(agent, function);
+            var str = JsonSerializer.Serialize(def.Properties);
 
             funcDeclarations.Add(new FunctionDeclaration
             {
@@ -132,8 +134,8 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 Description = function.Description,
                 Parameters = new()
                 {
-                    Type = ParameterType.Object,
-                    Properties = def.Properties,
+                    Type = str != "{}" ? ParameterType.Object : ParameterType.TypeUnspecified,
+                    Properties = str != "{}" ? JsonSerializer.Deserialize<dynamic>(str) : null,
                     Required = def.Required
                 }
             });
