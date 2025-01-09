@@ -52,7 +52,7 @@ public class RateLimitConversationHook : ConversationHookBase
         var channel = states.GetState("channel");
 
         // Check the number of conversations
-        if (channel != ConversationChannel.Phone && channel != ConversationChannel.Email)
+        if (channel != ConversationChannel.Phone && channel != ConversationChannel.Email && channel != ConversationChannel.Database)
         {
             var user = _services.GetRequiredService<IUserIdentity>();
             var convService = _services.GetRequiredService<IConversationService>();
