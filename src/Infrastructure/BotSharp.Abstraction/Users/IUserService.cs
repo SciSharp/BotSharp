@@ -18,6 +18,7 @@ public interface IUserService
     Task<Token?> GetAdminToken(string authorization);
     Task<Token?> GetToken(string authorization);
     Task<Token> CreateTokenByUser(User user);
+    Task<Token> RenewToken();
     Task<User> GetMyProfile();
     Task<bool> VerifyUserNameExisting(string userName);
     Task<bool> VerifyEmailExisting(string email);
