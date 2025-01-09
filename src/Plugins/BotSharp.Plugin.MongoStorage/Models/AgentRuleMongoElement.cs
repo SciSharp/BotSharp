@@ -4,19 +4,17 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 
 public class AgentRuleMongoElement
 {
-    public string Name { get; set; }
+    public string TriggerName { get; set; }
     public bool Disabled { get; set; }
-    public string EventName { get; set; }
-    public string EntityType { get; set; }
+    public string Criteria { get; set; }
 
     public static AgentRuleMongoElement ToMongoElement(AgentRule rule)
     {
         return new AgentRuleMongoElement
         {
-            Name = rule.Name,
+            TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            EventName = rule.EventName,
-            EntityType = rule.EntityType
+            Criteria = rule.Criteria
         };
     }
 
@@ -24,10 +22,9 @@ public class AgentRuleMongoElement
     {
         return new AgentRule
         {
-            Name = rule.Name,
+            TriggerName = rule.TriggerName,
             Disabled = rule.Disabled,
-            EventName = rule.EventName,
-            EntityType = rule.EntityType
+            Criteria = rule.Criteria
         };
     }
 }
