@@ -520,6 +520,16 @@ public class UserService : IUserService
         return token;
     }
 
+    public async Task<Token> RenewToken()
+    {
+        var newToken = GenerateJwtToken(await GetMyProfile());
+        var newJwt = new JwtSecurityTokenHandler().ReadJwtToken(newToken);
+        Token token = new Token();
+        token.AccessToken = newToken;
+        token.ExpireTime = newJwt.Payload.Exp.Value;
+        return token;
+    }
+
     public async Task<bool> VerifyUserNameExisting(string userName)
     {
         if (string.IsNullOrEmpty(userName))
