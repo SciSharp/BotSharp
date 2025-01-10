@@ -507,12 +507,13 @@ namespace BotSharp.Core.Repository
                     continue;
                 }
 
-                if (excludeAgentIds.Contains(conv.AgentId) || conv.UpdatedTime > utcNow.AddHours(-bufferHours))
+                if (conv.UpdatedTime > utcNow.AddHours(-bufferHours))
                 {
                     continue;
                 }
 
-                if (conv.DialogCount <= messageLimit)
+                if ((excludeAgentIds.Contains(conv.AgentId) && conv.DialogCount == 0)
+                    || (!excludeAgentIds.Contains(conv.AgentId) && conv.DialogCount <= messageLimit))
                 {
                     ids.Add(conv.Id);
                     if (ids.Count >= batchSize)
