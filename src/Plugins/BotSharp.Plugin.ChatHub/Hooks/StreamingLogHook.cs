@@ -116,7 +116,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         var agent = await _agentService.LoadAgent(message.CurrentAgentId);
         message.FunctionArgs = message.FunctionArgs ?? "{}";
         var args = message.FunctionArgs.FormatJson();
-        var log = $"{message.FunctionName} <u>executing</u>\r\n```json\r\n{args}\r\n```";
+        var log = $"*{message.Indication.Replace("\r", string.Empty).Replace("\n", string.Empty)}* \r\n\r\n **{message.FunctionName}**()";
+        log += args.Length > 5 ? $" \r\n```json\r\n{args}\r\n```" : string.Empty;
 
         var input = new ContentLogInputModel(conversationId, message)
         {
