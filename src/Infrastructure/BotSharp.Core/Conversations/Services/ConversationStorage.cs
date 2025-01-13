@@ -1,22 +1,18 @@
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Options;
-using System.IO;
 
 namespace BotSharp.Core.Conversations.Services;
 
 public class ConversationStorage : IConversationStorage
 {
-    private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly BotSharpOptions _options;
     private readonly IServiceProvider _services;
 
     public ConversationStorage(
-        BotSharpDatabaseSettings dbSettings,
         BotSharpOptions options,
         IServiceProvider services)
     {
-        _dbSettings = dbSettings;
         _services = services;
         _options = options;
     }
@@ -89,6 +85,76 @@ public class ConversationStorage : IConversationStorage
                 SecondaryRichContent = secondaryRichContent,
                 Payload = dialog.Payload
             });
+        }
+
+        db.AppendConversationDialogs(conversationId, dialogElements);
+    }
+
+    public void Append(string conversationId, IEnumerable<RoleDialogModel> dialogs)
+    {
+        if (dialogs.IsNullOrEmpty()) return;
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var dialogElements = new List<DialogElement>();
+
+        foreach ( var dialog in dialogs)
+        {
+            if (dialog.Role == AgentRole.Function)
+            {
+                var meta = new DialogMetaData
+                {
+                    Role = dialog.Role,
+                    AgentId = dialog.CurrentAgentId,
+                    MessageId = dialog.MessageId,
+                    MessageType = dialog.MessageType,
+                    FunctionName = dialog.FunctionName,
+                    CreateTime = dialog.CreatedAt
+                };
+
+                var content = dialog.Content.RemoveNewLine();
+                if (string.IsNullOrEmpty(content))
+                {
+                    continue;
+                }
+                dialogElements.Add(new DialogElement
+                {
+                    MetaData = meta,
+                    Content = dialog.Content,
+                    SecondaryContent = dialog.SecondaryContent,
+                    Payload = dialog.Payload
+                });
+            }
+            else
+            {
+                var meta = new DialogMetaData
+                {
+                    Role = dialog.Role,
+                    AgentId = dialog.CurrentAgentId,
+                    MessageId = dialog.MessageId,
+                    MessageType = dialog.MessageType,
+                    SenderId = dialog.SenderId,
+                    FunctionName = dialog.FunctionName,
+                    CreateTime = dialog.CreatedAt
+                };
+
+                var content = dialog.Content.RemoveNewLine();
+                if (string.IsNullOrEmpty(content))
+                {
+                    continue;
+                }
+
+                var richContent = dialog.RichContent != null ? JsonSerializer.Serialize(dialog.RichContent, _options.JsonSerializerOptions) : null;
+                var secondaryRichContent = dialog.SecondaryRichContent != null ? JsonSerializer.Serialize(dialog.SecondaryRichContent, _options.JsonSerializerOptions) : null;
+                dialogElements.Add(new DialogElement
+                {
+                    MetaData = meta,
+                    Content = dialog.Content,
+                    SecondaryContent = dialog.SecondaryContent,
+                    RichContent = richContent,
+                    SecondaryRichContent = secondaryRichContent,
+                    Payload = dialog.Payload
+                });
+            }
         }
 
         db.AppendConversationDialogs(conversationId, dialogElements);
