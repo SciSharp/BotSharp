@@ -95,7 +95,11 @@ public class UserService : IUserService
             record.Phone = Regex.Match(user.Phone, @"\d+").Value;
         }
         record.Salt = Guid.NewGuid().ToString("N");
-        record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+
+        if (!string.IsNullOrWhiteSpace(user.Password))
+        {
+            record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+        }
 
         if (_setting.NewUserVerification)
         {
@@ -680,6 +684,39 @@ public class UserService : IUserService
         }
 
         if (user.VerificationCode != record.VerificationCode || (record.VerificationCodeExpireAt != null && DateTime.UtcNow > record.VerificationCodeExpireAt))
+        {
+            return false;
+        }
+
+        var newPassword = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+        db.UpdateUserPassword(record.Id, newPassword);
+        return true;
+    }
+
+    public async Task<bool> SetUserPassword(User user)
+    {
+        if (!string.IsNullOrEmpty(user.Id) && !string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return false;
+        }
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        User? record = null;
+
+        if (!string.IsNullOrEmpty(user.Id))
+        {
+            record = db.GetUserById(user.Id);
+        }
+        else if (!string.IsNullOrEmpty(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
+        }
+        else if (!string.IsNullOrEmpty(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record == null)
         {
             return false;
         }

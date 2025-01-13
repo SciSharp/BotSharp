@@ -25,6 +25,7 @@ public interface IUserService
     Task<bool> VerifyPhoneExisting(string phone, string regionCode);
     Task<bool> SendVerificationCodeResetPasswordNoLogin(User user);
     Task<bool> SendVerificationCodeResetPasswordLogin();
+    Task<bool> SetUserPassword(User user);
     Task<bool> ResetUserPassword(User user);
     Task<bool> ModifyUserEmail(string email);
     Task<bool> ModifyUserPhone(string phone, string regionCode);
