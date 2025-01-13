@@ -425,7 +425,7 @@ public partial class MongoRepository
         var agent = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == agentId);
         if (agent == null) return string.Empty;
 
-        return agent.Templates?.FirstOrDefault(x => x.Name == templateName.ToLower())?.Content ?? string.Empty;
+        return agent.Templates?.FirstOrDefault(x => x.Name.IsEqualTo(templateName))?.Content ?? string.Empty;
     }
 
     public bool PatchAgentTemplate(string agentId, AgentTemplate template)

@@ -169,6 +169,27 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
+        public bool AppendConversationTags(string conversationId, List<string> tags)
+        {
+            if (string.IsNullOrEmpty(conversationId) || tags.IsNullOrEmpty()) return false;
+
+            var convDir = FindConversationDirectory(conversationId);
+            if (string.IsNullOrEmpty(convDir)) return false;
+
+            var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+            if (!File.Exists(convFile)) return false;
+
+            var json = File.ReadAllText(convFile);
+            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+
+            var curTags = conv.Tags ?? new();
+            var newTags = curTags.Concat(tags).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
+            conv.Tags = newTags;
+            conv.UpdatedTime = DateTime.UtcNow;
+            File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+            return true;
+        }
+
         public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
         {
             if (string.IsNullOrEmpty(conversationId)) return false;
@@ -507,12 +528,13 @@ namespace BotSharp.Core.Repository
                     continue;
                 }
 
-                if (excludeAgentIds.Contains(conv.AgentId) || conv.UpdatedTime > utcNow.AddHours(-bufferHours))
+                if (conv.UpdatedTime > utcNow.AddHours(-bufferHours))
                 {
                     continue;
                 }
 
-                if (conv.DialogCount <= messageLimit)
+                if ((excludeAgentIds.Contains(conv.AgentId) && conv.DialogCount == 0)
+                    || (!excludeAgentIds.Contains(conv.AgentId) && conv.DialogCount <= messageLimit))
                 {
                     ids.Add(conv.Id);
                     if (ids.Count >= batchSize)
