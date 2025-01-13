@@ -50,14 +50,13 @@ public class ChatCompletionProvider : IChatCompletion
             var content = response.Content.OfType<TextContent>().FirstOrDefault();
             var toolResult = response.Content.OfType<ToolUseContent>().First();
 
-            responseMessage = new RoleDialogModel(AgentRole.Function, response.FirstMessage?.Text ?? string.Empty)
+            responseMessage = new RoleDialogModel(AgentRole.Function, content?.Text ?? string.Empty)
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolResult.Id,
                 FunctionName = toolResult.Name,
                 FunctionArgs = JsonSerializer.Serialize(toolResult.Input),
-                Indication = content.Text
             };
         }
         else

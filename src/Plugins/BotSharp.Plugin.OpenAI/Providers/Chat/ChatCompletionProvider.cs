@@ -55,8 +55,7 @@ public class ChatCompletionProvider : IChatCompletion
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
-                Indication = value.Content.FirstOrDefault()?.Text
+                FunctionArgs = toolCall?.FunctionArguments?.ToString()
             };
 
             // Somethings LLM will generate a function name with agent name.
@@ -142,8 +141,7 @@ public class ChatCompletionProvider : IChatCompletion
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
-                Indication = value.Content.FirstOrDefault()?.Text
+                FunctionArgs = toolCall?.FunctionArguments?.ToString()
             };
 
             // Somethings LLM will generate a function name with agent name.
