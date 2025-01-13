@@ -169,6 +169,27 @@ namespace BotSharp.Core.Repository
             return true;
         }
 
+        public bool AppendConversationTags(string conversationId, List<string> tags)
+        {
+            if (string.IsNullOrEmpty(conversationId) || tags.IsNullOrEmpty()) return false;
+
+            var convDir = FindConversationDirectory(conversationId);
+            if (string.IsNullOrEmpty(convDir)) return false;
+
+            var convFile = Path.Combine(convDir, CONVERSATION_FILE);
+            if (!File.Exists(convFile)) return false;
+
+            var json = File.ReadAllText(convFile);
+            var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
+
+            var curTags = conv.Tags ?? new();
+            var newTags = curTags.Concat(tags).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
+            conv.Tags = newTags;
+            conv.UpdatedTime = DateTime.UtcNow;
+            File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
+            return true;
+        }
+
         public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
         {
             if (string.IsNullOrEmpty(conversationId)) return false;
