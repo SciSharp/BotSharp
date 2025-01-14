@@ -126,9 +126,11 @@ public class TwilioVoiceController : TwilioController
                 SeqNumber = request.SeqNum,
                 Content = messageContent,
                 Digits = request.Digits,
-                From = request.From,
+                From = string.Equals(request.Direction, "inbound") ? request.From : request.To,
                 States = ParseStates(request.States)
             };
+            callerMessage.RequestHeaders = new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>[Request.Headers.Count];
+            Request.Headers.CopyTo(callerMessage.RequestHeaders, 0);
             await messageQueue.EnqueueAsync(callerMessage);
 
             response = new VoiceResponse();
@@ -387,6 +389,7 @@ public class TwilioVoiceController : TwilioController
                 $"twilio/voice/speeches/{conversationId}/intial.mp3"
             }
         };
+        string tag = Request.Form["AnsweredBy"];
         var twilio = _services.GetRequiredService<TwilioService>();
         var response = twilio.ReturnNoninterruptedInstructions(instruction);
         return TwiML(response);

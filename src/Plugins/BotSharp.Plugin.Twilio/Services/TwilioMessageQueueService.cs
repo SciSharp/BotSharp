@@ -65,6 +65,10 @@ namespace BotSharp.Plugin.Twilio.Services
             var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
             httpContext.HttpContext = new DefaultHttpContext();
             httpContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
+            foreach (var header in message.RequestHeaders)
+            {
+                httpContext.HttpContext.Request.Headers[header.Key] = header.Value;
+            }
             httpContext.HttpContext.Request.Headers["X-Twilio-BotSharp"] = "LOST";
 
             AssistantMessage reply = null;
