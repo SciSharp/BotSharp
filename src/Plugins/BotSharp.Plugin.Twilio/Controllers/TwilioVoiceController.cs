@@ -390,7 +390,7 @@ public class TwilioVoiceController : TwilioController
                 $"twilio/voice/speeches/{conversationId}/intial.mp3"
             }
         };
-        string tag = $"AnsweredBy: {Request.Form["AnsweredBy"]}";
+        string tag = $"twilio:{Request.Form["AnsweredBy"]}";
         var db = _services.GetRequiredService<IBotSharpRepository>();
         db.AppendConversationTags(conversationId, new List<string> { tag });
         var twilio = _services.GetRequiredService<TwilioService>();
