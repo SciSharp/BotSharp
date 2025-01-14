@@ -1,6 +1,6 @@
 {
   "name": "util-file-read_image",
-  "description": "If the user's request is related to analyzing images, you can call this function to analyze images.",
+  "description": "If the user's request is related to describing or analyzing images, you can call this function to analyze images.",
   "parameters": {
     "type": "object",
     "properties": {
@@ -10,7 +10,7 @@
       },
       "image_urls": {
         "type": "array",
-        "description": "The image, photo or picture urls that user requests for analysis. They typically start with 'http' or 'https'. If user doesn't include any url, then leave this array empty. Please remove any duplicated urls",
+        "description": "The image, photo or picture urls that user requests for analysis. They typically start with 'http' or 'https'. If user doesn't include any url, then leave this array empty. Please remove any duplicated urls. Do not make up any urls.",
         "items": {
           "type": "string",
           "description": "The image, photo or picture url that user requests for analysis. It typically starts with http or https."
