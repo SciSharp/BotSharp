@@ -49,7 +49,7 @@ public interface IAuthenticationHook
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    Task VerificationCodeResetPassword(User user);
+    Task SendVerificationCode(User user);
 
     /// <summary>
     /// Delete users
