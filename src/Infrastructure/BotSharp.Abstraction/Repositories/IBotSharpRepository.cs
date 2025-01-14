@@ -90,6 +90,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     void UpdateConversationTitle(string conversationId, string title);
     void UpdateConversationTitleAlias(string conversationId, string titleAlias);
     bool UpdateConversationTags(string conversationId, List<string> tags);
+    bool AppendConversationTags(string conversationId, List<string> tags);
     bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
     void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
     ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
