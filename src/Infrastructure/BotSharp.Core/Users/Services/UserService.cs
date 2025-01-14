@@ -53,14 +53,7 @@ public class UserService : IUserService
             record = db.GetUserByUserName(user.UserName);
         }
 
-        if (record != null && record.Verified)
-        {
-            // account is already activated
-            _logger.LogWarning($"User account already exists: {record.Id} {record.UserName}");
-            return record;
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Phone))
+        if (record == null && !string.IsNullOrWhiteSpace(user.Phone))
         {
             record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
@@ -68,6 +61,13 @@ public class UserService : IUserService
         if (record == null && !string.IsNullOrWhiteSpace(user.Email))
         {
             record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record != null && record.Verified)
+        {
+            // account is already activated
+            _logger.LogWarning($"User account already exists: {record.Id} {record.UserName}");
+            return record;
         }
 
         if (record != null)
@@ -94,6 +94,7 @@ public class UserService : IUserService
             //record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
             record.Phone = Regex.Match(user.Phone, @"\d+").Value;
         }
+
         record.Salt = Guid.NewGuid().ToString("N");
 
         if (!string.IsNullOrWhiteSpace(user.Password))
@@ -586,7 +587,7 @@ public class UserService : IUserService
         return false;
     }
 
-    public async Task<bool> SendVerificationCodeResetPasswordNoLogin(User user)
+    public async Task<bool> SendVerificationCodeNoLogin(User user)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -621,13 +622,13 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            await hook.VerificationCodeResetPassword(record);
+            await hook.SendVerificationCode(record);
         }
 
         return true;
     }
 
-    public async Task<bool> SendVerificationCodeResetPasswordLogin()
+    public async Task<bool> SendVerificationCodeLogin()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -652,7 +653,7 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            await hook.VerificationCodeResetPassword(record);
+            await hook.SendVerificationCode(record);
         }
 
         return true;
