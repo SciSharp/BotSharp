@@ -92,7 +92,8 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             var call = await CallResource.CreateAsync(
                 url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
                 to: new PhoneNumber(args.PhoneNumber),
-                from: new PhoneNumber(_twilioSetting.PhoneNumber));
+                from: new PhoneNumber(_twilioSetting.PhoneNumber),
+                machineDetection: "DetectMessageEnd");
 
             message.Content = $"The generated phone message: {args.InitialMessage}. \r\n[Conversation ID: {conversationId}]" ?? message.Content;
             message.StopCompletion = true;
