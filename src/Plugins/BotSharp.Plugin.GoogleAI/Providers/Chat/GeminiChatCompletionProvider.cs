@@ -126,18 +126,18 @@ public class GeminiChatCompletionProvider : IChatCompletion
             if (!agentService.RenderFunction(agent, function)) continue;
 
             var def = agentService.RenderFunctionProperty(agent, function);
-            var str = JsonSerializer.Serialize(def.Properties);
+            var str = JsonSerializer.Serialize(def?.Properties);
 
             funcDeclarations.Add(new FunctionDeclaration
             {
                 Name = function.Name,
                 Description = function.Description,
-                Parameters = new()
+                Parameters = str != "{}" ? new()
                 {
-                    Type = str != "{}" ? ParameterType.Object : ParameterType.TypeUnspecified,
-                    Properties = str != "{}" ? JsonSerializer.Deserialize<dynamic>(str) : null,
-                    Required = def.Required
-                }
+                    Type = ParameterType.Object,
+                    Properties = JsonSerializer.Deserialize<dynamic>(str),
+                    Required = def?.Required ?? []
+                } : null
             });
 
             funcPrompts.Add($"{function.Name}: {function.Description} {def}");
