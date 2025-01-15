@@ -23,6 +23,7 @@ public interface IUserService
     Task<bool> VerifyUserNameExisting(string userName);
     Task<bool> VerifyEmailExisting(string email);
     Task<bool> VerifyPhoneExisting(string phone, string regionCode);
+    Task<User> ResetVerificationCode(User user);
     Task<bool> SendVerificationCodeNoLogin(User user);
     Task<bool> SendVerificationCodeLogin();
     Task<bool> SetUserPassword(User user);
