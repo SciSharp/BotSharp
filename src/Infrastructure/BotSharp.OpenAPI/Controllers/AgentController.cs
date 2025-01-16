@@ -160,16 +160,4 @@ public class AgentController : ControllerBase
         }
         return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
     }
-
-    [HttpGet("/agent/rule/options")]
-    public IEnumerable<AgentRule> GetAgentRuleOptions()
-    {
-        var rules = new List<AgentRule>();
-        var hooks = _services.GetServices<IAgentRuleHook>();
-        foreach (var hook in hooks)
-        {
-            hook.AddRules(rules);
-        }
-        return rules.Where(x => !string.IsNullOrWhiteSpace(x.TriggerName)).OrderBy(x => x.TriggerName).ToList();
-    }
 }

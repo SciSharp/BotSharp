@@ -23,6 +23,9 @@ public class CrontabItem : ScheduleTaskArgs
     [JsonPropertyName("expire_seconds")]
     public int ExpireSeconds { get; set; } = 60;
 
+    [JsonPropertyName("last_execution_time")]
+    public DateTime? LastExecutionTime { get; set; }
+
     [JsonPropertyName("created_time")]
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
