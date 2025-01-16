@@ -39,7 +39,17 @@ public class CrontabService : ICrontabService
     {
         var repo = _services.GetRequiredService<IBotSharpRepository>();
         var crontable = repo.GetCrontabItems(CrontabItemFilter.Empty());
-        return crontable.Items.ToList();
+
+        // Add fixed crontab items from cronsources
+        var fixedCrantabItems = crontable.Items.ToList();
+        var cronsources = _services.GetServices<ICrontabSource>();
+        foreach (var source in cronsources)
+        {
+            var item = source.GetCrontabItem();
+            fixedCrantabItems.Add(source.GetCrontabItem());
+        }
+
+        return fixedCrantabItems;
     }
 
     public async Task ScheduledTimeArrived(CrontabItem item)
@@ -47,8 +57,10 @@ public class CrontabService : ICrontabService
         _logger.LogDebug($"ScheduledTimeArrived {item}");
 
         await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
-            await hook.OnCronTriggered(item)
-        );
-        await Task.Delay(1000 * 10);
+        {
+            await hook.OnTaskExecuting(item);
+            await hook.OnCronTriggered(item);
+            await hook.OnTaskExecuted(item);
+        });
     }
 }

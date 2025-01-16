@@ -24,9 +24,9 @@ public class CrontabWatcher : BackgroundService
         {
             var locker = scope.ServiceProvider.GetRequiredService<IDistributedLocker>();
 
-            /*while (!stoppingToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var delay = Task.Delay(1000, stoppingToken);
+                var delay = Task.Delay(1000 * 10, stoppingToken);
 
                 await locker.LockAsync("CrontabWatcher", async () =>
                 {
@@ -34,7 +34,7 @@ public class CrontabWatcher : BackgroundService
                 });
 
                 await delay;
-            }*/
+            }
 
             _logger.LogWarning("Crontab Watcher background service is stopped.");
         }
@@ -58,10 +58,24 @@ public class CrontabWatcher : BackgroundService
                 // Get the current time
                 var currentTime = DateTime.UtcNow;
 
+                // Get the last occurrence from the schedule
+                var lastOccurrence = GetLastOccurrence(schedule);
+
                 // Get the next occurrence from the schedule
                 var nextOccurrence = schedule.GetNextOccurrence(currentTime.AddSeconds(-1));
 
-                // Check if the current time matches the schedule
+                // Get the previous occurrence from the execution log
+                var previousOccurrence = item.LastExecutionTime;
+
+                // First check if this occurrence was already triggered
+                if (previousOccurrence.HasValue && 
+                    previousOccurrence.Value >= lastOccurrence && 
+                    previousOccurrence.Value < nextOccurrence.AddSeconds(1))
+                {
+                    continue;
+                }
+
+                // Then check if the current time matches the schedule
                 bool matches = currentTime >= nextOccurrence && currentTime < nextOccurrence.AddSeconds(1);
 
                 if (matches)
@@ -72,9 +86,21 @@ public class CrontabWatcher : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error when running cron task ({item.ConversationId}, {item.Title}, {item.Cron}): {ex.Message}\r\n{ex.InnerException}");
+                _logger.LogError($"Error when running cron task ({item.Title}, {item.Cron}): {ex.Message}");
                 continue;
             }
         }
+    }
+
+    private DateTime GetLastOccurrence(CrontabSchedule schedule)
+    {
+        var nextOccurrence = schedule.GetNextOccurrence(DateTime.UtcNow);
+        var afterNextOccurrence = schedule.GetNextOccurrence(nextOccurrence);
+        var interval = afterNextOccurrence - nextOccurrence;
+        if (interval.TotalMinutes < 10)
+        {
+            throw new ArgumentException("The minimum interval must be at least 10 minutes.");
+        }
+        return nextOccurrence - interval;
     }
 }
