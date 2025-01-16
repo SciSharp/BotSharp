@@ -93,6 +93,7 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
                 url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
                 to: new PhoneNumber(args.PhoneNumber),
                 from: new PhoneNumber(_twilioSetting.PhoneNumber),
+                asyncAmd: "true",
                 machineDetection: "DetectMessageEnd");
 
             message.Content = $"The generated phone message: {args.InitialMessage}. \r\n[Conversation ID: {conversationId}]" ?? message.Content;
