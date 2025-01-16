@@ -589,13 +589,30 @@ public class UserService : IUserService
 
     public async Task<bool> SendVerificationCodeNoLogin(User user)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
+        User? record = await ResetVerificationCode(user);
 
-        User? record = null;
-
-        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        if (record == null)
         {
             return false;
+        }
+
+        //send code to user Email.
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.SendVerificationCode(record);
+        }
+
+        return true;
+    }
+
+    public async Task<User> ResetVerificationCode(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        User record = null;
+        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return null;
         }
 
         if (!string.IsNullOrEmpty(user.Phone))
@@ -610,7 +627,7 @@ public class UserService : IUserService
 
         if (record == null)
         {
-            return false;
+            return null;
         }
 
         record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
@@ -618,14 +635,7 @@ public class UserService : IUserService
         //update current verification code.
         db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
 
-        //send code to user Email.
-        var hooks = _services.GetServices<IAuthenticationHook>();
-        foreach (var hook in hooks)
-        {
-            await hook.SendVerificationCode(record);
-        }
-
-        return true;
+        return record;
     }
 
     public async Task<bool> SendVerificationCodeLogin()
