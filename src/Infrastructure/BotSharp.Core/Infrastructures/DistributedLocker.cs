@@ -19,7 +19,14 @@ public class DistributedLocker : IDistributedLocker
     {
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
-        var redis = _services.GetRequiredService<IConnectionMultiplexer>();
+        var redis = _services.GetService<IConnectionMultiplexer>();
+        if (redis == null)
+        {
+            _logger.LogWarning($"The Redis server is experiencing issues and is not functioning as expected.");
+            await action();
+            return true;
+        }
+
         var @lock = new RedisDistributedLock(resource, redis.GetDatabase());
         await using (var handle = await @lock.TryAcquireAsync(timeout))
         {
