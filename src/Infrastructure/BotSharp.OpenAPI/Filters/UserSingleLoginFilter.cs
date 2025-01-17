@@ -38,6 +38,12 @@ public class UserSingleLoginFilter : IAuthorizationFilter
                 return;
             }
 
+            // Skip Qtoss AI user
+            if (token.Payload["source"]?.ToString() == "connect")
+            {
+                return;
+            }
+
             var validTo = token.ValidTo.ToLongTimeString();
             var currentExpires = GetUserExpires().ToLongTimeString();
 
