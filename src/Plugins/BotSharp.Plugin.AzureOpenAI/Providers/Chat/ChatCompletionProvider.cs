@@ -160,6 +160,7 @@ public class ChatCompletionProvider : IChatCompletion
             var funcContextIn = new RoleDialogModel(AgentRole.Function, text)
             {
                 CurrentAgentId = agent.Id,
+                MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 FunctionName = toolCall?.FunctionName,
                 FunctionArgs = toolCall?.FunctionArguments?.ToString()
             };

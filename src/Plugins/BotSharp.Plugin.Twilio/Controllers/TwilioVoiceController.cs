@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
@@ -126,9 +127,11 @@ public class TwilioVoiceController : TwilioController
                 SeqNumber = request.SeqNum,
                 Content = messageContent,
                 Digits = request.Digits,
-                From = request.From,
+                From = string.Equals(request.Direction, "inbound") ? request.From : request.To,
                 States = ParseStates(request.States)
             };
+            callerMessage.RequestHeaders = new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>[Request.Headers.Count];
+            Request.Headers.CopyTo(callerMessage.RequestHeaders, 0);
             await messageQueue.EnqueueAsync(callerMessage);
 
             response = new VoiceResponse();
@@ -387,6 +390,9 @@ public class TwilioVoiceController : TwilioController
                 $"twilio/voice/speeches/{conversationId}/intial.mp3"
             }
         };
+        string tag = $"twilio:{Request.Form["AnsweredBy"]}";
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        db.AppendConversationTags(conversationId, new List<string> { tag });
         var twilio = _services.GetRequiredService<TwilioService>();
         var response = twilio.ReturnNoninterruptedInstructions(instruction);
         return TwiML(response);

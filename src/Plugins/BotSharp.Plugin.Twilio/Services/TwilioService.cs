@@ -59,7 +59,10 @@ public class TwilioService
                 Gather.InputEnum.Speech,
                 Gather.InputEnum.Dtmf
             },
-            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}")
+            Action = new Uri($"{_settings.CallbackHost}/twilio/voice/{twilioSetting.AgentId}"),
+            Enhanced = true,
+            SpeechModel = Gather.SpeechModelEnum.PhoneCall,
+            SpeechTimeout = "auto"
         };
 
         gather.Say(message);
@@ -78,6 +81,7 @@ public class TwilioService
                 Gather.InputEnum.Dtmf
             },
             Action = new Uri($"{_settings.CallbackHost}/{conversationalVoiceResponse.CallbackPath}"),
+            Enhanced = true,
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
             SpeechTimeout = "auto", // timeout > 0 ? timeout.ToString() : "3",
             Timeout = conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout : 3,
@@ -115,6 +119,7 @@ public class TwilioService
                 Gather.InputEnum.Dtmf
             },
             Action = new Uri($"{_settings.CallbackHost}/{conversationalVoiceResponse.CallbackPath}"),
+            Enhanced = true,
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
             SpeechTimeout = "auto", // conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout.ToString() : "3",
             Timeout = conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout : 3,

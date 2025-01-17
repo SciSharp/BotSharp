@@ -45,6 +45,8 @@ public class RuleEngine : IRuleEngine
         {
             var conv = await convService.NewConversation(new Conversation
             {
+                Channel = trigger.Channel,
+                Title = data,
                 AgentId = agent.Id
             });
 
@@ -52,7 +54,7 @@ public class RuleEngine : IRuleEngine
 
             var states = new List<MessageState>
             {
-                new("channel", ConversationChannel.Database),
+                new("channel", trigger.Channel),
                 new("channel_id", trigger.EntityId)
             };
             convService.SetConversationId(conv.Id, states);

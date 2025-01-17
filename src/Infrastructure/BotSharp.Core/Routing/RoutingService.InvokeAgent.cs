@@ -43,6 +43,7 @@ public partial class RoutingService
             message.ToolCallId = response.ToolCallId;
             message.FunctionName = response.FunctionName;
             message.FunctionArgs = response.FunctionArgs;
+            message.Indication = response.Indication;
             message.CurrentAgentId = agent.Id;
 
             await InvokeFunction(message, dialogs);

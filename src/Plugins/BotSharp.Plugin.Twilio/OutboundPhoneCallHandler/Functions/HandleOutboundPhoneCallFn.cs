@@ -64,13 +64,16 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
                 Channel = ConversationChannel.Phone
             });
             var conversationId = newConv.Id;
-            convStorage.Append(conversationId, new RoleDialogModel(AgentRole.User, "Hi, I'm calling to check my work order quote status, please help me locate my work order number and let me know what to do next.")
+            convStorage.Append(conversationId, new List<RoleDialogModel>
             {
-                CurrentAgentId = entryAgentId
-            });
-            convStorage.Append(conversationId, new RoleDialogModel(AgentRole.Assistant, args.InitialMessage)
-            {
-                CurrentAgentId = entryAgentId
+                new RoleDialogModel(AgentRole.User, "Hi, I'm calling to check my work order quote status, please help me locate my work order number and let me know what to do next.")
+                {
+                    CurrentAgentId = entryAgentId
+                },
+                new RoleDialogModel(AgentRole.Assistant, args.InitialMessage)
+                {
+                    CurrentAgentId = entryAgentId
+                }
             });
 
             // Generate audio
@@ -89,7 +92,9 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             var call = await CallResource.CreateAsync(
                 url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
                 to: new PhoneNumber(args.PhoneNumber),
-                from: new PhoneNumber(_twilioSetting.PhoneNumber));
+                from: new PhoneNumber(_twilioSetting.PhoneNumber),
+                asyncAmd: "true",
+                machineDetection: "DetectMessageEnd");
 
             message.Content = $"The generated phone message: {args.InitialMessage}. \r\n[Conversation ID: {conversationId}]" ?? message.Content;
             message.StopCompletion = true;
