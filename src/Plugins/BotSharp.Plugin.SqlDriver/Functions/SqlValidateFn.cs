@@ -27,6 +27,7 @@ public class SqlValidateFn : IFunctionCallback
         }
 
         sql = Regex.Match(sql, pattern).Groups[1].Value;
+        message.Content = sql;
 
         var dbHook = _services.GetRequiredService<ISqlDriverHook>();
         var dbType = dbHook.GetDatabaseType(message);

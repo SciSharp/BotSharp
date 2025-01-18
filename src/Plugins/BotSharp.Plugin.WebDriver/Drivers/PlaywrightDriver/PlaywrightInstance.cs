@@ -1,3 +1,4 @@
+using Azure;
 using System.IO;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
@@ -123,12 +124,24 @@ public class PlaywrightInstance : IDisposable
             return page;
         }
 
+        page.Request += async (sender, e) =>
+        {
+            await HandleFetchRequest(e, message, args);
+        };
+
         page.Response += async (sender, e) =>
         {
             await HandleFetchResponse(e, message, args);
         };
 
         return page;
+    }
+
+    public async Task HandleFetchRequest(IRequest request, MessageInfo message, PageActionArgs args)
+    {
+        if (request.ResourceType == "fetch" || request.ResourceType == "xhr")
+        {
+        }
     }
 
     public async Task HandleFetchResponse(IResponse response, MessageInfo message, PageActionArgs args)

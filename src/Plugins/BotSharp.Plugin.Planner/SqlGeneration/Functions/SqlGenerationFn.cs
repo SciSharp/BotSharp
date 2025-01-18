@@ -1,3 +1,4 @@
+using BotSharp.Plugin.Planner.SqlGeneration;
 using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 
@@ -54,12 +55,12 @@ public class SqlGenerationFn : IFunctionCallback
         states.SetState("table_ddls", ddlStatements);
 
         // Summarize and generate query
-        var prompt = await GetSummaryPlanPrompt(msgCopy, taskRequirement, domainKnowledge, dictionaryItems, ddlStatements, excelImportResult);
-        _logger.LogInformation($"Summary plan prompt:\r\n{prompt}");
+        var prompt = await GetSqlGenerationPrompt(msgCopy, taskRequirement, domainKnowledge, dictionaryItems, ddlStatements, excelImportResult);
+        _logger.LogInformation($"SQL Generation plan prompt:\r\n{prompt}");
 
         var plannerAgent = new Agent
         {
-            Id = PlannerAgentId.TwoStagePlanner,
+            Id = PlannerAgentId.SqlPlanner,
             Name = Name,
             Instruction = prompt,
             LlmConfig = currentAgent.LlmConfig
@@ -75,19 +76,19 @@ public class SqlGenerationFn : IFunctionCallback
         return true;
     }
 
-    private async Task<string> GetSummaryPlanPrompt(RoleDialogModel message, string taskDescription, string domainKnowledge, string dictionaryItems, string ddlStatement, string excelImportResult)
+    private async Task<string> GetSqlGenerationPrompt(RoleDialogModel message, string taskDescription, string domainKnowledge, string dictionaryItems, string ddlStatement, string excelImportResult)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var render = _services.GetRequiredService<ITemplateRender>();
         var knowledgeHooks = _services.GetServices<IKnowledgeHook>();
 
-        var agent = await agentService.GetAgent(PlannerAgentId.TwoStagePlanner);
-        var template = agent.Templates.FirstOrDefault(x => x.Name == "two_stage.summarize")?.Content ?? string.Empty;
+        var agent = await agentService.GetAgent(PlannerAgentId.SqlPlanner);
+        var template = agent.Templates.FirstOrDefault(x => x.Name == "sql.generation")?.Content ?? string.Empty;
 
         var additionalRequirements = new List<string>();
         await HookEmitter.Emit<IPlanningHook>(_services, async x =>
         {
-            var requirement = await x.GetSummaryAdditionalRequirements(nameof(TwoStageTaskPlanner), message);
+            var requirement = await x.GetSummaryAdditionalRequirements(nameof(SqlGenerationPlanner), message);
             additionalRequirements.Add(requirement);
         });
 

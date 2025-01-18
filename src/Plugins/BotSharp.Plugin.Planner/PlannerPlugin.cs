@@ -1,6 +1,8 @@
 using BotSharp.Plugin.Planner.Sequential;
 using BotSharp.Plugin.Planner.SqlGeneration;
+using BotSharp.Plugin.Planner.SqlGeneration.Hooks;
 using BotSharp.Plugin.Planner.TwoStaging;
+using BotSharp.Plugin.Planner.TwoStaging.Hooks;
 
 namespace BotSharp.Plugin.Planner;
 
@@ -26,7 +28,7 @@ public class PlannerPlugin : IBotSharpPlugin
         services.AddScoped<ITaskPlanner, SequentialPlanner>();
         services.AddScoped<ITaskPlanner, TwoStageTaskPlanner>();
         services.AddScoped<ITaskPlanner, SqlGenerationPlanner>();
-        services.AddScoped<IAgentHook, PlannerAgentHook>();
-        services.AddScoped<IAgentUtilityHook, PlannerUtilityHook>();
+        services.AddScoped<IAgentHook, SqlPlannerAgentHook>();
+        services.AddScoped<IAgentUtilityHook, TwoStagingPlannerUtilityHook>();
     }
 }

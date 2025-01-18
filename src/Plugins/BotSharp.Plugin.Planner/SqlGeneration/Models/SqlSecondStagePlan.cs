@@ -1,6 +1,6 @@
 namespace BotSharp.Plugin.Planner.SqlGeneration.Models;
 
-public class SecondStagePlan
+public class SqlSecondStagePlan
 {
     [JsonPropertyName("related_tables")]
     public string[] Tables { get; set; } = [];
@@ -10,10 +10,4 @@ public class SecondStagePlan
 
     [JsonPropertyName("description")]
     public string Description { get; set; } = "";
-
-    [JsonPropertyName("input_args")]
-    public JsonDocument[] Parameters { get; set; } = [];
-
-    [JsonPropertyName("output_results")]
-    public string[] Results { get; set; } = [];
 }

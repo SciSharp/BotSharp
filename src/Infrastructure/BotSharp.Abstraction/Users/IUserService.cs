@@ -18,12 +18,15 @@ public interface IUserService
     Task<Token?> GetAdminToken(string authorization);
     Task<Token?> GetToken(string authorization);
     Task<Token> CreateTokenByUser(User user);
+    Task<Token> RenewToken();
     Task<User> GetMyProfile();
     Task<bool> VerifyUserNameExisting(string userName);
     Task<bool> VerifyEmailExisting(string email);
     Task<bool> VerifyPhoneExisting(string phone, string regionCode);
-    Task<bool> SendVerificationCodeResetPasswordNoLogin(User user);
-    Task<bool> SendVerificationCodeResetPasswordLogin();
+    Task<User> ResetVerificationCode(User user);
+    Task<bool> SendVerificationCodeNoLogin(User user);
+    Task<bool> SendVerificationCodeLogin();
+    Task<bool> SetUserPassword(User user);
     Task<bool> ResetUserPassword(User user);
     Task<bool> ModifyUserEmail(string email);
     Task<bool> ModifyUserPhone(string phone, string regionCode);

@@ -72,10 +72,10 @@
     <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\agent.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\plan_primary_stage.json">
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\sql_primary_stage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\plan_secondary_stage.json">
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\sql_secondary_stage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\functions\sql_review.json">
@@ -87,16 +87,16 @@
     <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\instructions\instruction.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.1st.plan.liquid">
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\sql.primary.plan.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.2nd.plan.liquid">
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\sql.secondary.plan.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.next.liquid">
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\sql.next.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\two_stage.summarize.liquid">
+    <Content Include="data\agents\da7aad2c-8112-48a2-ab7b-1f87da524741\templates\sql.generation.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -1,6 +1,6 @@
-namespace BotSharp.Plugin.Planner.Hooks;
+namespace BotSharp.Plugin.Planner.TwoStaging.Hooks;
 
-public class PlannerUtilityHook : IAgentUtilityHook
+public class TwoStagingPlannerUtilityHook : IAgentUtilityHook
 {
     private const string PRIMARY_STAGE_FN = "plan_primary_stage";
     private const string SECONDARY_STAGE_FN = "plan_secondary_stage";

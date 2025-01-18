@@ -1,5 +1,5 @@
 {
-  "name": "plan_secondary_stage",
+  "name": "sql_secondary_stage",
   "description": "Based on the primary stage planning, make more detail steps of the second stage if the primary stage needs more information.",
   "parameters": {
     "type": "object",

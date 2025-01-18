@@ -53,14 +53,7 @@ public class UserService : IUserService
             record = db.GetUserByUserName(user.UserName);
         }
 
-        if (record != null && record.Verified)
-        {
-            // account is already activated
-            _logger.LogWarning($"User account already exists: {record.Id} {record.UserName}");
-            return record;
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Phone))
+        if (record == null && !string.IsNullOrWhiteSpace(user.Phone))
         {
             record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
@@ -68,6 +61,13 @@ public class UserService : IUserService
         if (record == null && !string.IsNullOrWhiteSpace(user.Email))
         {
             record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record != null && record.Verified)
+        {
+            // account is already activated
+            _logger.LogWarning($"User account already exists: {record.Id} {record.UserName}");
+            return record;
         }
 
         if (record != null)
@@ -94,8 +94,13 @@ public class UserService : IUserService
             //record.Phone = "+" + Regex.Match(user.Phone, @"\d+").Value;
             record.Phone = Regex.Match(user.Phone, @"\d+").Value;
         }
+
         record.Salt = Guid.NewGuid().ToString("N");
-        record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+
+        if (!string.IsNullOrWhiteSpace(user.Password))
+        {
+            record.Password = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+        }
 
         if (_setting.NewUserVerification)
         {
@@ -482,7 +487,7 @@ public class UserService : IUserService
             return default;
         }
 
-        if (record.VerificationCode != model.VerificationCode)
+        if (record.VerificationCode != model.VerificationCode || (record.VerificationCodeExpireAt != null && DateTime.UtcNow > record.VerificationCodeExpireAt))
         {
             return default;
         }
@@ -517,6 +522,16 @@ public class UserService : IUserService
             TokenType = "Bearer",
             Scope = "api"
         };
+        return token;
+    }
+
+    public async Task<Token> RenewToken()
+    {
+        var newToken = GenerateJwtToken(await GetMyProfile());
+        var newJwt = new JwtSecurityTokenHandler().ReadJwtToken(newToken);
+        Token token = new Token();
+        token.AccessToken = newToken;
+        token.ExpireTime = newJwt.Payload.Exp.Value;
         return token;
     }
 
@@ -572,15 +587,32 @@ public class UserService : IUserService
         return false;
     }
 
-    public async Task<bool> SendVerificationCodeResetPasswordNoLogin(User user)
+    public async Task<bool> SendVerificationCodeNoLogin(User user)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
+        User? record = await ResetVerificationCode(user);
 
-        User? record = null;
-
-        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        if (record == null)
         {
             return false;
+        }
+
+        //send code to user Email.
+        var hooks = _services.GetServices<IAuthenticationHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.SendVerificationCode(record);
+        }
+
+        return true;
+    }
+
+    public async Task<User> ResetVerificationCode(User user)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        User record = null;
+        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return null;
         }
 
         if (!string.IsNullOrEmpty(user.Phone))
@@ -595,7 +627,7 @@ public class UserService : IUserService
 
         if (record == null)
         {
-            return false;
+            return null;
         }
 
         record.VerificationCode = Nanoid.Generate(alphabet: "0123456789", size: 6);
@@ -603,17 +635,10 @@ public class UserService : IUserService
         //update current verification code.
         db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
 
-        //send code to user Email.
-        var hooks = _services.GetServices<IAuthenticationHook>();
-        foreach (var hook in hooks)
-        {
-            await hook.VerificationCodeResetPassword(record);
-        }
-
-        return true;
+        return record;
     }
 
-    public async Task<bool> SendVerificationCodeResetPasswordLogin()
+    public async Task<bool> SendVerificationCodeLogin()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
@@ -638,7 +663,7 @@ public class UserService : IUserService
         var hooks = _services.GetServices<IAuthenticationHook>();
         foreach (var hook in hooks)
         {
-            await hook.VerificationCodeResetPassword(record);
+            await hook.SendVerificationCode(record);
         }
 
         return true;
@@ -669,7 +694,40 @@ public class UserService : IUserService
             return false;
         }
 
-        if (user.VerificationCode != record.VerificationCode)
+        if (user.VerificationCode != record.VerificationCode || (record.VerificationCodeExpireAt != null && DateTime.UtcNow > record.VerificationCodeExpireAt))
+        {
+            return false;
+        }
+
+        var newPassword = Utilities.HashTextMd5($"{user.Password}{record.Salt}");
+        db.UpdateUserPassword(record.Id, newPassword);
+        return true;
+    }
+
+    public async Task<bool> SetUserPassword(User user)
+    {
+        if (!string.IsNullOrEmpty(user.Id) && !string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        {
+            return false;
+        }
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        User? record = null;
+
+        if (!string.IsNullOrEmpty(user.Id))
+        {
+            record = db.GetUserById(user.Id);
+        }
+        else if (!string.IsNullOrEmpty(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
+        }
+        else if (!string.IsNullOrEmpty(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record == null)
         {
             return false;
         }
