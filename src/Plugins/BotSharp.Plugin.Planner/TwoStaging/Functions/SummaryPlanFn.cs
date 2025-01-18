@@ -1,7 +1,6 @@
-using BotSharp.Plugin.Planner.TwoStaging;
 using BotSharp.Plugin.Planner.TwoStaging.Models;
 
-namespace BotSharp.Plugin.Planner.Functions;
+namespace BotSharp.Plugin.Planner.TwoStaging.Functions;
 
 public class SummaryPlanFn : IFunctionCallback
 {

@@ -1,5 +1,5 @@
 {
-  "name": "plan_primary_stage",
+  "name": "sql_primary_stage",
   "description": "Plan the high level steps to finish the task",
   "parameters": {
     "type": "object",

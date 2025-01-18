@@ -32,5 +32,4 @@ global using BotSharp.Abstraction.Routing.Models;
 global using BotSharp.Core.Infrastructures;
 global using BotSharp.Core.Routing.Reasoning;
 
-global using BotSharp.Plugin.Planner.Hooks;
 global using BotSharp.Plugin.Planner.Enums;

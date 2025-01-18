@@ -1,12 +1,9 @@
 namespace BotSharp.Plugin.Planner.SqlGeneration.Models;
 
-public class FirstStagePlan
+public class SqlPrimaryStagePlan
 {
     [JsonPropertyName("task_detail")]
     public string Task { get; set; } = "";
-
-    //[JsonPropertyName("reason")]
-    //public string Reason { get; set; } = "";
 
     [JsonPropertyName("step")]
     public int Step { get; set; } = -1;
@@ -22,15 +19,6 @@ public class FirstStagePlan
 
     [JsonPropertyName("has_found_relevant_knowledge")]
     public bool HasFoundRelevantKnowledge { get; set; } = false;
-
-    //[JsonPropertyName("related_urls")]
-    //public string[] Urls { get; set; } = [];
-
-    //[JsonPropertyName("input_args")]
-    //public JsonDocument[] Parameters { get; set; } = [];
-
-    //[JsonPropertyName("output_results")]
-    //public string[] Results { get; set; } = [];
 
     public override string ToString()
     {

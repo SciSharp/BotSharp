@@ -1,10 +1,10 @@
-namespace BotSharp.Plugin.Planner.Hooks;
+namespace BotSharp.Plugin.Planner.SqlGeneration.Hooks;
 
-public class PlannerAgentHook : AgentHookBase
+public class SqlPlannerAgentHook : AgentHookBase
 {
-    public override string SelfId => PlannerAgentId.TwoStagePlanner;
+    public override string SelfId => PlannerAgentId.SqlPlanner;
 
-    public PlannerAgentHook(IServiceProvider services, AgentSettings settings)
+    public SqlPlannerAgentHook(IServiceProvider services, AgentSettings settings)
         : base(services, settings)
     {
     }
@@ -19,7 +19,7 @@ public class PlannerAgentHook : AgentHookBase
         {
             var k = hook.GetGlobalKnowledges(new RoleDialogModel(AgentRole.User, template)
             {
-                CurrentAgentId = PlannerAgentId.TwoStagePlanner
+                CurrentAgentId = PlannerAgentId.SqlPlanner
             }).Result;
             Knowledges.AddRange(k);
         }
