@@ -570,6 +570,18 @@ public class UserService : IUserService
         return false;
     }
 
+    public async Task<List<User>> SearchLoginUsers(User filter)
+    {
+        if (filter == null)
+        {
+            return new List<User>();
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+
+        return db.SearchLoginUsers(filter);
+    }
+
     public async Task<bool> VerifyPhoneExisting(string phone, string regionCode)
     {
         if (string.IsNullOrWhiteSpace(phone))
