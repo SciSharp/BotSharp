@@ -128,6 +128,63 @@ public partial class FileRepository
         };
     }
 
+    public List<User> SearchLoginUsers(User filter, string source = UserSource.Internal)
+    {
+        List<User> searchResult = new List<User>();
+
+        // search by filters
+        if (!string.IsNullOrWhiteSpace(filter.Id))
+        {
+            var curUser = Users.FirstOrDefault(x => x.Source == source && x.Id == filter.Id.ToLower());
+            User user = curUser != null ? curUser : null;
+            if (user != null)
+            {
+                searchResult.Add(user);
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(filter.Phone) && !string.IsNullOrWhiteSpace(filter.RegionCode))
+        {
+            string[] regionCodeData = filter.RegionCode.Split('|');
+            if (regionCodeData.Length == 2)
+            {
+                string phoneNoCallingCode = filter.Phone;
+                string phoneWithCallingCode = filter.Phone;
+                if (!filter.Phone.StartsWith('+'))
+                {
+                    phoneNoCallingCode = filter.Phone;
+                    phoneWithCallingCode = $"{regionCodeData[1]}{filter.Phone}";
+                }
+                else
+                {
+                    phoneNoCallingCode = filter.Phone.Replace(regionCodeData[1], "");
+                }
+                searchResult = Users.AsQueryable()
+                                        .Where(x => x.Source == source && (x.Phone == phoneNoCallingCode || x.Phone == phoneWithCallingCode) && x.RegionCode == regionCodeData[0])
+                                        .ToList();
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(filter.Email))
+        {
+            var curUser = Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToString());
+            User user = curUser != null ? curUser : null;
+            if (user != null)
+            {
+                searchResult.Add(user);
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(filter.UserName))
+        {
+            var curUser = Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
+            User user = curUser != null ? curUser : null;
+            if (user != null)
+            {
+                searchResult.Add(user);
+            }
+        }
+
+        return searchResult;
+    }
+
     public User? GetUserDetails(string userId, bool includeAgent = false)
     {
         if (string.IsNullOrWhiteSpace(userId)) return null;

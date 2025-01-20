@@ -8,6 +8,7 @@ public interface IUserService
 {
     Task<User> GetUser(string id);
     Task<PagedItems<User>> GetUsers(UserFilter filter);
+    Task<List<User>> SearchLoginUsers(User filter);
     Task<User?> GetUserDetails(string userId, bool includeAgent = false);
     Task<bool> IsAdminUser(string userId);
     Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null);

@@ -48,6 +48,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
     void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
     PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
+    List<User> SearchLoginUsers(User filter, string source = UserSource.Internal) =>throw new NotImplementedException();
     User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
     bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
 
