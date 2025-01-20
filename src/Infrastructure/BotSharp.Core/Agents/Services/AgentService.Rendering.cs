@@ -111,7 +111,7 @@ public partial class AgentService
 
         parameterDef.Properties = JsonSerializer.Deserialize<JsonDocument>(clonedRoot.ToString());
         parameterDef.Required = required;
-        return parameterDef; ;
+        return parameterDef;
     }
 
     public string RenderedTemplate(Agent agent, string templateName)

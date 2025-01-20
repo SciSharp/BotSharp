@@ -65,6 +65,11 @@ namespace BotSharp.Plugin.Twilio.Services
             var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
             httpContext.HttpContext = new DefaultHttpContext();
             httpContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
+            foreach (var header in message.RequestHeaders)
+            {
+                httpContext.HttpContext.Request.Headers[header.Key] = header.Value;
+            }
+            httpContext.HttpContext.Request.Headers["X-Twilio-BotSharp"] = "LOST";
 
             AssistantMessage reply = null;
             var inputMsg = new RoleDialogModel(AgentRole.User, message.Content);
@@ -75,8 +80,11 @@ namespace BotSharp.Plugin.Twilio.Services
             var progressService = sp.GetRequiredService<IConversationProgressService>();
             InitProgressService(message, sessionManager, progressService);
             InitConversation(message, inputMsg, conv, routing);
-            
-            var result = await conv.SendMessage(config.AgentId,
+
+            var conversation = await conv.GetConversation(message.ConversationId);
+            var agentId = string.IsNullOrWhiteSpace(conversation.AgentId) ? config.AgentId : conversation.AgentId;
+
+            var result = await conv.SendMessage(agentId,
                 inputMsg,
                 replyMessage: BuildPostbackMessageModel(conv, message),
                 async msg =>

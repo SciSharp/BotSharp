@@ -139,6 +139,24 @@ public partial class MongoRepository
         return res.ModifiedCount > 0;
     }
 
+    public bool AppendConversationTags(string conversationId, List<string> tags)
+    {
+        if (string.IsNullOrEmpty(conversationId) || tags.IsNullOrEmpty()) return false;
+
+        var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var conv = _dc.Conversations.Find(filter).FirstOrDefault();
+        if (conv == null) return false;
+
+        var curTags = conv.Tags ?? new();
+        var newTags = curTags.Concat(tags).Distinct(StringComparer.InvariantCultureIgnoreCase).ToList();
+        var update = Builders<ConversationDocument>.Update
+                                                   .Set(x => x.Tags, newTags)
+                                                   .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        var res = _dc.Conversations.UpdateOne(filter, update);
+        return res.ModifiedCount > 0;
+    }
+
     public bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
@@ -455,7 +473,9 @@ public partial class MongoRepository
         {
             var skip = (page - 1) * batchSize;
             var candidates = _dc.Conversations.AsQueryable()
-                                              .Where(x => !excludeAgentIds.Contains(x.AgentId) && x.DialogCount <= messageLimit && x.UpdatedTime <= utcNow.AddHours(-bufferHours))
+                                              .Where(x => ((!excludeAgentIds.Contains(x.AgentId) && x.DialogCount <= messageLimit)
+                                                       || (excludeAgentIds.Contains(x.AgentId) && x.DialogCount == 0))
+                                                        && x.UpdatedTime <= utcNow.AddHours(-bufferHours))
                                               .Skip(skip)
                                               .Take(batchSize)
                                               .Select(x => x.Id)

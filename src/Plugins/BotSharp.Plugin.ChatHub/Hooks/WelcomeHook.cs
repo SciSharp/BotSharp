@@ -25,11 +25,11 @@ public class WelcomeHook : ConversationHookBase
 
     public override async Task OnUserAgentConnectedInitially(Conversation conversation)
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(conversation.AgentId);
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var agent = db.GetAgent(conversation.AgentId);
 
         // Check if the Welcome template exists.
-        var welcomeTemplate = agent.Templates?.FirstOrDefault(x => x.Name == ".welcome");
+        var welcomeTemplate = agent?.Templates?.FirstOrDefault(x => x.Name == ".welcome");
         if (welcomeTemplate != null)
         {
             // Render template

@@ -9,7 +9,7 @@ public interface IFunctionCallback
     /// </summary>
     string Indication => string.Empty;
 
-    Task<string> GetIndication(RoleDialogModel message) => Task.FromResult(Indication);
+    Task<string> GetIndication(RoleDialogModel message) => Task.FromResult(message.Indication ?? Indication);
 
     Task<bool> Execute(RoleDialogModel message);
 }

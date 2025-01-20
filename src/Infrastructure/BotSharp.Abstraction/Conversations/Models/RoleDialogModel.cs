@@ -146,6 +146,7 @@ public class RoleDialogModel : ITrackableMessage
             FunctionArgs = source.FunctionArgs,
             FunctionName = source.FunctionName,
             ToolCallId = source.ToolCallId,
+            Indication = source.Indication,
             PostbackFunctionName = source.PostbackFunctionName,
             RichContent = source.RichContent,
             Payload = source.Payload,
