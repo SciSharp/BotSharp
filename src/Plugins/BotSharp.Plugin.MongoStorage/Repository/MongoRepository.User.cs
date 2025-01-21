@@ -13,7 +13,7 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
-    public User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN")
+    public User? GetUserByPhone(string phone, string source = UserType.Internal, string regionCode = "CN")
     {
         string phoneSecond = string.Empty;
         // if phone number length is less than 4, return null
@@ -33,7 +33,7 @@ public partial class MongoRepository
 
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond)
         && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
-        && (x.Type == type));
+        && (x.Source == source));
         return user != null ? user.ToUser() : null;
     }
 
