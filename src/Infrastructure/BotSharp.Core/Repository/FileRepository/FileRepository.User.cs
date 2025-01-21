@@ -11,13 +11,13 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.Email == email.ToLower());
     }
 
-    public User? GetUserByPhone(string phone, string? type = UserType.Client, string regionCode = "CN")
+    public User? GetUserByPhone(string phone, string? source = UserType.Internal, string regionCode = "CN")
     {
         var query = Users.Where(x => x.Phone == phone);
 
-        if (!string.IsNullOrEmpty(type))
+        if (!string.IsNullOrEmpty(source))
         {
-            query = query.Where(x => x.Type == type);
+            query = query.Where(x => x.Type == source);
         }
 
         if (!string.IsNullOrEmpty(regionCode))
