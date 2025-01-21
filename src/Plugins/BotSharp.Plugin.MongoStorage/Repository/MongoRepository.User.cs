@@ -282,7 +282,7 @@ public partial class MongoRepository
         }
         else if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToString());
+            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToLower());
             User user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
