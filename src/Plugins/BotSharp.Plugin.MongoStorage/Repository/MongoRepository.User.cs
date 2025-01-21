@@ -289,7 +289,9 @@ public partial class MongoRepository
                 searchResult.Add(user);
             }
         }
-        else if (!string.IsNullOrWhiteSpace(filter.UserName))
+
+
+        if (searchResult.Count == 0 && !string.IsNullOrWhiteSpace(filter.UserName))
         {
             var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
             User user = curUser != null ? curUser.ToUser() : null;
