@@ -6,9 +6,10 @@ using Rougamo.Context;
 
 namespace BotSharp.Core.Infrastructures;
 
-public class SharpCacheAttribute : MoAttribute
+public class SharpCacheAttribute : AsyncMoAttribute
 {
     public static IServiceProvider Services { get; set; } = null!;
+    private static readonly object NullMarker = new { __is_null = "$_is_null" };
 
     private int _minutes;
 
@@ -17,8 +18,9 @@ public class SharpCacheAttribute : MoAttribute
         _minutes = minutes;
     }
 
-    public override void OnEntry(MethodContext context)
+    public override async ValueTask OnEntryAsync(MethodContext context)
     {
+
         var settings = Services.GetRequiredService<SharpCacheSettings>();
         if (!settings.Enabled)
         {
@@ -26,9 +28,8 @@ public class SharpCacheAttribute : MoAttribute
         }
 
         var cache = Services.GetRequiredService<ICacheService>();
-
         var key = GetCacheKey(settings, context);
-        var value = cache.GetAsync(key, context.TaskReturnType).Result;
+        var value = await cache.GetAsync(key, context.TaskReturnType);
         if (value != null)
         {
             // check if the cache is out of date
@@ -41,7 +42,7 @@ public class SharpCacheAttribute : MoAttribute
         }
     }
 
-    public override void OnSuccess(MethodContext context)
+    public override async ValueTask OnSuccessAsync(MethodContext context)
     {
         var settings = Services.GetRequiredService<SharpCacheSettings>();
         if (!settings.Enabled)
@@ -62,7 +63,7 @@ public class SharpCacheAttribute : MoAttribute
         if (context.ReturnValue != null)
         {
             var key = GetCacheKey(settings, context);
-            cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0)).Wait();
+            await cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0));
         }
     }
 
@@ -71,25 +72,26 @@ public class SharpCacheAttribute : MoAttribute
         return Task.FromResult(false);
     }
 
+
     private string GetCacheKey(SharpCacheSettings settings, MethodContext context)
     {
-        var key = settings.Prefix + ":" + context.Method.Name;
-        foreach (var arg in context.Arguments)
-        {
-            if (arg is null)
-            {
-                key += "-" + "<NULL>";
-            }
-            else if (arg is ICacheKey withCacheKey)
-            {
-                key += "-" + withCacheKey.GetCacheKey();
-            }
-            else
-            {
-                key += "-" + arg.ToString();
-            }
-        }
+        var prefixKey = settings.Prefix + ":" + context.Method.Name;
+        return $"{prefixKey}_{string.Join("_", context.Arguments.Select(arg => GetCacheKey(arg)))}";
+    }
 
-        return key;
+    private string GetCacheKey(object? arg)
+    {
+        if (arg is null)
+        {
+            return NullMarker.GetHashCode().ToString();
+        }
+        else if (arg is ICacheKey withCacheKey)
+        { 
+            return withCacheKey.GetCacheKey();
+        }
+        else
+        {
+            return arg.GetHashCode().ToString();
+        }
     }
 }

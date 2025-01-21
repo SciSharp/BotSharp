@@ -5,14 +5,11 @@ namespace BotSharp.Core.Infrastructures;
 
 public class MemoryCacheService : ICacheService
 {
-    private static IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions
-    {
-    });
-    private readonly BotSharpDatabaseSettings _settings;
+    private readonly IMemoryCache _cache;
 
-    public MemoryCacheService(BotSharpDatabaseSettings settings)
+    public MemoryCacheService(IMemoryCache memoryCache)
     {
-        _settings = settings;
+        this._cache = memoryCache;
     }
 
     public async Task<T?> GetAsync<T>(string key)
