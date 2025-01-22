@@ -6,33 +6,37 @@ using Rougamo.Context;
 
 namespace BotSharp.Core.Infrastructures;
 
-public class SharpCacheAttribute : MoAttribute
+public class SharpCacheAttribute : AsyncMoAttribute
 {
     public static IServiceProvider Services { get; set; } = null!;
+    private static readonly object NullMarker = new { __is_null = "$_is_null" };
 
-    private int _minutes;
+    private readonly int _minutes;
+    private readonly bool _perInstanceCache;
+    private readonly ICacheService _cache;
+    private readonly SharpCacheSettings _settings;
 
-    public SharpCacheAttribute(int minutes = 60)
+    public SharpCacheAttribute(int minutes = 60, bool perInstanceCache = false)
     {
         _minutes = minutes;
+        _perInstanceCache = perInstanceCache;
+        _cache = Services.GetRequiredService<ICacheService>();
+        _settings = Services.GetRequiredService<SharpCacheSettings>();
     }
 
-    public override void OnEntry(MethodContext context)
+    public override async ValueTask OnEntryAsync(MethodContext context)
     {
-        var settings = Services.GetRequiredService<SharpCacheSettings>();
-        if (!settings.Enabled)
+        if (!_settings.Enabled)
         {
             return;
         }
 
-        var cache = Services.GetRequiredService<ICacheService>();
-
-        var key = GetCacheKey(settings, context);
-        var value = cache.GetAsync(key, context.TaskReturnType).Result;
+        var key = GetCacheKey(context);
+        var value = await _cache.GetAsync(key, context.TaskReturnType);
         if (value != null)
         {
             // check if the cache is out of date
-            var isOutOfDate = IsOutOfDate(context, value).Result;
+            var isOutOfDate = await IsOutOfDate(context, value);
 
             if (!isOutOfDate)
             {
@@ -41,10 +45,9 @@ public class SharpCacheAttribute : MoAttribute
         }
     }
 
-    public override void OnSuccess(MethodContext context)
+    public override async ValueTask OnSuccessAsync(MethodContext context)
     {
-        var settings = Services.GetRequiredService<SharpCacheSettings>();
-        if (!settings.Enabled)
+        if (!_settings.Enabled)
         {
             return;
         }
@@ -57,12 +60,10 @@ public class SharpCacheAttribute : MoAttribute
             return;
         }
 
-        var cache = Services.GetRequiredService<ICacheService>();
-
         if (context.ReturnValue != null)
         {
-            var key = GetCacheKey(settings, context);
-            cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0)).Wait();
+            var key = GetCacheKey(context);
+            await _cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0));
         }
     }
 
@@ -71,25 +72,45 @@ public class SharpCacheAttribute : MoAttribute
         return Task.FromResult(false);
     }
 
-    private string GetCacheKey(SharpCacheSettings settings, MethodContext context)
-    {
-        var key = settings.Prefix + ":" + context.Method.Name;
-        foreach (var arg in context.Arguments)
-        {
-            if (arg is null)
-            {
-                key += "-" + "<NULL>";
-            }
-            else if (arg is ICacheKey withCacheKey)
-            {
-                key += "-" + withCacheKey.GetCacheKey();
-            }
-            else
-            {
-                key += "-" + arg.ToString();
-            }
-        }
 
-        return key;
+    private string GetCacheKey(MethodContext context)
+    {
+        var prefixKey = GetPrefixKey(context.Method.Name);
+        var argsKey = string.Join("_", context.Arguments.Select(arg => GetCacheKeyByArg(arg)));        
+
+        if (_perInstanceCache && context.Target != null)
+        {
+            return $"{prefixKey}-{context.Target.GetHashCode()}_{argsKey}";
+        }
+        else
+        {
+            return $"{prefixKey}_{argsKey}";
+        }        
+    }
+
+    private string GetPrefixKey(string name)
+    {
+        return _settings.Prefix + ":" + name;
+    }
+
+    private string GetCacheKeyByArg(object? arg)
+    {
+        if (arg is null)
+        {
+            return NullMarker.GetHashCode().ToString();
+        }
+        else if (arg is ICacheKey withCacheKey)
+        { 
+            return withCacheKey.GetCacheKey();
+        }
+        else
+        {
+            return arg.GetHashCode().ToString();
+        }
+    }
+
+    public async Task ClearCacheAsync()
+    { 
+        await _cache.ClearCacheAsync(_settings.Prefix);
     }
 }

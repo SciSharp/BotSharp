@@ -14,6 +14,7 @@ using BotSharp.Core.Infrastructures.Events;
 using BotSharp.Core.Roles.Services;
 using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Templating;
+using BotSharp.Abstraction.Infrastructures.Enums;
 
 namespace BotSharp.Core;
 
@@ -34,20 +35,30 @@ public static class BotSharpCoreExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ProcessorFactory>();
 
-        // Register cache service
-        var cacheSettings = new SharpCacheSettings();
-        config.Bind("SharpCache", cacheSettings);
-        services.AddSingleton(x => cacheSettings);
-        services.AddSingleton<ICacheService, RedisCacheService>();
-
         AddRedisEvents(services, config);
-
-        services.AddMemoryCache();
+        // Register cache service
+        AddCacheServices(services, config);
 
         RegisterPlugins(services, config);
         AddBotSharpOptions(services, configOptions);
 
         return services;
+    }
+
+    private static void AddCacheServices(IServiceCollection services, IConfiguration config)
+    {
+        services.AddMemoryCache();
+        var cacheSettings = new SharpCacheSettings();
+        config.Bind("SharpCache", cacheSettings);
+        services.AddSingleton(x => cacheSettings);
+        services.AddSingleton<MemoryCacheService>();
+        services.AddSingleton<RedisCacheService>();
+        services.AddSingleton<ICacheService>(sp =>
+            cacheSettings.CacheType switch
+            {
+                CacheType.RedisCache => sp.GetRequiredService<RedisCacheService>(),
+                _ => sp.GetRequiredService<MemoryCacheService>(),
+            });
     }
 
     public static IServiceCollection UsingSqlServer(this IServiceCollection services, IConfiguration config)
