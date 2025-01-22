@@ -13,24 +13,26 @@ public class SharpCacheAttribute : AsyncMoAttribute
 
     private readonly int _minutes;
     private readonly bool _perInstanceCache;
+    private readonly ICacheService _cache;
+    private readonly SharpCacheSettings _settings;
 
     public SharpCacheAttribute(int minutes = 60, bool perInstanceCache = false)
     {
         _minutes = minutes;
         _perInstanceCache = perInstanceCache;
+        _cache = Services.GetRequiredService<ICacheService>();
+        _settings = Services.GetRequiredService<SharpCacheSettings>();
     }
 
     public override async ValueTask OnEntryAsync(MethodContext context)
     {
-        var settings = Services.GetRequiredService<SharpCacheSettings>();
-        if (!settings.Enabled)
+        if (!_settings.Enabled)
         {
             return;
         }
 
-        var cache = Services.GetRequiredService<ICacheService>();
-        var key = GetCacheKey(settings, context);
-        var value = await cache.GetAsync(key, context.TaskReturnType);
+        var key = GetCacheKey(context);
+        var value = await _cache.GetAsync(key, context.TaskReturnType);
         if (value != null)
         {
             // check if the cache is out of date
@@ -45,8 +47,7 @@ public class SharpCacheAttribute : AsyncMoAttribute
 
     public override async ValueTask OnSuccessAsync(MethodContext context)
     {
-        var settings = Services.GetRequiredService<SharpCacheSettings>();
-        if (!settings.Enabled)
+        if (!_settings.Enabled)
         {
             return;
         }
@@ -59,12 +60,10 @@ public class SharpCacheAttribute : AsyncMoAttribute
             return;
         }
 
-        var cache = Services.GetRequiredService<ICacheService>();
-
         if (context.ReturnValue != null)
         {
-            var key = GetCacheKey(settings, context);
-            await cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0));
+            var key = GetCacheKey(context);
+            await _cache.SetAsync(key, context.ReturnValue, new TimeSpan(0, _minutes, 0));
         }
     }
 
@@ -74,9 +73,9 @@ public class SharpCacheAttribute : AsyncMoAttribute
     }
 
 
-    private string GetCacheKey(SharpCacheSettings settings, MethodContext context)
+    private string GetCacheKey(MethodContext context)
     {
-        var prefixKey = settings.Prefix + ":" + context.Method.Name;
+        var prefixKey = GetPrefixKey(context.Method.Name);
         var argsKey = string.Join("_", context.Arguments.Select(arg => GetCacheKeyByArg(arg)));        
 
         if (_perInstanceCache && context.Target != null)
@@ -87,6 +86,11 @@ public class SharpCacheAttribute : AsyncMoAttribute
         {
             return $"{prefixKey}_{argsKey}";
         }        
+    }
+
+    private string GetPrefixKey(string name)
+    {
+        return _settings.Prefix + ":" + name;
     }
 
     private string GetCacheKeyByArg(object? arg)
@@ -103,5 +107,10 @@ public class SharpCacheAttribute : AsyncMoAttribute
         {
             return arg.GetHashCode().ToString();
         }
+    }
+
+    public async Task ClearCacheAsync()
+    { 
+        await _cache.ClearCacheAsync(_settings.Prefix);
     }
 }
