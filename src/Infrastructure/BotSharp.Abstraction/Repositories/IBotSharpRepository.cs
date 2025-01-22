@@ -27,7 +27,8 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     #region User
     User? GetUserByEmail(string email) => throw new NotImplementedException();
-    User? GetUserByPhone(string phone, string source = "internal", string regionCode = "CN") => throw new NotImplementedException();
+    User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN") => throw new NotImplementedException();
+    User? GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN") => throw new NotImplementedException();
     User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
     User? GetUserById(string id) => throw new NotImplementedException();
     List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();

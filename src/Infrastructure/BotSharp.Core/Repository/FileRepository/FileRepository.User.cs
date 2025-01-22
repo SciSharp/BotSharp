@@ -11,7 +11,24 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.Email == email.ToLower());
     }
 
-    public User? GetUserByPhone(string phone, string? source = UserType.Internal, string regionCode = "CN")
+    public User? GetUserByPhone(string phone, string? type = UserType.Client, string regionCode = "CN")
+    {
+        var query = Users.Where(x => x.Phone == phone);
+
+        if (!string.IsNullOrEmpty(type))
+        {
+            query = query.Where(x => x.Type == type);
+        }
+
+        if (!string.IsNullOrEmpty(regionCode))
+        {
+            query = query.Where(x => x.RegionCode == regionCode);
+        }
+
+        return query.FirstOrDefault();
+    }
+
+    public User? GetUserByPhoneV2(string phone, string? source = UserType.Internal, string regionCode = "CN")
     {
         var query = Users.Where(x => x.Phone == phone);
 
