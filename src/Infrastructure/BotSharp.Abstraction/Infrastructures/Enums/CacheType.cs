@@ -9,7 +9,6 @@ namespace BotSharp.Abstraction.Infrastructures.Enums
     public enum CacheType
     {
         MemoryCache,
-        RedisCache,
-        HybridCache
+        RedisCache
     }
 }

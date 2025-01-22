@@ -11,16 +11,17 @@ public class SharpCacheAttribute : AsyncMoAttribute
     public static IServiceProvider Services { get; set; } = null!;
     private static readonly object NullMarker = new { __is_null = "$_is_null" };
 
-    private int _minutes;
+    private readonly int _minutes;
+    private readonly bool _perInstanceCache;
 
-    public SharpCacheAttribute(int minutes = 60)
+    public SharpCacheAttribute(int minutes = 60, bool perInstanceCache = false)
     {
         _minutes = minutes;
+        _perInstanceCache = perInstanceCache;
     }
 
     public override async ValueTask OnEntryAsync(MethodContext context)
     {
-
         var settings = Services.GetRequiredService<SharpCacheSettings>();
         if (!settings.Enabled)
         {
@@ -33,7 +34,7 @@ public class SharpCacheAttribute : AsyncMoAttribute
         if (value != null)
         {
             // check if the cache is out of date
-            var isOutOfDate = IsOutOfDate(context, value).Result;
+            var isOutOfDate = await IsOutOfDate(context, value);
 
             if (!isOutOfDate)
             {
@@ -76,10 +77,19 @@ public class SharpCacheAttribute : AsyncMoAttribute
     private string GetCacheKey(SharpCacheSettings settings, MethodContext context)
     {
         var prefixKey = settings.Prefix + ":" + context.Method.Name;
-        return $"{prefixKey}_{string.Join("_", context.Arguments.Select(arg => GetCacheKey(arg)))}";
+        var argsKey = string.Join("_", context.Arguments.Select(arg => GetCacheKeyByArg(arg)));        
+
+        if (_perInstanceCache && context.Target != null)
+        {
+            return $"{prefixKey}-{context.Target.GetHashCode()}_{argsKey}";
+        }
+        else
+        {
+            return $"{prefixKey}_{argsKey}";
+        }        
     }
 
-    private string GetCacheKey(object? arg)
+    private string GetCacheKeyByArg(object? arg)
     {
         if (arg is null)
         {

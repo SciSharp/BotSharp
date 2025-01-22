@@ -53,11 +53,9 @@ public static class BotSharpCoreExtensions
         services.AddSingleton(x => cacheSettings);
         services.AddSingleton<MemoryCacheService>();
         services.AddSingleton<RedisCacheService>();
-        services.AddSingleton<HybridCacheService>();
         services.AddSingleton<ICacheService>(sp =>
             cacheSettings.CacheType switch
             {
-                CacheType.HybridCache => sp.GetRequiredService<HybridCacheService>(),
                 CacheType.RedisCache => sp.GetRequiredService<RedisCacheService>(),
                 _ => sp.GetRequiredService<MemoryCacheService>(),
             });
