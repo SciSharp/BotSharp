@@ -142,34 +142,4 @@ public class SideCarAttribute : AsyncMoAttribute
         return;
     }
     #endregion
-
-
-    #region Call original method
-    private static T WrapGenericSync<T>(Func<object[], object> target, object[] args)
-    {
-        T res;
-        res = (T)target(args);
-        return res;
-    }
-
-    private static async Task<T> WrapGenericAsync<T>(Func<object[], object> target, object[] args)
-    {
-        T res;
-        res = await (Task<T>)target(args);
-        return res;
-    }
-
-
-    private static void WrapSync(Func<object[], object> target, object[] args)
-    {
-        target(args);
-        return;
-    }
-
-    private static async Task WrapAsync(Func<object[], object> target, object[] args)
-    {
-        await (Task)target(args);
-        return;
-    }
-    #endregion
 }
