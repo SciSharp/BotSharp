@@ -1,22 +1,21 @@
 using BotSharp.Abstraction.Infrastructures;
 using Newtonsoft.Json;
 using StackExchange.Redis;
-using System.Linq;
 
 namespace BotSharp.Core.Infrastructures;
 
 public class RedisCacheService : ICacheService
 {
-    private IConnectionMultiplexer _redis = null!;
+    private readonly IServiceProvider _services;
 
-    public RedisCacheService(IConnectionMultiplexer redis)
+    public RedisCacheService()
     {
-        _redis = redis;
     }
 
     public async Task<T?> GetAsync<T>(string key)
     {
-        var db = _redis.GetDatabase();
+        var redis = _services.GetService<IConnectionMultiplexer>();
+        var db = redis.GetDatabase();
         var value = await db.StringGetAsync(key);
 
         if (value.HasValue)
@@ -29,7 +28,8 @@ public class RedisCacheService : ICacheService
 
     public async Task<object> GetAsync(string key, Type type)
     {
-        var db = _redis.GetDatabase();
+        var redis = _services.GetService<IConnectionMultiplexer>();
+        var db = redis.GetDatabase();
         var value = await db.StringGetAsync(key);
 
         if (value.HasValue)
@@ -43,20 +43,23 @@ public class RedisCacheService : ICacheService
 
     public async Task SetAsync<T>(string key, T value, TimeSpan? expiry)
     {
-        var db = _redis.GetDatabase();
+        var redis = _services.GetService<IConnectionMultiplexer>();
+        var db = redis.GetDatabase();
         await db.StringSetAsync(key, JsonConvert.SerializeObject(value), expiry);
     }
 
     public async Task RemoveAsync(string key)
     {
-        var db = _redis.GetDatabase();
+        var redis = _services.GetService<IConnectionMultiplexer>();
+        var db = redis.GetDatabase();
         await db.KeyDeleteAsync(key);
     }
 
     public async Task ClearCacheAsync(string prefix)
     {
-        var db = _redis.GetDatabase();
-        var server = _redis.GetServer(_redis.GetEndPoints().First());
+        var redis = _services.GetService<IConnectionMultiplexer>();
+        var db = redis.GetDatabase();
+        var server = redis.GetServer(redis.GetEndPoints().First());
         const int pageSize = 1000;
         var keys = server.Keys(pattern: $"{prefix}*", pageSize: pageSize).ToList();
 
