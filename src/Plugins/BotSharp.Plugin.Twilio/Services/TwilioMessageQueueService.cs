@@ -81,8 +81,9 @@ namespace BotSharp.Plugin.Twilio.Services
             InitProgressService(message, sessionManager, progressService);
             InitConversation(message, inputMsg, conv, routing);
 
+            // Need to consider Inbound and Outbound call
             var conversation = await conv.GetConversation(message.ConversationId);
-            var agentId = string.IsNullOrWhiteSpace(conversation.AgentId) ? config.AgentId : conversation.AgentId;
+            var agentId = string.IsNullOrWhiteSpace(conversation?.AgentId) ? config.AgentId : conversation.AgentId;
 
             var result = await conv.SendMessage(agentId,
                 inputMsg,
