@@ -11,4 +11,5 @@ public class TwilioSetting
     public string CallbackHost { get; set; }
     public string AgentId { get; set; }
     public string CsrAgentNumber { get; set; }
+    public int MaxGatherAttempts { get; set; } = 4;
 }

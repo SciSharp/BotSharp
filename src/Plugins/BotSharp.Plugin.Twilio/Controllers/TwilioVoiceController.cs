@@ -147,37 +147,20 @@ public class TwilioVoiceController : TwilioController
         }
         else
         {
-            // keep waiting for user response
-            if (request.Attempts > 3)
+            if (request.Attempts > _settings.MaxGatherAttempts)
             {
-                var instruction = new ConversationalVoiceResponse
-                {
-                    SpeechPaths = new List<string>(),
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/receive/{request.SeqNum}?{GenerateStatesParameter(request.States)}",
-                    ActionOnEmptyResult = true
-                };
-
-                // prompt user to speak clearly
-                if (request.SeqNum == 0)
-                {
-                    instruction.SpeechPaths.Add("twilio/welcome.mp3");
-                }
-                else
-                {
-                    var lastRepy = await sessionManager.GetAssistantReplyAsync(request.ConversationId, request.SeqNum - 1);
-                    instruction.SpeechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{lastRepy.SpeechFileName}");
-                }
 
                 await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
                 {
-                    await hook.OnWaitingUserResponse(request, instruction);
+                    await hook.OnAgentHangUp(request);
                 }, new HookEmitOption
                 {
                     OnlyOnce = true
                 });
 
-                response = twilio.ReturnInstructions(instruction);
+                response = twilio.HangUp(null);
             }
+            // keep waiting for user response
             else
             {
                 var instruction = new ConversationalVoiceResponse
