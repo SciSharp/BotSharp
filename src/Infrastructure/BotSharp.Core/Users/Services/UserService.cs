@@ -377,7 +377,7 @@ public class UserService : IUserService
         return await _cacheService.GetAsync<DateTime>(GetUserTokenExpiresCacheKey(_user.Id));
     }
 
-    [MemoryCache(10 * 60, perInstanceCache: true)]
+    [SharpCache(10, perInstanceCache: true)]
     public async Task<User> GetMyProfile()
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
@@ -398,7 +398,7 @@ public class UserService : IUserService
         return user;
     }
 
-    [MemoryCache(10 * 60, perInstanceCache: true)]
+    [SharpCache(10, perInstanceCache: true)]
     public async Task<User> GetUser(string id)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
