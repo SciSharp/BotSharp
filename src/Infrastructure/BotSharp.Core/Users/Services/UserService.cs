@@ -55,6 +55,11 @@ public class UserService : IUserService
 
         if (record == null && !string.IsNullOrWhiteSpace(user.Phone))
         {
+            //if (user.Type != "internal")
+            //{
+            //    record = db.GetUserByPhoneV2(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
+            //}
+
             record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
         }
 
@@ -477,10 +482,16 @@ public class UserService : IUserService
         var id = model.UserName;
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var record = id.Contains("@") ? db.GetUserByEmail(id) : db.GetUserByUserName(id);
+
         if (record == null)
         {
             record = db.GetUserByPhone(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
         }
+
+        //if (record == null)
+        //{
+        //    record = db.GetUserByPhoneV2(id, regionCode: (string.IsNullOrWhiteSpace(model.RegionCode) ? "CN" : model.RegionCode));
+        //}
 
         if (record == null)
         {
@@ -621,21 +632,12 @@ public class UserService : IUserService
     public async Task<User> ResetVerificationCode(User user)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        User record = null;
-        if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.Phone))
+        if (!string.IsNullOrWhiteSpace(user.Email) && !string.IsNullOrWhiteSpace(user.Phone))
         {
             return null;
         }
 
-        if (!string.IsNullOrEmpty(user.Phone))
-        {
-            record = db.GetUserByPhone(user.Phone, regionCode: user.RegionCode);
-        }
-
-        if (!string.IsNullOrEmpty(user.Email))
-        {
-            record = db.GetUserByEmail(user.Email);
-        }
+        User? record = GetLoginUserByUniqueFilter(user, db);
 
         if (record == null)
         {
@@ -646,6 +648,36 @@ public class UserService : IUserService
 
         //update current verification code.
         db.UpdateUserVerificationCode(record.Id, record.VerificationCode);
+
+        return record;
+    }
+
+    private static User? GetLoginUserByUniqueFilter(User user, IBotSharpRepository db)
+    {
+        User? record = null;
+        if (!string.IsNullOrWhiteSpace(user.Id))
+        {
+            record = db.GetUserById(user.Id);
+        }
+
+        if (record == null && !string.IsNullOrWhiteSpace(user.Phone))
+        {
+            record = db.GetUserByPhone(user.Phone, regionCode: string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode);
+            //if (record == null)
+            //{
+            //    record = db.GetUserByPhoneV2(user.Phone, regionCode: string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode);
+            //}
+        }
+
+        if (record == null && !string.IsNullOrWhiteSpace(user.Email))
+        {
+            record = db.GetUserByEmail(user.Email);
+        }
+
+        if (record == null && !string.IsNullOrWhiteSpace(user.UserName))
+        {
+            record = db.GetUserByUserName(user.UserName);
+        }
 
         return record;
     }
@@ -689,17 +721,7 @@ public class UserService : IUserService
         }
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        User? record = null;
-
-        if (!string.IsNullOrEmpty(user.Email))
-        {
-            record = db.GetUserByEmail(user.Email);
-        }
-
-        if (!string.IsNullOrEmpty(user.Phone))
-        {
-            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
-        }
+        User? record = GetLoginUserByUniqueFilter(user, db);
 
         if (record == null)
         {
@@ -724,20 +746,7 @@ public class UserService : IUserService
         }
         var db = _services.GetRequiredService<IBotSharpRepository>();
 
-        User? record = null;
-
-        if (!string.IsNullOrEmpty(user.Id))
-        {
-            record = db.GetUserById(user.Id);
-        }
-        else if (!string.IsNullOrEmpty(user.Phone))
-        {
-            record = db.GetUserByPhone(user.Phone, regionCode: (string.IsNullOrWhiteSpace(user.RegionCode) ? "CN" : user.RegionCode));
-        }
-        else if (!string.IsNullOrEmpty(user.Email))
-        {
-            record = db.GetUserByEmail(user.Email);
-        }
+        User? record = GetLoginUserByUniqueFilter(user, db);
 
         if (record == null)
         {

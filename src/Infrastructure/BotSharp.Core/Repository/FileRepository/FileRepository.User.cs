@@ -28,6 +28,23 @@ public partial class FileRepository
         return query.FirstOrDefault();
     }
 
+    public User? GetUserByPhoneV2(string phone, string? source = UserType.Internal, string regionCode = "CN")
+    {
+        var query = Users.Where(x => x.Phone == phone);
+
+        if (!string.IsNullOrEmpty(source))
+        {
+            query = query.Where(x => x.Type == source);
+        }
+
+        if (!string.IsNullOrEmpty(regionCode))
+        {
+            query = query.Where(x => x.RegionCode == regionCode);
+        }
+
+        return query.FirstOrDefault();
+    }
+
     public User? GetAffiliateUserByPhone(string phone)
     {
         return Users.FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
@@ -172,7 +189,9 @@ public partial class FileRepository
                 searchResult.Add(user);
             }
         }
-        else if (!string.IsNullOrWhiteSpace(filter.UserName))
+
+
+        if (searchResult.Count == 0 && !string.IsNullOrWhiteSpace(filter.UserName))
         {
             var curUser = Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
             User user = curUser != null ? curUser : null;

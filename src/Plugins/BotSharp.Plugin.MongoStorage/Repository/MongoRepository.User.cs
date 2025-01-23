@@ -37,6 +37,30 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
+    public User? GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN")
+    {
+        string phoneSecond = string.Empty;
+        // if phone number length is less than 4, return null
+        if (string.IsNullOrWhiteSpace(phone) || phone?.Length < 4)
+        {
+            return null;
+        }
+
+        if (regionCode == "CN")
+        {
+            phoneSecond = (phone ?? "").StartsWith("+86") ? (phone ?? "").Replace("+86", "") : ($"+86{phone ?? ""}");
+        }
+        else
+        {
+            phoneSecond = (phone ?? "").Substring(regionCode == "US" ? 2 : 3);
+        }
+
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond)
+        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
+        && (x.Source == source));
+        return user != null ? user.ToUser() : null;
+    }
+
     public User? GetAffiliateUserByPhone(string phone)
     {
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
@@ -282,14 +306,16 @@ public partial class MongoRepository
         }
         else if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToString());
+            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToLower());
             User user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
                 searchResult.Add(user);
             }
         }
-        else if (!string.IsNullOrWhiteSpace(filter.UserName))
+
+
+        if (searchResult.Count == 0 && !string.IsNullOrWhiteSpace(filter.UserName))
         {
             var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
             User user = curUser != null ? curUser.ToUser() : null;
