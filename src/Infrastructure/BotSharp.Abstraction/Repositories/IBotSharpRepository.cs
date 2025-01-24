@@ -120,7 +120,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Statistics
-    BotSharpStats? GetGlobalStats(string category, string group, DateTime recordDate) => throw new NotImplementedException();
+    BotSharpStats? GetGlobalStats(string category, string group, DateTime recordTime) => throw new NotImplementedException();
     bool SaveGlobalStats(BotSharpStats body) => throw new NotImplementedException();
 
     #endregion

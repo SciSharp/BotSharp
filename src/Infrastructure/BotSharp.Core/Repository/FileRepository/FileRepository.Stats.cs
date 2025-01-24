@@ -4,10 +4,10 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public BotSharpStats? GetGlobalStats(string category, string group, DateTime recordDate)
+    public BotSharpStats? GetGlobalStats(string category, string group, DateTime recordTime)
     {
         var baseDir = Path.Combine(_dbSettings.FileRepository, STATS_FOLDER);
-        var dir = Path.Combine(baseDir, category, recordDate.Year.ToString(), recordDate.Month.ToString("D2"));
+        var dir = Path.Combine(baseDir, category, recordTime.Year.ToString(), recordTime.Month.ToString("D2"));
         if (!Directory.Exists(dir)) return null;
 
         var file = Directory.GetFiles(dir).FirstOrDefault(x => Path.GetFileName(x) == STATS_FILE);
@@ -17,14 +17,14 @@ public partial class FileRepository
         var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
         var found = list?.FirstOrDefault(x => x.Category.IsEqualTo(category)
                                             && x.Group.IsEqualTo(group)
-                                            && x.RecordDate == recordDate);
+                                            && x.RecordTime == recordTime);
         return found;
     }
 
     public bool SaveGlobalStats(BotSharpStats body)
     {
         var baseDir = Path.Combine(_dbSettings.FileRepository, STATS_FOLDER);
-        var dir = Path.Combine(baseDir, body.Category, body.RecordDate.Year.ToString(), body.RecordDate.Month.ToString("D2"));
+        var dir = Path.Combine(baseDir, body.Category, body.RecordTime.Year.ToString(), body.RecordTime.Month.ToString("D2"));
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
@@ -42,14 +42,14 @@ public partial class FileRepository
             var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
             var found = list?.FirstOrDefault(x => x.Category.IsEqualTo(body.Category)
                                                 && x.Group.IsEqualTo(body.Group)
-                                                && x.RecordDate == body.RecordDate);
+                                                && x.RecordTime == body.RecordTime);
 
             if (found != null)
             {
                 found.Category = body.Category;
                 found.Group = body.Group;
                 found.Data = body.Data;
-                found.RecordDate = body.RecordDate;
+                found.RecordTime = body.RecordTime;
             }
             else if (list != null)
             {

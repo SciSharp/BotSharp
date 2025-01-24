@@ -71,7 +71,7 @@ public class TokenStatistics : ITokenStatistics
                 { "prompt_cost_total", deltaPromptCost },
                 { "completion_cost_total", deltaCompletionCost }
             },
-            RecordDate = DateTime.UtcNow
+            RecordTime = DateTime.UtcNow
         };
         globalStats.UpdateLlmCost(body);
     }

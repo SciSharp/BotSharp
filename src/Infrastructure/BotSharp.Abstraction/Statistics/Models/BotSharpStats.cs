@@ -11,24 +11,24 @@ public class BotSharpStats
     [JsonPropertyName("data")]
     public IDictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
 
-    private DateTime innerRecordDate;
+    private DateTime innerRecordTime;
 
-    [JsonPropertyName("record_date")]
-    public DateTime RecordDate
+    [JsonPropertyName("record_time")]
+    public DateTime RecordTime
     {
         get
         {
-            return innerRecordDate;
+            return innerRecordTime;
         }
         set
         {
             var date = new DateTime(value.Year, value.Month, value.Day, value.Hour, 0, 0);
-            innerRecordDate = date;
+            innerRecordTime = DateTime.SpecifyKind(date, DateTimeKind.Utc);
         }
     }
 
     public override string ToString()
     {
-        return $"{Category}-{Group}: {Data?.Count ?? 0} ({RecordDate})";
+        return $"{Category}-{Group}: {Data?.Count ?? 0} ({RecordTime})";
     }
 }

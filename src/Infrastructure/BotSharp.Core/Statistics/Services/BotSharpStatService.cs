@@ -34,7 +34,7 @@ public class BotSharpStatService : IBotSharpStatService
 
             var res = locker.Lock(GLOBAL_LLM_COST, () =>
             {
-                var body = db.GetGlobalStats(stats.Category, stats.Group, stats.RecordDate);
+                var body = db.GetGlobalStats(stats.Category, stats.Group, stats.RecordTime);
                 if (body == null)
                 {
                     db.SaveGlobalStats(stats);
@@ -43,20 +43,29 @@ public class BotSharpStatService : IBotSharpStatService
 
                 foreach (var item in stats.Data)
                 {
-                    var value = item.Value;
-                    if (body.Data.TryGetValue(item.Key, out var curValue) && curValue != null)
+                    var curValue = item.Value;
+                    if (body.Data.TryGetValue(item.Key, out var preValue))
                     {
-                        var str = curValue.ToString();
-                        if (long.TryParse(str, out var count))
+                        var preValStr = preValue?.ToString();
+                        var curValStr = curValue?.ToString();
+                        try
                         {
-                            value = long.Parse(value?.ToString() ?? "0") + count;
+                            if (int.TryParse(preValStr, out var count))
+                            {
+                                curValue = int.Parse(curValStr ?? "0") + count;
+                            }
+                            else if (double.TryParse(preValStr, out var num))
+                            {
+                                curValue = double.Parse(curValStr ?? "0") + num;
+                            }
                         }
-                        else if (decimal.TryParse(str, out var num))
+                        catch
                         {
-                            value = decimal.Parse(value?.ToString() ?? "0") + num;
+                            continue;
                         }
                     }
-                    body.Data[item.Key] = value;
+
+                    body.Data[item.Key] = curValue;
                 }
 
                 db.SaveGlobalStats(body);
@@ -81,7 +90,7 @@ public class BotSharpStatService : IBotSharpStatService
 
             var res = locker.Lock(GLOBAL_AGENT_CALL, () =>
             {
-                var body = db.GetGlobalStats(stats.Category, stats.Group, stats.RecordDate);
+                var body = db.GetGlobalStats(stats.Category, stats.Group, stats.RecordTime);
                 if (body == null)
                 {
                     db.SaveGlobalStats(stats);
@@ -90,16 +99,24 @@ public class BotSharpStatService : IBotSharpStatService
 
                 foreach (var item in stats.Data)
                 {
-                    var value = item.Value;
-                    if (body.Data.TryGetValue(item.Key, out var curValue) && curValue != null)
+                    var curValue = item.Value;
+                    if (body.Data.TryGetValue(item.Key, out var preValue))
                     {
-                        var str = curValue.ToString();
-                        if (long.TryParse(str, out var count))
+                        var preValStr = preValue?.ToString();
+                        var curValStr = curValue?.ToString();
+                        try
                         {
-                            value = long.Parse(value?.ToString() ?? "0") + count;
+                            if (int.TryParse(preValStr, out var count))
+                            {
+                                curValue = int.Parse(curValStr ?? "0") + count;
+                            }
+                        }
+                        catch
+                        {
+                            continue;
                         }
                     }
-                    body.Data[item.Key] = value;
+                    body.Data[item.Key] = curValue;
                 }
 
                 db.SaveGlobalStats(body);

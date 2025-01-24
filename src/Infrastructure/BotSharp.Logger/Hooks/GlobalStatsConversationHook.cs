@@ -38,7 +38,7 @@ public class GlobalStatsConversationHook : ConversationHookBase
                 { "agent_id", message.CurrentAgentId },
                 { "agent_call_count", 1 }
             },
-            RecordDate = DateTime.UtcNow
+            RecordTime = DateTime.UtcNow
         };
         globalStats.UpdateAgentCall(body);
     }
