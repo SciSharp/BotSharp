@@ -1,6 +1,9 @@
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Statistics.Enums;
+using BotSharp.Abstraction.Statistics.Models;
+using BotSharp.Abstraction.Statistics.Services;
 using BotSharp.Abstraction.Users;
 
 namespace BotSharp.Logger.Hooks;

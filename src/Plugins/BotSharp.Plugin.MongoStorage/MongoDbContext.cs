@@ -169,4 +169,7 @@ public class MongoDbContext
     public IMongoCollection<CrontabItemDocument> CrontabItems
         => Database.GetCollection<CrontabItemDocument>($"{_collectionPrefix}_CronTabItems");
 
+    public IMongoCollection<GlobalStatisticsDocument> GlobalStatistics
+        => Database.GetCollection<GlobalStatisticsDocument>($"{_collectionPrefix}_GlobalStatistics");
+
 }

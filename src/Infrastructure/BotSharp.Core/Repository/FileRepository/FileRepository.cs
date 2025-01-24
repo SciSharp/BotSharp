@@ -1,11 +1,11 @@
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Text.Encodings.Web;
 using FunctionDef = BotSharp.Abstraction.Functions.Models.FunctionDef;
 using BotSharp.Abstraction.Users.Models;
-using System.Text.Encodings.Web;
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Statistics.Settings;
 using BotSharp.Abstraction.Tasks.Models;
-using System.Text.RegularExpressions;
+
 
 namespace BotSharp.Core.Repository;
 
@@ -15,7 +15,6 @@ public partial class FileRepository : IBotSharpRepository
     private readonly BotSharpDatabaseSettings _dbSettings;
     private readonly AgentSettings _agentSettings;
     private readonly ConversationSetting _conversationSettings;
-    private readonly StatisticsSettings _statisticsSetting;
     private readonly ILogger<FileRepository> _logger;
     private JsonSerializerOptions _options;
 
@@ -53,6 +52,8 @@ public partial class FileRepository : IBotSharpRepository
 
     private const string EXECUTION_LOG_FILE = "execution.log";
     private const string PLUGIN_CONFIG_FILE = "config.json";
+
+    private const string STATS_FOLDER = "stats";
     private const string STATS_FILE = "stats.json";
 
     private const string CRON_FILE = "cron.json";
@@ -62,14 +63,12 @@ public partial class FileRepository : IBotSharpRepository
         BotSharpDatabaseSettings dbSettings,
         AgentSettings agentSettings,
         ConversationSetting conversationSettings,
-        StatisticsSettings statisticsSettings,
          ILogger<FileRepository> logger)
     {
         _services = services;
         _dbSettings = dbSettings;
         _agentSettings = agentSettings;
         _conversationSettings = conversationSettings;
-        _statisticsSetting = statisticsSettings;
         _logger = logger;
 
         _options = new JsonSerializerOptions

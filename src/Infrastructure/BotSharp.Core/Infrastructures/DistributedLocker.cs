@@ -9,7 +9,9 @@ public class DistributedLocker : IDistributedLocker
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public DistributedLocker(IServiceProvider services, ILogger<DistributedLocker> logger)
+    public DistributedLocker(
+        IServiceProvider services,
+        ILogger<DistributedLocker> logger)
     {
         _services = services;
         _logger = logger;
@@ -46,6 +48,13 @@ public class DistributedLocker : IDistributedLocker
         var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
         var redis = _services.GetRequiredService<IConnectionMultiplexer>();
+        if (redis == null)
+        {
+            _logger.LogWarning($"The Redis server is experiencing issues and is not functioning as expected.");
+            action();
+            return false;
+        }
+
         var @lock = new RedisDistributedLock(resource, redis.GetDatabase());
         using (var handle = @lock.TryAcquire(timeout))
         {
