@@ -18,7 +18,7 @@ public class TokenStatsConversationHook : IContentGeneratingHook
     public async Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
     {
         _tokenStatistics.StopTimer();
-        _tokenStatistics.AddToken(tokenStats);
+        _tokenStatistics.AddToken(tokenStats, message);
         await Task.CompletedTask;
     }
 }

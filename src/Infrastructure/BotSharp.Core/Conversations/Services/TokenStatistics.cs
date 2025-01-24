@@ -32,7 +32,7 @@ public class TokenStatistics : ITokenStatistics
         _logger = logger;
     }
 
-    public void AddToken(TokenStatsModel stats)
+    public void AddToken(TokenStatsModel stats, RoleDialogModel message)
     {
         _model = stats.Model;
         _promptTokenCount += stats.PromptCount;
@@ -63,7 +63,7 @@ public class TokenStatistics : ITokenStatistics
         var body = new BotSharpStats
         {
             Category = StatCategory.LlmCost,
-            Group = $"Provider: {stats.Provider} | Model: {stats.Model}",
+            Group = $"Agent: {message.CurrentAgentId}",
             Data = new Dictionary<string, object>
             {
                 { "prompt_token_count_total", stats.PromptCount },
