@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MLTasks;
 using System.Diagnostics;
-using System.Drawing;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -33,7 +32,7 @@ public class TokenStatistics : ITokenStatistics
         _logger = logger;
     }
 
-    public void AddToken(TokenStatsModel stats)
+    public void AddToken(TokenStatsModel stats, RoleDialogModel message)
     {
         _model = stats.Model;
         _promptTokenCount += stats.PromptCount;
@@ -42,8 +41,10 @@ public class TokenStatistics : ITokenStatistics
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(stats.Provider, _model);
 
-        _promptCost += stats.PromptCount / 1000f * settings.PromptCost;
-        _completionCost += stats.CompletionCount / 1000f * settings.CompletionCost;
+        var deltaPromptCost = stats.PromptCount / 1000f * settings.PromptCost;
+        var deltaCompletionCost = stats.CompletionCount / 1000 * settings.CompletionCost;
+        _promptCost += deltaPromptCost;
+        _completionCost += deltaCompletionCost;
 
         // Accumulated Token
         var stat = _services.GetRequiredService<IConversationStateService>();
@@ -56,6 +57,23 @@ public class TokenStatistics : ITokenStatistics
         var total_cost = float.Parse(stat.GetState("llm_total_cost", "0"));
         total_cost += Cost;
         stat.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
+
+
+        var globalStats = _services.GetRequiredService<IBotSharpStatService>();
+        var body = new BotSharpStats
+        {
+            Category = StatCategory.LlmCost,
+            Group = $"Agent: {message.CurrentAgentId}",
+            Data = new Dictionary<string, object>
+            {
+                { "prompt_token_count_total", stats.PromptCount },
+                { "completion_token_count_total", stats.CompletionCount },
+                { "prompt_cost_total", deltaPromptCost },
+                { "completion_cost_total", deltaCompletionCost }
+            },
+            RecordTime = DateTime.UtcNow
+        };
+        globalStats.UpdateLlmCost(body);
     }
 
     public void PrintStatistics()

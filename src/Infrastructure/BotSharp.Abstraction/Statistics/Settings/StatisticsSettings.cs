@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+namespace BotSharp.Abstraction.Statistics.Settings;
 
-namespace BotSharp.Abstraction.Statistics.Settings
+public class StatisticsSettings
 {
-    public class StatisticsSettings
-    {
-        public string DataDir { get; set; }
-    }
+    public bool Enabled { get; set; }
 }

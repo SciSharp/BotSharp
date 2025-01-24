@@ -11,4 +11,9 @@ public static class MathExt
     {
         return Math.Max(Math.Max(a, b), c);
     }
+
+    public static decimal Round(decimal value, MidpointRounding rouding = MidpointRounding.AwayFromZero)
+    {
+        return Math.Round(value, rouding);
+    }
 }
