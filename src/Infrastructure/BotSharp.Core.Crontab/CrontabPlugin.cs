@@ -34,5 +34,6 @@ public class CrontabPlugin : IBotSharpPlugin
         services.AddScoped<IAgentUtilityHook, CrontabUtilityHook>();
         services.AddScoped<ICrontabService, CrontabService>();
         services.AddHostedService<CrontabWatcher>();
+        services.AddHostedService<CrontabEventSubscription>();
     }
 }

@@ -1,4 +1,4 @@
-namespace BotSharp.Core.Rules.Triggers;
+namespace BotSharp.Abstraction.Rules;
 
 public interface IRuleTrigger
 {
