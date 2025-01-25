@@ -4,7 +4,6 @@ using Rougamo.Context;
 using Microsoft.Extensions.DependencyInjection;
 using BotSharp.Abstraction.Shared;
 
-
 namespace BotSharp.Abstraction.SideCar.Attributes;
 
 [AttributeUsage(AttributeTargets.Method, Inherited = true)]
@@ -34,7 +33,7 @@ public class SideCarAttribute : AsyncMoAttribute
         if (typeof(Task).IsAssignableFrom(retType))
         {
             var syncResultType = retType.IsConstructedGenericType ? retType.GenericTypeArguments[0] : typeof(void);
-            (isHandled, value) = CallAsyncMethod(sidecar, sidecarMethod, syncResultType, methodArgs);
+            (isHandled, value) = await CallAsyncMethod(sidecar, sidecarMethod, syncResultType, methodArgs);
         }
         else
         {
@@ -67,9 +66,10 @@ public class SideCarAttribute : AsyncMoAttribute
         return (sidecar, sidecarMethod);
     }
 
-    private (bool, object?) CallAsyncMethod(IConversationSideCar instance, MethodInfo method, Type retType, object[] args)
+    private async Task<(bool, object?)> CallAsyncMethod(IConversationSideCar instance, MethodInfo method, Type retType, object[] args)
     {
         object? value = null;
+        object? res = null;
         var isHandled = false;
 
         var enabled = instance != null && instance.IsEnabled() && method != null;
@@ -81,12 +81,20 @@ public class SideCarAttribute : AsyncMoAttribute
         isHandled = true;
         if (retType == typeof(void))
         {
-            value = GetMethod(nameof(CallAsync)).Invoke(this, [instance, method, args]);
+            res = GetMethod(nameof(CallAsync)).Invoke(this, [instance, method, args]);
         }
         else
         {
-            var task = GetMethod(nameof(CallGenericAsync)).MakeGenericMethod(retType).Invoke(this, [instance, method, args]);
-            value = task?.GetType().GetProperty("Result")?.GetValue(task);
+            res = GetMethod(nameof(CallGenericAsync)).MakeGenericMethod(retType).Invoke(this, [instance, method, args]);
+        }
+
+        if (res != null && res is Task task)
+        {
+            await task;
+            if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                value = task?.GetType().GetProperty("Result")?.GetValue(task);
+            }
         }
 
         return (isHandled, value);
