@@ -93,7 +93,7 @@ public class SideCarAttribute : AsyncMoAttribute
             await task;
             if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))
             {
-                value = task?.GetType().GetProperty("Result")?.GetValue(task);
+                value = task?.GetType()?.GetProperty("Result")?.GetValue(task);
             }
         }
 
