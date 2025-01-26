@@ -73,7 +73,7 @@ namespace BotSharp.Core.Repository
                     break;
             }
 
-            _agents = [];
+            ResetInnerAgents();
         }
 
         #region Update Agent Fields
@@ -541,7 +541,7 @@ namespace BotSharp.Core.Repository
                 }
             }
 
-            ResetLocalAgents();
+            ResetInnerAgents();
         }
 
         public void BulkInsertUserAgents(List<UserAgent> userAgents)
@@ -574,7 +574,7 @@ namespace BotSharp.Core.Repository
                 Thread.Sleep(50);
             }
 
-            ResetLocalAgents();
+            ResetInnerAgents();
         }
 
         public bool DeleteAgents()
@@ -629,7 +629,7 @@ namespace BotSharp.Core.Repository
 
                 // Delete agent folder
                 Directory.Delete(agentDir, true);
-                ResetLocalAgents();
+                ResetInnerAgents();
                 return true;
             }
             catch
@@ -638,7 +638,7 @@ namespace BotSharp.Core.Repository
             }
         }
 
-        private void ResetLocalAgents()
+        private void ResetInnerAgents()
         {
             _agents = [];
             _userAgents = [];

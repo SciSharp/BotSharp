@@ -7,6 +7,6 @@ public interface ITokenStatistics
     float Cost { get; }
     void StartTimer();
     void StopTimer();
-    void AddToken(TokenStatsModel stats);
+    void AddToken(TokenStatsModel stats, RoleDialogModel message);
     void PrintStatistics();
 }

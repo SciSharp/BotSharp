@@ -55,7 +55,6 @@ public class ChatHubConversationHook : ConversationHookBase
         var sender = await userService.GetMyProfile();
 
         // Update console conversation UI for CSR
-        
         var model = new ChatResponseModel()
         {
             ConversationId = conv.ConversationId,
