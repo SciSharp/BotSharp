@@ -16,11 +16,6 @@ public class DashboardPlugin : IBotSharpPlugin
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IConversationHook, StatsConversationHook>();
-        services.AddScoped(provider =>
-        {
-            var settingService = provider.GetRequiredService<ISettingService>();
-            return settingService.Bind<StatisticsSettings>("Statistics");
-        });
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
