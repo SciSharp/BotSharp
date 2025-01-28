@@ -29,17 +29,15 @@ public class GlobalStatsConversationHook : ConversationHookBase
         // record agent call
         var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
 
-        var body = new BotSharpStats
+        var body = new BotSharpStatsInput
         {
-            Category = StatCategory.AgentCall,
-            Group = $"Agent: {message.CurrentAgentId}",
-            Data = new Dictionary<string, object>
-            {
-                { "agent_id", message.CurrentAgentId },
-                { "agent_call_count", 1 }
-            },
+            Category = StatsCategory.AgentCall,
+            Group = message.CurrentAgentId,
+            Data = [
+                new StatsKeyValuePair("agent_call_count", 1)
+            ],
             RecordTime = DateTime.UtcNow
         };
-        globalStats.UpdateAgentCall(body);
+        globalStats.UpdateStats("global-agent-call", body);
     }
 }

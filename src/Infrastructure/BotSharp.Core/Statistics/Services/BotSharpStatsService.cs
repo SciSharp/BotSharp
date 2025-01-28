@@ -9,8 +9,6 @@ public class BotSharpStatsService : IBotSharpStatsService
     private readonly ILogger<BotSharpStatsService> _logger;
     private readonly StatisticsSettings _settings;
 
-    private const string GLOBAL_LLM_COST = "global-llm-cost";
-    private const string GLOBAL_AGENT_CALL = "global-agent-call";
     private const int TIMEOUT_SECONDS = 5;
 
     public BotSharpStatsService(
@@ -23,109 +21,71 @@ public class BotSharpStatsService : IBotSharpStatsService
         _settings = settings;
     }
 
-    public bool UpdateLlmCost(BotSharpStats stats)
+
+    public bool UpdateStats(string resourceKey, BotSharpStatsInput input)
     {
         try
         {
-            if (!_settings.Enabled) return false;
-
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            var locker = _services.GetRequiredService<IDistributedLocker>();
-
-            var res = locker.Lock(GLOBAL_LLM_COST, () =>
+            if (!_settings.Enabled
+                || string.IsNullOrEmpty(resourceKey)
+                || input == null
+                || string.IsNullOrEmpty(input.Category)
+                || string.IsNullOrEmpty(input.Group))
             {
-                var body = db.GetGlobalStats(stats.Category, stats.Group, stats.RecordTime);
+                return false;
+            }
+          
+            var locker = _services.GetRequiredService<IDistributedLocker>();
+            var res = locker.Lock(resourceKey, () =>
+            {
+                var db = _services.GetRequiredService<IBotSharpRepository>();
+                var body = db.GetGlobalStats(input.Category, input.Group, input.RecordTime);
                 if (body == null)
                 {
+                    var stats = new BotSharpStats
+                    {
+                        Category = input.Category,
+                        Group = input.Group,
+                        RecordTime = input.RecordTime,
+                        Data = input.Data.ToDictionary(x => x.Key, x => x.Value)
+                    };
                     db.SaveGlobalStats(stats);
                     return;
                 }
 
-                foreach (var item in stats.Data)
+                foreach (var item in input.Data)
                 {
                     var curValue = item.Value;
                     if (body.Data.TryGetValue(item.Key, out var preValue))
                     {
-                        var preValStr = preValue?.ToString();
-                        var curValStr = curValue?.ToString();
-                        try
+                        switch (item.Operation)
                         {
-                            if (int.TryParse(preValStr, out var count))
-                            {
-                                curValue = int.Parse(curValStr ?? "0") + count;
-                            }
-                            else if (double.TryParse(preValStr, out var num))
-                            {
-                                curValue = double.Parse(curValStr ?? "0") + num;
-                            }
+                            case StatsOperation.Add:
+                                preValue += curValue;
+                                break;
+                            case StatsOperation.Subtract:
+                                preValue -= curValue;
+                                break;
+                            case StatsOperation.Reset:
+                                preValue = 0;
+                                break;
                         }
-                        catch
-                        {
-                            continue;
-                        }
+                        body.Data[item.Key] = preValue;
                     }
-
-                    body.Data[item.Key] = curValue;
-                }
-
-                db.SaveGlobalStats(body);
-            }, TIMEOUT_SECONDS);
-            return res;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error when updating global llm cost stats {stats}. {ex.Message}\r\n{ex.InnerException}");
-            return false;
-        }
-    }
-
-    public bool UpdateAgentCall(BotSharpStats stats)
-    {
-        try
-        {
-            if (!_settings.Enabled) return false;
-
-            var db = _services.GetRequiredService<IBotSharpRepository>();
-            var locker = _services.GetRequiredService<IDistributedLocker>();
-
-            var res = locker.Lock(GLOBAL_AGENT_CALL, () =>
-            {
-                var body = db.GetGlobalStats(stats.Category, stats.Group, stats.RecordTime);
-                if (body == null)
-                {
-                    db.SaveGlobalStats(stats);
-                    return;
-                }
-
-                foreach (var item in stats.Data)
-                {
-                    var curValue = item.Value;
-                    if (body.Data.TryGetValue(item.Key, out var preValue))
+                    else
                     {
-                        var preValStr = preValue?.ToString();
-                        var curValStr = curValue?.ToString();
-                        try
-                        {
-                            if (int.TryParse(preValStr, out var count))
-                            {
-                                curValue = int.Parse(curValStr ?? "0") + count;
-                            }
-                        }
-                        catch
-                        {
-                            continue;
-                        }
+                        body.Data[item.Key] = curValue;
                     }
-                    body.Data[item.Key] = curValue;
                 }
 
                 db.SaveGlobalStats(body);
             }, TIMEOUT_SECONDS);
+
             return res;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when updating global agent call stats {stats}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError($"Error when updating global stats {input.Category}-{input.Group}. {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }

@@ -13,11 +13,12 @@ public partial class FileRepository
         var file = Directory.GetFiles(dir).FirstOrDefault(x => Path.GetFileName(x) == STATS_FILE);
         if (file == null) return null;
 
+        var time = BuildRecordTime(recordTime);
         var text = File.ReadAllText(file);
         var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
         var found = list?.FirstOrDefault(x => x.Category.IsEqualTo(category)
                                             && x.Group.IsEqualTo(group)
-                                            && x.RecordTime == recordTime);
+                                            && x.RecordTime == time);
         return found;
     }
 
@@ -38,11 +39,12 @@ public partial class FileRepository
         }
         else
         {
+            var time = BuildRecordTime(body.RecordTime);
             var text = File.ReadAllText(file);
             var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
             var found = list?.FirstOrDefault(x => x.Category.IsEqualTo(body.Category)
                                                 && x.Group.IsEqualTo(body.Group)
-                                                && x.RecordTime == body.RecordTime);
+                                                && x.RecordTime == time);
 
             if (found != null)
             {
@@ -65,4 +67,12 @@ public partial class FileRepository
 
         return true;
     }
+
+    #region Private methods
+    private DateTime BuildRecordTime(DateTime date)
+    {
+        var recordDate = new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0);
+        return DateTime.SpecifyKind(recordDate, DateTimeKind.Utc);
+    }
+    #endregion
 }

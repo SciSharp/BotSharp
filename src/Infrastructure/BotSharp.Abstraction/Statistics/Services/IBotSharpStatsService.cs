@@ -4,6 +4,5 @@ namespace BotSharp.Abstraction.Statistics.Services;
 
 public interface IBotSharpStatsService
 {
-    bool UpdateLlmCost(BotSharpStats stats);
-    bool UpdateAgentCall(BotSharpStats stats);
+    bool UpdateStats(string resourceKey, BotSharpStatsInput input);
 }

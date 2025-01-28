@@ -253,9 +253,7 @@ public class ChatCompletionProvider : IChatCompletion
             else if (message.Role == AgentRole.User)
             {
                 var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
-                var textPart = ChatMessageContentPart.CreateTextPart(text);
-                var contentParts = new List<ChatMessageContentPart> { textPart };
-                messages.Add(new UserChatMessage(contentParts));
+                messages.Add(new UserChatMessage(text));
             }
             else if (message.Role == AgentRole.Assistant)
             {
