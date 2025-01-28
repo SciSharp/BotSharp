@@ -1,10 +1,7 @@
 using BotSharp.Abstraction.Conversations;
-using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Abstraction.Routing;
 using BotSharp.Abstraction.Utilities;
-using BotSharp.Core.Rules.Triggers;
 using Microsoft.Extensions.Logging;
 using System.Data;
 

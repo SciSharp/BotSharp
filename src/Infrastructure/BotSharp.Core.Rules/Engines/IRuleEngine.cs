@@ -1,5 +1,3 @@
-using BotSharp.Core.Rules.Triggers;
-
 namespace BotSharp.Core.Rules.Engines;
 
 public interface IRuleEngine

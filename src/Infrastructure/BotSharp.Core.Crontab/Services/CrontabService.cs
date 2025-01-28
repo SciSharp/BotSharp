@@ -55,12 +55,15 @@ public class CrontabService : ICrontabService
     public async Task ScheduledTimeArrived(CrontabItem item)
     {
         _logger.LogDebug($"ScheduledTimeArrived {item}");
-
+        
         await HookEmitter.Emit<ICrontabHook>(_services, async hook =>
         {
-            await hook.OnTaskExecuting(item);
-            await hook.OnCronTriggered(item);
-            await hook.OnTaskExecuted(item);
+            if (hook.Triggers == null || hook.Triggers.Contains(item.Title))
+            {
+                await hook.OnTaskExecuting(item);
+                await hook.OnCronTriggered(item);
+                await hook.OnTaskExecuted(item);
+            }
         });
     }
 }
