@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Infrastructures.Events;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Runtime.InteropServices;
 
 namespace BotSharp.Core.Crontab.Services;
 
@@ -22,6 +21,7 @@ public class CrontabEventSubscription : BackgroundService
 
         using (var scope = _services.CreateScope())
         {
+            var publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
             var subscriber = scope.ServiceProvider.GetRequiredService<IEventSubscriber>();
             var cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
             var crons = await cron.GetCrontable();
@@ -29,15 +29,20 @@ public class CrontabEventSubscription : BackgroundService
             {
                 _ = Task.Run(async () =>
                 {
+                    // Clean unhandled messages
+                    await publisher.RemoveAsync($"Crontab:{item.Title}", count: 100);
+
                     await subscriber.SubscribeAsync($"Crontab:{item.Title}",
                         "Crontab",
                         port: 0,
-                        priorityEnabled: false, async (sender, args) =>
+                        priorityEnabled: false, 
+                        async (sender, args) =>
                         {
                             var scope = _services.CreateScope();
                             cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
                             await cron.ScheduledTimeArrived(item);
-                        }, stoppingToken: stoppingToken);
+                        }, 
+                        stoppingToken: stoppingToken);
                 });
             }
         }
