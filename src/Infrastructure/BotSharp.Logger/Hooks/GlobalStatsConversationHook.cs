@@ -27,7 +27,7 @@ public class GlobalStatsConversationHook : ConversationHookBase
     private void UpdateAgentCall(RoleDialogModel message)
     {
         // record agent call
-        var globalStats = _services.GetRequiredService<IBotSharpStatService>();
+        var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
 
         var body = new BotSharpStats
         {

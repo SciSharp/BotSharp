@@ -59,7 +59,7 @@ public class TokenStatistics : ITokenStatistics
         stat.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
 
 
-        var globalStats = _services.GetRequiredService<IBotSharpStatService>();
+        var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
         var body = new BotSharpStats
         {
             Category = StatCategory.LlmCost,

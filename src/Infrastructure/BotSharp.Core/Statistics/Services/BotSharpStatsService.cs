@@ -3,19 +3,19 @@ using BotSharp.Abstraction.Statistics.Settings;
 
 namespace BotSharp.Core.Statistics.Services;
 
-public class BotSharpStatService : IBotSharpStatService
+public class BotSharpStatsService : IBotSharpStatsService
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<BotSharpStatService> _logger;
+    private readonly ILogger<BotSharpStatsService> _logger;
     private readonly StatisticsSettings _settings;
 
     private const string GLOBAL_LLM_COST = "global-llm-cost";
     private const string GLOBAL_AGENT_CALL = "global-agent-call";
     private const int TIMEOUT_SECONDS = 5;
 
-    public BotSharpStatService(
+    public BotSharpStatsService(
         IServiceProvider services,
-        ILogger<BotSharpStatService> logger,
+        ILogger<BotSharpStatsService> logger,
         StatisticsSettings settings)
     {
         _services = services;
