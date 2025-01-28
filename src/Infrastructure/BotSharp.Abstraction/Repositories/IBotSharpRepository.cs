@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Roles.Models;
 using BotSharp.Abstraction.Shared;
+using BotSharp.Abstraction.Statistics.Enums;
 using BotSharp.Abstraction.Statistics.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
@@ -120,8 +121,10 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region Statistics
-    BotSharpStats? GetGlobalStats(string metric, string dimension, DateTime recordTime) => throw new NotImplementedException();
-    bool SaveGlobalStats(BotSharpStats body) => throw new NotImplementedException();
+    BotSharpStats? GetGlobalStats(string metric, string dimension, DateTime recordTime, StatsInterval interval)
+        => throw new NotImplementedException();
+    bool SaveGlobalStats(BotSharpStats body)
+        => throw new NotImplementedException();
 
     #endregion
 
