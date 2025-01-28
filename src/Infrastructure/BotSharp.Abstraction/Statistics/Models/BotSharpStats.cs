@@ -2,11 +2,11 @@ namespace BotSharp.Abstraction.Statistics.Models;
 
 public class BotSharpStats
 {
-    [JsonPropertyName("category")]
-    public string Category { get; set; } = null!;
+    [JsonPropertyName("metric")]
+    public string Metric { get; set; } = null!;
 
-    [JsonPropertyName("group")]
-    public string Group { get; set; } = null!;
+    [JsonPropertyName("dimension")]
+    public string Dimension { get; set; } = null!;
 
     [JsonPropertyName("data")]
     public IDictionary<string, double> Data { get; set; } = new Dictionary<string, double>();
@@ -29,6 +29,6 @@ public class BotSharpStats
 
     public override string ToString()
     {
-        return $"{Category}-{Group}: {Data?.Count ?? 0} ({RecordTime})";
+        return $"{Metric}-{Dimension}: {Data?.Count ?? 0} ({RecordTime})";
     }
 }
