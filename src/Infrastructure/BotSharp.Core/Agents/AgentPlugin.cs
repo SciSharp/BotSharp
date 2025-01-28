@@ -33,7 +33,7 @@ public class AgentPlugin : IBotSharpPlugin
         services.AddScoped<ILlmProviderService, LlmProviderService>();
         services.AddScoped<IAgentService, AgentService>();
         services.AddScoped<IAgentHook, BasicAgentHook>();
-        services.AddScoped<IBotSharpStatService, BotSharpStatService>();
+        services.AddScoped<IBotSharpStatsService, BotSharpStatsService>();
 
         services.AddScoped(provider =>
         {

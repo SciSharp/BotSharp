@@ -65,7 +65,7 @@ namespace BotSharp.Plugin.Twilio.Services
             var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
             httpContext.HttpContext = new DefaultHttpContext();
             httpContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
-            foreach (var header in message.RequestHeaders)
+            foreach (var header in message.RequestHeaders ?? [])
             {
                 httpContext.HttpContext.Request.Headers[header.Key] = header.Value;
             }
@@ -81,8 +81,9 @@ namespace BotSharp.Plugin.Twilio.Services
             InitProgressService(message, sessionManager, progressService);
             InitConversation(message, inputMsg, conv, routing);
 
+            // Need to consider Inbound and Outbound call
             var conversation = await conv.GetConversation(message.ConversationId);
-            var agentId = string.IsNullOrWhiteSpace(conversation.AgentId) ? config.AgentId : conversation.AgentId;
+            var agentId = string.IsNullOrWhiteSpace(conversation?.AgentId) ? config.AgentId : conversation.AgentId;
 
             var result = await conv.SendMessage(agentId,
                 inputMsg,

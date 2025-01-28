@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Abstraction.Infrastructures.Events;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NCrontab;
@@ -26,9 +27,9 @@ public class CrontabWatcher : BackgroundService
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var delay = Task.Delay(1000 * 10, stoppingToken);
+                var delay = Task.Delay(1000, stoppingToken);
 
-                await locker.LockAsync("CrontabWatcher", async () =>
+                await locker.LockAsync("CrontabWatcher:locker", async () =>
                 {
                     await RunCronChecker(scope.ServiceProvider);
                 });
@@ -44,8 +45,13 @@ public class CrontabWatcher : BackgroundService
     {
         var cron = services.GetRequiredService<ICrontabService>();
         var crons = await cron.GetCrontable();
+
+        var publisher = services.GetRequiredService<IEventPublisher>();
+
         foreach (var item in crons)
         {
+            _logger.LogDebug($"[{DateTime.UtcNow}] Cron task ({item.Title}, {item.Cron}), Last Execution Time:  {item.LastExecutionTime}");
+
             try
             {
                 // strip seconds from cron expression
@@ -80,8 +86,10 @@ public class CrontabWatcher : BackgroundService
 
                 if (matches)
                 {
-                    _logger.LogDebug($"The current time matches the cron expression {item}");
-                    cron.ScheduledTimeArrived(item);
+                    _logger.LogInformation($"The current time matches the cron expression {item}");
+
+                    await publisher.PublishAsync($"Crontab:{item.Title}", item.Cron);
+                    // cron.ScheduledTimeArrived(item);
                 }
             }
             catch (Exception ex)
@@ -97,9 +105,9 @@ public class CrontabWatcher : BackgroundService
         var nextOccurrence = schedule.GetNextOccurrence(DateTime.UtcNow);
         var afterNextOccurrence = schedule.GetNextOccurrence(nextOccurrence);
         var interval = afterNextOccurrence - nextOccurrence;
-        if (interval.TotalMinutes < 10)
+        if (interval.TotalMinutes < 1)
         {
-            throw new ArgumentException("The minimum interval must be at least 10 minutes.");
+            throw new ArgumentException("The minimum interval must be at least 1 minutes.");
         }
         return nextOccurrence - interval;
     }
