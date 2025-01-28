@@ -1,26 +1,24 @@
-using BotSharp.Abstraction.Files.Utilities;
+using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
+using BotSharp.Abstraction.Files;
+using BotSharp.Plugin.DeepSeek.Providers;
 
-namespace BotSharp.Plugin.OpenAI.Providers.Chat;
+namespace BotSharp.Plugin.DeepSeekAI.Providers.Chat;
 
 public class ChatCompletionProvider : IChatCompletion
 {
-    protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ChatCompletionProvider> _logger;
 
     protected string _model;
-
-    public virtual string Provider => "openai";
+    public virtual string Provider => "deepseek-ai";
 
     public ChatCompletionProvider(
-        OpenAiSettings settings,
-        ILogger<ChatCompletionProvider> logger,
-        IServiceProvider services)
+        IServiceProvider services,
+        ILogger<ChatCompletionProvider> logger)
     {
-        _settings = settings;
-        _logger = logger;
         _services = services;
+        _logger = logger;
     }
 
     public async Task<RoleDialogModel> GetChatCompletions(Agent agent, List<RoleDialogModel> conversations)
@@ -87,10 +85,7 @@ public class ChatCompletionProvider : IChatCompletion
         return responseMessage;
     }
 
-    public async Task<bool> GetChatCompletionsAsync(Agent agent,
-        List<RoleDialogModel> conversations,
-        Func<RoleDialogModel, Task> onMessageReceived,
-        Func<RoleDialogModel, Task> onFunctionExecuting)
+    public async Task<bool> GetChatCompletionsAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived, Func<RoleDialogModel, Task> onFunctionExecuting)
     {
         var hooks = _services.GetServices<IContentGeneratingHook>().ToList();
 
@@ -189,6 +184,10 @@ public class ChatCompletionProvider : IChatCompletion
         return true;
     }
 
+    public void SetModelName(string model)
+    {
+        _model = model;
+    }
 
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
     {
@@ -233,12 +232,6 @@ public class ChatCompletionProvider : IChatCompletion
             messages.Add(new SystemChatMessage(agent.Knowledges));
         }
 
-        var samples = ProviderHelper.GetChatSamples(agent.Samples);
-        foreach (var sample in samples)
-        {
-            messages.Add(sample.Role == AgentRole.User ? new UserChatMessage(sample.Content) : new AssistantChatMessage(sample.Content));
-        }
-
         var filteredMessages = conversations.Select(x => x).ToList();
         var firstUserMsgIdx = filteredMessages.FindIndex(x => x.Role == AgentRole.User);
         if (firstUserMsgIdx > 0)
@@ -260,35 +253,7 @@ public class ChatCompletionProvider : IChatCompletion
             else if (message.Role == AgentRole.User)
             {
                 var text = !string.IsNullOrWhiteSpace(message.Payload) ? message.Payload : message.Content;
-                var textPart = ChatMessageContentPart.CreateTextPart(text);
-                var contentParts = new List<ChatMessageContentPart> { textPart };
-
-                if (allowMultiModal && !message.Files.IsNullOrEmpty())
-                {
-                    foreach (var file in message.Files)
-                    {
-                        if (!string.IsNullOrEmpty(file.FileData))
-                        {
-                            var (contentType, bytes) = FileUtility.GetFileInfoFromData(file.FileData);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(bytes), contentType, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileStorageUrl))
-                        {
-                            var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
-                            var bytes = fileStorage.GetFileBytes(file.FileStorageUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(bytes), contentType, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                        else if (!string.IsNullOrEmpty(file.FileUrl))
-                        {
-                            var uri = new Uri(file.FileUrl);
-                            var contentPart = ChatMessageContentPart.CreateImagePart(uri, ChatImageDetailLevel.Auto);
-                            contentParts.Add(contentPart);
-                        }
-                    }
-                }
-                messages.Add(new UserChatMessage(contentParts) { ParticipantName = message.FunctionName });
+                messages.Add(new UserChatMessage(text));
             }
             else if (message.Role == AgentRole.Assistant)
             {
@@ -366,10 +331,5 @@ public class ChatCompletionProvider : IChatCompletion
         }
 
         return prompt;
-    }
-
-    public void SetModelName(string model)
-    {
-        _model = model;
     }
 }

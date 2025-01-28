@@ -9,7 +9,7 @@ public class BotSharpStats
     public string Group { get; set; } = null!;
 
     [JsonPropertyName("data")]
-    public IDictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
+    public IDictionary<string, double> Data { get; set; } = new Dictionary<string, double>();
 
     private DateTime innerRecordTime;
 

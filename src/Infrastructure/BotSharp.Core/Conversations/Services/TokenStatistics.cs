@@ -59,21 +59,20 @@ public class TokenStatistics : ITokenStatistics
         stat.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
 
 
-        var globalStats = _services.GetRequiredService<IBotSharpStatService>();
-        var body = new BotSharpStats
+        var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
+        var body = new BotSharpStatsInput
         {
-            Category = StatCategory.LlmCost,
-            Group = $"Agent: {message.CurrentAgentId}",
-            Data = new Dictionary<string, object>
-            {
-                { "prompt_token_count_total", stats.PromptCount },
-                { "completion_token_count_total", stats.CompletionCount },
-                { "prompt_cost_total", deltaPromptCost },
-                { "completion_cost_total", deltaCompletionCost }
-            },
-            RecordTime = DateTime.UtcNow
+            Category = StatsCategory.AgentLlmCost,
+            Group = message.CurrentAgentId,
+            RecordTime = DateTime.UtcNow,
+            Data = [
+                new StatsKeyValuePair("prompt_token_count_total", stats.PromptCount),
+                new StatsKeyValuePair("completion_token_count_total", stats.CompletionCount),
+                new StatsKeyValuePair("prompt_cost_total", deltaPromptCost),
+                new StatsKeyValuePair("completion_cost_total", deltaCompletionCost)
+            ]
         };
-        globalStats.UpdateLlmCost(body);
+        globalStats.UpdateStats("global-llm-cost", body);
     }
 
     public void PrintStatistics()
