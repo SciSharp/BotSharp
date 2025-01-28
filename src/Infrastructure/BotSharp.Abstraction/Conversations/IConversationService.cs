@@ -61,4 +61,6 @@ public interface IConversationService
     Task<Conversation> GetConversationRecordOrCreateNew(string agentId);
 
     bool IsConversationMode();
+
+    void SaveStates();
 }
