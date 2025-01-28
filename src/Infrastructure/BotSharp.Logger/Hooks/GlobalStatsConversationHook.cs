@@ -31,8 +31,8 @@ public class GlobalStatsConversationHook : ConversationHookBase
 
         var body = new BotSharpStatsInput
         {
-            Category = StatsCategory.AgentCall,
-            Group = message.CurrentAgentId,
+            Metric = StatsCategory.AgentCall,
+            Dimension = message.CurrentAgentId,
             Data = [
                 new StatsKeyValuePair("agent_call_count", 1)
             ],
