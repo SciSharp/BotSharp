@@ -4,28 +4,34 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public BotSharpStats? GetGlobalStats(string category, string group, DateTime recordTime)
+    public BotSharpStats? GetGlobalStats(string metric, string dimension, DateTime recordTime, StatsInterval interval)
     {
         var baseDir = Path.Combine(_dbSettings.FileRepository, STATS_FOLDER);
-        var dir = Path.Combine(baseDir, category, recordTime.Year.ToString(), recordTime.Month.ToString("D2"));
+        var (startTime, endTime) = BotSharpStats.BuildTimeInterval(recordTime, interval);
+        var dir = Path.Combine(baseDir, metric, startTime.Year.ToString(), startTime.Month.ToString("D2"));
         if (!Directory.Exists(dir)) return null;
 
         var file = Directory.GetFiles(dir).FirstOrDefault(x => Path.GetFileName(x) == STATS_FILE);
         if (file == null) return null;
 
-        var time = BuildRecordTime(recordTime);
         var text = File.ReadAllText(file);
         var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
-        var found = list?.FirstOrDefault(x => x.Category.IsEqualTo(category)
-                                            && x.Group.IsEqualTo(group)
-                                            && x.RecordTime == time);
+        var found = list?.FirstOrDefault(x => x.Metric.IsEqualTo(metric)
+                                            && x.Dimension.IsEqualTo(dimension)
+                                            && x.StartTime == startTime
+                                            && x.EndTime == endTime);
+
         return found;
     }
 
     public bool SaveGlobalStats(BotSharpStats body)
     {
         var baseDir = Path.Combine(_dbSettings.FileRepository, STATS_FOLDER);
-        var dir = Path.Combine(baseDir, body.Category, body.RecordTime.Year.ToString(), body.RecordTime.Month.ToString("D2"));
+        var (startTime, endTime) = BotSharpStats.BuildTimeInterval(body.RecordTime, body.IntervalType);
+        body.StartTime = startTime;
+        body.EndTime = endTime;
+
+        var dir = Path.Combine(baseDir, body.Metric, startTime.Year.ToString(), startTime.Month.ToString("D2"));
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);
@@ -39,19 +45,22 @@ public partial class FileRepository
         }
         else
         {
-            var time = BuildRecordTime(body.RecordTime);
             var text = File.ReadAllText(file);
             var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
-            var found = list?.FirstOrDefault(x => x.Category.IsEqualTo(body.Category)
-                                                && x.Group.IsEqualTo(body.Group)
-                                                && x.RecordTime == time);
+            var found = list?.FirstOrDefault(x => x.Metric.IsEqualTo(body.Metric)
+                                                && x.Dimension.IsEqualTo(body.Dimension)
+                                                && x.StartTime == startTime
+                                                && x.EndTime == endTime);
 
             if (found != null)
             {
-                found.Category = body.Category;
-                found.Group = body.Group;
+                found.Metric = body.Metric;
+                found.Dimension = body.Dimension;
                 found.Data = body.Data;
                 found.RecordTime = body.RecordTime;
+                found.StartTime = body.StartTime;
+                found.EndTime = body.EndTime;
+                found.Interval = body.Interval;
             }
             else if (list != null)
             {
@@ -67,12 +76,4 @@ public partial class FileRepository
 
         return true;
     }
-
-    #region Private methods
-    private DateTime BuildRecordTime(DateTime date)
-    {
-        var recordDate = new DateTime(date.Year, date.Month, date.Day, date.Hour, 0, 0);
-        return DateTime.SpecifyKind(recordDate, DateTimeKind.Utc);
-    }
-    #endregion
 }

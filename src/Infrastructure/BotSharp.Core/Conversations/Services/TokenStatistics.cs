@@ -62,9 +62,10 @@ public class TokenStatistics : ITokenStatistics
         var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
         var body = new BotSharpStatsInput
         {
-            Category = StatsCategory.AgentLlmCost,
-            Group = message.CurrentAgentId,
+            Metric = StatsCategory.AgentLlmCost,
+            Dimension = message.CurrentAgentId,
             RecordTime = DateTime.UtcNow,
+            IntervalType = StatsInterval.Day,
             Data = [
                 new StatsKeyValuePair("prompt_token_count_total", stats.PromptCount),
                 new StatsKeyValuePair("completion_token_count_total", stats.CompletionCount),

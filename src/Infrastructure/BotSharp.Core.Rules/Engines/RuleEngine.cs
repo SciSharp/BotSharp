@@ -18,7 +18,7 @@ public class RuleEngine : IRuleEngine
         _logger = logger;
     }
 
-    public async Task Triggered(IRuleTrigger trigger, string data)
+    public async Task Triggered(IRuleTrigger trigger, string data, List<MessageState>? states = null)
     {
         // Pull all user defined rules
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -36,10 +36,11 @@ public class RuleEngine : IRuleEngine
 
         // Trigger the agents
         var instructService = _services.GetRequiredService<IInstructService>();
-        var convService = _services.GetRequiredService<IConversationService>();
+        
 
         foreach (var agent in preFilteredAgents)
         {
+            var convService = _services.GetRequiredService<IConversationService>();
             var conv = await convService.NewConversation(new Conversation
             {
                 Channel = trigger.Channel,
@@ -49,17 +50,24 @@ public class RuleEngine : IRuleEngine
 
             var message = new RoleDialogModel(AgentRole.User, data);
 
-            var states = new List<MessageState>
+            var allStates = new List<MessageState>
             {
-                new("channel", trigger.Channel),
-                new("channel_id", trigger.EntityId)
+                new("channel", trigger.Channel)
             };
-            convService.SetConversationId(conv.Id, states);
+
+            if (states != null)
+            {
+                allStates.AddRange(states);
+            }
+
+            convService.SetConversationId(conv.Id, allStates);
 
             await convService.SendMessage(agent.Id,
                 message,
                 null,
                 msg => Task.CompletedTask);
+
+            convService.SaveStates();
 
             /*foreach (var rule in agent.Rules)
             {
