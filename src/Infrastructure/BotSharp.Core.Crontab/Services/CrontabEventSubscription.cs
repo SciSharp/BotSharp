@@ -21,7 +21,11 @@ public class CrontabEventSubscription : BackgroundService
 
         using (var scope = _services.CreateScope())
         {
-            var publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
+            var publisher = scope.ServiceProvider.GetService<IEventPublisher>();
+            if (publisher == null)
+            {
+                return;
+            }
             var subscriber = scope.ServiceProvider.GetRequiredService<IEventSubscriber>();
             var cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
             var crons = await cron.GetCrontable();
@@ -46,19 +50,5 @@ public class CrontabEventSubscription : BackgroundService
                 });
             }
         }
-
-
-        /*using (var scope = _services.CreateScope())
-        {
-            var cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
-            var crons = await cron.GetCrontable();
-
-
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(1000, stoppingToken);
-            }
-        }*/
     }
 }
