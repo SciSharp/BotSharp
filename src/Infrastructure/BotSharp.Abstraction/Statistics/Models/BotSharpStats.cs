@@ -45,4 +45,36 @@ public class BotSharpStats
     {
         return $"{Metric}-{Dimension} ({Interval}): {Data?.Count ?? 0}";
     }
+
+    public static (DateTime, DateTime) BuildTimeInterval(DateTime recordTime, StatsInterval interval)
+    {
+        DateTime startTime = recordTime;
+        DateTime endTime = DateTime.UtcNow;
+
+        switch (interval)
+        {
+            case StatsInterval.Hour:
+                startTime = new DateTime(recordTime.Year, recordTime.Month, recordTime.Day, recordTime.Hour, 0, 0);
+                endTime = startTime.AddHours(1);
+                break;
+            case StatsInterval.Week:
+                var dayOfWeek = startTime.DayOfWeek;
+                var firstDayOfWeek = startTime.AddDays(-(int)dayOfWeek);
+                startTime = new DateTime(firstDayOfWeek.Year, firstDayOfWeek.Month, firstDayOfWeek.Day, 0, 0, 0);
+                endTime = startTime.AddDays(7);
+                break;
+            case StatsInterval.Month:
+                startTime = new DateTime(recordTime.Year, recordTime.Month, 1);
+                endTime = startTime.AddMonths(1);
+                break;
+            default:
+                startTime = new DateTime(recordTime.Year, recordTime.Month, recordTime.Day, 0, 0, 0);
+                endTime = startTime.AddDays(1);
+                break;
+        }
+
+        startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+        endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+        return (startTime, endTime);
+    }
 }
