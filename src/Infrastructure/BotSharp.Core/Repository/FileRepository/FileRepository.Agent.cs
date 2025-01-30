@@ -30,8 +30,11 @@ namespace BotSharp.Core.Repository
                 case AgentField.InheritAgentId:
                     UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
                     break;
-                case AgentField.Profiles:
+                case AgentField.Profile:
                     UpdateAgentProfiles(agent.Id, agent.Profiles);
+                    break;
+                case AgentField.Label:
+                    UpdateAgentLabels(agent.Id, agent.Labels);
                     break;
                 case AgentField.RoutingRule:
                     UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
@@ -158,6 +161,20 @@ namespace BotSharp.Core.Repository
             agent.UpdatedDateTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
+        }
+
+        public bool UpdateAgentLabels(string agentId, List<string> labels)
+        {
+            if (labels == null) return false;
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return false;
+
+            agent.Labels = labels;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
+            return true;
         }
 
         private void UpdateAgentUtilities(string agentId, bool mergeUtility, List<AgentUtility> utilities)
@@ -341,6 +358,7 @@ namespace BotSharp.Core.Repository
             agent.MergeUtility = inputAgent.MergeUtility;
             agent.Type = inputAgent.Type;
             agent.Profiles = inputAgent.Profiles;
+            agent.Labels = inputAgent.Labels;
             agent.Utilities = inputAgent.Utilities;
             agent.KnowledgeBases = inputAgent.KnowledgeBases;
             agent.RoutingRules = inputAgent.RoutingRules;
@@ -417,9 +435,14 @@ namespace BotSharp.Core.Repository
             }
 
             var query = Agents;
-            if (!string.IsNullOrEmpty(filter.AgentName))
+            if (filter.AgentIds != null)
             {
-                query = query.Where(x => x.Name.ToLower() == filter.AgentName.ToLower());
+                query = query.Where(x => filter.AgentIds.Contains(x.Id));
+            }
+
+            if (!filter.AgentNames.IsNullOrEmpty())
+            {
+                query = query.Where(x => filter.AgentNames.Contains(x.Name));
             }
 
             if (!string.IsNullOrEmpty(filter.SimilarName))
@@ -433,20 +456,19 @@ namespace BotSharp.Core.Repository
                 query = query.Where(x => x.Disabled == filter.Disabled);
             }
 
-            if (filter.Type != null)
+            if (!filter.Types.IsNullOrEmpty())
             {
-                var types = filter.Type.Split(",");
-                query = query.Where(x => types.Contains(x.Type));
+                query = query.Where(x => filter.Types.Contains(x.Type));
+            }
+
+            if (!filter.Labels.IsNullOrEmpty())
+            {
+                query = query.Where(x => x.Labels.Any(y => filter.Labels.Contains(y)));
             }
 
             if (filter.IsPublic.HasValue)
             {
                 query = query.Where(x => x.IsPublic == filter.IsPublic);
-            }
-
-            if (filter.AgentIds != null)
-            {
-                query = query.Where(x => filter.AgentIds.Contains(x.Id));
             }
 
             return query.ToList();
@@ -512,6 +534,22 @@ namespace BotSharp.Core.Repository
             if (foundTemplate == null) return false;
 
             File.WriteAllText(foundTemplate, template.Content);
+            return true;
+        }
+
+        public bool AppendAgentLabels(string agentId, List<string> labels)
+        {
+            if (labels.IsNullOrEmpty()) return false;
+
+            var (agent, agentFile) = GetAgentFromFile(agentId);
+            if (agent == null) return false;
+
+            var prevLabels = agent.Labels ?? [];
+            var curLabels = prevLabels.Concat(labels).Distinct().ToList();
+            agent.Labels = curLabels;
+            agent.UpdatedDateTime = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(agent, _options);
+            File.WriteAllText(agentFile, json);
             return true;
         }
 

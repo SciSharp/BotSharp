@@ -18,7 +18,7 @@ public class FallbackToRouterFn : IFunctionCallback
         var agentService = _services.GetRequiredService<IAgentService>();
         var agents = await agentService.GetAgents(new AgentFilter
         {
-            AgentName = args.AgentName
+            AgentNames = [args.AgentName]
         });
         var targetAgent = agents.Items.FirstOrDefault();
         if (targetAgent == null)

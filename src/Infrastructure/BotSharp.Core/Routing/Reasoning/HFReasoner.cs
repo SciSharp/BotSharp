@@ -87,7 +87,7 @@ public class HFReasoner : IRoutingReasoner
         if (!string.IsNullOrEmpty(inst.AgentName))
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var filter = new AgentFilter { AgentName = inst.AgentName };
+            var filter = new AgentFilter { AgentNames = [inst.AgentName] };
             var agent = db.GetAgents(filter).FirstOrDefault();
 
             var context = _services.GetRequiredService<IRoutingContext>();

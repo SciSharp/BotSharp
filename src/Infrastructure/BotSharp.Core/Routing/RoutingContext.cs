@@ -41,7 +41,7 @@ public class RoutingContext : IRoutingContext
                 var agentService = _services.GetRequiredService<IAgentService>();
                 _routerAgentIds = agentService.GetAgents(new AgentFilter
                 {
-                    Type = AgentType.Routing,
+                    Types = [AgentType.Routing],
                     Pager = new Pagination { Size = 100 }
                 }).Result.Items.Select(x => x.Id).ToArray();
             }
@@ -86,7 +86,7 @@ public class RoutingContext : IRoutingContext
             var agentService = _services.GetRequiredService<IAgentService>();
             agentId = agentService.GetAgents(new AgentFilter
             {
-                AgentName = agentId
+                AgentNames = [agentId]
             }).Result.Items.First().Id;
         }
 

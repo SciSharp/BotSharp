@@ -20,6 +20,7 @@ public class AgentDocument : MongoBase
     public List<AgentUtilityMongoElement> Utilities { get; set; }
     public List<AgentKnowledgeBaseMongoElement> KnowledgeBases { get; set; }
     public List<string> Profiles { get; set; }
+    public List<string> Labels { get; set; }
     public List<RoutingRuleMongoElement> RoutingRules { get; set; }
     public List<AgentRuleMongoElement> Rules { get; set; }
     public AgentLlmConfigMongoElement? LlmConfig { get; set; }

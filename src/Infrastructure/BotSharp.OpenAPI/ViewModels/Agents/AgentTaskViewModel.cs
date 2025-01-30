@@ -15,10 +15,13 @@ public class AgentTaskViewModel
 
     [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }
+
     [JsonPropertyName("updated_datetime")]
     public DateTime UpdatedDateTime { get; set; }
+
     [JsonPropertyName("agent_id")]
     public string AgentId { get; set; } = null!;
+
     [JsonPropertyName("agent_name")]
     public string AgentName { get; set; } = null!;
 

@@ -48,6 +48,8 @@ public class AgentCreationModel
     /// </summary>
     public List<string> Profiles { get; set; } = new();
 
+    public List<string> Labels { get; set; } = new();
+
     public bool MergeUtility { get; set; }
 
     public int? MaxMessageCount { get; set; }
@@ -77,6 +79,7 @@ public class AgentCreationModel
             MergeUtility = MergeUtility,
             MaxMessageCount = MaxMessageCount,
             Profiles = Profiles,
+            Labels = Labels,
             LlmConfig = LlmConfig,
             KnowledgeBases = KnowledgeBases,
             Rules = Rules,
