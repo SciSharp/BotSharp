@@ -21,11 +21,18 @@ public class AgentTaskService : IAgentTaskService
         if (filter.Status == TaskStatus.Scheduled)
         {
             var taskFeeders = _services.GetServices<ITaskFeeder>();
-            var items = taskFeeders.SelectMany(x => x.GetTasks().Result);
+            var items = new List<AgentTask>();
+
+            foreach (var feeder in taskFeeders)
+            {
+                var tasks = await feeder.GetTasks();
+                items.AddRange(tasks);
+            }
 
             return new PagedItems<AgentTask>
             {
-                Items = items,
+                Items = items.OrderByDescending(x => x.UpdatedDateTime)
+                            .Skip(filter.Pager.Offset).Take(filter.Pager.Size),
                 Count = items.Count()
             };
         }

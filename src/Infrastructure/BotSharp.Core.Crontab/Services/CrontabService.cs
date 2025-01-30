@@ -14,13 +14,13 @@
   limitations under the License.
 ******************************************************************************/
 
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Repositories;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Tasks;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
@@ -60,23 +60,22 @@ public class CrontabService : ICrontabService, ITaskFeeder
 
     public async Task<List<AgentTask>> GetTasks()
     {
-        var agentService = _services.GetRequiredService<IAgentService>();
         var tasks = new List<AgentTask>();
+        var agentService = _services.GetRequiredService<IAgentService>();
         var cronsources = _services.GetServices<ICrontabSource>();
+
+        // Get all agent subscribed to this cron
+        var agents = await agentService.GetAgents(new AgentFilter
+        {
+            Pager = new Pagination
+            {
+                Size = 1000
+            }
+        });
+
         foreach (var source in cronsources)
         {
             var cron = source.GetCrontabItem();
-
-            // Get all agent subscribed to this cron
-            
-            var agents = await agentService.GetAgents(new AgentFilter
-            {
-                Pager = new Pagination
-                {
-                    Size = 1000
-                }
-            });
-
             var preFilteredAgents = agents.Items.Where(x =>
                 x.Rules.Exists(r => r.TriggerName == cron.Title)).ToList();
 
@@ -84,7 +83,7 @@ public class CrontabService : ICrontabService, ITaskFeeder
             {
                 Id = Guid.Empty.ToString(),
                 AgentId = x.Id,
-                Agent = new BotSharp.Abstraction.Agents.Models.Agent
+                Agent = new Agent
                 {
                     Name = x.Name,
                     Description = x.Description

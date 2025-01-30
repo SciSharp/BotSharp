@@ -50,6 +50,11 @@ public partial class FileRepository
                     matched = matched && task.Enabled == filter.Enabled;
                 }
 
+                if (!string.IsNullOrEmpty(filter?.Status))
+                {
+                    matched = matched && task.Status == filter.Status;
+                }
+
                 if (!matched) continue;
                 
                 totalCount++;
