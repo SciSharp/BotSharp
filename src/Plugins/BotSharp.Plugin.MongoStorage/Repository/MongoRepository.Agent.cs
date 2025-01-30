@@ -31,8 +31,11 @@ public partial class MongoRepository
             case AgentField.InheritAgentId:
                 UpdateAgentInheritAgentId(agent.Id, agent.InheritAgentId);
                 break;
-            case AgentField.Profiles:
+            case AgentField.Profile:
                 UpdateAgentProfiles(agent.Id, agent.Profiles);
+                break;
+            case AgentField.Label:
+                UpdateAgentLabels(agent.Id, agent.Profiles);
                 break;
             case AgentField.RoutingRule:
                 UpdateAgentRoutingRules(agent.Id, agent.RoutingRules);
@@ -150,6 +153,19 @@ public partial class MongoRepository
             .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.Agents.UpdateOne(filter, update);
+    }
+
+    public bool UpdateAgentLabels(string agentId, List<string> labels)
+    {
+        if (labels == null) return false;
+
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.Labels, labels)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        var result = _dc.Agents.UpdateOne(filter, update);
+        return result.ModifiedCount > 0;
     }
 
     private void UpdateAgentRoutingRules(string agentId, List<RoutingRule> rules)
@@ -305,6 +321,7 @@ public partial class MongoRepository
             .Set(x => x.Type, agent.Type)
             .Set(x => x.MaxMessageCount, agent.MaxMessageCount)
             .Set(x => x.Profiles, agent.Profiles)
+            .Set(x => x.Labels, agent.Labels)
             .Set(x => x.RoutingRules, agent.RoutingRules.Select(r => RoutingRuleMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Instruction, agent.Instruction)
             .Set(x => x.ChannelInstructions, agent.ChannelInstructions.Select(i => ChannelInstructionMongoElement.ToMongoElement(i)).ToList())
@@ -343,9 +360,14 @@ public partial class MongoRepository
         var builder = Builders<AgentDocument>.Filter;
         var filters = new List<FilterDefinition<AgentDocument>>() { builder.Empty };
 
-        if (!string.IsNullOrEmpty(filter.AgentName))
+        if (filter.AgentIds != null)
         {
-            filters.Add(builder.Eq(x => x.Name, filter.AgentName));
+            filters.Add(builder.In(x => x.Id, filter.AgentIds));
+        }
+
+        if (!filter.AgentNames.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.Name, filter.AgentNames));
         }
 
         if (!string.IsNullOrEmpty(filter.SimilarName))
@@ -358,10 +380,14 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.Disabled, filter.Disabled.Value));
         }
 
-        if (filter.Type != null)
+        if (!filter.Types.IsNullOrEmpty())
         {
-            var types = filter.Type.Split(",");
-            filters.Add(builder.In(x => x.Type, types));
+            filters.Add(builder.In(x => x.Type, filter.Types));
+        }
+
+        if (!filter.Labels.IsNullOrEmpty())
+        {
+            filters.Add(builder.AnyIn(x => x.Labels, filter.Labels));
         }
 
         if (filter.IsPublic.HasValue)
@@ -369,13 +395,7 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.IsPublic, filter.IsPublic.Value));
         }
 
-        if (filter.AgentIds != null)
-        {
-            filters.Add(builder.In(x => x.Id, filter.AgentIds));
-        }
-
         var agentDocs = _dc.Agents.Find(builder.And(filters)).ToList();
-
         return agentDocs.Select(x => TransformAgentDocument(x)).ToList();
     }
 
@@ -443,6 +463,24 @@ public partial class MongoRepository
         var update = Builders<AgentDocument>.Update.Set(x => x.Templates, agent.Templates);
         _dc.Agents.UpdateOne(filter, update);
         return true;
+    }
+
+    public bool AppendAgentLabels(string agentId, List<string> labels)
+    {
+        if (labels.IsNullOrEmpty()) return false;
+
+        var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
+        var agent = _dc.Agents.Find(filter).FirstOrDefault();
+        if (agent == null) return false;
+
+        var prevLabels = agent.Labels ?? [];
+        var curLabels = prevLabels.Concat(labels).Distinct().ToList();
+        var update = Builders<AgentDocument>.Update
+            .Set(x => x.Labels, curLabels)
+            .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        var result = _dc.Agents.UpdateOne(filter, update);
+        return result.ModifiedCount > 0;
     }
 
     public void BulkInsertAgents(List<Agent> agents)
@@ -555,7 +593,8 @@ public partial class MongoRepository
             MergeUtility = agentDoc.MergeUtility,
             Type = agentDoc.Type,
             InheritAgentId = agentDoc.InheritAgentId,
-            Profiles = agentDoc.Profiles,
+            Profiles = agentDoc.Profiles ?? [],
+            Labels = agentDoc.Labels ?? [],
             MaxMessageCount = agentDoc.MaxMessageCount,
             LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig),
             ChannelInstructions = agentDoc.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToDomainElement(i))?.ToList() ?? [],

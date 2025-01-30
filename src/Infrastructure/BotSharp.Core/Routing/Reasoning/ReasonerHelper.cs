@@ -11,7 +11,7 @@ public static class ReasonerHelper
         var agentService = services.GetRequiredService<IAgentService>();
         var agents = agentService.GetAgents(new AgentFilter
         {
-            Type = AgentType.Task
+            Types = [AgentType.Task]
         }).Result.Items.ToList();
         var malformed = false;
 

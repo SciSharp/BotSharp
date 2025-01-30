@@ -136,6 +136,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public Dictionary<string, string> Load(string conversationId, bool isReadOnly = false)
     {
         _conversationId = !isReadOnly ? conversationId : null;
+        Reset();
 
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var curMsgId = routingCtx.MessageId;
