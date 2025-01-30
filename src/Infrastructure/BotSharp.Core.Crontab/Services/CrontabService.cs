@@ -15,8 +15,14 @@
 ******************************************************************************/
 
 using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Repositories.Filters;
+using BotSharp.Abstraction.Tasks;
+using BotSharp.Abstraction.Tasks.Models;
+using BotSharp.Abstraction.Utilities;
 using BotSharp.Core.Infrastructures;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace BotSharp.Core.Crontab.Services;
 
@@ -24,7 +30,7 @@ namespace BotSharp.Core.Crontab.Services;
 /// The Crontab service schedules distributed events based on the execution times provided by users. 
 /// In a scalable environment, distributed locks are used to ensure that each event is triggered only once.
 /// </summary>
-public class CrontabService : ICrontabService
+public class CrontabService : ICrontabService, ITaskFeeder
 {
     private readonly IServiceProvider _services;
     private ILogger _logger;
@@ -50,6 +56,57 @@ public class CrontabService : ICrontabService
         }
 
         return fixedCrantabItems;
+    }
+
+    public async Task<List<AgentTask>> GetTasks()
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var tasks = new List<AgentTask>();
+        var cronsources = _services.GetServices<ICrontabSource>();
+        foreach (var source in cronsources)
+        {
+            var cron = source.GetCrontabItem();
+
+            // Get all agent subscribed to this cron
+            
+            var agents = await agentService.GetAgents(new AgentFilter
+            {
+                Pager = new Pagination
+                {
+                    Size = 1000
+                }
+            });
+
+            var preFilteredAgents = agents.Items.Where(x =>
+                x.Rules.Exists(r => r.TriggerName == cron.Title)).ToList();
+
+            tasks.AddRange(preFilteredAgents.Select(x => new AgentTask
+            {
+                Id = Guid.Empty.ToString(),
+                AgentId = x.Id,
+                Agent = new BotSharp.Abstraction.Agents.Models.Agent
+                {
+                    Name = x.Name,
+                    Description = x.Description
+                },
+                Name = FormatCrontabName(cron.Title, x.Name),
+                Content = $"Trigger: {cron.Title}\r\nAgent: {x.Name}\r\nCron expression: {cron.Cron}",
+                Status = TaskStatus.Scheduled,
+                Enabled = !x.Disabled,
+                Description = cron.Description,
+                LastExecutedDateTime = cron.LastExecutionTime
+            }));
+        }
+
+        return tasks;
+    }
+
+    private string FormatCrontabName(string trigger, string agent)
+    {
+        trigger = trigger.Replace("RuleTrigger", string.Empty);
+        trigger = Regex.Replace(trigger, "(?<!^)([A-Z])", " $1");
+        agent = agent.Replace("Operator", string.Empty);
+        return $"{trigger}";
     }
 
     public async Task ScheduledTimeArrived(CrontabItem item)
