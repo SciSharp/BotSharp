@@ -45,7 +45,6 @@ public class CrontabWatcher : BackgroundService
     {
         var cron = services.GetRequiredService<ICrontabService>();
         var crons = await cron.GetCrontable();
-
         var publisher = services.GetService<IEventPublisher>();
 
         foreach (var item in crons)

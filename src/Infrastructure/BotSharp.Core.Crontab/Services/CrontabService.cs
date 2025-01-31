@@ -51,6 +51,10 @@ public class CrontabService : ICrontabService, ITaskFeeder
         var cronsources = _services.GetServices<ICrontabSource>();
         foreach (var source in cronsources)
         {
+            if (source.IsRealTime)
+            {
+                continue;
+            }
             var item = source.GetCrontabItem();
             fixedCrantabItems.Add(source.GetCrontabItem());
         }
