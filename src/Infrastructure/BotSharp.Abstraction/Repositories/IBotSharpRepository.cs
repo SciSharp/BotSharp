@@ -50,7 +50,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void UpdateUserName(string userId, string userName)
         => throw new NotImplementedException();
-    Dashboard? GetDashboard(string id = null)
+    Dashboard? GetDashboard(string userId = null)
         => throw new NotImplementedException();
     void CreateUser(User user)
         => throw new NotImplementedException();

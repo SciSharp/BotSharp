@@ -66,16 +66,16 @@ public class AgentController : ControllerBase
         return targetAgent;
     }
 
-    [HttpGet("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter, [FromQuery] bool checkAuth = false)
+    [HttpPost("/agents")]
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromBody] AgentQueryRequest request)
     {
         var agentSetting = _services.GetRequiredService<AgentSettings>();
         var userService = _services.GetRequiredService<IUserService>();
 
         List<AgentViewModel> agents;
-        var pagedAgents = await _agentService.GetAgents(filter);
+        var pagedAgents = await _agentService.GetAgents(request.Filter);
 
-        if (!checkAuth)
+        if (!request.CheckAuth)
         {
             agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? [];
             return new PagedItems<AgentViewModel>
@@ -159,5 +159,21 @@ public class AgentController : ControllerBase
             hook.AddUtilities(utilities);
         }
         return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
+    }
+
+    [HttpGet("/agent/labels")]
+    public async Task<IEnumerable<string>> GetAgentLabels()
+    {
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agents = await agentService.GetAgents(new AgentFilter
+        {
+            Pager = new Pagination { Size = 1000 }
+        });
+
+        var labels = agents.Items?.SelectMany(x => x.Labels)
+                                  .Distinct()
+                                  .OrderBy(x => x)
+                                  .ToList() ?? [];
+        return labels;
     }
 }
