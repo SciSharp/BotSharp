@@ -33,8 +33,8 @@ public interface IUserService
     Task<bool> UpdatePassword(string newPassword, string verificationCode);
     Task<DateTime> GetUserTokenExpires();
     Task<bool> UpdateUsersIsDisable(List<string> userIds, bool isDisable);
-    Task<bool> AddDashboardConversation(string userId, string conversationId);
-    Task<bool> RemoveDashboardConversation(string userId, string conversationId);
-    Task UpdateDashboardConversation(string userId, DashboardConversation dashConv);
-    Task<Dashboard?> GetDashboard(string userId);
+    Task<bool> AddDashboardConversation(string conversationId);
+    Task<bool> RemoveDashboardConversation(string conversationId);
+    Task UpdateDashboardConversation(DashboardConversation dashConv);
+    Task<Dashboard?> GetDashboard();
 }
