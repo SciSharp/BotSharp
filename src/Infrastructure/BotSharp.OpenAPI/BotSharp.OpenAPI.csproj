@@ -8,6 +8,7 @@
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,26 +25,26 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.5" />
-    <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="8.0.0" />
-    <PackageReference Include="AspNet.Security.OAuth.Keycloak" Version="8.0.0" />
-    <PackageReference Include="AspNet.Security.OAuth.Weixin" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
+    <PackageReference Include="AspNet.Security.OAuth.GitHub" />
+    <PackageReference Include="AspNet.Security.OAuth.Keycloak" />
+    <PackageReference Include="AspNet.Security.OAuth.Weixin" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.27" />
-    <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="6.0.15" />
-    <PackageReference Include="AspNet.Security.OAuth.Keycloak" Version="6.0.15" />
-    <PackageReference Include="AspNet.Security.OAuth.Weixin" Version="6.0.15" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.25" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.26" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
+    <PackageReference Include="AspNet.Security.OAuth.GitHub" />
+    <PackageReference Include="AspNet.Security.OAuth.Keycloak" />
+    <PackageReference Include="AspNet.Security.OAuth.Weixin" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" />
   </ItemGroup>
 
   <ItemGroup>    
