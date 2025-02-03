@@ -38,6 +38,11 @@ public class LlmModelSetting
     public bool MultiModal { get; set; }
 
     /// <summary>
+    /// If true, allow real-time interaction
+    /// </summary>
+    public bool RealTime { get; set; }
+
+    /// <summary>
     /// If true, allow generating images
     /// </summary>
     public bool ImageGeneration { get; set; }

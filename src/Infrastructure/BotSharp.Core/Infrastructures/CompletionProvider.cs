@@ -43,11 +43,13 @@ public class CompletionProvider
         string? model = null,
         string? modelId = null,
         bool? multiModal = null,
+        bool? realTime = null,
         AgentLlmConfig? agentConfig = null)
     {
         var completions = services.GetServices<IChatCompletion>();
         (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId, 
-            multiModal: multiModal, agentConfig: agentConfig);
+            multiModal: multiModal,
+            agentConfig: agentConfig);
 
         var completer = completions.FirstOrDefault(x => x.Provider == provider);
         if (completer == null)
@@ -141,11 +143,36 @@ public class CompletionProvider
         return completer;
     }
 
+    public static IRealTimeCompletion GetRealTimeCompletion(IServiceProvider services,
+        string? provider = null,
+        string? model = null,
+        string? modelId = null,
+        bool? multiModal = null,
+        AgentLlmConfig? agentConfig = null)
+    {
+        var completions = services.GetServices<IRealTimeCompletion>();
+        (provider, model) = GetProviderAndModel(services, provider: provider, model: model, modelId: modelId,
+            multiModal: multiModal,
+            realTime: true,
+            agentConfig: agentConfig);
+
+        var completer = completions.FirstOrDefault(x => x.Provider == provider);
+        if (completer == null)
+        {
+            var logger = services.GetRequiredService<ILogger<CompletionProvider>>();
+            logger.LogError($"Can't resolve completion provider by {provider}");
+        }
+
+        completer?.SetModelName(model);
+        return completer;
+    }
+
     private static (string, string) GetProviderAndModel(IServiceProvider services,
         string? provider = null,
         string? model = null,
         string? modelId = null,
         bool? multiModal = null,
+        bool? realTime = null,
         bool imageGenerate = false,
         AgentLlmConfig? agentConfig = null)
     {
@@ -170,7 +197,9 @@ public class CompletionProvider
                 var modelIdentity = state.ContainsState("model_id") ? state.GetState("model_id") : modelId;
                 var llmProviderService = services.GetRequiredService<ILlmProviderService>();
                 model = llmProviderService.GetProviderModel(provider, modelIdentity,
-                    multiModal: multiModal, imageGenerate: imageGenerate)?.Name;
+                    multiModal: multiModal, 
+                    realTime: realTime,
+                    imageGenerate: imageGenerate)?.Name;
             }
         }
 

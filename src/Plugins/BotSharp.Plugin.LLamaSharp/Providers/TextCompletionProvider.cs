@@ -42,7 +42,7 @@ public class TextCompletionProvider : ITextCompletion
         llama.LoadModel(_model);
 
         var executor = new InstructExecutor(llama.Model.CreateContext(llama.Params));
-        var inferenceParams = new InferenceParams() { Temperature = 0.5f, MaxTokens = 128 };
+        var inferenceParams = new InferenceParams() { MaxTokens = 128 };
 
         _tokenStatistics.StartTimer();
         string completion = "";
