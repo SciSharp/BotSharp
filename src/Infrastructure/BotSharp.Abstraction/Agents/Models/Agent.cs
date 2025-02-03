@@ -275,7 +275,7 @@ public class Agent
         return this;
     }
 
-    public Agent SetLables(List<string> labels)
+    public Agent SetLabels(List<string> labels)
     {
         Labels = labels ?? [];
         return this;
