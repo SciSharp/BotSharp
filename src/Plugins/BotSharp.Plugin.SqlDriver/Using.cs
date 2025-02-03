@@ -23,7 +23,6 @@ global using BotSharp.Abstraction.Knowledges.Models;
 global using BotSharp.Abstraction.Settings;
 global using BotSharp.Plugin.SqlDriver.Hooks;
 global using BotSharp.Plugin.SqlDriver.Services;
-global using BotSharp.Plugin.SqlDriver.Enum;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Instructs;
 global using BotSharp.Abstraction.Instructs.Models;
