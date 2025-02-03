@@ -66,16 +66,16 @@ public class AgentController : ControllerBase
         return targetAgent;
     }
 
-    [HttpPost("/agents")]
-    public async Task<PagedItems<AgentViewModel>> GetAgents([FromBody] AgentQueryRequest request)
+    [HttpGet("/agents")]
+    public async Task<PagedItems<AgentViewModel>> GetAgents([FromQuery] AgentFilter filter, [FromQuery] bool checkAuth = false)
     {
         var agentSetting = _services.GetRequiredService<AgentSettings>();
         var userService = _services.GetRequiredService<IUserService>();
 
         List<AgentViewModel> agents;
-        var pagedAgents = await _agentService.GetAgents(request.Filter);
+        var pagedAgents = await _agentService.GetAgents(filter);
 
-        if (!request.CheckAuth)
+        if (!checkAuth)
         {
             agents = pagedAgents?.Items?.Select(x => AgentViewModel.FromAgent(x))?.ToList() ?? [];
             return new PagedItems<AgentViewModel>
