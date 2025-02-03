@@ -59,6 +59,7 @@ public partial class RoutingService
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: response.Content);
             message.CurrentAgentId = agent.Id;
             dialogs.Add(message);
+            Context.SetDialogs(dialogs);
         }
 
         return true;
@@ -86,6 +87,7 @@ public partial class RoutingService
                 dialogs.Add(RoleDialogModel.From(message,
                     role: AgentRole.Assistant,
                     content: responseTemplate));
+                Context.SetDialogs(dialogs);
             }
             else
             {
@@ -95,6 +97,7 @@ public partial class RoutingService
                     content: message.Content);
 
                 dialogs.Add(msg);
+                Context.SetDialogs(dialogs);
 
                 // Send to Next LLM
                 var agentId = routing.Context.GetCurrentAgentId();
@@ -106,6 +109,7 @@ public partial class RoutingService
             dialogs.Add(RoleDialogModel.From(message,
                 role: AgentRole.Assistant,
                 content: message.Content));
+            Context.SetDialogs(dialogs);
         }
 
         return true;

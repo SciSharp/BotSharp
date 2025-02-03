@@ -97,7 +97,7 @@ public partial class AgentService
                        .SetMergeUtility(foundAgent.MergeUtility)
                        .SetAgentType(foundAgent.Type)
                        .SetProfiles(foundAgent.Profiles)
-                       .SetLables(foundAgent.Labels)
+                       .SetLabels(foundAgent.Labels)
                        .SetRoutingRules(foundAgent.RoutingRules)
                        .SetInstruction(foundAgent.Instruction)
                        .SetChannelInstructions(foundAgent.ChannelInstructions)

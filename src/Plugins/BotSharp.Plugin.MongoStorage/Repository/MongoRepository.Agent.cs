@@ -502,6 +502,7 @@ public partial class MongoRepository
             MergeUtility = x.MergeUtility,
             MaxMessageCount = x.MaxMessageCount,
             Profiles = x.Profiles ?? [],
+            Labels = x.Labels ?? [],
             LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
             ChannelInstructions = x.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
             Templates = x.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
