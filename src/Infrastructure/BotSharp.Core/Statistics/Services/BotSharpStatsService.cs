@@ -31,6 +31,7 @@ public class BotSharpStatsService : IBotSharpStatsService
                 || input == null
                 || string.IsNullOrEmpty(input.Metric)
                 || string.IsNullOrEmpty(input.Dimension)
+                || string.IsNullOrEmpty(input.Value)
                 || input.Data.IsNullOrEmpty())
             {
                 return false;
@@ -40,13 +41,14 @@ public class BotSharpStatsService : IBotSharpStatsService
             var res = locker.Lock(resourceKey, () =>
             {
                 var db = _services.GetRequiredService<IBotSharpRepository>();
-                var body = db.GetGlobalStats(input.Metric, input.Dimension, input.RecordTime, input.IntervalType);
+                var body = db.GetGlobalStats(input.Metric, input.Dimension, input.Value, input.RecordTime, input.IntervalType);
                 if (body == null)
                 {
                     var stats = new BotSharpStats
                     {
                         Metric = input.Metric,
                         Dimension = input.Dimension,
+                        Value = input.Value,
                         RecordTime = input.RecordTime,
                         IntervalType = input.IntervalType,
                         Data = input.Data.ToDictionary(x => x.Key, x => x.Value)
@@ -87,7 +89,7 @@ public class BotSharpStatsService : IBotSharpStatsService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when updating global stats {input.Metric}-{input.Dimension}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError($"Error when updating global stats {input.Metric}-{input.Dimension}-{input.Value}. {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }

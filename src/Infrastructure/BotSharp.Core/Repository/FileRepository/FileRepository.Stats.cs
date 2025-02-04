@@ -4,7 +4,7 @@ namespace BotSharp.Core.Repository;
 
 public partial class FileRepository
 {
-    public BotSharpStats? GetGlobalStats(string metric, string dimension, DateTime recordTime, StatsInterval interval)
+    public BotSharpStats? GetGlobalStats(string metric, string dimension, string value, DateTime recordTime, StatsInterval interval)
     {
         var baseDir = Path.Combine(_dbSettings.FileRepository, STATS_FOLDER);
         var (startTime, endTime) = BotSharpStats.BuildTimeInterval(recordTime, interval);
@@ -18,6 +18,7 @@ public partial class FileRepository
         var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
         var found = list?.FirstOrDefault(x => x.Metric.IsEqualTo(metric)
                                             && x.Dimension.IsEqualTo(dimension)
+                                            && x.Value.IsEqualTo(value)
                                             && x.StartTime == startTime
                                             && x.EndTime == endTime);
 
@@ -49,6 +50,7 @@ public partial class FileRepository
             var list = JsonSerializer.Deserialize<List<BotSharpStats>>(text, _options);
             var found = list?.FirstOrDefault(x => x.Metric.IsEqualTo(body.Metric)
                                                 && x.Dimension.IsEqualTo(body.Dimension)
+                                                && x.Value.IsEqualTo(body.Value)
                                                 && x.StartTime == startTime
                                                 && x.EndTime == endTime);
 
@@ -56,6 +58,7 @@ public partial class FileRepository
             {
                 found.Metric = body.Metric;
                 found.Dimension = body.Dimension;
+                found.Value = body.Value;
                 found.Data = body.Data;
                 found.RecordTime = body.RecordTime;
                 found.StartTime = body.StartTime;
