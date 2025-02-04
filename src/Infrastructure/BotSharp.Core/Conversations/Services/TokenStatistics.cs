@@ -63,9 +63,9 @@ public class TokenStatistics : ITokenStatistics
         var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
         var body = new BotSharpStatsInput
         {
-            Metric = StatsCategory.AgentLlmCost,
+            Metric = StatsMetric.AgentLlmCost,
             Dimension = "agent",
-            Value = message.CurrentAgentId,
+            DimRefVal = message.CurrentAgentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
             Data = [
