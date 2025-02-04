@@ -37,6 +37,7 @@ public partial class RoutingService : IRoutingService
         storage.Append(conv.ConversationId, message);
 
         var dialogs = conv.GetDialogHistory();
+        Context.SetDialogs(dialogs);
         handler.SetDialogs(dialogs);
 
         var inst = new FunctionCallFromLlm
