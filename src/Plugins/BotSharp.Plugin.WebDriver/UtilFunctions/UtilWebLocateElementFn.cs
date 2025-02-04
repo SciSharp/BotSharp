@@ -1,15 +1,15 @@
 namespace BotSharp.Plugin.WebDriver.UtilFunctions;
 
-public class UtilWebCloseBrowserFn : IFunctionCallback
+public class UtilWebLocateElementFn : IFunctionCallback
 {
-    public string Name => "util-web-close_browser";
-    public string Indication => "Closing web browser.";
+    public string Name => "util-web-locate_element";
+    public string Indication => "Locating element.";
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
 
-    public UtilWebCloseBrowserFn(
+    public UtilWebLocateElementFn(
         IServiceProvider services,
-        ILogger<UtilWebCloseBrowserFn> logger)
+        ILogger<UtilWebLocateElementFn> logger)
     {
         _services = services;
         _logger = logger;
@@ -17,7 +17,9 @@ public class UtilWebCloseBrowserFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
+        var locatorArgs = JsonSerializer.Deserialize<ElementLocatingArgs>(message.FunctionArgs ?? "{}");
         var conv = _services.GetRequiredService<IConversationService>();
+        locatorArgs.Highlight = true;
 
         var browser = _services.GetRequiredService<IWebBrowser>();
         var msg = new MessageInfo
@@ -26,10 +28,9 @@ public class UtilWebCloseBrowserFn : IFunctionCallback
             MessageId = message.MessageId,
             ContextId = message.CurrentAgentId,
         };
+        var result = await browser.LocateElement(msg, locatorArgs);
 
-        await browser.CloseBrowser(message.CurrentAgentId);
-
-        message.Content = $"Browser closed.";
+        message.Content = $"Locating element {(result.IsSuccess ? "success" : "failed")}";
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);

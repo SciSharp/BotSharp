@@ -6,10 +6,10 @@ public partial class PlaywrightWebDriver
     {
         var result = new BrowserActionResult();
 
-        await _instance.Wait(message.ContextId);
+        await _instance.Wait(message.ContextId, waitNetworkIdle: false);
         var page = _instance.GetPage(message.ContextId);
 
-        await Task.Delay(500);
+        await Task.Delay(300);
         var bytes = await page.ScreenshotAsync(new PageScreenshotOptions
         {
             Path = path,

@@ -16,6 +16,11 @@
       "content": {
         "type": "string",
         "description": "content to input in element"
+      },
+      "press_key": {
+        "type": "string",
+        "enum": [ "Enter" ],
+        "description": "press key after input text"
       }
     },
     "required": [ "selector", "action" ]
