@@ -10,8 +10,8 @@ public class BotSharpStats
     [JsonPropertyName("dimension")]
     public string Dimension { get; set; } = null!;
 
-    [JsonPropertyName("value")]
-    public string Value { get; set; } = null!;
+    [JsonPropertyName("dim_ref_val")]
+    public string DimRefVal { get; set; } = null!;
 
     [JsonPropertyName("data")]
     public IDictionary<string, double> Data { get; set; } = new Dictionary<string, double>();
@@ -46,7 +46,7 @@ public class BotSharpStats
 
     public override string ToString()
     {
-        return $"{Metric}-{Dimension}-{Value} ({Interval}): {Data?.Count ?? 0}";
+        return $"{Metric}-{Dimension}-{DimRefVal} ({Interval}): {Data?.Count ?? 0}";
     }
 
     public static (DateTime, DateTime) BuildTimeInterval(DateTime recordTime, StatsInterval interval)
@@ -56,19 +56,13 @@ public class BotSharpStats
 
         switch (interval)
         {
+            case StatsInterval.Minute:
+                startTime = new DateTime(recordTime.Year, recordTime.Month, recordTime.Day, recordTime.Hour, recordTime.Minute, 0);
+                endTime = startTime.AddMinutes(1);
+                break;
             case StatsInterval.Hour:
                 startTime = new DateTime(recordTime.Year, recordTime.Month, recordTime.Day, recordTime.Hour, 0, 0);
                 endTime = startTime.AddHours(1);
-                break;
-            case StatsInterval.Week:
-                var dayOfWeek = startTime.DayOfWeek;
-                var firstDayOfWeek = startTime.AddDays(-(int)dayOfWeek);
-                startTime = new DateTime(firstDayOfWeek.Year, firstDayOfWeek.Month, firstDayOfWeek.Day, 0, 0, 0);
-                endTime = startTime.AddDays(7);
-                break;
-            case StatsInterval.Month:
-                startTime = new DateTime(recordTime.Year, recordTime.Month, 1);
-                endTime = startTime.AddMonths(1);
                 break;
             default:
                 startTime = new DateTime(recordTime.Year, recordTime.Month, recordTime.Day, 0, 0, 0);
