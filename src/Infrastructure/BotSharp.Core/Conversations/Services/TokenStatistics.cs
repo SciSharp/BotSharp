@@ -64,7 +64,8 @@ public class TokenStatistics : ITokenStatistics
         var body = new BotSharpStatsInput
         {
             Metric = StatsCategory.AgentLlmCost,
-            Dimension = message.CurrentAgentId,
+            Dimension = "agent",
+            Value = message.CurrentAgentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
             Data = [

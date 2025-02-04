@@ -10,6 +10,9 @@ public class BotSharpStats
     [JsonPropertyName("dimension")]
     public string Dimension { get; set; } = null!;
 
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = null!;
+
     [JsonPropertyName("data")]
     public IDictionary<string, double> Data { get; set; } = new Dictionary<string, double>();
 
@@ -43,7 +46,7 @@ public class BotSharpStats
 
     public override string ToString()
     {
-        return $"{Metric}-{Dimension} ({Interval}): {Data?.Count ?? 0}";
+        return $"{Metric}-{Dimension}-{Value} ({Interval}): {Data?.Count ?? 0}";
     }
 
     public static (DateTime, DateTime) BuildTimeInterval(DateTime recordTime, StatsInterval interval)

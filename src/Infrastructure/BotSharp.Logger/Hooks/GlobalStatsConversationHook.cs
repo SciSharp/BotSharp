@@ -32,7 +32,8 @@ public class GlobalStatsConversationHook : ConversationHookBase
         var body = new BotSharpStatsInput
         {
             Metric = StatsCategory.AgentCall,
-            Dimension = message.CurrentAgentId,
+            Dimension = "agent",
+            Value = message.CurrentAgentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
             Data = [
