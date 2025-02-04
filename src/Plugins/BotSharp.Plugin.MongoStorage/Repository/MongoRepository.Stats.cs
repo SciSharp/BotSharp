@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    public BotSharpStats? GetGlobalStats(string metric, string dimension, string value, DateTime recordTime, StatsInterval interval)
+    public BotSharpStats? GetGlobalStats(string metric, string dimension, string dimRefVal, DateTime recordTime, StatsInterval interval)
     {
         var (startTime, endTime) = BotSharpStats.BuildTimeInterval(recordTime, interval);
 
@@ -14,7 +14,7 @@ public partial class MongoRepository
         {
             builder.Eq(x => x.Metric, metric),
             builder.Eq(x => x.Dimension, dimension),
-            builder.Eq(x => x.Value, value),
+            builder.Eq(x => x.DimRefVal, dimRefVal),
             builder.Eq(x => x.StartTime, startTime),
             builder.Eq(x => x.EndTime, endTime)
         };
@@ -27,7 +27,7 @@ public partial class MongoRepository
         {
             Metric = found.Metric,
             Dimension = found.Dimension,
-            Value = found.Value,
+            DimRefVal = found.DimRefVal,
             Data = found.Data,
             RecordTime = found.RecordTime,
             StartTime = startTime,
@@ -48,7 +48,7 @@ public partial class MongoRepository
         {
             builder.Eq(x => x.Metric, body.Metric),
             builder.Eq(x => x.Dimension, body.Dimension),
-            builder.Eq(x => x.Value, body.Value),
+            builder.Eq(x => x.DimRefVal, body.DimRefVal),
             builder.Eq(x => x.StartTime, startTime),
             builder.Eq(x => x.EndTime, endTime)
         };
@@ -58,7 +58,7 @@ public partial class MongoRepository
                             .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
                             .Set(x => x.Metric, body.Metric)
                             .Set(x => x.Dimension, body.Dimension)
-                            .Set(x => x.Value, body.Value)
+                            .Set(x => x.DimRefVal, body.DimRefVal)
                             .Set(x => x.Data, body.Data)
                             .Set(x => x.StartTime, body.StartTime)
                             .Set(x => x.EndTime, body.EndTime)
