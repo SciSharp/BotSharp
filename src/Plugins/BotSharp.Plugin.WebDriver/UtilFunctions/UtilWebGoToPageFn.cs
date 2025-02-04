@@ -35,9 +35,19 @@ public class UtilWebGoToPageFn : IFunctionCallback
             ContextId = message.CurrentAgentId,
         };
         await browser.CloseCurrentPage(msg);
-        await browser.GoToPage(msg, args);
+        var result = await browser.GoToPage(msg, args);
+        if (!result.IsSuccess)
+        {
+            message.Content = "Open web page failed.";
+            return false;
+        }
 
         message.Content = $"Open web page successfully.";
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
+
+        message.Data = await browser.ScreenshotAsync(msg, path);
 
         return true;
     }

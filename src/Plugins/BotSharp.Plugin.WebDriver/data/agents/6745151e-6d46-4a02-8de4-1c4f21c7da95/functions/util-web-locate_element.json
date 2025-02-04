@@ -1,0 +1,14 @@
+{
+  "name": "util-web-locate_element",
+  "description": "Check if specific element exists in web page",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "selector": {
+        "type": "string",
+        "description": "element selector in XPath, use syntax of Playwright in .NET"
+      }
+    },
+    "required": [ "selector" ]
+  }
+}

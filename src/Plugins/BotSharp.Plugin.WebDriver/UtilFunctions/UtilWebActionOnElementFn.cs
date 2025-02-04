@@ -21,21 +21,34 @@ public class UtilWebActionOnElementFn : IFunctionCallback
         var actionArgs = JsonSerializer.Deserialize<ElementActionArgs>(message.FunctionArgs);
         if (actionArgs.Action == BroswerActionEnum.InputText)
         {
-            actionArgs.PressKey = "Enter";
+            // Replace variable in input text
+            if (actionArgs.Content.StartsWith("@"))
+            {
+                var config = _services.GetRequiredService<IConfiguration>();
+                var key = actionArgs.Content.Replace("@", string.Empty);
+                actionArgs.Content = key.Replace(key, config[key]);
+            }
         }
+
         actionArgs.WaitTime = 2;
         
         var conv = _services.GetRequiredService<IConversationService>();
 
         var browser = _services.GetRequiredService<IWebBrowser>();
-        var result = await browser.ActionOnElement(new MessageInfo
+        var msg = new MessageInfo
         {
             AgentId = message.CurrentAgentId,
             MessageId = message.MessageId,
             ContextId = message.CurrentAgentId,
-        }, locatorArgs, actionArgs);
+        };
+        var result = await browser.ActionOnElement(msg, locatorArgs, actionArgs);
 
         message.Content = $"{actionArgs.Action} executed {(result.IsSuccess ? "success" : "failed")}";
+
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
+        var path = webDriverService.GetScreenshotFilePath(message.MessageId);
+
+        message.Data = await browser.ScreenshotAsync(msg, path);
 
         return true;
     }
