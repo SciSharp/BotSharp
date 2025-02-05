@@ -5,6 +5,9 @@ public interface IRoutingService
     Agent Router { get; }
     IRoutingContext Context { get; }
 
+    List<RoleDialogModel> ScopedDialogs { get; }
+    void SetScopedDialogs(List<RoleDialogModel> dialogs);
+
     /// <summary>
     /// Get routable agents
     /// </summary>
@@ -34,7 +37,7 @@ public interface IRoutingService
 
     Task<bool> InvokeAgent(string agentId, List<RoleDialogModel> dialogs);
     Task<bool> InvokeFunction(string name, RoleDialogModel messages);
-    Task<RoleDialogModel> InstructLoop(RoleDialogModel message, List<RoleDialogModel> dialogs);
+    Task<RoleDialogModel> InstructLoop(RoleDialogModel message);
 
     /// <summary>
     /// Talk to a specific Agent directly, bypassing the Router

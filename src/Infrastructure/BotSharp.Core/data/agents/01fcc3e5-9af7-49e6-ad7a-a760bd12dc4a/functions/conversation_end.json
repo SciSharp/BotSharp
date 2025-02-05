@@ -1,0 +1,14 @@
+{
+  "name": "conversation_end",
+  "description": "Call this function when the user wants to end the conversation.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "response": {
+        "type": "string",
+        "description": "Politely end this conversation."
+      }
+    },
+    "required": [ "response" ]
+  }
+}

@@ -73,7 +73,8 @@ public class NaiveReasoner : IRoutingReasoner
                 };
                 var response = await completion.GetChatCompletions(router, dialogs);
 
-                inst = response.Content.JsonContent<FunctionCallFromLlm>();
+                inst = (response.FunctionArgs ?? "{}").JsonContent<FunctionCallFromLlm>() ?? new();
+                inst.Function = response.FunctionName ?? "route_to_agent";
                 break;
             }
             catch (Exception ex)

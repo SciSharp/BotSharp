@@ -78,9 +78,10 @@ public partial class ConversationService
                 agent = await agentService.LoadAgent(message.CurrentAgentId);
             }
             
+            routing.SetScopedDialogs(dialogs);
             if (agent.Type == AgentType.Routing)
             {
-                response = await routing.InstructLoop(message, dialogs);
+                response = await routing.InstructLoop(message);
             }
             else
             {

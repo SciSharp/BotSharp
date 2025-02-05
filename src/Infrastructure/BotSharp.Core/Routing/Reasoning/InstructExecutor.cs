@@ -20,11 +20,15 @@ public class InstructExecutor : IExecutor
     {
         message.Instruction = inst;
 
-        var handlers = _services.GetServices<IRoutingHandler>();
-        var handler = handlers.FirstOrDefault(x => x.Name == inst.Function);
-        handler.SetDialogs(dialogs);
+        if (inst.ExecutingDirectly)
+        {
+            message.Content = inst.Question;
+        }
 
-        var handled = await handler.Handle(routing, inst, message);
+        var msg = RoleDialogModel.From(message, role: AgentRole.Function);
+        msg.FunctionArgs = JsonSerializer.Serialize(inst);
+        
+        await routing.InvokeFunction(message.FunctionName, msg);
 
         // For client display purpose
         var response = dialogs.Last();

@@ -23,6 +23,8 @@ public partial class RouteToAgentFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs);
         var states = _services.GetRequiredService<IConversationStateService>();
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var agentService = _services.GetRequiredService<IAgentService>();
 
         // Push original task agent
         if (!string.IsNullOrEmpty(args.OriginalAgent) && args.OriginalAgent.Length < 32)
@@ -64,13 +66,12 @@ public partial class RouteToAgentFn : IFunctionCallback
 
         if (string.IsNullOrEmpty(args.AgentName))
         {
-            message.Content = $"missing agent name";
+            message.Content = $"Missing next agent name";
         }
         else
         {
-            var db = _services.GetRequiredService<IBotSharpRepository>();
             var filter = new AgentFilter { AgentNames = [args.AgentName] };
-            var targetAgent = db.GetAgents(filter).FirstOrDefault();
+            var targetAgent = (await agentService.GetAgents(filter)).Items.FirstOrDefault();
             if (targetAgent == null)
             {
                 message.Data = JsonSerializer.Deserialize<JsonElement>(message.FunctionArgs);
@@ -79,21 +80,25 @@ public partial class RouteToAgentFn : IFunctionCallback
 
             if (targetAgent.Disabled)
             {
+                message.Content = $"This agent ({targetAgent.Name}) is disabled, please install the corresponding plugin ({targetAgent.Plugin.Name}) to activate this agent.";
                 return false;
             }
-
-            var routing = _services.GetRequiredService<IRoutingService>();
-            var (missingfield, reason) = routing.HasMissingRequiredField(message, out var agentId);
-            if (missingfield && message.CurrentAgentId != agentId)
+            else
             {
-                // Stack redirection agent
-                _context.Push(agentId, reason: $"REDIRECTION {reason}");
-                message.Content = reason;
-                states.SetState(StateConst.AGENT_REDIRECTION_REASON, reason, isNeedVersion: false);
+                var (missingfield, reason) = routing.HasMissingRequiredField(message, out var agentId);
+                if (missingfield && message.CurrentAgentId != agentId)
+                {
+                    // Stack redirection agent
+                    _context.Push(agentId, reason: $"REDIRECTION {reason}");
+                    message.Content = reason;
+                    states.SetState(StateConst.AGENT_REDIRECTION_REASON, reason, isNeedVersion: false);
+                }
             }
         }
 
         message.CurrentAgentId = _context.GetCurrentAgentId();
+
+        var ret = await routing.InvokeAgent(message.CurrentAgentId, routing.ScopedDialogs);
 
         return true;
     }

@@ -1,0 +1,14 @@
+{
+  "name": "response_to_user",
+  "description": "Response if you can directly handle user's' request based on the context.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "response": {
+        "type": "string",
+        "description": "response content about the request"
+      }
+    },
+    "required": [ "response" ]
+  }
+}

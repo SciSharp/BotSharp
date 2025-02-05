@@ -1,0 +1,26 @@
+{
+  "name": "route_to_agent",
+  "description": "Route request to appropriate AI agent.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "next_action_agent": {
+        "type": "string",
+        "description": "agent for next action based on user latest response, if user is replying last agent's question, you must keep routing to the same agent."
+      },
+      "next_action_reason": {
+        "type": "string",
+        "description": "the reason why route to this virtual agent."
+      },
+      "user_goal_agent": {
+        "type": "string",
+        "description": "agent who can acheive user initial task."
+      },
+      "args": {
+        "type": "object",
+        "description": "extracted required parameters of next action agent, format: { }"
+      }
+    },
+    "required": [ "next_action_agent", "next_action_reason", "args" ]
+  }
+}

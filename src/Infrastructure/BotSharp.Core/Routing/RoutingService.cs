@@ -14,6 +14,9 @@ public partial class RoutingService : IRoutingService
     public IRoutingContext Context => _context;
     public Agent Router => _router;
 
+    List<RoleDialogModel> _dialogs;
+    public List<RoleDialogModel> ScopedDialogs => _dialogs;
+
     public RoutingService(
         IServiceProvider services,
         RoutingSettings settings,
@@ -163,5 +166,10 @@ public partial class RoutingService : IRoutingService
         return GetRoutingRecords()
             .Where(x => x.AgentId == id)
             .ToArray();
+    }
+
+    public void SetScopedDialogs(List<RoleDialogModel> dialogs)
+    {
+        _dialogs = dialogs;
     }
 }
