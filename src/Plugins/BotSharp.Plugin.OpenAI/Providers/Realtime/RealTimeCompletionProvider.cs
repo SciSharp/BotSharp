@@ -70,7 +70,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var messages = new List<ChatMessage>();
 
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.Parse(state.GetState("max_tokens", "1024"));
+        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
+                            ? tokens
+                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
         var options = new ChatCompletionOptions()
         {
             ToolChoice = ChatToolChoice.CreateAutoChoice(),

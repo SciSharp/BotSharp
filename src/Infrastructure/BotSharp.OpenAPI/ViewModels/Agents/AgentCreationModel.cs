@@ -80,7 +80,7 @@ public class AgentCreationModel
             MaxMessageCount = MaxMessageCount,
             Profiles = Profiles,
             Labels = Labels,
-            LlmConfig = LlmConfig,
+            LlmConfig = LlmConfig ?? new(),
             KnowledgeBases = KnowledgeBases,
             Rules = Rules,
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? [],

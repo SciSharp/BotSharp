@@ -22,6 +22,16 @@ public class AgentLlmConfig
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Model { get; set; }
 
+    /// <summary>
+    /// Max recursion depth
+    /// </summary>
     [JsonPropertyName("max_recursion_depth")]
     public int MaxRecursionDepth { get; set; } = 3;
+
+    /// <summary>
+    /// Max output token
+    /// </summary>
+    [JsonPropertyName("max_output_tokens")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxOutputTokens { get; set; }
 }

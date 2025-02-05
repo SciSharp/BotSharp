@@ -105,7 +105,7 @@ public class AgentUpdateModel
             Utilities = Utilities ?? [],
             KnowledgeBases = KnowledgeBases ?? [],
             Rules = Rules ?? [],
-            LlmConfig = LlmConfig
+            LlmConfig = LlmConfig ?? new()
         };
 
         return agent;
