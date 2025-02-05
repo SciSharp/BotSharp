@@ -170,12 +170,14 @@ public class ChatCompletionProvider : IChatCompletion
 
         var state = _services.GetRequiredService<IConversationStateService>();
         var temperature = decimal.Parse(state.GetState("temperature", "0.0"));
-        var maxToken = int.Parse(state.GetState("max_tokens", "512"));
+        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
+                            ? tokens
+                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
 
         var parameters = new MessageParameters()
         {
             Messages = messages,
-            MaxTokens = maxToken,
+            MaxTokens = maxTokens,
             Model = settings.Name,
             Stream = false,
             Temperature = temperature,
