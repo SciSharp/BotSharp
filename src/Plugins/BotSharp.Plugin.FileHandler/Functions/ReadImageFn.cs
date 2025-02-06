@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Routing;
+
 namespace BotSharp.Plugin.FileHandler.Functions;
 
 public class ReadImageFn : IFunctionCallback
@@ -20,23 +22,30 @@ public class ReadImageFn : IFunctionCallback
     {
         var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
         var conv = _services.GetRequiredService<IConversationService>();
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var agentService = _services.GetRequiredService<IAgentService>();
 
-        var wholeDialogs = conv.GetDialogHistory();
-        var dialogs = AssembleFiles(conv.ConversationId, args?.ImageUrls, wholeDialogs);
+        Agent? fromAgent = null;
+        if (!string.IsNullOrEmpty(message.CurrentAgentId))
+        {
+            fromAgent = await agentService.LoadAgent(message.CurrentAgentId);
+        }
+
         var agent = new Agent
         {
             Id = BuiltInAgentId.UtilityAssistant,
             Name = "Utility Agent",
-            Instruction = !string.IsNullOrWhiteSpace(args?.UserRequest) ? args.UserRequest : "Please describe the image(s).",
+            Instruction = fromAgent?.Instruction ?? args.UserRequest ?? "Please describe the image(s).",
             TemplateDict = new Dictionary<string, object>()
         };
 
-        if (!string.IsNullOrEmpty(message.CurrentAgentId))
+        var wholeDialogs = routingCtx.GetDialogs();
+        if (wholeDialogs.IsNullOrEmpty())
         {
-            agent = await agentService.LoadAgent(message.CurrentAgentId, loadUtility: false);
+            wholeDialogs = conv.GetDialogHistory();
         }
 
+        var dialogs = AssembleFiles(conv.ConversationId, args?.ImageUrls, wholeDialogs);
         var response = await GetChatCompletion(agent, dialogs);
         message.Content = response;
         return true;
@@ -72,7 +81,7 @@ public class ReadImageFn : IFunctionCallback
 
         if (!imageUrls.IsNullOrEmpty())
         {
-            var lastDialog = dialogs.Last();
+            var lastDialog = dialogs.LastOrDefault(x => x.Role == AgentRole.User) ?? dialogs.Last();
             var files = lastDialog.Files ?? [];
             var addnFiles = imageUrls.Select(x => x?.Trim())
                                      .Where(x => !string.IsNullOrWhiteSpace(x))

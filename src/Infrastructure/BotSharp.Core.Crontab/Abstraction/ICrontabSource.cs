@@ -5,5 +5,10 @@ namespace BotSharp.Core.Crontab.Abstraction;
 /// </summary>
 public interface ICrontabSource
 {
+    /// <summary>
+    /// Set to true if the cron is real-time like Change Data Capture (CDC).
+    /// </summary>
+    bool IsRealTime => false;
+
     CrontabItem GetCrontabItem();
 }

@@ -29,8 +29,10 @@ public class BotSharpStatsService : IBotSharpStatsService
             if (!_settings.Enabled
                 || string.IsNullOrEmpty(resourceKey)
                 || input == null
-                || string.IsNullOrEmpty(input.Category)
-                || string.IsNullOrEmpty(input.Group))
+                || string.IsNullOrEmpty(input.Metric)
+                || string.IsNullOrEmpty(input.Dimension)
+                || string.IsNullOrEmpty(input.DimRefVal)
+                || input.Data.IsNullOrEmpty())
             {
                 return false;
             }
@@ -39,14 +41,16 @@ public class BotSharpStatsService : IBotSharpStatsService
             var res = locker.Lock(resourceKey, () =>
             {
                 var db = _services.GetRequiredService<IBotSharpRepository>();
-                var body = db.GetGlobalStats(input.Category, input.Group, input.RecordTime);
+                var body = db.GetGlobalStats(input.Metric, input.Dimension, input.DimRefVal, input.RecordTime, input.IntervalType);
                 if (body == null)
                 {
                     var stats = new BotSharpStats
                     {
-                        Category = input.Category,
-                        Group = input.Group,
+                        Metric = input.Metric,
+                        Dimension = input.Dimension,
+                        DimRefVal = input.DimRefVal,
                         RecordTime = input.RecordTime,
+                        IntervalType = input.IntervalType,
                         Data = input.Data.ToDictionary(x => x.Key, x => x.Value)
                     };
                     db.SaveGlobalStats(stats);
@@ -85,7 +89,7 @@ public class BotSharpStatsService : IBotSharpStatsService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error when updating global stats {input.Category}-{input.Group}. {ex.Message}\r\n{ex.InnerException}");
+            _logger.LogError($"Error when updating global stats {input.Metric}-{input.Dimension}-{input.DimRefVal}. {ex.Message}\r\n{ex.InnerException}");
             return false;
         }
     }

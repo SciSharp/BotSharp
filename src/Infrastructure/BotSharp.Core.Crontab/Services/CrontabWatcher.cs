@@ -45,8 +45,7 @@ public class CrontabWatcher : BackgroundService
     {
         var cron = services.GetRequiredService<ICrontabService>();
         var crons = await cron.GetCrontable();
-
-        var publisher = services.GetRequiredService<IEventPublisher>();
+        var publisher = services.GetService<IEventPublisher>();
 
         foreach (var item in crons)
         {
@@ -88,8 +87,16 @@ public class CrontabWatcher : BackgroundService
                 {
                     _logger.LogInformation($"The current time matches the cron expression {item}");
 
-                    await publisher.PublishAsync($"Crontab:{item.Title}", item.Cron);
-                    // cron.ScheduledTimeArrived(item);
+                    if (publisher != null)
+                    {
+                        await publisher.PublishAsync($"Crontab:{item.Title}", item.Cron);
+                    }
+                    else
+                    {
+                        var scope = _services.CreateScope();
+                        cron = scope.ServiceProvider.GetRequiredService<ICrontabService>();
+                        cron.ScheduledTimeArrived(item);
+                    }
                 }
             }
             catch (Exception ex)

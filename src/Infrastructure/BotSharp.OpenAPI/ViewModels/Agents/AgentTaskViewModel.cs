@@ -5,21 +5,25 @@ namespace BotSharp.OpenAPI.ViewModels.Agents;
 
 public class AgentTaskViewModel
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
+    public string Id { get; set; } = null!;
+    public string Name { get; set; } = null!;
     public string? Description { get; set; }
-    public string Content { get; set; }
+    public string Content { get; set; } = null!;
     public bool Enabled { get; set; }
+
+    public string Status { get; set; } = null!;
+
     [JsonPropertyName("created_datetime")]
     public DateTime CreatedDateTime { get; set; }
+
     [JsonPropertyName("updated_datetime")]
     public DateTime UpdatedDateTime { get; set; }
+
     [JsonPropertyName("agent_id")]
-    public string AgentId { get; set; }
+    public string AgentId { get; set; } = null!;
+
     [JsonPropertyName("agent_name")]
-    public string AgentName { get; set; }
-    [JsonPropertyName("direct_agent_id")]
-    public string? DirectAgentId { get; set; }
+    public string AgentName { get; set; } = null!;
 
     public static AgentTaskViewModel From(AgentTask task)
     {
@@ -32,7 +36,7 @@ public class AgentTaskViewModel
             Enabled = task.Enabled,
             AgentId = task.AgentId,
             AgentName = task.Agent?.Name,
-            DirectAgentId = task?.DirectAgentId,
+            Status = task.Status,
             CreatedDateTime = task.CreatedDateTime,
             UpdatedDateTime = task.UpdatedDateTime
         };

@@ -41,6 +41,7 @@ public partial class RoutingService
         }
 
         dialogs.Add(message);
+        Context.SetDialogs(dialogs);
         storage.Append(convService.ConversationId, message);
 
         // Get first instruction

@@ -70,7 +70,7 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.UserName == userName.ToLower());
     }
 
-    public Dashboard? GetDashboard(string id = null)
+    public Dashboard? GetDashboard(string userId = null)
     {
         return Dashboards.FirstOrDefault();
     }

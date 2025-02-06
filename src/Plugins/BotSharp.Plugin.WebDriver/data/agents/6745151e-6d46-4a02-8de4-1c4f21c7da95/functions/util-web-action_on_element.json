@@ -1,0 +1,28 @@
+{
+  "name": "util-web-action_on_element",
+  "description": "Do action on specific element located by selector",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "selector": {
+        "type": "string",
+        "description": "element selector in XPath, use syntax of Playwright in .NET"
+      },
+      "action": {
+        "type": "string",
+        "description": "action to perform on element",
+        "enum": [ "Click", "InputText" ]
+      },
+      "content": {
+        "type": "string",
+        "description": "content to input in element"
+      },
+      "press_key": {
+        "type": "string",
+        "enum": [ "Enter" ],
+        "description": "press key after input text"
+      }
+    },
+    "required": [ "selector", "action" ]
+  }
+}

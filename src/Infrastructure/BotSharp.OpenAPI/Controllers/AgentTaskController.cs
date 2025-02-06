@@ -38,11 +38,12 @@ public class AgentTaskController : ControllerBase
     [HttpGet("/agent/tasks")]
     public async Task<PagedItems<AgentTaskViewModel>> GetAgentTasks([FromQuery] AgentTaskFilter filter)
     {
-        var tasks = await _agentTaskService.GetTasks(filter);
+        filter.Status = TaskStatus.Scheduled;
+        var page = await _agentTaskService.GetTasks(filter);
         return new PagedItems<AgentTaskViewModel>
         {
-            Items = tasks.Items.Select(x => AgentTaskViewModel.From(x)),
-            Count = tasks.Count
+            Items = page.Items.Select(AgentTaskViewModel.From),
+            Count = page.Count
         };
     }
 

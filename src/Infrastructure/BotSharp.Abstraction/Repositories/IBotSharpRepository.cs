@@ -3,6 +3,7 @@ using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Roles.Models;
 using BotSharp.Abstraction.Shared;
+using BotSharp.Abstraction.Statistics.Enums;
 using BotSharp.Abstraction.Statistics.Models;
 using BotSharp.Abstraction.Tasks.Models;
 using BotSharp.Abstraction.Translation.Models;
@@ -15,15 +16,21 @@ namespace BotSharp.Abstraction.Repositories;
 public interface IBotSharpRepository : IHaveServiceProvider
 {
     #region Plugin
-    PluginConfig GetPluginConfig();
-    void SavePluginConfig(PluginConfig config);
+    PluginConfig GetPluginConfig()
+        => throw new NotImplementedException();
+    void SavePluginConfig(PluginConfig config)
+        => throw new NotImplementedException();
     #endregion
 
     #region Role
-    bool RefreshRoles(IEnumerable<Role> roles) => throw new NotImplementedException();
-    IEnumerable<Role> GetRoles(RoleFilter filter) => throw new NotImplementedException();
-    Role? GetRoleDetails(string roleId, bool includeAgent = false) => throw new NotImplementedException();
-    bool UpdateRole(Role role, bool updateRoleAgents = false) => throw new NotImplementedException();
+    bool RefreshRoles(IEnumerable<Role> roles)
+        => throw new NotImplementedException();
+    IEnumerable<Role> GetRoles(RoleFilter filter)
+        => throw new NotImplementedException();
+    Role? GetRoleDetails(string roleId, bool includeAgent = false)
+        => throw new NotImplementedException();
+    bool UpdateRole(Role role, bool updateRoleAgents = false)
+        => throw new NotImplementedException();
     #endregion
 
     #region User
@@ -53,83 +60,135 @@ public interface IBotSharpRepository : IHaveServiceProvider
     List<User> SearchLoginUsers(User filter, string source = UserSource.Internal) =>throw new NotImplementedException();
     User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
     bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
-
     #endregion
 
     #region Agent
-    void UpdateAgent(Agent agent, AgentField field);
-    Agent? GetAgent(string agentId, bool basicsOnly = false);
-    List<Agent> GetAgents(AgentFilter filter);
-    List<UserAgent> GetUserAgents(string userId);
-    void BulkInsertAgents(List<Agent> agents);
-    void BulkInsertUserAgents(List<UserAgent> userAgents);
-    bool DeleteAgents();
-    bool DeleteAgent(string agentId);
-    List<string> GetAgentResponses(string agentId, string prefix, string intent);
-    string GetAgentTemplate(string agentId, string templateName);
-    bool PatchAgentTemplate(string agentId, AgentTemplate template);
+    void UpdateAgent(Agent agent, AgentField field)
+        => throw new NotImplementedException();
+    Agent? GetAgent(string agentId, bool basicsOnly = false)
+        => throw new NotImplementedException();
+    List<Agent> GetAgents(AgentFilter filter)
+        => throw new NotImplementedException();
+    List<UserAgent> GetUserAgents(string userId)
+        => throw new NotImplementedException();
+    void BulkInsertAgents(List<Agent> agents)
+        => throw new NotImplementedException();
+    void BulkInsertUserAgents(List<UserAgent> userAgents)
+        => throw new NotImplementedException();
+    bool DeleteAgents()
+        => throw new NotImplementedException();
+    bool DeleteAgent(string agentId)
+        => throw new NotImplementedException();
+    List<string> GetAgentResponses(string agentId, string prefix, string intent)
+        => throw new NotImplementedException();
+    string GetAgentTemplate(string agentId, string templateName)
+        => throw new NotImplementedException();
+    bool PatchAgentTemplate(string agentId, AgentTemplate template)
+        => throw new NotImplementedException();
+
+    bool UpdateAgentLabels(string agentId, List<string> labels)
+        => throw new NotImplementedException();
+    bool AppendAgentLabels(string agentId, List<string> labels)
+        => throw new NotImplementedException();
     #endregion
 
     #region Agent Task
-    PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter);
-    AgentTask? GetAgentTask(string agentId, string taskId);
-    void InsertAgentTask(AgentTask task);
-    void BulkInsertAgentTasks(List<AgentTask> tasks);
-    void UpdateAgentTask(AgentTask task, AgentTaskField field);
-    bool DeleteAgentTask(string agentId, List<string> taskIds);
-    bool DeleteAgentTasks();
+    PagedItems<AgentTask> GetAgentTasks(AgentTaskFilter filter)
+        => throw new NotImplementedException();
+    AgentTask? GetAgentTask(string agentId, string taskId)
+        => throw new NotImplementedException();
+    void InsertAgentTask(AgentTask task)
+        => throw new NotImplementedException();
+    void BulkInsertAgentTasks(List<AgentTask> tasks)
+        => throw new NotImplementedException();
+    void UpdateAgentTask(AgentTask task, AgentTaskField field)
+        => throw new NotImplementedException();
+    bool DeleteAgentTask(string agentId, List<string> taskIds)
+        => throw new NotImplementedException();
+    bool DeleteAgentTasks()
+        => throw new NotImplementedException();
     #endregion
 
     #region Conversation
-    void CreateNewConversation(Conversation conversation);
-    bool DeleteConversations(IEnumerable<string> conversationIds);
-    List<DialogElement> GetConversationDialogs(string conversationId);
-    void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs);
-    ConversationState GetConversationStates(string conversationId);
-    void UpdateConversationStates(string conversationId, List<StateKeyValue> states);
-    void UpdateConversationStatus(string conversationId, string status);
-    Conversation GetConversation(string conversationId);
-    PagedItems<Conversation> GetConversations(ConversationFilter filter);
-    void UpdateConversationTitle(string conversationId, string title);
-    void UpdateConversationTitleAlias(string conversationId, string titleAlias);
-    bool UpdateConversationTags(string conversationId, List<string> tags);
-    bool AppendConversationTags(string conversationId, List<string> tags);
-    bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
-    void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint);
-    ConversationBreakpoint? GetConversationBreakpoint(string conversationId);
-    List<Conversation> GetLastConversations();
-    List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds);
-    IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false);
+    void CreateNewConversation(Conversation conversation)
+        => throw new NotImplementedException();
+    bool DeleteConversations(IEnumerable<string> conversationIds)
+        => throw new NotImplementedException();
+    List<DialogElement> GetConversationDialogs(string conversationId)
+        => throw new NotImplementedException();
+    void AppendConversationDialogs(string conversationId, List<DialogElement> dialogs)
+        => throw new NotImplementedException();
+    ConversationState GetConversationStates(string conversationId)
+        => throw new NotImplementedException();
+    void UpdateConversationStates(string conversationId, List<StateKeyValue> states)
+        => throw new NotImplementedException();
+    void UpdateConversationStatus(string conversationId, string status)
+        => throw new NotImplementedException();
+    Conversation GetConversation(string conversationId)
+        => throw new NotImplementedException();
+    PagedItems<Conversation> GetConversations(ConversationFilter filter)
+        => throw new NotImplementedException();
+    void UpdateConversationTitle(string conversationId, string title)
+        => throw new NotImplementedException();
+    void UpdateConversationTitleAlias(string conversationId, string titleAlias)
+        => throw new NotImplementedException();
+    bool UpdateConversationTags(string conversationId, List<string> tags)
+        => throw new NotImplementedException();
+    bool AppendConversationTags(string conversationId, List<string> tags)
+        => throw new NotImplementedException();
+    bool UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
+        => throw new NotImplementedException();
+    void UpdateConversationBreakpoint(string conversationId, ConversationBreakpoint breakpoint)
+        => throw new NotImplementedException();
+    ConversationBreakpoint? GetConversationBreakpoint(string conversationId)
+        => throw new NotImplementedException();
+    List<Conversation> GetLastConversations()
+        => throw new NotImplementedException();
+    List<string> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds)
+         => throw new NotImplementedException();
+    IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
+         => throw new NotImplementedException();
     #endregion
 
     #region Execution Log
-    void AddExecutionLogs(string conversationId, List<string> logs);
-    List<string> GetExecutionLogs(string conversationId);
+    void AddExecutionLogs(string conversationId, List<string> logs)
+        => throw new NotImplementedException();
+    List<string> GetExecutionLogs(string conversationId)
+        => throw new NotImplementedException();
     #endregion
 
     #region LLM Completion Log
-    void SaveLlmCompletionLog(LlmCompletionLog log);
+    void SaveLlmCompletionLog(LlmCompletionLog log)
+        => throw new NotImplementedException();
     #endregion
 
     #region Conversation Content Log
-    void SaveConversationContentLog(ContentLogOutputModel log);
-    List<ContentLogOutputModel> GetConversationContentLogs(string conversationId);
+    void SaveConversationContentLog(ContentLogOutputModel log)
+        => throw new NotImplementedException();
+    List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
+        => throw new NotImplementedException();
     #endregion
 
     #region Conversation State Log
-    void SaveConversationStateLog(ConversationStateLogModel log);
-    List<ConversationStateLogModel> GetConversationStateLogs(string conversationId);
+    void SaveConversationStateLog(ConversationStateLogModel log)
+        => throw new NotImplementedException();
+    List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+        => throw new NotImplementedException();
     #endregion
 
     #region Statistics
-    BotSharpStats? GetGlobalStats(string category, string group, DateTime recordTime) => throw new NotImplementedException();
-    bool SaveGlobalStats(BotSharpStats body) => throw new NotImplementedException();
+    BotSharpStats? GetGlobalStats(string metric, string dimension, string dimRefVal, DateTime recordTime, StatsInterval interval)
+        => throw new NotImplementedException();
+    bool SaveGlobalStats(BotSharpStats body)
+        => throw new NotImplementedException();
 
     #endregion
 
     #region Translation
-    IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries);
-    bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs);
+    IEnumerable<TranslationMemoryOutput> GetTranslationMemories(IEnumerable<TranslationMemoryQuery> queries)
+         => throw new NotImplementedException();
+    bool SaveTranslationMemories(IEnumerable<TranslationMemoryInput> inputs)
+         => throw new NotImplementedException();
 
     #endregion
 
@@ -140,10 +199,15 @@ public interface IBotSharpRepository : IHaveServiceProvider
     /// <param name="configs"></param>
     /// <param name="reset"></param>
     /// <returns></returns>
-    bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false);
-    bool DeleteKnowledgeCollectionConfig(string collectionName);
-    IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter);
-    bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData);
+    bool AddKnowledgeCollectionConfigs(List<VectorCollectionConfig> configs, bool reset = false)
+         => throw new NotImplementedException();
+    bool DeleteKnowledgeCollectionConfig(string collectionName)
+         => throw new NotImplementedException();
+    IEnumerable<VectorCollectionConfig> GetKnowledgeCollectionConfigs(VectorCollectionConfigFilter filter)
+         => throw new NotImplementedException();
+    bool SaveKnolwedgeBaseFileMeta(KnowledgeDocMetaData metaData)
+         => throw new NotImplementedException();
+
     /// <summary>
     /// Delete file meta data in a knowledge collection, given the vector store provider. If "fileId" is null, delete all in the collection.
     /// </summary>
@@ -151,13 +215,18 @@ public interface IBotSharpRepository : IHaveServiceProvider
     /// <param name="vectorStoreProvider"></param>
     /// <param name="fileId"></param>
     /// <returns></returns>
-    bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null);
-    PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter);
+    bool DeleteKnolwedgeBaseFileMeta(string collectionName, string vectorStoreProvider, Guid? fileId = null)
+         => throw new NotImplementedException();
+    PagedItems<KnowledgeDocMetaData> GetKnowledgeBaseFileMeta(string collectionName, string vectorStoreProvider, KnowledgeFileFilter filter)
+         => throw new NotImplementedException();
     #endregion
 
     #region Crontab
-    bool UpsertCrontabItem(CrontabItem cron) => throw new NotImplementedException();
-    bool DeleteCrontabItem(string conversationId) => throw new NotImplementedException();
-    PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter) => throw new NotImplementedException();
+    bool UpsertCrontabItem(CrontabItem cron)
+        => throw new NotImplementedException();
+    bool DeleteCrontabItem(string conversationId)
+        => throw new NotImplementedException();
+    PagedItems<CrontabItem> GetCrontabItems(CrontabItemFilter filter)
+        => throw new NotImplementedException();
     #endregion
 }

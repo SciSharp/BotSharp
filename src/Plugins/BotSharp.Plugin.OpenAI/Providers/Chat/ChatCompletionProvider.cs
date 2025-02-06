@@ -202,7 +202,9 @@ public class ChatCompletionProvider : IChatCompletion
         var messages = new List<ChatMessage>();
 
         var temperature = float.Parse(state.GetState("temperature", "0.0"));
-        var maxTokens = int.Parse(state.GetState("max_tokens", "1024"));
+        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
+                            ? tokens
+                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
         var options = new ChatCompletionOptions()
         {
             Temperature = temperature,
@@ -252,10 +254,10 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 messages.Add(new AssistantChatMessage(new List<ChatToolCall>
                 {
-                    ChatToolCall.CreateFunctionToolCall(message.ToolCallId, message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? string.Empty))
+                    ChatToolCall.CreateFunctionToolCall(message.FunctionName, message.FunctionName, BinaryData.FromString(message.FunctionArgs ?? string.Empty))
                 }));
 
-                messages.Add(new ToolChatMessage(message.ToolCallId, message.Content));
+                messages.Add(new ToolChatMessage(message.FunctionName, message.Content));
             }
             else if (message.Role == AgentRole.User)
             {

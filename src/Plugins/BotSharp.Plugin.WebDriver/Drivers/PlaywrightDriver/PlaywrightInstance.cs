@@ -33,6 +33,10 @@ public class PlaywrightInstance : IDisposable
 
     public async Task<IBrowserContext> GetContext(string ctxId)
     {
+        if (!_contexts.ContainsKey(ctxId))
+        {
+            await InitContext(ctxId, new BrowserActionArgs());
+        }
         return _contexts[ctxId];
     }
 
@@ -235,6 +239,11 @@ public class PlaywrightInstance : IDisposable
 
     public async Task CloseCurrentPage(string ctxId)
     {
+        if (!_pages.ContainsKey(ctxId))
+        {
+            return;
+        }
+
         var pages = _pages[ctxId].ToArray();
         for (var i = 0; i < pages.Length; i++)
         {

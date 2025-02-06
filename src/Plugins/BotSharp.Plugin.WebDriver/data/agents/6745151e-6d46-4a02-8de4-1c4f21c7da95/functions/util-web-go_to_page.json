@@ -1,0 +1,14 @@
+{
+  "name": "util-web-go_to_page",
+  "description": "Go to web page in specific url.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "Web URL"
+      }
+    },
+    "required": [ "url" ]
+  }
+}

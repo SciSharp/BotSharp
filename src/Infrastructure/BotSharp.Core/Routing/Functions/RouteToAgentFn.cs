@@ -47,7 +47,7 @@ public partial class RouteToAgentFn : IFunctionCallback
             }
 
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var filter = new AgentFilter { AgentName = args.OriginalAgent };
+            var filter = new AgentFilter { AgentNames = [args.OriginalAgent] };
             var originalAgent = db.GetAgents(filter).FirstOrDefault();
             if (originalAgent != null)
             {
@@ -69,7 +69,7 @@ public partial class RouteToAgentFn : IFunctionCallback
         else
         {
             var db = _services.GetRequiredService<IBotSharpRepository>();
-            var filter = new AgentFilter { AgentName = args.AgentName };
+            var filter = new AgentFilter { AgentNames = [args.AgentName] };
             var targetAgent = db.GetAgents(filter).FirstOrDefault();
             if (targetAgent == null)
             {

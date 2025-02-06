@@ -31,6 +31,7 @@ public partial class AgentService
         record.MaxMessageCount = agent.MaxMessageCount;
         record.Type = agent.Type;
         record.Profiles = agent.Profiles ?? [];
+        record.Labels = agent.Labels ?? [];
         record.RoutingRules = agent.RoutingRules ?? [];
         record.Instruction = agent.Instruction ?? string.Empty;
         record.ChannelInstructions = agent.ChannelInstructions ?? [];
@@ -96,6 +97,7 @@ public partial class AgentService
                        .SetMergeUtility(foundAgent.MergeUtility)
                        .SetAgentType(foundAgent.Type)
                        .SetProfiles(foundAgent.Profiles)
+                       .SetLabels(foundAgent.Labels)
                        .SetRoutingRules(foundAgent.RoutingRules)
                        .SetInstruction(foundAgent.Instruction)
                        .SetChannelInstructions(foundAgent.ChannelInstructions)

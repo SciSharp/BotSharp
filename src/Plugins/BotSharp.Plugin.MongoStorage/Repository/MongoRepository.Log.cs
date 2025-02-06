@@ -113,6 +113,7 @@ public partial class MongoRepository
         var logDoc = new ConversationStateLogDocument
         {
             ConversationId = log.ConversationId,
+            AgentId= log.AgentId,
             MessageId = log.MessageId,
             States = log.States,
             CreateTime = log.CreateTime
@@ -129,6 +130,7 @@ public partial class MongoRepository
                       .Select(x => new ConversationStateLogModel
                       {
                           ConversationId = x.ConversationId,
+                          AgentId = x.AgentId,
                           MessageId = x.MessageId,
                           States = x.States,
                           CreateTime = x.CreateTime

@@ -10,6 +10,7 @@ global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.MLTasks;
 global using BotSharp.Abstraction.Agents;
+global using BotSharp.Abstraction.Agents.Constants;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Loggers;

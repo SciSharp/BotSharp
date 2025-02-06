@@ -10,6 +10,7 @@ public class RoutingContext : IRoutingContext
     private string _conversationId;
     private string _messageId;
     private int _currentRecursionDepth = 0;
+    private List<RoleDialogModel> _dialogs = [];
 
     public RoutingContext(IServiceProvider services, RoutingSettings setting)
     {
@@ -41,7 +42,7 @@ public class RoutingContext : IRoutingContext
                 var agentService = _services.GetRequiredService<IAgentService>();
                 _routerAgentIds = agentService.GetAgents(new AgentFilter
                 {
-                    Type = AgentType.Routing,
+                    Types = [AgentType.Routing],
                     Pager = new Pagination { Size = 100 }
                 }).Result.Items.Select(x => x.Id).ToArray();
             }
@@ -86,7 +87,7 @@ public class RoutingContext : IRoutingContext
             var agentService = _services.GetRequiredService<IAgentService>();
             agentId = agentService.GetAgents(new AgentFilter
             {
-                AgentName = agentId
+                AgentNames = [agentId]
             }).Result.Items.First().Id;
         }
 
@@ -258,5 +259,20 @@ public class RoutingContext : IRoutingContext
     public void ResetAgentStack()
     {
         _stack.Clear();
+    }
+
+    public void SetDialogs(List<RoleDialogModel> dialogs)
+    {
+        _dialogs = dialogs ?? [];
+    }
+
+    public List<RoleDialogModel> GetDialogs()
+    {
+        return _dialogs ?? [];
+    }
+
+    public void ResetDialogs()
+    {
+        _dialogs = [];
     }
 }

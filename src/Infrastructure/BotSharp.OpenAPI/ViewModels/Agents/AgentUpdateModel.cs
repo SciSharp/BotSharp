@@ -72,6 +72,8 @@ public class AgentUpdateModel
     /// </summary>
     public List<string>? Profiles { get; set; }
 
+    public List<string>? Labels { get; set; }
+
     [JsonPropertyName("routing_rules")]
     public List<RoutingRuleUpdateModel>? RoutingRules { get; set; }
 
@@ -93,6 +95,7 @@ public class AgentUpdateModel
             MaxMessageCount = MaxMessageCount,
             Type = Type,
             Profiles = Profiles ?? [],
+            Labels = Labels ?? [],
             RoutingRules = RoutingRules?.Select(x => RoutingRuleUpdateModel.ToDomainElement(x))?.ToList() ?? [],
             Instruction = Instruction ?? string.Empty,
             ChannelInstructions = ChannelInstructions ?? [],
@@ -102,7 +105,7 @@ public class AgentUpdateModel
             Utilities = Utilities ?? [],
             KnowledgeBases = KnowledgeBases ?? [],
             Rules = Rules ?? [],
-            LlmConfig = LlmConfig
+            LlmConfig = LlmConfig ?? new()
         };
 
         return agent;

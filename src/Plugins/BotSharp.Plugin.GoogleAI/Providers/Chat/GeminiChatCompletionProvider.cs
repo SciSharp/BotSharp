@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Loggers;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -188,10 +189,20 @@ public class GeminiChatCompletionProvider : IChatCompletion
             }
         }
 
+        var state = _services.GetRequiredService<IConversationStateService>();
+        var temperature = float.Parse(state.GetState("temperature", "0.0"));
+        var maxTokens = int.TryParse(state.GetState("max_tokens"), out var tokens)
+                            ? tokens
+                            : agent.LlmConfig?.MaxOutputTokens ?? LlmConstant.DEFAULT_MAX_OUTPUT_TOKEN;
         var request = new GenerateContentRequest
         {
             Contents = contents,
-            Tools = tools
+            Tools = tools,
+            GenerationConfig = new()
+            {
+                Temperature = temperature,
+                MaxOutputTokens = maxTokens
+            }
         };
 
         var prompt = GetPrompt(systemPrompts, funcPrompts, convPrompts);

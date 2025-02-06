@@ -2,6 +2,9 @@ namespace BotSharp.Abstraction.Functions.Models;
 
 public class FunctionDef
 {
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "function";
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = null!;
 

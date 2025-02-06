@@ -22,6 +22,11 @@ public partial class MongoRepository
             filters.Add(builder.Eq(x => x.AgentId, filter.AgentId));
         }
 
+        if (!string.IsNullOrEmpty(filter.Status))
+        {
+            filters.Add(builder.Eq(x => x.Status, filter.Status));
+        }
+
         if (filter.Enabled.HasValue)
         {
             filters.Add(builder.Eq(x => x.Enabled, filter.Enabled.Value));
@@ -35,18 +40,11 @@ public partial class MongoRepository
         var agentIds = taskDocs.Select(x => x.AgentId).Distinct().ToList();
         var agents = GetAgents(new AgentFilter { AgentIds = agentIds });
 
-        var tasks = taskDocs.Select(x => new AgentTask
+        var tasks = taskDocs.Select(x =>
         {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Enabled = x.Enabled,
-            AgentId = x.AgentId,
-            DirectAgentId = x.DirectAgentId,
-            Content = x.Content,
-            CreatedDateTime = x.CreatedTime,
-            UpdatedDateTime = x.UpdatedTime,
-            Agent = agents.FirstOrDefault(a => a.Id == x.AgentId)
+            var task = AgentTaskDocument.ToDomainModel(x);
+            task.Agent = agents.FirstOrDefault(a => a.Id == x.AgentId);
+            return task;
         }).ToList();
 
         return new PagedItems<AgentTask>
@@ -66,38 +64,15 @@ public partial class MongoRepository
         var agentDoc = _dc.Agents.AsQueryable().FirstOrDefault(x => x.Id == taskDoc.AgentId);
         var agent = TransformAgentDocument(agentDoc);
 
-        var task = new AgentTask
-        {
-            Id = taskDoc.Id,
-            Name = taskDoc.Name,
-            Description = taskDoc.Description,
-            Enabled = taskDoc.Enabled,
-            AgentId = taskDoc.AgentId,
-            DirectAgentId = taskDoc.DirectAgentId,
-            Content = taskDoc.Content,
-            CreatedDateTime = taskDoc.CreatedTime,
-            UpdatedDateTime = taskDoc.UpdatedTime,
-            Agent = agent
-        };
-
+        var task = AgentTaskDocument.ToDomainModel(taskDoc);
+        task.Agent = agent;
         return task;
     }
 
     public void InsertAgentTask(AgentTask task)
     {
-        var taskDoc = new AgentTaskDocument
-        {
-            Id = Guid.NewGuid().ToString(),
-            Name = task.Name,
-            Description = task.Description,
-            Enabled = task.Enabled,
-            AgentId = task.AgentId,
-            DirectAgentId = task.DirectAgentId,
-            Content = task.Content,
-            CreatedTime = DateTime.UtcNow,
-            UpdatedTime = DateTime.UtcNow
-        };
-
+        var taskDoc = AgentTaskDocument.ToMongoModel(task);
+        taskDoc.Id = Guid.NewGuid().ToString();
         _dc.AgentTasks.InsertOne(taskDoc);
     }
 
@@ -105,17 +80,11 @@ public partial class MongoRepository
     {
         if (tasks.IsNullOrEmpty()) return;
 
-        var taskDocs = tasks.Select(x => new AgentTaskDocument
+        var taskDocs = tasks.Select(x =>
         {
-            Id = string.IsNullOrEmpty(x.Id) ? Guid.NewGuid().ToString() : x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Enabled = x.Enabled,
-            AgentId = x.AgentId,
-            DirectAgentId = x.DirectAgentId,
-            Content = x.Content,
-            CreatedTime = x.CreatedDateTime,
-            UpdatedTime = x.UpdatedDateTime
+            var task = AgentTaskDocument.ToMongoModel(x);
+            task.Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString();
+            return task;
         }).ToList();
 
         _dc.AgentTasks.InsertMany(taskDocs);
@@ -143,15 +112,15 @@ public partial class MongoRepository
             case AgentTaskField.Content:
                 taskDoc.Content = task.Content;
                 break;
-            case AgentTaskField.DirectAgentId:
-                taskDoc.DirectAgentId = task.DirectAgentId;
+            case AgentTaskField.Status:
+                taskDoc.Status = task.Status;
                 break;
             case AgentTaskField.All:
                 taskDoc.Name = task.Name;
                 taskDoc.Description = task.Description;
                 taskDoc.Enabled = task.Enabled;
                 taskDoc.Content = task.Content;
-                taskDoc.DirectAgentId = task.DirectAgentId;
+                taskDoc.Status = task.Status;
                 break;
         }
 

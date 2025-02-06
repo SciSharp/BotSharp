@@ -9,7 +9,8 @@ public enum AgentField
     Disabled,
     Type,
     InheritAgentId,
-    Profiles,
+    Profile,
+    Label,
     RoutingRule,
     Instruction,
     Function,
@@ -30,5 +31,5 @@ public enum AgentTaskField
     Description,
     Enabled,
     Content,
-    DirectAgentId
+    Status
 }

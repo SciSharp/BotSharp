@@ -188,7 +188,8 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         if (string.IsNullOrEmpty(conversationId)) return;
 
         var conv = _services.GetRequiredService<IConversationService>();
-        await SendStateLog(conv.ConversationId, _state.GetStates(), message);
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+        await SendStateLog(conv.ConversationId, routingCtx.EntryAgentId, _state.GetStates(), message);
 
         if (message.Role == AgentRole.Assistant)
         {
@@ -438,9 +439,9 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await _chatHub.Clients.User(_user.Id).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
     }
 
-    private async Task SendStateLog(string conversationId, Dictionary<string, string> states, RoleDialogModel message)
+    private async Task SendStateLog(string conversationId, string agentId, Dictionary<string, string> states, RoleDialogModel message)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, states, message));
+        await _chatHub.Clients.User(_user.Id).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
     }
 
     private async Task SendAgentQueueLog(string conversationId, string log)
@@ -479,11 +480,12 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         return json;
     }
 
-    private string BuildStateLog(string conversationId, Dictionary<string, string> states, RoleDialogModel message)
+    private string BuildStateLog(string conversationId, string agentId, Dictionary<string, string> states, RoleDialogModel message)
     {
         var log = new ConversationStateLogModel
         {
             ConversationId = conversationId,
+            AgentId = agentId,
             MessageId = message.MessageId,
             States = states,
             CreateTime = DateTime.UtcNow
