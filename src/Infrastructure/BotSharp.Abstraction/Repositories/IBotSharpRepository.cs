@@ -34,55 +34,32 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #endregion
 
     #region User
-    User? GetUserByEmail(string email)
-        => throw new NotImplementedException();
-    User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN")
-        => throw new NotImplementedException();
-    User? GetAffiliateUserByPhone(string phone)
-        => throw new NotImplementedException();
-    User? GetUserById(string id)
-        => throw new NotImplementedException();
-    List<User> GetUserByIds(List<string> ids)
-        => throw new NotImplementedException();
-    List<User> GetUsersByAffiliateId(string affiliateId)
-        => throw new NotImplementedException();
-    User? GetUserByUserName(string userName)
-        => throw new NotImplementedException();
-    void UpdateUserName(string userId, string userName)
-        => throw new NotImplementedException();
-    Dashboard? GetDashboard(string userId = null)
-        => throw new NotImplementedException();
-    void CreateUser(User user)
-        => throw new NotImplementedException();
-    void UpdateExistUser(string userId, User user)
-        => throw new NotImplementedException();
-    void UpdateUserVerified(string userId)
-        => throw new NotImplementedException();
-    void AddDashboardConversation(string userId, string conversationId)
-        => throw new NotImplementedException();
-    void RemoveDashboardConversation(string userId, string conversationId)
-        => throw new NotImplementedException();
-    void UpdateDashboardConversation(string userId, DashboardConversation dashConv)
-        => throw new NotImplementedException();
-    void UpdateUserVerificationCode(string userId, string verficationCode)
-        => throw new NotImplementedException();
-    void UpdateUserPassword(string userId, string password)
-        => throw new NotImplementedException();
-    void UpdateUserEmail(string userId, string email)
-        => throw new NotImplementedException();
-    void UpdateUserPhone(string userId, string Iphone, string regionCode)
-        => throw new NotImplementedException();
-    void UpdateUserIsDisable(string userId, bool isDisable)
-        => throw new NotImplementedException();
-    void UpdateUsersIsDisable(List<string> userIds, bool isDisable)
-        => throw new NotImplementedException();
-    PagedItems<User> GetUsers(UserFilter filter)
-        => throw new NotImplementedException();
-    User? GetUserDetails(string userId, bool includeAgent = false)
-        => throw new NotImplementedException();
-    bool UpdateUser(User user, bool updateUserAgents = false)
-        => throw new NotImplementedException();
-
+    User? GetUserByEmail(string email) => throw new NotImplementedException();
+    User? GetUserByPhone(string phone, string type = UserType.Client, string regionCode = "CN") => throw new NotImplementedException();
+    User? GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN") => throw new NotImplementedException();
+    User? GetAffiliateUserByPhone(string phone) => throw new NotImplementedException();
+    User? GetUserById(string id) => throw new NotImplementedException();
+    List<User> GetUserByIds(List<string> ids) => throw new NotImplementedException();
+    List<User> GetUsersByAffiliateId(string affiliateId) => throw new NotImplementedException();
+    User? GetUserByUserName(string userName) => throw new NotImplementedException();
+    void UpdateUserName(string userId, string userName) => throw new NotImplementedException();
+    Dashboard? GetDashboard(string id = null) => throw new NotImplementedException();
+    void CreateUser(User user) => throw new NotImplementedException();
+    void UpdateExistUser(string userId, User user) => throw new NotImplementedException();
+    void UpdateUserVerified(string userId) => throw new NotImplementedException();
+    void AddDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
+    void RemoveDashboardConversation(string userId, string conversationId) => throw new NotImplementedException();
+    void UpdateDashboardConversation(string userId, DashboardConversation dashConv) => throw new NotImplementedException();
+    void UpdateUserVerificationCode(string userId, string verficationCode) => throw new NotImplementedException();
+    void UpdateUserPassword(string userId, string password) => throw new NotImplementedException();
+    void UpdateUserEmail(string userId, string email) => throw new NotImplementedException();
+    void UpdateUserPhone(string userId, string Iphone, string regionCode) => throw new NotImplementedException();
+    void UpdateUserIsDisable(string userId, bool isDisable) => throw new NotImplementedException();
+    void UpdateUsersIsDisable(List<string> userIds, bool isDisable) => throw new NotImplementedException();
+    PagedItems<User> GetUsers(UserFilter filter) => throw new NotImplementedException();
+    List<User> SearchLoginUsers(User filter, string source = UserSource.Internal) =>throw new NotImplementedException();
+    User? GetUserDetails(string userId, bool includeAgent = false) => throw new NotImplementedException();
+    bool UpdateUser(User user, bool updateUserAgents = false) => throw new NotImplementedException();
     #endregion
 
     #region Agent

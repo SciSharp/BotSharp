@@ -37,6 +37,30 @@ public partial class MongoRepository
         return user != null ? user.ToUser() : null;
     }
 
+    public User? GetUserByPhoneV2(string phone, string source = UserType.Internal, string regionCode = "CN")
+    {
+        string phoneSecond = string.Empty;
+        // if phone number length is less than 4, return null
+        if (string.IsNullOrWhiteSpace(phone) || phone?.Length < 4)
+        {
+            return null;
+        }
+
+        if (regionCode == "CN")
+        {
+            phoneSecond = (phone ?? "").StartsWith("+86") ? (phone ?? "").Replace("+86", "") : ($"+86{phone ?? ""}");
+        }
+        else
+        {
+            phoneSecond = (phone ?? "").Substring(regionCode == "US" ? 2 : 3);
+        }
+
+        var user = _dc.Users.AsQueryable().FirstOrDefault(x => (x.Phone == phone || x.Phone == phoneSecond)
+        && (x.RegionCode == regionCode || string.IsNullOrWhiteSpace(x.RegionCode))
+        && (x.Source == source));
+        return user != null ? user.ToUser() : null;
+    }
+
     public User? GetAffiliateUserByPhone(string phone)
     {
         var user = _dc.Users.AsQueryable().FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
@@ -231,6 +255,77 @@ public partial class MongoRepository
             Items = users,
             Count = (int)count
         };
+    }
+
+    public List<User> SearchLoginUsers(User filter, string source = UserSource.Internal)
+    {
+        List<User> searchResult = new List<User>();
+
+        // search by filters
+        if (!string.IsNullOrWhiteSpace(filter.Id))
+        {
+            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Id == filter.Id.ToLower());
+            User user = curUser != null ? curUser.ToUser() : null;
+            if (user != null)
+            {
+                searchResult.Add(user);
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(filter.Phone) && !string.IsNullOrWhiteSpace(filter.RegionCode))
+        {
+            string[] regionCodeData = filter.RegionCode.Split('|');
+            if (regionCodeData.Length == 2)
+            {
+                string phoneNoCallingCode = filter.Phone;
+                string phoneWithCallingCode = filter.Phone;
+                if (!filter.Phone.StartsWith('+'))
+                {
+                    phoneNoCallingCode = filter.Phone;
+                    phoneWithCallingCode = $"{regionCodeData[1]}{filter.Phone}";
+                }
+                else
+                {
+                    phoneNoCallingCode = filter.Phone.Replace(regionCodeData[1], "");
+                }
+                var phoneUsers = _dc.Users.AsQueryable()
+                                          .Where(x => x.Source == source && (x.Phone == phoneNoCallingCode || x.Phone == phoneWithCallingCode) && x.RegionCode == regionCodeData[0])
+                                          .ToList();
+
+                if (phoneUsers != null && phoneUsers.Count > 0)
+                {
+                    foreach (var user in phoneUsers)
+                    {
+                        if (user != null)
+                        {
+                            searchResult.Add(user.ToUser());
+                        }
+                    }
+                }
+
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(filter.Email))
+        {
+            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToLower());
+            User user = curUser != null ? curUser.ToUser() : null;
+            if (user != null)
+            {
+                searchResult.Add(user);
+            }
+        }
+
+
+        if (searchResult.Count == 0 && !string.IsNullOrWhiteSpace(filter.UserName))
+        {
+            var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
+            User user = curUser != null ? curUser.ToUser() : null;
+            if (user != null)
+            {
+                searchResult.Add(user);
+            }
+        }
+
+        return searchResult;
     }
 
     public User? GetUserDetails(string userId, bool includeAgent = false)

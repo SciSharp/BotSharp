@@ -5,6 +5,7 @@ global using System.IO;
 global using System.Threading.Tasks;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
+global using BotSharp.Abstraction.Agents.Constants;
 global using BotSharp.Abstraction.Agents.Enums;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.Conversations;

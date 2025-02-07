@@ -52,7 +52,7 @@ public class BotSharpStats
     public static (DateTime, DateTime) BuildTimeInterval(DateTime recordTime, StatsInterval interval)
     {
         DateTime startTime = recordTime;
-        DateTime endTime = DateTime.UtcNow;
+        DateTime endTime = startTime;
 
         switch (interval)
         {
@@ -70,6 +70,7 @@ public class BotSharpStats
                 break;
         }
 
+        endTime = endTime.AddSeconds(-1);
         startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
         endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
         return (startTime, endTime);
