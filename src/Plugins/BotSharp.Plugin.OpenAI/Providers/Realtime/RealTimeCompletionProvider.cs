@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Realtime.Models;
+using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 using System.Text.Json;
 

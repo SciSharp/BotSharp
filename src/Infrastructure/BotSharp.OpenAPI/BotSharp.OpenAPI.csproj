@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -47,6 +47,8 @@
   </ItemGroup>
 
   <ItemGroup>    
+    <ProjectReference Include="..\..\Plugins\BotSharp.Plugin.OpenAI\BotSharp.Plugin.OpenAI.csproj" />    
+    <ProjectReference Include="..\..\Plugins\BotSharp.Plugin.Twilio\BotSharp.Plugin.Twilio.csproj" />    
     <ProjectReference Include="..\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 

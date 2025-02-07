@@ -1,12 +1,17 @@
 using BotSharp.Abstraction.Functions.Models;
-using System.Text.Json.Serialization;
 
-namespace BotSharp.Plugin.OpenAI.Models;
+namespace BotSharp.Plugin.OpenAI.Models.Realtime;
 
-public class RealtimeSessionRequest
+public class RealtimeSessionBody
 {
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = null!;
+
+    [JsonPropertyName("object")]
+    public string Object { get; set; } = null!;
+
     [JsonPropertyName("model")]
-    public string Model { get; set; } = "gpt-4o-mini-realtime-preview-2024-12-17";
+    public string Model { get; set; } = null!;
 
     [JsonPropertyName("temperature")]
     public float temperature { get; set; } = 0.8f;

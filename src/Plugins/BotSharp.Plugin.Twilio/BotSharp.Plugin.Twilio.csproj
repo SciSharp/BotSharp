@@ -23,10 +23,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.2.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.7.27" />
     <PackageReference Include="StrongGrid" Version="0.108.0" />
-    <PackageReference Include="Twilio.AspNet.Common" Version="8.0.2" />
-    <PackageReference Include="Twilio.AspNet.Core" Version="8.0.2" />
+    <PackageReference Include="Twilio.AspNet.Common" Version="8.1.1" />
+    <PackageReference Include="Twilio.AspNet.Core" Version="8.1.1" />
   </ItemGroup>
 
   <ItemGroup>
