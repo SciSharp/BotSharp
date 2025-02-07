@@ -38,6 +38,11 @@ public class TwilioVoiceController : TwilioController
     [HttpPost("twilio/voice/welcome")]
     public async Task<TwiMLResult> InitiateConversation(ConversationalVoiceRequest request)
     {
+        foreach(var header in Request.Headers)
+        {
+            _logger.LogWarning($"{header.Key}: {header.Value}");
+        }
+
         var text = JsonSerializer.Serialize(request);
         if (request?.CallSid == null)
         {
