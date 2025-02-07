@@ -34,7 +34,7 @@ public class TwilioVoiceController : TwilioController
     /// <param name="states"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/welcome")]
     public async Task<TwiMLResult> InitiateConversation(ConversationalVoiceRequest request)
     {
@@ -42,6 +42,8 @@ public class TwilioVoiceController : TwilioController
         {
             _logger.LogWarning($"{header.Key}: {header.Value}");
         }
+
+        _logger.LogWarning($"{Request.Path}{Request.QueryString}");
 
         var text = JsonSerializer.Serialize(request);
         if (request?.CallSid == null)
