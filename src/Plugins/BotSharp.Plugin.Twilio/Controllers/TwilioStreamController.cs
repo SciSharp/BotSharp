@@ -1,13 +1,12 @@
 using BotSharp.Abstraction.Infrastructures;
-using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.WebSockets;
-using System.Threading;
+using Twilio.TwiML.Voice;
+using Conversation = BotSharp.Abstraction.Conversations.Models.Conversation;
 using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
@@ -40,7 +39,7 @@ public class TwilioStreamController : TwilioController
         VoiceResponse response = null;
         var instruction = new ConversationalVoiceResponse
         {
-            SpeechPaths = ["twilio/welcome.mp3"],
+            // SpeechPaths = ["twilio/welcome.mp3"],
             ActionOnEmptyResult = true
         };
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -51,42 +50,46 @@ public class TwilioStreamController : TwilioController
             OnlyOnce = true
         });
 
-        request.ConversationId = $"TwilioVoice_{request.CallSid}";
+        request.ConversationId = request.CallSid;
 
         var twilio = _services.GetRequiredService<TwilioService>();
 
         response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
-        /*if (string.IsNullOrWhiteSpace(request.Intent))
-        {
-            response = twilio.ReturnNoninterruptedInstructions(instruction);
-        }
-        else
-        {
-            int seqNum = 0;
-            var messageQueue = _services.GetRequiredService<TwilioMessageQueue>();
-            var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
-            await sessionManager.StageCallerMessageAsync(request.ConversationId, seqNum, request.Intent);
-            var callerMessage = new CallerMessage()
-            {
-                ConversationId = request.ConversationId,
-                SeqNumber = seqNum,
-                Content = request.Intent,
-                From = request.From,
-                States = ParseStates(request.States)
-            };
-            await messageQueue.EnqueueAsync(callerMessage);
-            response = new VoiceResponse();
-            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{request.ConversationId}/reply/{seqNum}?{GenerateStatesParameter(request.States)}"), HttpMethod.Post);
-        }*/
+        
+        await InitConversation(request);
 
-        /*await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+        await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreated(request);
         }, new HookEmitOption
         {
             OnlyOnce = true
-        });*/
+        });
 
         return TwiML(response);
+    }
+
+    private async Task InitConversation(ConversationalVoiceRequest request)
+    {
+        var convService = _services.GetRequiredService<IConversationService>();
+
+        var states = new List<MessageState>
+            {
+                new("channel", ConversationChannel.Phone),
+                new("calling_phone", request.From)
+            };
+
+        var conv = new Conversation
+        {
+            Id = request.CallSid,
+            AgentId = _settings.AgentId,
+            Channel = ConversationChannel.Phone,
+            Title = $"Phone call from {request.From}",
+            Tags = [],
+        };
+
+        conv = await convService.NewConversation(conv);
+        convService.SetConversationId(conv.Id, states);
+        convService.SaveStates();
     }
 }
