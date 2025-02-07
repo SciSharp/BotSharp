@@ -51,12 +51,11 @@ public class TwilioStreamController : TwilioController
         });
 
         request.ConversationId = request.CallSid;
+        await InitConversation(request);
 
         var twilio = _services.GetRequiredService<TwilioService>();
 
         response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
-        
-        await InitConversation(request);
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {

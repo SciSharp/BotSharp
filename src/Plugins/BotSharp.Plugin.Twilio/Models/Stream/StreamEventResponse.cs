@@ -9,4 +9,10 @@ public class StreamEventResponse
     /// </summary>
     [JsonPropertyName("event")]
     public string Event { get; set; }
+
+    [JsonPropertyName("sequenceNumber")]
+    public string SequenceNumber { get; set; }
+
+    [JsonPropertyName("streamSid")]
+    public string StreamSid { get; set; }
 }

@@ -5,8 +5,8 @@ namespace BotSharp.Abstraction.MLTasks;
 public interface IRealTimeCompletion
 {
     string Provider { get; }
+    string Model { get; }
 
     void SetModelName(string model);
-
     Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations);
 }

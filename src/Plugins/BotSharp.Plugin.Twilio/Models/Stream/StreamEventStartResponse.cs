@@ -4,12 +4,6 @@ namespace BotSharp.Plugin.Twilio.Models.Stream;
 
 public class StreamEventStartResponse : StreamEventResponse
 {
-    [JsonPropertyName("sequenceNumber")]
-    public string SequenceNumber { get; set; }
-
-    [JsonPropertyName("streamSid")]
-    public string StreamSid { get; set; }
-
     [JsonPropertyName("start")]
     public StreamEventStartBody Body { get; set; }
 }

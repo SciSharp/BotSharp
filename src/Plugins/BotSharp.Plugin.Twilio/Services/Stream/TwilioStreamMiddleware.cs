@@ -1,11 +1,8 @@
 using BotSharp.Abstraction.Realtime;
+using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Plugin.Twilio.Models.Stream;
-using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging.Abstractions;
 using System.Net.WebSockets;
-using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Services.Stream;
@@ -41,101 +38,61 @@ public class TwilioStreamMiddleware
 
     private async Task HandleWebSocket(IServiceProvider services, WebSocket webSocket)
     {
-        var buffer = new byte[1024 * 4];
-        WebSocketReceiveResult result;
-        var twilioHub = services.GetRequiredService<TwilioStreamHub>();
-        var modelConnector = services.GetRequiredService<IRealtimeModelConnector>();
-        var logger = services.GetRequiredService<ILogger<TwilioStreamMiddleware>>();
+        var hub = services.GetRequiredService<IRealtimeHub>();
+        var conn = new RealtimeHubConnection();
 
-        do
+        await hub.Listen(webSocket, (receivedText) =>
         {
-            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-            // Convert received data to text/audio (Twilio sends Base64-encoded audio)
-            string receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            logger.LogDebug($"{nameof(TwilioStreamMiddleware)} received: {receivedText}");
-            if (string.IsNullOrEmpty(receivedText))
-            {
-                continue;
-            }
             var response = JsonSerializer.Deserialize<StreamEventResponse>(receivedText);
+            conn.StreamId = response.StreamSid;
+            conn.Event = response.Event switch
+            {
+                "connected" => string.Empty,
+                "start" => "connected",
+                "media" => "data_received",
+                "stop" => "disconnected",
+                _ => response.Event
+            };
+
+            if (string.IsNullOrEmpty(conn.Event))
+            {
+                return conn;
+            }
+
+            conn.OnModelMessageReceived = message =>
+                new
+                {
+                    @event = "media",
+                    streamSid = response.StreamSid,
+                    media = new { payload = message }
+                };
+            conn.OnModelAudioResponseDone = () =>
+                new
+                {
+                    @event = "mark",
+                    streamSid = response.StreamSid,
+                    mark = new { name = "responsePart" }
+                };
+            conn.OnModelUserInterrupted = () =>
+                new
+                {
+                    @event = "clear",
+                    streamSid = response.StreamSid
+                };
+
             if (response.Event == "start")
             {
                 var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
-                var hubConnectionContext = new HubConnectionContext(new DefaultConnectionContext(startResponse.StreamSid),
-                    new HubConnectionContextOptions(),
-                    NullLoggerFactory.Instance);
-                twilioHub.Context = new TwilioHubCallerContext(hubConnectionContext);
-
-                await twilioHub.OnConnectedAsync();
-                await modelConnector.Connect(onAudioDeltaReceived: async audioDeltaData =>
-                {
-                    var raudioDelta = new
-                    {
-                        @event = "media",
-                        streamSid = startResponse.StreamSid,
-                        media = new { payload = audioDeltaData }
-                    };
-
-                    await SendEventToWebSocket(webSocket, raudioDelta);
-                }, onAudioResponseDone: async () =>
-                {
-                    var mark = new
-                    {
-                        @event = "mark",
-                        streamSid = startResponse.StreamSid,
-                        mark = new { name = "responsePart" }
-                    };
-
-                    await SendEventToWebSocket(webSocket, mark);
-                }, onUserInterrupted: async () =>
-                {
-                    var mark = new
-                    {
-                        @event = "clear",
-                        streamSid = startResponse.StreamSid
-                    };
-
-                    await SendEventToWebSocket(webSocket, mark);
-                });
+                conn.Data = startResponse.Body.CallSid;
+                conn.ConversationId = startResponse.Body.CallSid;
             }
             else if (response.Event == "media")
             {
                 var mediaResponse = JsonSerializer.Deserialize<StreamEventMediaResponse>(receivedText);
-                var hubConnectionContext = new HubConnectionContext(new DefaultConnectionContext(mediaResponse.StreamSid),
-                    new HubConnectionContextOptions(),
-                    NullLoggerFactory.Instance);
-                twilioHub.Context = new TwilioHubCallerContext(hubConnectionContext);
-
-                await twilioHub.OnMessageReceived(mediaResponse);
-                await modelConnector.SendMessage(mediaResponse.Body.Payload);
-            }
-            else if (response.Event == "mark")
-            {
-
-            }
-            else if (response.Event == "stop")
-            {
-                var stopResponse = JsonSerializer.Deserialize<StreamEventStopResponse>(receivedText);
-                var hubConnectionContext = new HubConnectionContext(new DefaultConnectionContext(stopResponse.StreamSid),
-                    new HubConnectionContextOptions(),
-                    NullLoggerFactory.Instance);
-                twilioHub.Context = new TwilioHubCallerContext(hubConnectionContext);
-
-                await twilioHub.OnDisconnectedAsync(new WebSocketException("stopped"));
-                await modelConnector.Disconnect();
+                conn.Data = mediaResponse.Body.Payload;
             }
 
-        } while (!result.CloseStatus.HasValue);
-
-        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-    }
-
-    private async Task SendEventToWebSocket(WebSocket webSocket, object message)
-    {
-        var data = JsonSerializer.Serialize(message);
-
-        var buffer = Encoding.UTF8.GetBytes(data);
-        await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+            return conn;
+        });
     }
 }

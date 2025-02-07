@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Realtime;
+using BotSharp.Abstraction.Realtime.Models;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
-using System;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -20,11 +21,19 @@ public class OpenAiRealtimeModelConnector : IRealtimeModelConnector
         _logger = logger;
     }
 
-    public async Task Connect(Action<string> onAudioDeltaReceived, Action onAudioResponseDone, Action onUserInterrupted)
+    public async Task Connect(RealtimeHubConnection conn, Action<string> onAudioDeltaReceived, Action onAudioResponseDone, Action onUserInterrupted)
     {
-        var model = "gpt-4o-mini-realtime-preview-2024-12-17";
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conv = await convService.GetConversation(conn.ConversationId);
+        
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(conv.AgentId);
+
+        var completion = CompletionProvider.GetRealTimeCompletion(_services, provider: "openai", modelId: "gpt-4");
+        var model = completion.Model;
+
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(provider: "openai", model);
+        var settings = settingsService.GetSetting(provider: completion.Provider, model);
 
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", $"Bearer {settings.ApiKey}");
@@ -47,7 +56,7 @@ public class OpenAiRealtimeModelConnector : IRealtimeModelConnector
                     input_audio_format = "g711_ulaw",
                     output_audio_format = "g711_ulaw",
                     voice = "alloy",
-                    instructions = "You are a helpful and bubbly AI assistant who loves to chat about anything the user is interested about and is prepared to offer them facts. You have a penchant for dad jokes, owl jokes, and rickrolling – subtly. Always stay positive, but work in a joke when appropriate.",
+                    instructions = agent.Description,
                     modalities = new string[] { "text", "audio" },
                     temperature = 0.8f,
                 }
@@ -55,7 +64,7 @@ public class OpenAiRealtimeModelConnector : IRealtimeModelConnector
 
             await SendEventToWebSocket(sessionUpdate);
 
-            var initialConversationItem = new
+            /*var initialConversationItem = new
             {
                 type = "conversation.item.create",
                 item = new
@@ -72,7 +81,7 @@ public class OpenAiRealtimeModelConnector : IRealtimeModelConnector
                 }
             };
 
-            await SendEventToWebSocket(initialConversationItem);
+            await SendEventToWebSocket(initialConversationItem);*/
 
             await SendEventToWebSocket(new { type = "response.create" });
         }

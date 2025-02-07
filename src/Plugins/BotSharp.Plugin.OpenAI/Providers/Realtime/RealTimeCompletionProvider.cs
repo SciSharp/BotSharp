@@ -10,12 +10,14 @@ namespace BotSharp.Plugin.OpenAI.Providers.Realtime;
 public class RealTimeCompletionProvider : IRealTimeCompletion
 {
     public string Provider => "openai";
+    public string Model => _model;
 
     protected readonly OpenAiSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger<RealTimeCompletionProvider> _logger;
 
     protected string _model = "gpt-4o-mini-realtime-preview-2024-12-17";
+
 
     public RealTimeCompletionProvider(
         OpenAiSettings settings,

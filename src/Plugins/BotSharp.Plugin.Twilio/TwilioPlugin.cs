@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Settings;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Hooks;
@@ -33,7 +34,5 @@ public class TwilioPlugin : IBotSharpPlugin
         services.AddHostedService<TwilioMessageQueueService>();
         services.AddTwilioRequestValidation();
         services.AddScoped<IAgentUtilityHook, OutboundPhoneCallHandlerUtilityHook>();
-
-        services.AddScoped<TwilioStreamHub>();
     }
 }
