@@ -1,5 +1,6 @@
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class BreakpointMongoElement
 {
     public string? MessageId { get; set; }

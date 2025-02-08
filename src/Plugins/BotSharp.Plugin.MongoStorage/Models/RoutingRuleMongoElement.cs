@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
-[BsonIgnoreExtraElements]
+[BsonIgnoreExtraElements(Inherited = true)]
 public class RoutingRuleMongoElement
 {
     public string Field { get; set; }

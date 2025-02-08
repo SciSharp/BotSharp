@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Conversations.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class DialogMongoElement
 {
     public DialogMetaDataMongoElement MetaData { get; set; }
