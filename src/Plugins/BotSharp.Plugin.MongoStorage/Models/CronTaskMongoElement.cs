@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Crontab.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class CronTaskMongoElement
 {
     public string Topic { get; set; }
