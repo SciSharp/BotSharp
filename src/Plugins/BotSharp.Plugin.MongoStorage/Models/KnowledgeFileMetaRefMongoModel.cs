@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Knowledges.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class KnowledgeFileMetaRefMongoModel
 {
     public string Id { get; set; }

@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class AgentKnowledgeBaseMongoElement
 {
     public string Name { get; set; }
