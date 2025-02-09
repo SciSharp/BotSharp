@@ -33,7 +33,7 @@ public class RedisPublisher : IEventPublisher
 
         if (CheckMessageExists(db, channel, "message", message))
         {
-            _logger.LogError($"The message already exists {channel} {message}");
+            _logger.LogInformation($"The message already exists {channel} {message}");
             return null;
         }
 
@@ -84,7 +84,8 @@ public class RedisPublisher : IEventPublisher
         return
         [
             new NameValueEntry("message", message),
-            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o"))
+            new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o")),
+            new NameValueEntry("machine", Environment.MachineName)
         ];
     }
 
@@ -94,6 +95,7 @@ public class RedisPublisher : IEventPublisher
         [
             new NameValueEntry("message", message),
             new NameValueEntry("timestamp", DateTime.UtcNow.ToString("o")),
+            new NameValueEntry("machine", Environment.MachineName),
             new NameValueEntry("error", error)
         ];
     }
@@ -180,7 +182,10 @@ public class RedisPublisher : IEventPublisher
         var db = _redis.GetDatabase();
 
         var entries = await db.StreamRangeAsync(channel, "-", "+", count: count, messageOrder: Order.Ascending);
-        var deletedCount = await db.StreamDeleteAsync(channel, entries.Select(x => x.Id).ToArray());
-        _logger.LogWarning($"Deleted {deletedCount} messages from Redis stream {channel}");
+        if (entries.Length > 0)
+        {
+            var deletedCount = await db.StreamDeleteAsync(channel, entries.Select(x => x.Id).ToArray());
+            _logger.LogWarning($"Deleted {deletedCount} messages from Redis stream {channel}");
+        }
     }
 }

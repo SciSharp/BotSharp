@@ -37,12 +37,17 @@ public class AgentViewModel
     [JsonPropertyName("is_host")]
     public bool IsHost { get; set; }
 
+    [JsonPropertyName("is_router")]
+    public bool IsRouter => Type == AgentType.Routing;
+
     public bool Disabled { get; set; }
 
     [JsonPropertyName("icon_url")]
     public string IconUrl { get; set; }
 
     public List<string> Profiles { get; set; } = new();
+
+    public List<string> Labels { get; set; } = new();
 
     [JsonPropertyName("routing_rules")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -88,6 +93,7 @@ public class AgentViewModel
             IconUrl = agent.IconUrl,
             MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles ?? [],
+            Labels = agent.Labels ?? [],
             RoutingRules = agent.RoutingRules ?? [],
             Rules = agent.Rules ?? [],
             LlmConfig = agent.LlmConfig,

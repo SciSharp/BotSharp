@@ -17,6 +17,7 @@ public class UserDocument : MongoBase
     public string Type { get; set; } = UserType.Client;
     public string Role { get; set; } = null!;
     public string? VerificationCode { get; set; }
+    public DateTime? VerificationCodeExpireAt { get; set; }
     public bool Verified { get; set; }
     public string? RegionCode { get; set; }
     public string? AffiliateId { get; set; }
@@ -48,6 +49,7 @@ public class UserDocument : MongoBase
             EmployeeId = EmployeeId,
             IsDisabled = IsDisabled,
             VerificationCode = VerificationCode,
+            VerificationCodeExpireAt = VerificationCodeExpireAt,
             Verified = Verified,
             RegionCode = RegionCode,
             Permissions = Permissions,

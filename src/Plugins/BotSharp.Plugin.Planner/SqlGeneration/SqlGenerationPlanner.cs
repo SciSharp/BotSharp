@@ -94,8 +94,8 @@ public class SqlGenerationPlanner : ITaskPlanner
     private async Task<string> GetNextStepPrompt(Agent router)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
-        var planner = await agentService.LoadAgent(PlannerAgentId.TwoStagePlanner);
-        var template = planner.Templates.First(x => x.Name == "two_stage.next").Content;
+        var planner = await agentService.LoadAgent(PlannerAgentId.SqlPlanner);
+        var template = planner.Templates.First(x => x.Name == "sql.next").Content;
         var states = _services.GetRequiredService<IConversationStateService>();
         var render = _services.GetRequiredService<ITemplateRender>();
         return render.Render(template, new Dictionary<string, object>

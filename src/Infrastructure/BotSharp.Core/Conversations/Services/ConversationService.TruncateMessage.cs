@@ -1,6 +1,6 @@
 namespace BotSharp.Core.Conversations.Services;
 
-public partial class ConversationService : IConversationService
+public partial class ConversationService
 {
     public async Task<bool> TruncateConversation(string conversationId, string messageId, string? newMessageId = null)
     {

@@ -12,7 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="OpenAI" Version="2.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="Refit" Version="8.0.0" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

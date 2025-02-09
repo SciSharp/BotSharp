@@ -29,6 +29,7 @@ public partial class MongoRepository
         {
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
+            AgentId = conversation.AgentId,
             Dialogs = new List<DialogMongoElement>()
         };
 
@@ -36,6 +37,7 @@ public partial class MongoRepository
         {
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
+            AgentId = conversation.AgentId,
             States = new List<StateMongoElement>(),
             Breakpoints = new List<BreakpointMongoElement>()
         };

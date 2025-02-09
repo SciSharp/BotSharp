@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.MLTasks;
 using System.Diagnostics;
-using System.Drawing;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -33,7 +32,7 @@ public class TokenStatistics : ITokenStatistics
         _logger = logger;
     }
 
-    public void AddToken(TokenStatsModel stats)
+    public void AddToken(TokenStatsModel stats, RoleDialogModel message)
     {
         _model = stats.Model;
         _promptTokenCount += stats.PromptCount;
@@ -42,8 +41,11 @@ public class TokenStatistics : ITokenStatistics
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(stats.Provider, _model);
 
-        _promptCost += stats.PromptCount / 1000f * settings.PromptCost;
-        _completionCost += stats.CompletionCount / 1000f * settings.CompletionCost;
+        var deltaPromptCost = stats.PromptCount / 1000f * settings.PromptCost;
+        var deltaCompletionCost = stats.CompletionCount / 1000f * settings.CompletionCost;
+        var deltaTotal = deltaPromptCost + deltaCompletionCost;
+        _promptCost += deltaPromptCost;
+        _completionCost += deltaCompletionCost;
 
         // Accumulated Token
         var stat = _services.GetRequiredService<IConversationStateService>();
@@ -54,8 +56,26 @@ public class TokenStatistics : ITokenStatistics
 
         // Total cost
         var total_cost = float.Parse(stat.GetState("llm_total_cost", "0"));
-        total_cost += Cost;
+        total_cost += deltaTotal;
         stat.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
+
+        // Save stats
+        var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
+        var body = new BotSharpStatsInput
+        {
+            Metric = StatsMetric.AgentLlmCost,
+            Dimension = "agent",
+            DimRefVal = message.CurrentAgentId,
+            RecordTime = DateTime.UtcNow,
+            IntervalType = StatsInterval.Day,
+            Data = [
+                new StatsKeyValuePair("prompt_token_count_total", stats.PromptCount),
+                new StatsKeyValuePair("completion_token_count_total", stats.CompletionCount),
+                new StatsKeyValuePair("prompt_cost_total", deltaPromptCost),
+                new StatsKeyValuePair("completion_cost_total", deltaCompletionCost)
+            ]
+        };
+        globalStats.UpdateStats("global-llm-cost", body);
     }
 
     public void PrintStatistics()

@@ -183,7 +183,6 @@ public partial class AgentService
                 Name = parsedTask.Name,
                 Description = parsedTask.Description,
                 Enabled = parsedTask.Enabled,
-                DirectAgentId = parsedTask.DirectAgentId,
                 Content = parsedTask.Content,
                 AgentId = agentId,
                 CreatedDateTime = parsedTask.CreatedDateTime,

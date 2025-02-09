@@ -29,4 +29,8 @@ public interface IRoutingContext
     Stack<string> GetAgentStack();
     void SetAgentStack(Stack<string> stack);
     void ResetAgentStack();
+
+    void SetDialogs(List<RoleDialogModel> dialogs);
+    List<RoleDialogModel> GetDialogs();
+    void ResetDialogs();
 }

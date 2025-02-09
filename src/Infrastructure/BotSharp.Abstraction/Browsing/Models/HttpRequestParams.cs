@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Net.Http;
 
 namespace BotSharp.Abstraction.Browsing.Models;
 
+[DebuggerStepThrough]
 public class HttpRequestParams
 {
     [JsonPropertyName("url")]

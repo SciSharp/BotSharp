@@ -43,26 +43,17 @@ public class SqlDriverPlanningHook : IPlanningHook
             return;
         }
 
-        var conv = _services.GetRequiredService<IConversationService>();
-        var wholeDialogs = conv.GetDialogHistory();
-        wholeDialogs.Add(RoleDialogModel.From(msg));
-        wholeDialogs.Add(RoleDialogModel.From(msg, AgentRole.User, $"call execute_sql to run query, set formatting_result as {settings.FormattingResult}"));
-
-        var agent = await _services.GetRequiredService<IAgentService>().LoadAgent(BuiltInAgentId.SqlDriver);
-        var completion = CompletionProvider.GetChatCompletion(_services,
-            provider: agent.LlmConfig.Provider,
-            model: agent.LlmConfig.Model);
-
-        var response = await completion.GetChatCompletions(agent, wholeDialogs);
-
         // Invoke "execute_sql"
-        await routing.InvokeFunction(response.FunctionName, response);
-
-        msg.CurrentAgentId = agent.Id;
-        msg.FunctionName = response.FunctionName;
-        msg.FunctionArgs = response.FunctionArgs;
-        msg.Content = response.Content;
-        msg.StopCompletion = response.StopCompletion;
+        var executionMsg = new RoleDialogModel(AgentRole.Function, "execute sql and format the result")
+        {
+            FunctionArgs = JsonSerializer.Serialize(new ExecuteQueryArgs
+            {
+                SqlStatements = [msg.Content],
+                FormattingResult = settings.FormattingResult
+            })
+        };
+        await routing.InvokeFunction("execute_sql", executionMsg);
+        msg.Content = $"The SQL query has been reviewed and executed, the formatted result is: \r\n{executionMsg.Content}";
     }
 
     public async Task OnPlanningCompleted(string planner, RoleDialogModel msg)

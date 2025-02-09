@@ -216,4 +216,9 @@ public partial class ConversationService : IConversationService
         var agent = db.GetAgent(routingCtx.EntryAgentId, basicsOnly: true);
         return agent?.MaxMessageCount;
     }
+
+    public void SaveStates()
+    {
+        _state.Save();
+    }
 }

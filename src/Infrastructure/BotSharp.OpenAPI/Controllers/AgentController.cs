@@ -161,15 +161,19 @@ public class AgentController : ControllerBase
         return utilities.Where(x => !string.IsNullOrWhiteSpace(x.Name)).OrderBy(x => x.Name).ToList();
     }
 
-    [HttpGet("/agent/rule/options")]
-    public IEnumerable<AgentRule> GetAgentRuleOptions()
+    [HttpGet("/agent/labels")]
+    public async Task<IEnumerable<string>> GetAgentLabels()
     {
-        var rules = new List<AgentRule>();
-        var hooks = _services.GetServices<IAgentRuleHook>();
-        foreach (var hook in hooks)
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agents = await agentService.GetAgents(new AgentFilter
         {
-            hook.AddRules(rules);
-        }
-        return rules.Where(x => !string.IsNullOrWhiteSpace(x.TriggerName)).OrderBy(x => x.TriggerName).ToList();
+            Pager = new Pagination { Size = 1000 }
+        });
+
+        var labels = agents.Items?.SelectMany(x => x.Labels)
+                                  .Distinct()
+                                  .OrderBy(x => x)
+                                  .ToList() ?? [];
+        return labels;
     }
 }

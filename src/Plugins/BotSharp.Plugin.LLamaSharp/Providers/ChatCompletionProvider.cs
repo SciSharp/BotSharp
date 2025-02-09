@@ -41,7 +41,6 @@ public class ChatCompletionProvider : IChatCompletion
 
         var inferenceParams = new InferenceParams()
         {
-            Temperature = 0.1f,
             AntiPrompts = new List<string> { $"{AgentRole.User}:", "[/INST]" },
             MaxTokens = 128
         };
@@ -120,7 +119,6 @@ public class ChatCompletionProvider : IChatCompletion
 
         var inferenceParams = new InferenceParams()
         {
-            Temperature = 0.1f,
             AntiPrompts = new List<string> { $"{AgentRole.User}:", "[/INST]" },
             MaxTokens = 64
         };
@@ -170,7 +168,7 @@ public class ChatCompletionProvider : IChatCompletion
         llama.LoadModel(model);
 
         var executor = new StatelessExecutor(llama.Model, llama.Params);
-        var inferenceParams = new InferenceParams() { Temperature = 1.0f, AntiPrompts = new List<string> { $"{AgentRole.User}:" }, MaxTokens = 64 };
+        var inferenceParams = new InferenceParams() { AntiPrompts = new List<string> { $"{AgentRole.User}:" }, MaxTokens = 64 };
 
         var convSetting = _services.GetRequiredService<ConversationSetting>();
         if (convSetting.ShowVerboseLog)

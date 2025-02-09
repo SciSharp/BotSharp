@@ -188,6 +188,11 @@ public class HandleHttpRequestFn : IFunctionCallback
     {
         if (response == null) return string.Empty;
 
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            return response.ReasonPhrase ?? "http call has error occurred.";
+        }
+
         return await response.Content.ReadAsStringAsync();
     }
 }

@@ -39,5 +39,7 @@ public class WebDriverPlugin : IBotSharpPlugin
 
         services.AddScoped<WebDriverService>();
         services.AddScoped<IConversationHook, WebDriverConversationHook>();
+
+        services.AddScoped<IAgentUtilityHook, WebUtilityHook>();
     }
 }

@@ -124,6 +124,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         {
             State = state.GetCurrentState(),
             Dialogs = dialogs ?? [],
+            RoutingDialogs = routing.Context.GetDialogs(),
             Breakpoints = [],
             RecursiveCounter = routing.Context.GetRecursiveCounter(),
             RoutingStack = routing.Context.GetAgentStack()
@@ -134,6 +135,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         state.ResetCurrentState();
         routing.Context.ResetRecursiveCounter();
         routing.Context.ResetAgentStack();
+        routing.Context.ResetDialogs();
         Utilities.ClearCache();
     }
 
@@ -148,6 +150,7 @@ public class BotSharpConversationSideCar : IConversationSideCar
         state.SetCurrentState(node.State);
         routing.Context.SetRecursiveCounter(node.RecursiveCounter);
         routing.Context.SetAgentStack(node.RoutingStack);
+        routing.Context.SetDialogs(node.RoutingDialogs);
         Utilities.ClearCache();
         enabled = false;
     }

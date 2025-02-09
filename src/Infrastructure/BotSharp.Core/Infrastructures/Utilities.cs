@@ -48,10 +48,8 @@ public static class Utilities
     public static void ClearCache()
     {
         // Clear whole cache.
-        if (new MemoryCacheAttribute(0).Cache is MemoryCache memcache)
-        {
-            memcache.Compact(100);
-        }
+        var sharpCache = new SharpCacheAttribute(0);
+        sharpCache.ClearCacheAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     public static string HideMiddleDigits(string input, bool isEmail = false)

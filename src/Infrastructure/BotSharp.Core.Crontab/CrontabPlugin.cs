@@ -14,6 +14,7 @@
   limitations under the License.
 ******************************************************************************/
 
+using BotSharp.Abstraction.Tasks;
 using BotSharp.Core.Crontab.Hooks;
 
 namespace BotSharp.Core.Crontab;
@@ -33,6 +34,9 @@ public class CrontabPlugin : IBotSharpPlugin
     {
         services.AddScoped<IAgentUtilityHook, CrontabUtilityHook>();
         services.AddScoped<ICrontabService, CrontabService>();
+        services.AddScoped<ITaskFeeder, CrontabService>();
+
         services.AddHostedService<CrontabWatcher>();
+        services.AddHostedService<CrontabEventSubscription>();
     }
 }

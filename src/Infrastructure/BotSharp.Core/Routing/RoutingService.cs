@@ -37,6 +37,7 @@ public partial class RoutingService : IRoutingService
         storage.Append(conv.ConversationId, message);
 
         var dialogs = conv.GetDialogHistory();
+        Context.SetDialogs(dialogs);
         handler.SetDialogs(dialogs);
 
         var inst = new FunctionCallFromLlm
@@ -74,7 +75,7 @@ public partial class RoutingService : IRoutingService
     }
 
 #if !DEBUG
-    [MemoryCache(10 * 60)]
+    [SharpCache(10)]
 #endif
     protected RoutingRule[] GetRoutingRecords()
     {
@@ -99,7 +100,7 @@ public partial class RoutingService : IRoutingService
     }
 
 #if !DEBUG
-    [MemoryCache(10 * 60)]
+    [SharpCache(10)]
 #endif
     public RoutableAgent[] GetRoutableAgents(List<string> profiles)
     {

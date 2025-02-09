@@ -1,7 +1,5 @@
 using BotSharp.Abstraction.Files.Utilities;
-using BotSharp.Abstraction.Templating;
 using OpenAI.Chat;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Chat;
 

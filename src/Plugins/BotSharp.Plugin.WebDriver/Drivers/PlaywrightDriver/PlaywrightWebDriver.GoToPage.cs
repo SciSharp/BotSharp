@@ -21,6 +21,11 @@ public partial class PlaywrightWebDriver
 
                     if (args.EnableResponseCallback)
                     {
+                        page.Request += async (sender, e) =>
+                        {
+                            await _instance.HandleFetchRequest(e, message, args);
+                        };
+
                         page.Response += async (sender, e) =>
                         {
                             await _instance.HandleFetchResponse(e, message, args);

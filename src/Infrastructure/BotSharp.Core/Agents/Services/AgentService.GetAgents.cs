@@ -5,7 +5,7 @@ namespace BotSharp.Core.Agents.Services;
 public partial class AgentService
 {
 #if !DEBUG
-    [MemoryCache(10 * 60, perInstanceCache: true)]
+    [SharpCache(10, perInstanceCache: true)]
 #endif
     public async Task<PagedItems<Agent>> GetAgents(AgentFilter filter)
     {
@@ -27,7 +27,7 @@ public partial class AgentService
     }
 
 #if !DEBUG
-    [MemoryCache(10 * 60, perInstanceCache: true)]
+    [SharpCache(10, perInstanceCache: true)]
 #endif
     public async Task<Agent> GetAgent(string id)
     {

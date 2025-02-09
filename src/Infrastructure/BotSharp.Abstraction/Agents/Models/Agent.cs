@@ -90,6 +90,11 @@ public class Agent
     public List<string> Profiles { get; set; } = new();
 
     /// <summary>
+    /// Agent labels
+    /// </summary>
+    public List<string> Labels { get; set; } = new();
+
+    /// <summary>
     /// Merge utilities from entry agent
     /// </summary>
     public bool MergeUtility { get; set; }
@@ -158,6 +163,7 @@ public class Agent
             MergeUtility = agent.MergeUtility,
             MaxMessageCount = agent.MaxMessageCount,
             Profiles = agent.Profiles,
+            Labels = agent.Labels,
             RoutingRules = agent.RoutingRules,
             Rules = agent.Rules,
             LlmConfig = agent.LlmConfig,
@@ -266,6 +272,12 @@ public class Agent
     public Agent SetProfiles(List<string> profiles)
     {
         Profiles = profiles ?? [];
+        return this;
+    }
+
+    public Agent SetLabels(List<string> labels)
+    {
+        Labels = labels ?? [];
         return this;
     }
 

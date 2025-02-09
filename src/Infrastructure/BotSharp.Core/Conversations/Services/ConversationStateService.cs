@@ -136,6 +136,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public Dictionary<string, string> Load(string conversationId, bool isReadOnly = false)
     {
         _conversationId = !isReadOnly ? conversationId : null;
+        Reset();
 
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
         var curMsgId = routingCtx.MessageId;
@@ -211,11 +212,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
     {
         if (_conversationId == null)
         {
+            Reset();
             return;
         }
 
         var states = new List<StateKeyValue>();
-
         foreach (var pair in _curStates)
         {
             var key = pair.Key;
@@ -244,6 +245,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         }
 
         _db.UpdateConversationStates(_conversationId, states);
+        Reset();
         _logger.LogInformation($"Saved states of conversation {_conversationId}");
     }
 
@@ -420,5 +422,11 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public void ResetCurrentState()
     {
         _curStates.Clear();
+    }
+
+    private void Reset()
+    {
+        _curStates.Clear();
+        _historyStates.Clear();
     }
 }
