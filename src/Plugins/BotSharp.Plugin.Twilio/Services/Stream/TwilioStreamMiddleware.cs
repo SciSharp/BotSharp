@@ -30,6 +30,7 @@ public class TwilioStreamMiddleware
                 var services = httpContext.RequestServices;
                 using WebSocket webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
                 await HandleWebSocket(services, webSocket);
+                httpContext.Abort();
             }
         }
 
@@ -47,10 +48,9 @@ public class TwilioStreamMiddleware
             conn.StreamId = response.StreamSid;
             conn.Event = response.Event switch
             {
-                "connected" => string.Empty,
-                "start" => "connected",
-                "media" => "data_received",
-                "stop" => "disconnected",
+                "start" => "user_connected",
+                "media" => "user_data_received",
+                "stop" => "user_disconnected",
                 _ => response.Event
             };
 
@@ -83,7 +83,7 @@ public class TwilioStreamMiddleware
             if (response.Event == "start")
             {
                 var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
-                conn.Data = startResponse.Body.CallSid;
+                conn.Data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
                 conn.ConversationId = startResponse.Body.CallSid;
             }
             else if (response.Event == "media")

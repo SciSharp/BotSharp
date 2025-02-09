@@ -2,6 +2,8 @@ using BotSharp.Abstraction.Realtime;
 using System.Net.WebSockets;
 using System;
 using BotSharp.Abstraction.Realtime.Models;
+using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Agents.Models;
 
 namespace BotSharp.Core.Realtime;
 
@@ -20,7 +22,13 @@ public class RealtimeHub : IRealtimeHub
     {
         var buffer = new byte[1024 * 4];
         WebSocketReceiveResult result;
-        var modelConnector = _services.GetRequiredService<IRealtimeModelConnector>();
+
+        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+        var model = llmProviderService.GetProviderModel("openai", "gpt-4",
+            realTime: true).Name;
+
+        var completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == "openai");
+        completer.SetModelName(model);
 
         do
         {
@@ -33,46 +41,97 @@ public class RealtimeHub : IRealtimeHub
             }
 
             var conn = onUserMessageReceived(receivedText);
-            if (conn.Event == "connected")
+            conn.Model = model;
+
+            if (conn.Event == "user_connected")
             {
-                await ConnectToModel(modelConnector, userWebSocket, conn);
+                await ConnectToModel(completer, userWebSocket, conn);
             }
-            else if (conn.Event == "data_received")
+            else if (conn.Event == "user_data_received")
             {
-                await modelConnector.SendMessage(conn.Data);
+                await completer.AppenAudioBuffer(conn.Data);
             }
-            else if (conn.Event == "disconnected")
+            else if (conn.Event == "user_disconnected")
             {
-                await modelConnector.Disconnect();
+                await completer.Disconnect();
             }
         } while (!result.CloseStatus.HasValue);
 
         await userWebSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
     }
 
-    private async Task ConnectToModel(IRealtimeModelConnector modelConnector, WebSocket userWebSocket, RealtimeHubConnection conn)
+    private async Task ConnectToModel(IRealTimeCompletion completer, WebSocket userWebSocket, RealtimeHubConnection conn)
     {
-        await modelConnector.Connect(conn, onAudioDeltaReceived: async audioDeltaData =>
-        {
-            var data = conn.OnModelMessageReceived(audioDeltaData);
-            await SendEventToWebSocket(userWebSocket, data);
-        }, 
-        onAudioResponseDone: async () =>
-        {
-            var data = conn.OnModelAudioResponseDone();
-            await SendEventToWebSocket(userWebSocket, data);
-        }, 
-        onUserInterrupted: async () =>
-        {
-            var data = conn.OnModelUserInterrupted();
-            await SendEventToWebSocket(userWebSocket, data);
-        });
+        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var convService = _services.GetRequiredService<IConversationService>();
+        convService.SetConversationId(conn.ConversationId, []);
+        var conversation = await convService.GetConversation(conn.ConversationId);
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(conversation.AgentId);
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var dialogs = convService.GetDialogHistory();
+        routing.Context.SetDialogs(dialogs);
+
+        await completer.Connect(conn, 
+            onModelReady: async () => 
+            {
+                // Control initial session
+                var data = await completer.UpdateInitialSession(conn);
+                await completer.SendEventToModel(data);
+            },
+            onModelAudioDeltaReceived: async audioDeltaData =>
+            {
+                var data = conn.OnModelMessageReceived(audioDeltaData);
+                await SendEventToUser(userWebSocket, data);
+            }, 
+            onModelAudioResponseDone: async () =>
+            {
+                var data = conn.OnModelAudioResponseDone();
+                await SendEventToUser(userWebSocket, data);
+            }, 
+            onAudioTranscriptDone: async transcript =>
+            {
+                var message = new RoleDialogModel(AgentRole.Assistant, transcript);
+
+                // append transcript to conversation
+                storage.Append(conn.ConversationId, message);
+
+                foreach (var hook in hookProvider.HooksOrderByPriority)
+                {
+                    hook.SetAgent(agent)
+                        .SetConversation(conversation);
+
+                    if (!string.IsNullOrEmpty(transcript))
+                    {
+                        await hook.OnMessageReceived(message);
+                    }
+                }
+            },
+            onModelResponseDone: async response =>
+            {
+                var messages = await completer.OnResponsedDone(conn, response);
+                foreach (var message in messages)
+                {
+                    // Invoke function
+                    if (message.FunctionName != null)
+                    {
+                        await routing.InvokeFunction(message.FunctionName, message);
+                        var data = await completer.InertConversationItem(message);
+                        await completer.SendEventToModel(data);
+                    }
+                }
+            },
+            onUserInterrupted: async () =>
+            {
+                var data = conn.OnModelUserInterrupted();
+                await SendEventToUser(userWebSocket, data);
+            });
     }
 
-    private async Task SendEventToWebSocket(WebSocket webSocket, object message)
+    private async Task SendEventToUser(WebSocket webSocket, object message)
     {
         var data = JsonSerializer.Serialize(message);
-
         var buffer = Encoding.UTF8.GetBytes(data);
         await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }

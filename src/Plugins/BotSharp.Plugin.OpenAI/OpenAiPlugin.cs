@@ -8,8 +8,6 @@ using BotSharp.Plugin.OpenAI.Providers.Audio;
 using Microsoft.Extensions.Configuration;
 using Refit;
 using BotSharp.Plugin.OpenAI.Providers.Realtime;
-using BotSharp.Plugin.Twilio.Services.Stream;
-using BotSharp.Abstraction.Realtime;
 
 namespace BotSharp.Plugin.OpenAI;
 
@@ -37,7 +35,6 @@ public class OpenAiPlugin : IBotSharpPlugin
         services.AddScoped<IImageCompletion, ImageCompletionProvider>();
         services.AddScoped<IAudioCompletion, AudioCompletionProvider>();
         services.AddScoped<IRealTimeCompletion, RealTimeCompletionProvider>();
-        services.AddScoped<IRealtimeModelConnector, OpenAiRealtimeModelConnector>();
 
         services.AddRefitClient<IOpenAiRealtimeApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://api.openai.com"));

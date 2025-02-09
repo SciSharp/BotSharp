@@ -5,22 +5,34 @@ namespace BotSharp.Plugin.OpenAI.Models.Realtime;
 public class RealtimeSessionBody
 {
     [JsonPropertyName("id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Id { get; set; } = null!;
 
     [JsonPropertyName("object")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Object { get; set; } = null!;
 
     [JsonPropertyName("model")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Model { get; set; } = null!;
 
     [JsonPropertyName("temperature")]
-    public float temperature { get; set; } = 0.8f;
+    public float Temperature { get; set; } = 0.8f;
 
     [JsonPropertyName("modalities")]
     public string[] Modalities { get; set; } = ["audio", "text"];
 
+    [JsonPropertyName("input_audio_format")]
+    public string InputAudioFormat { get; set; } = "pcm16";
+
+    [JsonPropertyName("output_audio_format")]
+    public string OutputAudioFormat { get; set; } = "pcm16";
+
     [JsonPropertyName("instructions")]
     public string Instructions { get; set; } = "You are a friendly assistant.";
+
+    [JsonPropertyName("voice")]
+    public string Voice { get; set; } = "sage";
 
     [JsonPropertyName("max_response_output_tokens")]
     public int MaxResponseOutputTokens { get; set; } = 512;
