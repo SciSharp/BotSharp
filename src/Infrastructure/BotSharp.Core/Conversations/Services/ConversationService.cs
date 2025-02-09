@@ -107,7 +107,7 @@ public partial class ConversationService : IConversationService
         record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         record.UserId = sess.UserId.IfNullOrEmptyAs(foundUserId);
         record.Tags = sess.Tags;
-        record.Title = "New Conversation";
+        record.Title = string.IsNullOrEmpty(record.Title) ? "New Conversation" : record.Title;
 
         db.CreateNewConversation(record);
 

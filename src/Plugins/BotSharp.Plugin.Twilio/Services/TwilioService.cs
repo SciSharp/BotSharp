@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.Twilio.Models;
 using Twilio.Jwt.AccessToken;
+using Twilio.TwiML.Messaging;
 using Token = Twilio.Jwt.AccessToken.Token;
 
 namespace BotSharp.Plugin.Twilio.Services;
@@ -173,6 +174,29 @@ public class TwilioService
         }
         gather.Pause(interval);
         response.Append(gather);
+        return response;
+    }
+
+    /// <summary>
+    /// Bidirectional Media Streams
+    /// </summary>
+    /// <param name="conversationalVoiceResponse"></param>
+    /// <returns></returns>
+    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
+    {
+        var response = new VoiceResponse();
+        if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
+        {
+            foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
+            {
+                response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+            }
+        }
+        var connect = new Connect();
+        var host = _settings.CallbackHost.Split("://").Last();
+        connect.Stream(url: $"wss://{host}/twilio/stream");
+        response.Append(connect);
+
         return response;
     }
 }
