@@ -23,7 +23,7 @@ public interface IRealTimeCompletion
 
     Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations);
     Task<string> UpdateInitialSession(RealtimeHubConnection conn);
-    Task<string> InertConversationItem(RoleDialogModel message);
-
+    Task<string> InsertConversationItem(RoleDialogModel message);
+    Task TriggerModelInference(string? instructions = null);
     Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response);
 }

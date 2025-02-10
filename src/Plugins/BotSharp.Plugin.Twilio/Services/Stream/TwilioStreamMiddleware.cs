@@ -1,5 +1,7 @@
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Models;
+using BotSharp.Core.Infrastructures;
+using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
@@ -28,19 +30,34 @@ public class TwilioStreamMiddleware
             if (httpContext.WebSockets.IsWebSocketRequest)
             {
                 var services = httpContext.RequestServices;
+                var conversationId = request.Path.Value.Split("/").Last();
                 using WebSocket webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
-                await HandleWebSocket(services, webSocket);
-                httpContext.Abort();
+                await HandleWebSocket(services, conversationId, webSocket);
+                return;
             }
         }
 
         await _next(httpContext);
     }
 
-    private async Task HandleWebSocket(IServiceProvider services, WebSocket webSocket)
+    private async Task HandleWebSocket(IServiceProvider services, string conversationId, WebSocket webSocket)
     {
         var hub = services.GetRequiredService<IRealtimeHub>();
-        var conn = new RealtimeHubConnection();
+        
+        var conn = new RealtimeHubConnection
+        {
+            ConversationId = conversationId
+        };
+
+        // load conversation and state
+        var convService = services.GetRequiredService<IConversationService>();
+        convService.SetConversationId(conversationId, []);
+        var hooks = services.GetServices<ITwilioSessionHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.OnStreamingStarted(conn);
+        }
+        convService.States.Save();
 
         await hub.Listen(webSocket, (receivedText) =>
         {
@@ -84,7 +101,6 @@ public class TwilioStreamMiddleware
             {
                 var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
                 conn.Data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
-                conn.ConversationId = startResponse.Body.CallSid;
             }
             else if (response.Event == "media")
             {

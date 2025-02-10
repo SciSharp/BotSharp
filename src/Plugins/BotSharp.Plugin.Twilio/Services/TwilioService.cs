@@ -182,7 +182,7 @@ public class TwilioService
     /// </summary>
     /// <param name="conversationalVoiceResponse"></param>
     /// <returns></returns>
-    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
+    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(VoiceRequest request, ConversationalVoiceResponse conversationalVoiceResponse)
     {
         var response = new VoiceResponse();
         if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
@@ -194,7 +194,7 @@ public class TwilioService
         }
         var connect = new Connect();
         var host = _settings.CallbackHost.Split("://").Last();
-        connect.Stream(url: $"wss://{host}/twilio/stream");
+        connect.Stream(url: $"wss://{host}/twilio/stream/{request.CallSid}");
         response.Append(connect);
 
         return response;

@@ -117,8 +117,9 @@ public class RealtimeHub : IRealtimeHub
                     if (message.FunctionName != null)
                     {
                         await routing.InvokeFunction(message.FunctionName, message);
-                        var data = await completer.InertConversationItem(message);
+                        var data = await completer.InsertConversationItem(message);
                         await completer.SendEventToModel(data);
+                        await completer.TriggerModelInference("Reply based on the function's output.");
                     }
                 }
             },

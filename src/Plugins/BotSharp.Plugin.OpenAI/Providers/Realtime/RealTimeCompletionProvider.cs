@@ -63,8 +63,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onModelResponseDone,
                 onUserInterrupted);
 
-            // Triggering model inference
-            await SendEventToModel(new { type = "response.create" });
+            await TriggerModelInference();
         }
     }
 
@@ -82,6 +81,19 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         };
 
         await SendEventToModel(audioAppend);
+    }
+
+    public async Task TriggerModelInference(string? instructions = null)
+    {
+        // Triggering model inference
+        await SendEventToModel(new
+        {
+            type = "response.create",
+            response = new
+            {
+                instructions
+            }
+        });
     }
 
     private async Task ReceiveMessage(Action<string> onModelAudioDeltaReceived,
@@ -114,11 +126,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "session.created")
             {
-
+                _logger.LogInformation($"{response.Type}: {receivedText}");
             }
             else if (response.Type == "session.updated")
             {
-
+                _logger.LogInformation($"{response.Type}: {receivedText}");
             }
             else if (response.Type == "response.audio_transcript.delta")
             {
@@ -126,6 +138,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "response.audio_transcript.done")
             {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
                 var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
                 onAudioTranscriptDone(data.Transcript);
             }
@@ -141,10 +154,12 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "response.audio.done")
             {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
                 onModelAudioResponseDone();
             }
             else if (response.Type == "response.done")
             {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
                 onModelResponseDone(receivedText);
             }
             else if (response.Type == "input_audio_buffer.speech_started")
@@ -255,8 +270,23 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return JsonSerializer.Serialize(sessionUpdate);
     }
 
-    public async Task<string> InertConversationItem(RoleDialogModel message)
+    public async Task<string> InsertConversationItem(RoleDialogModel message)
     {
+        if (message.Role == AgentRole.Function)
+        {
+            var functionConversationItem = new
+            {
+                type = "conversation.item.create",
+                item = new
+                {
+                    call_id = message.ToolCallId,
+                    type = "function_call_output",
+                    output = message.Content
+                }
+            };
+            return JsonSerializer.Serialize(functionConversationItem);
+        }
+
         var conversationItem = new
         {
             type = "conversation.item.create",
@@ -475,20 +505,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
                 {
                     FunctionName = output.Name,
-                    FunctionArgs = output.Arguments
+                    FunctionArgs = output.Arguments,
+                    MessageType = output.Type,
+                    ToolCallId = output.CallId
                 });
-            }
-            else if (output.Type == "message")
-            {
-                outputs.Add(new RoleDialogModel(AgentRole.Assistant, "")
-                {
-                    FunctionName = output.Name,
-                    FunctionArgs = output.Arguments
-                });
-            }
-            else
-            {
-                throw new NotImplementedException($"not implemented for output type {output.Type}");
             }
         }
 

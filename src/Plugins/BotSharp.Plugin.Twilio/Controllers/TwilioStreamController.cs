@@ -55,7 +55,7 @@ public class TwilioStreamController : TwilioController
 
         var twilio = _services.GetRequiredService<TwilioService>();
 
-        response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
+        response = twilio.ReturnBidirectionalMediaStreamsInstructions(request, instruction);
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
