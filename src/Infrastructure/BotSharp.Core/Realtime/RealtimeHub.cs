@@ -79,6 +79,22 @@ public class RealtimeHub : IRealtimeHub
                 // Control initial session
                 var data = await completer.UpdateInitialSession(conn);
                 await completer.SendEventToModel(data);
+
+                // Add dialog history
+                foreach (var item in dialogs)
+                {
+                    var dialogItem = await completer.InsertConversationItem(item);
+                    await completer.SendEventToModel(data);
+                }
+
+                if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
+                {
+                    await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                }
+                else
+                {
+                    await completer.TriggerModelInference("Reply based on the conversation context.");
+                }
             },
             onModelAudioDeltaReceived: async audioDeltaData =>
             {

@@ -42,6 +42,16 @@ public class TwilioStreamController : TwilioController
             // SpeechPaths = ["twilio/welcome.mp3"],
             ActionOnEmptyResult = true
         };
+
+        if (_context.HttpContext.Request.Query.ContainsKey("conversation_id"))
+        {
+            request.ConversationId = _context.HttpContext.Request.Query["conversation_id"];
+        }
+        else
+        {
+            request.ConversationId = request.CallSid;
+        }
+
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
             await hook.OnSessionCreating(request, instruction);
@@ -50,12 +60,11 @@ public class TwilioStreamController : TwilioController
             OnlyOnce = true
         });
 
-        request.ConversationId = request.CallSid;
         await InitConversation(request);
 
         var twilio = _services.GetRequiredService<TwilioService>();
 
-        response = twilio.ReturnBidirectionalMediaStreamsInstructions(request, instruction);
+        response = twilio.ReturnBidirectionalMediaStreamsInstructions(request.ConversationId, instruction);
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
@@ -71,6 +80,11 @@ public class TwilioStreamController : TwilioController
     private async Task InitConversation(ConversationalVoiceRequest request)
     {
         var convService = _services.GetRequiredService<IConversationService>();
+        var conversation = await convService.GetConversation(request.ConversationId);
+        if (conversation != null)
+        {
+            return;
+        }
 
         var states = new List<MessageState>
             {

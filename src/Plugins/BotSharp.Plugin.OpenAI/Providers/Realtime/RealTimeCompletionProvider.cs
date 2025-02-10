@@ -62,8 +62,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 onAudioTranscriptDone,
                 onModelResponseDone,
                 onUserInterrupted);
-
-            await TriggerModelInference();
         }
     }
 
@@ -286,26 +284,33 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             };
             return JsonSerializer.Serialize(functionConversationItem);
         }
-
-        var conversationItem = new
+        else if (message.Role == AgentRole.User ||
+            message.Role == AgentRole.Assistant)
         {
-            type = "conversation.item.create",
-            item = new
+            var conversationItem = new
             {
-                type = "message",
-                role = message.Role,
-                content = new object[]
+                type = "conversation.item.create",
+                item = new
                 {
-                    new
+                    type = "message",
+                    role = message.Role,
+                    content = new object[]
                     {
-                        type = "text",
-                        text = message.Content
+                        new
+                        {
+                            type = "text",
+                            text = message.Content
+                        }
                     }
                 }
-            }
-        };
+            };
 
-        return JsonSerializer.Serialize(conversationItem);
+            return JsonSerializer.Serialize(conversationItem);
+        }
+        else
+        {
+            throw new NotImplementedException("");
+        }
     }
 
     protected (string, IEnumerable<ChatMessage>, ChatCompletionOptions) PrepareOptions(Agent agent, List<RoleDialogModel> conversations)
