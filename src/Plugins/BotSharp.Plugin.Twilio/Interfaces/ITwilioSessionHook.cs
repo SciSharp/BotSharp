@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Plugin.Twilio.Models;
 using Task = System.Threading.Tasks.Task;
 
@@ -21,6 +22,9 @@ public interface ITwilioSessionHook
     /// <param name="response"></param>
     /// <returns></returns>
     Task OnSessionCreated(ConversationalVoiceRequest request)
+        => Task.CompletedTask;
+
+    Task OnStreamingStarted(RealtimeHubConnection conn)
         => Task.CompletedTask;
 
     /// <summary>

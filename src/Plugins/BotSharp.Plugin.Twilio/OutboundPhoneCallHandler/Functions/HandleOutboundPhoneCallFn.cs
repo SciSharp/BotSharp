@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
@@ -55,6 +56,7 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             var routing = _services.GetRequiredService<IRoutingContext>();
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+            var states = _services.GetRequiredService<IConversationStateService>();
 
             // Fork conversation
             var entryAgentId = routing.EntryAgentId;
@@ -75,9 +77,10 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
                     CurrentAgentId = entryAgentId
                 }
             });
+            states.SetState(StateConst.SUB_CONVERSATION_ID, conversationId);
 
             // Generate audio
-            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
+            /*var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
             var data = await completion.GenerateAudioFromTextAsync(args.InitialMessage);
             var fileName = $"intial.mp3";
             fileStorage.SaveSpeechFile(conversationId, fileName, data);
@@ -87,16 +90,17 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             {
                 Content = args.InitialMessage,
                 SpeechFileName = fileName
-            });
+            });*/
 
             var call = await CallResource.CreateAsync(
-                url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
+                // url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
+                url: new Uri($"{_twilioSetting.CallbackHost}/twilio/stream?conversation_id={conversationId}"),
                 to: new PhoneNumber(args.PhoneNumber),
                 from: new PhoneNumber(_twilioSetting.PhoneNumber),
                 asyncAmd: "true",
                 machineDetection: "DetectMessageEnd");
 
-            message.Content = $"The generated phone message: {args.InitialMessage}. \r\n[Conversation ID: {conversationId}]" ?? message.Content;
+            message.Content = $"The generated phone message: {args.InitialMessage}." ?? message.Content;
             message.StopCompletion = true;
             return true;
         }

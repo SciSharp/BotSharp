@@ -1,4 +1,6 @@
-namespace BotSharp.Abstraction.Realtime.Models;
+using BotSharp.Abstraction.Realtime.Models;
+
+namespace BotSharp.Plugin.OpenAI.Models.Realtime;
 
 public class RealtimeSessionUpdate
 {
