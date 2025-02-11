@@ -547,7 +547,7 @@ namespace BotSharp.Core.Repository
         }
 
 
-        public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
+        public List<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
         {
             var deletedMessageIds = new List<string>();
             if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId))
@@ -600,6 +600,46 @@ namespace BotSharp.Core.Repository
             }
 
             return deletedMessageIds;
+        }
+
+
+        public List<string> GetConversationSearchKeys(int messageLimit = 2, int convlimit = 100)
+        {
+            var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+            if (!Directory.Exists(dir)) return [];
+
+            var count = 0;
+            var keys = new List<string>();
+
+            foreach (var d in Directory.GetDirectories(dir))
+            {
+                var convFile = Path.Combine(d, CONVERSATION_FILE);
+                var stateFile = Path.Combine(d, STATE_FILE);
+                if (!File.Exists(convFile) || !File.Exists(stateFile))
+                {
+                    continue;
+                }
+
+                var convJson = File.ReadAllText(convFile);
+                var stateJson = File.ReadAllText(stateFile);
+                var conv = JsonSerializer.Deserialize<Conversation>(convJson, _options);
+                var states = JsonSerializer.Deserialize<List<StateKeyValue>>(stateJson, _options);
+                if (conv == null || conv.DialogCount < messageLimit)
+                {
+                    continue;
+                }
+
+                var stateKeys = states?.Select(x => x.Key)?.Distinct()?.ToList() ?? [];
+                keys.AddRange(stateKeys);
+                count++;
+
+                if (count > convlimit)
+                {
+                    break;
+                }
+            }
+
+            return keys.Distinct().ToList();
         }
 
 

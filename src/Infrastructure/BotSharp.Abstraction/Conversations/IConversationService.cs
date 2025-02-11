@@ -63,4 +63,13 @@ public interface IConversationService
     bool IsConversationMode();
 
     void SaveStates();
+
+    /// <summary>
+    /// Get conversation keys for searching
+    /// </summary>
+    /// <param name="query">search query</param>
+    /// <param name="convLimit">conversation limit</param>
+    /// <param name="preLoad">if pre-loading, then keys are not filter by the search query</param>
+    /// <returns></returns>
+    Task<List<string>> GetConversationSearhKeys(string query, int convlimit = 100, int keyLimit = 10, bool preLoad = false);
 }
