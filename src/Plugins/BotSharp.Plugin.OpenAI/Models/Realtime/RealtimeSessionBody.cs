@@ -28,6 +28,9 @@ public class RealtimeSessionBody
     [JsonPropertyName("output_audio_format")]
     public string OutputAudioFormat { get; set; } = "pcm16";
 
+    [JsonPropertyName("input_audio_transcription")]
+    public InputAudioTranscription InputAudioTranscription { get; set; } = new();
+
     [JsonPropertyName("instructions")]
     public string Instructions { get; set; } = "You are a friendly assistant.";
 
@@ -63,4 +66,10 @@ public class RealtimeSessionTurnDetection
 
     [JsonPropertyName("type")]
     public string Type { get; set; } = "server_vad";
+}
+
+public class InputAudioTranscription
+{
+    [JsonPropertyName("model")]
+    public string Model { get; set; } = null!;
 }

@@ -39,9 +39,14 @@ public class TwilioStreamController : TwilioController
         VoiceResponse response = null;
         var instruction = new ConversationalVoiceResponse
         {
-            // SpeechPaths = ["twilio/welcome.mp3"],
+            SpeechPaths = [],
             ActionOnEmptyResult = true
         };
+
+        if (_context.HttpContext.Request.Query.ContainsKey("init_audio_file"))
+        {
+            instruction.SpeechPaths.Add(_context.HttpContext.Request.Query["init_audio_file"]);
+        }
 
         if (_context.HttpContext.Request.Query.ContainsKey("conversation_id"))
         {
@@ -81,9 +86,18 @@ public class TwilioStreamController : TwilioController
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conversation = await convService.GetConversation(request.ConversationId);
-        if (conversation != null)
+        if (conversation == null)
         {
-            return;
+            var conv = new Conversation
+            {
+                Id = request.CallSid,
+                AgentId = _settings.AgentId,
+                Channel = ConversationChannel.Phone,
+                Title = $"Phone call from {request.From}",
+                Tags = [],
+            };
+
+            conversation = await convService.NewConversation(conv);
         }
 
         var states = new List<MessageState>
@@ -92,17 +106,7 @@ public class TwilioStreamController : TwilioController
                 new("calling_phone", request.From)
             };
 
-        var conv = new Conversation
-        {
-            Id = request.CallSid,
-            AgentId = _settings.AgentId,
-            Channel = ConversationChannel.Phone,
-            Title = $"Phone call from {request.From}",
-            Tags = [],
-        };
-
-        conv = await convService.NewConversation(conv);
-        convService.SetConversationId(conv.Id, states);
+        convService.SetConversationId(conversation.Id, states);
         convService.SaveStates();
     }
 }

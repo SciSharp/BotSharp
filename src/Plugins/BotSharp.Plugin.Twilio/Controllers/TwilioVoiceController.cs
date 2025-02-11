@@ -34,7 +34,7 @@ public class TwilioVoiceController : TwilioController
     /// <param name="states"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    [ValidateRequest]
+    // [ValidateRequest]
     [HttpPost("twilio/voice/welcome")]
     public async Task<TwiMLResult> InitiateConversation(ConversationalVoiceRequest request)
     {

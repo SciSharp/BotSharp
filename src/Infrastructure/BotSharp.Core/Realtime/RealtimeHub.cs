@@ -64,11 +64,15 @@ public class RealtimeHub : IRealtimeHub
     {
         var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
         var storage = _services.GetRequiredService<IConversationStorage>();
+
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conn.ConversationId, []);
         var conversation = await convService.GetConversation(conn.ConversationId);
+
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(conversation.AgentId);
+        conn.EntryAgentId = agent.Id;
+
         var routing = _services.GetRequiredService<IRoutingService>();
         var dialogs = convService.GetDialogHistory();
         routing.Context.SetDialogs(dialogs);
@@ -77,19 +81,18 @@ public class RealtimeHub : IRealtimeHub
             onModelReady: async () => 
             {
                 // Control initial session
-                var data = await completer.UpdateInitialSession(conn);
-                await completer.SendEventToModel(data);
+                await completer.UpdateInitialSession(conn);
+                
 
                 // Add dialog history
                 foreach (var item in dialogs)
                 {
-                    var dialogItem = await completer.InsertConversationItem(item);
-                    await completer.SendEventToModel(data);
+                    await completer.InsertConversationItem(item);
                 }
 
                 if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                 {
-                    await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    // await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
                 }
                 else
                 {
@@ -108,36 +111,48 @@ public class RealtimeHub : IRealtimeHub
             }, 
             onAudioTranscriptDone: async transcript =>
             {
-                var message = new RoleDialogModel(AgentRole.Assistant, transcript);
 
-                // append transcript to conversation
-                storage.Append(conn.ConversationId, message);
-
-                foreach (var hook in hookProvider.HooksOrderByPriority)
-                {
-                    hook.SetAgent(agent)
-                        .SetConversation(conversation);
-
-                    if (!string.IsNullOrEmpty(transcript))
-                    {
-                        await hook.OnMessageReceived(message);
-                    }
-                }
             },
-            onModelResponseDone: async response =>
+            onModelResponseDone: async messages =>
             {
-                var messages = await completer.OnResponsedDone(conn, response);
                 foreach (var message in messages)
                 {
                     // Invoke function
-                    if (message.FunctionName != null)
+                    if (message.MessageType == "function_call")
                     {
                         await routing.InvokeFunction(message.FunctionName, message);
-                        var data = await completer.InsertConversationItem(message);
-                        await completer.SendEventToModel(data);
+                        message.Role = AgentRole.Function;
+                        await completer.InsertConversationItem(message);
                         await completer.TriggerModelInference("Reply based on the function's output.");
                     }
+                    else
+                    {
+                        // append transcript to conversation
+                        storage.Append(conn.ConversationId, message);
+                        dialogs.Add(message);
+
+                        foreach (var hook in hookProvider.HooksOrderByPriority)
+                        {
+                            hook.SetAgent(agent)
+                                .SetConversation(conversation);
+
+                            if (!string.IsNullOrEmpty(message.Content))
+                            {
+                                await hook.OnMessageReceived(message);
+                            }
+                        }
+                    }
                 }
+            },
+            onConversationItemCreated: async response =>
+            {
+                
+            },
+            onInputAudioTranscriptionCompleted: async message =>
+            {
+                // append transcript to conversation
+                storage.Append(conn.ConversationId, message);
+                dialogs.Add(message);
             },
             onUserInterrupted: async () =>
             {
