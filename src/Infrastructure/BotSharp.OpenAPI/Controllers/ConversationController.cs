@@ -553,6 +553,16 @@ public class ConversationController : ControllerBase
     }
     #endregion
 
+    #region Search state keys
+    [HttpGet("/conversation/state/keys")]
+    public async Task<List<string>> GetConversationStateKeys([FromQuery] string query, [FromQuery] int keyLimit = 10, [FromQuery] bool preLoad = false)
+    {
+        var convService = _services.GetRequiredService<IConversationService>();
+        var keys = await convService.GetConversationSearhKeys(query, keyLimit: keyLimit, preLoad: preLoad);
+        return keys;
+    }
+    #endregion
+
     #region Private methods
     private void SetStates(IConversationService conv, NewMessageModel input)
     {
