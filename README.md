@@ -74,7 +74,7 @@ The core module is mainly composed of abstraction and framework function impleme
 
 ### Plugins
 
-BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate. Below are the bulit-in plugins:
+BotSharp uses component design, the kernel is kept to a minimum, and business functions are implemented by external components. The modular design also allows contributors to better participate. Below are the built-in plugins:
 
 #### Data Storages
 - BotSharp.Core.Repository
