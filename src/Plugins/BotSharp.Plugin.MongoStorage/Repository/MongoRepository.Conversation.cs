@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
-using BotSharp.Core.Infrastructures;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
