@@ -14,7 +14,9 @@ public interface IRealTimeCompletion
         Action<string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
-        Action<string> onModelResponseDone,
+        Action<List<RoleDialogModel>> onModelResponseDone,
+        Action<string> onConversationItemCreated,
+        Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted);
     Task AppenAudioBuffer(string message);
 
@@ -22,8 +24,9 @@ public interface IRealTimeCompletion
     Task Disconnect();
 
     Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations);
-    Task<string> UpdateInitialSession(RealtimeHubConnection conn);
-    Task<string> InsertConversationItem(RoleDialogModel message);
+    Task UpdateInitialSession(RealtimeHubConnection conn);
+    Task InsertConversationItem(RoleDialogModel message);
     Task TriggerModelInference(string? instructions = null);
     Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response);
+    Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response);
 }

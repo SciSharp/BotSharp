@@ -40,7 +40,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
-        Action<string> onModelResponseDone,
+        Action<List<RoleDialogModel>> onModelResponseDone,
+        Action<string> onConversationItemCreated,
+        Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
@@ -57,10 +59,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             onModelReady();
 
             // Receive a message
-            _ = ReceiveMessage(onModelAudioDeltaReceived,
+            _ = ReceiveMessage(conn,
+                onModelAudioDeltaReceived,
                 onModelAudioResponseDone,
                 onAudioTranscriptDone,
                 onModelResponseDone,
+                onConversationItemCreated,
+                onInputAudioTranscriptionCompleted,
                 onUserInterrupted);
         }
     }
@@ -94,10 +99,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         });
     }
 
-    private async Task ReceiveMessage(Action<string> onModelAudioDeltaReceived,
+    private async Task ReceiveMessage(RealtimeHubConnection conn, 
+        Action<string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
-        Action<string> onModelResponseDone,
+        Action<List<RoleDialogModel>> onModelResponseDone,
+        Action<string> onConversationItemCreated,
+        Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
         var buffer = new byte[1024 * 1024 * 1];
@@ -158,7 +166,20 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "response.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-                onModelResponseDone(receivedText);
+                await Task.Delay(1000);
+                var messages = await OnResponsedDone(conn, receivedText);
+                onModelResponseDone(messages);
+            }
+            else if (response.Type == "conversation.item.created")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                onConversationItemCreated(receivedText);
+            }
+            else if (response.Type == "conversation.item.input_audio_transcription.completed")
+            {
+                _logger.LogInformation($"{response.Type}: {receivedText}");
+                var message = await OnInputAudioTranscriptionCompleted(conn, receivedText);
+                onInputAudioTranscriptionCompleted(message);
             }
             else if (response.Type == "input_audio_buffer.speech_started")
             {
@@ -226,7 +247,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return session;
     }
 
-    public async Task<string> UpdateInitialSession(RealtimeHubConnection conn)
+    public async Task UpdateInitialSession(RealtimeHubConnection conn)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
@@ -247,6 +268,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 InputAudioFormat = "g711_ulaw",
                 OutputAudioFormat = "g711_ulaw",
+                InputAudioTranscription = new InputAudioTranscription
+                {
+                    Model = "whisper-1",
+                },
                 Voice = "alloy",
                 Instructions = instruction,
                 ToolChoice = "auto",
@@ -265,10 +290,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
         };
 
-        return JsonSerializer.Serialize(sessionUpdate);
+        await SendEventToModel(sessionUpdate);
     }
 
-    public async Task<string> InsertConversationItem(RoleDialogModel message)
+    public async Task InsertConversationItem(RoleDialogModel message)
     {
         if (message.Role == AgentRole.Function)
         {
@@ -282,10 +307,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     output = message.Content
                 }
             };
-            return JsonSerializer.Serialize(functionConversationItem);
+
+            await SendEventToModel(functionConversationItem);
         }
-        else if (message.Role == AgentRole.User ||
-            message.Role == AgentRole.Assistant)
+        else if (message.Role == AgentRole.Assistant)
         {
             var conversationItem = new
             {
@@ -305,7 +330,29 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 }
             };
 
-            return JsonSerializer.Serialize(conversationItem);
+            await SendEventToModel(conversationItem);
+        }
+        else if (message.Role == AgentRole.User)
+        {
+            var conversationItem = new
+            {
+                type = "conversation.item.create",
+                item = new
+                {
+                    type = "message",
+                    role = message.Role,
+                    content = new object[]
+                    {
+                        new
+                        {
+                            type = "input_text",
+                            text = message.Content
+                        }
+                    }
+                }
+            };
+
+            await SendEventToModel(conversationItem);
         }
         else
         {
@@ -507,16 +554,42 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         {
             if (output.Type == "function_call")
             {
-                outputs.Add(new RoleDialogModel(AgentRole.Assistant, output.Arguments)
+                outputs.Add(new RoleDialogModel(output.Role, output.Arguments)
                 {
+                    CurrentAgentId = conn.EntryAgentId,
                     FunctionName = output.Name,
                     FunctionArgs = output.Arguments,
-                    MessageType = output.Type,
                     ToolCallId = output.CallId
+                });
+            }
+            else if (output.Type == "message")
+            {
+                var content = output.Content.FirstOrDefault();
+
+                outputs.Add(new RoleDialogModel(output.Role, content.Transcript)
+                {
+                    CurrentAgentId = conn.EntryAgentId
                 });
             }
         }
 
         return outputs;
+    }
+
+    public async Task<RoleDialogModel> OnInputAudioTranscriptionCompleted(RealtimeHubConnection conn, string response)
+    {
+        var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(response);
+        return new RoleDialogModel(AgentRole.User, data.Transcript)
+        {
+            CurrentAgentId = conn.EntryAgentId
+        };
+    }
+
+    public async Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response)
+    {
+        var item = JsonSerializer.Deserialize<ConversationItemCreated>(response).Item;
+        var message = new RoleDialogModel(item.Role, item.Content.FirstOrDefault()?.Transcript);
+
+        return message;
     }
 }
