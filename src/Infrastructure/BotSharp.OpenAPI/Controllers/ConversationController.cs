@@ -558,7 +558,7 @@ public class ConversationController : ControllerBase
     public async Task<List<string>> GetConversationStateKeys([FromQuery] string query, [FromQuery] int keyLimit = 10, [FromQuery] bool preLoad = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var keys = await convService.GetConversationSearhKeys(query, keyLimit: keyLimit, preLoad: preLoad);
+        var keys = await convService.GetConversationStateSearhKeys(query, keyLimit: keyLimit, preLoad: preLoad);
         return keys;
     }
     #endregion

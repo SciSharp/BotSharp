@@ -148,7 +148,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     List<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
          => throw new NotImplementedException();
-    List<string> GetConversationSearchKeys(int messageLimit = 2, int convlimit = 100)
+    List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperlimit = 100)
          => throw new NotImplementedException();
     #endregion
 
