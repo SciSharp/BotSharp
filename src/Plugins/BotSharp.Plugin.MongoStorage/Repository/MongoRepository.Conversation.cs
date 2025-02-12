@@ -611,13 +611,15 @@ public partial class MongoRepository
         return deletedMessageIds;
     }
 
-
-    public List<string> GetConversationSearchKeys(int messageLimit = 2, int convlimit = 100)
+#if !DEBUG
+    [SharpCache(10)]
+#endif
+    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperlimit = 100)
     {
-        var convFilter = Builders<ConversationDocument>.Filter.Gte(x => x.DialogCount, messageLimit);
+        var convFilter = Builders<ConversationDocument>.Filter.Gte(x => x.DialogCount, messageLowerLimit);
         var conversations = _dc.Conversations.Find(convFilter)
                                              .SortByDescending(x => x.UpdatedTime)
-                                             .Limit(convlimit)
+                                             .Limit(convUpperlimit)
                                              .ToList();
 
         if (conversations.IsNullOrEmpty()) return [];

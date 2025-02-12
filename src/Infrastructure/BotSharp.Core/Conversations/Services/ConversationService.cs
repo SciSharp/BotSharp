@@ -222,7 +222,7 @@ public partial class ConversationService : IConversationService
         _state.Save();
     }
 
-    public async Task<List<string>> GetConversationSearhKeys(string query, int convlimit = 100, int keyLimit = 10, bool preLoad = false)
+    public async Task<List<string>> GetConversationStateSearhKeys(string query, int convlimit = 100, int keyLimit = 10, bool preLoad = false)
     {
         var keys = new List<string>();
         if (!preLoad && string.IsNullOrWhiteSpace(query))
@@ -231,7 +231,7 @@ public partial class ConversationService : IConversationService
         }
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        keys = db.GetConversationSearchKeys(convlimit: convlimit);
+        keys = db.GetConversationStateSearchKeys(convUpperlimit: convlimit);
         keys = preLoad ? keys : keys.Where(x => x.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
         return keys.OrderBy(x => x).Take(keyLimit).ToList();
     }
