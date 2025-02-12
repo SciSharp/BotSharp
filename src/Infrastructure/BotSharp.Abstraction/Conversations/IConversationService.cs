@@ -71,5 +71,5 @@ public interface IConversationService
     /// <param name="convLimit">conversation limit</param>
     /// <param name="preLoad">if pre-loading, then keys are not filter by the search query</param>
     /// <returns></returns>
-    Task<List<string>> GetConversationSearhKeys(string query, int convlimit = 100, int keyLimit = 10, bool preLoad = false);
+    Task<List<string>> GetConversationStateSearhKeys(string query, int convlimit = 100, int keyLimit = 10, bool preLoad = false);
 }
