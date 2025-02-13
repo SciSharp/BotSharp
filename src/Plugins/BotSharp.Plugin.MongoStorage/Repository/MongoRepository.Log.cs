@@ -19,13 +19,13 @@ public partial class MongoRepository
 
     public List<string> GetExecutionLogs(string conversationId)
     {
-        var logs = new List<string>();
+        List<string> logs = [];
         if (string.IsNullOrEmpty(conversationId)) return logs;
 
         var filter = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var logCollection = _dc.ExectionLogs.Find(filter).FirstOrDefault();
 
-        logs = logCollection?.Logs ?? new List<string>();
+        logs = logCollection?.Logs ?? [];
         return logs;
     }
     #endregion
