@@ -4,12 +4,12 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<InstructFileModel> images)
+    public async Task<string> ReadImages(string? provider, string? model, string text, IEnumerable<InstructFileModel> images, string? agentId = null)
     {
         var completion = CompletionProvider.GetChatCompletion(_services, provider: provider ?? "openai", model: model ?? "gpt-4o", multiModal: true);
         var message = await completion.GetChatCompletions(new Agent()
         {
-            Id = Guid.Empty.ToString(),
+            Id = agentId ?? Guid.Empty.ToString(),
         }, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, text)
@@ -20,17 +20,17 @@ public partial class FileInstructService
         return message.Content;
     }
 
-    public async Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text)
+    public async Task<RoleDialogModel> GenerateImage(string? provider, string? model, string text, string? agentId = null)
     {
         var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-3");
         var message = await completion.GetImageGeneration(new Agent()
         {
-            Id = Guid.Empty.ToString(),
+            Id = agentId ?? Guid.Empty.ToString(),
         }, new RoleDialogModel(AgentRole.User, text));
         return message;
     }
 
-    public async Task<RoleDialogModel> VaryImage(string? provider, string? model, InstructFileModel image)
+    public async Task<RoleDialogModel> VaryImage(string? provider, string? model, InstructFileModel image, string? agentId = null)
     {
         if (string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData))
         {
@@ -46,14 +46,14 @@ public partial class FileInstructService
         var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
         var message = await completion.GetImageVariation(new Agent()
         {
-            Id = Guid.Empty.ToString()
+            Id = agentId ?? Guid.Empty.ToString()
         }, new RoleDialogModel(AgentRole.User, string.Empty), stream, fileName);
 
         stream.Close();
         return message;
     }
 
-    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image)
+    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image, string? agentId = null)
     {
         if (string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData))
         {
@@ -69,14 +69,14 @@ public partial class FileInstructService
         var fileName = $"{image.FileName ?? "image"}.{image.FileExtension ?? "png"}";
         var message = await completion.GetImageEdits(new Agent()
         {
-            Id = Guid.Empty.ToString()
+            Id = agentId ?? Guid.Empty.ToString()
         }, new RoleDialogModel(AgentRole.User, text), stream, fileName);
 
         stream.Close();
         return message;
     }
 
-    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image, InstructFileModel mask)
+    public async Task<RoleDialogModel> EditImage(string? provider, string? model, string text, InstructFileModel image, InstructFileModel mask, string? agentId = null)
     {
         if ((string.IsNullOrWhiteSpace(image?.FileUrl) && string.IsNullOrWhiteSpace(image?.FileData)) ||
             (string.IsNullOrWhiteSpace(mask?.FileUrl) && string.IsNullOrWhiteSpace(mask?.FileData)))
@@ -100,7 +100,7 @@ public partial class FileInstructService
         var maskName = $"{mask.FileName ?? "mask"}.{mask.FileExtension ?? "png"}";
         var message = await completion.GetImageEdits(new Agent()
         {
-            Id = Guid.Empty.ToString()
+            Id = agentId ?? Guid.Empty.ToString()
         }, new RoleDialogModel(AgentRole.User, text), imageStream, imageName, maskStream, maskName);
 
         imageStream.Close();
