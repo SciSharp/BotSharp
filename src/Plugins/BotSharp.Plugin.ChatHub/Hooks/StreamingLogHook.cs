@@ -437,27 +437,6 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
 
 
     #region Private methods
-    //private async Task SendContentLog(ContentLogInputModel input)
-    //{
-    //    await _chatHub.Clients.User(_user.Id).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
-    //}
-
-    //private async Task SendStateLog(string conversationId, string agentId, Dictionary<string, string> states, RoleDialogModel message)
-    //{
-    //    await _chatHub.Clients.User(_user.Id).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
-    //}
-
-    //private async Task SendAgentQueueLog(string conversationId, string log)
-    //{
-    //    await _chatHub.Clients.User(_user.Id).SendAsync(AGENT_QUEUE_CHANGED, BuildAgentQueueChangedLog(conversationId, log));
-    //}
-
-    //private async Task SendStateChange(StateChangeModel stateChange)
-    //{
-    //    await _chatHub.Clients.User(_user.Id).SendAsync(STATE_CHANGED, BuildStateChangeLog(stateChange));
-    //}
-
-
     private async Task SendContentLog(string conversationId, ContentLogInputModel input)
     {
         if (_settings.EventDispatchBy == EventDispatchType.Group)

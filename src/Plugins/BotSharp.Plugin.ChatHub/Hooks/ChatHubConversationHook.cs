@@ -183,39 +183,6 @@ public class ChatHubConversationHook : ConversationHookBase
         return sidecar == null || !sidecar.IsEnabled();
     }
 
-    private async Task InitClientConversation(ConversationViewModel conversation)
-    {
-        await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
-    }
-
-    private async Task ReceiveClientMessage(ChatResponseModel model)
-    {
-        await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
-    }
-
-    private async Task ReceiveAssistantMessage(string? json)
-    {
-        await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
-    }
-
-    private async Task GenerateSenderAction(ConversationSenderActionModel action)
-    {
-        await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
-    }
-
-    private async Task DeleteMessage(ChatResponseModel model)
-    {
-        await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
-    }
-
-    private async Task GenerateNotification(string? json)
-    {
-        await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_NOTIFICATION, json);
-    }
-
-
-
-
     private async Task InitClientConversation(string conversationId, ConversationViewModel conversation)
     {
         if (_settings.EventDispatchBy == EventDispatchType.Group)
