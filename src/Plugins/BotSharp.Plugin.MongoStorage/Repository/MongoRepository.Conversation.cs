@@ -534,7 +534,7 @@ public partial class MongoRepository
         var truncatedDialogs = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
 
         // Handle truncated states
-        var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreateTime;
+        var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreatedTime;
         var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundStates = _dc.ConversationStates.Find(stateFilter).FirstOrDefault();
 
@@ -596,12 +596,12 @@ public partial class MongoRepository
             var contentLogFilters = new List<FilterDefinition<ConversationContentLogDocument>>()
             {
                 contentLogBuilder.Eq(x => x.ConversationId, conversationId),
-                contentLogBuilder.Gte(x => x.CreateTime, refTime)
+                contentLogBuilder.Gte(x => x.CreatedTime, refTime)
             };
             var stateLogFilters = new List<FilterDefinition<ConversationStateLogDocument>>()
             {
                 stateLogBuilder.Eq(x => x.ConversationId, conversationId),
-                stateLogBuilder.Gte(x => x.CreateTime, refTime)
+                stateLogBuilder.Gte(x => x.CreatedTime, refTime)
             };
 
             _dc.ContentLogs.DeleteMany(contentLogBuilder.And(contentLogFilters));

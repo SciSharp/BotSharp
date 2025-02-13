@@ -583,7 +583,7 @@ public partial class FileRepository
         var isSaved = HandleTruncatedDialogs(convDir, dialogDir, dialogs, foundIdx);
 
         // Handle truncated states
-        var refTime = dialogs.ElementAt(foundIdx).MetaData.CreateTime;
+        var refTime = dialogs.ElementAt(foundIdx).MetaData.CreatedTime;
         var stateDir = Path.Combine(convDir, STATE_FILE);
         var states = CollectConversationStates(stateDir);
         isSaved = HandleTruncatedStates(stateDir, states, messageId, refTime);

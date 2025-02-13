@@ -151,7 +151,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
         var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User)
                                  .GroupBy(x => x.MetaData?.MessageId)
                                  .Select(g => g.First())
-                                 .OrderBy(x => x.MetaData?.CreateTime)
+                                 .OrderBy(x => x.MetaData?.CreatedTime)
                                  .ToList();
         var curMsgIndex = userDialogs.FindIndex(x => !string.IsNullOrEmpty(curMsgId) && x.MetaData?.MessageId == curMsgId);
         curMsgIndex = curMsgIndex < 0 ? userDialogs.Count() : curMsgIndex;

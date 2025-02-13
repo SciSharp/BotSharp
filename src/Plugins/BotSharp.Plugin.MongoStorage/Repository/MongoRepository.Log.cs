@@ -74,7 +74,7 @@ public partial class MongoRepository
             Role = log.Role,
             Source = log.Source,
             Content = log.Content,
-            CreateTime = log.CreateTime
+            CreatedTime = log.CreateTime
         };
 
         _dc.ContentLogs.InsertOne(logDoc);
@@ -94,7 +94,7 @@ public partial class MongoRepository
                           Role = x.Role,
                           Source = x.Source,
                           Content = x.Content,
-                          CreateTime = x.CreateTime
+                          CreateTime = x.CreatedTime
                       })
                       .OrderBy(x => x.CreateTime)
                       .ToList();
@@ -116,7 +116,7 @@ public partial class MongoRepository
             AgentId= log.AgentId,
             MessageId = log.MessageId,
             States = log.States,
-            CreateTime = log.CreateTime
+            CreatedTime = log.CreateTime
         };
 
         _dc.StateLogs.InsertOne(logDoc);
@@ -133,7 +133,7 @@ public partial class MongoRepository
                           AgentId = x.AgentId,
                           MessageId = x.MessageId,
                           States = x.States,
-                          CreateTime = x.CreateTime
+                          CreateTime = x.CreatedTime
                       })
                       .OrderBy(x => x.CreateTime)
                       .ToList();

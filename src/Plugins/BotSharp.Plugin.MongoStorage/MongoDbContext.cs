@@ -46,12 +46,32 @@ public class MongoDbContext
         return databaseName;
     }
 
-    private IMongoDatabase Database { get { return _mongoClient.GetDatabase(_mongoDbDatabaseName); } }
+    private IMongoDatabase Database => _mongoClient.GetDatabase(_mongoDbDatabaseName);
+
+    private bool CollectionExists(IMongoDatabase database, string collectionName)
+    {
+        var filter = Builders<BsonDocument>.Filter.Eq("name", collectionName);
+        var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
+        return collections.Any();
+    }
+
+    private IMongoCollection<TDocument> GetCollectionOrCreate<TDocument>(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException($"The collection {name} cannot be empty.");
+
+        string collectionName = $"{_collectionPrefix}_{name}";
+        if (!CollectionExists(Database, collectionName))
+            Database.CreateCollection(collectionName);
+
+        var collection = Database.GetCollection<TDocument>(collectionName);
+        return collection;
+    }
 
     #region Indexes
     private IMongoCollection<ConversationDocument> CreateConversationIndex()
     {
-        var collection = Database.GetCollection<ConversationDocument>($"{_collectionPrefix}_Conversations");
+        var collection = GetCollectionOrCreate<ConversationDocument>("Conversations");
         var indexes = collection.Indexes.List().ToList();
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
@@ -64,7 +84,7 @@ public class MongoDbContext
 
     private IMongoCollection<ConversationStateDocument> CreateConversationStateIndex()
     {
-        var collection = Database.GetCollection<ConversationStateDocument>($"{_collectionPrefix}_ConversationStates");
+        var collection = GetCollectionOrCreate<ConversationStateDocument>("ConversationStates");
         var indexes = collection.Indexes.List().ToList();
         var stateIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("States.Key"));
         if (stateIndex == null)
@@ -77,7 +97,7 @@ public class MongoDbContext
 
     private IMongoCollection<AgentTaskDocument> CreateAgentTaskIndex()
     {
-        var collection = Database.GetCollection<AgentTaskDocument>($"{_collectionPrefix}_AgentTasks");
+        var collection = GetCollectionOrCreate<AgentTaskDocument>("AgentTasks");
         var indexes = collection.Indexes.List().ToList();
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
@@ -90,12 +110,12 @@ public class MongoDbContext
 
     private IMongoCollection<ConversationContentLogDocument> CreateContentLogIndex()
     {
-        var collection = Database.GetCollection<ConversationContentLogDocument>($"{_collectionPrefix}_ConversationContentLogs");
+        var collection = GetCollectionOrCreate<ConversationContentLogDocument>("ConversationContentLogs");
         var indexes = collection.Indexes.List().ToList();
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreateTime"));
         if (createTimeIndex == null)
         {
-            var indexDef = Builders<ConversationContentLogDocument>.IndexKeys.Ascending(x => x.CreateTime);
+            var indexDef = Builders<ConversationContentLogDocument>.IndexKeys.Ascending(x => x.CreatedTime);
             collection.Indexes.CreateOne(new CreateIndexModel<ConversationContentLogDocument>(indexDef));
         }
         return collection;
@@ -103,12 +123,12 @@ public class MongoDbContext
 
     private IMongoCollection<ConversationStateLogDocument> CreateStateLogIndex()
     {
-        var collection = Database.GetCollection<ConversationStateLogDocument>($"{_collectionPrefix}_ConversationStateLogs");
+        var collection = GetCollectionOrCreate<ConversationStateLogDocument>("ConversationStateLogs");
         var indexes = collection.Indexes.List().ToList();
         var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreateTime"));
         if (createTimeIndex == null)
         {
-            var indexDef = Builders<ConversationStateLogDocument>.IndexKeys.Ascending(x => x.CreateTime);
+            var indexDef = Builders<ConversationStateLogDocument>.IndexKeys.Ascending(x => x.CreatedTime);
             collection.Indexes.CreateOne(new CreateIndexModel<ConversationStateLogDocument>(indexDef));
         }
         return collection;
@@ -116,7 +136,7 @@ public class MongoDbContext
     #endregion
 
     public IMongoCollection<AgentDocument> Agents
-        => Database.GetCollection<AgentDocument>($"{_collectionPrefix}_Agents");
+        => GetCollectionOrCreate<AgentDocument>("Agents");
 
     public IMongoCollection<AgentTaskDocument> AgentTasks
         => CreateAgentTaskIndex();
@@ -125,16 +145,16 @@ public class MongoDbContext
         => CreateConversationIndex();
 
     public IMongoCollection<ConversationDialogDocument> ConversationDialogs
-        => Database.GetCollection<ConversationDialogDocument>($"{_collectionPrefix}_ConversationDialogs");
+        => GetCollectionOrCreate<ConversationDialogDocument>("ConversationDialogs");
 
     public IMongoCollection<ConversationStateDocument> ConversationStates
         => CreateConversationStateIndex();
 
     public IMongoCollection<ExecutionLogDocument> ExectionLogs
-        => Database.GetCollection<ExecutionLogDocument>($"{_collectionPrefix}_ExecutionLogs");
+        => GetCollectionOrCreate<ExecutionLogDocument>("ExecutionLogs");
 
     public IMongoCollection<LlmCompletionLogDocument> LlmCompletionLogs
-        => Database.GetCollection<LlmCompletionLogDocument>($"{_collectionPrefix}_LlmCompletionLogs");
+        => GetCollectionOrCreate<LlmCompletionLogDocument>("LlmCompletionLogs");
 
     public IMongoCollection<ConversationContentLogDocument> ContentLogs
         => CreateContentLogIndex();
@@ -143,33 +163,33 @@ public class MongoDbContext
         => CreateStateLogIndex();
 
     public IMongoCollection<UserDocument> Users
-        => Database.GetCollection<UserDocument>($"{_collectionPrefix}_Users");
+        => GetCollectionOrCreate<UserDocument>("Users");
 
     public IMongoCollection<UserAgentDocument> UserAgents
-        => Database.GetCollection<UserAgentDocument>($"{_collectionPrefix}_UserAgents");
+        => GetCollectionOrCreate<UserAgentDocument>("UserAgents");
 
     public IMongoCollection<PluginDocument> Plugins
-        => Database.GetCollection<PluginDocument>($"{_collectionPrefix}_Plugins");
+        => GetCollectionOrCreate<PluginDocument>("Plugins");
 
     public IMongoCollection<TranslationMemoryDocument> TranslationMemories
-        => Database.GetCollection<TranslationMemoryDocument>($"{_collectionPrefix}_TranslationMemories");
+        => GetCollectionOrCreate<TranslationMemoryDocument>("TranslationMemories");
 
     public IMongoCollection<KnowledgeCollectionConfigDocument> KnowledgeCollectionConfigs
-        => Database.GetCollection<KnowledgeCollectionConfigDocument>($"{_collectionPrefix}_KnowledgeCollectionConfigs");
+        => GetCollectionOrCreate<KnowledgeCollectionConfigDocument>("KnowledgeCollectionConfigs");
 
     public IMongoCollection<KnowledgeCollectionFileMetaDocument> KnowledgeCollectionFileMeta
-        => Database.GetCollection<KnowledgeCollectionFileMetaDocument>($"{_collectionPrefix}_KnowledgeCollectionFileMeta");
+        => GetCollectionOrCreate<KnowledgeCollectionFileMetaDocument>("KnowledgeCollectionFileMeta");
 
     public IMongoCollection<RoleDocument> Roles
-        => Database.GetCollection<RoleDocument>($"{_collectionPrefix}_Roles");
+        => GetCollectionOrCreate<RoleDocument>("Roles");
 
     public IMongoCollection<RoleAgentDocument> RoleAgents
-        => Database.GetCollection<RoleAgentDocument>($"{_collectionPrefix}_RoleAgents");
+        => GetCollectionOrCreate<RoleAgentDocument>("RoleAgents");
 
     public IMongoCollection<CrontabItemDocument> CrontabItems
-        => Database.GetCollection<CrontabItemDocument>($"{_collectionPrefix}_CronTabItems");
+        => GetCollectionOrCreate<CrontabItemDocument>("CronTabItems");
 
     public IMongoCollection<GlobalStatisticsDocument> GlobalStatistics
-        => Database.GetCollection<GlobalStatisticsDocument>($"{_collectionPrefix}_GlobalStatistics");
+        => GetCollectionOrCreate<GlobalStatisticsDocument>("GlobalStatistics");
 
 }
