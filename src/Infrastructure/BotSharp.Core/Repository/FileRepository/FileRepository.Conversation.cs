@@ -759,7 +759,7 @@ public partial class FileRepository
                 var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
                 if (log == null) continue;
 
-                if (log.CreateTime >= refTime)
+                if (log.CreatedTime >= refTime)
                 {
                     File.Delete(file);
                 }
@@ -774,7 +774,7 @@ public partial class FileRepository
                 var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
                 if (log == null) continue;
 
-                if (log.CreateTime >= refTime)
+                if (log.CreatedTime >= refTime)
                 {
                     File.Delete(file);
                 }
