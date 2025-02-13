@@ -108,7 +108,7 @@ public class TwilioVoiceController : TwilioController
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
     public async Task<TwiMLResult> ReceiveCallerMessage(ConversationalVoiceRequest request)
     {
@@ -202,7 +202,7 @@ public class TwilioVoiceController : TwilioController
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
     public async Task<TwiMLResult> ReplyCallerMessage(ConversationalVoiceRequest request)
     {
@@ -367,7 +367,7 @@ public class TwilioVoiceController : TwilioController
         return TwiML(response);
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpPost("twilio/voice/init-call")]
     public TwiMLResult InitiateOutboundCall(VoiceRequest request, [Required][FromQuery] string conversationId)
     {
@@ -388,7 +388,7 @@ public class TwilioVoiceController : TwilioController
         return TwiML(response);
     }
 
-    // [ValidateRequest]
+    [ValidateRequest]
     [HttpGet("twilio/voice/speeches/{conversationId}/{fileName}")]
     public async Task<FileContentResult> GetSpeechFile([FromRoute] string conversationId, [FromRoute] string fileName)
     {
