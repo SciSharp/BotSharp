@@ -5,10 +5,10 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class StateMongoElement
 {
-    public string Key { get; set; }
+    public string Key { get; set; } = default!;
     public bool Versioning { get; set; }
     public bool Readonly { get; set; }
-    public List<StateValueMongoElement> Values { get; set; }
+    public List<StateValueMongoElement> Values { get; set; } = [];
 
     public static StateMongoElement ToMongoElement(StateKeyValue state)
     {
@@ -17,7 +17,7 @@ public class StateMongoElement
             Key = state.Key,
             Versioning = state.Versioning,
             Readonly = state.Readonly,
-            Values = state.Values?.Select(x => StateValueMongoElement.ToMongoElement(x))?.ToList() ?? new List<StateValueMongoElement>()
+            Values = state.Values?.Select(x => StateValueMongoElement.ToMongoElement(x))?.ToList() ?? []
         };
     }
 
@@ -28,19 +28,19 @@ public class StateMongoElement
             Key = state.Key,
             Versioning = state.Versioning,
             Readonly = state.Readonly,
-            Values = state.Values?.Select(x => StateValueMongoElement.ToDomainElement(x))?.ToList() ?? new List<StateValue>()
+            Values = state.Values?.Select(x => StateValueMongoElement.ToDomainElement(x))?.ToList() ?? []
         };
     }
 }
 
 public class StateValueMongoElement
 {
-    public string Data { get; set; }
+    public string Data { get; set; } = default!;
     public string? MessageId { get; set; }
     public bool Active { get; set; }
     public int ActiveRounds { get; set; }
-    public string DataType { get; set; }
-    public string Source { get; set; }
+    public string DataType { get; set; } = default!;
+    public string Source { get; set; } = default!;
 
     public DateTime UpdateTime { get; set; }
 

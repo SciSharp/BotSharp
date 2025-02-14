@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class AgentUtilityMongoElement
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = default!;
     public bool Disabled { get; set; }
     public List<UtilityFunctionMongoElement> Functions { get; set; } = [];
     public List<UtilityTemplateMongoElement> Templates { get; set; } = [];
@@ -33,32 +33,12 @@ public class AgentUtilityMongoElement
     }
 }
 
-public class UtilityFunctionMongoElement
+public class UtilityFunctionMongoElement(string name)
 {
-    public string Name { get; set; }
-
-    public UtilityFunctionMongoElement()
-    {
-
-    }
-
-    public UtilityFunctionMongoElement(string name)
-    {
-        Name = name;
-    }
+    public string Name { get; set; } = name;
 }
 
-public class UtilityTemplateMongoElement
+public class UtilityTemplateMongoElement(string name)
 {
-    public string Name { get; set; }
-
-    public UtilityTemplateMongoElement()
-    {
-
-    }
-
-    public UtilityTemplateMongoElement(string name)
-    {
-        Name = name;
-    }
+    public string Name { get; set; } = name;
 }

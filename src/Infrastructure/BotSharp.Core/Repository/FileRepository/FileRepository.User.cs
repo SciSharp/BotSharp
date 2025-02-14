@@ -50,7 +50,7 @@ public partial class FileRepository
         return Users.FirstOrDefault(x => x.Phone == phone && x.Type == UserType.Affiliate);
     }
 
-    public User? GetUserById(string id = null)
+    public User? GetUserById(string? id = null)
     {
         return Users.FirstOrDefault(x => x.Id == id || (x.ExternalId != null && x.ExternalId == id));
     }
@@ -65,12 +65,12 @@ public partial class FileRepository
         return Users.Where(x => x.AffiliateId == affiliateId).ToList();
     }
 
-    public User? GetUserByUserName(string userName = null)
+    public User? GetUserByUserName(string? userName = null)
     {
         return Users.FirstOrDefault(x => x.UserName == userName.ToLower());
     }
 
-    public Dashboard? GetDashboard(string userId = null)
+    public Dashboard? GetDashboard(string? userId = null)
     {
         return Dashboards.FirstOrDefault();
     }
@@ -97,6 +97,8 @@ public partial class FileRepository
     public void UpdateUserVerified(string userId)
     {
         var user = GetUserById(userId);
+        if (user == null) return;
+
         user.Verified = true;
         var dir = Path.Combine(_dbSettings.FileRepository, USERS_FOLDER, user.Id);
         var path = Path.Combine(dir, USER_FILE);
@@ -147,7 +149,7 @@ public partial class FileRepository
 
     public List<User> SearchLoginUsers(User filter, string source = UserSource.Internal)
     {
-        List<User> searchResult = new List<User>();
+        List<User> searchResult = [];
 
         // search by filters
         if (!string.IsNullOrWhiteSpace(filter.Id))
@@ -183,7 +185,7 @@ public partial class FileRepository
         else if (!string.IsNullOrWhiteSpace(filter.Email))
         {
             var curUser = Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToString());
-            User user = curUser != null ? curUser : null;
+            User? user = curUser != null ? curUser : null;
             if (user != null)
             {
                 searchResult.Add(user);
@@ -194,7 +196,7 @@ public partial class FileRepository
         if (searchResult.Count == 0 && !string.IsNullOrWhiteSpace(filter.UserName))
         {
             var curUser = Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
-            User user = curUser != null ? curUser : null;
+            User? user = curUser != null ? curUser : null;
             if (user != null)
             {
                 searchResult.Add(user);

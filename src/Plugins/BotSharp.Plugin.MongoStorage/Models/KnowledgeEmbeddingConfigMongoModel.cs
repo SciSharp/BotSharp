@@ -5,8 +5,8 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class KnowledgeEmbeddingConfigMongoModel
 {
-    public string Provider { get; set; }
-    public string Model { get; set; }
+    public string Provider { get; set; } = default!;
+    public string Model { get; set; } = default!;
     public int Dimension { get; set; }
 
     public static KnowledgeEmbeddingConfigMongoModel ToMongoModel(KnowledgeEmbeddingConfig model)

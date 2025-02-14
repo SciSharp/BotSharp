@@ -1,37 +1,26 @@
 using BotSharp.Abstraction.Plugins.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using System.Drawing;
 using System.IO;
+using System.Xml;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Xml;
 
 namespace BotSharp.Core.Plugins;
 
-public class PluginLoader
+public class PluginLoader(IServiceCollection services,
+    IConfiguration config,
+    PluginSettings settings)
 {
-    private readonly IServiceCollection _services;
-    private readonly IConfiguration _config;
-    private readonly PluginSettings _settings;
-    private static List<IBotSharpPlugin> _modules = new List<IBotSharpPlugin>();
-    private static List<PluginDef> _plugins = new List<PluginDef>();
-    private static string _executingDir;
-
-    public PluginLoader(IServiceCollection services,
-        IConfiguration config,
-        PluginSettings settings)
-    {
-        _services = services;
-        _config = config;
-        _settings = settings;
-    }
+    private static List<IBotSharpPlugin> _modules = [];
+    private static List<PluginDef> _plugins = [];
+    private static string _executingDir = null!;
 
     public void Load(Action<Assembly> loaded, string? plugin = null)
     {
         _executingDir = Directory.GetParent(Assembly.GetEntryAssembly().Location).FullName;
 
-        _settings.Assemblies.ToList().ForEach(assemblyName =>
+        settings.Assemblies.ToList().ForEach(assemblyName =>
         {
             if (plugin != null && plugin != assemblyName)
             {
@@ -87,7 +76,7 @@ public class PluginLoader
 
     private void InitModule(string assembly, IBotSharpPlugin module)
     {
-        module.RegisterDI(_services, _config);
+        module.RegisterDI(services, config);
         // string classSummary = GetSummaryComment(module.GetType());
         var name = string.IsNullOrEmpty(module.Name) ? module.GetType().Name : module.Name;
         _modules.Add(module);

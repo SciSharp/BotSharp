@@ -5,8 +5,8 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class AgentKnowledgeBaseMongoElement
 {
-    public string Name { get; set; }
-    public string Type { get; set; }
+    public string Name { get; set; } = default!;
+    public string Type { get; set; } = default!;
     public bool Disabled { get; set; }
 
     public static AgentKnowledgeBaseMongoElement ToMongoElement(AgentKnowledgeBase knowledgeBase)

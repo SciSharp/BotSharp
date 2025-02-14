@@ -5,7 +5,7 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class KnowledgeVectorStoreConfigMongoModel
 {
-    public string Provider { get; set; }
+    public string Provider { get; set; } = default!;
 
     public static KnowledgeVectorStoreConfigMongoModel ToMongoModel(VectorStoreConfig model)
     {

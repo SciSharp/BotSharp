@@ -103,7 +103,7 @@ namespace BotSharp.Core.Repository
 
                 logs.Add(log);
             }
-            return logs.OrderBy(x => x.CreateTime).ToList();
+            return logs.OrderBy(x => x.CreatedTime).ToList();
         }
         #endregion
 
@@ -148,7 +148,7 @@ namespace BotSharp.Core.Repository
 
                 logs.Add(log);
             }
-            return logs.OrderBy(x => x.CreateTime).ToList();
+            return logs.OrderBy(x => x.CreatedTime).ToList();
         }
         #endregion
 
