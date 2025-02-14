@@ -11,18 +11,25 @@ public class ChatHubCrontabHook : ICrontabHook
     private readonly IUserIdentity _user;
     private readonly IConversationStorage _storage;
     private readonly BotSharpOptions _options;
+    private readonly ChatHubSettings _settings;
+
+    #region Events
+    private const string GENERATE_NOTIFICATION = "OnNotificationGenerated";
+    #endregion
 
     public ChatHubCrontabHook(IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         IUserIdentity user,
         IConversationStorage storage,
-        BotSharpOptions options)
+        BotSharpOptions options,
+        ChatHubSettings settings)
     {
         _services = services;
         _chatHub = chatHub;
         _user = user;
         _storage = storage;
         _options = options;
+        _settings = settings;
     }
 
     public async Task OnCronTriggered(CrontabItem item)
@@ -41,6 +48,13 @@ public class ChatHubCrontabHook : ICrontabHook
             }
         }, _options.JsonSerializerOptions);
 
-        await _chatHub.Clients.User(item.UserId).SendAsync("OnNotificationGenerated", json);
+        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        {
+            await _chatHub.Clients.Group(item.ConversationId).SendAsync(GENERATE_NOTIFICATION, json);
+        }
+        else
+        {
+            await _chatHub.Clients.User(item.UserId).SendAsync(GENERATE_NOTIFICATION, json);
+        }
     }
 }
