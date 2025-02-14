@@ -555,10 +555,10 @@ public class ConversationController : ControllerBase
 
     #region Search state keys
     [HttpGet("/conversation/state/keys")]
-    public async Task<List<string>> GetConversationStateKeys([FromQuery] string query, [FromQuery] int keyLimit = 10, [FromQuery] bool preLoad = false)
+    public async Task<List<string>> GetConversationStateKeys([FromQuery] string query, [FromQuery] int keyLimit = 10, [FromQuery] int convLimit = 100, [FromQuery] bool preload = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var keys = await convService.GetConversationStateSearhKeys(query, keyLimit: keyLimit, preLoad: preLoad);
+        var keys = await convService.GetConversationStateSearhKeys(query, keyLimit: keyLimit, convLimit: convLimit, preload: preload);
         return keys;
     }
     #endregion
