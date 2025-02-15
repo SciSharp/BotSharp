@@ -40,5 +40,5 @@ jobs:
               run: |
                 cd ./tests/UnitTest
                 dotnet test --logger "console;verbosity=detailed"
-                cd ./tests/BotSharp.Plugin.SemanticKernel.UnitTests
+                cd ../BotSharp.Plugin.SemanticKernel.UnitTests
                 dotnet test --logger "console;verbosity=detailed"
