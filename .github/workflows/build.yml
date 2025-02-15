@@ -27,6 +27,9 @@ jobs:
               run: |
                 echo "DOTNET_CLI_TELEMETRY_OPTOUT=1" >> $GITHUB_ENV
                 echo "DOTNET_hostBuilder:reloadConfigOnChange=false" >> $GITHUB_ENV
+            - name: Install required workloads
+              run:  |
+                dotnet workload install aspire --source https://aka.ms/dotnet8/nuget/index.json --source https://api.nuget.org/v3/index.json
             - name: Clean
               run: |
                 dotnet clean ./BotSharp.sln --configuration Release
