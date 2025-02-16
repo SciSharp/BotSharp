@@ -6,6 +6,7 @@
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -188,13 +189,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DistributedLock.Redis" Version="1.0.3" />
-    <PackageReference Include="EntityFrameworkCore.BootKit" Version="8.8.0" />
-    <PackageReference Include="Fluid.Core" Version="2.11.1" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-    <PackageReference Include="Nanoid" Version="3.1.0" />
-    <PackageReference Include="Rougamo.Fody" Version="4.0.4" />
+    <PackageReference Include="DistributedLock.Redis" />
+    <PackageReference Include="EntityFrameworkCore.BootKit" />
+    <PackageReference Include="Fluid.Core" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Nanoid" />
+    <PackageReference Include="Rougamo.Fody" />
   </ItemGroup>
 
   <ItemGroup>
