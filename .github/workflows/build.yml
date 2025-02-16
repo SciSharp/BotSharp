@@ -1,0 +1,44 @@
+name: build
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+
+jobs:
+    build:
+        strategy:
+          matrix:
+            os:
+              - ubuntu-latest
+              - windows-latest
+              - macos-latest
+        runs-on: ${{matrix.os}}
+        steps:
+            - uses: actions/checkout@v1
+            - name: Setup .NET Core
+              uses: actions/setup-dotnet@v3
+              with:
+                dotnet-version: '8.0.x'
+            - name: Set env
+              run: |
+                echo "DOTNET_CLI_TELEMETRY_OPTOUT=1" >> $GITHUB_ENV
+                echo "DOTNET_hostBuilder:reloadConfigOnChange=false" >> $GITHUB_ENV
+            - name: Install required workloads
+              run:  |
+                dotnet workload install aspire --source https://aka.ms/dotnet8/nuget/index.json --source https://api.nuget.org/v3/index.json
+            - name: Clean
+              run: |
+                dotnet clean ./BotSharp.sln --configuration Release
+                dotnet nuget locals all --clear
+            - name: Build
+              run: dotnet build ./BotSharp.sln -c Release
+            - name: Test
+              run: |
+                cd ./tests/UnitTest
+                dotnet test --logger "console;verbosity=detailed"
+                cd ../BotSharp.Plugin.SemanticKernel.UnitTests
+                dotnet test --logger "console;verbosity=detailed"

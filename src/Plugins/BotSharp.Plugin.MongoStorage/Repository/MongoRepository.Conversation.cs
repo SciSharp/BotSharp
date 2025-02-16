@@ -30,7 +30,8 @@ public partial class MongoRepository
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
             AgentId = conversation.AgentId,
-            Dialogs = new List<DialogMongoElement>()
+            Dialogs = [],
+            UpdatedTime = utcNow
         };
 
         var stateDoc = new ConversationStateDocument
@@ -38,8 +39,9 @@ public partial class MongoRepository
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
             AgentId = conversation.AgentId,
-            States = new List<StateMongoElement>(),
-            Breakpoints = new List<BreakpointMongoElement>()
+            States = [],
+            Breakpoints = [],
+            UpdatedTime = utcNow
         };
 
         _dc.Conversations.InsertOne(convDoc);
@@ -97,7 +99,8 @@ public partial class MongoRepository
         var filterConv = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var filterDialog = Builders<ConversationDialogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var dialogElements = dialogs.Select(x => DialogMongoElement.ToMongoElement(x)).ToList();
-        var updateDialog = Builders<ConversationDialogDocument>.Update.PushEach(x => x.Dialogs, dialogElements);
+        var updateDialog = Builders<ConversationDialogDocument>.Update.PushEach(x => x.Dialogs, dialogElements)
+                                                                      .Set(x => x.UpdatedTime, DateTime.UtcNow);
         var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow)
                                                               .Inc(x => x.DialogCount, dialogs.Count);
 
@@ -190,7 +193,8 @@ public partial class MongoRepository
             found.SecondaryRichContent = request.Message.RichContent;
         }
 
-        var update = Builders<ConversationDialogDocument>.Update.Set(x => x.Dialogs, dialogs);
+        var update = Builders<ConversationDialogDocument>.Update.Set(x => x.Dialogs, dialogs)
+                                                                .Set(x => x.UpdatedTime, DateTime.UtcNow);
         _dc.ConversationDialogs.UpdateOne(filter, update);
         return true;
     }
@@ -208,7 +212,8 @@ public partial class MongoRepository
             Reason = breakpoint.Reason
         };
         var filterState = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var updateState = Builders<ConversationStateDocument>.Update.Push(x => x.Breakpoints, newBreakpoint);
+        var updateState = Builders<ConversationStateDocument>.Update.Push(x => x.Breakpoints, newBreakpoint)
+                                                                    .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.ConversationStates.UpdateOne(filterState, updateState);
     }
@@ -258,7 +263,8 @@ public partial class MongoRepository
 
         var filterStates = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var saveStates = states.Select(x => StateMongoElement.ToMongoElement(x)).ToList();
-        var updateStates = Builders<ConversationStateDocument>.Update.Set(x => x.States, saveStates);
+        var updateStates = Builders<ConversationStateDocument>.Update.Set(x => x.States, saveStates)
+                                                                     .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.ConversationStates.UpdateOne(filterStates, updateStates);
     }
@@ -500,7 +506,7 @@ public partial class MongoRepository
         return conversationIds.Take(batchSize).ToList();
     }
 
-    public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
+    public List<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
     {
         var deletedMessageIds = new List<string>();
         if (string.IsNullOrEmpty(conversationId) || string.IsNullOrEmpty(messageId))
@@ -566,11 +572,13 @@ public partial class MongoRepository
             }
 
             // Update
+            foundStates.UpdatedTime = DateTime.UtcNow;
             _dc.ConversationStates.ReplaceOne(stateFilter, foundStates);
         }
 
         // Save dialogs
         foundDialog.Dialogs = truncatedDialogs;
+        foundDialog.UpdatedTime = DateTime.UtcNow;
         _dc.ConversationDialogs.ReplaceOne(dialogFilter, foundDialog);
 
         // Update conversation
@@ -602,6 +610,29 @@ public partial class MongoRepository
 
         return deletedMessageIds;
     }
+
+#if !DEBUG
+    [SharpCache(10)]
+#endif
+    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperlimit = 100)
+    {
+        var convFilter = Builders<ConversationDocument>.Filter.Gte(x => x.DialogCount, messageLowerLimit);
+        var conversations = _dc.Conversations.Find(convFilter)
+                                             .SortByDescending(x => x.UpdatedTime)
+                                             .Limit(convUpperlimit)
+                                             .ToList();
+
+        if (conversations.IsNullOrEmpty()) return [];
+
+        var convIds = conversations.Select(x => x.Id).ToList();
+        var stateFilter = Builders<ConversationStateDocument>.Filter.In(x => x.ConversationId, convIds);
+
+        var states = _dc.ConversationStates.Find(stateFilter).ToList();
+        var keys = states.SelectMany(x => x.States.Select(x => x.Key)).Distinct().ToList();
+        return keys;
+    }
+
+
 
     private string ConvertSnakeCaseToPascalCase(string snakeCase)
     {

@@ -1,5 +1,6 @@
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class TranslationMemoryMongoElement
 {
     public string TranslatedText { get; set; }

@@ -9,6 +9,7 @@ global using BotSharp.Abstraction.Utilities;
 global using BotSharp.Abstraction.Plugins;
 global using BotSharp.Abstraction.Translation.Models;
 global using BotSharp.Abstraction.SideCar.Attributes;
+global using BotSharp.Core.Infrastructures;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using MongoDB.Bson;

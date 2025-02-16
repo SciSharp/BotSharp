@@ -107,7 +107,7 @@ public partial class ConversationService : IConversationService
         record.Id = sess.Id.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         record.UserId = sess.UserId.IfNullOrEmptyAs(foundUserId);
         record.Tags = sess.Tags;
-        record.Title = "New Conversation";
+        record.Title = string.IsNullOrEmpty(record.Title) ? "New Conversation" : record.Title;
 
         db.CreateNewConversation(record);
 
@@ -220,5 +220,19 @@ public partial class ConversationService : IConversationService
     public void SaveStates()
     {
         _state.Save();
+    }
+
+    public async Task<List<string>> GetConversationStateSearhKeys(string query, int convlimit = 100, int keyLimit = 10, bool preLoad = false)
+    {
+        var keys = new List<string>();
+        if (!preLoad && string.IsNullOrWhiteSpace(query))
+        {
+            return keys;
+        }
+
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        keys = db.GetConversationStateSearchKeys(convUpperlimit: convlimit);
+        keys = preLoad ? keys : keys.Where(x => x.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+        return keys.OrderBy(x => x).Take(keyLimit).ToList();
     }
 }

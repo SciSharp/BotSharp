@@ -429,6 +429,11 @@ public partial class MongoRepository
         return true;
     }
 
+    public Dashboard? GetDashboard(string userId = null)
+    {
+        return null;
+    }
+
     public void AddDashboardConversation(string userId, string conversationId)
     {
         var user = _dc.Users.AsQueryable()
