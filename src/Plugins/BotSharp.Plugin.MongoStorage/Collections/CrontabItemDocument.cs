@@ -4,13 +4,13 @@ namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class CrontabItemDocument : MongoBase
 {
-    public string UserId { get; set; }
-    public string AgentId { get; set; }
-    public string ConversationId { get; set; }
-    public string ExecutionResult { get; set; }
-    public string Cron { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
+    public string UserId { get; set; } = default!;
+    public string AgentId { get; set; } = default!;
+    public string ConversationId { get; set; } = default!;
+    public string ExecutionResult { get; set; } = default!;
+    public string Cron { get; set; } = default!;
+    public string Title { get; set; } = default!;
+    public string Description { get; set; } = default!;
     public int ExecutionCount { get; set; }
     public int MaxExecutionCount { get; set; }
     public int ExpireSeconds { get; set; }

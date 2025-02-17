@@ -3,8 +3,8 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class TranslationMemoryMongoElement
 {
-    public string TranslatedText { get; set; }
-    public string Language { get; set; }
+    public string TranslatedText { get; set; } = default!;
+    public string Language { get; set; } = default!;
 
     public static TranslationMemoryMongoElement ToMongoElement(TranslationMemoryItem item)
     {

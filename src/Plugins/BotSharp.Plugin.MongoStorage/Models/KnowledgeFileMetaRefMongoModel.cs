@@ -5,10 +5,10 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class KnowledgeFileMetaRefMongoModel
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Type { get; set; }
-    public string Url { get; set; }
+    public string Id { get; set; } = default!;
+    public string Name { get; set; } = default!;
+    public string Type { get; set; } = default!;
+    public string Url { get; set; } = default!;
     public IDictionary<string, string>? Data { get; set; }
 
     public static KnowledgeFileMetaRefMongoModel? ToMongoModel(DocMetaRefData? model)

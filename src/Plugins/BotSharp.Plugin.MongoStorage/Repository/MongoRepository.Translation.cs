@@ -49,7 +49,7 @@ public partial class MongoRepository
 
         var hashTexts = inputs.Where(x => !string.IsNullOrEmpty(x.HashText)).Select(x => x.HashText).ToList();
         var filter = Builders<TranslationMemoryDocument>.Filter.In(x => x.HashText, hashTexts);
-        var memories = _dc.TranslationMemories.Find(filter)?.ToList() ?? new List<TranslationMemoryDocument>();
+        var memories = _dc.TranslationMemories.Find(filter)?.ToList() ?? [];
 
         var newMemories = new List<TranslationMemoryDocument>();
         var updateMemories = new List<TranslationMemoryDocument>();
@@ -90,7 +90,7 @@ public partial class MongoRepository
 
                     if (foundMemory.Translations == null)
                     {
-                        foundMemory.Translations = new List<TranslationMemoryMongoElement> { newItem };
+                        foundMemory.Translations = [newItem];
                     }
                     else
                     {

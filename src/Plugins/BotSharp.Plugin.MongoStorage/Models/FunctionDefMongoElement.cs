@@ -6,17 +6,12 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class FunctionDefMongoElement
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
+    public string Name { get; set; } = default!;
+    public string Description { get; set; } = default!;
     public List<string>? Channels { get; set; }
     public string? VisibilityExpression { get; set; }
     public string? Impact { get; set; }
-    public FunctionParametersDefMongoElement Parameters { get; set; } = new FunctionParametersDefMongoElement();
-
-    public FunctionDefMongoElement()
-    {
-        
-    }
+    public FunctionParametersDefMongoElement Parameters { get; set; } = new();
 
     public static FunctionDefMongoElement ToMongoElement(FunctionDef function)
     {
@@ -57,12 +52,7 @@ public class FunctionDefMongoElement
 
 public class FunctionParametersDefMongoElement
 {
-    public string Type { get; set; }
-    public string Properties { get; set; }
-    public List<string> Required { get; set; } = new List<string>();
-
-    public FunctionParametersDefMongoElement()
-    {
-        
-    }
+    public string Type { get; set; } = default!;
+    public string Properties { get; set; } = default!;
+    public List<string> Required { get; set; } = [];
 }

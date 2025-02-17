@@ -5,8 +5,8 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class ChannelInstructionMongoElement
 {
-    public string Channel { get; set; }
-    public string Instruction { get; set; }
+    public string Channel { get; set; } = default!;
+    public string Instruction { get; set; } = default!;
 
     public static ChannelInstructionMongoElement ToMongoElement(ChannelInstruction instruction)
     {

@@ -16,10 +16,10 @@ public class Conversation
     public string TitleAlias { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public List<DialogElement> Dialogs { get; set; } = new();
+    public List<DialogElement> Dialogs { get; set; } = [];
 
     [JsonIgnore]
-    public Dictionary<string, string> States { get; set; } = new();
+    public Dictionary<string, string> States { get; set; } = [];
 
     public string Status { get; set; } = ConversationStatus.Open;
 
@@ -28,11 +28,11 @@ public class Conversation
     /// <summary>
     /// Channel id, like phone number, email address, etc.
     /// </summary>
-    public string ChannelId { get; set; }
+    public string ChannelId { get; set; } = default!;
 
     public int DialogCount { get; set; }
 
-    public List<string> Tags { get; set; } = new();
+    public List<string> Tags { get; set; } = [];
 
     public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
@@ -41,10 +41,10 @@ public class Conversation
 public class DialogElement
 {
     [JsonPropertyName("meta_data")]
-    public DialogMetaData MetaData { get; set; }
+    public DialogMetaData MetaData { get; set; } = new();
 
     [JsonPropertyName("content")]
-    public string Content { get; set; }
+    public string Content { get; set; } = default!;
 
     [JsonPropertyName("secondary_content")]
     public string? SecondaryContent { get; set; }
@@ -76,23 +76,23 @@ public class DialogElement
 
     public override string ToString()
     {
-        return $"{MetaData.Role}: {Content} [{MetaData?.CreateTime}]";
+        return $"{MetaData.Role}: {Content} [{MetaData?.CreatedTime}]";
     }
 }
 
 public class DialogMetaData
 {
     [JsonPropertyName("role")]
-    public string Role { get; set; }
+    public string Role { get; set; } = default!;
 
     [JsonPropertyName("agent_id")]
-    public string AgentId { get; set; }
+    public string AgentId { get; set; } = default!;
 
     [JsonPropertyName("message_id")]
-    public string MessageId { get; set; }
+    public string MessageId { get; set; } = default!;
 
     [JsonPropertyName("message_type")]
-    public string MessageType { get; set; }
+    public string MessageType { get; set; } = default!;
 
     [JsonPropertyName("function_name")]
     public string? FunctionName { get; set; }
@@ -101,5 +101,5 @@ public class DialogMetaData
     public string? SenderId { get; set; }
 
     [JsonPropertyName("create_at")]
-    public DateTime CreateTime { get; set; }
+    public DateTime CreatedTime { get; set; }
 }

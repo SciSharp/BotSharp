@@ -17,7 +17,7 @@ public partial class MongoRepository
                 Type = x.Type,
                 VectorStore = KnowledgeVectorStoreConfigMongoModel.ToMongoModel(x.VectorStore),
                 TextEmbedding = KnowledgeEmbeddingConfigMongoModel.ToMongoModel(x.TextEmbedding)
-            })?.ToList() ?? new List<KnowledgeCollectionConfigDocument>();
+            })?.ToList() ?? [];
 
         if (reset)
         {
@@ -136,7 +136,7 @@ public partial class MongoRepository
             VectorStoreProvider = metaData.VectorStoreProvider,
             VectorDataIds = metaData.VectorDataIds,
             RefData = KnowledgeFileMetaRefMongoModel.ToMongoModel(metaData.RefData),
-            CreateDate = metaData.CreateDate,
+            CreatedDate = metaData.CreateDate,
             CreateUserId = metaData.CreateUserId
         };
 
@@ -208,7 +208,7 @@ public partial class MongoRepository
         }
 
         var filterDef = builder.And(docFilters);
-        var sortDef = Builders<KnowledgeCollectionFileMetaDocument>.Sort.Descending(x => x.CreateDate);
+        var sortDef = Builders<KnowledgeCollectionFileMetaDocument>.Sort.Descending(x => x.CreatedDate);
         var docs = _dc.KnowledgeCollectionFileMeta.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
         var count = _dc.KnowledgeCollectionFileMeta.CountDocuments(filterDef);
 
@@ -222,9 +222,9 @@ public partial class MongoRepository
             VectorStoreProvider = x.VectorStoreProvider,
             VectorDataIds = x.VectorDataIds,
             RefData = KnowledgeFileMetaRefMongoModel.ToDomainModel(x.RefData),
-            CreateDate = x.CreateDate,
+            CreateDate = x.CreatedDate,
             CreateUserId = x.CreateUserId
-        })?.ToList() ?? new();
+        })?.ToList() ?? [];
 
         return new PagedItems<KnowledgeDocMetaData>
         {

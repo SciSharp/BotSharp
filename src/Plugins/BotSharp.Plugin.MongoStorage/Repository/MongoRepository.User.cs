@@ -76,13 +76,13 @@ public partial class MongoRepository
     public List<User> GetUserByIds(List<string> ids)
     {
         var users = _dc.Users.AsQueryable().Where(x => ids.Contains(x.Id) || (x.ExternalId != null && ids.Contains(x.ExternalId))).ToList();
-        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
+        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : [];
     }
 
     public List<User> GetUsersByAffiliateId(string affiliateId)
     {
         var users = _dc.Users.AsQueryable().Where(x => x.AffiliateId == affiliateId).ToList();
-        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : new List<User>();
+        return users?.Any() == true ? users.Select(x => x.ToUser()).ToList() : [];
     }
 
     public User? GetUserByUserName(string userName)
@@ -259,13 +259,13 @@ public partial class MongoRepository
 
     public List<User> SearchLoginUsers(User filter, string source = UserSource.Internal)
     {
-        List<User> searchResult = new List<User>();
+        List<User> searchResult = [];
 
         // search by filters
         if (!string.IsNullOrWhiteSpace(filter.Id))
         {
             var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Id == filter.Id.ToLower());
-            User user = curUser != null ? curUser.ToUser() : null;
+            User? user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
                 searchResult.Add(user);
@@ -307,7 +307,7 @@ public partial class MongoRepository
         else if (!string.IsNullOrWhiteSpace(filter.Email))
         {
             var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.Email == filter.Email.ToLower());
-            User user = curUser != null ? curUser.ToUser() : null;
+            User? user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
                 searchResult.Add(user);
@@ -318,7 +318,7 @@ public partial class MongoRepository
         if (searchResult.Count == 0 && !string.IsNullOrWhiteSpace(filter.UserName))
         {
             var curUser = _dc.Users.AsQueryable().FirstOrDefault(x => x.Source == source && x.UserName == filter.UserName);
-            User user = curUser != null ? curUser.ToUser() : null;
+            User? user = curUser != null ? curUser.ToUser() : null;
             if (user != null)
             {
                 searchResult.Add(user);
@@ -429,7 +429,7 @@ public partial class MongoRepository
         return true;
     }
 
-    public Dashboard? GetDashboard(string userId = null)
+    public Dashboard? GetDashboard(string? userId = null)
     {
         return null;
     }

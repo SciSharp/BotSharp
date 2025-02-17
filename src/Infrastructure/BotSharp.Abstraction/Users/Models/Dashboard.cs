@@ -15,6 +15,6 @@ public class DashboardComponent
 public class DashboardConversation : DashboardComponent
 {
     public string? ConversationId { get; set; }
-    public string? Instruction { get; set; } = "";
+    public string? Instruction { get; set; }
 }
 

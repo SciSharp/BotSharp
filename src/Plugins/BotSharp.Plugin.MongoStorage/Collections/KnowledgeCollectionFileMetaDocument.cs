@@ -2,14 +2,14 @@ namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class KnowledgeCollectionFileMetaDocument : MongoBase
 {
-    public string Collection { get; set; }
+    public string Collection { get; set; } = default!;
     public Guid FileId { get; set; }
-    public string FileName { get; set; }
-    public string FileSource { get; set; }
-    public string ContentType { get; set; }
-    public string VectorStoreProvider { get; set; }
-    public IEnumerable<string> VectorDataIds { get; set; } = new List<string>();
+    public string FileName { get; set; } = default!;
+    public string FileSource { get; set; } = default!;
+    public string ContentType { get; set; } = default!;
+    public string VectorStoreProvider { get; set; } = default!;
+    public IEnumerable<string> VectorDataIds { get; set; } = [];
     public KnowledgeFileMetaRefMongoModel? RefData { get; set; }
-    public DateTime CreateDate { get; set; }
-    public string CreateUserId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public string CreateUserId { get; set; } = default!;
 }
