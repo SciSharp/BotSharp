@@ -4,7 +4,7 @@ namespace BotSharp.Core.Files.Services;
 
 public partial class FileInstructService
 {
-    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<InstructFileModel> files)
+    public async Task<string> ReadPdf(string? provider, string? model, string? modelId, string prompt, List<InstructFileModel> files, string? agentId = null)
     {
         var content = string.Empty;
 
@@ -14,7 +14,6 @@ public partial class FileInstructService
         }
 
         var guid = Guid.NewGuid().ToString();
-
         var sessionDir = _fileStorage.BuildDirectory(SESSION_FOLDER, guid);
         DeleteIfExistDirectory(sessionDir, true);
 
@@ -28,7 +27,7 @@ public partial class FileInstructService
                 model: model, modelId: modelId ?? "gpt-4", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
-                Id = Guid.Empty.ToString(),
+                Id = agentId ?? Guid.Empty.ToString(),
             }, new List<RoleDialogModel>
             {
                 new RoleDialogModel(AgentRole.User, prompt)

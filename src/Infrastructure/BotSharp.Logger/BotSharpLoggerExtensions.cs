@@ -13,8 +13,8 @@ public static class BotSharpLoggerExtensions
         services.AddScoped<IContentGeneratingHook, CommonContentGeneratingHook>();
         services.AddScoped<IContentGeneratingHook, TokenStatsConversationHook>();
         services.AddScoped<IContentGeneratingHook, VerboseLogHook>();
+        services.AddScoped<IContentGeneratingHook, GlobalStatsConversationHook>();
         services.AddScoped<IConversationHook, RateLimitConversationHook>();
-        services.AddScoped<IConversationHook, GlobalStatsConversationHook>();
         return services;
     }
 }

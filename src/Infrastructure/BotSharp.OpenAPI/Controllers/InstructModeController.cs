@@ -88,7 +88,7 @@ public class InstructModeController : ControllerBase
         try
         {
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var content = await fileInstruct.ReadImages(input.Provider, input.Model, input.Text, input.Files);
+            var content = await fileInstruct.ReadImages(input.Provider, input.Model, input.Text, input.Files, input.AgentId);
             return content;
         }
         catch (Exception ex)
@@ -101,7 +101,7 @@ public class InstructModeController : ControllerBase
 
     [HttpPost("/instruct/multi-modal/upload")]
     public async Task<MultiModalViewModel> MultiModalCompletion(IFormFile file, [FromForm] string text, [FromForm] string? provider = null,
-        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null)
+        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null, [FromForm] string? agentId = null)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         states?.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -115,7 +115,7 @@ public class InstructModeController : ControllerBase
                 new InstructFileModel { FileData = data }
             };
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var content = await fileInstruct.ReadImages(provider, model, text, files);
+            var content = await fileInstruct.ReadImages(provider, model, text, files, agentId);
             viewModel.Content = content;
             return viewModel;
         }
@@ -140,7 +140,7 @@ public class InstructModeController : ControllerBase
         try
         {
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var message = await fileInstruct.GenerateImage(input.Provider, input.Model, input.Text);
+            var message = await fileInstruct.GenerateImage(input.Provider, input.Model, input.Text, input.AgentId);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -171,7 +171,7 @@ public class InstructModeController : ControllerBase
             }
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var message = await fileInstruct.VaryImage(input.Provider, input.Model, input.File);
+            var message = await fileInstruct.VaryImage(input.Provider, input.Model, input.File, input.AgentId);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
 
@@ -188,7 +188,7 @@ public class InstructModeController : ControllerBase
 
     [HttpPost("/instruct/image-variation/upload")]
     public async Task<ImageGenerationViewModel> ImageVariation(IFormFile file, [FromForm] string? provider = null,
-        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null)
+        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null, [FromForm] string? agentId = null)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         states?.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -203,7 +203,7 @@ public class InstructModeController : ControllerBase
             var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
             var message = await completion.GetImageVariation(new Agent()
             {
-                Id = Guid.Empty.ToString()
+                Id = agentId ?? Guid.Empty.ToString()
             }, new RoleDialogModel(AgentRole.User, string.Empty), stream, file.FileName);
 
             imageViewModel.Content = message.Content;
@@ -235,7 +235,7 @@ public class InstructModeController : ControllerBase
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image file!" };
             }
-            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, input.File);
+            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, input.File, input.AgentId);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -251,7 +251,7 @@ public class InstructModeController : ControllerBase
 
     [HttpPost("/instruct/image-edit/upload")]
     public async Task<ImageGenerationViewModel> ImageEdit(IFormFile file, [FromForm] string text, [FromForm] string? provider = null,
-        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null)
+        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null, [FromForm] string? agentId = null)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -267,7 +267,7 @@ public class InstructModeController : ControllerBase
             var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
             var message = await completion.GetImageEdits(new Agent()
             {
-                Id = Guid.Empty.ToString()
+                Id = agentId ?? Guid.Empty.ToString()
             }, new RoleDialogModel(AgentRole.User, text), stream, file.FileName);
 
             imageViewModel.Content = message.Content;
@@ -301,7 +301,7 @@ public class InstructModeController : ControllerBase
             {
                 return new ImageGenerationViewModel { Message = "Error! Cannot find a valid image or mask!" };
             }
-            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, image, mask);
+            var message = await fileInstruct.EditImage(input.Provider, input.Model, input.Text, image, mask, input.AgentId);
             imageViewModel.Content = message.Content;
             imageViewModel.Images = message.GeneratedImages.Select(x => ImageViewModel.ToViewModel(x)).ToList();
             return imageViewModel;
@@ -317,7 +317,7 @@ public class InstructModeController : ControllerBase
 
     [HttpPost("/instruct/image-mask-edit/upload")]
     public async Task<ImageGenerationViewModel> ImageMaskEdit(IFormFile image, IFormFile mask, [FromForm] string text, [FromForm] string? provider = null,
-        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null)
+        [FromForm] string? model = null, [FromForm] List<MessageState>? states = null, [FromForm] string? agentId = null)
     {
         var fileInstruct = _services.GetRequiredService<IFileInstructService>();
         var state = _services.GetRequiredService<IConversationStateService>();
@@ -337,7 +337,7 @@ public class InstructModeController : ControllerBase
             var completion = CompletionProvider.GetImageCompletion(_services, provider: provider ?? "openai", model: model ?? "dall-e-2");
             var message = await completion.GetImageEdits(new Agent()
             {
-                Id = Guid.Empty.ToString()
+                Id = agentId ?? Guid.Empty.ToString()
             }, new RoleDialogModel(AgentRole.User, text), imageStream, image.FileName, maskStream, mask.FileName);
 
             imageViewModel.Content = message.Content;
@@ -368,7 +368,7 @@ public class InstructModeController : ControllerBase
         try
         {
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var content = await fileInstruct.ReadPdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files);
+            var content = await fileInstruct.ReadPdf(input.Provider, input.Model, input.ModelId, input.Text, input.Files, input.AgentId);
             viewModel.Content = content;
             return viewModel;
         }
@@ -383,7 +383,7 @@ public class InstructModeController : ControllerBase
 
     [HttpPost("/instruct/pdf-completion/upload")]
     public async Task<PdfCompletionViewModel> PdfCompletion(IFormFile file, [FromForm] string text, [FromForm] string? provider = null,
-        [FromForm] string? model = null, [FromForm] string? modelId = null, [FromForm] List<MessageState>? states = null)
+        [FromForm] string? model = null, [FromForm] string? modelId = null, [FromForm] List<MessageState>? states = null, [FromForm] string? agentId = null)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         states?.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -398,7 +398,7 @@ public class InstructModeController : ControllerBase
             };
 
             var fileInstruct = _services.GetRequiredService<IFileInstructService>();
-            var content = await fileInstruct.ReadPdf(provider, model, modelId, text, files);
+            var content = await fileInstruct.ReadPdf(provider, model, modelId, text, files, agentId);
             viewModel.Content = content;
             return viewModel;
         }
