@@ -605,7 +605,7 @@ public partial class FileRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperlimit = 100)
+    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
     {
         var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
         if (!Directory.Exists(dir)) return [];
@@ -635,7 +635,7 @@ public partial class FileRepository
             keys.AddRange(stateKeys);
             count++;
 
-            if (count >= convUpperlimit)
+            if (count >= convUpperLimit)
             {
                 break;
             }

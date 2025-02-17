@@ -79,9 +79,8 @@ public class ConversationController : ControllerBase
     [HttpGet("/conversation/{conversationId}/dialogs")]
     public async Task<IEnumerable<ChatResponseModel>> GetDialogs([FromRoute] string conversationId)
     {
-        var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, new List<MessageState>(), isReadOnly: true);
-        var history = conv.GetDialogHistory(fromBreakpoint: false);
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var history = storage.GetDialogs(conversationId);
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -555,10 +554,10 @@ public class ConversationController : ControllerBase
 
     #region Search state keys
     [HttpGet("/conversation/state/keys")]
-    public async Task<List<string>> GetConversationStateKeys([FromQuery] string query, [FromQuery] int keyLimit = 10, [FromQuery] bool preLoad = false)
+    public async Task<List<string>> GetConversationStateKeys([FromQuery] string query, [FromQuery] int keyLimit = 10, [FromQuery] int convLimit = 100, [FromQuery] bool preload = false)
     {
         var convService = _services.GetRequiredService<IConversationService>();
-        var keys = await convService.GetConversationStateSearhKeys(query, keyLimit: keyLimit, preLoad: preLoad);
+        var keys = await convService.GetConversationStateSearhKeys(query, keyLimit: keyLimit, convLimit: convLimit, preload: preload);
         return keys;
     }
     #endregion
