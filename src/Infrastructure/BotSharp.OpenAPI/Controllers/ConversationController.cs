@@ -79,9 +79,8 @@ public class ConversationController : ControllerBase
     [HttpGet("/conversation/{conversationId}/dialogs")]
     public async Task<IEnumerable<ChatResponseModel>> GetDialogs([FromRoute] string conversationId)
     {
-        var conv = _services.GetRequiredService<IConversationService>();
-        conv.SetConversationId(conversationId, new List<MessageState>(), isReadOnly: true);
-        var history = conv.GetDialogHistory(fromBreakpoint: false);
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var history = storage.GetDialogs(conversationId);
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();
