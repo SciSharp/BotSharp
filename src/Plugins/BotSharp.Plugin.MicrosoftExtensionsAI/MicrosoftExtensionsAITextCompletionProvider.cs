@@ -49,7 +49,7 @@ public sealed class MicrosoftExtensionsAITextCompletionProvider : ITextCompletio
         await Task.WhenAll(hooks.Select(hook => hook.BeforeGenerating(agent, [userMessage])));
 
         _tokenStatistics.StartTimer();
-        var completion = await _chatClient.CompleteAsync(text);
+        var completion = await _chatClient.GetResponseAsync(text);
         var result = string.Concat(completion.Message.Contents.OfType<TextContent>());
         _tokenStatistics.StopTimer();
 
