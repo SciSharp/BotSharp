@@ -131,7 +131,7 @@ public class BotSharpDbContext : Database, IBotSharpRepository
     public void UpdateConversationStatus(string conversationId, string status)
         => throw new NotImplementedException();
 
-    public IEnumerable<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
+    public List<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
         => throw new NotImplementedException();
     #endregion
 

@@ -10,4 +10,6 @@ public class StateConst
     public const string AGENT_REDIRECTION_REASON = "agent_redirection_reason";
 
     public const string LANGUAGE = "language";
+
+    public const string SUB_CONVERSATION_ID = "sub_conversation_id";
 }

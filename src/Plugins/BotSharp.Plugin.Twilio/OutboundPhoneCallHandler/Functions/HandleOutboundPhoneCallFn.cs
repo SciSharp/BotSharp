@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Files;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Routing;
 using BotSharp.Core.Infrastructures;
@@ -55,6 +56,7 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             var routing = _services.GetRequiredService<IRoutingContext>();
             var fileStorage = _services.GetRequiredService<IFileStorageService>();
             var sessionManager = _services.GetRequiredService<ITwilioSessionManager>();
+            var states = _services.GetRequiredService<IConversationStateService>();
 
             // Fork conversation
             var entryAgentId = routing.EntryAgentId;
@@ -66,7 +68,7 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             var conversationId = newConv.Id;
             convStorage.Append(conversationId, new List<RoleDialogModel>
             {
-                new RoleDialogModel(AgentRole.User, "Hi, I'm calling to check my work order quote status, please help me locate my work order number and let me know what to do next.")
+                new RoleDialogModel(AgentRole.User, "Hi")
                 {
                     CurrentAgentId = entryAgentId
                 },
@@ -75,6 +77,7 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
                     CurrentAgentId = entryAgentId
                 }
             });
+            states.SetState(StateConst.SUB_CONVERSATION_ID, conversationId);
 
             // Generate audio
             var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
@@ -83,20 +86,19 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions
             fileStorage.SaveSpeechFile(conversationId, fileName, data);
 
             // Call phone number
-            await sessionManager.SetAssistantReplyAsync(conversationId, 0, new AssistantMessage
+            /*await sessionManager.SetAssistantReplyAsync(conversationId, 0, new AssistantMessage
             {
                 Content = args.InitialMessage,
                 SpeechFileName = fileName
-            });
+            });*/
 
             var call = await CallResource.CreateAsync(
-                url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
+                // url: new Uri($"{_twilioSetting.CallbackHost}/twilio/voice/init-call?conversationId={conversationId}"),
+                url: new Uri($"{_twilioSetting.CallbackHost}/twilio/stream?conversation_id={conversationId}&init_audio_file={fileName}"),
                 to: new PhoneNumber(args.PhoneNumber),
-                from: new PhoneNumber(_twilioSetting.PhoneNumber),
-                asyncAmd: "true",
-                machineDetection: "DetectMessageEnd");
+                from: new PhoneNumber(_twilioSetting.PhoneNumber));
 
-            message.Content = $"The generated phone message: {args.InitialMessage}. \r\n[Conversation ID: {conversationId}]" ?? message.Content;
+            message.Content = $"The generated phone message: {args.InitialMessage}." ?? message.Content;
             message.StopCompletion = true;
             return true;
         }

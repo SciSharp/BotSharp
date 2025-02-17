@@ -2,6 +2,7 @@ using BotSharp.Abstraction.VectorStorage.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Models;
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class KnowledgeVectorStoreConfigMongoModel
 {
     public string Provider { get; set; }

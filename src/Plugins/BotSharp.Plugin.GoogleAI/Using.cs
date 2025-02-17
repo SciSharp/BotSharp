@@ -5,6 +5,7 @@ global using System.Threading.Tasks;
 global using System.Linq;
 global using System.Text.Json;
 global using BotSharp.Abstraction.Conversations.Models;
+global using BotSharp.Abstraction.Agents.Constants;
 global using BotSharp.Abstraction.Agents.Models;
 global using BotSharp.Abstraction.MLTasks;
 global using Microsoft.Extensions.Configuration;
