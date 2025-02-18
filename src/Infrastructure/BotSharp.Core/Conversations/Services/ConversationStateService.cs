@@ -15,6 +15,7 @@
 ******************************************************************************/
 
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.SideCar;
 
 namespace BotSharp.Core.Conversations.Services;
 
@@ -26,6 +27,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private readonly IBotSharpRepository _db;
+    private readonly IConversationSideCar _sidecar;
     private string _conversationId;
     /// <summary>
     /// States in the current round of conversation
@@ -39,10 +41,12 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public ConversationStateService(
         IServiceProvider services,
         IBotSharpRepository db,
+        IConversationSideCar sidecar,
         ILogger<ConversationStateService> logger)
     {
         _services = services;
         _db = db;
+        _sidecar = sidecar;
         _logger = logger;
         _curStates = new ConversationState();
         _historyStates = new ConversationState();
@@ -138,15 +142,20 @@ public class ConversationStateService : IConversationStateService, IDisposable
         _conversationId = !isReadOnly ? conversationId : null;
         Reset();
 
-        var routingCtx = _services.GetRequiredService<IRoutingContext>();
-        var curMsgId = routingCtx.MessageId;
+        var endNodes = new Dictionary<string, string>();
+        if (_sidecar?.IsEnabled() == true)
+        {
+            return endNodes;
+        }
 
         _historyStates = _db.GetConversationStates(conversationId);
+        if (_historyStates.IsNullOrEmpty())
+        {
+            return endNodes;
+        }
 
-        var endNodes = new Dictionary<string, string>();
-
-        if (_historyStates.IsNullOrEmpty()) return endNodes;
-
+        var routingCtx = _services.GetRequiredService<IRoutingContext>();
+        var curMsgId = routingCtx.MessageId;
         var dialogs = _db.GetConversationDialogs(conversationId);
         var userDialogs = dialogs.Where(x => x.MetaData?.Role == AgentRole.User)
                                  .GroupBy(x => x.MetaData?.MessageId)
@@ -210,7 +219,7 @@ public class ConversationStateService : IConversationStateService, IDisposable
 
     public void Save()
     {
-        if (_conversationId == null)
+        if (_conversationId == null || _sidecar?.IsEnabled() == true)
         {
             Reset();
             return;
