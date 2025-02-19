@@ -13,6 +13,9 @@ public class InstructBaseRequest
     [JsonPropertyName("model_id")]
     public virtual string? ModelId { get; set; } = null;
 
+    [JsonPropertyName("agent_id")]
+    public virtual string? AgentId { get; set; }
+
     [JsonPropertyName("states")]
     public List<MessageState> States { get; set; } = new();
 }

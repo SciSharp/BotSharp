@@ -9,18 +9,25 @@ public class WelcomeHook : ConversationHookBase
     private readonly IUserIdentity _user;
     private readonly IConversationStorage _storage;
     private readonly BotSharpOptions _options;
+    private readonly ChatHubSettings _settings;
+
+    #region Events
+    private const string RECEIVE_ASSISTANT_MESSAGE = "OnMessageReceivedFromAssistant";
+    #endregion
 
     public WelcomeHook(IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         IUserIdentity user,
         IConversationStorage storage,
-        BotSharpOptions options)
+        BotSharpOptions options,
+        ChatHubSettings settings)
     {
         _services = services;
         _chatHub = chatHub;
         _user = user;
         _storage = storage;
         _options = options;
+        _settings = settings;
     }
 
     public override async Task OnUserAgentConnectedInitially(Conversation conversation)
@@ -71,7 +78,14 @@ public class WelcomeHook : ConversationHookBase
 
                 _storage.Append(conversation.Id, dialog);
 
-                await _chatHub.Clients.User(_user.Id).SendAsync("OnMessageReceivedFromAssistant", json);
+                if (_settings.EventDispatchBy == EventDispatchType.Group)
+                {
+                    await _chatHub.Clients.Group(conversation.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+                }
+                else
+                {
+                    await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+                }
             }
         }
 

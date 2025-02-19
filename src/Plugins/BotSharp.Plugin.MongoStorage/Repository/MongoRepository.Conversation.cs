@@ -596,12 +596,12 @@ public partial class MongoRepository
             var contentLogFilters = new List<FilterDefinition<ConversationContentLogDocument>>()
             {
                 contentLogBuilder.Eq(x => x.ConversationId, conversationId),
-                contentLogBuilder.Gte(x => x.CreateTime, refTime)
+                contentLogBuilder.Gte(x => x.CreatedTime, refTime)
             };
             var stateLogFilters = new List<FilterDefinition<ConversationStateLogDocument>>()
             {
                 stateLogBuilder.Eq(x => x.ConversationId, conversationId),
-                stateLogBuilder.Gte(x => x.CreateTime, refTime)
+                stateLogBuilder.Gte(x => x.CreatedTime, refTime)
             };
 
             _dc.ContentLogs.DeleteMany(contentLogBuilder.And(contentLogFilters));
@@ -614,20 +614,20 @@ public partial class MongoRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperlimit = 100)
+    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
     {
-        var convFilter = Builders<ConversationDocument>.Filter.Gte(x => x.DialogCount, messageLowerLimit);
-        var conversations = _dc.Conversations.Find(convFilter)
-                                             .SortByDescending(x => x.UpdatedTime)
-                                             .Limit(convUpperlimit)
-                                             .ToList();
+        var stateBuilder = Builders<ConversationStateDocument>.Filter;
+        var sortDef = Builders<ConversationStateDocument>.Sort.Descending(x => x.UpdatedTime);
+        var stateFilters = new List<FilterDefinition<ConversationStateDocument>>()
+        {
+            stateBuilder.Exists(x => x.States),
+            stateBuilder.Ne(x => x.States, [])
+        };
 
-        if (conversations.IsNullOrEmpty()) return [];
-
-        var convIds = conversations.Select(x => x.Id).ToList();
-        var stateFilter = Builders<ConversationStateDocument>.Filter.In(x => x.ConversationId, convIds);
-
-        var states = _dc.ConversationStates.Find(stateFilter).ToList();
+        var states = _dc.ConversationStates.Find(stateBuilder.And(stateFilters))
+                                           .Sort(sortDef)
+                                           .Limit(convUpperLimit)
+                                           .ToList();
         var keys = states.SelectMany(x => x.States.Select(x => x.Key)).Distinct().ToList();
         return keys;
     }

@@ -5,9 +5,9 @@ namespace BotSharp.Plugin.MongoStorage.Models;
 [BsonIgnoreExtraElements(Inherited = true)]
 public class AgentResponseMongoElement
 {
-    public string Prefix { get; set; }
-    public string Intent { get; set; }
-    public string Content { get; set; }
+    public string Prefix { get; set; } = default!;
+    public string Intent { get; set; } = default!;
+    public string Content { get; set; } = default!;
 
     public static AgentResponseMongoElement ToMongoElement(AgentResponse response)
     {
