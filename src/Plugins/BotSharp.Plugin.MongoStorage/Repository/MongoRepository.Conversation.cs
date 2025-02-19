@@ -534,7 +534,7 @@ public partial class MongoRepository
         var truncatedDialogs = foundDialog.Dialogs.Where((x, idx) => idx < foundIdx).ToList();
 
         // Handle truncated states
-        var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreatedTime;
+        var refTime = foundDialog.Dialogs.ElementAt(foundIdx).MetaData.CreateTime;
         var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundStates = _dc.ConversationStates.Find(stateFilter).FirstOrDefault();
 

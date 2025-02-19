@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Models;
 using BotSharp.Abstraction.Routing.Settings;
 
 namespace BotSharp.Core.Agents.Services;
@@ -24,6 +25,15 @@ public partial class AgentService
             Items = agents.Skip(pager.Offset).Take(pager.Size),
             Count = agents.Count()
         };
+    }
+
+#if !DEBUG
+    [SharpCache(10, perInstanceCache: true)]
+#endif
+    public async Task<List<IdName>> GetAgentOptions()
+    {
+        var agents = _db.GetAgents(AgentFilter.Empty());
+        return agents?.Select(x => new IdName(x.Id, x.Name))?.OrderBy(x => x.Name)?.ToList() ?? [];
     }
 
 #if !DEBUG
