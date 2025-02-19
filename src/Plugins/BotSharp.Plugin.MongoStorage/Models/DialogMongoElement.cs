@@ -11,6 +11,7 @@ public class DialogMongoElement
     public string? RichContent { get; set; }
     public string? SecondaryRichContent { get; set; }
     public string? Payload { get; set; }
+    public object? Data { get; set; }
 
     public DialogMongoElement()
     {
@@ -26,7 +27,8 @@ public class DialogMongoElement
             SecondaryContent = dialog.SecondaryContent,
             RichContent = dialog.RichContent,
             SecondaryRichContent = dialog.SecondaryRichContent,
-            Payload = dialog.Payload
+            Payload = dialog.Payload,
+            Data = dialog.Data
         };
     }
 
@@ -39,7 +41,8 @@ public class DialogMongoElement
             SecondaryContent = dialog.SecondaryContent,
             RichContent = dialog.RichContent,
             SecondaryRichContent = dialog.SecondaryRichContent,
-            Payload = dialog.Payload
+            Payload = dialog.Payload,
+            Data = dialog.Data
         };
     }
 }
