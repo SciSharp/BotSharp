@@ -42,6 +42,7 @@ public class DialogMongoElement
     }
 }
 
+[BsonIgnoreExtraElements(Inherited = true)]
 public class DialogMetaDataMongoElement
 {
     public string Role { get; set; } = default!;
@@ -50,7 +51,7 @@ public class DialogMetaDataMongoElement
     public string MessageType { get; set; } = default!;
     public string? FunctionName { get; set; }
     public string? SenderId { get; set; }
-    public DateTime CreatedTime { get; set; }
+    public DateTime CreateTime { get; set; }
 
     public static DialogMetaData ToDomainElement(DialogMetaDataMongoElement meta)
     {
@@ -62,7 +63,7 @@ public class DialogMetaDataMongoElement
             MessageType = meta.MessageType,
             FunctionName = meta.FunctionName,
             SenderId = meta.SenderId,
-            CreatedTime = meta.CreatedTime,
+            CreatedTime = meta.CreateTime,
         };
     }
 
@@ -76,7 +77,7 @@ public class DialogMetaDataMongoElement
             MessageType = meta.MessageType,
             FunctionName = meta.FunctionName,
             SenderId = meta.SenderId,
-            CreatedTime = meta.CreatedTime,
+            CreateTime = meta.CreatedTime,
         };
     }
 }
