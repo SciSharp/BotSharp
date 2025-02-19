@@ -3,10 +3,10 @@ namespace BotSharp.Abstraction.Loggers.Models;
 public class ContentLogOutputModel
 {
     [JsonPropertyName("conversation_id")]
-    public string ConversationId { get; set; }
+    public string ConversationId { get; set; } = default!;
 
     [JsonPropertyName("message_id")]
-    public string MessageId { get; set; }
+    public string MessageId { get; set; } = default!;
 
     [JsonPropertyName("name")]
     public string? Name { get; set; }
@@ -15,14 +15,14 @@ public class ContentLogOutputModel
     public string? AgentId { get; set; }
 
     [JsonPropertyName("role")]
-    public string Role { get; set; }
+    public string Role { get; set; } = default!;
 
     [JsonPropertyName("source")]
-    public string Source { get; set; }
+    public string Source { get; set; } = default!;
 
     [JsonPropertyName("content")]
-    public string Content { get; set; }
+    public string Content { get; set; } = default!;
 
     [JsonPropertyName("created_at")]
-    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }

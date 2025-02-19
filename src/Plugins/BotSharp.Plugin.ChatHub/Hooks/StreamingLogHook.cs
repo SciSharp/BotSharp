@@ -498,7 +498,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             Role = input.Message.Role,
             Content = input.Log,
             Source = input.Source,
-            CreateTime = DateTime.UtcNow
+            CreatedTime = DateTime.UtcNow
         };
 
         var json = JsonSerializer.Serialize(output, _options.JsonSerializerOptions);
@@ -521,7 +521,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
             AgentId = agentId,
             MessageId = message.MessageId,
             States = states,
-            CreateTime = DateTime.UtcNow
+            CreatedTime = DateTime.UtcNow
         };
 
         var convSettings = _services.GetRequiredService<ConversationSetting>();
@@ -560,7 +560,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         {
             ConversationId = conversationId,
             Log = log,
-            CreateTime = DateTime.UtcNow
+            CreatedTime = DateTime.UtcNow
         };
 
         return JsonSerializer.Serialize(model, _options.JsonSerializerOptions);

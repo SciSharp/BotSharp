@@ -19,13 +19,13 @@ public partial class MongoRepository
 
     public List<string> GetExecutionLogs(string conversationId)
     {
-        var logs = new List<string>();
+        List<string> logs = [];
         if (string.IsNullOrEmpty(conversationId)) return logs;
 
         var filter = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var logCollection = _dc.ExectionLogs.Find(filter).FirstOrDefault();
 
-        logs = logCollection?.Logs ?? new List<string>();
+        logs = logCollection?.Logs ?? [];
         return logs;
     }
     #endregion
@@ -74,7 +74,7 @@ public partial class MongoRepository
             Role = log.Role,
             Source = log.Source,
             Content = log.Content,
-            CreateTime = log.CreateTime
+            CreatedTime = log.CreatedTime
         };
 
         _dc.ContentLogs.InsertOne(logDoc);
@@ -94,9 +94,9 @@ public partial class MongoRepository
                           Role = x.Role,
                           Source = x.Source,
                           Content = x.Content,
-                          CreateTime = x.CreateTime
+                          CreatedTime = x.CreatedTime
                       })
-                      .OrderBy(x => x.CreateTime)
+                      .OrderBy(x => x.CreatedTime)
                       .ToList();
         return logs;
     }
@@ -116,7 +116,7 @@ public partial class MongoRepository
             AgentId= log.AgentId,
             MessageId = log.MessageId,
             States = log.States,
-            CreateTime = log.CreateTime
+            CreatedTime = log.CreatedTime
         };
 
         _dc.StateLogs.InsertOne(logDoc);
@@ -133,9 +133,9 @@ public partial class MongoRepository
                           AgentId = x.AgentId,
                           MessageId = x.MessageId,
                           States = x.States,
-                          CreateTime = x.CreateTime
+                          CreatedTime = x.CreatedTime
                       })
-                      .OrderBy(x => x.CreateTime)
+                      .OrderBy(x => x.CreatedTime)
                       .ToList();
         return logs;
     }
