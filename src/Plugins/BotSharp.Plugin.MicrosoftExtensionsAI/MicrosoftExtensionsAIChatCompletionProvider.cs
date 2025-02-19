@@ -38,7 +38,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
         IServiceProvider services)
     {
         _client = client;
-        _model = _client.Metadata.ModelId;
+        _model = _client.GetService<ChatClientMetadata>()?.ModelId;
         _logger = logger;
         _services = services;
     }
@@ -71,14 +71,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
                 if (agentService.RenderFunction(agent, function))
                 {
                     var property = agentService.RenderFunctionProperty(agent, function);
-                    (options.Tools ??= []).Add(new NopAIFunction(new(function.Name)
-                    {
-                        Description = function.Description,
-                        Parameters = property?.Properties.RootElement.Deserialize<Dictionary<string, object?>>()?.Select(p => new AIFunctionParameterMetadata(p.Key)
-                        {
-                            Schema = p.Value,
-                        }).ToList() ?? [],
-                    }));
+                    (options.Tools ??= []).Add(new NopAIFunction(function.Name, function.Description, JsonSerializer.SerializeToElement(property)));
                 }
             }
         }
@@ -111,7 +104,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
                 messages.Add(new(ChatRole.Assistant,
                 [
                     new FunctionCallContent(x.FunctionName, x.FunctionName, JsonSerializer.Deserialize<Dictionary<string, object?>>(x.FunctionArgs ?? "{}")),
-                    new FunctionResultContent(x.FunctionName, x.FunctionName, x.Content)
+                    new FunctionResultContent(x.FunctionName, x.Content)
                 ]));
             }
             else if (x.Role == AgentRole.System || x.Role == AgentRole.Assistant)
@@ -127,17 +120,17 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
                     {
                         if (!string.IsNullOrEmpty(file.FileData))
                         {
-                            contents.Add(new ImageContent(file.FileData));
+                            contents.Add(new DataContent(file.FileData));
                         }
                         else if (!string.IsNullOrEmpty(file.FileStorageUrl))
                         {
                             var contentType = FileUtility.GetFileContentType(file.FileStorageUrl);
                             var bytes = fileStorage!.GetFileBytes(file.FileStorageUrl);
-                            contents.Add(new ImageContent(bytes, contentType));
+                            contents.Add(new DataContent(bytes, contentType));
                         }
                         else if (!string.IsNullOrEmpty(file.FileUrl))
                         {
-                            contents.Add(new ImageContent(file.FileUrl));
+                            contents.Add(new DataContent(file.FileUrl));
                         }
                     }
                 }
@@ -146,7 +139,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
             }
         }
 
-        var completion = await _client.CompleteAsync(messages);
+        var completion = await _client.GetResponseAsync(messages);
 
         RoleDialogModel result = new(AgentRole.Assistant, string.Concat(completion.Message.Contents.OfType<TextContent>()))
         {
@@ -175,9 +168,13 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     public Task<bool> GetChatCompletionsStreamingAsync(Agent agent, List<RoleDialogModel> conversations, Func<RoleDialogModel, Task> onMessageReceived) =>
         throw new NotImplementedException();
 
-    private sealed class NopAIFunction(AIFunctionMetadata metadata) : AIFunction
+    private sealed class NopAIFunction(string name, string description, JsonElement schema) : AIFunction
     {
-        public override AIFunctionMetadata Metadata { get; } = metadata;
+        public override string Name => name;
+
+        public override string Description => description;
+
+        public override JsonElement JsonSchema => schema;
 
         protected override Task<object?> InvokeCoreAsync(IEnumerable<KeyValuePair<string, object?>> arguments, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
