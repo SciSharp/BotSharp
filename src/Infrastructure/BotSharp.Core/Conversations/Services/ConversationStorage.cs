@@ -39,7 +39,7 @@ public class ConversationStorage : IConversationStorage
                 MessageId = dialog.MessageId,
                 MessageType = dialog.MessageType,
                 FunctionName = dialog.FunctionName,
-                CreateTime = dialog.CreatedAt
+                CreatedTime = dialog.CreatedAt
             }; 
             
             var content = dialog.Content.RemoveNewLine();
@@ -52,7 +52,8 @@ public class ConversationStorage : IConversationStorage
                 MetaData = meta,
                 Content = dialog.Content,
                 SecondaryContent = dialog.SecondaryContent,
-                Payload = dialog.Payload
+                Payload = dialog.Payload,
+                Data = dialog.Data
             });
         }
         else
@@ -65,7 +66,7 @@ public class ConversationStorage : IConversationStorage
                 MessageType = dialog.MessageType,
                 SenderId = dialog.SenderId,
                 FunctionName = dialog.FunctionName,
-                CreateTime = dialog.CreatedAt
+                CreatedTime = dialog.CreatedAt
             };
             
             var content = dialog.Content.RemoveNewLine();
@@ -83,7 +84,8 @@ public class ConversationStorage : IConversationStorage
                 SecondaryContent = dialog.SecondaryContent,
                 RichContent = richContent,
                 SecondaryRichContent = secondaryRichContent,
-                Payload = dialog.Payload
+                Payload = dialog.Payload,
+                Data = dialog.Data
             });
         }
 
@@ -108,7 +110,7 @@ public class ConversationStorage : IConversationStorage
                     MessageId = dialog.MessageId,
                     MessageType = dialog.MessageType,
                     FunctionName = dialog.FunctionName,
-                    CreateTime = dialog.CreatedAt
+                    CreatedTime = dialog.CreatedAt
                 };
 
                 var content = dialog.Content.RemoveNewLine();
@@ -121,7 +123,8 @@ public class ConversationStorage : IConversationStorage
                     MetaData = meta,
                     Content = dialog.Content,
                     SecondaryContent = dialog.SecondaryContent,
-                    Payload = dialog.Payload
+                    Payload = dialog.Payload,
+                    Data = dialog.Data
                 });
             }
             else
@@ -134,7 +137,7 @@ public class ConversationStorage : IConversationStorage
                     MessageType = dialog.MessageType,
                     SenderId = dialog.SenderId,
                     FunctionName = dialog.FunctionName,
-                    CreateTime = dialog.CreatedAt
+                    CreatedTime = dialog.CreatedAt
                 };
 
                 var content = dialog.Content.RemoveNewLine();
@@ -152,7 +155,8 @@ public class ConversationStorage : IConversationStorage
                     SecondaryContent = dialog.SecondaryContent,
                     RichContent = richContent,
                     SecondaryRichContent = secondaryRichContent,
-                    Payload = dialog.Payload
+                    Payload = dialog.Payload,
+                    Data = dialog.Data
                 });
             }
         }
@@ -179,7 +183,7 @@ public class ConversationStorage : IConversationStorage
             var messageType = meta.MessageType;
             var function = meta.FunctionName;
             var senderId = role == AgentRole.Function ? currentAgentId : meta.SenderId;
-            var createdAt = meta.CreateTime;
+            var createdAt = meta.CreatedTime;
             var richContent = !string.IsNullOrEmpty(dialog.RichContent) ? 
                                 JsonSerializer.Deserialize<RichContent<IRichMessage>>(dialog.RichContent, _options.JsonSerializerOptions) : null;
             var secondaryRichContent = !string.IsNullOrEmpty(dialog.SecondaryRichContent) ?
@@ -196,7 +200,8 @@ public class ConversationStorage : IConversationStorage
                 RichContent = richContent,
                 SecondaryContent = secondaryContent,
                 SecondaryRichContent = secondaryRichContent,
-                Payload = payload
+                Payload = payload,
+                Data = dialog.Data
             };
             results.Add(record);
 

@@ -583,7 +583,7 @@ public partial class FileRepository
         var isSaved = HandleTruncatedDialogs(convDir, dialogDir, dialogs, foundIdx);
 
         // Handle truncated states
-        var refTime = dialogs.ElementAt(foundIdx).MetaData.CreateTime;
+        var refTime = dialogs.ElementAt(foundIdx).MetaData.CreatedTime;
         var stateDir = Path.Combine(convDir, STATE_FILE);
         var states = CollectConversationStates(stateDir);
         isSaved = HandleTruncatedStates(stateDir, states, messageId, refTime);
@@ -605,7 +605,7 @@ public partial class FileRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperlimit = 100)
+    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
     {
         var dir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
         if (!Directory.Exists(dir)) return [];
@@ -635,7 +635,7 @@ public partial class FileRepository
             keys.AddRange(stateKeys);
             count++;
 
-            if (count >= convUpperlimit)
+            if (count >= convUpperLimit)
             {
                 break;
             }
@@ -759,7 +759,7 @@ public partial class FileRepository
                 var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
                 if (log == null) continue;
 
-                if (log.CreateTime >= refTime)
+                if (log.CreatedTime >= refTime)
                 {
                     File.Delete(file);
                 }
@@ -774,7 +774,7 @@ public partial class FileRepository
                 var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
                 if (log == null) continue;
 
-                if (log.CreateTime >= refTime)
+                if (log.CreatedTime >= refTime)
                 {
                     File.Delete(file);
                 }
