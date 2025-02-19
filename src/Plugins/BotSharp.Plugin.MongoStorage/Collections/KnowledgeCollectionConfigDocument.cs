@@ -2,8 +2,8 @@ namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class KnowledgeCollectionConfigDocument : MongoBase
 {
-    public string Name { get; set; }
-    public string Type { get; set; }
-    public KnowledgeVectorStoreConfigMongoModel VectorStore { get; set; }
-    public KnowledgeEmbeddingConfigMongoModel TextEmbedding { get; set; }
+    public string Name { get; set; } = default!;
+    public string Type { get; set; } = default!;
+    public KnowledgeVectorStoreConfigMongoModel VectorStore { get; set; } = new();
+    public KnowledgeEmbeddingConfigMongoModel TextEmbedding { get; set; } = new();
 }

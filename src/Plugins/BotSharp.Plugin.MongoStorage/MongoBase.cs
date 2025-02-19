@@ -4,5 +4,5 @@ namespace BotSharp.Plugin.MongoStorage;
 public abstract class MongoBase
 {
     [BsonId(IdGenerator = typeof(StringGuidIdGenerator))]
-    public string Id { get; set; }
+    public string Id { get; set; } = default!;
 }
