@@ -45,7 +45,6 @@ public class ChatHubConversationHook : ConversationHookBase
         var user = await userService.GetUser(conv.User.Id);
         conv.User = UserViewModel.FromUser(user);
 
-        //await InitClientConversation(conv);
         await InitClientConversation(conv.Id, conv);
         await base.OnConversationInitialized(conversation);
     }
@@ -68,7 +67,6 @@ public class ChatHubConversationHook : ConversationHookBase
             Sender = UserViewModel.FromUser(sender)
         };
         await ReceiveClientMessage(conv.ConversationId, model);
-        //await ReceiveClientMessage(model);
 
         // Send typing-on to client
         var action = new ConversationSenderActionModel
@@ -78,7 +76,6 @@ public class ChatHubConversationHook : ConversationHookBase
         };
 
         await GenerateSenderAction(conv.ConversationId, action);
-        //await GenerateSenderAction(action);
         await base.OnMessageReceived(message);
     }
 
@@ -93,7 +90,6 @@ public class ChatHubConversationHook : ConversationHookBase
         };
 
         await GenerateSenderAction(conv.ConversationId, action);
-        //await GenerateSenderAction(action);
         await base.OnFunctionExecuting(message);
     }
 
@@ -132,8 +128,6 @@ public class ChatHubConversationHook : ConversationHookBase
 
         await GenerateSenderAction(conv.ConversationId, action);
         await ReceiveAssistantMessage(conv.ConversationId, json);
-        //await GenerateSenderAction(action);
-        //await ReceiveAssistantMessage(json);
         await base.OnResponseGenerated(message);
     }
 
@@ -158,7 +152,6 @@ public class ChatHubConversationHook : ConversationHookBase
         }, _options.JsonSerializerOptions);
 
         await GenerateNotification(conv.ConversationId, json);
-        //await GenerateNotification(json);
         await base.OnNotificationGenerated(message);
     }
 
@@ -172,7 +165,6 @@ public class ChatHubConversationHook : ConversationHookBase
         };
 
         await DeleteMessage(conversationId, model);
-        //await DeleteMessage(model);
         await base.OnMessageDeleted(conversationId, messageId);
     }
 
