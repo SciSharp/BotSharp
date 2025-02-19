@@ -48,10 +48,11 @@ public class MongoDbContext
 
     private IMongoDatabase Database => _mongoClient.GetDatabase(_mongoDbDatabaseName);
 
+    #region Private methods
     private bool CollectionExists(IMongoDatabase database, string collectionName)
     {
         var filter = Builders<BsonDocument>.Filter.Eq("name", collectionName);
-        var collections = database.ListCollections(new ListCollectionsOptions { Filter = filter });
+        var collections = database.ListCollectionNames(new ListCollectionNamesOptions { Filter = filter }).ToList();
         return collections.Any();
     }
 
@@ -60,9 +61,11 @@ public class MongoDbContext
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException($"The collection {name} cannot be empty.");
 
-        string collectionName = $"{_collectionPrefix}_{name}";
+        var collectionName = $"{_collectionPrefix}_{name}";
         if (!CollectionExists(Database, collectionName))
+        {
             Database.CreateCollection(collectionName);
+        }
 
         var collection = Database.GetCollection<TDocument>(collectionName);
         return collection;
@@ -133,6 +136,7 @@ public class MongoDbContext
         }
         return collection;
     }
+    #endregion
     #endregion
 
     public IMongoCollection<AgentDocument> Agents
