@@ -152,13 +152,6 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     #endregion
 
-    #region Execution Log
-    void AddExecutionLogs(string conversationId, List<string> logs)
-        => throw new NotImplementedException();
-    List<string> GetExecutionLogs(string conversationId)
-        => throw new NotImplementedException();
-    #endregion
-
     #region LLM Completion Log
     void SaveLlmCompletionLog(LlmCompletionLog log)
         => throw new NotImplementedException();

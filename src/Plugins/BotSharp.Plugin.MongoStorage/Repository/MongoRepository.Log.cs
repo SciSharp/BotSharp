@@ -4,32 +4,6 @@ namespace BotSharp.Plugin.MongoStorage.Repository;
 
 public partial class MongoRepository
 {
-    #region Execution Log
-    public void AddExecutionLogs(string conversationId, List<string> logs)
-    {
-        if (string.IsNullOrEmpty(conversationId) || logs.IsNullOrEmpty()) return;
-
-        var filter = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var update = Builders<ExecutionLogDocument>.Update
-                                                   .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
-                                                   .PushEach(x => x.Logs, logs);
-
-        _dc.ExectionLogs.UpdateOne(filter, update, _options);
-    }
-
-    public List<string> GetExecutionLogs(string conversationId)
-    {
-        List<string> logs = [];
-        if (string.IsNullOrEmpty(conversationId)) return logs;
-
-        var filter = Builders<ExecutionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var logCollection = _dc.ExectionLogs.Find(filter).FirstOrDefault();
-
-        logs = logCollection?.Logs ?? [];
-        return logs;
-    }
-    #endregion
-
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {
