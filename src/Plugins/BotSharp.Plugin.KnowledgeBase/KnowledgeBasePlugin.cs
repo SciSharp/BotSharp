@@ -26,6 +26,8 @@ public class KnowledgeBasePlugin : IBotSharpPlugin
         services.AddSingleton<IPdf2TextConverter, PigPdf2TextConverter>();
         services.AddScoped<IAgentUtilityHook, KnowledgeBaseUtilityHook>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
+        services.AddScoped<IKnowledgeHook, KnowledgeHook>();
+
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
