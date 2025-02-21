@@ -30,7 +30,7 @@ public class CommonContentGeneratingHook : IContentGeneratingHook
             AgentId = message.CurrentAgentId,
             Prompt = tokenStats.Prompt,
             Response = message.Content,
-            CreateDateTime = DateTime.UtcNow
+            CreatedTime = DateTime.UtcNow
         };
 
         db.SaveLlmCompletionLog(completionLog);
