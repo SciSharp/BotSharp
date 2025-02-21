@@ -12,21 +12,17 @@ public partial class MongoRepository
         var conversationId = log.ConversationId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
         var messageId = log.MessageId.IfNullOrEmptyAs(Guid.NewGuid().ToString());
 
-        var logElement = new PromptLogMongoElement
+        var data = new LlmCompletionLogDocument
         {
+            Id = Guid.NewGuid().ToString(),
+            ConversationId = conversationId,
             MessageId = messageId,
             AgentId = log.AgentId,
             Prompt = log.Prompt,
             Response = log.Response,
-            CreateDateTime = log.CreateDateTime
+            CreatedTime = log.CreatedTime
         };
-
-        var filter = Builders<LlmCompletionLogDocument>.Filter.Eq(x => x.ConversationId, conversationId);
-        var update = Builders<LlmCompletionLogDocument>.Update
-                                                       .SetOnInsert(x => x.Id, Guid.NewGuid().ToString())
-                                                       .Push(x => x.Logs, logElement);
-
-        _dc.LlmCompletionLogs.UpdateOne(filter, update, _options);
+        _dc.LlmCompletionLogs.InsertOne(data);
     }
 
     #endregion

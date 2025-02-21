@@ -7,5 +7,5 @@ public class LlmCompletionLog
     public string AgentId { get; set; } = string.Empty;
     public string Prompt { get; set; } = string.Empty;
     public string? Response { get; set; }
-    public DateTime CreateDateTime { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 }
