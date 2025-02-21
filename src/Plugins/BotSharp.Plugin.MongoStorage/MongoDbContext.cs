@@ -154,9 +154,6 @@ public class MongoDbContext
     public IMongoCollection<ConversationStateDocument> ConversationStates
         => CreateConversationStateIndex();
 
-    public IMongoCollection<ExecutionLogDocument> ExectionLogs
-        => GetCollectionOrCreate<ExecutionLogDocument>("ExecutionLogs");
-
     public IMongoCollection<LlmCompletionLogDocument> LlmCompletionLogs
         => GetCollectionOrCreate<LlmCompletionLogDocument>("LlmCompletionLogs");
 

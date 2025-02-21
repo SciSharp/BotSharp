@@ -22,12 +22,12 @@ namespace BotSharp.Core.Conversations.Services;
 /// <summary>
 /// Maintain the conversation state
 /// </summary>
-public class ConversationStateService : IConversationStateService, IDisposable
+public class ConversationStateService : IConversationStateService
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _services;
     private readonly IBotSharpRepository _db;
-    private readonly IConversationSideCar _sidecar;
+    private readonly IConversationSideCar? _sidecar;
     private string _conversationId;
     /// <summary>
     /// States in the current round of conversation
@@ -41,15 +41,14 @@ public class ConversationStateService : IConversationStateService, IDisposable
     public ConversationStateService(
         IServiceProvider services,
         IBotSharpRepository db,
-        IConversationSideCar sidecar,
         ILogger<ConversationStateService> logger)
     {
         _services = services;
         _db = db;
-        _sidecar = sidecar;
         _logger = logger;
         _curStates = new ConversationState();
         _historyStates = new ConversationState();
+        _sidecar = services.GetService<IConversationSideCar>();
     }
 
     public string GetConversationId() => _conversationId;

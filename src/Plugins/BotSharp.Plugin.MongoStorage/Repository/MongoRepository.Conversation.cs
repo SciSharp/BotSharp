@@ -56,13 +56,11 @@ public partial class MongoRepository
         var filterConv = Builders<ConversationDocument>.Filter.In(x => x.Id, conversationIds);
         var filterDialog = Builders<ConversationDialogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterSates = Builders<ConversationStateDocument>.Filter.In(x => x.ConversationId, conversationIds);
-        var filterExeLog = Builders<ExecutionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterContentLog = Builders<ConversationContentLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterStateLog = Builders<ConversationStateLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var conbTabItems = Builders<CrontabItemDocument>.Filter.In(x => x.ConversationId, conversationIds);
 
-        var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
         var contentLogDeleted = _dc.ContentLogs.DeleteMany(filterContentLog);
         var stateLogDeleted = _dc.StateLogs.DeleteMany(filterStateLog);
@@ -71,10 +69,8 @@ public partial class MongoRepository
         var cronDeleted = _dc.CrontabItems.DeleteMany(conbTabItems);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
 
-        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
-            || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
-            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0
-            || convDeleted.DeletedCount > 0;
+        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
+            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0 || convDeleted.DeletedCount > 0;
     }
 
     [SideCar]

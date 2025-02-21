@@ -78,4 +78,9 @@ public partial class PlaywrightWebDriver : IWebBrowser
             await page.Keyboard.PressAsync(key);
         }
     }
+
+    public async Task<bool> IsBrowserClosed(string contextId)
+    {
+        return !_instance.Contexts.ContainsKey(contextId);
+    }
 }

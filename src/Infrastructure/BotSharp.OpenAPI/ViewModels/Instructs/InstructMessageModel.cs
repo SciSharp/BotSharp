@@ -9,3 +9,10 @@ public class InstructMessageModel : IncomingMessageModel
     public override string Channel { get; set; } = ConversationChannel.OpenAPI;
     public string? Template { get; set; }
 }
+
+
+public class IncomingInstructRequest : IncomingMessageModel
+{
+    public string? AgentId { get; set; }
+    public string? Instruction { get; set; }
+}

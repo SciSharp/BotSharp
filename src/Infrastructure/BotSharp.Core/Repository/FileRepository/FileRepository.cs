@@ -50,9 +50,6 @@ public partial class FileRepository : IBotSharpRepository
     private const string KNOWLEDGE_DOC_FOLDER = "document";
     private const string KNOWLEDGE_DOC_META_FILE = "meta.json";
 
-    private const string EXECUTION_LOG_FILE = "execution.log";
-    private const string PLUGIN_CONFIG_FILE = "config.json";
-
     private const string STATS_FOLDER = "stats";
     private const string STATS_FILE = "stats.json";
 
