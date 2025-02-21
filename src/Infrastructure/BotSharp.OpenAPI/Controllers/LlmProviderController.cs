@@ -27,4 +27,11 @@ public class LlmProviderController : ControllerBase
         var list = _llmProvider.GetProviderModels(provider);
         return list.Where(x => x.Type == LlmModelType.Chat);
     }
+
+    [HttpGet("/llm-configs")]
+    public List<LlmProviderSetting> GetLlmConfigs([FromQuery] LlmConfigOptions options)
+    {
+        var configs = _llmProvider.GetLlmConfigs(options);
+        return configs;
+    }
 }
