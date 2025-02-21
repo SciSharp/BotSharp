@@ -44,7 +44,7 @@ public class InstructModeController : ControllerBase
     }
 
     [HttpPost("/instruct/text-completion")]
-    public async Task<string> TextCompletion([FromBody] IncomingMessageModel input)
+    public async Task<string> TextCompletion([FromBody] IncomingInstructRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -53,12 +53,12 @@ public class InstructModeController : ControllerBase
             .SetState("model_id", input.ModelId, source: StateSource.External);
 
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
-        return await textCompletion.GetCompletion(input.Text, Guid.Empty.ToString(), Guid.NewGuid().ToString());
+        return await textCompletion.GetCompletion(input.Text, input.AgentId ?? Guid.Empty.ToString(), Guid.NewGuid().ToString());
     }
 
     #region Chat
     [HttpPost("/instruct/chat-completion")]
-    public async Task<string> ChatCompletion([FromBody] IncomingMessageModel input)
+    public async Task<string> ChatCompletion([FromBody] IncomingInstructRequest input)
     {
         var state = _services.GetRequiredService<IConversationStateService>();
         input.States.ForEach(x => state.SetState(x.Key, x.Value, activeRounds: x.ActiveRounds, source: StateSource.External));
@@ -66,10 +66,11 @@ public class InstructModeController : ControllerBase
             .SetState("model", input.Model, source: StateSource.External)
             .SetState("model_id", input.ModelId, source: StateSource.External);
 
-        var textCompletion = CompletionProvider.GetChatCompletion(_services);
-        var message = await textCompletion.GetChatCompletions(new Agent()
+        var completion = CompletionProvider.GetChatCompletion(_services);
+        var message = await completion.GetChatCompletions(new Agent()
         {
-            Id = Guid.Empty.ToString(),
+            Id = input.AgentId ?? Guid.Empty.ToString(),
+            Instruction = input.Instruction
         }, new List<RoleDialogModel>
         {
             new RoleDialogModel(AgentRole.User, input.Text)
