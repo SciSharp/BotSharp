@@ -5,6 +5,7 @@
     <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <OutputPath>$(SolutionDir)packages</OutputPath>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -29,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NCrontab" Version="3.3.3" />
+    <PackageReference Include="NCrontab" />
   </ItemGroup>
 
   <ItemGroup>

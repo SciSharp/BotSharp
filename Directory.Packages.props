@@ -33,6 +33,20 @@
     <PackageVersion Include="NAudio.Core" Version="2.2.1" />
     <PackageVersion Include="Whisper.net" Version="1.5.0" />
     <PackageVersion Include="Whisper.net.Runtime" Version="1.5.0" />
+    <PackageVersion Include="NCrontab" Version="3.3.3" />
+    <PackageVersion Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <PackageVersion Include="OpenAI" Version="2.1.0" />
+    <PackageVersion Include="MailKit" Version="4.7.0" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    <PackageVersion Include="MySql.Data" Version="9.0.0" />
+    <PackageVersion Include="NPOI" Version="2.7.1" />
+    <PackageVersion Include="LLMSharp.Google.Palm" Version="1.0.2" />
+    <PackageVersion Include="Mscc.GenerativeAI" Version="2.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="7.0.0" />
+    <PackageVersion Include="Jint" Version="4.1.0" />
+    <PackageVersion Include="PdfPig" Version="0.1.8" />
+    <PackageVersion Include="TensorFlow.Keras" Version="0.15.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">

@@ -8,6 +8,7 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
@@ -55,8 +56,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PdfPig" Version="0.1.8" />
-    <PackageReference Include="TensorFlow.Keras" Version="0.15.0" />
+    <PackageReference Include="PdfPig" />
+    <PackageReference Include="TensorFlow.Keras" />
   </ItemGroup>
 
   <ItemGroup>
