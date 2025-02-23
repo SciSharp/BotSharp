@@ -9,8 +9,9 @@ public class ChatHubConversationHook : ConversationHookBase
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly IUserIdentity _user;
     private readonly BotSharpOptions _options;
+    private readonly ChatHubSettings _settings;
 
-    #region Event
+    #region Events
     private const string INIT_CLIENT_CONVERSATION = "OnConversationInitFromClient";
     private const string RECEIVE_CLIENT_MESSAGE = "OnMessageReceivedFromClient";
     private const string RECEIVE_ASSISTANT_MESSAGE = "OnMessageReceivedFromAssistant";
@@ -23,12 +24,14 @@ public class ChatHubConversationHook : ConversationHookBase
         IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
         BotSharpOptions options,
+        ChatHubSettings settings,
         IUserIdentity user)
     {
         _services = services;
         _chatHub = chatHub;
         _user = user;
         _options = options;
+        _settings = settings;
         Priority = -1; // Make sure this hook is the top one.
     }
 
@@ -42,7 +45,7 @@ public class ChatHubConversationHook : ConversationHookBase
         var user = await userService.GetUser(conv.User.Id);
         conv.User = UserViewModel.FromUser(user);
 
-        await InitClientConversation(conv);
+        await InitClientConversation(conv.Id, conv);
         await base.OnConversationInitialized(conversation);
     }
 
@@ -63,7 +66,7 @@ public class ChatHubConversationHook : ConversationHookBase
             Text = !string.IsNullOrEmpty(message.SecondaryContent) ? message.SecondaryContent : message.Content,
             Sender = UserViewModel.FromUser(sender)
         };
-        await ReceiveClientMessage(model);
+        await ReceiveClientMessage(conv.ConversationId, model);
 
         // Send typing-on to client
         var action = new ConversationSenderActionModel
@@ -71,7 +74,8 @@ public class ChatHubConversationHook : ConversationHookBase
             ConversationId = conv.ConversationId,
             SenderAction = SenderActionEnum.TypingOn
         };
-        await GenerateSenderAction(action);
+
+        await GenerateSenderAction(conv.ConversationId, action);
         await base.OnMessageReceived(message);
     }
 
@@ -84,7 +88,8 @@ public class ChatHubConversationHook : ConversationHookBase
             SenderAction = SenderActionEnum.TypingOn,
             Indication = message.Indication
         };
-        await GenerateSenderAction(action);
+
+        await GenerateSenderAction(conv.ConversationId, action);
         await base.OnFunctionExecuting(message);
     }
 
@@ -121,8 +126,8 @@ public class ChatHubConversationHook : ConversationHookBase
             SenderAction = SenderActionEnum.TypingOff
         };
 
-        await GenerateSenderAction(action);
-        await ReceiveAssistantMessage(json);
+        await GenerateSenderAction(conv.ConversationId, action);
+        await ReceiveAssistantMessage(conv.ConversationId, json);
         await base.OnResponseGenerated(message);
     }
 
@@ -146,7 +151,7 @@ public class ChatHubConversationHook : ConversationHookBase
             }
         }, _options.JsonSerializerOptions);
 
-        await GenerateNotification(json);
+        await GenerateNotification(conv.ConversationId, json);
         await base.OnNotificationGenerated(message);
     }
 
@@ -158,7 +163,8 @@ public class ChatHubConversationHook : ConversationHookBase
             ConversationId = conversationId,
             MessageId = messageId
         };
-        await DeleteMessage(model);
+
+        await DeleteMessage(conversationId, model);
         await base.OnMessageDeleted(conversationId, messageId);
     }
 
@@ -169,34 +175,77 @@ public class ChatHubConversationHook : ConversationHookBase
         return sidecar == null || !sidecar.IsEnabled();
     }
 
-    private async Task InitClientConversation(ConversationViewModel conversation)
+    private async Task InitClientConversation(string conversationId, ConversationViewModel conversation)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        {
+            await _chatHub.Clients.Group(conversationId).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+        }
+        else
+        {
+            await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+        }
     }
 
-    private async Task ReceiveClientMessage(ChatResponseModel model)
+    private async Task ReceiveClientMessage(string conversationId, ChatResponseModel model)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        {
+            await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+        }
+        else
+        {
+            await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+        }
     }
 
-    private async Task ReceiveAssistantMessage(string? json)
+    private async Task ReceiveAssistantMessage(string conversationId, string? json)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        {
+            await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+        }
+        else
+        {
+            await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+        }
+            
     }
 
-    private async Task GenerateSenderAction(ConversationSenderActionModel action)
+    private async Task GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
+        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        {
+            await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_SENDER_ACTION, action);
+        }
+        else
+        {
+            await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
+        }
     }
 
-    private async Task DeleteMessage(ChatResponseModel model)
+    private async Task DeleteMessage(string conversationId, ChatResponseModel model)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
+        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        {
+            await _chatHub.Clients.Group(conversationId).SendAsync(DELETE_MESSAGE, model);
+        }
+        else
+        {
+            await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
+        }
     }
 
-    private async Task GenerateNotification(string? json)
+    private async Task GenerateNotification(string conversationId, string? json)
     {
-        await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_NOTIFICATION, json);
+        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        {
+            await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_NOTIFICATION, json);
+        }
+        else
+        {
+            await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_NOTIFICATION, json);
+        }
     }
     #endregion
 }

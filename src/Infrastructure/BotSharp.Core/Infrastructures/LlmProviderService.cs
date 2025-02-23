@@ -103,4 +103,50 @@ public class LlmProviderService : ILlmProviderService
 
         return modelSetting;
     }
+
+
+    public List<LlmProviderSetting> GetLlmConfigs(LlmConfigOptions? options = null)
+    {
+        var settingService = _services.GetRequiredService<ISettingService>();
+        var providers = settingService.Bind<List<LlmProviderSetting>>($"LlmProviders");
+        var configs = new List<LlmProviderSetting>();
+
+        if (providers.IsNullOrEmpty()) return configs;
+
+        if (options == null) return providers ?? [];
+
+        foreach (var provider in providers)
+        {
+            var models = provider.Models ?? [];
+            if (options.Type.HasValue)
+            {
+                models = models.Where(x => x.Type == options.Type.Value).ToList();
+            }
+
+            if (options.MultiModal.HasValue)
+            {
+                models = models.Where(x => x.MultiModal == options.MultiModal.Value).ToList();
+            }
+
+            if (options.ImageGeneration.HasValue)
+            {
+                models = models.Where(x => x.ImageGeneration == options.ImageGeneration.Value).ToList();
+            }
+
+            if (options.RealTime.HasValue)
+            {
+                models = models.Where(x => x.RealTime == options.RealTime.Value).ToList();
+            }
+
+            if (models.IsNullOrEmpty())
+            {
+                continue;
+            }
+
+            provider.Models = models;
+            configs.Add(provider);
+        }
+
+        return configs;
+    }
 }

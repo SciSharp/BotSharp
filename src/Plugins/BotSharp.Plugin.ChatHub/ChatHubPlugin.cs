@@ -1,5 +1,4 @@
-using BotSharp.Abstraction.Loggers;
-using BotSharp.Abstraction.Routing;
+using BotSharp.Abstraction.Interpreters.Settings;
 using BotSharp.Core.Crontab.Abstraction;
 using BotSharp.Plugin.ChatHub.Hooks;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +17,10 @@ public class ChatHubPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
+        var settings = new ChatHubSettings();
+        config.Bind("ChatHub", settings);
+        services.AddSingleton(x => settings);
+
         // Register hooks
         services.AddScoped<IConversationHook, ChatHubConversationHook>();
         services.AddScoped<IConversationHook, StreamingLogHook>();
