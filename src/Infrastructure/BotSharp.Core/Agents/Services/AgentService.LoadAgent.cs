@@ -71,6 +71,11 @@ public partial class AgentService
             {
                 hook.OnAgentUtilityLoaded(agent);
             }
+
+            if(agent.Mcps != null)
+            {
+                hook.OnAgentMCPLoaded(agent);
+            }
             
             hook.OnAgentLoaded(agent);
         }

@@ -1,9 +1,7 @@
-using BotSharp.Plugin.Mcp.Settings;
+using BotSharp.Core.Mcp.Settings;
 using McpDotNet.Client;
-using Microsoft.Extensions.Logging;
-using System;
 
-namespace BotSharp.Plugin.Mcp;
+namespace BotSharp.Core.Mcp;
 
 public class MCPClientManager : IDisposable
 {

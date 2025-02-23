@@ -195,6 +195,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="Nanoid" Version="3.1.0" />
     <PackageReference Include="Rougamo.Fody" Version="4.0.4" />
+    <PackageReference Include="mcpdotnet" Version="1.0.1.1" />
   </ItemGroup>
 
   <ItemGroup>

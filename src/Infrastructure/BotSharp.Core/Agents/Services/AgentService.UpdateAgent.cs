@@ -40,6 +40,7 @@ public partial class AgentService
         record.Responses = agent.Responses ?? [];
         record.Samples = agent.Samples ?? [];
         record.Utilities = agent.Utilities ?? [];
+        record.Mcps = agent.Mcps ?? [];
         record.KnowledgeBases = agent.KnowledgeBases ?? [];
         record.Rules = agent.Rules ?? [];
         if (agent.LlmConfig != null && !agent.LlmConfig.IsInherit)
@@ -106,6 +107,7 @@ public partial class AgentService
                        .SetResponses(foundAgent.Responses)
                        .SetSamples(foundAgent.Samples)
                        .SetUtilities(foundAgent.Utilities)
+                       .SetMcps(foundAgent.Mcps)
                        .SetKnowledgeBases(foundAgent.KnowledgeBases)
                        .SetRules(foundAgent.Rules)
                        .SetLlmConfig(foundAgent.LlmConfig);

@@ -19,6 +19,7 @@ public enum AgentField
     Sample,
     LlmConfig,
     Utility,
+    Mcp,
     KnowledgeBase,
     Rule,
     MaxMessageCount

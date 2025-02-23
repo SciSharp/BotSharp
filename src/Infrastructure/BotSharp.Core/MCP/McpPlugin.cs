@@ -1,13 +1,10 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Plugins;
-using BotSharp.Plugin.Mcp.Functions;
-using BotSharp.Plugin.Mcp.Settings;
+using BotSharp.Core.Mcp.Functions;
+using BotSharp.Core.Mcp.Settings;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace BotSharp.Plugin.Mcp;
+namespace BotSharp.Core.Mcp;
 
 public class McpPlugin : IBotSharpPlugin
 {

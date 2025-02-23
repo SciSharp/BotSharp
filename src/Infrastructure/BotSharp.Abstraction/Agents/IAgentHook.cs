@@ -27,6 +27,8 @@ public interface IAgentHook
 
     void OnAgentUtilityLoaded(Agent agent);
 
+    void OnAgentMCPLoaded(Agent agent);
+
     /// <summary>
     /// Triggered when agent is loaded completely.
     /// </summary>

@@ -1,14 +1,8 @@
-using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using McpDotNet.Client;
 using McpDotNet.Protocol.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace BotSharp.Plugin.Mcp.Functions;
+namespace BotSharp.Core.Mcp.Functions;
 
 public class McpAIFunction : IFunctionCallback
 {
