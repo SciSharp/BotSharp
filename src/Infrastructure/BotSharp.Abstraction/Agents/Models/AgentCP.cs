@@ -1,6 +1,6 @@
 namespace BotSharp.Abstraction.Agents.Models;
 
-public class AgentMCP
+public class AgentCP
 {
     public string Name { get; set; }
 
@@ -8,18 +8,18 @@ public class AgentMCP
 
     public bool Disabled { get; set; }
 
-    public IEnumerable<MCPFunction> Functions { get; set; } = [];
-    public IEnumerable<MCPTemplate> Templates { get; set; } = [];
+    public IEnumerable<ACPFunction> Functions { get; set; } = [];
+    public IEnumerable<ACPTemplate> Templates { get; set; } = [];
 
-    public AgentMCP()
+    public AgentCP()
     {
         
     }
 
-    public AgentMCP(
+    public AgentCP(
         string name,
-        IEnumerable<MCPFunction>? functions = null,
-        IEnumerable<MCPTemplate>? templates = null)
+        IEnumerable<ACPFunction>? functions = null,
+        IEnumerable<ACPTemplate>? templates = null)
     {
         Name = name;
         Functions = functions ?? [];
@@ -33,27 +33,27 @@ public class AgentMCP
 }
 
 
-public class MCPFunction : MCPBase
+public class ACPFunction : MCPBase
 {
-    public MCPFunction()
+    public ACPFunction()
     {
         
     }
 
-    public MCPFunction(string name)
+    public ACPFunction(string name)
     {
         Name = name;
     }
 }
 
-public class MCPTemplate : MCPBase
+public class ACPTemplate : MCPBase
 {
-    public MCPTemplate()
+    public ACPTemplate()
     {
         
     }
 
-    public MCPTemplate(string name)
+    public ACPTemplate(string name)
     {
         Name = name;
     }

@@ -42,7 +42,7 @@ public class BasicAgentHook : AgentHookBase
         }
     }
 
-    public override void OnAgentMCPLoaded(Agent agent)
+    public override void OnAgentCPLoaded(Agent agent)
     {
         if (agent.Type == AgentType.Routing) 
             return;
@@ -53,9 +53,9 @@ public class BasicAgentHook : AgentHookBase
 
         agent.SecondaryFunctions ??= [];
         agent.SecondaryInstructions ??= [];
-        agent.Mcps ??= [];
+        agent.Acps ??= [];
 
-        var (functions, templates) = GetMCPContent(agent);
+        var (functions, templates) = GetACPContent(agent);
 
         foreach (var fn in functions)
         {
@@ -116,12 +116,12 @@ public class BasicAgentHook : AgentHookBase
         return (functionNames, templateNames);
     }
 
-    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetMCPContent(Agent agent)
+    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetACPContent(Agent agent)
     {
         List<FunctionDef> functionDefs = new List<FunctionDef>();
         IEnumerable<string> templates = new List<string>();
         var mcpClientManager = _services.GetRequiredService<MCPClientManager>();
-        var mcps = agent.Mcps;
+        var mcps = agent.Acps;
         foreach (var item in mcps)
         {
             var ua = mcpClientManager.Factory.GetClientAsync(item.ServerId).Result;

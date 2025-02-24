@@ -61,8 +61,8 @@ public partial class MongoRepository
             case AgentField.Utility:
                 UpdateAgentUtilities(agent.Id, agent.MergeUtility, agent.Utilities);
                 break;
-            case AgentField.Mcp:
-                UpdateAgentMcps(agent.Id, agent.Mcps);
+            case AgentField.Acp:
+                UpdateAgentMcps(agent.Id, agent.Acps);
                 break;
             case AgentField.KnowledgeBase:
                 UpdateAgentKnowledgeBases(agent.Id, agent.KnowledgeBases);
@@ -264,11 +264,11 @@ public partial class MongoRepository
         _dc.Agents.UpdateOne(filter, update);
     }
 
-    private void UpdateAgentMcps(string agentId, List<AgentMCP> mcps)
+    private void UpdateAgentMcps(string agentId, List<AgentCP> mcps)
     {
         if (mcps == null) return;
 
-        var elements = mcps?.Select(x => AgentMcpMongoElement.ToMongoElement(x))?.ToList() ?? [];
+        var elements = mcps?.Select(x => AgentCPMongoElement.ToMongoElement(x))?.ToList() ?? [];
 
         var filter = Builders<AgentDocument>.Filter.Eq(x => x.Id, agentId);
         var update = Builders<AgentDocument>.Update 
@@ -346,7 +346,7 @@ public partial class MongoRepository
             .Set(x => x.Responses, agent.Responses.Select(r => AgentResponseMongoElement.ToMongoElement(r)).ToList())
             .Set(x => x.Samples, agent.Samples)
             .Set(x => x.Utilities, agent.Utilities.Select(u => AgentUtilityMongoElement.ToMongoElement(u)).ToList())
-            .Set(x => x.Mcps, agent.Mcps.Select(u => AgentMcpMongoElement.ToMongoElement(u)).ToList())
+            .Set(x => x.Mcps, agent.Acps.Select(u => AgentCPMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.KnowledgeBases, agent.KnowledgeBases.Select(u => AgentKnowledgeBaseMongoElement.ToMongoElement(u)).ToList())
             .Set(x => x.Rules, agent.Rules.Select(e => AgentRuleMongoElement.ToMongoElement(e)).ToList())
             .Set(x => x.LlmConfig, AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig))
@@ -527,7 +527,7 @@ public partial class MongoRepository
             Responses = x.Responses?.Select(r => AgentResponseMongoElement.ToMongoElement(r))?.ToList() ?? [],
             RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
             Utilities = x.Utilities?.Select(u => AgentUtilityMongoElement.ToMongoElement(u))?.ToList() ?? [],
-            Mcps = x.Mcps?.Select(u => AgentMcpMongoElement.ToMongoElement(u))?.ToList() ?? [],
+            Mcps = x.Acps?.Select(u => AgentCPMongoElement.ToMongoElement(u))?.ToList() ?? [],
             KnowledgeBases = x.KnowledgeBases?.Select(k => AgentKnowledgeBaseMongoElement.ToMongoElement(k))?.ToList() ?? [],
             Rules = x.Rules?.Select(e => AgentRuleMongoElement.ToMongoElement(e))?.ToList() ?? [],
             CreatedTime = x.CreatedDateTime,
@@ -622,7 +622,7 @@ public partial class MongoRepository
             Responses = agentDoc.Responses?.Select(r => AgentResponseMongoElement.ToDomainElement(r))?.ToList() ?? [],
             RoutingRules = agentDoc.RoutingRules?.Select(r => RoutingRuleMongoElement.ToDomainElement(agentDoc.Id, agentDoc.Name, r))?.ToList() ?? [],
             Utilities = agentDoc.Utilities?.Select(u => AgentUtilityMongoElement.ToDomainElement(u))?.ToList() ?? [],
-            Mcps = agentDoc.Mcps?.Select(u => AgentMcpMongoElement.ToDomainElement(u))?.ToList() ?? [],
+            Acps = agentDoc.Mcps?.Select(u => AgentCPMongoElement.ToDomainElement(u))?.ToList() ?? [],
             KnowledgeBases = agentDoc.KnowledgeBases?.Select(x => AgentKnowledgeBaseMongoElement.ToDomainElement(x))?.ToList() ?? [],
             Rules = agentDoc.Rules?.Select(e => AgentRuleMongoElement.ToDomainElement(e))?.ToList() ?? []
         };

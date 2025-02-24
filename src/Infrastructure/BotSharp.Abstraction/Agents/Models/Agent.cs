@@ -106,7 +106,7 @@ public class Agent
     /// <summary>
     /// Agent MCP
     /// </summary>
-    public List<AgentMCP> Mcps { get; set; } = new();
+    public List<AgentCP> Acps { get; set; } = new();
 
     /// <summary>
     /// Agent rules
@@ -161,7 +161,7 @@ public class Agent
             Responses = agent.Responses,
             Samples = agent.Samples,
             Utilities = agent.Utilities,
-            Mcps = agent.Mcps,
+            Acps = agent.Acps,
             Knowledges = agent.Knowledges,
             IsPublic = agent.IsPublic,
             Disabled = agent.Disabled,
@@ -304,9 +304,9 @@ public class Agent
         return this;
     }
 
-    public Agent SetMcps(List<AgentMCP> mcps)
+    public Agent SetMcps(List<AgentCP> mcps)
     {
-        Mcps = mcps ?? [];
+        Acps = mcps ?? [];
         return this;
     }
 }
