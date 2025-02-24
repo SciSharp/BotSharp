@@ -1,9 +1,3 @@
-using BotSharp.Abstraction.Knowledges;
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Plugin.KnowledgeBase.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Tensorflow;
-
 namespace BotSharp.Plugin.KnowledgeBase.Hooks;
 
 public class KnowledgeHook : IKnowledgeHook
@@ -27,42 +21,26 @@ public class KnowledgeHook : IKnowledgeHook
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.GetAgent(agentId);
         return agent.KnowledgeBases;
-
-        // if (string.IsNullOrEmpty(agentId))
-        // {
-        //     return settings.DefaultKnowledgeBase;
-        // }
-
-        // return settings.AgentKnowledgeBaseMap.TryGetValue(agentId, out var kbName)
-        //     ? kbName
-        //     : settings.DefaultKnowledgeBase;
     }
 
     public async Task<List<string>> GetDomainKnowledges(RoleDialogModel message, string text)
     {
-
-
-        // 根据当前 agent ID 获取对应的知识库名称
+        // Get agent Id by knowledge base name
         var knowledgeBases = await GetKnowledgeBaseNameByAgentIdAsync(message.CurrentAgentId);
         var results = new List<string>();
 
         foreach (var knowledgeBase in knowledgeBases)
         {
-            // if(knowledgeBase.Type=="")
-            // {
-            //     var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
-            //     results.AddRange(result);
-
-            // }
             if (knowledgeBase.Type == "relationships")
             {
-                var options=new GraphSearchOptions{
-                    Method="local"
+                var options = new GraphSearchOptions
+                {
+                    Method = "local"
                 };
                 var result = await _knowledgeService.SearchGraphKnowledge(text, options);
                 results.Add(result.Result);
             }
-            else// if(knowledgeBase.Type=="relationships")
+            else
             {
                 var options = new VectorSearchOptions
                 {
@@ -79,17 +57,11 @@ public class KnowledgeHook : IKnowledgeHook
             }
         }
 
-        // 从向量数据库中检索相关内容
-        // var results = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBases, options);
-
-        return results;//.Select(x => x.Data["text"].ToString()).ToList();
+        return results;
     }
 
     public async Task<List<string>> GetGlobalKnowledges(RoleDialogModel message)
     {
-        // return new List<string>();
-
-        //便利所有的知识库
         var text = message.Content;
         var results = new List<string>();
 
@@ -124,18 +96,10 @@ public class KnowledgeHook : IKnowledgeHook
         }
 
         return results;
-        // // 从消息内容中获取向量
-        // var vector = await _textEmbedding.GetEmbeddingAsync(message.Content);
-
-        // // 从向量数据库中检索相关内容
-        // var results = await _knowledgeService.SearchKnowledgeAsync(vector, 3);
-
-        // return results.Select(x => x.Content).ToList();
     }
 
     public async Task<List<KnowledgeChunk>> CollectChunkedKnowledge()
     {
-        // 如果需要收集和分块知识，可以在这里实现
-        return new List<KnowledgeChunk>();//<KnowledgeChunk>();
+        return new List<KnowledgeChunk>();
     }
 }
