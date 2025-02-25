@@ -33,6 +33,13 @@ public class SignalRHub : Hub
         if (!string.IsNullOrEmpty(conversationId))
         {
             _logger.LogInformation($"Connection {Context.ConnectionId} is with conversation {conversationId}");
+
+            var settings = _services.GetRequiredService<ChatHubSettings>();
+            if (settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, conversationId);
+            }
+
             var conv = await convService.GetConversation(conversationId);
             if (conv != null)
             {

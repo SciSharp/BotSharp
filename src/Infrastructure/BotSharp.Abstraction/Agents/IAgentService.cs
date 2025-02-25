@@ -12,6 +12,7 @@ public interface IAgentService
     Task<Agent> CreateAgent(Agent agent);
     Task<string> RefreshAgents();
     Task<PagedItems<Agent>> GetAgents(AgentFilter filter);
+    Task<List<IdName>> GetAgentOptions();
 
     /// <summary>
     /// Load agent configurations and trigger hooks

@@ -8,4 +8,5 @@ public interface ILlmProviderService
     List<string> GetProviders();
     LlmModelSetting GetProviderModel(string provider, string id, bool? multiModal = null, bool? realTime = false, bool imageGenerate = false);
     List<LlmModelSetting> GetProviderModels(string provider);
+    List<LlmProviderSetting> GetLlmConfigs(LlmConfigOptions? options = null);
 }

@@ -10,11 +10,12 @@ public partial class MongoRepository
         if (conversation == null) return;
 
         var utcNow = DateTime.UtcNow;
+        var userId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty;
         var convDoc = new ConversationDocument
         {
             Id = !string.IsNullOrEmpty(conversation.Id) ? conversation.Id : Guid.NewGuid().ToString(),
             AgentId = conversation.AgentId,
-            UserId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty,
+            UserId = userId,
             Title = conversation.Title,
             Channel = conversation.Channel,
             ChannelId = conversation.ChannelId,
@@ -30,6 +31,7 @@ public partial class MongoRepository
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
             AgentId = conversation.AgentId,
+            UserId = userId,
             Dialogs = [],
             UpdatedTime = utcNow
         };
@@ -39,6 +41,7 @@ public partial class MongoRepository
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
             AgentId = conversation.AgentId,
+            UserId = userId,
             States = [],
             Breakpoints = [],
             UpdatedTime = utcNow
@@ -56,13 +59,11 @@ public partial class MongoRepository
         var filterConv = Builders<ConversationDocument>.Filter.In(x => x.Id, conversationIds);
         var filterDialog = Builders<ConversationDialogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterSates = Builders<ConversationStateDocument>.Filter.In(x => x.ConversationId, conversationIds);
-        var filterExeLog = Builders<ExecutionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterPromptLog = Builders<LlmCompletionLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterContentLog = Builders<ConversationContentLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var filterStateLog = Builders<ConversationStateLogDocument>.Filter.In(x => x.ConversationId, conversationIds);
         var conbTabItems = Builders<CrontabItemDocument>.Filter.In(x => x.ConversationId, conversationIds);
 
-        var exeLogDeleted = _dc.ExectionLogs.DeleteMany(filterExeLog);
         var promptLogDeleted = _dc.LlmCompletionLogs.DeleteMany(filterPromptLog);
         var contentLogDeleted = _dc.ContentLogs.DeleteMany(filterContentLog);
         var stateLogDeleted = _dc.StateLogs.DeleteMany(filterStateLog);
@@ -71,10 +72,8 @@ public partial class MongoRepository
         var cronDeleted = _dc.CrontabItems.DeleteMany(conbTabItems);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
 
-        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0
-            || exeLogDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
-            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0
-            || convDeleted.DeletedCount > 0;
+        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
+            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0 || convDeleted.DeletedCount > 0;
     }
 
     [SideCar]
@@ -596,12 +595,12 @@ public partial class MongoRepository
             var contentLogFilters = new List<FilterDefinition<ConversationContentLogDocument>>()
             {
                 contentLogBuilder.Eq(x => x.ConversationId, conversationId),
-                contentLogBuilder.Gte(x => x.CreateTime, refTime)
+                contentLogBuilder.Gte(x => x.CreatedTime, refTime)
             };
             var stateLogFilters = new List<FilterDefinition<ConversationStateLogDocument>>()
             {
                 stateLogBuilder.Eq(x => x.ConversationId, conversationId),
-                stateLogBuilder.Gte(x => x.CreateTime, refTime)
+                stateLogBuilder.Gte(x => x.CreatedTime, refTime)
             };
 
             _dc.ContentLogs.DeleteMany(contentLogBuilder.And(contentLogFilters));
@@ -614,20 +613,20 @@ public partial class MongoRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperlimit = 100)
+    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
     {
-        var convFilter = Builders<ConversationDocument>.Filter.Gte(x => x.DialogCount, messageLowerLimit);
-        var conversations = _dc.Conversations.Find(convFilter)
-                                             .SortByDescending(x => x.UpdatedTime)
-                                             .Limit(convUpperlimit)
-                                             .ToList();
+        var stateBuilder = Builders<ConversationStateDocument>.Filter;
+        var sortDef = Builders<ConversationStateDocument>.Sort.Descending(x => x.UpdatedTime);
+        var stateFilters = new List<FilterDefinition<ConversationStateDocument>>()
+        {
+            stateBuilder.Exists(x => x.States),
+            stateBuilder.Ne(x => x.States, [])
+        };
 
-        if (conversations.IsNullOrEmpty()) return [];
-
-        var convIds = conversations.Select(x => x.Id).ToList();
-        var stateFilter = Builders<ConversationStateDocument>.Filter.In(x => x.ConversationId, convIds);
-
-        var states = _dc.ConversationStates.Find(stateFilter).ToList();
+        var states = _dc.ConversationStates.Find(stateBuilder.And(stateFilters))
+                                           .Sort(sortDef)
+                                           .Limit(convUpperLimit)
+                                           .ToList();
         var keys = states.SelectMany(x => x.States.Select(x => x.Key)).Distinct().ToList();
         return keys;
     }
