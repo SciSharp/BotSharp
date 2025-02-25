@@ -47,7 +47,6 @@ public class McpToolFunction : IFunctionCallback
         if (string.IsNullOrEmpty(json))
             return [];
 
-        // 使用JsonDocument解析JSON字符串
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
         return JsonElementToDictionary(root);

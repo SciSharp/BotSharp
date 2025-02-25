@@ -22,10 +22,8 @@ public class AgentMCPToolMongoElement
     {
         return new AgentMCPToolMongoElement
         {
-            Name = utility.Name,
             Disabled = utility.Disabled,
             Functions = utility.Functions?.Select(x => new McpFunctionMongoElement(x.Name))?.ToList() ?? [],
-            Templates = utility.Templates?.Select(x => new McpTemplateMongoElement(x.Name))?.ToList() ?? []
         };
     }
 
@@ -33,10 +31,8 @@ public class AgentMCPToolMongoElement
     {
         return new MCPTool
         {
-            Name = utility.Name,
             Disabled = utility.Disabled,
             Functions = utility.Functions?.Select(x => new MCPFunction(x.Name))?.ToList() ?? [],
-            Templates = utility.Templates?.Select(x => new ACPTemplate(x.Name))?.ToList() ?? []
         };
     }
 }
