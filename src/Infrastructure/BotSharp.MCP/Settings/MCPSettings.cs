@@ -1,5 +1,6 @@
 using McpDotNet.Client;
 using McpDotNet.Configuration;
+using System.Collections.Generic;
 
 namespace BotSharp.Core.Mcp.Settings;
 

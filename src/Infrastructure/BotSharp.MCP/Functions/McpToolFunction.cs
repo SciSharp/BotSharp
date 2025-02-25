@@ -1,15 +1,21 @@
+using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using McpDotNet.Client;
 using McpDotNet.Protocol.Types;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace BotSharp.Core.Mcp.Functions;
 
-public class McpAIFunction : IFunctionCallback
+public class McpToolFunction : IFunctionCallback
 {
     private readonly Tool _tool;
     private readonly IMcpClient _client;
 
-    public McpAIFunction(Tool tool, IMcpClient client)
+    public McpToolFunction(Tool tool, IMcpClient client)
     {
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));
         _client = client ?? throw new ArgumentNullException(nameof(client));

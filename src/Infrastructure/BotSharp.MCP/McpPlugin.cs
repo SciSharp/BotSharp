@@ -1,7 +1,10 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Plugins;
 using BotSharp.Core.Mcp.Functions;
 using BotSharp.Core.Mcp.Settings;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BotSharp.Core.Mcp;
@@ -33,7 +36,7 @@ public class McpPlugin : IBotSharpPlugin
             {
                 services.AddScoped<IFunctionCallback>(provider =>
                 {
-                    var func = new McpAIFunction(tool, client);
+                    var func = new McpToolFunction(tool, client);
                     return func;
                 });
             }

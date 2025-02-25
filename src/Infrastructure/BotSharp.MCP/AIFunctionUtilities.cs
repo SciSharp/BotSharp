@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Functions.Models;
 using McpDotNet.Protocol.Types;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,7 @@
 using BotSharp.Core.Mcp.Settings;
 using McpDotNet.Client;
+using Microsoft.Extensions.Logging;
+using System;
 
 namespace BotSharp.Core.Mcp;
 

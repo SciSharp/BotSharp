@@ -1,6 +1,3 @@
-using BotSharp.Core.Mcp;
-using BotSharp.Core.MCP;
-
 namespace BotSharp.Core.Agents.Hooks;
 
 public class BasicAgentHook : AgentHookBase
@@ -41,36 +38,7 @@ public class BasicAgentHook : AgentHookBase
             agent.SecondaryInstructions.Add(prompt);
         }
     }
-
-    public override void OnAgentCPLoaded(Agent agent)
-    {
-        if (agent.Type == AgentType.Routing) 
-            return;
-
-        var conv = _services.GetRequiredService<IConversationService>();
-        var isConvMode = conv.IsConversationMode();
-        if (!isConvMode) return;
-
-        agent.SecondaryFunctions ??= [];
-        agent.SecondaryInstructions ??= [];
-        agent.Acps ??= [];
-
-        var (functions, templates) = GetACPContent(agent);
-
-        foreach (var fn in functions)
-        {
-            if (!agent.SecondaryFunctions.Any(x => x.Name.Equals(fn.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                agent.SecondaryFunctions.Add(fn);
-            }
-        }
-
-        foreach (var prompt in templates)
-        {
-            agent.SecondaryInstructions.Add(prompt);
-        }
-    }
- 
+     
 
     private (IEnumerable<FunctionDef>, IEnumerable<string>) GetUtilityContent(Agent agent)
     {
@@ -114,30 +82,5 @@ public class BasicAgentHook : AgentHookBase
                                      .Distinct().ToList();
 
         return (functionNames, templateNames);
-    }
-
-    private (IEnumerable<FunctionDef>, IEnumerable<string>) GetACPContent(Agent agent)
-    {
-        List<FunctionDef> functionDefs = new List<FunctionDef>();
-        IEnumerable<string> templates = new List<string>();
-        var mcpClientManager = _services.GetRequiredService<MCPClientManager>();
-        var mcps = agent.Acps;
-        foreach (var item in mcps)
-        {
-            var ua = mcpClientManager.Factory.GetClientAsync(item.ServerId).Result;
-            if (ua != null)
-            {
-               var tools = ua.ListToolsAsync().Result;
-               var funcnames = item.Functions.Select(x => x.Name).ToList();
-                foreach (var tool in tools.Tools.Where(x=> funcnames.Contains(x.Name,StringComparer.OrdinalIgnoreCase)))
-                {
-                    var funDef = AIFunctionUtilities.MapToFunctionDef(tool);
-                    functionDefs.Add(funDef);
-                }
-            }
-        }
-        
-         return (functionDefs, templates);
-    }
-
+    }   
 }

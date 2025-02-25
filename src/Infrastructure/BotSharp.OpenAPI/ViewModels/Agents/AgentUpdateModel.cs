@@ -40,9 +40,9 @@ public class AgentUpdateModel
     public List<AgentUtility>? Utilities { get; set; }
 
     /// <summary>
-    /// Acps
+    /// McpTools
     /// </summary>
-    public List<AgentCP>? Acps { get; set; }
+    public List<MCPTool>? McpTools { get; set; }
 
     /// <summary>
     /// knowledge bases
@@ -108,7 +108,7 @@ public class AgentUpdateModel
             Functions = Functions ?? [],
             Responses = Responses ?? [],
             Utilities = Utilities ?? [],
-            Acps = Acps ?? [],
+            McpTools = McpTools ?? [],
             KnowledgeBases = KnowledgeBases ?? [],
             Rules = Rules ?? [],
             LlmConfig = LlmConfig ?? new()
