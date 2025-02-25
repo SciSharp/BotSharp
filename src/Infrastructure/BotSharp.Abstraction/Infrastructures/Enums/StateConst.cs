@@ -8,6 +8,9 @@ public class StateConst
     public const string NEXT_ACTION_REASON = "next_action_reason";
     public const string USER_GOAL_AGENT = "user_goal_agent";
     public const string AGENT_REDIRECTION_REASON = "agent_redirection_reason";
+    // lazy or eager
+    public const string ROUTING_MODE = "routing_mode";
+    public const string LAZY_ROUTING_AGENT_ID = "lazy_routing_agent_id";
 
     public const string LANGUAGE = "language";
 

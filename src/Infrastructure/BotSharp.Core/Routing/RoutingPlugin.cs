@@ -37,5 +37,7 @@ public class RoutingPlugin : IBotSharpPlugin
         services.AddScoped<IRoutingReasoner, HFReasoner>();
         
         services.AddScoped<IRoutingReasoner, OneStepForwardReasoner>();
+
+        services.AddScoped<IAgentUtilityHook, RoutingUtilityHook>();
     }
 }

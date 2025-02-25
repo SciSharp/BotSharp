@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Messaging;
 using BotSharp.Abstraction.Messaging.Models.RichContent;
 using BotSharp.Abstraction.Routing.Settings;
@@ -36,7 +37,17 @@ public partial class ConversationService
         // Enqueue receiving agent first in case it stop completion by OnMessageReceived
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.SetMessageId(_conversationId, message.MessageId);
-        routing.Context.Push(agent.Id, reason: "request started");
+
+        // Check the routing mode
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var routingMode = states.GetState(StateConst.ROUTING_MODE, "hard");
+        routing.Context.Push(agent.Id, reason: "request started", updateLazyRouting: false);
+
+        if (routingMode == "lazy")
+        {
+            message.CurrentAgentId = states.GetState(StateConst.LAZY_ROUTING_AGENT_ID, message.CurrentAgentId);
+            routing.Context.Push(message.CurrentAgentId, reason: "lazy routing", updateLazyRouting: false);
+        }
 
         // Save payload in order to assign the payload before hook is invoked
         if (replyMessage != null && !string.IsNullOrEmpty(replyMessage.Payload))
@@ -77,7 +88,7 @@ public partial class ConversationService
             {
                 agent = await agentService.LoadAgent(message.CurrentAgentId);
             }
-            
+
             if (agent.Type == AgentType.Routing)
             {
                 response = await routing.InstructLoop(message, dialogs);
