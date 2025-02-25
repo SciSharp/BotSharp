@@ -57,7 +57,8 @@ public class PlaywrightInstance : IDisposable
         }
         else
         {
-            string userDataDir = args.UserDataDir ?? $"{Path.GetTempPath()}\\playwright\\{ctxId}";
+            string localAppDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string userDataDir = args.UserDataDir ?? $"{localAppDataFolder}\\playwright\\{ctxId}";
             _contexts[ctxId] = await _playwright.Chromium.LaunchPersistentContextAsync(userDataDir, new BrowserTypeLaunchPersistentContextOptions
             {
                 Headless = args.Headless,

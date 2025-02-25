@@ -149,6 +149,12 @@ public class AgentController : ControllerBase
         return await _agentService.DeleteAgent(agentId);
     }
 
+    [HttpGet("/agent/options")]
+    public async Task<List<IdName>> GetAgentOptions()
+    {
+        return await _agentService.GetAgentOptions();
+    }
+
     [HttpGet("/agent/utility/options")]
     public IEnumerable<AgentUtility> GetAgentUtilityOptions()
     {

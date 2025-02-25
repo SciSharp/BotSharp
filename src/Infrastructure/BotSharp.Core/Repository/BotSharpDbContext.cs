@@ -135,18 +135,6 @@ public class BotSharpDbContext : Database, IBotSharpRepository
         => throw new NotImplementedException();
     #endregion
 
-    #region Execution Log
-    public void AddExecutionLogs(string conversationId, List<string> logs)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<string> GetExecutionLogs(string conversationId)
-    {
-        throw new NotImplementedException();
-    }
-    #endregion
-
     #region LLM Completion Log
     public void SaveLlmCompletionLog(LlmCompletionLog log)
     {

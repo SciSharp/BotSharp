@@ -2,12 +2,12 @@ namespace BotSharp.Plugin.MongoStorage.Collections;
 
 public class AgentDocument : MongoBase
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string Type { get; set; }
+    public string Name { get; set; } = default!;
+    public string Description { get; set; } = default!;
+    public string Type { get; set; } = default!;
     public string? InheritAgentId { get; set; }
     public string? IconUrl { get; set; }
-    public string Instruction { get; set; }
+    public string Instruction { get; set; } = default!;
     public bool IsPublic { get; set; }
     public bool Disabled { get; set; }
     public bool MergeUtility { get; set; }

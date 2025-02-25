@@ -6,7 +6,7 @@ namespace BotSharp.Abstraction.Conversations;
 /// <summary>
 /// Conversation state service to track the context in the conversation lifecycle
 /// </summary>
-public interface IConversationStateService
+public interface IConversationStateService : IDisposable
 {
     string GetConversationId();
     Dictionary<string, string> Load(string conversationId, bool isReadOnly = false);
