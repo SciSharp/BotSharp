@@ -10,11 +10,12 @@ public partial class MongoRepository
         if (conversation == null) return;
 
         var utcNow = DateTime.UtcNow;
+        var userId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty;
         var convDoc = new ConversationDocument
         {
             Id = !string.IsNullOrEmpty(conversation.Id) ? conversation.Id : Guid.NewGuid().ToString(),
             AgentId = conversation.AgentId,
-            UserId = !string.IsNullOrEmpty(conversation.UserId) ? conversation.UserId : string.Empty,
+            UserId = userId,
             Title = conversation.Title,
             Channel = conversation.Channel,
             ChannelId = conversation.ChannelId,
@@ -30,6 +31,7 @@ public partial class MongoRepository
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
             AgentId = conversation.AgentId,
+            UserId = userId,
             Dialogs = [],
             UpdatedTime = utcNow
         };
@@ -39,6 +41,7 @@ public partial class MongoRepository
             Id = Guid.NewGuid().ToString(),
             ConversationId = convDoc.Id,
             AgentId = conversation.AgentId,
+            UserId = userId,
             States = [],
             Breakpoints = [],
             UpdatedTime = utcNow
