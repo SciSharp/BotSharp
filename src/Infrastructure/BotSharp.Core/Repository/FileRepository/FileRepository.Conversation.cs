@@ -500,16 +500,6 @@ public partial class FileRepository
             batchSize = batchLimit;
         }
 
-        if (bufferHours <= 0)
-        {
-            bufferHours = 12;
-        }
-
-        if (messageLimit <= 0)
-        {
-            messageLimit = 2;
-        }
-
         foreach (var d in Directory.GetDirectories(dir))
         {
             var convFile = Path.Combine(d, CONVERSATION_FILE);
