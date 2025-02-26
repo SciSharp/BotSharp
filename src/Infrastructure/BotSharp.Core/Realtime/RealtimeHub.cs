@@ -139,7 +139,7 @@ public class RealtimeHub : IRealtimeHub
 
                             if (!string.IsNullOrEmpty(message.Content))
                             {
-                                await hook.OnMessageReceived(message);
+                                await hook.OnResponseGenerated(message);
                             }
                         }
                     }

@@ -5,11 +5,7 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "call_sid": {
-        "type": "string",
-        "description": "The unique string SID that we created to identify this Call resource."
-      }
     },
-    "required": [ "call_sid" ]
+    "required": []
   }
 }

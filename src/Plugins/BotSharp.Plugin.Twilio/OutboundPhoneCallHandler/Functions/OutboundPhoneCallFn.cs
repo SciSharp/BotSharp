@@ -105,7 +105,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
 
         convStorage.Append(newConversationId, new List<RoleDialogModel>
         {
-            new RoleDialogModel(AgentRole.User, $"[Calling Phone To: {resource.ToFormatted}, Call SID: {resource.Sid}.]")
+            new RoleDialogModel(AgentRole.User, "Hi")
             {
                 CurrentAgentId = entryAgentId
             },

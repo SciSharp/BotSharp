@@ -93,6 +93,7 @@ public class TwilioStreamController : TwilioController
                 Id = request.CallSid,
                 AgentId = _settings.AgentId,
                 Channel = ConversationChannel.Phone,
+                ChannelId = request.CallSid,
                 Title = $"Phone call from {request.From}",
                 Tags = [],
             };
@@ -103,7 +104,8 @@ public class TwilioStreamController : TwilioController
         var states = new List<MessageState>
             {
                 new("channel", ConversationChannel.Phone),
-                new("calling_phone", request.From)
+                new("calling_phone", request.From),
+                new("twilio_call_sid", request.CallSid),
             };
 
         convService.SetConversationId(conversation.Id, states);

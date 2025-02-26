@@ -1,4 +1,3 @@
-using BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
 using Twilio.Rest.Api.V2010.Account;
 
 namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.Functions;
@@ -21,14 +20,24 @@ public class HangupPhoneCallFn : IFunctionCallback
 
     public async Task<bool> Execute(RoleDialogModel message)
     {
-        var args = JsonSerializer.Deserialize<LlmContextIn>(message.FunctionArgs);
+        var states = _services.GetRequiredService<IConversationStateService>();
+        var callSid = states.GetState("twilio_call_sid");
+
+        if (string.IsNullOrEmpty(callSid))
+        {
+            message.Content = "The call has not been initiated.";
+            _logger.LogError(message.Content);
+            return false;
+        }
+
         // Have to find the SID by the phone number
         var call = CallResource.Update(
             status: CallResource.UpdateStatusEnum.Completed,
-            pathSid: args.CallSid
+            pathSid: callSid
         );
 
         message.Content = "The call has ended.";
+        message.StopCompletion = true;
 
         return true;
     }
