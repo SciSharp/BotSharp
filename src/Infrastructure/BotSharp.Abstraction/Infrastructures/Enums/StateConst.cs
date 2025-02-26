@@ -12,4 +12,5 @@ public class StateConst
     public const string LANGUAGE = "language";
 
     public const string SUB_CONVERSATION_ID = "sub_conversation_id";
+    public const string ORIGIN_CONVERSATION_ID = "origin_conversation_id";
 }
