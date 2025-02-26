@@ -20,12 +20,10 @@ public class McpPlugin : IBotSharpPlugin
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
         var settings = config.GetSection("MCPSettings").Get<MCPSettings>();
-        services.AddScoped<MCPSettings>(provider => { return settings; });
-        services.AddSingleton<MCPClientManager>(provider =>
-        {
-            var loggerFactory = provider.GetService<ILoggerFactory>() ?? NullLoggerFactory.Instance;
-            return new MCPClientManager(settings, loggerFactory);
-        });
+        services.AddScoped<MCPSettings>(provider => { return settings; });        
+        
+        clientManager = new MCPClientManager(settings, NullLoggerFactory.Instance);
+        services.AddSingleton(clientManager);
 
         foreach (var server in settings.McpServerConfigs)
         {

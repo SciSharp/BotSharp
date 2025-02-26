@@ -35,10 +35,11 @@ public class McpToolFunction : IFunctionCallback
         );
 
         // Extract the text content from the result
-        // For simplicity in this sample, we'll just concatenate all text content
-        message.Content = string.Join("\n", result.Content
+        var json = string.Join("\n", result.Content
             .Where(c => c.Type == "text")
             .Select(c => c.Text));
+        message.Content = json;
+        message.Data = JsonSerializer.Deserialize(json,typeof(object));
         return true;
     }
 

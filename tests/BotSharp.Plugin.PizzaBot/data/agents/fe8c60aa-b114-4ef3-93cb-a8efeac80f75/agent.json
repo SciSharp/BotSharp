@@ -7,6 +7,15 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
+  "McpTools": {
+    "ServerId": "b284db86-e9c2-4c25-a59e-4649797dd130",
+    "Disabled": "false",
+    "Functions": [
+      {
+        "Name": "make_payment"
+      }
+    ]
+  },
   "routingRules": [
     {
       "field": "order_number",
