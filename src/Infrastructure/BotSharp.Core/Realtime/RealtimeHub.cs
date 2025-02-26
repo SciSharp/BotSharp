@@ -4,6 +4,7 @@ using System;
 using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Enums;
 
 namespace BotSharp.Core.Realtime;
 
@@ -118,7 +119,7 @@ public class RealtimeHub : IRealtimeHub
                 foreach (var message in messages)
                 {
                     // Invoke function
-                    if (message.MessageType == "function_call")
+                    if (message.MessageType == MessageTypeName.FunctionCall)
                     {
                         await routing.InvokeFunction(message.FunctionName, message);
                         message.Role = AgentRole.Function;

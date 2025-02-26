@@ -1,0 +1,15 @@
+{
+  "name": "util-twilio-hangup_phone_call",
+  "description": "Call this function if the user wants to end the phone call",
+  "visibility_expression": "{% if states.channel == 'phone' %}visible{% endif %}",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "call_sid": {
+        "type": "string",
+        "description": "The unique string SID that we created to identify this Call resource."
+      }
+    },
+    "required": [ "call_sid" ]
+  }
+}

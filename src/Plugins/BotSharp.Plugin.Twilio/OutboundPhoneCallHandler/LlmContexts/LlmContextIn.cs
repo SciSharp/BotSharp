@@ -9,4 +9,7 @@ public class LlmContextIn
 
     [JsonPropertyName("initial_message")]
     public string InitialMessage { get; set; }
+
+    [JsonPropertyName("call_sid")]
+    public string CallSid { get; set; }
 }
