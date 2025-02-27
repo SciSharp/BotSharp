@@ -7,9 +7,12 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>$(SolutionDir)packages</OutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="mcpdotnet" Version="1.0.1.3" />
+  </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\mcpdotnet\src\mcpdotnet\mcpdotnet.csproj" />
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 </Project>
