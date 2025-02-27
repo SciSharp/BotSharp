@@ -1,7 +1,11 @@
+using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Functions;
 using BotSharp.Abstraction.Plugins;
 using BotSharp.Core.Mcp.Functions;
 using BotSharp.Core.Mcp.Settings;
+using BotSharp.MCP.Hooks;
+using McpDotNet.Protocol.Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,13 +35,16 @@ public class McpPlugin : IBotSharpPlugin
             var tools = client.ListToolsAsync().Result;
 
             foreach (var tool in tools.Tools)
-            {
-                services.AddScoped<IFunctionCallback>(provider =>
-                {
-                    var func = new McpToolFunction(tool, client);
-                    return func;
-                });
+            {                
+                services.AddScoped( provider => { return tool; });
+
+                services.AddScoped<IFunctionCallback>( provider => { 
+                    var funcTool = new McpToolFunction( provider, tool, clientManager);
+                    return funcTool;
+                    });
             }
         }
+        // Register hooks
+        services.AddScoped<IAgentHook, MCPToolAgentHook>();
     }
  }

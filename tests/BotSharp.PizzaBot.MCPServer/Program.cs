@@ -54,6 +54,39 @@ namespace BotSharp.PizzaBot.MCPServer
                             }, 
                             Required = new List<string>() { "order_number", "total_amount" }
                         }, 
+                        },
+                        new Tool()
+                        {
+                            Name = "get_pizza_prices",
+                            Description = "call this function to get pizza prices",
+                            InputSchema = new JsonSchema()
+                            {
+                                Type = "object",
+                                Properties = new Dictionary<string, JsonSchemaProperty>()
+                                {                            
+                                    ["pizza_type"] = new JsonSchemaProperty() { Type = "string", Description = "The pizza type." },
+                                    ["quantity"] = new JsonSchemaProperty() { Type = "string", Description = "quantity of pizza." },
+
+                                },
+                                Required = new List<string>(){ "pizza_type", "quantity" }
+                            }
+                        },
+                        new Tool()
+                        {
+                            Name = "place_an_order",
+                            Description = "Place an order when user has confirmed the pizza type and quantity.",
+                            InputSchema = new JsonSchema()
+                            {
+                                Type = "object",
+                                Properties = new Dictionary<string, JsonSchemaProperty>()
+                                {                              
+                                    ["pizza_type"] = new JsonSchemaProperty() { Type = "string", Description = "The pizza type." },
+                                    ["quantity"] = new JsonSchemaProperty() { Type = "number", Description = "quantity of pizza." },
+                                    ["unit_price"] = new JsonSchemaProperty() { Type = "number", Description = "unit price" },
+
+                                },
+                                Required = new List<string>(){"pizza_type", "quantity", "unit_price" }
+                            }
                         }
                     ]
                 });
@@ -72,9 +105,8 @@ namespace BotSharp.PizzaBot.MCPServer
                         throw new McpServerException("Missing required argument 'total_amount'");
                     }
                     dynamic message = new ExpandoObject();
-                    message.pepperoni_unit_price = 3.2;
-                    message.cheese_unit_price = 3.5;
-                    message.margherita_unit_price = 3.8;
+                    message.Transaction = Guid.NewGuid().ToString();
+                    message.Status = "Success";
 
                     // Serialize the message to JSON
                     var jso = new JsonSerializerOptions() { WriteIndented = true };
@@ -83,6 +115,53 @@ namespace BotSharp.PizzaBot.MCPServer
                     return new CallToolResponse()
                     {                         
                         Content = [new Content() { Text = jsonMessage , Type = "text" }]
+                    };
+                }
+                else if(request.Name == "get_pizza_prices")
+                {
+                    if (request.Arguments is null || !request.Arguments.TryGetValue("pizza_type", out var pizza_type))
+                    {
+                        throw new McpServerException("Missing required argument 'pizza_type'");
+                    }
+                    if (request.Arguments is null || !request.Arguments.TryGetValue("quantity", out var quantity))
+                    {
+                        throw new McpServerException("Missing required argument 'quantity'");
+                    }
+                    dynamic message = new ExpandoObject();
+                    message.pepperoni_unit_price = 3.2;
+                    message.cheese_unit_price = 3.5;
+                    message.margherita_unit_price = 3.8;
+                    // Serialize the message to JSON
+                    var jso = new JsonSerializerOptions() { WriteIndented = true };
+                    var jsonMessage = JsonSerializer.Serialize(message, jso);
+                    return new CallToolResponse()
+                    {
+                        Content = [new Content() { Text = jsonMessage, Type = "text" }]
+                    };
+                }
+                else if (request.Name == "place_an_order")
+                {
+                    if (request.Arguments is null || !request.Arguments.TryGetValue("pizza_type", out var pizza_type))
+                    {
+                        throw new McpServerException("Missing required argument 'pizza_type'");
+                    }
+                    if (request.Arguments is null || !request.Arguments.TryGetValue("quantity", out var quantity))
+                    {
+                        throw new McpServerException("Missing required argument 'quantity'");
+                    }
+                    if (request.Arguments is null || !request.Arguments.TryGetValue("unit_price", out var unit_price))
+                    {
+                        throw new McpServerException("Missing required argument 'unit_price'");
+                    }
+                    dynamic message = new ExpandoObject();
+                    message.order_number = "P123-01";
+                    message.Content = "The order number is P123-01"; 
+                    // Serialize the message to JSON
+                    var jso = new JsonSerializerOptions() { WriteIndented = true };
+                    var jsonMessage = JsonSerializer.Serialize(message, jso);
+                    return new CallToolResponse()
+                    {
+                        Content = [new Content() { Text = jsonMessage, Type = "text" }]
                     };
                 }
                 else

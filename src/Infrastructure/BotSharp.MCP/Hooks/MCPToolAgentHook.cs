@@ -26,14 +26,11 @@ public class MCPToolAgentHook : AgentHookBase
     {
         if (agent.Type == AgentType.Routing)
             return;
-
         var conv = _services.GetRequiredService<IConversationService>();
         var isConvMode = conv.IsConversationMode();
         if (!isConvMode) return;
 
         agent.SecondaryFunctions ??= [];
-        agent.SecondaryInstructions ??= [];
-        agent.McpTools ??= [];
 
         var functions = GetMCPContent(agent);
 

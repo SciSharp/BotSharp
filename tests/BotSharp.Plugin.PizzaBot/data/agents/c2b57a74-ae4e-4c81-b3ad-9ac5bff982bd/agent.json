@@ -6,5 +6,19 @@
   "id": "c2b57a74-ae4e-4c81-b3ad-9ac5bff982bd",
   "disabled": false,
   "isPublic": true,
-  "profiles": [ "pizza" ]
+  "profiles": [ "pizza" ],
+  "mcptools": [
+    {
+      "serverid": "PizzaServer",
+      "disabled": false,
+      "functions": [
+        {
+          "Name": "get_pizza_price"
+        },
+        {
+          "Name": "place_an_order"
+        }
+      ]
+    }
+  ]
 }

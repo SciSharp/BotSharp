@@ -1,7 +1,11 @@
+using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
 using McpDotNet.Client;
 using McpDotNet.Protocol.Types;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +17,14 @@ namespace BotSharp.Core.Mcp.Functions;
 public class McpToolFunction : IFunctionCallback
 {
     private readonly Tool _tool;
-    private readonly IMcpClient _client;
+    private readonly MCPClientManager _clientManager;
+    private readonly IServiceProvider _serviceProvider;
 
-    public McpToolFunction(Tool tool, IMcpClient client)
+    public McpToolFunction(IServiceProvider provider, Tool tool, MCPClientManager client)
     {
+        _serviceProvider = provider ?? throw new ArgumentNullException(nameof(provider));
         _tool = tool ?? throw new ArgumentNullException(nameof(tool));
-        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _clientManager = client ?? throw new ArgumentNullException(nameof(client));
     }
 
     public string Name => _tool.Name;
@@ -27,9 +33,14 @@ public class McpToolFunction : IFunctionCallback
     {
         // Convert arguments to dictionary format expected by mcpdotnet
         Dictionary<string, object> argDict = JsonToDictionary(message.FunctionArgs);
-        
+        var currentAgentId = message.CurrentAgentId;
+        var agentService = _serviceProvider.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(currentAgentId);
+        var serverId = agent.McpTools.Where(t => t.Functions.Any(f => f.Name == Name)).FirstOrDefault().ServerId;
+
+        var client = await _clientManager.Factory.GetClientAsync(serverId);
         // Call the tool through mcpdotnet
-        var result = await _client.CallToolAsync(
+        var result = await client.CallToolAsync(
             _tool.Name,
             argDict.Count == 0 ? new() : argDict
         );
