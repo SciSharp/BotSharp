@@ -254,13 +254,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return session;
     }
 
-    public async Task UpdateInitialSession(RealtimeHubConnection conn)
+    public async Task UpdateSession(RealtimeHubConnection conn)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(conv.AgentId);
+        var agent = await agentService.LoadAgent(conn.EntryAgentId);
 
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var chatClient = client.GetChatClient(_model);

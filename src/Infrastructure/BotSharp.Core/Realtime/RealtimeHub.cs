@@ -1,9 +1,7 @@
 using BotSharp.Abstraction.Realtime;
 using System.Net.WebSockets;
-using System;
 using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Enums;
 
 namespace BotSharp.Core.Realtime;
@@ -12,6 +10,7 @@ public class RealtimeHub : IRealtimeHub
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+
     public RealtimeHub(IServiceProvider services, ILogger<RealtimeHub> logger)
     {
         _services = services;
@@ -82,8 +81,7 @@ public class RealtimeHub : IRealtimeHub
             onModelReady: async () => 
             {
                 // Control initial session
-                await completer.UpdateInitialSession(conn);
-                
+                await completer.UpdateSession(conn);
 
                 // Add dialog history
                 foreach (var item in dialogs)
@@ -123,8 +121,21 @@ public class RealtimeHub : IRealtimeHub
                     {
                         await routing.InvokeFunction(message.FunctionName, message);
                         message.Role = AgentRole.Function;
-                        await completer.InsertConversationItem(message);
-                        await completer.TriggerModelInference("Reply based on the function's output.");
+                        if (message.FunctionName == "route_to_agent")
+                        {
+                            var routedAgentId = routing.Context.GetCurrentAgentId();
+                            if (conn.EntryAgentId != routedAgentId)
+                            {
+                                conn.EntryAgentId = routedAgentId;
+                                await completer.UpdateSession(conn);
+                                await completer.TriggerModelInference("Reply based on the function's output.");
+                            }
+                        }
+                        else
+                        {
+                            await completer.InsertConversationItem(message);
+                            await completer.TriggerModelInference("Reply based on the function's output.");
+                        }
                     }
                     else
                     {
