@@ -7,6 +7,7 @@ public class ChatHubConversationHook : ConversationHookBase
 {
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
+    private readonly ILogger<ChatHubConversationHook> _logger;
     private readonly IUserIdentity _user;
     private readonly BotSharpOptions _options;
     private readonly ChatHubSettings _settings;
@@ -23,12 +24,14 @@ public class ChatHubConversationHook : ConversationHookBase
     public ChatHubConversationHook(
         IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
+        ILogger<ChatHubConversationHook> logger,
         BotSharpOptions options,
         ChatHubSettings settings,
         IUserIdentity user)
     {
         _services = services;
         _chatHub = chatHub;
+        _logger = logger;
         _user = user;
         _options = options;
         _settings = settings;
@@ -177,74 +180,122 @@ public class ChatHubConversationHook : ConversationHookBase
 
     private async Task InitClientConversation(string conversationId, ConversationViewModel conversation)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(INIT_CLIENT_CONVERSATION, conversation);
+            _logger.LogWarning($"Failed to init client conversation in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
 
     private async Task ReceiveClientMessage(string conversationId, ChatResponseModel model)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_CLIENT_MESSAGE, model);
+            _logger.LogWarning($"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
 
     private async Task ReceiveAssistantMessage(string conversationId, string? json)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+            _logger.LogWarning($"Failed to receive assistant message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
-            
+
     }
 
     private async Task GenerateSenderAction(string conversationId, ConversationSenderActionModel action)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_SENDER_ACTION, action);
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_SENDER_ACTION, action);
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_SENDER_ACTION, action);
+            _logger.LogWarning($"Failed to generate sender action in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
 
     private async Task DeleteMessage(string conversationId, ChatResponseModel model)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(DELETE_MESSAGE, model);
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(DELETE_MESSAGE, model);
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(DELETE_MESSAGE, model);
+            _logger.LogWarning($"Failed to delete message in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
 
     private async Task GenerateNotification(string conversationId, string? json)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_NOTIFICATION, json);
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(GENERATE_NOTIFICATION, json);
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_NOTIFICATION, json);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(GENERATE_NOTIFICATION, json);
+            _logger.LogWarning($"Failed to generate notification in {nameof(ChatHubConversationHook)} (conversation id: {conversationId})" +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
     #endregion
