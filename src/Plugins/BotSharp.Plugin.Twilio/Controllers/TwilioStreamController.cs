@@ -85,7 +85,7 @@ public class TwilioStreamController : TwilioController
         {
             var conv = new Conversation
             {
-                AgentId = _settings.AgentId,
+                AgentId = request.AgentId ?? _settings.AgentId,
                 Channel = ConversationChannel.Phone,
                 ChannelId = request.CallSid,
                 Title = $"Incoming phone call from {request.From}",
