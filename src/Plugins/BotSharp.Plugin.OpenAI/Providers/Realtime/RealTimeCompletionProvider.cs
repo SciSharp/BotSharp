@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Realtime.Models;
@@ -204,12 +205,18 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task SendEventToModel(object message)
     {
+        if (_webSocket.State != WebSocketState.Open)
+        {
+            return;
+        }
+
         if (message is not string data)
         {
             data = JsonSerializer.Serialize(message);
         }
 
         var buffer = Encoding.UTF8.GetBytes(data);
+        
         await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
@@ -247,13 +254,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return session;
     }
 
-    public async Task UpdateInitialSession(RealtimeHubConnection conn)
+    public async Task UpdateSession(RealtimeHubConnection conn)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(conv.AgentId);
+        var agent = await agentService.LoadAgent(conn.EntryAgentId);
 
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var chatClient = client.GetChatClient(_model);
@@ -559,7 +566,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     CurrentAgentId = conn.EntryAgentId,
                     FunctionName = output.Name,
                     FunctionArgs = output.Arguments,
-                    ToolCallId = output.CallId
+                    ToolCallId = output.CallId,
+                    MessageType = MessageTypeName.FunctionCall
                 });
             }
             else if (output.Type == "message")

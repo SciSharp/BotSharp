@@ -40,6 +40,20 @@ public class KnowledgeHook : IKnowledgeHook
                 var result = await _knowledgeService.SearchGraphKnowledge(text, options);
                 results.Add(result.Result);
             }
+            else if (knowledgeBase.Type == "document")
+            {
+                var options = new VectorSearchOptions
+                {
+                    Fields = null,
+                    Limit = 5,
+                    Confidence = 0.25f,
+                    WithVector = true
+                };
+                var result = await _knowledgeService.SearchVectorKnowledge(text, knowledgeBase.Name, options);
+                results.AddRange(result.Where(x => x.Data != null && x.Data.ContainsKey("text"))
+                               .Select(x => x.Data["text"].ToString())
+                               .Where(x => x != null)!);
+            }
             else
             {
                 var options = new VectorSearchOptions

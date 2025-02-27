@@ -4,6 +4,9 @@ namespace BotSharp.Plugin.Twilio.Models;
 
 public class ConversationalVoiceRequest : VoiceRequest
 {
+    [FromQuery(Name = "agent-id")]
+    public string AgentId { get; set; }
+
     [FromRoute]
     public string ConversationId { get; set; }
 

@@ -1,12 +1,13 @@
 {
   "name": "Payment",
-  "description": "Make payment when user wants to pay for the order",
+  "description": "Make payment when user confirmed the price and going to pay for the order",
   "createdDateTime": "2023-07-26T02:29:25.123224Z",
   "updatedDateTime": "2023-07-26T02:29:25.123274Z",
   "id": "fe8c60aa-b114-4ef3-93cb-a8efeac80f75",
   "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
+  "labels": [ "experiment" ],
   "routingRules": [
     {
       "field": "order_number",
