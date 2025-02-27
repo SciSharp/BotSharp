@@ -12,6 +12,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     private readonly ChatHubSettings _settings;
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
+    private readonly ILogger<StreamingLogHook> _logger;
     private readonly IConversationStateService _state;
     private readonly IUserIdentity _user;
     private readonly IAgentService _agentService;
@@ -30,6 +31,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         ChatHubSettings settings,
         IServiceProvider serivces,
         IHubContext<SignalRHub> chatHub,
+        ILogger<StreamingLogHook> logger,
         IConversationStateService state,
         IUserIdentity user,
         IAgentService agentService,
@@ -40,6 +42,7 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         _settings = settings;
         _services = serivces;
         _chatHub = chatHub;
+        _logger = logger;
         _state = state;
         _user = user;
         _agentService = agentService;
@@ -439,52 +442,83 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
     #region Private methods
     private async Task SendContentLog(string conversationId, ContentLogInputModel input)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(CONTENT_LOG_GENERATED, BuildContentLog(input));
+            _logger.LogWarning($"Failed to send content log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
 
     private async Task SendStateLog(string conversationId, string agentId, Dictionary<string, string> states, RoleDialogModel message)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(STATE_LOG_GENERATED, BuildStateLog(conversationId, agentId, states, message));
+            _logger.LogWarning($"Failed to send state log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
 
     private async Task SendAgentQueueLog(string conversationId, string log)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(AGENT_QUEUE_CHANGED, BuildAgentQueueChangedLog(conversationId, log));
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(AGENT_QUEUE_CHANGED, BuildAgentQueueChangedLog(conversationId, log));
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(AGENT_QUEUE_CHANGED, BuildAgentQueueChangedLog(conversationId, log));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(AGENT_QUEUE_CHANGED, BuildAgentQueueChangedLog(conversationId, log));
+            _logger.LogWarning($"Failed to send agent queue log in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
 
     private async Task SendStateChange(string conversationId, StateChangeModel stateChange)
     {
-        if (_settings.EventDispatchBy == EventDispatchType.Group)
+        try
         {
-            await _chatHub.Clients.Group(conversationId).SendAsync(STATE_CHANGED, BuildStateChangeLog(stateChange));
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(STATE_CHANGED, BuildStateChangeLog(stateChange));
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(STATE_CHANGED, BuildStateChangeLog(stateChange));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _chatHub.Clients.User(_user.Id).SendAsync(STATE_CHANGED, BuildStateChangeLog(stateChange));
+            _logger.LogWarning($"Failed to send state change in {nameof(StreamingLogHook)} (conversation id: {conversationId})." +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
         }
     }
-
 
 
     private string BuildContentLog(ContentLogInputModel input)
