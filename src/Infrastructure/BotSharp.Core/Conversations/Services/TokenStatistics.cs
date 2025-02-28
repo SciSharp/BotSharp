@@ -60,12 +60,13 @@ public class TokenStatistics : ITokenStatistics
         stat.SetState("llm_total_cost", total_cost, isNeedVersion: false, source: StateSource.Application);
 
         // Save stats
+        var agentId = message.CurrentAgentId ?? string.Empty;
         var globalStats = _services.GetRequiredService<IBotSharpStatsService>();
         var body = new BotSharpStatsInput
         {
             Metric = StatsMetric.AgentLlmCost,
             Dimension = "agent",
-            DimRefVal = message.CurrentAgentId,
+            DimRefVal = agentId,
             RecordTime = DateTime.UtcNow,
             IntervalType = StatsInterval.Day,
             Data = [
@@ -75,7 +76,7 @@ public class TokenStatistics : ITokenStatistics
                 new StatsKeyValuePair("completion_cost_total", deltaCompletionCost)
             ]
         };
-        globalStats.UpdateStats("global-llm-cost", body);
+        globalStats.UpdateStats($"global-llm-cost-{agentId}", body);
     }
 
     public void PrintStatistics()
