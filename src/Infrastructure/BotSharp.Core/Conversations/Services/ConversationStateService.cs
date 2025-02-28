@@ -220,7 +220,6 @@ public class ConversationStateService : IConversationStateService
     {
         if (_conversationId == null || _sidecar?.IsEnabled() == true)
         {
-            Reset();
             return;
         }
 
@@ -253,7 +252,6 @@ public class ConversationStateService : IConversationStateService
         }
 
         _db.UpdateConversationStates(_conversationId, states);
-        Reset();
         _logger.LogInformation($"Saved states of conversation {_conversationId}");
     }
 
