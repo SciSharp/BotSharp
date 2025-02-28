@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text.Json;
 using System.Text;
+using BotSharp.Abstraction.Options;
 
 namespace BotSharp.Plugin.OpenAI.Providers.Text;
 
@@ -12,14 +13,6 @@ public class TextCompletionProvider : ITextCompletion
     private readonly ILogger<TextCompletionProvider> _logger;
     private readonly OpenAiSettings _settings;
     protected string _model;
-
-    protected readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        WriteIndented = true,
-        AllowTrailingCommas = true,
-    };
 
     public virtual string Provider => "openai";
 
@@ -110,7 +103,7 @@ public class TextCompletionProvider : ITextCompletion
                 MaxTokens = maxTokens,
                 Temperature = temperature
             };
-            var data = JsonSerializer.Serialize(request, _jsonOptions);
+            var data = JsonSerializer.Serialize(request, BotSharpOptions.defaultJsonOptions);
             var httpRequest = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
@@ -121,7 +114,7 @@ public class TextCompletionProvider : ITextCompletion
             var httpResponse = await httpClient.SendAsync(httpRequest);
             httpResponse.EnsureSuccessStatusCode();
             var responseStr = await httpResponse.Content.ReadAsStringAsync();
-            var response = JsonSerializer.Deserialize<TextCompletionResponse>(responseStr, _jsonOptions);
+            var response = JsonSerializer.Deserialize<TextCompletionResponse>(responseStr, BotSharpOptions.defaultJsonOptions);
             return response;
         }
         catch (Exception ex)

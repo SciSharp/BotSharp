@@ -71,9 +71,11 @@ public class RealtimeHub : IRealtimeHub
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(conversation.AgentId);
-        conn.EntryAgentId = agent.Id;
+        conn.CurrentAgentId = agent.Id;
 
         var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.Push(agent.Id);
+
         var dialogs = convService.GetDialogHistory();
         if (dialogs.Count == 0)
         {
@@ -125,21 +127,19 @@ public class RealtimeHub : IRealtimeHub
                     {
                         await routing.InvokeFunction(message.FunctionName, message);
                         message.Role = AgentRole.Function;
-                        if (message.FunctionName == "route_to_agent")
+                        if (message.FunctionName == "route_to_agent" ||
+                            message.FunctionName == "util-routing-fallback_to_router")
                         {
                             var routedAgentId = routing.Context.GetCurrentAgentId();
-                            if (conn.EntryAgentId != routedAgentId)
+                            if (conn.CurrentAgentId != routedAgentId)
                             {
-                                conn.EntryAgentId = routedAgentId;
+                                conn.CurrentAgentId = routedAgentId;
                                 await completer.UpdateSession(conn);
-                                await completer.TriggerModelInference("Reply based on the function's output.");
                             }
                         }
-                        else
-                        {
-                            await completer.InsertConversationItem(message);
-                            await completer.TriggerModelInference("Reply based on the function's output.");
-                        }
+
+                        await completer.InsertConversationItem(message);
+                        await completer.TriggerModelInference("Reply based on the function's output.");
                     }
                     else
                     {
