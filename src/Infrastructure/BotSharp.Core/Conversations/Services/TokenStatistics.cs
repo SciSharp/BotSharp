@@ -78,7 +78,7 @@ public class TokenStatistics : ITokenStatistics
                 new StatsKeyValuePair("completion_cost_total", deltaCompletionCost)
             ]
         };
-        globalStats.UpdateStats($"global-llm-cost-{metric}-{dim}-{agentId}", body);
+        globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", body);
     }
 
     public void PrintStatistics()

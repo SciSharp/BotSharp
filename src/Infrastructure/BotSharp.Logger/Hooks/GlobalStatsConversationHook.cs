@@ -39,6 +39,6 @@ public class GlobalStatsConversationHook : IContentGeneratingHook
                 new StatsKeyValuePair("agent_call_count", 1)
             ]
         };
-        globalStats.UpdateStats($"global-agent-call-{metric}-{dim}-{agentId}", body);
+        globalStats.UpdateStats($"global-{metric}-{dim}-{agentId}", body);
     }
 }
