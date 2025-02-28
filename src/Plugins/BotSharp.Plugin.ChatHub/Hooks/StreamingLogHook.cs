@@ -85,6 +85,33 @@ public class StreamingLogHook : ConversationHookBase, IContentGeneratingHook, IR
         await SendContentLog(conversationId, input);
     }
 
+    public async Task OnSessionUpdated(Agent agent, string instruction, FunctionDef[] functions)
+    {
+        var conversationId = _state.GetConversationId();
+        if (string.IsNullOrEmpty(conversationId)) return;
+
+        // Agent queue log
+        var log = $"{instruction}";
+        if (functions.Length > 0)
+        {
+            log += $"\r\n\r\n[FUNCTIONS]:\r\n\r\n{string.Join("\r\n\r\n", functions.Select(x => JsonSerializer.Serialize(x, BotSharpOptions.defaultJsonOptions)))}";
+        }
+        _logger.LogInformation(log);
+
+        var message = new RoleDialogModel(AgentRole.Assistant, log)
+        {
+            MessageId = _routingCtx.MessageId
+        };
+        var input = new ContentLogInputModel(conversationId, message)
+        {
+            Name = agent.Name,
+            AgentId = agent.Id,
+            Source = ContentLogSource.Prompt,
+            Log = log
+        };
+        await SendContentLog(conversationId, input);
+    }
+
     public async Task OnRenderingTemplate(Agent agent, string name, string content)
     {
         if (!_convSettings.ShowVerboseLog) return;

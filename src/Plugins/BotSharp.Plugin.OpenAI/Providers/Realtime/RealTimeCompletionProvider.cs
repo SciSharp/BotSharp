@@ -1,7 +1,9 @@
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Files.Utilities;
 using BotSharp.Abstraction.Functions.Models;
+using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Realtime.Models;
+using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.OpenAI.Models.Realtime;
 using OpenAI.Chat;
 using System.Net.WebSockets;
@@ -212,13 +214,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         if (message is not string data)
         {
-            data = JsonSerializer.Serialize(message, options: new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+            data = JsonSerializer.Serialize(message, BotSharpOptions.defaultJsonOptions);
         }
-
-        _logger.LogInformation($"SendEventToModel:\r\n{data}");
 
         var buffer = Encoding.UTF8.GetBytes(data);
         
@@ -265,13 +262,23 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var conv = await convService.GetConversation(conn.ConversationId);
 
         var agentService = _services.GetRequiredService<IAgentService>();
-        var agent = await agentService.LoadAgent(conn.EntryAgentId);
+        var agent = await agentService.LoadAgent(conn.CurrentAgentId);
 
         var client = ProviderHelper.GetClient(Provider, _model, _services);
         var chatClient = client.GetChatClient(_model);
         var (prompt, messages, options) = PrepareOptions(agent, []);
 
         var instruction = messages.FirstOrDefault()?.Content.FirstOrDefault()?.Text ?? agent.Description;
+        var functions = options.Tools.Select(x =>
+        {
+            var fn = new FunctionDef
+            {
+                Name = x.FunctionName,
+                Description = x.FunctionDescription
+            };
+            fn.Parameters = JsonSerializer.Deserialize<FunctionParametersDef>(x.FunctionParameters);
+            return fn;
+        }).ToArray();
 
         var sessionUpdate = new
         {
@@ -287,20 +294,16 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 Voice = "alloy",
                 Instructions = instruction,
                 ToolChoice = "auto",
-                Tools = options.Tools.Select(x =>
-                {
-                    var fn = new FunctionDef
-                    {
-                        Name = x.FunctionName,
-                        Description = x.FunctionDescription
-                    };
-                    fn.Parameters = JsonSerializer.Deserialize<FunctionParametersDef>(x.FunctionParameters);
-                    return fn;
-                }).ToArray(),
+                Tools = functions,
                 Modalities = [ "text", "audio" ],
                 Temperature = Math.Max(options.Temperature ?? 0f, 0.6f)
             }
         };
+
+        await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
+        {
+            await hook.OnSessionUpdated(agent, instruction, functions);
+        });
 
         await SendEventToModel(sessionUpdate);
     }
@@ -568,7 +571,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 outputs.Add(new RoleDialogModel(output.Role, output.Arguments)
                 {
-                    CurrentAgentId = conn.EntryAgentId,
+                    CurrentAgentId = conn.CurrentAgentId,
                     FunctionName = output.Name,
                     FunctionArgs = output.Arguments,
                     ToolCallId = output.CallId,
@@ -581,9 +584,25 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
                 outputs.Add(new RoleDialogModel(output.Role, content.Transcript)
                 {
-                    CurrentAgentId = conn.EntryAgentId
+                    CurrentAgentId = conn.CurrentAgentId
                 });
             }
+        }
+
+        var contentHooks = _services.GetServices<IContentGeneratingHook>().ToList();
+        // After chat completion hook
+        foreach (var hook in contentHooks)
+        {
+            await hook.AfterGenerated(new RoleDialogModel(AgentRole.Assistant, "response.done")
+            {
+                CurrentAgentId = conn.CurrentAgentId
+            }, new TokenStatsModel
+            {
+                Provider = Provider,
+                Model = _model,
+                CompletionCount = data.Usage.OutputTokens,
+                PromptCount = data.Usage.InputTokens
+            });
         }
 
         return outputs;
@@ -594,7 +613,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(response);
         return new RoleDialogModel(AgentRole.User, data.Transcript)
         {
-            CurrentAgentId = conn.EntryAgentId
+            CurrentAgentId = conn.CurrentAgentId
         };
     }
 

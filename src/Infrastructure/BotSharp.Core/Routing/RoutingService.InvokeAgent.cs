@@ -54,7 +54,7 @@ public partial class RoutingService
             if (agent.Type == AgentType.Routing)
             {
                 // Forgot about what situation needs to handle in this way
-                // response.Content = "Apologies, I'm not quite sure I understand. Could you please provide additional clarification or context?";
+                response.Content = "Apologies, I'm not quite sure I understand. Could you please provide additional clarification or context?";
             }
 
             message = RoleDialogModel.From(message, role: AgentRole.Assistant, content: response.Content);

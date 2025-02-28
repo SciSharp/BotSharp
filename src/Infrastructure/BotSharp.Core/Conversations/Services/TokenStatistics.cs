@@ -113,6 +113,10 @@ public class TokenStatistics : ITokenStatistics
 
     public void StopTimer()
     {
+        if (_timer == null)
+        {
+            return;
+        }
         _timer.Stop();
     }
 }
