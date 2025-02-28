@@ -212,8 +212,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         if (message is not string data)
         {
-            data = JsonSerializer.Serialize(message);
+            data = JsonSerializer.Serialize(message, options: new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
         }
+
+        _logger.LogInformation($"SendEventToModel:\r\n{data}");
 
         var buffer = Encoding.UTF8.GetBytes(data);
         

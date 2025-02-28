@@ -75,6 +75,10 @@ public class RealtimeHub : IRealtimeHub
 
         var routing = _services.GetRequiredService<IRoutingService>();
         var dialogs = convService.GetDialogHistory();
+        if (dialogs.Count == 0)
+        {
+            dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
+        }
         routing.Context.SetDialogs(dialogs);
 
         await completer.Connect(conn, 
