@@ -1,6 +1,6 @@
 {
   "name": "util-routing-fallback_to_router",
-  "description": "Get the appropriate agent who can handle the user request.",
+  "description": "Return to the Router to find the appropriate agent who can handle the user's request.",
   "parameters": {
     "type": "object",
     "properties": {
