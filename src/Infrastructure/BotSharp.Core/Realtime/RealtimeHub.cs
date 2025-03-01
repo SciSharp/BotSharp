@@ -137,7 +137,7 @@ public class RealtimeHub : IRealtimeHub
 
                             await completer.UpdateSession(conn);
                             await completer.InsertConversationItem(message);
-                            await completer.TriggerModelInference($"Continue to proceed user request in {inst.AgentName}.");
+                            await completer.TriggerModelInference($"Guide the user through the next steps of the process as this Agent ({inst.AgentName}), following its instructions and operational procedures.");
                         }
                         else if (message.FunctionName == "util-routing-fallback_to_router")
                         {
@@ -147,7 +147,7 @@ public class RealtimeHub : IRealtimeHub
 
                             await completer.UpdateSession(conn);
                             await completer.InsertConversationItem(message);
-                            await completer.TriggerModelInference("Reply user request.");
+                            await completer.TriggerModelInference($"Check with user whether to proceed the new request: {inst.Reason}");
                         }
                         else
                         {
@@ -157,7 +157,7 @@ public class RealtimeHub : IRealtimeHub
                     }
                     else
                     {
-                        // append transcript to conversation
+                        // append output audio transcript to conversation
                         storage.Append(conn.ConversationId, message);
                         dialogs.Add(message);
 
@@ -166,10 +166,7 @@ public class RealtimeHub : IRealtimeHub
                             hook.SetAgent(agent)
                                 .SetConversation(conversation);
 
-                            if (!string.IsNullOrEmpty(message.Content))
-                            {
-                                await hook.OnResponseGenerated(message);
-                            }
+                            await hook.OnResponseGenerated(message);
                         }
                     }
                 }
@@ -180,9 +177,17 @@ public class RealtimeHub : IRealtimeHub
             },
             onInputAudioTranscriptionCompleted: async message =>
             {
-                // append transcript to conversation
+                // append input audio transcript to conversation
                 storage.Append(conn.ConversationId, message);
                 dialogs.Add(message);
+
+                foreach (var hook in hookProvider.HooksOrderByPriority)
+                {
+                    hook.SetAgent(agent)
+                        .SetConversation(conversation);
+
+                    await hook.OnMessageReceived(message);
+                }
             },
             onUserInterrupted: async () =>
             {
