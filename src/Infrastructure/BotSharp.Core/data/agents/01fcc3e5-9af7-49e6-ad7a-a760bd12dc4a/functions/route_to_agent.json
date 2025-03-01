@@ -26,6 +26,6 @@
         "description": "Required parameters of next action agent"
       }
     },
-    "required": [ "next_action_agent", "user_goal_agent", "args" ]
+    "required": [ "next_action_agent", "user_goal_agent", "next_action_reason", "args" ]
   }
 }

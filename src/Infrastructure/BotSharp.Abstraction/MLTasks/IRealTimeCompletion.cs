@@ -26,7 +26,9 @@ public interface IRealTimeCompletion
     Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations);
     Task UpdateSession(RealtimeHubConnection conn);
     Task InsertConversationItem(RoleDialogModel message);
+    Task RemoveConversationItem(string itemId);
     Task TriggerModelInference(string? instructions = null);
+    Task CancelModelResponse();
     Task<List<RoleDialogModel>> OnResponsedDone(RealtimeHubConnection conn, string response);
     Task<RoleDialogModel> OnConversationItemCreated(RealtimeHubConnection conn, string response);
 }
