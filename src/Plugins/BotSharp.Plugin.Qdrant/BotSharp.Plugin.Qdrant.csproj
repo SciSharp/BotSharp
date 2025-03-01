@@ -8,10 +8,11 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Qdrant.Client" Version="1.11.0" />
+    <PackageReference Include="Qdrant.Client" />
   </ItemGroup>
 
   <ItemGroup>

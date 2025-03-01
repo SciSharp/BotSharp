@@ -7,6 +7,7 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -27,8 +28,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Senparc.Weixin.MP.Middleware" Version="1.2.1" />
-    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageReference Include="Senparc.Weixin.MP.Middleware" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
 
 </Project>

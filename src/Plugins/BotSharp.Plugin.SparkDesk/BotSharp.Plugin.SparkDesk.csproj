@@ -8,10 +8,11 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sdcb.SparkDesk" Version="3.1.0" />
+    <PackageReference Include="Sdcb.SparkDesk" />
   </ItemGroup>
 
   <ItemGroup>

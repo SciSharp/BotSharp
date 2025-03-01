@@ -6,6 +6,7 @@
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   
   <ItemGroup>
@@ -24,10 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="2.7.27" />
-    <PackageReference Include="StrongGrid" Version="0.108.0" />
-    <PackageReference Include="Twilio.AspNet.Common" Version="8.1.1" />
-    <PackageReference Include="Twilio.AspNet.Core" Version="8.1.1" />
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="StrongGrid" />
+    <PackageReference Include="Twilio.AspNet.Common" />
+    <PackageReference Include="Twilio.AspNet.Core" />
   </ItemGroup>
 
   <ItemGroup>

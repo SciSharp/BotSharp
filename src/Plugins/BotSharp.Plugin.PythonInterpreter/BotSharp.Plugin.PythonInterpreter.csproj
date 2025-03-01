@@ -8,6 +8,7 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="pythonnet" Version="3.0.4" />
+    <PackageReference Include="pythonnet" />
   </ItemGroup>
 
   <ItemGroup>

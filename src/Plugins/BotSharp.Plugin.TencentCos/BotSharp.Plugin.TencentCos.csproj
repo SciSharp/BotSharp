@@ -8,10 +8,11 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Tencent.QCloud.Cos.Sdk" Version="5.4.39" />
+    <PackageReference Include="Tencent.QCloud.Cos.Sdk" />
   </ItemGroup>
 
   <ItemGroup>
