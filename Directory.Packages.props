@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <MSExtensionsVersion>8.0.0</MSExtensionsVersion>
-	<AspNetCoreVersion>2.3.0</AspNetCoreVersion>
+	  <AspNetCoreVersion>2.3.0</AspNetCoreVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="EntityFramework" Version="6.4.4" />
@@ -82,8 +82,32 @@
     <PackageVersion Include="Microsoft.Playwright" Version="1.49.0" />
     <PackageVersion Include="Senparc.Weixin.MP.Middleware" Version="1.2.1" />
     <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="8.0.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="3.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="8.3.0" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="8.0.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.8.1" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.8.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.8.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.8.0" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="8.2.0" />
+    <PackageVersion Include="Aspire.Hosting.NodeJs" Version="8.0.1" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageVersion Include="BotSharp.Logger" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.OpenAPI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.Dashboard" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.AzureOpenAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.GoogleAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.HuggingFace" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.KnowledgeBase" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.MetaAI" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
+    <PackageVersion Include="BotSharp.Plugin.ChatHub" Version="$(BotSharpVersion)" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.5" />
     <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="8.0.0" />
