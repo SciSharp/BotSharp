@@ -102,6 +102,23 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         });
     }
 
+    public async Task CancelModelResponse()
+    {
+        await SendEventToModel(new
+        {
+            type = "response.cancel"
+        });
+    }
+
+    public async Task RemoveConversationItem(string itemId)
+    {
+        await SendEventToModel(new
+        {
+            type = "conversation.item.delete",
+            item_id = itemId
+        });
+    }
+
     private async Task ReceiveMessage(RealtimeHubConnection conn, 
         Action<string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
@@ -169,7 +186,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "response.done")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
-                await Task.Delay(1000);
                 var messages = await OnResponsedDone(conn, receivedText);
                 onModelResponseDone(messages);
             }
@@ -296,7 +312,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 ToolChoice = "auto",
                 Tools = functions,
                 Modalities = [ "text", "audio" ],
-                Temperature = Math.Max(options.Temperature ?? 0f, 0.6f)
+                Temperature = Math.Max(options.Temperature ?? 0f, 0.6f),
+                MaxResponseOutputTokens = 512,
+                TurnDetection = new RealtimeSessionTurnDetection
+                {
+                    Threshold = 0.8f,
+                    SilenceDuration = 800
+                }
             }
         };
 
@@ -565,6 +587,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         var outputs = new List<RoleDialogModel>();
 
         var data = JsonSerializer.Deserialize<ResponseDone>(response).Body;
+        if (data.Status != "completed")
+        {
+            return [];
+        }
+
         foreach (var output in data.Outputs)
         {
             if (output.Type == "function_call")
@@ -575,6 +602,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                     FunctionName = output.Name,
                     FunctionArgs = output.Arguments,
                     ToolCallId = output.CallId,
+                    MessageId = output.Id,
                     MessageType = MessageTypeName.FunctionCall
                 });
             }

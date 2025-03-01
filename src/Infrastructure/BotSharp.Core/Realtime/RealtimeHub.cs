@@ -3,6 +3,7 @@ using System.Net.WebSockets;
 using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Realtime;
 
@@ -97,7 +98,7 @@ public class RealtimeHub : IRealtimeHub
 
                 if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                 {
-                    // await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
                 }
                 else
                 {
@@ -127,19 +128,32 @@ public class RealtimeHub : IRealtimeHub
                     {
                         await routing.InvokeFunction(message.FunctionName, message);
                         message.Role = AgentRole.Function;
-                        if (message.FunctionName == "route_to_agent" ||
-                            message.FunctionName == "util-routing-fallback_to_router")
-                        {
-                            var routedAgentId = routing.Context.GetCurrentAgentId();
-                            if (conn.CurrentAgentId != routedAgentId)
-                            {
-                                conn.CurrentAgentId = routedAgentId;
-                                await completer.UpdateSession(conn);
-                            }
-                        }
 
-                        await completer.InsertConversationItem(message);
-                        await completer.TriggerModelInference("Reply based on the function's output.");
+                        if (message.FunctionName == "route_to_agent")
+                        {
+                            var inst = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs ?? "{}");
+                            message.Content = $"Connected to agent of {inst.AgentName}";
+                            conn.CurrentAgentId = routing.Context.GetCurrentAgentId();
+
+                            await completer.UpdateSession(conn);
+                            await completer.InsertConversationItem(message);
+                            await completer.TriggerModelInference($"Continue to proceed user request in {inst.AgentName}.");
+                        }
+                        else if (message.FunctionName == "util-routing-fallback_to_router")
+                        {
+                            var inst = JsonSerializer.Deserialize<FallbackArgs>(message.FunctionArgs ?? "{}");
+                            message.Content = $"Returned to Router due to {inst.Reason}";
+                            conn.CurrentAgentId = routing.Context.GetCurrentAgentId();
+
+                            await completer.UpdateSession(conn);
+                            await completer.InsertConversationItem(message);
+                            await completer.TriggerModelInference("Reply user request.");
+                        }
+                        else
+                        {
+                            await completer.InsertConversationItem(message);
+                            await completer.TriggerModelInference("Reply based on the function's output.");
+                        }
                     }
                     else
                     {

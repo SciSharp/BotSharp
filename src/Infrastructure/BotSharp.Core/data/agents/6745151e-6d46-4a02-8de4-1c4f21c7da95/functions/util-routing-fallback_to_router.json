@@ -13,6 +13,6 @@
         "description": "User question or statement."
       }
     },
-    "required": [ "user_question" ]
+    "required": [ "fallback_reason" ]
   }
 }
