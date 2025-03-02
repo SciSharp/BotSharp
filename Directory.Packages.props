@@ -2,6 +2,7 @@
   <PropertyGroup>
     <MSExtensionsVersion>8.0.0</MSExtensionsVersion>
 	  <AspNetCoreVersion>2.3.0</AspNetCoreVersion>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="EntityFramework" Version="6.4.4" />

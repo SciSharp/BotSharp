@@ -7,7 +7,6 @@
     <Nullable>enable</Nullable>
     <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>e4bd9862-7edd-45f0-9a89-b8e3b3339c71</UserSecretsId>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>

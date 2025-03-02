@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
     <UserSecretsId>4fb8c9df-7975-4926-ba73-46c8ca440691</UserSecretsId>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup Condition="$(SolutionName)==PizzaBot">

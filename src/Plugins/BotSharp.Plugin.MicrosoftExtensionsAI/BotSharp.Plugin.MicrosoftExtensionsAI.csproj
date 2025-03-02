@@ -9,7 +9,6 @@
     <GenerateDocumentationFile>$(GeneratePackageOnBuild)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
     <NoWarn>$(NoWarn);NU5104</NoWarn>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
