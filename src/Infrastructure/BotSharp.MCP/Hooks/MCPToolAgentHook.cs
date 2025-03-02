@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BotSharp.MCP.Hooks;
 
@@ -32,7 +33,7 @@ public class MCPToolAgentHook : AgentHookBase
 
         agent.SecondaryFunctions ??= [];
 
-        var functions = GetMCPContent(agent);
+        var functions = GetMCPContent(agent).Result;
 
         foreach (var fn in functions)
         {
@@ -43,17 +44,17 @@ public class MCPToolAgentHook : AgentHookBase
         }
     }
 
-    private IEnumerable<FunctionDef> GetMCPContent(Agent agent)
+    private async Task<IEnumerable<FunctionDef>> GetMCPContent(Agent agent)
     {
         List<FunctionDef> functionDefs = new List<FunctionDef>();
         var mcpClientManager = _services.GetRequiredService<MCPClientManager>();
         var mcps = agent.McpTools;
         foreach (var item in mcps)
         {
-            var ua = mcpClientManager.Factory.GetClientAsync(item.ServerId).Result;
-            if (ua != null)
+            var mcpClient = await mcpClientManager.Factory.GetClientAsync(item.ServerId);
+            if (mcpClient != null)
             {
-                var tools = ua.ListToolsAsync().Result;
+                var tools = await mcpClient.ListToolsAsync();
                 var funcnames = item.Functions.Select(x => x.Name).ToList();
                 foreach (var tool in tools.Tools.Where(x => funcnames.Contains(x.Name, StringComparer.OrdinalIgnoreCase)))
                 {
