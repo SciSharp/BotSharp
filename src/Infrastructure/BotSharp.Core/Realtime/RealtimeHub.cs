@@ -1,9 +1,9 @@
 using BotSharp.Abstraction.Realtime;
 using System.Net.WebSockets;
-using System;
 using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.Agents.Models;
+using BotSharp.Abstraction.Conversations.Enums;
+using BotSharp.Abstraction.Routing.Models;
 
 namespace BotSharp.Core.Realtime;
 
@@ -11,6 +11,7 @@ public class RealtimeHub : IRealtimeHub
 {
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+
     public RealtimeHub(IServiceProvider services, ILogger<RealtimeHub> logger)
     {
         _services = services;
@@ -71,18 +72,23 @@ public class RealtimeHub : IRealtimeHub
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(conversation.AgentId);
-        conn.EntryAgentId = agent.Id;
+        conn.CurrentAgentId = agent.Id;
 
         var routing = _services.GetRequiredService<IRoutingService>();
+        routing.Context.Push(agent.Id);
+
         var dialogs = convService.GetDialogHistory();
+        if (dialogs.Count == 0)
+        {
+            dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
+        }
         routing.Context.SetDialogs(dialogs);
 
         await completer.Connect(conn, 
             onModelReady: async () => 
             {
                 // Control initial session
-                await completer.UpdateInitialSession(conn);
-                
+                await completer.UpdateSession(conn);
 
                 // Add dialog history
                 foreach (var item in dialogs)
@@ -92,7 +98,7 @@ public class RealtimeHub : IRealtimeHub
 
                 if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                 {
-                    // await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
                 }
                 else
                 {
@@ -118,16 +124,40 @@ public class RealtimeHub : IRealtimeHub
                 foreach (var message in messages)
                 {
                     // Invoke function
-                    if (message.MessageType == "function_call")
+                    if (message.MessageType == MessageTypeName.FunctionCall)
                     {
                         await routing.InvokeFunction(message.FunctionName, message);
                         message.Role = AgentRole.Function;
-                        await completer.InsertConversationItem(message);
-                        await completer.TriggerModelInference("Reply based on the function's output.");
+
+                        if (message.FunctionName == "route_to_agent")
+                        {
+                            var inst = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs ?? "{}");
+                            message.Content = $"Connected to agent of {inst.AgentName}";
+                            conn.CurrentAgentId = routing.Context.GetCurrentAgentId();
+
+                            await completer.UpdateSession(conn);
+                            await completer.InsertConversationItem(message);
+                            await completer.TriggerModelInference($"Guide the user through the next steps of the process as this Agent ({inst.AgentName}), following its instructions and operational procedures.");
+                        }
+                        else if (message.FunctionName == "util-routing-fallback_to_router")
+                        {
+                            var inst = JsonSerializer.Deserialize<FallbackArgs>(message.FunctionArgs ?? "{}");
+                            message.Content = $"Returned to Router due to {inst.Reason}";
+                            conn.CurrentAgentId = routing.Context.GetCurrentAgentId();
+
+                            await completer.UpdateSession(conn);
+                            await completer.InsertConversationItem(message);
+                            await completer.TriggerModelInference($"Check with user whether to proceed the new request: {inst.Reason}");
+                        }
+                        else
+                        {
+                            await completer.InsertConversationItem(message);
+                            await completer.TriggerModelInference("Reply based on the function's output.");
+                        }
                     }
                     else
                     {
-                        // append transcript to conversation
+                        // append output audio transcript to conversation
                         storage.Append(conn.ConversationId, message);
                         dialogs.Add(message);
 
@@ -136,10 +166,7 @@ public class RealtimeHub : IRealtimeHub
                             hook.SetAgent(agent)
                                 .SetConversation(conversation);
 
-                            if (!string.IsNullOrEmpty(message.Content))
-                            {
-                                await hook.OnMessageReceived(message);
-                            }
+                            await hook.OnResponseGenerated(message);
                         }
                     }
                 }
@@ -150,9 +177,17 @@ public class RealtimeHub : IRealtimeHub
             },
             onInputAudioTranscriptionCompleted: async message =>
             {
-                // append transcript to conversation
+                // append input audio transcript to conversation
                 storage.Append(conn.ConversationId, message);
                 dialogs.Add(message);
+
+                foreach (var hook in hookProvider.HooksOrderByPriority)
+                {
+                    hook.SetAgent(agent)
+                        .SetConversation(conversation);
+
+                    await hook.OnMessageReceived(message);
+                }
             },
             onUserInterrupted: async () =>
             {

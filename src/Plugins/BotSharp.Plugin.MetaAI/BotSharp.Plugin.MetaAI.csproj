@@ -8,6 +8,7 @@
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <GenerateDocumentationFile>$(GenerateDocumentationFile)</GenerateDocumentationFile>
     <OutputPath>$(SolutionDir)packages</OutputPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FaissMask" Version="0.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-    <PackageReference Include="FastText.NetWrapper" Version="1.3.0" />
+    <PackageReference Include="FaissMask" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" />
+    <PackageReference Include="FastText.NetWrapper" />
   </ItemGroup>
 </Project>
