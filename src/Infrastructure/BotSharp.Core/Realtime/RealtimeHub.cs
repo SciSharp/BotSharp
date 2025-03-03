@@ -21,28 +21,22 @@ public class RealtimeHub : IRealtimeHub
     public async Task Listen(WebSocket userWebSocket, 
         Func<string, RealtimeHubConnection> onUserMessageReceived)
     {
-        var buffer = new byte[1024 * 4];
+        var buffer = new byte[1024 * 16];
         WebSocketReceiveResult result;
 
-        var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
-        var model = llmProviderService.GetProviderModel("openai", "gpt-4",
-            realTime: true).Name;
-
         var completer = _services.GetServices<IRealTimeCompletion>().First(x => x.Provider == "openai");
-        completer.SetModelName(model);
 
         do
         {
             result = await userWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             string receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            _logger.LogDebug($"Received from user: {receivedText}");
+
             if (string.IsNullOrEmpty(receivedText))
             {
                 continue;
             }
 
             var conn = onUserMessageReceived(receivedText);
-            conn.Model = model;
 
             if (conn.Event == "user_connected")
             {
@@ -74,6 +68,17 @@ public class RealtimeHub : IRealtimeHub
         var agent = await agentService.LoadAgent(conversation.AgentId);
         conn.CurrentAgentId = agent.Id;
 
+        // Set model
+        var model = agent.LlmConfig.Model;
+        if (!model.Contains("-realtime-"))
+        {
+            var llmProviderService = _services.GetRequiredService<ILlmProviderService>();
+            model = llmProviderService.GetProviderModel("openai", "gpt-4", realTime: true).Name;
+        }
+
+        completer.SetModelName(model);
+        conn.Model = model;
+
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.Push(agent.Id);
 
@@ -98,7 +103,7 @@ public class RealtimeHub : IRealtimeHub
 
                 if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                 {
-                    await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    // await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
                 }
                 else
                 {

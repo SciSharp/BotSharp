@@ -128,9 +128,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
-        var buffer = new byte[1024 * 1024 * 1];
+        var buffer = new byte[1024 * 256];
         WebSocketReceiveResult result;
-        string lastAssistantItem = "";
+        string? lastAssistantItem = null;
+
         do
         {
             result = await _webSocket.ReceiveAsync(
@@ -166,15 +167,17 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
                 var data = JsonSerializer.Deserialize<ResponseAudioTranscript>(receivedText);
+                await Task.Delay(1000);
                 onAudioTranscriptDone(data.Transcript);
             }
             else if (response.Type == "response.audio.delta")
             {
                 var audio = JsonSerializer.Deserialize<ResponseAudioDelta>(receivedText);
-                lastAssistantItem = audio?.ItemId ?? "";
+                lastAssistantItem = audio?.ItemId;
 
                 if (audio != null && audio.Delta != null)
                 {
+                    _logger.LogDebug($"{response.Type}: {receivedText}");
                     onModelAudioDeltaReceived(audio.Delta);
                 }
             }
@@ -204,16 +207,19 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             {
                 // var elapsedTime = latestMediaTimestamp - responseStartTimestampTwilio;
                 // handle use interuption
-                var truncateEvent = new
+                if (!string.IsNullOrEmpty(lastAssistantItem))
                 {
-                    type = "conversation.item.truncate",
-                    item_id = lastAssistantItem,
-                    content_index = 0,
-                    audio_end_ms = 100
-                };
+                    var truncateEvent = new
+                    {
+                        type = "conversation.item.truncate",
+                        item_id = lastAssistantItem,
+                        content_index = 0,
+                        audio_end_ms = 300
+                    };
 
-                await SendEventToModel(truncateEvent);
-                onUserInterrupted();
+                    await SendEventToModel(truncateEvent);
+                    onUserInterrupted();
+                }
             }
 
         } while (!result.CloseStatus.HasValue);
@@ -612,7 +618,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
                 outputs.Add(new RoleDialogModel(output.Role, content.Transcript)
                 {
-                    CurrentAgentId = conn.CurrentAgentId
+                    CurrentAgentId = conn.CurrentAgentId,
+                    MessageId = output.Id,
+                    MessageType = MessageTypeName.Plain
                 });
             }
         }
