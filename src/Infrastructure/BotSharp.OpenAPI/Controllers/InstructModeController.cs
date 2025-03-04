@@ -75,6 +75,18 @@ public class InstructModeController : ControllerBase
         {
             new RoleDialogModel(AgentRole.User, input.Text)
         });
+
+        var hooks = _services.GetServices<IInstructHook>();
+        foreach (var hook in hooks)
+        {
+            await hook.OnResponseGenerated(new InstructResponseModel
+            {
+                AgentId = input.AgentId,
+                Provider = input.Provider,
+                Model = input.Model
+            });
+        }
+
         return message.Content;
     }
     #endregion

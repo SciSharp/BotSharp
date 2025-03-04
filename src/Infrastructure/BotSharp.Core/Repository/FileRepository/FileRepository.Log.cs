@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using System.IO;
 
@@ -119,6 +120,40 @@ namespace BotSharp.Core.Repository
                 logs.Add(log);
             }
             return logs.OrderBy(x => x.CreatedTime).ToList();
+        }
+        #endregion
+
+        #region Instruction Log
+        public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
+        {
+            if (logs.IsNullOrEmpty()) return false;
+
+            var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+            if (!Directory.Exists(baseDir))
+            {
+                Directory.CreateDirectory(baseDir);
+            }
+
+            foreach (var log in logs)
+            {
+                var file = Path.Combine(baseDir, $"{Guid.NewGuid()}.log");
+                var text = JsonSerializer.Serialize(log, _options);
+                File.WriteAllText(file, text);
+            }
+            return true;
+        }
+
+        public PagedItems<InstructionLogModel> GetInstructionLogs(InstructLogFilter filter)
+        {
+            if (filter == null)
+            {
+                filter = InstructLogFilter.Empty();
+            }
+
+            return new PagedItems<InstructionLogModel>
+            {
+
+            };
         }
         #endregion
 

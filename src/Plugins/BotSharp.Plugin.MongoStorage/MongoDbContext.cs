@@ -193,4 +193,6 @@ public class MongoDbContext
     public IMongoCollection<GlobalStatisticsDocument> GlobalStatistics
         => GetCollectionOrCreate<GlobalStatisticsDocument>("GlobalStatistics");
 
+    public IMongoCollection<InstructionLogBetaDocument> InstructionLogs
+        => GetCollectionOrCreate<InstructionLogBetaDocument>("InstructionLogsBeta");
 }
