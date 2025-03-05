@@ -1,13 +1,9 @@
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Models;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
-using System.Text.Json;
-using System.Collections.Concurrent;
-using System.Text;
 using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Services.Stream;

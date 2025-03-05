@@ -99,8 +99,8 @@ public class RealtimeHub : IRealtimeHub
         await completer.Connect(conn, 
             onModelReady: async () => 
             {
-                // Control initial session
-                await completer.UpdateSession(conn);
+                // Control initial session, prevent initial response interruption
+                await completer.UpdateSession(conn, turnDetection: false);
 
                 // Add dialog history
                 foreach (var item in dialogs)
@@ -110,12 +110,16 @@ public class RealtimeHub : IRealtimeHub
 
                 if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                 {
-                    // await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
                 }
                 else
                 {
                     await completer.TriggerModelInference("Reply based on the conversation context.");
                 }
+
+                // Start turn detection
+                await Task.Delay(1000 * 8);
+                await completer.UpdateSession(conn, turnDetection: true);
             },
             onModelAudioDeltaReceived: async audioDeltaData =>
             {

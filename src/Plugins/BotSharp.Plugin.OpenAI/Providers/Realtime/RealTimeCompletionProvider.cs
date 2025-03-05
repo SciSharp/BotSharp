@@ -59,10 +59,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         if (_webSocket.State == WebSocketState.Open)
         {
-            onModelReady();
-
             // Receive a message
             _ = ReceiveMessage(conn,
+                onModelReady,
                 onModelAudioDeltaReceived,
                 onModelAudioResponseDone,
                 onAudioTranscriptDone,
@@ -122,7 +121,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         });
     }
 
-    private async Task ReceiveMessage(RealtimeHubConnection conn, 
+    private async Task ReceiveMessage(RealtimeHubConnection conn,
+        Action onModelReady,
         Action<string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
@@ -156,6 +156,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "session.created")
             {
                 _logger.LogInformation($"{response.Type}: {receivedText}");
+                onModelReady();
             }
             else if (response.Type == "session.updated")
             {
@@ -295,7 +296,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return session;
     }
 
-    public async Task UpdateSession(RealtimeHubConnection conn)
+    public async Task UpdateSession(RealtimeHubConnection conn, bool turnDetection = true)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
@@ -345,6 +346,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 }
             }
         };
+
+        if (!turnDetection)
+        {
+            sessionUpdate.session.TurnDetection = null;
+        }
 
         await HookEmitter.Emit<IContentGeneratingHook>(_services, async hook =>
         {
