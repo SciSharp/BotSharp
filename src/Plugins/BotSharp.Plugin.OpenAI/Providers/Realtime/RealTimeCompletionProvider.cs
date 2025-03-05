@@ -128,9 +128,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
-        var buffer = new byte[1024 * 256];
+        var buffer = new byte[1024 * 16];
         WebSocketReceiveResult result;
-        string? lastAssistantItem = null;
 
         do
         {
@@ -173,7 +172,16 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "response.audio.delta")
             {
                 var audio = JsonSerializer.Deserialize<ResponseAudioDelta>(receivedText);
-                lastAssistantItem = audio?.ItemId;
+                // Record last assistant item ID for interruption handling
+                if (conn.ResponseStartTimestamp.HasValue)
+                {
+                    conn.ResponseStartTimestamp = conn.LatestMediaTimestamp;
+                }
+
+                if (!string.IsNullOrEmpty(conn.StreamId))
+                {
+                    conn.LastAssistantItem = audio?.ItemId;
+                }
 
                 if (audio != null && audio.Delta != null)
                 {
@@ -205,19 +213,24 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             }
             else if (response.Type == "input_audio_buffer.speech_started")
             {
-                // var elapsedTime = latestMediaTimestamp - responseStartTimestampTwilio;
-                // handle use interuption
-                if (!string.IsNullOrEmpty(lastAssistantItem))
+                // Handle user interuption
+                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestamp != null)
                 {
-                    var truncateEvent = new
-                    {
-                        type = "conversation.item.truncate",
-                        item_id = lastAssistantItem,
-                        content_index = 0,
-                        audio_end_ms = 300
-                    };
+                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestamp;
 
-                    await SendEventToModel(truncateEvent);
+                    if (!string.IsNullOrEmpty(conn.LastAssistantItem))
+                    {
+                        var truncateEvent = new
+                        {
+                            type = "conversation.item.truncate",
+                            item_id = conn.LastAssistantItem,
+                            content_index = 0,
+                            audio_end_ms = elapsedTime
+                        };
+
+                        await SendEventToModel(truncateEvent);
+                    }
+
                     onUserInterrupted();
                 }
             }
@@ -256,6 +269,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
         var args = new RealtimeSessionCreationRequest
         {
+            Model = _model,
             Instructions = instruction,
             ToolChoice = "auto",
             Tools = options.Tools.Select(x =>
@@ -271,7 +285,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         };
 
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
-        var settings = settingsService.GetSetting(Provider, args.Model);
+        var settings = settingsService.GetSetting(Provider, args.Model ?? _model);
 
         var api = _services.GetRequiredService<IOpenAiRealtimeApi>();
         var session = await api.GetSessionAsync(args, settings.ApiKey);
@@ -318,12 +332,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 ToolChoice = "auto",
                 Tools = functions,
                 Modalities = [ "text", "audio" ],
-                Temperature = Math.Max(options.Temperature ?? 0f, 0.6f),
+                Temperature = Math.Max(options.Temperature ?? 0f, 0.8f),
                 MaxResponseOutputTokens = 512,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    Threshold = 0.8f,
-                    SilenceDuration = 800
+                    Threshold = 0.5f,
+                    PrefixPadding = 300,
+                    SilenceDuration = 500
                 }
             }
         };

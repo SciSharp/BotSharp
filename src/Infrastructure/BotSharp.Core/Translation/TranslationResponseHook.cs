@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Agents;
+using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Translation;
 using System;
@@ -23,6 +24,11 @@ namespace BotSharp.Logger.Hooks
         {
             var agentSettings = _services.GetRequiredService<AgentSettings>();
             if (!agentSettings.EnableTranslator)
+            {
+                return;
+            }
+
+            if (_states.GetState("channel") == ConversationChannel.Phone)
             {
                 return;
             }

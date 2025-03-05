@@ -112,8 +112,28 @@ public class RealtimeHub : IRealtimeHub
             },
             onModelAudioDeltaReceived: async audioDeltaData =>
             {
+                // If this is the first delta of a new response, set the start timestamp
+                if (!conn.ResponseStartTimestamp.HasValue)
+                {
+                    conn.ResponseStartTimestamp = conn.LatestMediaTimestamp;
+                    _logger.LogDebug($"Setting start timestamp for new response: {conn.ResponseStartTimestamp}ms");
+                }
+
                 var data = conn.OnModelMessageReceived(audioDeltaData);
                 await SendEventToUser(userWebSocket, data);
+
+                // Send mark messages to Media Streams so we know if and when AI response playback is finished
+                if (!string.IsNullOrEmpty(conn.StreamId))
+                {
+                    var markEvent = new
+                    {
+                        @event = "mark",
+                        streamSid = conn.StreamId,
+                        mark = new { name = "responsePart" }
+                    };
+                    await SendEventToUser(userWebSocket, markEvent);
+                    conn.MarkQueue.Enqueue("responsePart");
+                }
             }, 
             onModelAudioResponseDone: async () =>
             {
@@ -160,16 +180,19 @@ public class RealtimeHub : IRealtimeHub
                             await completer.TriggerModelInference("Reply based on the function's output.");
                         }
                     }
-                    // append output audio transcript to conversation
-                    storage.Append(conn.ConversationId, message);
-                    dialogs.Add(message);
-
-                    foreach (var hook in hookProvider.HooksOrderByPriority)
+                    else
                     {
-                        hook.SetAgent(agent)
-                            .SetConversation(conversation);
+                        // append output audio transcript to conversation
+                        storage.Append(conn.ConversationId, message);
+                        dialogs.Add(message);
 
-                        await hook.OnResponseGenerated(message);
+                        foreach (var hook in hookProvider.HooksOrderByPriority)
+                        {
+                            hook.SetAgent(agent)
+                                .SetConversation(conversation);
+
+                            await hook.OnResponseGenerated(message);
+                        }
                     }
                 }
             },
@@ -193,6 +216,11 @@ public class RealtimeHub : IRealtimeHub
             },
             onUserInterrupted: async () =>
             {
+                // Reset states
+                conn.MarkQueue.Clear();
+                conn.LastAssistantItem = null;
+                conn.ResponseStartTimestamp = null;
+
                 var data = conn.OnModelUserInterrupted();
                 await SendEventToUser(userWebSocket, data);
             });
