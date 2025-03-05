@@ -160,19 +160,16 @@ public class RealtimeHub : IRealtimeHub
                             await completer.TriggerModelInference("Reply based on the function's output.");
                         }
                     }
-                    else
+                    // append output audio transcript to conversation
+                    storage.Append(conn.ConversationId, message);
+                    dialogs.Add(message);
+
+                    foreach (var hook in hookProvider.HooksOrderByPriority)
                     {
-                        // append output audio transcript to conversation
-                        storage.Append(conn.ConversationId, message);
-                        dialogs.Add(message);
+                        hook.SetAgent(agent)
+                            .SetConversation(conversation);
 
-                        foreach (var hook in hookProvider.HooksOrderByPriority)
-                        {
-                            hook.SetAgent(agent)
-                                .SetConversation(conversation);
-
-                            await hook.OnResponseGenerated(message);
-                        }
+                        await hook.OnResponseGenerated(message);
                     }
                 }
             },
