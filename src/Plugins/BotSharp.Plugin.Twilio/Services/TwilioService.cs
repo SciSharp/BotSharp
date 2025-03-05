@@ -189,7 +189,14 @@ public class TwilioService
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}"));
+                if (speechPath.StartsWith("twilio/"))
+                {
+                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+                }
+                else
+                {
+                    response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}"));
+                }
             }
         }
         var connect = new Connect();

@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Models;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
@@ -10,15 +9,17 @@ using Task = System.Threading.Tasks.Task;
 namespace BotSharp.Plugin.Twilio.Services.Stream;
 
 /// <summary>
-/// Refrence to https://github.com/twilio-samples/speech-assistant-openai-realtime-api-node/blob/main/index.js
+/// Reference to https://github.com/twilio-samples/speech-assistant-openai-realtime-api-node/blob/main/index.js
 /// </summary>
 public class TwilioStreamMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<TwilioStreamMiddleware> _logger;
 
-    public TwilioStreamMiddleware(RequestDelegate next)
+    public TwilioStreamMiddleware(RequestDelegate next, ILogger<TwilioStreamMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task Invoke(HttpContext httpContext)
@@ -32,7 +33,14 @@ public class TwilioStreamMiddleware
                 var services = httpContext.RequestServices;
                 var conversationId = request.Path.Value.Split("/").Last();
                 using WebSocket webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
-                await HandleWebSocket(services, conversationId, webSocket);
+                try
+                {
+                    await HandleWebSocket(services, conversationId, webSocket);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error in WebSocket communication: {ex.Message} for conversation {conversationId}");
+                }
                 return;
             }
         }
@@ -43,7 +51,7 @@ public class TwilioStreamMiddleware
     private async Task HandleWebSocket(IServiceProvider services, string conversationId, WebSocket webSocket)
     {
         var hub = services.GetRequiredService<IRealtimeHub>();
-        
+
         var conn = new RealtimeHubConnection
         {
             ConversationId = conversationId
@@ -100,12 +108,29 @@ public class TwilioStreamMiddleware
             if (response.Event == "start")
             {
                 var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
+                conn.LatestMediaTimestamp = 0;
+                conn.ResponseStartTimestamp = null;
                 conn.Data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
             }
             else if (response.Event == "media")
             {
                 var mediaResponse = JsonSerializer.Deserialize<StreamEventMediaResponse>(receivedText);
+                conn.LatestMediaTimestamp = long.Parse(mediaResponse.Body.Timestamp);
                 conn.Data = mediaResponse.Body.Payload;
+            }
+            else if (response.Event == "dtmf")
+            {
+                var dtmfResponse = JsonSerializer.Deserialize<StreamEventDtmfResponse>(receivedText);
+                if (dtmfResponse.Body.Digit == "#")
+                {
+                    conn.Event = "user_dtmf_received";
+                    conn.Data = conn.KeypadInputBuffer;
+                    conn.KeypadInputBuffer = string.Empty;
+                }
+                else
+                {
+                    conn.KeypadInputBuffer += dtmfResponse.Body.Digit;
+                }
             }
 
             return conn;

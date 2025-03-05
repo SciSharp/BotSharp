@@ -8,7 +8,6 @@
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>$(SolutionDir)packages</OutputPath>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>

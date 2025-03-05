@@ -8,7 +8,6 @@
     <PackageIcon>Icon.png</PackageIcon>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
     <OutputPath>$(SolutionDir)packages</OutputPath>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
