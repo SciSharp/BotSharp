@@ -7,10 +7,12 @@ namespace BotSharp.Plugin.SparkDesk.Providers;
 public class ChatCompletionProvider : IChatCompletion
 {
     public string Provider => "sparkdesk";
+    public string Model => _model;
 
     private readonly SparkDeskSettings _settings;
     private readonly IServiceProvider _services;
     private readonly ILogger _logger;
+    private List<string> renderedInstructions = [];
     private string _model;
 
     public ChatCompletionProvider(IServiceProvider services,
@@ -42,7 +44,8 @@ public class ChatCompletionProvider : IChatCompletion
         var responseMessage = new RoleDialogModel(AgentRole.Assistant, response.Text)
         {
             CurrentAgentId = agent.Id,
-            MessageId = conversations.Last().MessageId
+            MessageId = conversations.Last().MessageId,
+            RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
         if (response.FunctionCall != null)
@@ -52,7 +55,8 @@ public class ChatCompletionProvider : IChatCompletion
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.Last().MessageId,
                 FunctionName = response.FunctionCall.Name,
-                FunctionArgs = response.FunctionCall.Arguments
+                FunctionArgs = response.FunctionCall.Arguments,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
            
         }
@@ -92,7 +96,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         var msg = new RoleDialogModel(AgentRole.Assistant, response.Text)
         {
-            CurrentAgentId = agent.Id
+            CurrentAgentId = agent.Id,
+            RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
         // After chat completion hook
@@ -116,7 +121,8 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 FunctionName = response.FunctionCall.Name,
-                FunctionArgs = response.FunctionCall.Arguments
+                FunctionArgs = response.FunctionCall.Arguments,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
             // Somethings LLM will generate a function name with agent name.
@@ -150,14 +156,16 @@ public class ChatCompletionProvider : IChatCompletion
                 { 
                     CurrentAgentId = agent.Id,
                     FunctionName = response.FunctionCall.Name,
-                    FunctionArgs = response.FunctionCall.Arguments
+                    FunctionArgs = response.FunctionCall.Arguments,
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
                 });
                 continue;
             }
 
             await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, response.Text)
             {
-                CurrentAgentId = agent.Id
+                CurrentAgentId = agent.Id,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             });
  
         } 
@@ -175,10 +183,12 @@ public class ChatCompletionProvider : IChatCompletion
         var functions = new List<FunctionDef>();
         var agentService = _services.GetRequiredService<IAgentService>();
         var messages = new List<ChatMessage>();
+        renderedInstructions = [];
 
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
             var instruction = agentService.RenderedInstruction(agent);
+            renderedInstructions.Add(instruction);
             messages.Add(ChatMessage.FromSystem(instruction));
         }
         if (!string.IsNullOrEmpty(agent.Knowledges))

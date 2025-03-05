@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Repositories.Filters;
 using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -167,28 +168,9 @@ public partial class MongoRepository
         {
             filters.Add(builder.In(x => x.Model, filter.Models));
         }
-
-        if (!filter.States.IsNullOrEmpty())
+        if (!filter.TemplateNames.IsNullOrEmpty())
         {
-            foreach (var pair in filter.States)
-            {
-                if (string.IsNullOrWhiteSpace(pair.Key)) continue;
-
-                // Format key
-                var keys = pair.Key.Split(".").ToList();
-                keys.Insert(1, "data");
-                keys.Insert(0, "States");
-                var formattedKey = string.Join(".", keys);
-
-                if (pair.Value == null)
-                {
-                    filters.Add(builder.Exists(formattedKey));
-                }
-                else
-                {
-                    filters.Add(builder.Eq(formattedKey, pair.Value));
-                }
-            }
+            filters.Add(builder.In(x => x.TemplateName, filter.TemplateNames));
         }
 
         var filterDef = builder.And(filters);
@@ -196,10 +178,23 @@ public partial class MongoRepository
         var docs = _dc.InstructionLogs.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
         var count = _dc.InstructionLogs.CountDocuments(filterDef);
 
+        var agentIds = docs.Where(x => !string.IsNullOrEmpty(x.AgentId)).Select(x => x.AgentId).ToList();
+        var agents = GetAgents(new AgentFilter
+        {
+            AgentIds = agentIds
+        });
+
         var logs = docs.Select(x =>
         {
             var log = InstructionLogBetaDocument.ToDomainModel(x);
-            log.States = x.States.ToDictionary(x => x.Key, x => x.Value.GetElement("data").Value.ToString() ?? string.Empty);
+            log.AgentName = !string.IsNullOrEmpty(x.AgentId) ? agents.FirstOrDefault(a => a.Id == x.AgentId)?.Name : null;
+            log.States = x.States.ToDictionary(p => p.Key, p =>
+            {
+                var jsonStr = p.Value.ToJson();
+                var jsonDoc = JsonDocument.Parse(jsonStr);
+                var data = jsonDoc.RootElement.GetProperty("data");
+                return data.ValueKind != JsonValueKind.Null ? data.ToString() : null;
+            });
             return log;
         }).ToList();
 

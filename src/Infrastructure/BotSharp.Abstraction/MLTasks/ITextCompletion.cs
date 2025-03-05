@@ -6,6 +6,7 @@ public interface ITextCompletion
     /// The LLM provider like Microsoft Azure, OpenAI, ClaudAI
     /// </summary>
     string Provider { get; }
+    string Model { get; }
 
     /// <summary>
     /// Set model name, one provider can consume different model or version(s)

@@ -136,7 +136,8 @@ namespace BotSharp.Core.Repository
 
             foreach (var log in logs)
             {
-                var file = Path.Combine(baseDir, $"{Guid.NewGuid()}.log");
+                var file = Path.Combine(baseDir, $"{Guid.NewGuid()}.json");
+                log.InnerStates = BuildLogStates(log.States);
                 var text = JsonSerializer.Serialize(log, _options);
                 File.WriteAllText(file, text);
             }
@@ -150,9 +151,67 @@ namespace BotSharp.Core.Repository
                 filter = InstructLogFilter.Empty();
             }
 
+            var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+            if (!Directory.Exists(baseDir))
+            {
+                return new();
+            }
+
+            var logs = new List<InstructionLogModel>();
+            var files = Directory.GetFiles(baseDir);
+            foreach (var file in files)
+            {
+                var json = File.ReadAllText(file);
+                var log = JsonSerializer.Deserialize<InstructionLogModel>(json, _options);
+                if (log == null) continue;
+
+                var matched = true;
+                if (!filter.AgentIds.IsNullOrEmpty())
+                {
+                    matched = matched && filter.AgentIds.Contains(log.AgentId);
+                }
+                if (!filter.Providers.IsNullOrEmpty())
+                {
+                    matched = matched && filter.Providers.Contains(log.Provider);
+                }
+                if (!filter.Models.IsNullOrEmpty())
+                {
+                    matched = matched && filter.Models.Contains(log.Model);
+                }
+                if (!filter.TemplateNames.IsNullOrEmpty())
+                {
+                    matched = matched && filter.TemplateNames.Contains(log.TemplateName);
+                }
+
+                if (!matched) continue;
+
+                log.Id = Path.GetFileNameWithoutExtension(file);
+                logs.Add(log);
+            }
+
+            var records = logs.OrderByDescending(x => x.CreatedTime).Skip(filter.Offset).Take(filter.Size);
+            var agentIds = records.Where(x => !string.IsNullOrEmpty(x.AgentId)).Select(x => x.AgentId).ToList();
+            var agents = GetAgents(new AgentFilter
+            {
+                AgentIds = agentIds
+            });
+
+            records = records.Select(x =>
+            {
+                var states = x.InnerStates.ToDictionary(p => p.Key, p =>
+                {
+                    var data = p.Value.RootElement.GetProperty("data");
+                    return data.ValueKind != JsonValueKind.Null ? data.ToString() : null;
+                });
+                x.AgentName = !string.IsNullOrEmpty(x.AgentId) ? agents.FirstOrDefault(a => a.Id == x.AgentId)?.Name : null;
+                x.States = states ?? [];
+                return x;
+            }).ToList();
+
             return new PagedItems<InstructionLogModel>
             {
-
+                Items = records,
+                Count = logs.Count()
             };
         }
         #endregion
@@ -175,6 +234,28 @@ namespace BotSharp.Core.Repository
             }).ToList();
 
             return logIndexes.IsNullOrEmpty() ? 0 : logIndexes.Max() + 1;
+        }
+
+        private Dictionary<string, JsonDocument> BuildLogStates(Dictionary<string, string> states)
+        {
+            var dic = new Dictionary<string, JsonDocument>();
+            foreach (var pair in states)
+            {
+                try
+                {
+                    var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(pair.Value) }, _options);
+                    var json = JsonDocument.Parse(jsonStr);
+                    dic[pair.Key] = json;
+                }
+                catch
+                {
+                    var str = JsonSerializer.Serialize(new { Data = pair.Value }, _options);
+                    var json = JsonDocument.Parse(str);
+                    dic[pair.Key] = json;
+                }
+            }
+
+            return dic;
         }
         #endregion
     }

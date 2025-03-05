@@ -23,6 +23,7 @@ namespace BotSharp.Plugin.SemanticKernel
 
         /// <inheritdoc/>
         public string Provider => "semantic-kernel";
+        public string Model => _model;
 
         /// <summary>
         /// Create a new instance of <see cref="SemanticKernelTextCompletionProvider"/>

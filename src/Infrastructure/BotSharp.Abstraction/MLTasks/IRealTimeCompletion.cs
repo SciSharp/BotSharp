@@ -6,7 +6,6 @@ public interface IRealTimeCompletion
 {
     string Provider { get; }
     string Model { get; }
-
     void SetModelName(string model);
 
     Task Connect(RealtimeHubConnection conn,

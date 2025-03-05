@@ -1,4 +1,8 @@
+using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Repositories;
+using BotSharp.OpenAPI.ViewModels.Logs;
+using EntityFrameworkCore.BootKit;
 using Microsoft.AspNetCore.Hosting;
 
 namespace BotSharp.OpenAPI.Controllers;
@@ -44,5 +48,17 @@ public class LoggerController : ControllerBase
     {
         var conversationService = _services.GetRequiredService<IConversationService>();
         return await conversationService.GetConversationStateLogs(conversationId);
+    }
+
+    [HttpGet("/logger/instruction/log")]
+    public async Task<PagedItems<InstructionLogViewModel>> GetInstructionLogs([FromQuery] InstructLogFilter request)
+    {
+        var db = _services.GetRequiredService<IBotSharpRepository>();
+        var logs = db.GetInstructionLogs(request);
+        return new PagedItems<InstructionLogViewModel>
+        {
+            Items = logs.Items.Select(x => InstructionLogViewModel.From(x)),
+            Count = logs.Count
+        };
     }
 }

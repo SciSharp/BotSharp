@@ -52,8 +52,29 @@ public class InstructModeController : ControllerBase
             .SetState("model", input.Model, source: StateSource.External)
             .SetState("model_id", input.ModelId, source: StateSource.External);
 
+        var agentId = input.AgentId ?? Guid.Empty.ToString();
         var textCompletion = CompletionProvider.GetTextCompletion(_services);
-        return await textCompletion.GetCompletion(input.Text, input.AgentId ?? Guid.Empty.ToString(), Guid.NewGuid().ToString());
+        var response = await textCompletion.GetCompletion(input.Text, agentId, Guid.NewGuid().ToString());
+
+        var hooks = _services.GetServices<IInstructHook>();
+        foreach (var hook in hooks)
+        {
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
+            {
+                continue;
+            }
+
+            await hook.OnResponseGenerated(new InstructResponseModel
+            {
+                AgentId = agentId,
+                Provider = textCompletion.Provider,
+                Model = textCompletion.Model,
+                TemplateName = input.Template,
+                UserMessage = input.Text,
+                CompletionText = response
+            });
+        }
+        return response;
     }
 
     #region Chat
@@ -66,10 +87,11 @@ public class InstructModeController : ControllerBase
             .SetState("model", input.Model, source: StateSource.External)
             .SetState("model_id", input.ModelId, source: StateSource.External);
 
+        var agentId = input.AgentId ?? Guid.Empty.ToString();
         var completion = CompletionProvider.GetChatCompletion(_services);
         var message = await completion.GetChatCompletions(new Agent()
         {
-            Id = input.AgentId ?? Guid.Empty.ToString(),
+            Id = agentId,
             Instruction = input.Instruction
         }, new List<RoleDialogModel>
         {
@@ -79,14 +101,22 @@ public class InstructModeController : ControllerBase
         var hooks = _services.GetServices<IInstructHook>();
         foreach (var hook in hooks)
         {
+            if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
+            {
+                continue;
+            }
+
             await hook.OnResponseGenerated(new InstructResponseModel
             {
-                AgentId = input.AgentId,
-                Provider = input.Provider,
-                Model = input.Model
+                AgentId = agentId,
+                Provider = completion.Provider,
+                Model = completion.Model,
+                TemplateName = input.Template,
+                UserMessage = input.Text,
+                SystemInstruction = message.RenderedInstruction,
+                CompletionText = message.Content
             });
         }
-
         return message.Content;
     }
     #endregion

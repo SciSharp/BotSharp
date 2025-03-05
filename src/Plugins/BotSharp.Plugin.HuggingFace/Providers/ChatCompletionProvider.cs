@@ -10,10 +10,12 @@ namespace BotSharp.Plugin.HuggingFace.Providers;
 public class ChatCompletionProvider : IChatCompletion
 {
     public string Provider => "huggingface";
+    public string Model => _model;
 
     private readonly IServiceProvider _services;
     private readonly HuggingFaceSettings _settings;
     private readonly ILogger _logger;
+    private List<string> renderedInstructions = [];
     private string _model;
 
     public ChatCompletionProvider(IServiceProvider services,

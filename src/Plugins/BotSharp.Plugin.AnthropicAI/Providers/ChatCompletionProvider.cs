@@ -9,10 +9,12 @@ namespace BotSharp.Plugin.AnthropicAI.Providers;
 public class ChatCompletionProvider : IChatCompletion
 {
     public string Provider => "anthropic";
+    public string Model => _model;
 
     protected readonly AnthropicSettings _settings;
     protected readonly IServiceProvider _services;
     protected readonly ILogger _logger;
+    private List<string> renderedInstructions = [];
 
     protected string _model;
 
@@ -57,6 +59,7 @@ public class ChatCompletionProvider : IChatCompletion
                 ToolCallId = toolResult.Id,
                 FunctionName = toolResult.Name,
                 FunctionArgs = JsonSerializer.Serialize(toolResult.Input),
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
         else
@@ -66,6 +69,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
 
@@ -98,12 +102,15 @@ public class ChatCompletionProvider : IChatCompletion
     private (string, MessageParameters) PrepareOptions(Agent agent, List<RoleDialogModel> conversations, LlmModelSetting settings)
     {
         var instruction = "";
+        renderedInstructions = [];
 
         var agentService = _services.GetRequiredService<IAgentService>();
 
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
-            instruction += agentService.RenderedInstruction(agent);
+            var text = agentService.RenderedInstruction(agent);
+            instruction += text;
+            renderedInstructions.Add(text);
         }
 
         /*var routing = _services.GetRequiredService<IRoutingService>();

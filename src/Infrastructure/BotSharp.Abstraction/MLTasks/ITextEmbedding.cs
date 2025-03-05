@@ -6,9 +6,14 @@ public interface ITextEmbedding
     /// The Embedding provider like Microsoft Azure, OpenAI, ClaudAI
     /// </summary>
     string Provider { get; }
+    string Model { get; }
+
+    void SetModelName(string model);
+
+
     Task<float[]> GetVectorAsync(string text);
     Task<List<float[]>> GetVectorsAsync(List<string> texts);
-    void SetModelName(string model);
+    
     void SetDimension(int dimension);
     int GetDimension();
 }

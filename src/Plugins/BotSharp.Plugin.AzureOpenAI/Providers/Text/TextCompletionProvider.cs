@@ -22,6 +22,7 @@ public class TextCompletionProvider : ITextCompletion
     };
 
     public virtual string Provider => "azure-openai";
+    public string Model => _model;
 
     public TextCompletionProvider(
         AzureOpenAiSettings settings,

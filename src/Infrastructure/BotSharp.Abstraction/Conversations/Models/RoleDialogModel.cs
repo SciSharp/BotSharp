@@ -108,7 +108,8 @@ public class RoleDialogModel : ITrackableMessage
     [JsonPropertyName("generated_images")]
     public List<ImageGeneration> GeneratedImages { get; set; } = new List<ImageGeneration>();
 
-
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public string RenderedInstruction { get; set; } = string.Empty;
 
     private RoleDialogModel()
     {
