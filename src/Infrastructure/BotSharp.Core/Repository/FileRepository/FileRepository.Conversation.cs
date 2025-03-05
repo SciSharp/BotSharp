@@ -464,9 +464,15 @@ public partial class FileRepository
                             {
                                 if (!string.IsNullOrWhiteSpace(pair.Value))
                                 {
-                                    if (elem.ValueKind == JsonValueKind.Array)
+                                    if (elem.ValueKind == JsonValueKind.Null)
                                     {
-                                        matched = elem.EnumerateArray().Select(x => x.ToString()).Contains(pair.Value);
+                                        matched = false;
+                                    }
+                                    else if (elem.ValueKind == JsonValueKind.Array)
+                                    {
+                                        matched = elem.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
+                                                                       .Select(x => x.ToString())
+                                                                       .Any(x => x == pair.Value);
                                     }
                                     else if (elem.ValueKind == JsonValueKind.String)
                                     {
@@ -901,25 +907,21 @@ public partial class FileRepository
 
     private JsonElement? FindState(JsonElement? root, IEnumerable<string> paths, string? targetValue)
     {
-        JsonElement? elem = null;
+        var elem = root;
 
-        if (root == null || paths.IsNullOrEmpty())
+        if (elem == null || paths.IsNullOrEmpty())
         {
-            return elem;
+            return null;
         }
 
-        elem = root;
         for (int i = 0; i < paths.Count(); i++)
         {
+            if (elem == null) return null;
+
             var field = paths.ElementAt(i);
             if (elem.Value.ValueKind == JsonValueKind.Array)
             {
-                if (elem.Value.EnumerateArray().IsNullOrEmpty())
-                {
-                    elem = null;
-                    break;
-                }
-                else
+                if (!elem.Value.EnumerateArray().IsNullOrEmpty())
                 {
                     foreach (var item in elem.Value.EnumerateArray())
                     {
@@ -931,18 +933,32 @@ public partial class FileRepository
                         }
                     }
                 }
+                else
+                {
+                    return null;
+                }
             }
-            else if (elem.Value.TryGetProperty(field, out var prop))
+            else if (elem.Value.ValueKind == JsonValueKind.Object && elem.Value.TryGetProperty(field, out var prop))
             {
                 elem = prop;
+            }
+            else
+            {
+                return null;
             }
         }
 
         if (elem != null && !string.IsNullOrWhiteSpace(targetValue))
         {
-            if (elem.Value.ValueKind == JsonValueKind.Array)
+            if (elem.Value.ValueKind == JsonValueKind.Null)
             {
-                var isInArray = elem.Value.EnumerateArray().Select(x => x.ToString()).Contains(targetValue);
+                return null;
+            }
+            else if (elem.Value.ValueKind == JsonValueKind.Array)
+            {
+                var isInArray = elem.Value.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
+                                                           .Select(x => x.ToString())
+                                                           .Any(x => x == targetValue);
                 return isInArray ? elem : null;
             }
             else if ((elem.Value.ValueKind == JsonValueKind.String && elem.Value.GetString() == targetValue)
