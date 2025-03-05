@@ -14,4 +14,5 @@ public class ConversationDocument : MongoBase
     public List<string> Tags { get; set; } = [];
     public DateTime CreatedTime { get; set; }
     public DateTime UpdatedTime { get; set; }
+    public Dictionary<string, BsonDocument> LatestStates { get; set; } = new();
 }

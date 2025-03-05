@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -168,6 +169,14 @@ public interface IBotSharpRepository : IHaveServiceProvider
     void SaveConversationStateLog(ConversationStateLogModel log)
         => throw new NotImplementedException();
     List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+        => throw new NotImplementedException();
+    #endregion
+
+    #region Instruction Log
+    bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
+        => throw new NotImplementedException();
+
+    PagedItems<InstructionLogModel> GetInstructionLogs(InstructLogFilter filter)
         => throw new NotImplementedException();
     #endregion
 

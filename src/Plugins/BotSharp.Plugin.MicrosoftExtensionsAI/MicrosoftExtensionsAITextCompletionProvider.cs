@@ -24,6 +24,7 @@ public sealed class MicrosoftExtensionsAITextCompletionProvider : ITextCompletio
 
     /// <inheritdoc/>
     public string Provider => "microsoft-extensions-ai";
+    public string Model => _model;
 
     /// <summary>
     /// Creates an instance of the <see cref="MicrosoftExtensionsAITextCompletionProvider"/> class.

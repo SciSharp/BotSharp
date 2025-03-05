@@ -14,6 +14,7 @@ public class GeminiTextCompletionProvider : ITextCompletion
     private string _model;
 
     public string Provider => "google-ai";
+    public string Model => _model;
 
     public GeminiTextCompletionProvider(
         IServiceProvider services,
@@ -73,7 +74,6 @@ public class GeminiTextCompletionProvider : ITextCompletion
     {
         _model = model;
     }
-
 
     private void PrepareOptions(GenerativeModel aiModel)
     {

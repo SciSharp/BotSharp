@@ -2,7 +2,6 @@ using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Enums;
 using BotSharp.Abstraction.Conversations;
 using BotSharp.Abstraction.Loggers;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Mscc.GenerativeAI;
 
@@ -12,10 +11,12 @@ public class GeminiChatCompletionProvider : IChatCompletion
 {
     private readonly IServiceProvider _services;
     private readonly ILogger<GeminiChatCompletionProvider> _logger;
+    private List<string> renderedInstructions = [];
 
     private string _model;
 
     public string Provider => "google-ai";
+    public string Model => _model;
 
     public GeminiChatCompletionProvider(
         IServiceProvider services,
@@ -53,7 +54,8 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = part.FunctionCall.Name,
                 FunctionName = part.FunctionCall.Name,
-                FunctionArgs = part.FunctionCall.Args?.ToString()
+                FunctionArgs = part.FunctionCall.Args?.ToString(),
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
         else
@@ -62,6 +64,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
 
@@ -98,6 +101,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
     {
         var agentService = _services.GetRequiredService<IAgentService>();
         var googleSettings = _services.GetRequiredService<GoogleAiSettings>();
+        renderedInstructions = [];
 
         // Add settings
         aiModel.UseGoogleSearch = googleSettings.Gemini.UseGoogleSearch;
@@ -117,6 +121,7 @@ public class GeminiChatCompletionProvider : IChatCompletion
                 Role = AgentRole.User
             });
 
+            renderedInstructions.Add(instruction);
             systemPrompts.Add(instruction);
         }
 

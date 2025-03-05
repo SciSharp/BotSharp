@@ -20,6 +20,8 @@ namespace BotSharp.Plugin.VertexAI.Providers
         IServiceProvider services) : IChatCompletion
     {
         public string Provider => "vertexai";
+        public string Model => _model;
+
         private readonly VertexAIConfiguration _config = config;
         private readonly ChatSettings? _settings = settings;
         private readonly IServiceProvider _services = services;

@@ -1,4 +1,7 @@
+using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
+using BotSharp.Abstraction.Repositories.Filters;
+using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -108,6 +111,98 @@ public partial class MongoRepository
                       .OrderBy(x => x.CreatedTime)
                       .ToList();
         return logs;
+    }
+    #endregion
+
+    #region Instruction Log
+    public bool SaveInstructionLogs(IEnumerable<InstructionLogModel> logs)
+    {
+        if (logs.IsNullOrEmpty()) return false;
+
+        var docs = new List<InstructionLogBetaDocument>();
+        foreach (var log in logs)
+        {
+            var doc = InstructionLogBetaDocument.ToMongoModel(log);
+            foreach (var pair in log.States)
+            {
+                try
+                {
+                    var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(pair.Value) }, _botSharpOptions.JsonSerializerOptions);
+                    var json = BsonDocument.Parse(jsonStr);
+                    doc.States[pair.Key] = json;
+                }
+                catch
+                {
+                    var jsonStr = JsonSerializer.Serialize(new { Data = pair.Value }, _botSharpOptions.JsonSerializerOptions);
+                    var json = BsonDocument.Parse(jsonStr);
+                    doc.States[pair.Key] = json;
+                }
+            }
+            docs.Add(doc);
+        }
+
+        _dc.InstructionLogs.InsertMany(docs);
+        return true;
+    }
+
+    public PagedItems<InstructionLogModel> GetInstructionLogs(InstructLogFilter filter)
+    {
+        if (filter == null)
+        {
+            filter = InstructLogFilter.Empty();
+        }
+
+        var builder = Builders<InstructionLogBetaDocument>.Filter;
+        var filters = new List<FilterDefinition<InstructionLogBetaDocument>>() { builder.Empty };
+
+        // Filter logs
+        if (!filter.AgentIds.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.AgentId, filter.AgentIds));
+        }
+        if (!filter.Providers.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.Provider, filter.Providers));
+        }
+        if (!filter.Models.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.Model, filter.Models));
+        }
+        if (!filter.TemplateNames.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.TemplateName, filter.TemplateNames));
+        }
+
+        var filterDef = builder.And(filters);
+        var sortDef = Builders<InstructionLogBetaDocument>.Sort.Descending(x => x.CreatedTime);
+        var docs = _dc.InstructionLogs.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
+        var count = _dc.InstructionLogs.CountDocuments(filterDef);
+
+        var agentIds = docs.Where(x => !string.IsNullOrEmpty(x.AgentId)).Select(x => x.AgentId).ToList();
+        var agents = GetAgents(new AgentFilter
+        {
+            AgentIds = agentIds
+        });
+
+        var logs = docs.Select(x =>
+        {
+            var log = InstructionLogBetaDocument.ToDomainModel(x);
+            log.AgentName = !string.IsNullOrEmpty(x.AgentId) ? agents.FirstOrDefault(a => a.Id == x.AgentId)?.Name : null;
+            log.States = x.States.ToDictionary(p => p.Key, p =>
+            {
+                var jsonStr = p.Value.ToJson();
+                var jsonDoc = JsonDocument.Parse(jsonStr);
+                var data = jsonDoc.RootElement.GetProperty("data");
+                return data.ValueKind != JsonValueKind.Null ? data.ToString() : null;
+            });
+            return log;
+        }).ToList();
+
+        return new PagedItems<InstructionLogModel>
+        {
+            Items = logs,
+            Count = (int)count
+        };
     }
     #endregion
 }

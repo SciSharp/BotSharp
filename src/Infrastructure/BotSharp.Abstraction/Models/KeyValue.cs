@@ -13,3 +13,17 @@ public class KeyValue
         return $"Key: {Key}, Value: {Value}";
     }
 }
+
+public class KeyValue<T>
+{
+    [JsonPropertyName("key")]
+    public string Key { get; set; }
+
+    [JsonPropertyName("value")]
+    public T? Value { get; set; }
+
+    public override string ToString()
+    {
+        return $"Key: {Key}, Value: {Value}";
+    }
+}

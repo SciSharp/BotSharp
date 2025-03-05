@@ -27,6 +27,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     private readonly IChatClient _client;
     private readonly ILogger<MicrosoftExtensionsAIChatCompletionProvider> _logger;
     private readonly IServiceProvider _services;
+    private List<string> renderedInstructions = [];
     private string? _model;
 
     /// <summary>
@@ -45,6 +46,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     
     /// <inheritdoc/>
     public string Provider => "microsoft.extensions.ai";
+    public string Model => _model;
 
     /// <inheritdoc/>
     public void SetModelName(string model) => _model = model;
@@ -54,6 +56,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     {
         // Before chat completion hook
         var hooks = _services.GetServices<IContentGeneratingHook>().ToArray();
+        renderedInstructions = [];
         await Task.WhenAll(hooks.Select(hook => hook.BeforeGenerating(agent, conversations)));
 
         // Configure options
@@ -82,6 +85,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
         if (_services.GetRequiredService<IAgentService>().RenderedInstruction(agent) is string instruction &&
             instruction.Length > 0)
         {
+            renderedInstructions.Add(instruction);
             messages.Add(new(ChatRole.System, instruction));
         }
 
@@ -143,7 +147,8 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
 
         RoleDialogModel result = new(AgentRole.Assistant, string.Concat(completion.Message.Contents.OfType<TextContent>()))
         {
-            CurrentAgentId = agent.Id
+            CurrentAgentId = agent.Id,
+            RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
         if (completion.Message.Contents.OfType<FunctionCallContent>().FirstOrDefault() is { } fcc)

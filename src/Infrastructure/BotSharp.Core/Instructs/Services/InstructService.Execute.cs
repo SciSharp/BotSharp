@@ -43,6 +43,9 @@ public partial class InstructService
             }
         }
 
+        var provider = string.Empty;
+        var model = string.Empty;
+
         // Render prompt
         var prompt = string.IsNullOrEmpty(templateName) ?
             agentService.RenderedInstruction(agent) :
@@ -57,11 +60,18 @@ public partial class InstructService
         };
         if (completer is ITextCompletion textCompleter)
         {
+            instruction = null;
+            provider = textCompleter.Provider;
+            model = textCompleter.Model;
+
             var result = await textCompleter.GetCompletion(prompt, agentId, message.MessageId);
             response.Text = result;
         }
         else if (completer is IChatCompletion chatCompleter)
         {
+            provider = chatCompleter.Provider;
+            model = chatCompleter.Model;
+
             if (instruction == "#TEMPLATE#")
             {
                 instruction = prompt;
@@ -93,6 +103,16 @@ public partial class InstructService
             }
 
             await hook.AfterCompletion(agent, response);
+            await hook.OnResponseGenerated(new InstructResponseModel
+            {
+                AgentId = agentId,
+                Provider = provider,
+                Model = model,
+                TemplateName = templateName,
+                UserMessage = prompt,
+                SystemInstruction = instruction,
+                CompletionText = response.Text
+            });
         }
 
         return response;

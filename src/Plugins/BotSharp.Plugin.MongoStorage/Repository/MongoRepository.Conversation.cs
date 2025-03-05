@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -23,7 +24,8 @@ public partial class MongoRepository
             Status = conversation.Status,
             Tags = conversation.Tags ?? new(),
             CreatedTime = utcNow,
-            UpdatedTime = utcNow
+            UpdatedTime = utcNow,
+            LatestStates = []
         };
 
         var dialogDoc = new ConversationDialogDocument
@@ -72,8 +74,9 @@ public partial class MongoRepository
         var cronDeleted = _dc.CrontabItems.DeleteMany(conbTabItems);
         var convDeleted = _dc.Conversations.DeleteMany(filterConv);
 
-        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0 || promptLogDeleted.DeletedCount > 0
-            || contentLogDeleted.DeletedCount > 0 || stateLogDeleted.DeletedCount > 0 || convDeleted.DeletedCount > 0;
+        return convDeleted.DeletedCount > 0 || dialogDeleted.DeletedCount > 0 || statesDeleted.DeletedCount > 0 
+            || promptLogDeleted.DeletedCount > 0 || contentLogDeleted.DeletedCount > 0
+            || stateLogDeleted.DeletedCount > 0 || convDeleted.DeletedCount > 0;
     }
 
     [SideCar]
@@ -266,6 +269,14 @@ public partial class MongoRepository
                                                                      .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         _dc.ConversationStates.UpdateOne(filterStates, updateStates);
+
+        // Update latest states
+        var endNodes = BuildLatestStates(saveStates);
+        var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var update = Builders<ConversationDocument>.Update.Set(x => x.LatestStates, endNodes)
+                                                          .Set(x => x.UpdatedTime, DateTime.UtcNow);
+
+        _dc.Conversations.UpdateOne(filter, update);
     }
 
     public void UpdateConversationStatus(string conversationId, string status)
@@ -371,21 +382,47 @@ public partial class MongoRepository
         }
 
         // Filter states
-        var stateFilters = new List<FilterDefinition<ConversationStateDocument>>();
         if (filter != null && string.IsNullOrEmpty(filter.Id) && !filter.States.IsNullOrEmpty())
         {
             foreach (var pair in filter.States)
             {
-                var elementFilters = new List<FilterDefinition<StateMongoElement>> { Builders<StateMongoElement>.Filter.Eq(x => x.Key, pair.Key) };
-                if (!string.IsNullOrEmpty(pair.Value))
-                {
-                    elementFilters.Add(Builders<StateMongoElement>.Filter.Eq("Values.Data", pair.Value));
-                }
-                stateFilters.Add(Builders<ConversationStateDocument>.Filter.ElemMatch(x => x.States, Builders<StateMongoElement>.Filter.And(elementFilters)));
-            }
+                if (string.IsNullOrWhiteSpace(pair.Key)) continue;
 
-            var targetConvIds = _dc.ConversationStates.Find(Builders<ConversationStateDocument>.Filter.And(stateFilters)).ToEnumerable().Select(x => x.ConversationId).Distinct().ToList();
-            convFilters.Add(convBuilder.In(x => x.Id, targetConvIds));
+                // Format key
+                var keys = pair.Key.Split(".").ToList();
+                keys.Insert(1, "data");
+                keys.Insert(0, "LatestStates");
+                var formattedKey = string.Join(".", keys);
+
+                if (string.IsNullOrWhiteSpace(pair.Value))
+                {
+                    convFilters.Add(convBuilder.Exists(formattedKey));
+                }
+                else if (bool.TryParse(pair.Value, out var boolValue))
+                {
+                    convFilters.Add(convBuilder.Eq(formattedKey, boolValue));
+                }
+                else if (int.TryParse(pair.Value, out var intValue))
+                {
+                    convFilters.Add(convBuilder.Eq(formattedKey, intValue));
+                }
+                else if (decimal.TryParse(pair.Value, out var decimalValue))
+                {
+                    convFilters.Add(convBuilder.Eq(formattedKey, decimalValue));
+                }
+                else if (float.TryParse(pair.Value, out var floatValue))
+                {
+                    convFilters.Add(convBuilder.Eq(formattedKey, floatValue));
+                }
+                else if (double.TryParse(pair.Value, out var doubleValue))
+                {
+                    convFilters.Add(convBuilder.Eq(formattedKey, doubleValue));
+                }
+                else
+                {
+                    convFilters.Add(convBuilder.Eq(formattedKey, pair.Value));
+                }
+            }
         }
 
         // Sort and paginate
@@ -527,6 +564,7 @@ public partial class MongoRepository
         var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
         var foundStates = _dc.ConversationStates.Find(stateFilter).FirstOrDefault();
 
+        var endNodes = new Dictionary<string, BsonDocument>();
         if (foundStates != null)
         {
             // Truncate states
@@ -550,6 +588,7 @@ public partial class MongoRepository
                     truncatedStates.Add(state);
                 }
                 foundStates.States = truncatedStates;
+                endNodes = BuildLatestStates(truncatedStates);
             }
 
             // Truncate breakpoints
@@ -573,6 +612,7 @@ public partial class MongoRepository
         // Update conversation
         var convFilter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
         var updateConv = Builders<ConversationDocument>.Update.Set(x => x.UpdatedTime, DateTime.UtcNow)
+                                                              .Set(x => x.LatestStates, endNodes)
                                                               .Set(x => x.DialogCount, truncatedDialogs.Count);
         _dc.Conversations.UpdateOne(convFilter, updateConv);
 
@@ -621,8 +661,6 @@ public partial class MongoRepository
         return keys;
     }
 
-
-
     private string ConvertSnakeCaseToPascalCase(string snakeCase)
     {
         string[] words = snakeCase.Split('_');
@@ -639,5 +677,30 @@ public partial class MongoRepository
         }
 
         return pascalCase.ToString();
+    }
+
+    private Dictionary<string, BsonDocument> BuildLatestStates(List<StateMongoElement> states)
+    {
+        var endNodes = new Dictionary<string, BsonDocument>();
+        foreach (var pair in states)
+        {
+            var value = pair.Values?.LastOrDefault();
+            if (value == null || !value.Active) continue;
+
+            try
+            {
+                var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(value.Data) }, _botSharpOptions.JsonSerializerOptions);
+                var json = BsonDocument.Parse(jsonStr);
+                endNodes[pair.Key] = json;
+            }
+            catch
+            {
+                var str = JsonSerializer.Serialize(new { Data = value.Data }, _botSharpOptions.JsonSerializerOptions);
+                var json = BsonDocument.Parse(str);
+                endNodes[pair.Key] = json;
+            }
+        }
+
+        return endNodes;
     }
 }

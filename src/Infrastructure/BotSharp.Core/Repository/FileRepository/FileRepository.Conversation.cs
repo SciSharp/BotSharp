@@ -33,13 +33,19 @@ public partial class FileRepository
         var stateFile = Path.Combine(dir, STATE_FILE);
         if (!File.Exists(stateFile))
         {
-            File.WriteAllText(stateFile, JsonSerializer.Serialize(new List<StateKeyValue>(), _options));
+            File.WriteAllText(stateFile, "[]");
+        }
+
+        var latestStateFile = Path.Combine(dir, CONV_LATEST_STATE_FILE);
+        if (!File.Exists(latestStateFile))
+        {
+            File.WriteAllText(latestStateFile, "{}");
         }
 
         var breakpointFile = Path.Combine(dir, BREAKPOINT_FILE);
         if (!File.Exists(breakpointFile))
         {
-            File.WriteAllText(breakpointFile, JsonSerializer.Serialize(new List<ConversationBreakpoint>(), _options));
+            File.WriteAllText(breakpointFile, "[]");
         }
     }
 
@@ -300,14 +306,21 @@ public partial class FileRepository
         if (states.IsNullOrEmpty()) return;
 
         var convDir = FindConversationDirectory(conversationId);
-        if (!string.IsNullOrEmpty(convDir))
+        if (string.IsNullOrEmpty(convDir)) return;
+
+        var stateFile = Path.Combine(convDir, STATE_FILE);
+        if (File.Exists(stateFile))
         {
-            var stateFile = Path.Combine(convDir, STATE_FILE);
-            if (File.Exists(stateFile))
-            {
-                var stateStr = JsonSerializer.Serialize(states, _options);
-                File.WriteAllText(stateFile, stateStr);
-            }
+            var stateStr = JsonSerializer.Serialize(states, _options);
+            File.WriteAllText(stateFile, stateStr);
+        }
+
+        var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+        if (File.Exists(latestStateFile))
+        {
+            var latestStates = BuildLatestStates(states);
+            var stateStr = JsonSerializer.Serialize(latestStates, _options);
+            File.WriteAllText(latestStateFile, stateStr);
         }
     }
 
@@ -427,25 +440,63 @@ public partial class FileRepository
             }
 
             // Check states
-            if (filter != null && !filter.States.IsNullOrEmpty())
+            if (matched && filter != null && !filter.States.IsNullOrEmpty())
             {
-                var stateFile = Path.Combine(d, STATE_FILE);
-                var convStates = CollectConversationStates(stateFile);
-                foreach (var pair in filter.States)
+                var latestStateFile = Path.Combine(d, CONV_LATEST_STATE_FILE);
+                var convStates = CollectConversationLatestStates(latestStateFile);
+
+                if (convStates.IsNullOrEmpty())
                 {
-                    if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
-
-                    var foundState = convStates.FirstOrDefault(x => x.Key.IsEqualTo(pair.Key));
-                    if (foundState == null)
+                    matched = false;
+                }
+                else
+                {
+                    foreach (var pair in filter.States)
                     {
-                        matched = false;
-                        break;
-                    }
+                        if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
 
-                    if (!string.IsNullOrWhiteSpace(pair.Value))
-                    {
-                        var curValue = foundState.Values.LastOrDefault()?.Data;
-                        matched = matched && pair.Value.IsEqualTo(curValue);
+                        var components = pair.Key.Split(".").ToList();
+                        var primaryKey = components[0];
+                        if (convStates.TryGetValue(primaryKey, out var doc))
+                        {
+                            var elem = doc.RootElement.GetProperty("data");
+                            if (components.Count < 2)
+                            {
+                                if (!string.IsNullOrWhiteSpace(pair.Value))
+                                {
+                                    if (elem.ValueKind == JsonValueKind.Null)
+                                    {
+                                        matched = false;
+                                    }
+                                    else if (elem.ValueKind == JsonValueKind.Array)
+                                    {
+                                        matched = elem.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
+                                                                       .Select(x => x.ToString())
+                                                                       .Any(x => x == pair.Value);
+                                    }
+                                    else if (elem.ValueKind == JsonValueKind.String)
+                                    {
+                                        matched = elem.GetString() == pair.Value;
+                                    }
+                                    else
+                                    {
+                                        matched = elem.GetRawText() == pair.Value;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var paths = components.Where((_, idx) => idx > 0);
+                                var found = FindState(elem, paths, pair.Value);
+                                matched = found != null;
+                            }
+                        }
+                        else
+                        {
+                            matched = false;
+                        }
+
+                        if (!matched) break;
                     }
                 }
             }
@@ -575,8 +626,9 @@ public partial class FileRepository
         // Handle truncated states
         var refTime = dialogs.ElementAt(foundIdx).MetaData.CreatedTime;
         var stateDir = Path.Combine(convDir, STATE_FILE);
+        var latestStateDir = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
         var states = CollectConversationStates(stateDir);
-        isSaved = HandleTruncatedStates(stateDir, states, messageId, refTime);
+        isSaved = HandleTruncatedStates(stateDir, latestStateDir, states, messageId, refTime);
 
         // Handle truncated breakpoints
         var breakpointDir = Path.Combine(convDir, BREAKPOINT_FILE);
@@ -703,7 +755,7 @@ public partial class FileRepository
         return isSaved;
     }
 
-    private bool HandleTruncatedStates(string stateDir, List<StateKeyValue> states, string refMsgId, DateTime refTime)
+    private bool HandleTruncatedStates(string stateDir, string latestStateDir, List<StateKeyValue> states, string refMsgId, DateTime refTime)
     {
         var truncatedStates = new List<StateKeyValue>();
         foreach (var state in states)
@@ -724,6 +776,10 @@ public partial class FileRepository
         }
 
         var isSaved = SaveTruncatedStates(stateDir, truncatedStates);
+        if (isSaved)
+        {
+            SaveTruncatedLatestStates(latestStateDir, truncatedStates);
+        }
         return isSaved;
     }
 
@@ -794,6 +850,17 @@ public partial class FileRepository
         return true;
     }
 
+    private bool SaveTruncatedLatestStates(string latestStateDir, List<StateKeyValue> states)
+    {
+        if (string.IsNullOrEmpty(latestStateDir) || states == null) return false;
+        if (!File.Exists(latestStateDir)) File.Create(latestStateDir);
+
+        var latestStates = BuildLatestStates(states);
+        var stateStr = JsonSerializer.Serialize(latestStates, _options);
+        File.WriteAllText(latestStateDir, stateStr);
+        return true;
+    }
+
     private bool SaveTruncatedBreakpoints(string breakpointDir, List<ConversationBreakpoint> breakpoints)
     {
         if (string.IsNullOrEmpty(breakpointDir) || breakpoints == null) return false;
@@ -804,22 +871,108 @@ public partial class FileRepository
         return true;
     }
 
-    private string? EncodeText(string? text)
+    private Dictionary<string, JsonDocument> CollectConversationLatestStates(string latestStateDir)
     {
-        if (string.IsNullOrEmpty(text)) return text;
+        if (string.IsNullOrEmpty(latestStateDir) || !File.Exists(latestStateDir)) return [];
 
-        var bytes = Encoding.UTF8.GetBytes(text);
-        var encoded = Convert.ToBase64String(bytes);
-        return encoded;
+        var str = File.ReadAllText(latestStateDir);
+        var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(str, _options);
+        return states ?? [];
     }
 
-    private string? DecodeText(string? text)
+    private Dictionary<string, JsonDocument> BuildLatestStates(List<StateKeyValue> states)
     {
-        if (string.IsNullOrEmpty(text)) return text;
+        var endNodes = new Dictionary<string, JsonDocument>();
+        foreach (var pair in states)
+        {
+            var value = pair.Values?.LastOrDefault();
+            if (value == null || !value.Active) continue;
 
-        var decoded = Convert.FromBase64String(text);
-        var origin = Encoding.UTF8.GetString(decoded);
-        return origin;
+            try
+            {
+                var jsonStr = JsonSerializer.Serialize(new { Data = JsonDocument.Parse(value.Data) }, _options);
+                var json = JsonDocument.Parse(jsonStr);
+                endNodes[pair.Key] = json;
+            }
+            catch
+            {
+                var str = JsonSerializer.Serialize(new { Data = value.Data }, _options);
+                var json = JsonDocument.Parse(str);
+                endNodes[pair.Key] = json;
+            }
+        }
+
+        return endNodes;
+    }
+
+    private JsonElement? FindState(JsonElement? root, IEnumerable<string> paths, string? targetValue)
+    {
+        var elem = root;
+
+        if (elem == null || paths.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        for (int i = 0; i < paths.Count(); i++)
+        {
+            if (elem == null) return null;
+
+            var field = paths.ElementAt(i);
+            if (elem.Value.ValueKind == JsonValueKind.Array)
+            {
+                if (!elem.Value.EnumerateArray().IsNullOrEmpty())
+                {
+                    foreach (var item in elem.Value.EnumerateArray())
+                    {
+                        var subPaths = paths.Where((_, idx) => idx >= i);
+                        elem = FindState(item, subPaths, targetValue);
+                        if (elem != null)
+                        {
+                            return elem;
+                        }
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (elem.Value.ValueKind == JsonValueKind.Object && elem.Value.TryGetProperty(field, out var prop))
+            {
+                elem = prop;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        if (elem != null && !string.IsNullOrWhiteSpace(targetValue))
+        {
+            if (elem.Value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            else if (elem.Value.ValueKind == JsonValueKind.Array)
+            {
+                var isInArray = elem.Value.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
+                                                           .Select(x => x.ToString())
+                                                           .Any(x => x == targetValue);
+                return isInArray ? elem : null;
+            }
+            else if ((elem.Value.ValueKind == JsonValueKind.String && elem.Value.GetString() == targetValue)
+                || (elem.Value.ValueKind != JsonValueKind.String && elem.Value.GetRawText() == targetValue))
+            {
+                return elem;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        return elem;
     }
     #endregion
 }

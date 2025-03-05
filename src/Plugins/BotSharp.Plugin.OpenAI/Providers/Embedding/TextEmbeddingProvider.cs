@@ -13,6 +13,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     protected int _dimension = DEFAULT_DIMENSION;
 
     public virtual string Provider => "openai";
+    public string Model => _model;
 
     public TextEmbeddingProvider(
         OpenAiSettings settings,

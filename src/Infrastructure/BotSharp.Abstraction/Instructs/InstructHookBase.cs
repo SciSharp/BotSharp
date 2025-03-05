@@ -15,4 +15,9 @@ public class InstructHookBase : IInstructHook
     {
         return;
     }
+
+    public virtual async Task OnResponseGenerated(InstructResponseModel response)
+    {
+        return;
+    }
 }
