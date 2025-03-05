@@ -1,8 +1,7 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories;
-using BotSharp.OpenAPI.ViewModels.Logs;
-using EntityFrameworkCore.BootKit;
+using BotSharp.OpenAPI.ViewModels.Instructs;
 using Microsoft.AspNetCore.Hosting;
 
 namespace BotSharp.OpenAPI.Controllers;
