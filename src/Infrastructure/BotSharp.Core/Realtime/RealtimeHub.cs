@@ -4,6 +4,10 @@ using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Models;
+using NetTopologySuite.Index.HPRtree;
+using BotSharp.Abstraction.Agents.Models;
+using Microsoft.Identity.Client.Extensions.Msal;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace BotSharp.Core.Realtime;
 
@@ -46,9 +50,14 @@ public class RealtimeHub : IRealtimeHub
             {
                 await completer.AppenAudioBuffer(conn.Data);
             }
+            else if (conn.Event == "user_dtmf_received")
+            {
+                await HandleUserDtmfReceived(completer, conn);
+            }
             else if (conn.Event == "user_disconnected")
             {
                 await completer.Disconnect();
+                await HandleUserDisconnected(conn);
             }
         } while (!result.CloseStatus.HasValue);
 
@@ -58,8 +67,6 @@ public class RealtimeHub : IRealtimeHub
     private async Task ConnectToModel(IRealTimeCompletion completer, WebSocket userWebSocket, RealtimeHubConnection conn)
     {
         var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
-        var storage = _services.GetRequiredService<IConversationStorage>();
-
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conn.ConversationId, []);
         var conversation = await convService.GetConversation(conn.ConversationId);
@@ -183,7 +190,6 @@ public class RealtimeHub : IRealtimeHub
                     else
                     {
                         // append output audio transcript to conversation
-                        storage.Append(conn.ConversationId, message);
                         dialogs.Add(message);
 
                         foreach (var hook in hookProvider.HooksOrderByPriority)
@@ -203,7 +209,6 @@ public class RealtimeHub : IRealtimeHub
             onInputAudioTranscriptionCompleted: async message =>
             {
                 // append input audio transcript to conversation
-                storage.Append(conn.ConversationId, message);
                 dialogs.Add(message);
 
                 foreach (var hook in hookProvider.HooksOrderByPriority)
@@ -224,6 +229,46 @@ public class RealtimeHub : IRealtimeHub
                 var data = conn.OnModelUserInterrupted();
                 await SendEventToUser(userWebSocket, data);
             });
+    }
+
+    private async Task HandleUserDtmfReceived(IRealTimeCompletion completer, RealtimeHubConnection conn)
+    {
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(conn.CurrentAgentId);
+        var dialogs = routing.Context.GetDialogs();
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conversation = await convService.GetConversation(conn.ConversationId);
+
+        var message = new RoleDialogModel(AgentRole.User, conn.Data)
+        {
+            CurrentAgentId = routing.Context.GetCurrentAgentId()
+        };
+        dialogs.Add(message);
+
+        foreach (var hook in hookProvider.HooksOrderByPriority)
+        {
+            hook.SetAgent(agent)
+                .SetConversation(conversation);
+
+            await hook.OnMessageReceived(message);
+        }
+
+        await completer.InsertConversationItem(message);
+        await completer.TriggerModelInference("Reply based on the user input");
+    }
+
+    private async Task HandleUserDisconnected(RealtimeHubConnection conn)
+    {
+        // Save dialog history
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var dialogs = routing.Context.GetDialogs();
+        foreach (var item in dialogs)
+        {
+            storage.Append(conn.ConversationId, item);
+        }
     }
 
     private async Task SendEventToUser(WebSocket webSocket, object message)

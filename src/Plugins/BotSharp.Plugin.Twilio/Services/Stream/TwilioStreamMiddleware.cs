@@ -122,6 +122,20 @@ public class TwilioStreamMiddleware
                 conn.LatestMediaTimestamp = long.Parse(mediaResponse.Body.Timestamp);
                 conn.Data = mediaResponse.Body.Payload;
             }
+            else if (response.Event == "dtmf")
+            {
+                var dtmfResponse = JsonSerializer.Deserialize<StreamEventDtmfResponse>(receivedText);
+                if (dtmfResponse.Body.Digit == "#")
+                {
+                    conn.Event = "user_dtmf_received";
+                    conn.Data = conn.KeypadInputBuffer;
+                    conn.KeypadInputBuffer = string.Empty;
+                }
+                else
+                {
+                    conn.KeypadInputBuffer += dtmfResponse.Body.Digit;
+                }
+            }
 
             return conn;
         });

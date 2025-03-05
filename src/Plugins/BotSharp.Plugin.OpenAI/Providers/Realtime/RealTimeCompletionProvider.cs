@@ -75,7 +75,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task Disconnect()
     {
-        await _webSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
+        if (_webSocket.State == WebSocketState.Open)
+        {
+            await _webSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
+        }
     }
 
     public async Task AppenAudioBuffer(string message)
