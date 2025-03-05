@@ -5,7 +5,6 @@
     <LangVersion>$(LangVersion)</LangVersion>
     <VersionPrefix>$(BotSharpVersion)</VersionPrefix>
     <GeneratePackageOnBuild>$(GeneratePackageOnBuild)</GeneratePackageOnBuild>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <OutputPath>$(SolutionDir)packages</OutputPath>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
