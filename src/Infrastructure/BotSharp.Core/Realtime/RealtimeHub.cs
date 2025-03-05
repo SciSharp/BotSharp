@@ -4,6 +4,10 @@ using BotSharp.Abstraction.Realtime.Models;
 using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Conversations.Enums;
 using BotSharp.Abstraction.Routing.Models;
+using NetTopologySuite.Index.HPRtree;
+using BotSharp.Abstraction.Agents.Models;
+using Microsoft.Identity.Client.Extensions.Msal;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace BotSharp.Core.Realtime;
 
@@ -46,9 +50,14 @@ public class RealtimeHub : IRealtimeHub
             {
                 await completer.AppenAudioBuffer(conn.Data);
             }
+            else if (conn.Event == "user_dtmf_received")
+            {
+                await HandleUserDtmfReceived(completer, conn);
+            }
             else if (conn.Event == "user_disconnected")
             {
                 await completer.Disconnect();
+                await HandleUserDisconnected(conn);
             }
         } while (!result.CloseStatus.HasValue);
 
@@ -58,8 +67,6 @@ public class RealtimeHub : IRealtimeHub
     private async Task ConnectToModel(IRealTimeCompletion completer, WebSocket userWebSocket, RealtimeHubConnection conn)
     {
         var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
-        var storage = _services.GetRequiredService<IConversationStorage>();
-
         var convService = _services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conn.ConversationId, []);
         var conversation = await convService.GetConversation(conn.ConversationId);
@@ -92,8 +99,8 @@ public class RealtimeHub : IRealtimeHub
         await completer.Connect(conn, 
             onModelReady: async () => 
             {
-                // Control initial session
-                await completer.UpdateSession(conn);
+                // Control initial session, prevent initial response interruption
+                await completer.UpdateSession(conn, turnDetection: false);
 
                 // Add dialog history
                 foreach (var item in dialogs)
@@ -103,17 +110,41 @@ public class RealtimeHub : IRealtimeHub
 
                 if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                 {
-                    // await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    await completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
                 }
                 else
                 {
                     await completer.TriggerModelInference("Reply based on the conversation context.");
                 }
+
+                // Start turn detection
+                await Task.Delay(1000 * 8);
+                await completer.UpdateSession(conn, turnDetection: true);
             },
             onModelAudioDeltaReceived: async audioDeltaData =>
             {
+                // If this is the first delta of a new response, set the start timestamp
+                if (!conn.ResponseStartTimestamp.HasValue)
+                {
+                    conn.ResponseStartTimestamp = conn.LatestMediaTimestamp;
+                    _logger.LogDebug($"Setting start timestamp for new response: {conn.ResponseStartTimestamp}ms");
+                }
+
                 var data = conn.OnModelMessageReceived(audioDeltaData);
                 await SendEventToUser(userWebSocket, data);
+
+                // Send mark messages to Media Streams so we know if and when AI response playback is finished
+                if (!string.IsNullOrEmpty(conn.StreamId))
+                {
+                    var markEvent = new
+                    {
+                        @event = "mark",
+                        streamSid = conn.StreamId,
+                        mark = new { name = "responsePart" }
+                    };
+                    await SendEventToUser(userWebSocket, markEvent);
+                    conn.MarkQueue.Enqueue("responsePart");
+                }
             }, 
             onModelAudioResponseDone: async () =>
             {
@@ -160,16 +191,18 @@ public class RealtimeHub : IRealtimeHub
                             await completer.TriggerModelInference("Reply based on the function's output.");
                         }
                     }
-                    // append output audio transcript to conversation
-                    storage.Append(conn.ConversationId, message);
-                    dialogs.Add(message);
-
-                    foreach (var hook in hookProvider.HooksOrderByPriority)
+                    else
                     {
-                        hook.SetAgent(agent)
-                            .SetConversation(conversation);
+                        // append output audio transcript to conversation
+                        dialogs.Add(message);
 
-                        await hook.OnResponseGenerated(message);
+                        foreach (var hook in hookProvider.HooksOrderByPriority)
+                        {
+                            hook.SetAgent(agent)
+                                .SetConversation(conversation);
+
+                            await hook.OnResponseGenerated(message);
+                        }
                     }
                 }
             },
@@ -180,7 +213,6 @@ public class RealtimeHub : IRealtimeHub
             onInputAudioTranscriptionCompleted: async message =>
             {
                 // append input audio transcript to conversation
-                storage.Append(conn.ConversationId, message);
                 dialogs.Add(message);
 
                 foreach (var hook in hookProvider.HooksOrderByPriority)
@@ -193,9 +225,54 @@ public class RealtimeHub : IRealtimeHub
             },
             onUserInterrupted: async () =>
             {
+                // Reset states
+                conn.MarkQueue.Clear();
+                conn.LastAssistantItem = null;
+                conn.ResponseStartTimestamp = null;
+
                 var data = conn.OnModelUserInterrupted();
                 await SendEventToUser(userWebSocket, data);
             });
+    }
+
+    private async Task HandleUserDtmfReceived(IRealTimeCompletion completer, RealtimeHubConnection conn)
+    {
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var hookProvider = _services.GetRequiredService<ConversationHookProvider>();
+        var agentService = _services.GetRequiredService<IAgentService>();
+        var agent = await agentService.LoadAgent(conn.CurrentAgentId);
+        var dialogs = routing.Context.GetDialogs();
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conversation = await convService.GetConversation(conn.ConversationId);
+
+        var message = new RoleDialogModel(AgentRole.User, conn.Data)
+        {
+            CurrentAgentId = routing.Context.GetCurrentAgentId()
+        };
+        dialogs.Add(message);
+
+        foreach (var hook in hookProvider.HooksOrderByPriority)
+        {
+            hook.SetAgent(agent)
+                .SetConversation(conversation);
+
+            await hook.OnMessageReceived(message);
+        }
+
+        await completer.InsertConversationItem(message);
+        await completer.TriggerModelInference("Reply based on the user input");
+    }
+
+    private async Task HandleUserDisconnected(RealtimeHubConnection conn)
+    {
+        // Save dialog history
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        var dialogs = routing.Context.GetDialogs();
+        foreach (var item in dialogs)
+        {
+            storage.Append(conn.ConversationId, item);
+        }
     }
 
     private async Task SendEventToUser(WebSocket webSocket, object message)

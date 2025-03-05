@@ -47,7 +47,7 @@ public class RealtimeSessionBody
     public FunctionDef[] Tools { get; set; } = [];
 
     [JsonPropertyName("turn_detection")]
-    public RealtimeSessionTurnDetection TurnDetection { get; set; } = new();
+    public RealtimeSessionTurnDetection? TurnDetection { get; set; } = new();
 }
 
 public class RealtimeSessionTurnDetection
