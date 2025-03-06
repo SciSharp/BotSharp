@@ -103,10 +103,10 @@ public class RealtimeHub : IRealtimeHub
                 await completer.UpdateSession(conn, turnDetection: false);
 
                 // Add dialog history
-                foreach (var item in dialogs)
-                {
-                    await completer.InsertConversationItem(item);
-                }
+                //foreach (var item in dialogs)
+                //{
+                //    await completer.InsertConversationItem(item);
+                //}
 
                 if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                 {
