@@ -1,6 +1,6 @@
 using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Repositories;
+using BotSharp.Abstraction.Loggers.Services;
 using BotSharp.OpenAPI.ViewModels.Instructs;
 using Microsoft.AspNetCore.Hosting;
 
@@ -11,10 +11,14 @@ namespace BotSharp.OpenAPI.Controllers;
 public class LoggerController : ControllerBase
 {
     private readonly IServiceProvider _services;
+    private readonly IUserIdentity _user;
 
-    public LoggerController(IServiceProvider services)
+    public LoggerController(
+        IServiceProvider services,
+        IUserIdentity user)
     {
         _services = services;
+        _user = user;
     }
 
     [HttpGet("/logger/full-log")]
@@ -52,8 +56,9 @@ public class LoggerController : ControllerBase
     [HttpGet("/logger/instruction/log")]
     public async Task<PagedItems<InstructionLogViewModel>> GetInstructionLogs([FromQuery] InstructLogFilter request)
     {
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        var logs = db.GetInstructionLogs(request);
+        var logging = _services.GetRequiredService<ILoggerService>();
+        var logs = await logging.GetInstructionLogs(request);
+
         return new PagedItems<InstructionLogViewModel>
         {
             Items = logs.Items.Select(x => InstructionLogViewModel.From(x)),

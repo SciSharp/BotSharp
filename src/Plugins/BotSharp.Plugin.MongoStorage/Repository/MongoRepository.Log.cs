@@ -178,16 +178,9 @@ public partial class MongoRepository
         var docs = _dc.InstructionLogs.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
         var count = _dc.InstructionLogs.CountDocuments(filterDef);
 
-        var agentIds = docs.Where(x => !string.IsNullOrEmpty(x.AgentId)).Select(x => x.AgentId).ToList();
-        var agents = GetAgents(new AgentFilter
-        {
-            AgentIds = agentIds
-        });
-
         var logs = docs.Select(x =>
         {
             var log = InstructionLogBetaDocument.ToDomainModel(x);
-            log.AgentName = !string.IsNullOrEmpty(x.AgentId) ? agents.FirstOrDefault(a => a.Id == x.AgentId)?.Name : null;
             log.States = x.States.ToDictionary(p => p.Key, p =>
             {
                 var jsonStr = p.Value.ToJson();

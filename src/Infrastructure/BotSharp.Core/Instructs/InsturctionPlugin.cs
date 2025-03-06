@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Plugins.Models;
-using BotSharp.Abstraction.Users.Enums;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Instructs;
@@ -22,8 +21,8 @@ public class InsturctionPlugin : IBotSharpPlugin
         {
             SubMenu = new List<PluginMenuDef>
             {
-                new PluginMenuDef("Instruction", link: "page/instruction"),
-                new PluginMenuDef("Log", link: "page/instruction/log") { Roles = [UserRole.Root, UserRole.Admin] }
+                new PluginMenuDef("Testing", link: "page/instruction/testing"),
+                new PluginMenuDef("Log", link: "page/instruction/log")
             }
         });
 
