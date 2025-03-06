@@ -563,6 +563,16 @@ public class ConversationController : ControllerBase
     }
     #endregion
 
+    #region Migrate Latest States
+    [HttpPost("/conversation/latest-state/migrate")]
+    public async Task<bool> MigrateConversationLatestStates([FromBody] MigrateLatestStateRequest request)
+    {
+        var convService = _services.GetRequiredService<IConversationService>();
+        var res = await convService.MigrateLatestStates(request.BatchSize, request.ErrorLimit);
+        return res;
+    }
+    #endregion
+
     #region Private methods
     private void SetStates(IConversationService conv, NewMessageModel input)
     {

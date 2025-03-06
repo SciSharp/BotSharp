@@ -41,7 +41,7 @@ public partial class LoggerService
 
         var items = logs.Items.Select(x =>
         {
-            x.AgentId = !string.IsNullOrEmpty(x.AgentId) ? agents.FirstOrDefault(a => a.Id == x.AgentId)?.Name : null;
+            x.AgentName = !string.IsNullOrEmpty(x.AgentId) ? agents.FirstOrDefault(a => a.Id == x.AgentId)?.Name : null;
 
             if (!isAdmin)
             {

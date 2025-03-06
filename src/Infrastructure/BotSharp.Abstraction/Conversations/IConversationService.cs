@@ -70,4 +70,6 @@ public interface IConversationService
     /// <param name="preLoad">if pre-loading, then keys are not filter by the search query</param>
     /// <returns></returns>
     Task<List<string>> GetConversationStateSearhKeys(string query, int convLimit = 100, int keyLimit = 10, bool preload = false);
+
+    Task<bool> MigrateLatestStates(int batchSize = 100, int errorLimit = 10);
 }

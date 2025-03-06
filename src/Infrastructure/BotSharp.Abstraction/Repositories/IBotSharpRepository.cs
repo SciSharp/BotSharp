@@ -151,6 +151,10 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
          => throw new NotImplementedException();
+    List<string> GetConversationsToMigrate(int batchSize = 100)
+        => throw new NotImplementedException();
+    bool MigrateConvsersationLatestStates(string conversationId)
+         => throw new NotImplementedException();
     #endregion
 
     #region LLM Completion Log
