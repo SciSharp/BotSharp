@@ -10,7 +10,7 @@ public interface IRealTimeCompletion
 
     Task Connect(RealtimeHubConnection conn,
         Action onModelReady,
-        Action<string> onModelAudioDeltaReceived,
+        Action<string, string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
         Action<List<RoleDialogModel>> onModelResponseDone,

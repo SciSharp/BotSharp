@@ -121,30 +121,25 @@ public class RealtimeHub : IRealtimeHub
                 await Task.Delay(1000 * 8);
                 await completer.UpdateSession(conn, turnDetection: true);
             },
-            onModelAudioDeltaReceived: async audioDeltaData =>
+            onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {
-                // If this is the first delta of a new response, set the start timestamp
-                if (!conn.ResponseStartTimestamp.HasValue)
-                {
-                    conn.ResponseStartTimestamp = conn.LatestMediaTimestamp;
-                    _logger.LogDebug($"Setting start timestamp for new response: {conn.ResponseStartTimestamp}ms");
-                }
-
                 var data = conn.OnModelMessageReceived(audioDeltaData);
                 await SendEventToUser(userWebSocket, data);
 
-                // Send mark messages to Media Streams so we know if and when AI response playback is finished
-                if (!string.IsNullOrEmpty(conn.StreamId))
+                // If this is the first delta of a new response, set the start timestamp
+                if (!conn.ResponseStartTimestampTwilio.HasValue)
                 {
-                    var markEvent = new
-                    {
-                        @event = "mark",
-                        streamSid = conn.StreamId,
-                        mark = new { name = "responsePart" }
-                    };
-                    await SendEventToUser(userWebSocket, markEvent);
-                    conn.MarkQueue.Enqueue("responsePart");
+                    conn.ResponseStartTimestampTwilio = conn.LatestMediaTimestamp;
+                    _logger.LogDebug($"Setting start timestamp for new response: {conn.ResponseStartTimestampTwilio}ms");
                 }
+                // Record last assistant item ID for interruption handling
+                if (!string.IsNullOrEmpty(itemId))
+                {
+                    conn.LastAssistantItemId = itemId;
+                }
+
+                // Send mark messages to Media Streams so we know if and when AI response playback is finished
+                await SendMark(userWebSocket, conn);
             }, 
             onModelAudioResponseDone: async () =>
             {
@@ -226,13 +221,26 @@ public class RealtimeHub : IRealtimeHub
             onUserInterrupted: async () =>
             {
                 // Reset states
-                conn.MarkQueue.Clear();
-                conn.LastAssistantItem = null;
-                conn.ResponseStartTimestamp = null;
+                conn.ResetResponseState();
 
                 var data = conn.OnModelUserInterrupted();
                 await SendEventToUser(userWebSocket, data);
             });
+    }
+
+    private async Task SendMark(WebSocket userWebSocket, RealtimeHubConnection conn)
+    {
+        if (!string.IsNullOrEmpty(conn.StreamId))
+        {
+            var markEvent = new
+            {
+                @event = "mark",
+                streamSid = conn.StreamId,
+                mark = new { name = "responsePart" }
+            };
+            await SendEventToUser(userWebSocket, markEvent);
+            conn.MarkQueue.Enqueue("responsePart");
+        }
     }
 
     private async Task HandleUserDtmfReceived(IRealTimeCompletion completer, RealtimeHubConnection conn)

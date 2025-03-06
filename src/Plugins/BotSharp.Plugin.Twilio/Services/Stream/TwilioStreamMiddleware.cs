@@ -71,17 +71,44 @@ public class TwilioStreamMiddleware
         {
             var response = JsonSerializer.Deserialize<StreamEventResponse>(receivedText);
             conn.StreamId = response.StreamSid;
-            conn.Event = response.Event switch
-            {
-                "start" => "user_connected",
-                "media" => "user_data_received",
-                "stop" => "user_disconnected",
-                _ => response.Event
-            };
 
-            if (string.IsNullOrEmpty(conn.Event))
+            switch (response.Event)
             {
-                return conn;
+                case "start":
+                    conn.Event = "user_connected";
+                    var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
+                    conn.Data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
+                    conn.ResetStreamState();
+                    break;
+                case "media":
+                    conn.Event = "user_data_received";
+                    var mediaResponse = JsonSerializer.Deserialize<StreamEventMediaResponse>(receivedText);
+                    conn.LatestMediaTimestamp = long.Parse(mediaResponse.Body.Timestamp);
+                    conn.Data = mediaResponse.Body.Payload;
+                    break;
+                case "stop":
+                    conn.Event = "user_disconnected";
+                    break;
+                case "mark":
+                    conn.Event = "mark";
+                    if (conn.MarkQueue.Count > 0) conn.MarkQueue.TryDequeue(out var _);
+                    break;
+                case "dtmf":
+                    var dtmfResponse = JsonSerializer.Deserialize<StreamEventDtmfResponse>(receivedText);
+                    if (dtmfResponse.Body.Digit == "#")
+                    {
+                        conn.Event = "user_dtmf_received";
+                        conn.Data = conn.KeypadInputBuffer;
+                        conn.KeypadInputBuffer = string.Empty;
+                    }
+                    else
+                    {
+                        conn.KeypadInputBuffer += dtmfResponse.Body.Digit;
+                    }
+                    break;
+                default:
+                    conn.Event = response.Event;
+                    break;
             }
 
             conn.OnModelMessageReceived = message =>
@@ -104,34 +131,6 @@ public class TwilioStreamMiddleware
                     @event = "clear",
                     streamSid = response.StreamSid
                 };
-
-            if (response.Event == "start")
-            {
-                var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
-                conn.LatestMediaTimestamp = 0;
-                conn.ResponseStartTimestamp = null;
-                conn.Data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
-            }
-            else if (response.Event == "media")
-            {
-                var mediaResponse = JsonSerializer.Deserialize<StreamEventMediaResponse>(receivedText);
-                conn.LatestMediaTimestamp = long.Parse(mediaResponse.Body.Timestamp);
-                conn.Data = mediaResponse.Body.Payload;
-            }
-            else if (response.Event == "dtmf")
-            {
-                var dtmfResponse = JsonSerializer.Deserialize<StreamEventDtmfResponse>(receivedText);
-                if (dtmfResponse.Body.Digit == "#")
-                {
-                    conn.Event = "user_dtmf_received";
-                    conn.Data = conn.KeypadInputBuffer;
-                    conn.KeypadInputBuffer = string.Empty;
-                }
-                else
-                {
-                    conn.KeypadInputBuffer += dtmfResponse.Body.Digit;
-                }
-            }
 
             return conn;
         });
