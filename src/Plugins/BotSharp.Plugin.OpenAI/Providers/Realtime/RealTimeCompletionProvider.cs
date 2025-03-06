@@ -550,7 +550,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 }));
             prompt += $"{verbose}\r\n";
 
-            prompt += "\r\n[CONVERSATION]";
             verbose = string.Join("\r\n", messages
                 .Where(x => x as SystemChatMessage == null)
                 .Select(x =>
@@ -581,7 +580,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
                     return string.Empty;
                 }));
-            prompt += $"\r\n{verbose}\r\n";
+
+            if (!string.IsNullOrEmpty(verbose))
+            {
+                prompt += $"\r\n[CONVERSATION]\r\n{verbose}\r\n";
+            }
         }
 
         if (!options.Tools.IsNullOrEmpty())
