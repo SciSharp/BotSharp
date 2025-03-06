@@ -2,7 +2,7 @@ using BotSharp.Abstraction.Loggers.Models;
 
 namespace BotSharp.Plugin.MongoStorage.Collections;
 
-public class InstructionLogBetaDocument : MongoBase
+public class InstructionLogDocument : MongoBase
 {
     public string? AgentId { get; set; }
     public string Provider { get; set; } = default!;
@@ -15,9 +15,9 @@ public class InstructionLogBetaDocument : MongoBase
     public Dictionary<string, BsonDocument> States { get; set; } = new();
     public DateTime CreatedTime { get; set; }
 
-    public static InstructionLogBetaDocument ToMongoModel(InstructionLogModel log)
+    public static InstructionLogDocument ToMongoModel(InstructionLogModel log)
     {
-        return new InstructionLogBetaDocument
+        return new InstructionLogDocument
         {
             AgentId = log.AgentId,
             Provider = log.Provider,
@@ -31,7 +31,7 @@ public class InstructionLogBetaDocument : MongoBase
         };
     }
 
-    public static InstructionLogModel ToDomainModel(InstructionLogBetaDocument log)
+    public static InstructionLogModel ToDomainModel(InstructionLogDocument log)
     {
         return new InstructionLogModel
         {

@@ -14,6 +14,9 @@ public class PluginMenuDef(string label, string? link = null, string? icon = nul
     public string? Link { get; set; } = link;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? IFrameUrl { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IsHeader {  get; set; }
 
     [JsonIgnore]

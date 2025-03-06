@@ -115,7 +115,7 @@ public class MongoDbContext
     {
         var collection = GetCollectionOrCreate<ConversationContentLogDocument>("ConversationContentLogs");
         var indexes = collection.Indexes.List().ToList();
-        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreateTime"));
+        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
         {
             var indexDef = Builders<ConversationContentLogDocument>.IndexKeys.Ascending(x => x.CreatedTime);
@@ -128,11 +128,24 @@ public class MongoDbContext
     {
         var collection = GetCollectionOrCreate<ConversationStateLogDocument>("ConversationStateLogs");
         var indexes = collection.Indexes.List().ToList();
-        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreateTime"));
+        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
         if (createTimeIndex == null)
         {
             var indexDef = Builders<ConversationStateLogDocument>.IndexKeys.Ascending(x => x.CreatedTime);
             collection.Indexes.CreateOne(new CreateIndexModel<ConversationStateLogDocument>(indexDef));
+        }
+        return collection;
+    }
+
+    private IMongoCollection<InstructionLogDocument> CreateInstructionLogIndex()
+    {
+        var collection = GetCollectionOrCreate<InstructionLogDocument>("InstructionLogs");
+        var indexes = collection.Indexes.List().ToList();
+        var createTimeIndex = indexes.FirstOrDefault(x => x.GetElement("name").ToString().StartsWith("CreatedTime"));
+        if (createTimeIndex == null)
+        {
+            var indexDef = Builders<InstructionLogDocument>.IndexKeys.Descending(x => x.CreatedTime);
+            collection.Indexes.CreateOne(new CreateIndexModel<InstructionLogDocument>(indexDef));
         }
         return collection;
     }
@@ -193,6 +206,6 @@ public class MongoDbContext
     public IMongoCollection<GlobalStatisticsDocument> GlobalStatistics
         => GetCollectionOrCreate<GlobalStatisticsDocument>("GlobalStatistics");
 
-    public IMongoCollection<InstructionLogBetaDocument> InstructionLogs
-        => GetCollectionOrCreate<InstructionLogBetaDocument>("InstructionLogs");
+    public IMongoCollection<InstructionLogDocument> InstructionLogs
+        => CreateInstructionLogIndex();
 }
