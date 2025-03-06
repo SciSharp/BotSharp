@@ -1,15 +1,4 @@
-using BotSharp.Abstraction.Realtime;
-using System.Net.WebSockets;
-using BotSharp.Abstraction.Realtime.Models;
-using BotSharp.Abstraction.MLTasks;
-using BotSharp.Abstraction.Conversations.Enums;
-using BotSharp.Abstraction.Routing.Models;
-using NetTopologySuite.Index.HPRtree;
-using BotSharp.Abstraction.Agents.Models;
-using Microsoft.Identity.Client.Extensions.Msal;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-
-namespace BotSharp.Core.Realtime;
+namespace BotSharp.Core.Realtime.Services;
 
 public class RealtimeHub : IRealtimeHub
 {
@@ -127,10 +116,10 @@ public class RealtimeHub : IRealtimeHub
                 await SendEventToUser(userWebSocket, data);
 
                 // If this is the first delta of a new response, set the start timestamp
-                if (!conn.ResponseStartTimestampTwilio.HasValue)
+                if (!conn.ResponseStartTimestamp.HasValue)
                 {
-                    conn.ResponseStartTimestampTwilio = conn.LatestMediaTimestamp;
-                    _logger.LogDebug($"Setting start timestamp for new response: {conn.ResponseStartTimestampTwilio}ms");
+                    conn.ResponseStartTimestamp = conn.LatestMediaTimestamp;
+                    _logger.LogDebug($"Setting start timestamp for new response: {conn.ResponseStartTimestamp}ms");
                 }
                 // Record last assistant item ID for interruption handling
                 if (!string.IsNullOrEmpty(itemId))

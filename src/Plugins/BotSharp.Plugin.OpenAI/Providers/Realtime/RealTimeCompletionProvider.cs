@@ -207,9 +207,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 // Handle user interuption
-                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestampTwilio != null)
+                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestamp != null)
                 {
-                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestampTwilio;
+                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestamp;
 
                     if (!string.IsNullOrEmpty(conn.LastAssistantItemId))
                     {
