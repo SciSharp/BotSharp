@@ -182,6 +182,10 @@ namespace BotSharp.Core.Repository
                 {
                     matched = matched && filter.TemplateNames.Contains(log.TemplateName);
                 }
+                if (!filter.UserIds.IsNullOrEmpty())
+                {
+                    matched = matched && filter.UserIds.Contains(log.UserId);
+                }
 
                 if (!matched) continue;
 
@@ -190,12 +194,6 @@ namespace BotSharp.Core.Repository
             }
 
             var records = logs.OrderByDescending(x => x.CreatedTime).Skip(filter.Offset).Take(filter.Size);
-            var agentIds = records.Where(x => !string.IsNullOrEmpty(x.AgentId)).Select(x => x.AgentId).ToList();
-            var agents = GetAgents(new AgentFilter
-            {
-                AgentIds = agentIds
-            });
-
             records = records.Select(x =>
             {
                 var states = x.InnerStates.ToDictionary(p => p.Key, p =>
@@ -203,7 +201,6 @@ namespace BotSharp.Core.Repository
                     var data = p.Value.RootElement.GetProperty("data");
                     return data.ValueKind != JsonValueKind.Null ? data.ToString() : null;
                 });
-                x.AgentName = !string.IsNullOrEmpty(x.AgentId) ? agents.FirstOrDefault(a => a.Id == x.AgentId)?.Name : null;
                 x.States = states ?? [];
                 return x;
             }).ToList();

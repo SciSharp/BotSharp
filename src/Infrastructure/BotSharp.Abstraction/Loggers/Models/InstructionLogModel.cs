@@ -40,6 +40,9 @@ public class InstructionLogModel
     public string? UserId { get; set; }
 
     [JsonIgnore]
+    public string? UserName { get; set; }
+
+    [JsonIgnore]
     public Dictionary<string, string> States { get; set; } = [];
 
     [JsonPropertyName("states")]

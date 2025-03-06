@@ -27,8 +27,6 @@ public interface IConversationService
     /// <param name="newMessageId">If not null, delete messages while input a new message; otherwise delete messages only</param>
     /// <returns></returns>
     Task<bool> TruncateConversation(string conversationId, string messageId, string? newMessageId = null);
-    Task<List<ContentLogOutputModel>> GetConversationContentLogs(string conversationId);
-    Task<List<ConversationStateLogModel>> GetConversationStateLogs(string conversationId);
 
     /// <summary>
     /// Send message to LLM
@@ -72,4 +70,6 @@ public interface IConversationService
     /// <param name="preLoad">if pre-loading, then keys are not filter by the search query</param>
     /// <returns></returns>
     Task<List<string>> GetConversationStateSearhKeys(string query, int convLimit = 100, int keyLimit = 10, bool preload = false);
+
+    Task<bool> MigrateLatestStates(int batchSize = 100, int errorLimit = 10);
 }

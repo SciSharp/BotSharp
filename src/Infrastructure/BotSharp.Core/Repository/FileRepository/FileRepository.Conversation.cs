@@ -687,6 +687,56 @@ public partial class FileRepository
     }
 
 
+
+    public List<string> GetConversationsToMigrate(int batchSize = 100)
+    {
+        var baseDir = Path.Combine(_dbSettings.FileRepository, _conversationSettings.DataDir);
+        if (!Directory.Exists(baseDir)) return [];
+
+        var convIds = new List<string>();
+        var dirs = Directory.GetDirectories(baseDir);
+
+        foreach (var dir in dirs)
+        {
+            var latestStateFile = Path.Combine(dir, CONV_LATEST_STATE_FILE);
+            if (File.Exists(latestStateFile)) continue;
+
+            var convId = dir.Split(Path.DirectorySeparatorChar).Last();
+            if (string.IsNullOrEmpty(convId)) continue;
+
+            convIds.Add(convId);
+            if (convIds.Count >= batchSize)
+            {
+                break;
+            }
+        }
+
+        return convIds;
+    }
+
+
+    public bool MigrateConvsersationLatestStates(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+
+        var convDir = FindConversationDirectory(conversationId);
+        if (string.IsNullOrEmpty(convDir))
+        {
+            return false;
+        }
+
+        var stateFile = Path.Combine(convDir, STATE_FILE);
+        var states = CollectConversationStates(stateFile);
+        var latestStates = BuildLatestStates(states);
+
+        var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+        var stateStr = JsonSerializer.Serialize(latestStates, _options);
+        File.WriteAllText(latestStateFile, stateStr);
+
+        return true;
+    }
+
+
     #region Private methods
     private string? FindConversationDirectory(string conversationId)
     {
@@ -883,6 +933,11 @@ public partial class FileRepository
     private Dictionary<string, JsonDocument> BuildLatestStates(List<StateKeyValue> states)
     {
         var endNodes = new Dictionary<string, JsonDocument>();
+        if (states.IsNullOrEmpty())
+        {
+            return endNodes;
+        }
+
         foreach (var pair in states)
         {
             var value = pair.Values?.LastOrDefault();

@@ -40,6 +40,10 @@ public class InstructionLogViewModel
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? UserId { get; set; }
 
+    [JsonPropertyName("user_name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? UserName { get; set; }
+
     [JsonPropertyName("states")]
     public Dictionary<string, string> States { get; set; } = [];
 
@@ -60,6 +64,7 @@ public class InstructionLogViewModel
             SystemInstruction = log.SystemInstruction,
             CompletionText = log.CompletionText,
             UserId = log.UserId,
+            UserName = log.UserName,
             States = log.States,
             CreatedTime = log.CreatedTime
         };

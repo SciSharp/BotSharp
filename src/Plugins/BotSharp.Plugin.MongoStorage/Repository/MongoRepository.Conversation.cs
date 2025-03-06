@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using MongoDB.Driver;
 using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -661,6 +662,37 @@ public partial class MongoRepository
         return keys;
     }
 
+
+
+    public List<string> GetConversationsToMigrate(int batchSize = 100)
+    {
+        var convFilter = Builders<ConversationDocument>.Filter.Exists(x => x.LatestStates, false);
+        var sortDef = Builders<ConversationDocument>.Sort.Ascending(x => x.CreatedTime);
+        var convIds = _dc.Conversations.Find(convFilter).Sort(sortDef)
+                                       .Limit(batchSize).ToEnumerable()
+                                       .Select(x => x.Id).ToList();
+        return convIds ?? [];
+    }
+
+    public bool MigrateConvsersationLatestStates(string conversationId)
+    {
+        if (string.IsNullOrEmpty(conversationId)) return false;
+
+        var stateFilter = Builders<ConversationStateDocument>.Filter.Eq(x => x.ConversationId, conversationId);
+        var foundStates = _dc.ConversationStates.Find(stateFilter).FirstOrDefault();
+        if (foundStates?.States == null) return false;
+
+        var states = foundStates.States.ToList();
+        var latestStates = BuildLatestStates(states);
+
+        var convFilter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var convUpdate = Builders<ConversationDocument>.Update.Set(x => x.LatestStates, latestStates);
+        _dc.Conversations.UpdateOne(convFilter, convUpdate);
+
+        return true;
+    }
+
+    #region Private methods
     private string ConvertSnakeCaseToPascalCase(string snakeCase)
     {
         string[] words = snakeCase.Split('_');
@@ -682,6 +714,11 @@ public partial class MongoRepository
     private Dictionary<string, BsonDocument> BuildLatestStates(List<StateMongoElement> states)
     {
         var endNodes = new Dictionary<string, BsonDocument>();
+        if (states.IsNullOrEmpty())
+        {
+            return endNodes;
+        }
+
         foreach (var pair in states)
         {
             var value = pair.Values?.LastOrDefault();
@@ -703,4 +740,5 @@ public partial class MongoRepository
 
         return endNodes;
     }
+    #endregion
 }
