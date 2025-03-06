@@ -40,7 +40,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     public async Task Connect(RealtimeHubConnection conn,
         Action onModelReady,
-        Action<string> onModelAudioDeltaReceived,
+        Action<string,string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
         Action<List<RoleDialogModel>> onModelResponseDone,
@@ -123,7 +123,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
     private async Task ReceiveMessage(RealtimeHubConnection conn,
         Action onModelReady,
-        Action<string> onModelAudioDeltaReceived,
+        Action<string,string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
         Action<List<RoleDialogModel>> onModelResponseDone,
@@ -176,21 +176,10 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "response.audio.delta")
             {
                 var audio = JsonSerializer.Deserialize<ResponseAudioDelta>(receivedText);
-                // Record last assistant item ID for interruption handling
-                if (conn.ResponseStartTimestamp.HasValue)
-                {
-                    conn.ResponseStartTimestamp = conn.LatestMediaTimestamp;
-                }
-
-                if (!string.IsNullOrEmpty(conn.StreamId))
-                {
-                    conn.LastAssistantItem = audio?.ItemId;
-                }
-
-                if (audio != null && audio.Delta != null)
+                if (audio?.Delta != null)
                 {
                     _logger.LogDebug($"{response.Type}: {receivedText}");
-                    onModelAudioDeltaReceived(audio.Delta);
+                    onModelAudioDeltaReceived(audio.Delta, audio.ItemId);
                 }
             }
             else if (response.Type == "response.audio.done")
@@ -218,16 +207,16 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 // Handle user interuption
-                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestamp != null)
+                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestampTwilio != null)
                 {
-                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestamp;
+                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestampTwilio;
 
-                    if (!string.IsNullOrEmpty(conn.LastAssistantItem))
+                    if (!string.IsNullOrEmpty(conn.LastAssistantItemId))
                     {
                         var truncateEvent = new
                         {
                             type = "conversation.item.truncate",
-                            item_id = conn.LastAssistantItem,
+                            item_id = conn.LastAssistantItemId,
                             content_index = 0,
                             audio_end_ms = elapsedTime
                         };
@@ -336,13 +325,13 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 ToolChoice = "auto",
                 Tools = functions,
                 Modalities = [ "text", "audio" ],
-                Temperature = Math.Max(options.Temperature ?? 0f, 0.8f),
+                Temperature = Math.Max(options.Temperature ?? 0f, 0.6f),
                 MaxResponseOutputTokens = 512,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    Threshold = 0.5f,
+                    Threshold = 0.8f,
                     PrefixPadding = 300,
-                    SilenceDuration = 500
+                    SilenceDuration = 800
                 }
             }
         };
