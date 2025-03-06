@@ -119,10 +119,10 @@ public partial class MongoRepository
     {
         if (logs.IsNullOrEmpty()) return false;
 
-        var docs = new List<InstructionLogBetaDocument>();
+        var docs = new List<InstructionLogDocument>();
         foreach (var log in logs)
         {
-            var doc = InstructionLogBetaDocument.ToMongoModel(log);
+            var doc = InstructionLogDocument.ToMongoModel(log);
             foreach (var pair in log.States)
             {
                 try
@@ -152,8 +152,8 @@ public partial class MongoRepository
             filter = InstructLogFilter.Empty();
         }
 
-        var builder = Builders<InstructionLogBetaDocument>.Filter;
-        var filters = new List<FilterDefinition<InstructionLogBetaDocument>>() { builder.Empty };
+        var builder = Builders<InstructionLogDocument>.Filter;
+        var filters = new List<FilterDefinition<InstructionLogDocument>>() { builder.Empty };
 
         // Filter logs
         if (!filter.AgentIds.IsNullOrEmpty())
@@ -174,13 +174,13 @@ public partial class MongoRepository
         }
 
         var filterDef = builder.And(filters);
-        var sortDef = Builders<InstructionLogBetaDocument>.Sort.Descending(x => x.CreatedTime);
+        var sortDef = Builders<InstructionLogDocument>.Sort.Descending(x => x.CreatedTime);
         var docs = _dc.InstructionLogs.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
         var count = _dc.InstructionLogs.CountDocuments(filterDef);
 
         var logs = docs.Select(x =>
         {
-            var log = InstructionLogBetaDocument.ToDomainModel(x);
+            var log = InstructionLogDocument.ToDomainModel(x);
             log.States = x.States.ToDictionary(p => p.Key, p =>
             {
                 var jsonStr = p.Value.ToJson();
