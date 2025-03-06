@@ -7,5 +7,19 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
+  "mcptools": [
+    {
+      "serverid": "PizzaServer",
+      "disabled": false,
+      "functions": [
+        {
+          "Name": "get_pizza_price"
+        },
+        {
+          "Name": "place_an_order"
+        }
+      ]
+    }
+  ]
   "labels": [ "experiment" ]
 }

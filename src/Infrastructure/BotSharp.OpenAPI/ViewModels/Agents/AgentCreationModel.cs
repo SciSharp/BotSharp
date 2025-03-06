@@ -55,6 +55,7 @@ public class AgentCreationModel
     public int? MaxMessageCount { get; set; }
 
     public List<AgentUtility> Utilities { get; set; } = new();
+    public List<MCPTool> McpTools { get; set; } = new();
     public List<RoutingRuleUpdateModel> RoutingRules { get; set; } = new();
     public List<AgentKnowledgeBase> KnowledgeBases { get; set; } = new();
     public List<AgentRule> Rules { get; set; } = new();
@@ -73,6 +74,7 @@ public class AgentCreationModel
             Responses = Responses,
             Samples = Samples,
             Utilities = Utilities,
+            McpTools = McpTools,
             IsPublic = IsPublic,
             Type = Type,
             Disabled = Disabled,

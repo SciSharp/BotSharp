@@ -46,7 +46,7 @@ public class GetPizzaTypesFn : IFunctionCallback
                 }).ToArray()
             }
         };
-            
+
         return true;
     }
 }
