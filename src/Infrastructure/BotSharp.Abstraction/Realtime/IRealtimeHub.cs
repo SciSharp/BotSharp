@@ -1,3 +1,4 @@
+using BotSharp.Abstraction.MLTasks;
 using BotSharp.Abstraction.Realtime.Models;
 using System.Net.WebSockets;
 
@@ -8,5 +9,11 @@ namespace BotSharp.Abstraction.Realtime;
 /// </summary>
 public interface IRealtimeHub
 {
-    Task Listen(WebSocket userWebSocket, Func<string, RealtimeHubConnection> onUserMessageReceived);
+    RealtimeHubConnection HubConn { get; }
+    RealtimeHubConnection SetHubConnection(string conversationId);
+
+    IRealTimeCompletion Completer { get; }
+    IRealTimeCompletion SetCompleter(string provider);
+
+    Task Listen(WebSocket userWebSocket, Action<string> onUserMessageReceived);
 }

@@ -16,7 +16,6 @@ using BotSharp.Abstraction.Templating;
 using BotSharp.Core.Templating;
 using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Abstraction.Realtime;
-using BotSharp.Core.Realtime;
 
 namespace BotSharp.Core;
 
@@ -173,7 +172,5 @@ public static class BotSharpCoreExtensions
         });
 
         services.AddSingleton(loader);
-
-        services.AddScoped<IRealtimeHub, RealtimeHub>();
     }
 }

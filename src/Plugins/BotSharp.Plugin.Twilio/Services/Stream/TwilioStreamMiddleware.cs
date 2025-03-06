@@ -51,12 +51,9 @@ public class TwilioStreamMiddleware
     private async Task HandleWebSocket(IServiceProvider services, string conversationId, WebSocket webSocket)
     {
         var hub = services.GetRequiredService<IRealtimeHub>();
-
-        var conn = new RealtimeHubConnection
-        {
-            ConversationId = conversationId
-        };
-
+        var conn = hub.SetHubConnection(conversationId);
+        var completer = hub.SetCompleter("openai");
+        
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, []);
@@ -131,8 +128,6 @@ public class TwilioStreamMiddleware
                     @event = "clear",
                     streamSid = response.StreamSid
                 };
-
-            return conn;
         });
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -36,6 +36,7 @@
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Rules\BotSharp.Core.Rules.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Crontab\BotSharp.Core.Crontab.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.SideCar\BotSharp.Core.SideCar.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Core.Realtime\BotSharp.Core.Realtime.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />

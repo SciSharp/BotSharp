@@ -207,9 +207,9 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
             else if (response.Type == "input_audio_buffer.speech_started")
             {
                 // Handle user interuption
-                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestampTwilio != null)
+                if (conn.MarkQueue.Count > 0 && conn.ResponseStartTimestamp != null)
                 {
-                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestampTwilio;
+                    var elapsedTime = conn.LatestMediaTimestamp - conn.ResponseStartTimestamp;
 
                     if (!string.IsNullOrEmpty(conn.LastAssistantItemId))
                     {
@@ -550,7 +550,6 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 }));
             prompt += $"{verbose}\r\n";
 
-            prompt += "\r\n[CONVERSATION]";
             verbose = string.Join("\r\n", messages
                 .Where(x => x as SystemChatMessage == null)
                 .Select(x =>
@@ -581,7 +580,11 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
 
                     return string.Empty;
                 }));
-            prompt += $"\r\n{verbose}\r\n";
+
+            if (!string.IsNullOrEmpty(verbose))
+            {
+                prompt += $"\r\n[CONVERSATION]\r\n{verbose}\r\n";
+            }
         }
 
         if (!options.Tools.IsNullOrEmpty())

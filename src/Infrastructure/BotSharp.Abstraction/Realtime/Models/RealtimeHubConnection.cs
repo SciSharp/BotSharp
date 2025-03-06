@@ -8,7 +8,7 @@ public class RealtimeHubConnection
     public string StreamId { get; set; } = null!;
     public string? LastAssistantItemId { get; set; } = null!;
     public long LatestMediaTimestamp { get; set; }
-    public long? ResponseStartTimestampTwilio { get; set; }
+    public long? ResponseStartTimestamp { get; set; }
     public string KeypadInputBuffer { get; set; } = string.Empty;
     public ConcurrentQueue<string> MarkQueue { get; set; } = new();
     public string CurrentAgentId { get; set; } = null!;
@@ -23,12 +23,12 @@ public class RealtimeHubConnection
     {
         MarkQueue.Clear();
         LastAssistantItemId = null;
-        ResponseStartTimestampTwilio = null;
+        ResponseStartTimestamp = null;
     }
 
     public void ResetStreamState()
     {
-        ResponseStartTimestampTwilio = null;
+        ResponseStartTimestamp = null;
         LatestMediaTimestamp = 0;
     }
 }
