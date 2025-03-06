@@ -27,8 +27,6 @@ public interface IConversationService
     /// <param name="newMessageId">If not null, delete messages while input a new message; otherwise delete messages only</param>
     /// <returns></returns>
     Task<bool> TruncateConversation(string conversationId, string messageId, string? newMessageId = null);
-    Task<List<ContentLogOutputModel>> GetConversationContentLogs(string conversationId);
-    Task<List<ConversationStateLogModel>> GetConversationStateLogs(string conversationId);
 
     /// <summary>
     /// Send message to LLM

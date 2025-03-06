@@ -1,9 +1,8 @@
 using BotSharp.Abstraction.Loggers.Models;
-using BotSharp.Abstraction.Repositories;
 
-namespace BotSharp.Core.Conversations.Services;
+namespace BotSharp.Core.Loggers.Services;
 
-public partial class ConversationService
+public partial class LoggerService
 {
     public async Task<List<ContentLogOutputModel>> GetConversationContentLogs(string conversationId)
     {

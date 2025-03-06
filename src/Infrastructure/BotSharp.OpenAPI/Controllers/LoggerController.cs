@@ -42,15 +42,15 @@ public class LoggerController : ControllerBase
     [HttpGet("/logger/conversation/{conversationId}/content-log")]
     public async Task<List<ContentLogOutputModel>> GetConversationContentLogs([FromRoute] string conversationId)
     {
-        var conversationService = _services.GetRequiredService<IConversationService>();
-        return await conversationService.GetConversationContentLogs(conversationId);
+        var logging = _services.GetRequiredService<ILoggerService>();
+        return await logging.GetConversationContentLogs(conversationId);
     }
 
     [HttpGet("/logger/conversation/{conversationId}/state-log")]
     public async Task<List<ConversationStateLogModel>> GetConversationStateLogs([FromRoute] string conversationId)
     {
-        var conversationService = _services.GetRequiredService<IConversationService>();
-        return await conversationService.GetConversationStateLogs(conversationId);
+        var logging = _services.GetRequiredService<ILoggerService>();
+        return await logging.GetConversationStateLogs(conversationId);
     }
 
     [HttpGet("/logger/instruction/log")]
