@@ -582,6 +582,12 @@ namespace BotSharp.Core.Repository
             ResetInnerAgents();
         }
 
+        public async ValueTask BulkInsertAgentsAsync(List<Agent> agents)
+        {
+            await Task.Delay(100);
+            BulkInsertAgents(agents);
+        }
+
         public void BulkInsertUserAgents(List<UserAgent> userAgents)
         {
             if (userAgents.IsNullOrEmpty()) return;
@@ -615,9 +621,33 @@ namespace BotSharp.Core.Repository
             ResetInnerAgents();
         }
 
+        public async ValueTask BulkInsertUserAgentsAsync(List<UserAgent> userAgents) 
+        {
+            await Task.Delay(200);
+            BulkInsertUserAgents(userAgents);
+        }
+
         public bool DeleteAgents()
         {
             return false;
+        }
+
+        public async Task<bool> DeleteAgentsAsync()
+        {
+            await Task.Delay(100);
+            return false;
+        }
+
+        public async ValueTask<bool> DeleteAgentsAsync(List<string> agentIds)
+        {
+            bool isDelete = false;
+            foreach (var agentId in agentIds)
+            {
+                isDelete = DeleteAgent(agentId);
+                await Task.Delay(200);
+            }
+
+            return isDelete;
         }
 
         public bool DeleteAgent(string agentId)

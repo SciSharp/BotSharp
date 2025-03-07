@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Functions.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using BotSharp.Abstraction.Routing.Models;
+using Microsoft.Extensions.Logging;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
 
@@ -487,36 +488,16 @@ public partial class MongoRepository
     {
         if (agents.IsNullOrEmpty()) return;
 
-        var agentDocs = agents.Select(x => new AgentDocument
-        {
-            Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
-            Name = x.Name,
-            IconUrl = x.IconUrl,
-            Description = x.Description,
-            Instruction = x.Instruction,
-            Samples = x.Samples ?? [],
-            IsPublic = x.IsPublic,
-            Type = x.Type,
-            InheritAgentId = x.InheritAgentId,
-            Disabled = x.Disabled,
-            MergeUtility = x.MergeUtility,
-            MaxMessageCount = x.MaxMessageCount,
-            Profiles = x.Profiles ?? [],
-            Labels = x.Labels ?? [],
-            LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(x.LlmConfig),
-            ChannelInstructions = x.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
-            Templates = x.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
-            Functions = x.Functions?.Select(f => FunctionDefMongoElement.ToMongoElement(f))?.ToList() ?? [],
-            Responses = x.Responses?.Select(r => AgentResponseMongoElement.ToMongoElement(r))?.ToList() ?? [],
-            RoutingRules = x.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
-            Utilities = x.Utilities?.Select(u => AgentUtilityMongoElement.ToMongoElement(u))?.ToList() ?? [],
-            KnowledgeBases = x.KnowledgeBases?.Select(k => AgentKnowledgeBaseMongoElement.ToMongoElement(k))?.ToList() ?? [],
-            Rules = x.Rules?.Select(e => AgentRuleMongoElement.ToMongoElement(e))?.ToList() ?? [],
-            CreatedTime = x.CreatedDateTime,
-            UpdatedTime = x.UpdatedDateTime
-        }).ToList();
+        var agentDocs = agents.Select(x => TransformAgent(x));
+        InsertMany("Agents", _dc.Agents, agentDocs);
+    }
 
-        _dc.Agents.InsertMany(agentDocs);
+    public async ValueTask BulkInsertAgentsAsync(List<Agent> agents)
+    {
+        if (agents.IsNullOrEmpty()) return;
+
+        var agentDocs = agents.Select(x => TransformAgent(x));
+        await InsertManyAsync("Agents", _dc.Agents, agentDocs);
     }
 
     public void BulkInsertUserAgents(List<UserAgent> userAgents)
@@ -534,18 +515,79 @@ public partial class MongoRepository
             Actions = x.Actions,
             CreatedTime = x.CreatedTime,
             UpdatedTime = x.UpdatedTime
-        }).ToList();
+        });
 
-        _dc.UserAgents.InsertMany(userAgentDocs);
+        InsertMany("UserAgents", _dc.UserAgents, userAgentDocs);
+    }
+
+    public async ValueTask BulkInsertUserAgentsAsync(List<UserAgent> userAgents)
+    {
+        if (userAgents.IsNullOrEmpty()) return;
+
+        var filtered = userAgents.Where(x => !string.IsNullOrEmpty(x.UserId) && !string.IsNullOrEmpty(x.AgentId)).ToList();
+        if (filtered.IsNullOrEmpty()) return;
+
+        var userAgentDocs = filtered.Select(x => new UserAgentDocument
+        {
+            Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString(),
+            UserId = x.UserId,
+            AgentId = x.AgentId,
+            Actions = x.Actions,
+            CreatedTime = x.CreatedTime,
+            UpdatedTime = x.UpdatedTime
+        });
+
+        await InsertManyAsync("UserAgents", _dc.UserAgents, userAgentDocs);
     }
 
     public bool DeleteAgents()
     {
         try
         {
+            _dc.Agents.DeleteMany(Builders<AgentDocument>.Filter.Empty);
             _dc.UserAgents.DeleteMany(Builders<UserAgentDocument>.Filter.Empty);
             _dc.RoleAgents.DeleteMany(Builders<RoleAgentDocument>.Filter.Empty);
-            _dc.Agents.DeleteMany(Builders<AgentDocument>.Filter.Empty);
+            _dc.AgentTasks.DeleteMany(Builders<AgentTaskDocument>.Filter.Empty);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteAgentsAsync()
+    {
+        try
+        {
+            await _dc.Agents.DeleteManyAsync(Builders<AgentDocument>.Filter.Empty);
+            await _dc.UserAgents.DeleteManyAsync(Builders<UserAgentDocument>.Filter.Empty);
+            await _dc.RoleAgents.DeleteManyAsync(Builders<RoleAgentDocument>.Filter.Empty);
+            await _dc.AgentTasks.DeleteManyAsync(Builders<AgentTaskDocument>.Filter.Empty);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async ValueTask<bool> DeleteAgentsAsync(List<string> agentIds)
+    {
+        if (agentIds.IsNullOrEmpty()) return false;
+
+        try
+        {
+            var agentFilter = Builders<AgentDocument>.Filter.In(x => x.Id, agentIds);
+            var userAgentFilter = Builders<UserAgentDocument>.Filter.In(x => x.AgentId, agentIds);
+            var roleAgentFilter = Builders<RoleAgentDocument>.Filter.In(x => x.AgentId, agentIds);
+            var agentTaskFilter = Builders<AgentTaskDocument>.Filter.In(x => x.AgentId, agentIds);
+
+            await _dc.Agents.DeleteManyAsync(agentFilter);
+            await _dc.UserAgents.DeleteManyAsync(userAgentFilter);
+            await _dc.RoleAgents.DeleteManyAsync(roleAgentFilter);
+            await _dc.AgentTasks.DeleteManyAsync(agentTaskFilter);
+
             return true;
         }
         catch
@@ -597,7 +639,7 @@ public partial class MongoRepository
             Profiles = agentDoc.Profiles ?? [],
             Labels = agentDoc.Labels ?? [],
             MaxMessageCount = agentDoc.MaxMessageCount,
-            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig),
+            LlmConfig = AgentLlmConfigMongoElement.ToDomainElement(agentDoc.LlmConfig) ?? new(),
             ChannelInstructions = agentDoc.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToDomainElement(i))?.ToList() ?? [],
             Templates = agentDoc.Templates?.Select(t => AgentTemplateMongoElement.ToDomainElement(t))?.ToList() ?? [],
             Functions = agentDoc.Functions?.Select(f => FunctionDefMongoElement.ToDomainElement(f)).ToList() ?? [],
@@ -607,5 +649,93 @@ public partial class MongoRepository
             KnowledgeBases = agentDoc.KnowledgeBases?.Select(x => AgentKnowledgeBaseMongoElement.ToDomainElement(x))?.ToList() ?? [],
             Rules = agentDoc.Rules?.Select(e => AgentRuleMongoElement.ToDomainElement(e))?.ToList() ?? []
         };
+    }
+
+    private AgentDocument TransformAgent(Agent? agent)
+    {
+        if (agent == null) return new AgentDocument();
+
+        return new AgentDocument
+        {
+            Id = !string.IsNullOrEmpty(agent.Id) ? agent.Id : Guid.NewGuid().ToString(),
+            Name = agent.Name,
+            IconUrl = agent.IconUrl,
+            Description = agent.Description,
+            Instruction = agent.Instruction ?? string.Empty,
+            Samples = agent.Samples ?? [],
+            IsPublic = agent.IsPublic,
+            Type = agent.Type,
+            InheritAgentId = agent.InheritAgentId,
+            Disabled = agent.Disabled,
+            MergeUtility = agent.MergeUtility,
+            MaxMessageCount = agent.MaxMessageCount,
+            Profiles = agent.Profiles ?? [],
+            Labels = agent.Labels ?? [],
+            LlmConfig = AgentLlmConfigMongoElement.ToMongoElement(agent.LlmConfig),
+            ChannelInstructions = agent.ChannelInstructions?.Select(i => ChannelInstructionMongoElement.ToMongoElement(i))?.ToList() ?? [],
+            Templates = agent.Templates?.Select(t => AgentTemplateMongoElement.ToMongoElement(t))?.ToList() ?? [],
+            Functions = agent.Functions?.Select(f => FunctionDefMongoElement.ToMongoElement(f))?.ToList() ?? [],
+            Responses = agent.Responses?.Select(r => AgentResponseMongoElement.ToMongoElement(r))?.ToList() ?? [],
+            RoutingRules = agent.RoutingRules?.Select(r => RoutingRuleMongoElement.ToMongoElement(r))?.ToList() ?? [],
+            Utilities = agent.Utilities?.Select(u => AgentUtilityMongoElement.ToMongoElement(u))?.ToList() ?? [],
+            KnowledgeBases = agent.KnowledgeBases?.Select(k => AgentKnowledgeBaseMongoElement.ToMongoElement(k))?.ToList() ?? [],
+            Rules = agent.Rules?.Select(e => AgentRuleMongoElement.ToMongoElement(e))?.ToList() ?? [],
+            CreatedTime = agent.CreatedDateTime,
+            UpdatedTime = agent.UpdatedDateTime
+        };
+    }
+
+    private void InsertMany<TDocument>(string collectionName, IMongoCollection<TDocument> collection, IEnumerable<TDocument> documents)
+    {
+        // Configure InsertManyOptions to skip exceptions and continue inserting
+        var options = new InsertManyOptions { IsOrdered = false };
+
+        try
+        {
+            // Perform batch insertion operation
+            collection.InsertMany(documents, options);
+            _logger.LogInformation($"{collectionName} document inserted successfully.");
+        }
+        catch (MongoBulkWriteException<AgentDocument> ex)
+        {
+            StringBuilder strBuilder = new();
+            strBuilder.AppendLine($"{collectionName} document could not be inserted:");
+            foreach (var writeError in ex.WriteErrors)
+            {
+                strBuilder.AppendLine($"Index: {writeError.Index}, Code: {writeError.Code}, Message: {writeError.Message}");
+            }
+            _logger.LogError(strBuilder.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task InsertManyAsync<TDocument>(string collectionName, IMongoCollection<TDocument> collection, IEnumerable<TDocument> documents)
+    {
+        // Configure InsertManyOptions to skip exceptions and continue inserting
+        var options = new InsertManyOptions { IsOrdered = false };
+
+        try
+        {
+            // Perform batch insertion operation
+            await collection.InsertManyAsync(documents, options);
+            _logger.LogInformation($"{collectionName} document inserted successfully.");
+        }
+        catch (MongoBulkWriteException<AgentDocument> ex)
+        {
+            StringBuilder strBuilder = new();
+            strBuilder.AppendLine($"{collectionName} document could not be inserted:");
+            foreach (var writeError in ex.WriteErrors)
+            {
+                strBuilder.AppendLine($"Index: {writeError.Index}, Code: {writeError.Code}, Message: {writeError.Message}");
+            }
+            _logger.LogError(strBuilder.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"An error occurred: {ex.Message}");
+        }
     }
 }

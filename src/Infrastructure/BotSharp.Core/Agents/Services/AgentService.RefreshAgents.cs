@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Repositories.Enums;
+using BotSharp.Abstraction.Tasks.Models;
 using System.IO;
 
 namespace BotSharp.Core.Agents.Services;
@@ -24,27 +25,24 @@ public partial class AgentService
             return "Unauthorized user.";
         }
 
-        var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                                    dbSettings.FileRepository,
-                                    _agentSettings.DataDir);
-
+        var agentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbSettings.FileRepository, _agentSettings.DataDir);
         if (!Directory.Exists(agentDir))
         {
             refreshResult = $"Cannot find the directory: {agentDir}";
             return refreshResult;
         }
-        
-        var refreshedAgents = new List<string>();
+
+        List<Agent> agents = [];
+        List<AgentTask> agentTasks = [];
+
         foreach (var dir in Directory.GetDirectories(agentDir))
         {
             try
             {
-                var agentJson = File.ReadAllText(Path.Combine(dir, "agent.json"));
-                var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
-                
+                var (agent, msg) = GetAgentFormJson(Path.Combine(dir, "agent.json"));
                 if (agent == null)
                 {
-                    _logger.LogError($"Cannot find agent in file directory: {dir}");
+                    _logger.LogError(msg);
                     continue;
                 }
 
@@ -61,16 +59,8 @@ public partial class AgentService
                      .SetSamples(samples);
 
                 var tasks = GetTasksFromFile(dir);
-
-                var isAgentDeleted = _db.DeleteAgent(agent.Id);
-                if (isAgentDeleted)
-                {
-                    await Task.Delay(100);
-                    _db.BulkInsertAgents(new List<Agent> { agent });
-                    _db.BulkInsertAgentTasks(tasks);
-                    refreshedAgents.Add(agent.Name);
-                    _logger.LogInformation($"Agent {agent.Name} has been migrated.");
-                }
+                if (!tasks.IsNullOrEmpty()) agentTasks.AddRange(tasks);
+                agents.Add(agent);
             }
             catch (Exception ex)
             {
@@ -78,10 +68,17 @@ public partial class AgentService
             }
         }
 
-        if (!refreshedAgents.IsNullOrEmpty())
+        if (agents.Count > 0)
         {
+            var agentIds = agents.Select(a => a.Id).ToList();
+            await _db.DeleteAgentsAsync(agentIds);
+            await Task.Delay(200);
+            await _db.BulkInsertAgentsAsync(agents);
+            await Task.Delay(200);
+            await _db.BulkInsertAgentTasksAsync(agentTasks);
+
             Utilities.ClearCache();
-            refreshResult = $"Agents are migrated!\r\n{string.Join("\r\n", refreshedAgents)}";
+            refreshResult = $"Agents are migrated!\r\n{string.Join("\r\n", agents.Select(a => a.Name))}";
         }
         else
         {
@@ -91,4 +88,36 @@ public partial class AgentService
         _logger.LogInformation(refreshResult);
         return refreshResult;
     }
+
+    private (Agent? agent, string msg) GetAgentFormJson(string agentPath)
+    {
+        var agentJson = File.ReadAllText(agentPath);
+        if (string.IsNullOrWhiteSpace(agentJson))
+            return (null, $"Cannot find agent in file path: {agentPath}");
+
+        var isJson = IsValidedJson(agentJson);
+        if (isJson)
+        {
+            var agent = JsonSerializer.Deserialize<Agent>(agentJson, _options);
+            return (agent, "ok");
+        }
+        else
+        {
+            return (null, "The agent.json file data is not in JSON format!");
+        }
+    }
+
+    private bool IsValidedJson(string jsonString)
+    {
+        try
+        {
+            JsonDocument.Parse(jsonString);
+            return true;
+        }
+        catch (JsonException ex)
+        {
+            return false;
+        }
+    }
+
 }
