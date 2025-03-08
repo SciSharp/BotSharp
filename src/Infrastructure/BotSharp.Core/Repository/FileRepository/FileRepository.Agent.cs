@@ -88,7 +88,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Name = name;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -101,7 +101,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Description = description;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -112,7 +112,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.IsPublic = isPublic;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -123,7 +123,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Disabled = disabled;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -134,7 +134,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Type = type;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -145,7 +145,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.InheritAgentId = inheritAgentId;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -158,7 +158,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Profiles = profiles;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -171,7 +171,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return false;
 
             agent.Labels = labels;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
             return true;
@@ -186,7 +186,7 @@ namespace BotSharp.Core.Repository
 
             agent.MergeUtility = mergeUtility;
             agent.Utilities = utilities;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -199,7 +199,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.KnowledgeBases = knowledgeBases;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -212,7 +212,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.Rules = rules;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -225,7 +225,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.RoutingRules = rules;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -330,7 +330,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.LlmConfig = config;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -341,7 +341,7 @@ namespace BotSharp.Core.Repository
             if (agent == null) return;
 
             agent.MaxMessageCount = maxMessageCount;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
         }
@@ -365,7 +365,7 @@ namespace BotSharp.Core.Repository
             agent.Rules = inputAgent.Rules;
             agent.LlmConfig = inputAgent.LlmConfig;
             agent.MaxMessageCount = inputAgent.MaxMessageCount;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
 
@@ -547,7 +547,7 @@ namespace BotSharp.Core.Repository
             var prevLabels = agent.Labels ?? [];
             var curLabels = prevLabels.Concat(labels).Distinct().ToList();
             agent.Labels = curLabels;
-            agent.UpdatedDateTime = DateTime.UtcNow;
+            agent.UpdatedTime = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(agent, _options);
             File.WriteAllText(agentFile, json);
             return true;

@@ -680,8 +680,8 @@ public partial class MongoRepository
             Utilities = agent.Utilities?.Select(u => AgentUtilityMongoElement.ToMongoElement(u))?.ToList() ?? [],
             KnowledgeBases = agent.KnowledgeBases?.Select(k => AgentKnowledgeBaseMongoElement.ToMongoElement(k))?.ToList() ?? [],
             Rules = agent.Rules?.Select(e => AgentRuleMongoElement.ToMongoElement(e))?.ToList() ?? [],
-            CreatedTime = agent.CreatedDateTime,
-            UpdatedTime = agent.UpdatedDateTime
+            CreatedTime = agent.CreatedTime,
+            UpdatedTime = agent.UpdatedTime
         };
     }
 
