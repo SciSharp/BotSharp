@@ -36,12 +36,12 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
         if (message.FunctionName == "route_to_agent")
         {
             var inst = JsonSerializer.Deserialize<RoutingArgs>(message.FunctionArgs ?? "{}") ?? new();
-            message.Content = $"Connected to agent of {inst.AgentName}";
+            message.Content = $"I'm your AI assistant '{inst.AgentName}' to help with: '{inst.NextActionReason}'";
             hub.HubConn.CurrentAgentId = routing.Context.GetCurrentAgentId();
 
-            await hub.Completer.UpdateSession(hub.HubConn);
+            var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);
-            await hub.Completer.TriggerModelInference($"Guide the user through the next steps of the process as this Agent ({inst.AgentName}), following its instructions and operational procedures.");
+            await hub.Completer.TriggerModelInference($"{instruction}\r\n\r\nAssist user task: {inst.NextActionReason}");
         }
         else if (message.FunctionName == "util-routing-fallback_to_router")
         {
@@ -49,16 +49,16 @@ public class RealtimeConversationHook : ConversationHookBase, IConversationHook
             message.Content = $"Returned to Router due to {inst.Reason}";
             hub.HubConn.CurrentAgentId = routing.Context.GetCurrentAgentId();
 
-            await hub.Completer.UpdateSession(hub.HubConn);
+            var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);
-            await hub.Completer.TriggerModelInference($"Check with user whether to proceed the new request: {inst.Reason}");
+            await hub.Completer.TriggerModelInference(instruction);
         }
         else
         {
             // Update session for changed states
-            await hub.Completer.UpdateSession(hub.HubConn);
+            var instruction = await hub.Completer.UpdateSession(hub.HubConn);
             await hub.Completer.InsertConversationItem(message);
-            await hub.Completer.TriggerModelInference("Reply based on the function's output.");
+            await hub.Completer.TriggerModelInference(instruction);
         }
     }
 }
