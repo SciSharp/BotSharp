@@ -285,7 +285,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         return session;
     }
 
-    public async Task UpdateSession(RealtimeHubConnection conn, bool turnDetection = true)
+    public async Task<string> UpdateSession(RealtimeHubConnection conn, bool turnDetection = true)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conv = await convService.GetConversation(conn.ConversationId);
@@ -347,6 +347,8 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         });
 
         await SendEventToModel(sessionUpdate);
+
+        return instruction;
     }
 
     public async Task InsertConversationItem(RoleDialogModel message)
