@@ -32,13 +32,12 @@ public interface IConversationService
     /// Send message to LLM
     /// </summary>
     /// <param name="agentId"></param>
-    /// <param name="lastDalog"></param>
+    /// <param name="lastDialog"></param>
+    /// <param name="replyMessage"></param>
     /// <param name="onResponseReceived">Received the response from AI Agent</param>
-    /// <param name="onFunctionExecuting">This delegate is useful when you want to report progress on UI</param>
-    /// <param name="onFunctionExecuted">This delegate is useful when you want to report progress on UI</param>
     /// <returns></returns>
     Task<bool> SendMessage(string agentId,
-        RoleDialogModel lastDalog, 
+        RoleDialogModel lastDialog, 
         PostbackMessageModel? replyMessage,
         Func<RoleDialogModel, Task> onResponseReceived);
 

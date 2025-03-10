@@ -5,17 +5,19 @@ namespace BotSharp.Plugin.Twilio.Models;
 public class ConversationalVoiceRequest : VoiceRequest
 {
     [FromQuery(Name = "agent-id")]
-    public string AgentId { get; set; }
+    public string AgentId { get; set; } = string.Empty;
 
     [FromRoute]
-    public string ConversationId { get; set; }
+    public string ConversationId { get; set; } = string.Empty;
 
     [FromRoute]
     public int SeqNum { get; set; }
 
     public int Attempts { get; set; } = 1;
+    public int AIResponseWaitTime { get; set; } = 0;
+    public string? AIResponseErrorMessage { get; set; } = string.Empty;
 
-    public string Intent { get; set; }
+    public string Intent { get; set; } = string.Empty;
 
     public List<string> States { get; set; } = [];
 }
