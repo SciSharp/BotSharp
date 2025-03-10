@@ -10,7 +10,7 @@ public interface IUserService
     Task<PagedItems<User>> GetUsers(UserFilter filter);
     Task<List<User>> SearchLoginUsers(User filter);
     Task<User?> GetUserDetails(string userId, bool includeAgent = false);
-    Task<bool> IsAdminUser(string userId);
+    Task<(bool, User?)> IsAdminUser(string userId);
     Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null);
     Task<bool> UpdateUser(User user, bool isUpdateUserAgents = false);
     Task<User> CreateUser(User user);

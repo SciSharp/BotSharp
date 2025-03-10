@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Loggers.Services;
 using BotSharp.OpenAPI.ViewModels.Instructs;
@@ -39,6 +38,7 @@ public class LoggerController : ControllerBase
         }
     }
 
+    #region Conversation log
     [HttpGet("/logger/conversation/{conversationId}/content-log")]
     public async Task<List<ContentLogOutputModel>> GetConversationContentLogs([FromRoute] string conversationId)
     {
@@ -52,7 +52,9 @@ public class LoggerController : ControllerBase
         var logging = _services.GetRequiredService<ILoggerService>();
         return await logging.GetConversationStateLogs(conversationId);
     }
+    #endregion
 
+    #region Instruction log
     [HttpGet("/logger/instruction/log")]
     public async Task<PagedItems<InstructionLogViewModel>> GetInstructionLogs([FromQuery] InstructLogFilter request)
     {
@@ -65,4 +67,13 @@ public class LoggerController : ControllerBase
             Count = logs.Count
         };
     }
+
+    [HttpGet("/logger/instruction/log/keys")]
+    public async Task<List<string>> GetInstructionLogKeys([FromQuery] InstructLogKeysFilter request)
+    {
+        var logging = _services.GetRequiredService<ILoggerService>();
+        var keys = await logging.GetInstructionLogSearchKeys(request);
+        return keys;
+    }
+    #endregion
 }

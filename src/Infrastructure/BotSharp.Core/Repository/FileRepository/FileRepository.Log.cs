@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using System.IO;
 
@@ -270,6 +269,44 @@ namespace BotSharp.Core.Repository
                 Items = records,
                 Count = logs.Count()
             };
+        }
+
+        public List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+        {
+            var keys = new List<string>();
+            var baseDir = Path.Combine(_dbSettings.FileRepository, INSTRUCTION_LOG_FOLDER);
+            if (!Directory.Exists(baseDir))
+            {
+                return keys;
+            }
+
+            var count = 0;
+            var files = Directory.GetFiles(baseDir);
+            foreach (var file in files)
+            {
+                var json = File.ReadAllText(file);
+                var log = JsonSerializer.Deserialize<InstructionLogModel>(json, _options);
+                if (log == null) continue;
+
+                if (log == null
+                    || log.InnerStates.IsNullOrEmpty()
+                    || (!filter.UserIds.IsNullOrEmpty() && !filter.UserIds.Contains(log.UserId))
+                    || (!filter.AgentIds.IsNullOrEmpty() && !filter.AgentIds.Contains(log.AgentId)))
+                {
+                    continue;
+                }
+
+                var stateKeys = log.InnerStates.Select(x => x.Key)?.ToList() ?? [];
+                keys.AddRange(stateKeys);
+                count++;
+
+                if (count >= filter.LogLimit)
+                {
+                    break;
+                }
+            }
+
+            return keys.Distinct().ToList();
         }
         #endregion
 

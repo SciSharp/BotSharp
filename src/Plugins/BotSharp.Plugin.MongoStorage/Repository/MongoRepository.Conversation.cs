@@ -644,21 +644,31 @@ public partial class MongoRepository
 #if !DEBUG
     [SharpCache(10)]
 #endif
-    public List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
+    public List<string> GetConversationStateSearchKeys(ConversationStateKeysFilter filter)
     {
-        var stateBuilder = Builders<ConversationStateDocument>.Filter;
-        var sortDef = Builders<ConversationStateDocument>.Sort.Descending(x => x.UpdatedTime);
-        var stateFilters = new List<FilterDefinition<ConversationStateDocument>>()
+        var builder = Builders<ConversationDocument>.Filter;
+        var sortDef = Builders<ConversationDocument>.Sort.Descending(x => x.UpdatedTime);
+        var filters = new List<FilterDefinition<ConversationDocument>>()
         {
-            stateBuilder.Exists(x => x.States),
-            stateBuilder.Ne(x => x.States, [])
+            builder.Exists(x => x.LatestStates),
+            builder.Ne(x => x.LatestStates, [])
         };
 
-        var states = _dc.ConversationStates.Find(stateBuilder.And(stateFilters))
-                                           .Sort(sortDef)
-                                           .Limit(convUpperLimit)
-                                           .ToList();
-        var keys = states.SelectMany(x => x.States.Select(x => x.Key)).Distinct().ToList();
+        if (!filter.AgentIds.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.AgentId, filter.AgentIds));
+        }
+
+        if (!filter.UserIds.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.UserId, filter.UserIds));
+        }
+
+        var convDocs = _dc.Conversations.Find(builder.And(filters))
+                                        .Sort(sortDef)
+                                        .Limit(filter.ConvLimit)
+                                        .ToList();
+        var keys = convDocs.SelectMany(x => x.LatestStates.Select(x => x.Key)).Distinct().ToList();
         return keys;
     }
 

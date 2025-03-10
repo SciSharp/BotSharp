@@ -89,6 +89,7 @@ public class PluginController(IServiceProvider services, IUserIdentity user, Plu
     private async Task<bool> IsValidUser()
     {
         var userService = services.GetRequiredService<IUserService>();
-        return await userService.IsAdminUser(_user.Id);
+        var (isAdmin, _) = await userService.IsAdminUser(_user.Id);
+        return isAdmin;
     }
 }
