@@ -23,8 +23,8 @@ public class AgentTaskDocument : MongoBase
             Enabled = model.Enabled,
             AgentId = model.AgentId,
             Status = model.Status,
-            CreatedDateTime = model.CreatedTime,
-            UpdatedDateTime = model.UpdatedTime
+            CreatedTime = model.CreatedTime,
+            UpdatedTime = model.UpdatedTime
         };
     }
 
@@ -38,8 +38,8 @@ public class AgentTaskDocument : MongoBase
             Enabled = model.Enabled,
             AgentId = model.AgentId,
             Status = model.Status,
-            CreatedTime = model.CreatedDateTime,
-            UpdatedTime = model.UpdatedDateTime
+            CreatedTime = model.CreatedTime,
+            UpdatedTime = model.UpdatedTime
         };
     }
 }
