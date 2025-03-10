@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Roles;
-using BotSharp.Abstraction.Users.Enums;
 
 namespace BotSharp.OpenAPI.Controllers;
 
@@ -83,6 +82,7 @@ public class RoleController : ControllerBase
     private async Task<bool> IsValidUser()
     {
         var userService = _services.GetRequiredService<IUserService>();
-        return await userService.IsAdminUser(_user.Id);
+        var (isAdmin, _) = await userService.IsAdminUser(_user.Id);
+        return isAdmin;
     }
 }

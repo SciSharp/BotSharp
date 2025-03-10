@@ -30,9 +30,12 @@ public partial class AgentService
 #if !DEBUG
     [SharpCache(10, perInstanceCache: true)]
 #endif
-    public async Task<List<IdName>> GetAgentOptions()
+    public async Task<List<IdName>> GetAgentOptions(List<string>? agentIds)
     {
-        var agents = _db.GetAgents(AgentFilter.Empty());
+        var agents = _db.GetAgents(new AgentFilter
+        {
+            AgentIds = !agentIds.IsNullOrEmpty() ? agentIds : null
+        });
         return agents?.Select(x => new IdName(x.Id, x.Name))?.OrderBy(x => x.Name)?.ToList() ?? [];
     }
 

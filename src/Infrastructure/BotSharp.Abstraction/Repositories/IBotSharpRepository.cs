@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Repositories.Filters;
@@ -149,7 +148,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
          => throw new NotImplementedException();
     List<string> TruncateConversation(string conversationId, string messageId, bool cleanLog = false)
          => throw new NotImplementedException();
-    List<string> GetConversationStateSearchKeys(int messageLowerLimit = 2, int convUpperLimit = 100)
+    List<string> GetConversationStateSearchKeys(ConversationStateKeysFilter filter)
          => throw new NotImplementedException();
     List<string> GetConversationsToMigrate(int batchSize = 100)
         => throw new NotImplementedException();
@@ -182,6 +181,9 @@ public interface IBotSharpRepository : IHaveServiceProvider
 
     PagedItems<InstructionLogModel> GetInstructionLogs(InstructLogFilter filter)
         => throw new NotImplementedException();
+
+    List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+         => throw new NotImplementedException();
     #endregion
 
     #region Statistics
