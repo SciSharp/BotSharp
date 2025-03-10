@@ -33,9 +33,13 @@ public class PlaywrightInstance : IDisposable
 
     public async Task<IBrowserContext> GetContext(string ctxId)
     {
+        var headless = true;
+#if DEBUG
+        headless = false;
+#endif
         if (!_contexts.ContainsKey(ctxId))
         {
-            await InitContext(ctxId, new BrowserActionArgs());
+            await InitContext(ctxId, new BrowserActionArgs() { Headless = headless });
         }
         return _contexts[ctxId];
     }
