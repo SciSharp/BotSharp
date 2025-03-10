@@ -1,4 +1,3 @@
-using BotSharp.Abstraction.Instructs.Models;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories.Filters;
 using System.Text.Json;
@@ -240,6 +239,34 @@ public partial class MongoRepository
             Items = logs,
             Count = (int)count
         };
+    }
+
+    public List<string> GetInstructionLogSearchKeys(InstructLogKeysFilter filter)
+    {
+        var builder = Builders<InstructionLogDocument>.Filter;
+        var sortDef = Builders<InstructionLogDocument>.Sort.Descending(x => x.CreatedTime);
+        var filters = new List<FilterDefinition<InstructionLogDocument>>()
+        {
+            builder.Exists(x => x.States),
+            builder.Ne(x => x.States, [])
+        };
+
+        if (!filter.AgentIds.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.AgentId, filter.AgentIds));
+        }
+
+        if (!filter.UserIds.IsNullOrEmpty())
+        {
+            filters.Add(builder.In(x => x.UserId, filter.UserIds));
+        }
+
+        var convDocs = _dc.InstructionLogs.Find(builder.And(filters))
+                                          .Sort(sortDef)
+                                          .Limit(filter.LogLimit)
+                                          .ToList();
+        var keys = convDocs.SelectMany(x => x.States.Select(x => x.Key)).Distinct().ToList();
+        return keys;
     }
     #endregion
 }
