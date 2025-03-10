@@ -152,28 +152,72 @@ public partial class MongoRepository
             filter = InstructLogFilter.Empty();
         }
 
-        var builder = Builders<InstructionLogDocument>.Filter;
-        var filters = new List<FilterDefinition<InstructionLogDocument>>() { builder.Empty };
+        var logBuilder = Builders<InstructionLogDocument>.Filter;
+        var logFilters = new List<FilterDefinition<InstructionLogDocument>>() { logBuilder.Empty };
 
         // Filter logs
         if (!filter.AgentIds.IsNullOrEmpty())
         {
-            filters.Add(builder.In(x => x.AgentId, filter.AgentIds));
+            logFilters.Add(logBuilder.In(x => x.AgentId, filter.AgentIds));
         }
         if (!filter.Providers.IsNullOrEmpty())
         {
-            filters.Add(builder.In(x => x.Provider, filter.Providers));
+            logFilters.Add(logBuilder.In(x => x.Provider, filter.Providers));
         }
         if (!filter.Models.IsNullOrEmpty())
         {
-            filters.Add(builder.In(x => x.Model, filter.Models));
+            logFilters.Add(logBuilder.In(x => x.Model, filter.Models));
         }
         if (!filter.TemplateNames.IsNullOrEmpty())
         {
-            filters.Add(builder.In(x => x.TemplateName, filter.TemplateNames));
+            logFilters.Add(logBuilder.In(x => x.TemplateName, filter.TemplateNames));
         }
 
-        var filterDef = builder.And(filters);
+        // Filter states
+        if (filter != null && !filter.States.IsNullOrEmpty())
+        {
+            foreach (var pair in filter.States)
+            {
+                if (string.IsNullOrWhiteSpace(pair.Key)) continue;
+
+                // Format key
+                var keys = pair.Key.Split(".").ToList();
+                keys.Insert(1, "data");
+                keys.Insert(0, "States");
+                var formattedKey = string.Join(".", keys);
+
+                if (string.IsNullOrWhiteSpace(pair.Value))
+                {
+                    logFilters.Add(logBuilder.Exists(formattedKey));
+                }
+                else if (bool.TryParse(pair.Value, out var boolValue))
+                {
+                    logFilters.Add(logBuilder.Eq(formattedKey, boolValue));
+                }
+                else if (int.TryParse(pair.Value, out var intValue))
+                {
+                    logFilters.Add(logBuilder.Eq(formattedKey, intValue));
+                }
+                else if (decimal.TryParse(pair.Value, out var decimalValue))
+                {
+                    logFilters.Add(logBuilder.Eq(formattedKey, decimalValue));
+                }
+                else if (float.TryParse(pair.Value, out var floatValue))
+                {
+                    logFilters.Add(logBuilder.Eq(formattedKey, floatValue));
+                }
+                else if (double.TryParse(pair.Value, out var doubleValue))
+                {
+                    logFilters.Add(logBuilder.Eq(formattedKey, doubleValue));
+                }
+                else
+                {
+                    logFilters.Add(logBuilder.Eq(formattedKey, pair.Value));
+                }
+            }
+        }
+
+        var filterDef = logBuilder.And(logFilters);
         var sortDef = Builders<InstructionLogDocument>.Sort.Descending(x => x.CreatedTime);
         var docs = _dc.InstructionLogs.Find(filterDef).Sort(sortDef).Skip(filter.Offset).Limit(filter.Size).ToList();
         var count = _dc.InstructionLogs.CountDocuments(filterDef);

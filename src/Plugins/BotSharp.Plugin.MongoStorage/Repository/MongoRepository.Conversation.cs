@@ -383,7 +383,7 @@ public partial class MongoRepository
         }
 
         // Filter states
-        if (filter != null && string.IsNullOrEmpty(filter.Id) && !filter.States.IsNullOrEmpty())
+        if (filter != null && !filter.States.IsNullOrEmpty())
         {
             foreach (var pair in filter.States)
             {
