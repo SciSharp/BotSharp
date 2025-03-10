@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Users;
 
@@ -24,7 +25,8 @@ public class InstructionLogHook : InstructHookBase
 
     public override async Task OnResponseGenerated(InstructResponseModel response)
     {
-        if (response == null) return;
+        var settings = _services.GetRequiredService<InstructionSettings>();
+        if (!settings.EnableLog || response == null) return;
 
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var state = _services.GetRequiredService<IConversationStateService>();
