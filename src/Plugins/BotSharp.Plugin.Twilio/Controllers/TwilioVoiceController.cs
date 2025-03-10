@@ -142,7 +142,7 @@ public class TwilioVoiceController : TwilioController
             await messageQueue.EnqueueAsync(callerMessage);
 
             response = new VoiceResponse();
-            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}"), HttpMethod.Post);
+            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}&AIResponseWaitTime=0"), HttpMethod.Post);
 
             await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
             {
@@ -217,8 +217,22 @@ public class TwilioVoiceController : TwilioController
 
         var reply = await sessionManager.GetAssistantReplyAsync(request.ConversationId, request.SeqNum);
         VoiceResponse response;
+        
+        if (request.AIResponseWaitTime > 5)
+        {
+            // Wait AI Response Timeout
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+            {
+                request.AIResponseErrorMessage = $"AI response timeout: AIResponseWaitTime greater than {request.AIResponseWaitTime}, please check internal error log!";
+                await hook.OnAgentHangUp(request);
+            }, new HookEmitOption
+            {
+                OnlyOnce = true
+            });
 
-        if (reply == null)
+            response = twilio.HangUp($"twilio/error.mp3");
+        }
+        else if (reply == null)
         {
             var indication = await sessionManager.GetReplyIndicationAsync(request.ConversationId, request.SeqNum);
             if (indication != null)
@@ -262,7 +276,7 @@ public class TwilioVoiceController : TwilioController
                 var instruction = new ConversationalVoiceResponse
                 {
                     SpeechPaths = speechPaths,
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}",
+                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
                     ActionOnEmptyResult = true
                 };
 
@@ -301,7 +315,7 @@ public class TwilioVoiceController : TwilioController
                 var instruction = new ConversationalVoiceResponse
                 {
                     SpeechPaths = instructions,
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}",
+                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
                     ActionOnEmptyResult = true
                 };
 
