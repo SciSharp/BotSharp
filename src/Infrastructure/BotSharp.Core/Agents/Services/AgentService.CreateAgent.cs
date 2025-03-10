@@ -185,8 +185,8 @@ public partial class AgentService
                 Enabled = parsedTask.Enabled,
                 Content = parsedTask.Content,
                 AgentId = agentId,
-                CreatedDateTime = parsedTask.CreatedDateTime,
-                UpdatedDateTime = parsedTask.UpdatedDateTime
+                CreatedTime = parsedTask.CreatedTime,
+                UpdatedTime = parsedTask.UpdatedTime
             };
             tasks.Add(task);
         }

@@ -129,8 +129,8 @@ public partial class FileRepository
             Name = task.Name,
             Description = task.Description,
             Enabled = task.Enabled,
-            CreatedDateTime = DateTime.UtcNow,
-            UpdatedDateTime = DateTime.UtcNow
+            CreatedTime = DateTime.UtcNow,
+            UpdatedTime = DateTime.UtcNow
         };
 
         var fileContent = BuildAgentTaskFileContent(metaData, task.Content);
@@ -163,8 +163,8 @@ public partial class FileRepository
             Name = parsedTask.Name,
             Description = parsedTask.Description,
             Enabled = parsedTask.Enabled,
-            CreatedDateTime = parsedTask.CreatedDateTime,
-            UpdatedDateTime = DateTime.UtcNow
+            CreatedTime = parsedTask.CreatedTime,
+            UpdatedTime = DateTime.UtcNow
         };
         var content = parsedTask.Content;
 
