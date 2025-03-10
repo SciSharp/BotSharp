@@ -3,10 +3,10 @@ namespace BotSharp.Abstraction.Models;
 public class KeyValue
 {
     [JsonPropertyName("key")]
-    public string Key { get; set; }
+    public string Key { get; set; } = string.Empty;
 
     [JsonPropertyName("value")]
-    public string Value { get; set; }
+    public string? Value { get; set; }
 
     public override string ToString()
     {
@@ -17,7 +17,7 @@ public class KeyValue
 public class KeyValue<T>
 {
     [JsonPropertyName("key")]
-    public string Key { get; set; }
+    public string Key { get; set; } = string.Empty;
 
     [JsonPropertyName("value")]
     public T? Value { get; set; }

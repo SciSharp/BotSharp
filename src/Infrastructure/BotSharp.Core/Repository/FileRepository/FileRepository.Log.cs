@@ -187,6 +187,66 @@ namespace BotSharp.Core.Repository
                     matched = matched && filter.UserIds.Contains(log.UserId);
                 }
 
+                // Check states
+                if (matched && filter != null && !filter.States.IsNullOrEmpty())
+                {
+                    var logStates = log.InnerStates;
+                    if (logStates.IsNullOrEmpty())
+                    {
+                        matched = false;
+                    }
+                    else
+                    {
+                        foreach (var pair in filter.States)
+                        {
+                            if (pair == null || string.IsNullOrWhiteSpace(pair.Key)) continue;
+
+                            var components = pair.Key.Split(".").ToList();
+                            var primaryKey = components[0];
+                            if (logStates.TryGetValue(primaryKey, out var doc))
+                            {
+                                var elem = doc.RootElement.GetProperty("data");
+                                if (components.Count < 2)
+                                {
+                                    if (!string.IsNullOrWhiteSpace(pair.Value))
+                                    {
+                                        if (elem.ValueKind == JsonValueKind.Null)
+                                        {
+                                            matched = false;
+                                        }
+                                        else if (elem.ValueKind == JsonValueKind.Array)
+                                        {
+                                            matched = elem.EnumerateArray().Where(x => x.ValueKind != JsonValueKind.Null)
+                                                                           .Select(x => x.ToString())
+                                                                           .Any(x => x == pair.Value);
+                                        }
+                                        else if (elem.ValueKind == JsonValueKind.String)
+                                        {
+                                            matched = elem.GetString() == pair.Value;
+                                        }
+                                        else
+                                        {
+                                            matched = elem.GetRawText() == pair.Value;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var paths = components.Where((_, idx) => idx > 0);
+                                    var found = FindState(elem, paths, pair.Value);
+                                    matched = found != null;
+                                }
+                            }
+                            else
+                            {
+                                matched = false;
+                            }
+
+                            if (!matched) break;
+                        }
+                    }
+                }
+
                 if (!matched) continue;
 
                 log.Id = Path.GetFileNameWithoutExtension(file);
