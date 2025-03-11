@@ -5,7 +5,11 @@
   "parameters": {
     "type": "object",
     "properties": {
+      "goodbye_message": {
+        "type": "string",
+        "description": "A polite closing statement for ending a conversation."
+      }
     },
-    "required": []
+    "required": [ "goodbye_message" ]
   }
 }
