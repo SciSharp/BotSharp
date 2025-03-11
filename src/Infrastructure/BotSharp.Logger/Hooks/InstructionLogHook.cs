@@ -32,6 +32,8 @@ public class InstructionLogHook : InstructHookBase
         var state = _services.GetRequiredService<IConversationStateService>();
 
         var user = db.GetUserById(_user.Id);
+        var templateName = response.TemplateName ?? state.GetState("instruct_template_name") ?? null;
+
         db.SaveInstructionLogs(new List<InstructionLogModel>
         {
             new InstructionLogModel
@@ -39,7 +41,7 @@ public class InstructionLogHook : InstructHookBase
                 AgentId = response.AgentId,
                 Provider = response.Provider,
                 Model = response.Model,
-                TemplateName = response.TemplateName,
+                TemplateName = !string.IsNullOrWhiteSpace(templateName) ? templateName : null,
                 UserMessage = response.UserMessage,
                 SystemInstruction = response.SystemInstruction,
                 CompletionText = response.CompletionText,
