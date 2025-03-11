@@ -1,4 +1,5 @@
 using Azure;
+using BotSharp.Abstraction.Browsing.Settings;
 using System.IO;
 
 namespace BotSharp.Plugin.WebDriver.Drivers.PlaywrightDriver;
@@ -33,9 +34,10 @@ public class PlaywrightInstance : IDisposable
 
     public async Task<IBrowserContext> GetContext(string ctxId)
     {
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
         if (!_contexts.ContainsKey(ctxId))
         {
-            await InitContext(ctxId, new BrowserActionArgs());
+            await InitContext(ctxId, new BrowserActionArgs() { Headless = _webDriver.Headless });
         }
         return _contexts[ctxId];
     }
