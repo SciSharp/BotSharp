@@ -6,4 +6,5 @@ public class WebBrowsingSettings
     public bool Headless { get; set; }
     // Default timeout in milliseconds
     public float DefaultTimeout { get; set; } = 30000;
+    public bool IsEnableScreenshot { get; set; }
 }

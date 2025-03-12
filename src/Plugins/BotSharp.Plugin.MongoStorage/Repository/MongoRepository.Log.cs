@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Repositories.Filters;
+using MongoDB.Driver;
 using System.Text.Json;
 
 namespace BotSharp.Plugin.MongoStorage.Repository;
@@ -34,7 +35,8 @@ public partial class MongoRepository
     {
         if (log == null) return;
 
-        var found = _dc.Conversations.AsQueryable().FirstOrDefault(x => x.Id == log.ConversationId);
+        var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, log.ConversationId);
+        var found = _dc.Conversations.Find(filter).FirstOrDefault();
         if (found == null) return;
 
         var logDoc = new ConversationContentLogDocument
@@ -52,25 +54,36 @@ public partial class MongoRepository
         _dc.ContentLogs.InsertOne(logDoc);
     }
 
-    public List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
+    public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
     {
-        var logs = _dc.ContentLogs
-                      .AsQueryable()
-                      .Where(x => x.ConversationId == conversationId)
-                      .Select(x => new ContentLogOutputModel
-                      {
-                          ConversationId = x.ConversationId,
-                          MessageId = x.MessageId,
-                          Name = x.Name,
-                          AgentId = x.AgentId,
-                          Role = x.Role,
-                          Source = x.Source,
-                          Content = x.Content,
-                          CreatedTime = x.CreatedTime
-                      })
-                      .OrderBy(x => x.CreatedTime)
-                      .ToList();
-        return logs;
+        var builder = Builders<ConversationContentLogDocument>.Filter;
+        var logFilters = new List<FilterDefinition<ConversationContentLogDocument>>
+        {
+            builder.Eq(x => x.ConversationId, conversationId),
+            builder.Lt(x => x.CreatedTime, filter.StartTime)
+        };
+        var logSortDef = Builders<ConversationContentLogDocument>.Sort.Descending(x => x.CreatedTime);
+
+        var docs = _dc.ContentLogs.Find(builder.And(logFilters)).Sort(logSortDef).Limit(filter.Size).ToList();
+        var logs = docs.Select(x => new ContentLogOutputModel
+        {
+            ConversationId = x.ConversationId,
+            MessageId = x.MessageId,
+            Name = x.Name,
+            AgentId = x.AgentId,
+            Role = x.Role,
+            Source = x.Source,
+            Content = x.Content,
+            CreatedTime = x.CreatedTime
+        }).ToList();
+
+        logs.Reverse();
+        return new DateTimePagination<ContentLogOutputModel>
+        {
+            Items = logs,
+            Count = logs.Count,
+            NextTime = logs.FirstOrDefault()?.CreatedTime
+        };
     }
     #endregion
 
@@ -79,7 +92,8 @@ public partial class MongoRepository
     {
         if (log == null) return;
 
-        var found = _dc.Conversations.AsQueryable().FirstOrDefault(x => x.Id == log.ConversationId);
+        var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, log.ConversationId);
+        var found = _dc.Conversations.Find(filter).FirstOrDefault();
         if (found == null) return;
 
         var logDoc = new ConversationStateLogDocument
@@ -94,22 +108,33 @@ public partial class MongoRepository
         _dc.StateLogs.InsertOne(logDoc);
     }
 
-    public List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+    public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
     {
-        var logs = _dc.StateLogs
-                      .AsQueryable()
-                      .Where(x => x.ConversationId == conversationId)
-                      .Select(x => new ConversationStateLogModel
-                      {
-                          ConversationId = x.ConversationId,
-                          AgentId = x.AgentId,
-                          MessageId = x.MessageId,
-                          States = x.States,
-                          CreatedTime = x.CreatedTime
-                      })
-                      .OrderBy(x => x.CreatedTime)
-                      .ToList();
-        return logs;
+        var builder = Builders<ConversationStateLogDocument>.Filter;
+        var logFilters = new List<FilterDefinition<ConversationStateLogDocument>>
+        {
+            builder.Eq(x => x.ConversationId, conversationId),
+            builder.Lt(x => x.CreatedTime, filter.StartTime)
+        };
+        var logSortDef = Builders<ConversationStateLogDocument>.Sort.Descending(x => x.CreatedTime);
+
+        var docs = _dc.StateLogs.Find(builder.And(logFilters)).Sort(logSortDef).Limit(filter.Size).ToList();
+        var logs = docs.Select(x => new ConversationStateLogModel
+        {
+            ConversationId = x.ConversationId,
+            AgentId = x.AgentId,
+            MessageId = x.MessageId,
+            States = x.States,
+            CreatedTime = x.CreatedTime
+        }).ToList();
+
+        logs.Reverse();
+        return new DateTimePagination<ConversationStateLogModel>
+        {
+            Items = logs,
+            Count = logs.Count,
+            NextTime = logs.FirstOrDefault()?.CreatedTime
+        };
     }
     #endregion
 

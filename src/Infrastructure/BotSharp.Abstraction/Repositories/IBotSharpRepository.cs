@@ -164,14 +164,14 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Conversation Content Log
     void SaveConversationContentLog(ContentLogOutputModel log)
         => throw new NotImplementedException();
-    List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
+    DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
         => throw new NotImplementedException();
     #endregion
 
     #region Conversation State Log
     void SaveConversationStateLog(ConversationStateLogModel log)
         => throw new NotImplementedException();
-    List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+    DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
         => throw new NotImplementedException();
     #endregion
 
