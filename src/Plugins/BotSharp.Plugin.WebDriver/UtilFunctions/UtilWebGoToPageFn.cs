@@ -24,7 +24,7 @@ public class UtilWebGoToPageFn : IFunctionCallback
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
         var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
-        args.Timeout = _webDriver.DefaultTimeOut;
+        args.Timeout = _webDriver.DefaultTimeout;
         args.WaitForNetworkIdle = false;
         args.WaitTime = 5;
         args.OpenNewTab = true;

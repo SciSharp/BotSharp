@@ -41,7 +41,7 @@ public class OpenBrowserFn : IFunctionCallback
         result = await _browser.GoToPage(msgInfo, new PageActionArgs
         {
             Url = url,
-            Timeout = _webDriver.DefaultTimeOut
+            Timeout = _webDriver.DefaultTimeout
         });
 
         if (result.IsSuccess)

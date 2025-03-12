@@ -36,7 +36,7 @@ public class GoToPageFn : IFunctionCallback
         }, new PageActionArgs
         {
             Url = url,
-            Timeout = _webDriver.DefaultTimeOut
+            Timeout = _webDriver.DefaultTimeout
         });
         message.Content = result.IsSuccess ? $"Page {url} is open." : $"Page {url} open failed. {result.Message}";
 
