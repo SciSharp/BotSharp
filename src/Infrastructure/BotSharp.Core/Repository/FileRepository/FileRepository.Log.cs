@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Loggers.Models;
+using Microsoft.IdentityModel.Logging;
 using System.IO;
 
 namespace BotSharp.Core.Repository
@@ -54,26 +55,34 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
         }
 
-        public List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
+        public DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
         {
-            var logs = new List<ContentLogOutputModel>();
-            if (string.IsNullOrEmpty(conversationId)) return logs;
+            if (string.IsNullOrEmpty(conversationId)) return new();
 
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return logs;
+            if (string.IsNullOrEmpty(convDir)) return new();
 
             var logDir = Path.Combine(convDir, "content_log");
-            if (!Directory.Exists(logDir)) return logs;
+            if (!Directory.Exists(logDir)) return new();
 
+            var logs = new List<ContentLogOutputModel>();
             foreach (var file in Directory.GetFiles(logDir))
             {
                 var text = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<ContentLogOutputModel>(text);
-                if (log == null) continue;
+                if (log == null || log.CreatedTime >= filter.StartTime) continue;
 
                 logs.Add(log);
             }
-            return logs.OrderBy(x => x.CreatedTime).ToList();
+
+            logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
+            logs.Reverse();
+            return new DateTimePagination<ContentLogOutputModel>
+            {
+                Items = logs,
+                Count = logs.Count,
+                NextTime = logs.FirstOrDefault()?.CreatedTime
+            };
         }
         #endregion
 
@@ -99,26 +108,34 @@ namespace BotSharp.Core.Repository
             File.WriteAllText(file, JsonSerializer.Serialize(log, _options));
         }
 
-        public List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+        public DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
         {
-            var logs = new List<ConversationStateLogModel>();
-            if (string.IsNullOrEmpty(conversationId)) return logs;
+            if (string.IsNullOrEmpty(conversationId)) return new();
 
             var convDir = FindConversationDirectory(conversationId);
-            if (string.IsNullOrEmpty(convDir)) return logs;
+            if (string.IsNullOrEmpty(convDir)) return new();
 
             var logDir = Path.Combine(convDir, "state_log");
-            if (!Directory.Exists(logDir)) return logs;
+            if (!Directory.Exists(logDir)) return new();
 
+            var logs = new List<ConversationStateLogModel>();
             foreach (var file in Directory.GetFiles(logDir))
             {
                 var text = File.ReadAllText(file);
                 var log = JsonSerializer.Deserialize<ConversationStateLogModel>(text);
-                if (log == null) continue;
+                if (log == null || log.CreatedTime >= filter.StartTime) continue;
 
                 logs.Add(log);
             }
-            return logs.OrderBy(x => x.CreatedTime).ToList();
+
+            logs = logs.OrderByDescending(x => x.CreatedTime).Take(filter.Size).ToList();
+            logs.Reverse();
+            return new DateTimePagination<ConversationStateLogModel>
+            {
+                Items = logs,
+                Count = logs.Count,
+                NextTime = logs.FirstOrDefault()?.CreatedTime
+            };
         }
         #endregion
 
