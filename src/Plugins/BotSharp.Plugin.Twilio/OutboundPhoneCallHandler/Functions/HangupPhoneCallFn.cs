@@ -45,7 +45,7 @@ public class HangupPhoneCallFn : IFunctionCallback
                 pathSid: callSid
             );
 
-            message.Content = "The call has ended.";
+            message.Content = "The call has been ended.";
             message.StopCompletion = true;
         });
 
