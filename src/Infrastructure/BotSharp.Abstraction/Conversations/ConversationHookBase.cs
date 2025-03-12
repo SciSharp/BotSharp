@@ -78,4 +78,7 @@ public abstract class ConversationHookBase : IConversationHook
 
     public virtual Task OnNotificationGenerated(RoleDialogModel message)
         => Task.CompletedTask;
+
+    public Task OnUserDisconnected(Conversation conversation)
+        => Task.CompletedTask;
 }

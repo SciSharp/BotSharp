@@ -77,5 +77,6 @@ public class InputAudioTranscription
     public string Language { get; set; } = "en";
 
     [JsonPropertyName("prompt")]
-    public string Prompt { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Prompt { get; set; }
 }
