@@ -233,7 +233,8 @@ public class RealtimeHub : IRealtimeHub
         }
 
         await _completer.InsertConversationItem(message);
-        await _completer.TriggerModelInference("Reply based on the user input");
+        var instruction = await _completer.UpdateSession(_conn);
+        await _completer.TriggerModelInference($"{instruction}\r\n\r\nReply based on the user input: {message.Content}");
     }
 
     private async Task HandleUserDisconnected()

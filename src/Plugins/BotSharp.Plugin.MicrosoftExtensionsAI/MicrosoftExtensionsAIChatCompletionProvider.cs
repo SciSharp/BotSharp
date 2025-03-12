@@ -27,7 +27,6 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     private readonly IChatClient _client;
     private readonly ILogger<MicrosoftExtensionsAIChatCompletionProvider> _logger;
     private readonly IServiceProvider _services;
-    private List<string> renderedInstructions = [];
     private string? _model;
 
     /// <summary>
@@ -46,7 +45,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     
     /// <inheritdoc/>
     public string Provider => "microsoft.extensions.ai";
-    public string Model => _model;
+    public string Model => _model ?? "";
 
     /// <inheritdoc/>
     public void SetModelName(string model) => _model = model;
@@ -56,7 +55,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     {
         // Before chat completion hook
         var hooks = _services.GetServices<IContentGeneratingHook>().ToArray();
-        renderedInstructions = [];
+        List<string> renderedInstructions = [];
         await Task.WhenAll(hooks.Select(hook => hook.BeforeGenerating(agent, conversations)));
 
         // Configure options
@@ -145,13 +144,13 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
 
         var completion = await _client.GetResponseAsync(messages);
 
-        RoleDialogModel result = new(AgentRole.Assistant, string.Concat(completion.Message.Contents.OfType<TextContent>()))
+        RoleDialogModel result = new(AgentRole.Assistant, completion.Text)
         {
             CurrentAgentId = agent.Id,
-            RenderedInstruction = string.Join("\r\n", renderedInstructions)
+            //RenderedInstruction = renderedInstructions,
         };
 
-        if (completion.Message.Contents.OfType<FunctionCallContent>().FirstOrDefault() is { } fcc)
+        if (completion.Messages.SelectMany(m => m.Contents).OfType<FunctionCallContent>().FirstOrDefault() is { } fcc)
         {
             result.Role = AgentRole.Function;
             result.MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;
