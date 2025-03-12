@@ -26,7 +26,7 @@ public class OpenBrowserFn : IFunctionCallback
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var url = webDriverService.ReplaceToken(args.Url);
-
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
         url = url.Replace("https://https://", "https://");
         var msgInfo = new MessageInfo
         {
@@ -40,7 +40,8 @@ public class OpenBrowserFn : IFunctionCallback
         });
         result = await _browser.GoToPage(msgInfo, new PageActionArgs
         {
-            Url = url
+            Url = url,
+            Timeout = _webDriver.DefaultTimeout
         });
 
         if (result.IsSuccess)
