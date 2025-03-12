@@ -10,7 +10,6 @@ public class ChatHubCrontabHook : ICrontabHook
     private readonly IHubContext<SignalRHub> _chatHub;
     private readonly ILogger<ChatHubCrontabHook> _logger;
     private readonly IUserIdentity _user;
-    private readonly IConversationStorage _storage;
     private readonly BotSharpOptions _options;
     private readonly ChatHubSettings _settings;
 
@@ -22,7 +21,6 @@ public class ChatHubCrontabHook : ICrontabHook
         IHubContext<SignalRHub> chatHub,
         ILogger<ChatHubCrontabHook> logger,
         IUserIdentity user,
-        IConversationStorage storage,
         BotSharpOptions options,
         ChatHubSettings settings)
     {
@@ -30,7 +28,6 @@ public class ChatHubCrontabHook : ICrontabHook
         _chatHub = chatHub;
         _logger = logger;
         _user = user;
-        _storage = storage;
         _options = options;
         _settings = settings;
     }
@@ -58,19 +55,8 @@ public class ChatHubCrontabHook : ICrontabHook
     {
         try
         {
-            if (_settings.EventDispatchBy == EventDispatchType.Group)
-            {
-                await _chatHub.Clients.Group(item.ConversationId).SendAsync(GENERATE_NOTIFICATION, json);
-            }
-            else
-            {
-                await _chatHub.Clients.User(item.UserId).SendAsync(GENERATE_NOTIFICATION, json);
-            }
+            await _chatHub.Clients.User(item.UserId).SendAsync(GENERATE_NOTIFICATION, json);
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning($"Failed to send event in {nameof(ChatHubCrontabHook)} (conversation id: {item.ConversationId})." +
-                $"\r\n{ex.Message}\r\n{ex.InnerException}");
-        }
+        catch { }
     }
 }

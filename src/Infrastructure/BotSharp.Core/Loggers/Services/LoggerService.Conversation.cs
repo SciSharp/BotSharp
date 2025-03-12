@@ -4,18 +4,28 @@ namespace BotSharp.Core.Loggers.Services;
 
 public partial class LoggerService
 {
-    public async Task<List<ContentLogOutputModel>> GetConversationContentLogs(string conversationId)
+    public async Task<DateTimePagination<ContentLogOutputModel>> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
     {
+        if (filter == null)
+        {
+            filter = ConversationLogFilter.Empty();
+        }
+
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var logs = db.GetConversationContentLogs(conversationId);
+        var logs = db.GetConversationContentLogs(conversationId, filter);
         return await Task.FromResult(logs);
     }
 
 
-    public async Task<List<ConversationStateLogModel>> GetConversationStateLogs(string conversationId)
+    public async Task<DateTimePagination<ConversationStateLogModel>> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
     {
+        if (filter == null)
+        {
+            filter = ConversationLogFilter.Empty();
+        }
+
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var logs = db.GetConversationStateLogs(conversationId);
+        var logs = db.GetConversationStateLogs(conversationId, filter);
         return await Task.FromResult(logs);
     }
 }
