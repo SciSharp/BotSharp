@@ -138,7 +138,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         {
             result = await _webSocket.ReceiveAsync(
                 new ArraySegment<byte>(buffer), CancellationToken.None);
-
+            
             // Convert received data to text/audio (Twilio sends Base64-encoded audio)
             string receivedText = Encoding.UTF8.GetString(buffer, 0, result.Count);
             if (string.IsNullOrEmpty(receivedText))
@@ -319,6 +319,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 InputAudioTranscription = new InputAudioTranscription
                 {
                     Model = "whisper-1",
+                    Language = "en",
                 },
                 Voice = "alloy",
                 Instructions = instruction,
@@ -329,7 +330,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
                 MaxResponseOutputTokens = 512,
                 TurnDetection = new RealtimeSessionTurnDetection
                 {
-                    Threshold = 0.8f,
+                    Threshold = 0.9f,
                     PrefixPadding = 300,
                     SilenceDuration = 800
                 }
