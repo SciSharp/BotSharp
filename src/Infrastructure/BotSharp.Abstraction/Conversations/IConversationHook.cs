@@ -26,6 +26,13 @@ public interface IConversationHook
     Task OnUserAgentConnectedInitially(Conversation conversation);
 
     /// <summary>
+    /// Triggered when user disconnects with agent.
+    /// </summary>
+    /// <param name="conversation"></param>
+    /// <returns></returns>
+    Task OnUserDisconnected(Conversation conversation);
+
+    /// <summary>
     /// Triggered once for every new conversation.
     /// </summary>
     /// <param name="conversation"></param>

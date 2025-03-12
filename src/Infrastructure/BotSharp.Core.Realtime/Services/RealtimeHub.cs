@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Utilities;
+using BotSharp.Core.Infrastructures;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace BotSharp.Core.Realtime.Services;
 
@@ -86,11 +88,14 @@ public class RealtimeHub : IRealtimeHub
         var routing = _services.GetRequiredService<IRoutingService>();
         routing.Context.Push(agent.Id);
 
+        var storage = _services.GetRequiredService<IConversationStorage>();
         var dialogs = convService.GetDialogHistory();
         if (dialogs.Count == 0)
         {
             dialogs.Add(new RoleDialogModel(AgentRole.User, "Hi"));
+            storage.Append(_conn.ConversationId, dialogs.First());
         }
+
         routing.Context.SetDialogs(dialogs);
 
         await _completer.Connect(_conn, 
@@ -155,6 +160,7 @@ public class RealtimeHub : IRealtimeHub
                     {
                         // append output audio transcript to conversation
                         dialogs.Add(message);
+                        storage.Append(_conn.ConversationId, message);
 
                         foreach (var hook in hookProvider.HooksOrderByPriority)
                         {
@@ -174,6 +180,7 @@ public class RealtimeHub : IRealtimeHub
             {
                 // append input audio transcript to conversation
                 dialogs.Add(message);
+                storage.Append(_conn.ConversationId, message);
 
                 foreach (var hook in hookProvider.HooksOrderByPriority)
                 {
@@ -224,6 +231,9 @@ public class RealtimeHub : IRealtimeHub
         };
         dialogs.Add(message);
 
+        var storage = _services.GetRequiredService<IConversationStorage>();
+        storage.Append(_conn.ConversationId, message);
+
         foreach (var hook in hookProvider.HooksOrderByPriority)
         {
             hook.SetAgent(agent)
@@ -239,14 +249,9 @@ public class RealtimeHub : IRealtimeHub
 
     private async Task HandleUserDisconnected()
     {
-        // Save dialog history
-        var routing = _services.GetRequiredService<IRoutingService>();
-        var storage = _services.GetRequiredService<IConversationStorage>();
-        var dialogs = routing.Context.GetDialogs();
-        foreach (var item in dialogs)
-        {
-            storage.Append(_conn.ConversationId, item);
-        }
+        var convService = _services.GetRequiredService<IConversationService>();
+        var conversation = await convService.GetConversation(_conn.ConversationId);
+        await HookEmitter.Emit<IConversationHook>(_services, x => x.OnUserDisconnected(conversation));
     }
 
     private async Task SendEventToUser(WebSocket webSocket, object message)
