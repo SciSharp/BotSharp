@@ -87,7 +87,21 @@ public partial class MongoRepository
             return task;
         }).ToList();
 
-        _dc.AgentTasks.InsertMany(taskDocs);
+        InsertMany("AgentTasks", _dc.AgentTasks, taskDocs);
+    }
+
+    public async ValueTask BulkInsertAgentTasksAsync(List<AgentTask> tasks)
+    {
+        if (tasks.IsNullOrEmpty()) return;
+
+        var taskDocs = tasks.Select(x =>
+        {
+            var task = AgentTaskDocument.ToMongoModel(x);
+            task.Id = !string.IsNullOrEmpty(x.Id) ? x.Id : Guid.NewGuid().ToString();
+            return task;
+        });
+
+        await InsertManyAsync("AgentTasks", _dc.AgentTasks, taskDocs);
     }
 
     public void UpdateAgentTask(AgentTask task, AgentTaskField field)
