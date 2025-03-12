@@ -60,9 +60,9 @@ public class GraphDb : IGraphDb
 
         using (var client = http.CreateClient())
         {
-            var uri = new Uri(url);
             try
             {
+                var uri = new Uri(url);
                 var data = JsonSerializer.Serialize(request, _jsonOptions);
                 var message = new HttpRequestMessage
                 {
