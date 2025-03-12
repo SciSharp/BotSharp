@@ -131,7 +131,7 @@ public class RealTimeCompletionProvider : IRealTimeCompletion
         Action<RoleDialogModel> onInputAudioTranscriptionCompleted,
         Action onUserInterrupted)
     {
-        var buffer = new byte[1024 * 16];
+        var buffer = new byte[1024 * 32];
         WebSocketReceiveResult result;
 
         do

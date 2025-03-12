@@ -31,7 +31,7 @@ public class AgentTaskService : IAgentTaskService
 
             return new PagedItems<AgentTask>
             {
-                Items = items.OrderByDescending(x => x.UpdatedDateTime)
+                Items = items.OrderByDescending(x => x.UpdatedTime)
                             .Skip(filter.Pager.Offset).Take(filter.Pager.Size),
                 Count = items.Count()
             };
