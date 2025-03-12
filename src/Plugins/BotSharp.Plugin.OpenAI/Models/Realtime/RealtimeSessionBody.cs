@@ -72,4 +72,10 @@ public class InputAudioTranscription
 {
     [JsonPropertyName("model")]
     public string Model { get; set; } = null!;
+
+    [JsonPropertyName("language")]
+    public string Language { get; set; } = "en";
+
+    [JsonPropertyName("prompt")]
+    public string Prompt { get; set; }
 }
