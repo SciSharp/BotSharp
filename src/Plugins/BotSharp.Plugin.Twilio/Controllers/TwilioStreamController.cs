@@ -44,7 +44,8 @@ public class TwilioStreamController : TwilioController
 
         if (_context.HttpContext.Request.Query.ContainsKey("init_audio_file"))
         {
-            instruction.SpeechPaths.Add(_context.HttpContext.Request.Query["init_audio_file"]);
+            request.InitAudioFile = _context.HttpContext.Request.Query["init_audio_file"];
+            instruction.SpeechPaths.Add(request.InitAudioFile);
         }
 
         if (_context.HttpContext.Request.Query.ContainsKey("conversation_id"))
@@ -103,6 +104,11 @@ public class TwilioStreamController : TwilioController
                 // Enable lazy routing mode to optimize realtime experience
                 new(StateConst.ROUTING_MODE, "lazy"),
             };
+
+        if (request.InitAudioFile != null)
+        {
+            states.Add(new("init_audio_file", request.InitAudioFile));
+        }
 
         convService.SetConversationId(conversation.Id, states);
         convService.SaveStates();

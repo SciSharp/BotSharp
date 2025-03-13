@@ -18,6 +18,7 @@ public class ConversationalVoiceRequest : VoiceRequest
     public string? AIResponseErrorMessage { get; set; } = string.Empty;
 
     public string Intent { get; set; } = string.Empty;
+    public string? InitAudioFile { get; set; }
 
     public List<string> States { get; set; } = [];
 }

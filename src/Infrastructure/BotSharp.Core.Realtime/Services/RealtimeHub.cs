@@ -98,24 +98,33 @@ public class RealtimeHub : IRealtimeHub
 
         routing.Context.SetDialogs(dialogs);
 
+        var states = _services.GetRequiredService<IConversationStateService>();
+
         await _completer.Connect(_conn, 
             onModelReady: async () => 
             {
-                // Control initial session, prevent initial response interruption
-                await _completer.UpdateSession(_conn, turnDetection: false);
-
-                if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
+                if (states.ContainsState("init_audio_file"))
                 {
-                    await _completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    await _completer.UpdateSession(_conn, turnDetection: true);
                 }
                 else
                 {
-                    await _completer.TriggerModelInference("Reply based on the conversation context.");
-                }
+                    // Control initial session, prevent initial response interruption
+                    await _completer.UpdateSession(_conn, turnDetection: false);
 
-                // Start turn detection
-                await Task.Delay(1000 * 8);
-                await _completer.UpdateSession(_conn, turnDetection: true);
+                    if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
+                    {
+                        await _completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
+                    }
+                    else
+                    {
+                        await _completer.TriggerModelInference("Reply based on the conversation context.");
+                    }
+
+                    // Start turn detection
+                    await Task.Delay(1000 * 8);
+                    await _completer.UpdateSession(_conn, turnDetection: true);
+                }
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
             {
