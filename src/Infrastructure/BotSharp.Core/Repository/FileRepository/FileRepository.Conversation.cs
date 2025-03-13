@@ -158,7 +158,7 @@ public partial class FileRepository
         }
     }
 
-    public bool UpdateConversationTags(string conversationId, List<string> tags)
+    public bool UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
 
@@ -170,7 +170,10 @@ public partial class FileRepository
 
         var json = File.ReadAllText(convFile);
         var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
-        conv.Tags = tags ?? new();
+
+        var tags = conv.Tags.Concat(toAddTags).ToList();
+        conv.Tags = tags.Where(x => !toDeleteTags.Contains(x, StringComparer.OrdinalIgnoreCase)).ToList();
+
         conv.UpdatedTime = DateTime.UtcNow;
         File.WriteAllText(convFile, JsonSerializer.Serialize(conv, _options));
         return true;

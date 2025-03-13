@@ -132,7 +132,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void UpdateConversationTitleAlias(string conversationId, string titleAlias)
         => throw new NotImplementedException();
-    bool UpdateConversationTags(string conversationId, List<string> tags)
+    bool UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
         => throw new NotImplementedException();
     bool AppendConversationTags(string conversationId, List<string> tags)
         => throw new NotImplementedException();

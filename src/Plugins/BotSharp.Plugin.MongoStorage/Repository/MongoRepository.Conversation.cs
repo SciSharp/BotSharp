@@ -134,11 +134,16 @@ public partial class MongoRepository
         _dc.Conversations.UpdateOne(filterConv, updateConv);
     }
 
-    public bool UpdateConversationTags(string conversationId, List<string> tags)
+    public bool UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
     {
         if (string.IsNullOrEmpty(conversationId)) return false;
 
         var filter = Builders<ConversationDocument>.Filter.Eq(x => x.Id, conversationId);
+        var conv = _dc.Conversations.Find(filter).FirstOrDefault();
+        if (conv == null) return false;
+
+
+
         var update = Builders<ConversationDocument>.Update
                                                    .Set(x => x.Tags, tags ?? new())
                                                    .Set(x => x.UpdatedTime, DateTime.UtcNow);
