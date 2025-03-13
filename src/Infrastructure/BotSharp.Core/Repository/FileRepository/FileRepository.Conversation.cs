@@ -171,7 +171,8 @@ public partial class FileRepository
         var json = File.ReadAllText(convFile);
         var conv = JsonSerializer.Deserialize<Conversation>(json, _options);
 
-        var tags = conv.Tags.Concat(toAddTags).ToList();
+        var tags = conv.Tags ?? [];
+        tags = tags.Concat(toAddTags).Distinct().ToList();
         conv.Tags = tags.Where(x => !toDeleteTags.Contains(x, StringComparer.OrdinalIgnoreCase)).ToList();
 
         conv.UpdatedTime = DateTime.UtcNow;

@@ -142,10 +142,12 @@ public partial class MongoRepository
         var conv = _dc.Conversations.Find(filter).FirstOrDefault();
         if (conv == null) return false;
 
-
+        var tags = conv.Tags ?? [];
+        tags = tags.Concat(toAddTags).Distinct().ToList();
+        tags = tags.Where(x => !toDeleteTags.Contains(x, StringComparer.OrdinalIgnoreCase)).ToList();
 
         var update = Builders<ConversationDocument>.Update
-                                                   .Set(x => x.Tags, tags ?? new())
+                                                   .Set(x => x.Tags, tags)
                                                    .Set(x => x.UpdatedTime, DateTime.UtcNow);
 
         var res = _dc.Conversations.UpdateOne(filter, update);
