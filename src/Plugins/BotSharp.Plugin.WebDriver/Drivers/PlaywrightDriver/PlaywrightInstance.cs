@@ -77,7 +77,8 @@ public class PlaywrightInstance : IDisposable
                 Args =
                 [
                     "--disable-infobars",
-                    "--test-type"
+                    "--test-type",
+                    "--no-sandbox"
                     // "--start-maximized"
                 ]
             });
