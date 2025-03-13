@@ -66,7 +66,7 @@ public class TwilioVoiceController : TwilioController
         });
 
         request.ConversationId = $"TwilioVoice_{request.CallSid}";
-        instruction.CallbackPath = $"twilio/voice/{request.ConversationId}/receive/0?{GenerateStatesParameter(request.States)}";
+        instruction.CallbackPath = $"twilio/voice/receive/0?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}";
 
         var twilio = _services.GetRequiredService<TwilioService>();
         if (string.IsNullOrWhiteSpace(request.Intent))
@@ -89,7 +89,7 @@ public class TwilioVoiceController : TwilioController
             };
             await messageQueue.EnqueueAsync(callerMessage);
             response = new VoiceResponse();
-            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{request.ConversationId}/reply/{seqNum}?{GenerateStatesParameter(request.States)}"), HttpMethod.Post);
+            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/reply/{seqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}"), HttpMethod.Post);
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -109,7 +109,7 @@ public class TwilioVoiceController : TwilioController
     /// <param name="request"></param>
     /// <returns></returns>
     [ValidateRequest]
-    [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
+    [HttpPost("twilio/voice/receive/{seqNum}")]
     public async Task<TwiMLResult> ReceiveCallerMessage(ConversationalVoiceRequest request)
     {
         var twilio = _services.GetRequiredService<TwilioService>();
@@ -142,7 +142,7 @@ public class TwilioVoiceController : TwilioController
             await messageQueue.EnqueueAsync(callerMessage);
 
             response = new VoiceResponse();
-            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}&AIResponseWaitTime=0"), HttpMethod.Post);
+            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime=0"), HttpMethod.Post);
 
             await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
             {
@@ -173,7 +173,7 @@ public class TwilioVoiceController : TwilioController
                 var instruction = new ConversationalVoiceResponse
                 {
                     SpeechPaths = new List<string>(),
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/receive/{request.SeqNum}?{GenerateStatesParameter(request.States)}&attempts={++request.Attempts}",
+                    CallbackPath = $"twilio/voice/receive/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&attempts={++request.Attempts}",
                     ActionOnEmptyResult = true
                 };
 
@@ -203,7 +203,7 @@ public class TwilioVoiceController : TwilioController
     /// <param name="request"></param>
     /// <returns></returns>
     [ValidateRequest]
-    [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
+    [HttpPost("twilio/voice/reply/{seqNum}")]
     public async Task<TwiMLResult> ReplyCallerMessage(ConversationalVoiceRequest request)
     {
         var nextSeqNum = request.SeqNum + 1;
@@ -276,7 +276,7 @@ public class TwilioVoiceController : TwilioController
                 var instruction = new ConversationalVoiceResponse
                 {
                     SpeechPaths = speechPaths,
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                    CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
                     ActionOnEmptyResult = true
                 };
 
@@ -315,7 +315,7 @@ public class TwilioVoiceController : TwilioController
                 var instruction = new ConversationalVoiceResponse
                 {
                     SpeechPaths = instructions,
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
+                    CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
                     ActionOnEmptyResult = true
                 };
 
@@ -361,7 +361,7 @@ public class TwilioVoiceController : TwilioController
                 var instruction = new ConversationalVoiceResponse
                 {
                     SpeechPaths = [$"twilio/voice/speeches/{request.ConversationId}/{reply.SpeechFileName}"],
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/receive/{nextSeqNum}?{GenerateStatesParameter(request.States)}",
+                    CallbackPath = $"twilio/voice/receive/{nextSeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}",
                     ActionOnEmptyResult = true,
                     Hints = reply.Hints
                 };
@@ -388,7 +388,7 @@ public class TwilioVoiceController : TwilioController
         var instruction = new ConversationalVoiceResponse
         {
             ActionOnEmptyResult = true,
-            CallbackPath = $"twilio/voice/{conversationId}/receive/1",
+            CallbackPath = $"twilio/voice/receive/1?conversation-id={conversationId}",
             SpeechPaths = new List<string>
             {
                 $"twilio/voice/speeches/{conversationId}/intial.mp3"
