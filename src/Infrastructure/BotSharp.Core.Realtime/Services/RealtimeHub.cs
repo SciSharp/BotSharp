@@ -26,7 +26,6 @@ public class RealtimeHub : IRealtimeHub
     {
         var buffer = new byte[1024 * 16];
         WebSocketReceiveResult result;
-
         
 
         do

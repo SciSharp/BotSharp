@@ -35,22 +35,26 @@ public class TwilioStreamController : TwilioController
             throw new ArgumentNullException(nameof(VoiceRequest.CallSid));
         }
 
-        VoiceResponse response = null;
+        VoiceResponse response = default!;
+
+        if (request.AnsweredBy == "machine_start" &&
+            request.Direction == "outbound-api" &&
+            request.InitAudioFile != null)
+        {
+            response = new VoiceResponse();
+            response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{request.ConversationId}/{request.InitAudioFile}"));
+            return TwiML(response);
+        }
+
         var instruction = new ConversationalVoiceResponse
         {
             SpeechPaths = [],
             ActionOnEmptyResult = true
         };
 
-        if (_context.HttpContext.Request.Query.ContainsKey("init_audio_file"))
+        if (request.InitAudioFile != null)
         {
-            request.InitAudioFile = _context.HttpContext.Request.Query["init_audio_file"];
             instruction.SpeechPaths.Add(request.InitAudioFile);
-        }
-
-        if (_context.HttpContext.Request.Query.ContainsKey("conversation_id"))
-        {
-            request.ConversationId = _context.HttpContext.Request.Query["conversation_id"];
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -76,6 +80,24 @@ public class TwilioStreamController : TwilioController
         });
 
         return TwiML(response);
+    }
+
+    [ValidateRequest]
+    [HttpPost("twilio/stream/status")]
+    public async Task<ActionResult> StreamConversationStatus(ConversationalVoiceRequest request)
+    {
+        if (request.AnsweredBy == "machine_start" &&
+            request.Direction == "outbound-api" &&
+            request.InitAudioFile != null &&
+            request.CallStatus == "completed")
+        {
+            // voicemail
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
+            {
+                await hook.OnVoicemailLeft(request.ConversationId);
+            });
+        }
+        return Ok();
     }
 
     private async Task<string> InitConversation(ConversationalVoiceRequest request)

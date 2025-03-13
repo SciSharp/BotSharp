@@ -7,7 +7,7 @@ public class ConversationalVoiceRequest : VoiceRequest
     [FromQuery(Name = "agent-id")]
     public string AgentId { get; set; } = string.Empty;
 
-    [FromRoute]
+    [FromQuery(Name = "conversation-id")]
     public string ConversationId { get; set; } = string.Empty;
 
     [FromRoute]
@@ -18,7 +18,27 @@ public class ConversationalVoiceRequest : VoiceRequest
     public string? AIResponseErrorMessage { get; set; } = string.Empty;
 
     public string Intent { get; set; } = string.Empty;
+
+    [FromQuery(Name = "init-audio-file")]
     public string? InitAudioFile { get; set; }
 
     public List<string> States { get; set; } = [];
+
+    [FromForm]
+    public string? CallbackSource { get; set; }
+
+    /// <summary>
+    /// machine_start
+    /// </summary>
+    [FromForm]
+    public string? AnsweredBy { get; set; }
+
+    [FromForm]
+    public int MachineDetectionDuration { get; set; }
+
+    [FromForm]
+    public int Duration { get; set; }
+
+    [FromForm]
+    public int CallDuration { get; set; }
 }
