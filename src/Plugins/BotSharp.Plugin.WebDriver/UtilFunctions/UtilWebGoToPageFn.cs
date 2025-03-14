@@ -27,7 +27,6 @@ public class UtilWebGoToPageFn : IFunctionCallback
         args.Timeout = _webDriver.DefaultTimeout;
         args.WaitForNetworkIdle = false;
         args.WaitTime = _webDriver.DefaultWaitTime;
-        args.OpenNewTab = true;
 
         var conv = _services.GetRequiredService<IConversationService>();
 
@@ -38,7 +37,10 @@ public class UtilWebGoToPageFn : IFunctionCallback
             MessageId = message.MessageId,
             ContextId = message.CurrentAgentId,
         };
-        await browser.CloseCurrentPage(msg);
+        if (!args.KeepBrowserOpen)
+        {
+            await browser.CloseCurrentPage(msg);
+        }
         var result = await browser.GoToPage(msg, args);
         if (!result.IsSuccess)
         {
