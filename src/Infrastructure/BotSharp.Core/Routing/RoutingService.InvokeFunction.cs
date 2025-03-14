@@ -1,5 +1,4 @@
 using BotSharp.Abstraction.Functions;
-using BotSharp.Abstraction.Options;
 using BotSharp.Abstraction.Templating;
 
 namespace BotSharp.Core.Routing;
@@ -9,18 +8,20 @@ public partial class RoutingService
     public async Task<bool> InvokeFunction(string name, RoleDialogModel message)
     {
         var function = _services.GetServices<IFunctionCallback>().FirstOrDefault(x => x.Name == name);
+
+        var isFillDummyContent = false;
+        var dummyFuncResponse = string.Empty;
         if (function == null)
         {
-            var executed = await InvokeDummyFunction(name, message);
-            if (executed)
+            dummyFuncResponse = await GetDummyFunctionOutput(name, message);
+            isFillDummyContent = !string.IsNullOrEmpty(dummyFuncResponse);
+            if (!isFillDummyContent)
             {
-                return true;
+                message.StopCompletion = true;
+                message.Content = $"Can't find function implementation of {name}.";
+                _logger.LogError(message.Content);
+                return false;
             }
-
-            message.StopCompletion = true;
-            message.Content = $"Can't find function implementation of {name}.";
-            _logger.LogError(message.Content);
-            return false;
         }
 
         // Clone message
@@ -34,7 +35,15 @@ public partial class RoutingService
         var progressService = _services.GetService<IConversationProgressService>();
 
         // Before executing functions
-        clonedMessage.Indication = await function.GetIndication(message);
+        if (!isFillDummyContent)
+        {
+            clonedMessage.Indication = await function.GetIndication(message);
+        }
+        else
+        {
+            clonedMessage.Indication = "Running";
+        }
+
         if (progressService?.OnFunctionExecuting != null)
         {
             await progressService.OnFunctionExecuting(clonedMessage);
@@ -49,7 +58,15 @@ public partial class RoutingService
 
         try
         {
-            result = await function.Execute(clonedMessage);
+            if (!isFillDummyContent)
+            {
+                result = await function.Execute(clonedMessage);
+            }
+            else
+            {
+                clonedMessage.Content = dummyFuncResponse;
+                result = true;
+            }
 
             // After functions have been executed
             foreach (var hook in hooks)
@@ -97,11 +114,11 @@ public partial class RoutingService
         return result;
     }
 
-    private async Task<bool> InvokeDummyFunction(string functionName, RoleDialogModel message)
+    private async Task<string?> GetDummyFunctionOutput(string functionName, RoleDialogModel message)
     {
         if (string.IsNullOrEmpty(message.CurrentAgentId))
         {
-            return false;
+            return null;
         }
 
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -109,25 +126,11 @@ public partial class RoutingService
         var found = agent?.Functions?.FirstOrDefault(x => x.Name == functionName);
         if (string.IsNullOrWhiteSpace(found?.Output))
         {
-            return false;
-        }
-
-        var clonedMessage = RoleDialogModel.From(message);
-        clonedMessage.FunctionName = functionName;
-        clonedMessage.Indication = "Running";
-
-        var hooks = _services
-            .GetRequiredService<ConversationHookProvider>()
-            .HooksOrderByPriority;
-
-        foreach (var hook in hooks)
-        {
-            await hook.OnFunctionExecuting(clonedMessage);
+            return null;
         }
 
         var render = _services.GetRequiredService<ITemplateRender>();
         var state = _services.GetRequiredService<IConversationStateService>();
-        var options = _services.GetRequiredService<BotSharpOptions>();
 
         var dict = new Dictionary<string, object>();
         foreach (var item in state.GetStates())
@@ -136,14 +139,6 @@ public partial class RoutingService
         }
 
         var text = render.Render(found.Output, dict);
-        message.Content = text;
-        clonedMessage.Content = text;
-
-        foreach (var hook in hooks)
-        {
-            await hook.OnFunctionExecuted(clonedMessage);
-        }
-
-        return true;
+        return text;
     }
 }

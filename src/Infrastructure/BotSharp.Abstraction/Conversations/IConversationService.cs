@@ -9,7 +9,7 @@ public interface IConversationService
     string ConversationId { get; }
     Task<Conversation> NewConversation(Conversation conversation);
     void SetConversationId(string conversationId, List<MessageState> states, bool isReadOnly = false);
-    Task<Conversation> GetConversation(string id);
+    Task<Conversation> GetConversation(string id, bool isLoadStates = false);
     Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter);
     Task<Conversation> UpdateConversationTitle(string id, string title);
     Task<Conversation> UpdateConversationTitleAlias(string id, string titleAlias);
