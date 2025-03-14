@@ -18,6 +18,8 @@ public class TwilioSetting
     public string ApiSecret { get; set; }
     public string CallbackHost { get; set; }
 
+    public string? MessagingShortCode { get; set; }
+
     /// <summary>
     /// Default Agent Id to handle inbound phone call
     /// </summary>
