@@ -1,13 +1,11 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Infrastructures;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 using Twilio.Http;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
@@ -382,21 +380,21 @@ public class TwilioVoiceController : TwilioController
     }
 
     [ValidateRequest]
-    [HttpPost("twilio/voice/init-call")]
-    public TwiMLResult InitiateOutboundCall(VoiceRequest request, [Required][FromQuery] string conversationId)
+    [HttpPost("twilio/voice/init-outbound-call")]
+    public TwiMLResult InitiateOutboundCall(ConversationalVoiceRequest request)
     {
         var instruction = new ConversationalVoiceResponse
         {
             ActionOnEmptyResult = true,
-            CallbackPath = $"twilio/voice/receive/1?conversation-id={conversationId}",
-            SpeechPaths = new List<string>
-            {
-                $"twilio/voice/speeches/{conversationId}/intial.mp3"
-            }
+            CallbackPath = $"twilio/voice/receive/1?conversation-id={request.ConversationId}",
         };
-        string tag = $"twilio:{Request.Form["AnsweredBy"]}";
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.AppendConversationTags(conversationId, new List<string> { tag });
+
+        if (request.InitAudioFile != null)
+        {
+            instruction.CallbackPath += $"&init-audio-file={request.InitAudioFile}";
+            instruction.SpeechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{request.InitAudioFile}");
+        }
+
         var twilio = _services.GetRequiredService<TwilioService>();
         var response = twilio.ReturnNoninterruptedInstructions(instruction);
         return TwiML(response);
@@ -413,6 +411,32 @@ public class TwilioVoiceController : TwilioController
             FileDownloadName = fileName
         };
         return result;
+    }
+
+    [ValidateRequest]
+    [HttpPost("twilio/voice/status")]
+    public async Task<ActionResult> PhoneCallStatus(ConversationalVoiceRequest request)
+    {
+        if (request.CallStatus == "completed")
+        {
+            if (request.AnsweredBy == "machine_start" &&
+                request.Direction == "outbound-api" &&
+                request.InitAudioFile != null)
+            {
+                // voicemail
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
+                {
+                    await hook.OnVoicemailLeft(request);
+                });
+            }
+            else
+            {
+                // phone call completed
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnUserDisconnected(request));
+            }
+        }
+
+        return Ok();
     }
 
     private Dictionary<string, string> ParseStates(List<string> states)

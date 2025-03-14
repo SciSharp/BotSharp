@@ -109,7 +109,14 @@ public class TwilioService
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+                if (speechPath.StartsWith(_settings.CallbackHost))
+                {
+                    response.Play(new Uri(speechPath));
+                }
+                else
+                {
+                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+                }
             }
         }
         var gather = new Gather()
@@ -193,9 +200,13 @@ public class TwilioService
                 {
                     response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
                 }
+                else if (speechPath.StartsWith(_settings.CallbackHost))
+                {
+                    response.Play(new Uri(speechPath));
+                }
                 else
                 {
-                    response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}"));
+                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
                 }
             }
         }

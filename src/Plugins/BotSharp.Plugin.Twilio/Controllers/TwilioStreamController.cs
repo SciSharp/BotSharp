@@ -42,7 +42,7 @@ public class TwilioStreamController : TwilioController
             request.InitAudioFile != null)
         {
             response = new VoiceResponse();
-            response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{request.ConversationId}/{request.InitAudioFile}"));
+            response.Play(new Uri(request.InitAudioFile));
             return TwiML(response);
         }
 
@@ -54,7 +54,7 @@ public class TwilioStreamController : TwilioController
 
         if (request.InitAudioFile != null)
         {
-            instruction.SpeechPaths.Add(request.InitAudioFile);
+            instruction.SpeechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{request.InitAudioFile}");
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -80,24 +80,6 @@ public class TwilioStreamController : TwilioController
         });
 
         return TwiML(response);
-    }
-
-    [ValidateRequest]
-    [HttpPost("twilio/stream/status")]
-    public async Task<ActionResult> StreamConversationStatus(ConversationalVoiceRequest request)
-    {
-        if (request.AnsweredBy == "machine_start" &&
-            request.Direction == "outbound-api" &&
-            request.InitAudioFile != null &&
-            request.CallStatus == "completed")
-        {
-            // voicemail
-            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
-            {
-                await hook.OnVoicemailLeft(request.ConversationId);
-            });
-        }
-        return Ok();
     }
 
     private async Task<string> InitConversation(ConversationalVoiceRequest request)
