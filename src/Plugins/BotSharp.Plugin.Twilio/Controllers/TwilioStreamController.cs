@@ -48,6 +48,7 @@ public class TwilioStreamController : TwilioController
 
         var instruction = new ConversationalVoiceResponse
         {
+            ConversationId = request.ConversationId,
             SpeechPaths = [],
             ActionOnEmptyResult = true
         };

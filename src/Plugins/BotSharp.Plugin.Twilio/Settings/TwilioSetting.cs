@@ -33,5 +33,4 @@ public class TwilioSetting
     public string? MachineDetection { get; set; }
 
     public bool RecordingEnabled { get; set; } = false;
-    public bool RecordingTranscribe { get; set; } = false;
 }

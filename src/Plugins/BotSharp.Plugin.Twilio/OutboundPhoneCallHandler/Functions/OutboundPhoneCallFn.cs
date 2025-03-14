@@ -63,6 +63,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
 
         var processUrl = $"{_twilioSetting.CallbackHost}/twilio";
         var statusUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/status?conversation-id={newConversationId}";
+        var recordingStatusUrl = $"{_twilioSetting.CallbackHost}/twilio/recording/status?conversation-id={newConversationId}";
 
         // Generate initial assistant audio
         string initAudioUrl = null;
@@ -102,7 +103,9 @@ public class OutboundPhoneCallFn : IFunctionCallback
             from: new PhoneNumber(_twilioSetting.PhoneNumber),
             statusCallback: new Uri(statusUrl),
             // https://www.twilio.com/docs/voice/answering-machine-detection
-            machineDetection: _twilioSetting.MachineDetection);
+            machineDetection: _twilioSetting.MachineDetection,
+            record: _twilioSetting.RecordingEnabled,
+            recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?conversation-id={newConversationId}");
 
         var convService = _services.GetRequiredService<IConversationService>();
         var routing = _services.GetRequiredService<IRoutingContext>();
