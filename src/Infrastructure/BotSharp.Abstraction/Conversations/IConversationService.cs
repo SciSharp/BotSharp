@@ -13,7 +13,7 @@ public interface IConversationService
     Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter);
     Task<Conversation> UpdateConversationTitle(string id, string title);
     Task<Conversation> UpdateConversationTitleAlias(string id, string titleAlias);
-    Task<bool> UpdateConversationTags(string conversationId, List<string> tags);
+    Task<bool> UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags);
     Task<bool> UpdateConversationMessage(string conversationId, UpdateMessageRequest request);
     Task<List<Conversation>> GetLastConversations();
     Task<List<string>> GetIdleConversations(int batchSize, int messageLimit, int bufferHours, IEnumerable<string> excludeAgentIds);

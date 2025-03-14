@@ -255,7 +255,7 @@ public class ConversationController : ControllerBase
     public async Task<bool> UpdateConversationTags([FromRoute] string conversationId, [FromBody] UpdateConversationRequest request)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        return await conv.UpdateConversationTags(conversationId, request.Tags);
+        return await conv.UpdateConversationTags(conversationId, request.ToAddTags, request.ToDeleteTags);
     }
 
     [HttpPut("/conversation/{conversationId}/update-message")]
