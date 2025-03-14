@@ -31,7 +31,7 @@ public class ConversationViewModel
     public string? TaskId { get; set; }
 
     public string Status { get; set; }
-    public Dictionary<string, string> States { get; set; }
+    public Dictionary<string, string> States { get; set; } = [];
 
     public List<string> Tags { get; set; } = new();
 
@@ -55,7 +55,8 @@ public class ConversationViewModel
             Channel = sess.Channel,
             Status = sess.Status,
             TaskId = sess.TaskId,
-            Tags = sess.Tags ?? new(),
+            Tags = sess.Tags ?? [],
+            States = sess.States ?? [],
             CreatedTime = sess.CreatedTime,
             UpdatedTime = sess.UpdatedTime
         };

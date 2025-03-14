@@ -69,23 +69,34 @@ public class ConversationStateService : IConversationStateService
             return this;
         }
 
+        var defaultRound = -1;
         var preValue = string.Empty;
         var currentValue = value.ToString();
-        var hooks = _services.GetServices<IConversationHook>();
-        var curActiveRounds = activeRounds > 0 ? activeRounds : -1;
-        int? preActiveRounds = null;
+        var curActive = true;
+        StateKeyValue? pair = null;
+        StateValue? prevLeafNode = null;
+        var curActiveRounds = activeRounds > 0 ? activeRounds : defaultRound;
 
-        if (ContainsState(name) && _curStates.TryGetValue(name, out var pair))
+        if (ContainsState(name) && _curStates.TryGetValue(name, out pair))
         {
-            var leafNode = pair?.Values?.LastOrDefault();
-            preActiveRounds = leafNode?.ActiveRounds;
-            preValue = leafNode?.Data ?? string.Empty;
+            prevLeafNode = pair?.Values?.LastOrDefault();
+            preValue = prevLeafNode?.Data ?? string.Empty;
         }
 
         _logger.LogInformation($"[STATE] {name} = {value}");
         var routingCtx = _services.GetRequiredService<IRoutingContext>();
 
-        if (!ContainsState(name) || preValue != currentValue || preActiveRounds != curActiveRounds)
+        var isNoChange = ContainsState(name)
+                          && preValue == currentValue
+                          && prevLeafNode?.ActiveRounds == curActiveRounds
+                          && curActiveRounds == defaultRound
+                          && prevLeafNode?.Source == source
+                          && prevLeafNode?.DataType == valueType
+                          && prevLeafNode?.Active == curActive
+                          && pair?.Readonly == readOnly;
+
+        var hooks = _services.GetServices<IConversationHook>();
+        if (!ContainsState(name) || preValue != currentValue || prevLeafNode?.ActiveRounds != curActiveRounds)
         {
             foreach (var hook in hooks)
             {
@@ -95,7 +106,7 @@ public class ConversationStateService : IConversationStateService
                     MessageId = routingCtx.MessageId,
                     Name = name,
                     BeforeValue = preValue,
-                    BeforeActiveRounds = preActiveRounds,
+                    BeforeActiveRounds = prevLeafNode?.ActiveRounds,
                     AfterValue = currentValue,
                     AfterActiveRounds = curActiveRounds,
                     DataType = valueType,
@@ -116,7 +127,7 @@ public class ConversationStateService : IConversationStateService
         {
             Data = currentValue,
             MessageId = routingCtx.MessageId,
-            Active = true,
+            Active = curActive,
             ActiveRounds = curActiveRounds,
             DataType = valueType,
             Source = source,
@@ -127,6 +138,10 @@ public class ConversationStateService : IConversationStateService
         {
             newPair.Values = new List<StateValue> { newValue };
             _curStates[name] = newPair;
+        }
+        else if (isNoChange)
+        {
+            // do nothing
         }
         else
         {
@@ -415,14 +430,14 @@ public class ConversationStateService : IConversationStateService
     {
         var values = _curStates.Values.ToList();
         var copy = JsonSerializer.Deserialize<List<StateKeyValue>>(JsonSerializer.Serialize(values));
-        return new ConversationState(copy ?? new());
+        return new ConversationState(copy ?? []);
     }
 
     public void SetCurrentState(ConversationState state)
     {
         var values = _curStates.Values.ToList();
         var copy = JsonSerializer.Deserialize<List<StateKeyValue>>(JsonSerializer.Serialize(values));
-        _curStates = new ConversationState(copy ?? new());
+        _curStates = new ConversationState(copy ?? []);
     }
 
     public void ResetCurrentState()

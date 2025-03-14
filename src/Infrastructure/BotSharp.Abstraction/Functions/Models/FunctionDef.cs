@@ -25,6 +25,10 @@ public class FunctionDef
     [JsonPropertyName("parameters")]
     public FunctionParametersDef Parameters { get; set; } = new FunctionParametersDef();
 
+    [JsonPropertyName("output")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Output { get; set; }
+
     public override string ToString()
     {
         return $"{Name}: {Description}";

@@ -71,7 +71,7 @@ public partial class ConversationService : IConversationService
         return db.UpdateConversationMessage(conversationId, request);
     }
 
-    public async Task<Conversation> GetConversation(string id)
+    public async Task<Conversation> GetConversation(string id, bool isLoadStates = false)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var conversation = db.GetConversation(id);
@@ -80,6 +80,11 @@ public partial class ConversationService : IConversationService
 
     public async Task<PagedItems<Conversation>> GetConversations(ConversationFilter filter)
     {
+        if (filter == null)
+        {
+            filter = ConversationFilter.Empty();
+        }
+
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var conversations = db.GetConversations(filter);
         return conversations;

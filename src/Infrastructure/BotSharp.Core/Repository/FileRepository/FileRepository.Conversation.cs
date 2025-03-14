@@ -1,5 +1,6 @@
 using BotSharp.Abstraction.Loggers.Models;
 using BotSharp.Abstraction.Users.Models;
+using System;
 using System.IO;
 
 namespace BotSharp.Core.Repository;
@@ -346,7 +347,7 @@ public partial class FileRepository
         }
     }
 
-    public Conversation GetConversation(string conversationId)
+    public Conversation GetConversation(string conversationId, bool isLoadStates = false)
     {
         var convDir = FindConversationDirectory(conversationId);
         if (string.IsNullOrEmpty(convDir)) return null;
@@ -361,18 +362,20 @@ public partial class FileRepository
             record.Dialogs = CollectDialogElements(dialogFile);
         }
 
-        var stateFile = Path.Combine(convDir, STATE_FILE);
-        if (record != null)
+        if (isLoadStates)
         {
-            var states = CollectConversationStates(stateFile);
-            var curStates = new Dictionary<string, string>();
-            states.ForEach(x =>
+            var latestStateFile = Path.Combine(convDir, CONV_LATEST_STATE_FILE);
+            if (record != null && File.Exists(latestStateFile))
             {
-                curStates[x.Key] = x.Values?.LastOrDefault()?.Data ?? string.Empty;
-            });
-            record.States = curStates;
+                var stateJson = File.ReadAllText(latestStateFile);
+                var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
+                record.States = states.ToDictionary(x => x.Key, x =>
+                {
+                    var elem = x.Value.RootElement.GetProperty("data");
+                    return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
+                });
+            }
         }
-
         return record;
     }
 
@@ -507,6 +510,21 @@ public partial class FileRepository
             }
 
             if (!matched) continue;
+
+            if (filter.IsLoadLatestStates)
+            {
+                var latestStateFile = Path.Combine(d, CONV_LATEST_STATE_FILE);
+                if (File.Exists(latestStateFile))
+                {
+                    var stateJson = File.ReadAllText(latestStateFile);
+                    var states = JsonSerializer.Deserialize<Dictionary<string, JsonDocument>>(stateJson, _options) ?? [];
+                    record.States = states.ToDictionary(x => x.Key, x =>
+                    {
+                        var elem = x.Value.RootElement.GetProperty("data");
+                        return elem.ValueKind != JsonValueKind.Null ? elem.ToString() : null;
+                    });
+                }
+            }
 
             records.Add(record);
         }
