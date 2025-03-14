@@ -19,16 +19,16 @@ public class DashboardController : ControllerBase
     }
     #region User Components
     [HttpGet("/dashboard/components")]
-    public async Task<UserDashboardModel> GetComponents()
+    public async Task<UserDashboardViewModel> GetComponents()
     {
         var userService = _services.GetRequiredService<IUserService>();
         var dashboardProfile = await userService.GetDashboard();
-        if (dashboardProfile == null) return new UserDashboardModel();
+        if (dashboardProfile == null) return new();
 
-        var result = new UserDashboardModel
+        var result = new UserDashboardViewModel
         {
             ConversationList = dashboardProfile.ConversationList.Select(
-                x => new UserDashboardConversationModel
+                x => new UserDashboardConversationViewModel
                 {
                     Name = x.Name,
                     ConversationId = x.ConversationId,
@@ -40,7 +40,7 @@ public class DashboardController : ControllerBase
     }
 
     [HttpPost("/dashboard/component/conversation")]
-    public async Task UpdateDashboardConversationInstruction(UserDashboardConversationModel dashConv)
+    public async Task UpdateDashboardConversationInstruction(UserDashboardConversationViewModel dashConv)
     {
         if (string.IsNullOrEmpty(dashConv.Name) && string.IsNullOrEmpty(dashConv.Instruction)) 
         {

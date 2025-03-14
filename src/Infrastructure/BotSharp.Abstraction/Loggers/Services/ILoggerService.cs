@@ -6,8 +6,8 @@ namespace BotSharp.Abstraction.Loggers.Services;
 public interface ILoggerService
 {
     #region Conversation
-    Task<List<ContentLogOutputModel>> GetConversationContentLogs(string conversationId);
-    Task<List<ConversationStateLogModel>> GetConversationStateLogs(string conversationId);
+    Task<DateTimePagination<ContentLogOutputModel>> GetConversationContentLogs(string conversationId, ConversationLogFilter filter);
+    Task<DateTimePagination<ConversationStateLogModel>> GetConversationStateLogs(string conversationId, ConversationLogFilter filter);
     #endregion
 
     #region Instruction

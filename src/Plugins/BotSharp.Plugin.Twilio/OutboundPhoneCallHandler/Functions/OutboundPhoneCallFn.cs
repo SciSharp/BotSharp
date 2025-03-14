@@ -66,9 +66,12 @@ public class OutboundPhoneCallFn : IFunctionCallback
 
         // Make outbound call
         var call = await CallResource.CreateAsync(
-            url: new Uri($"{_twilioSetting.CallbackHost}/twilio/stream?conversation_id={newConversationId}&init_audio_file={fileName}"),
+            url: new Uri($"{_twilioSetting.CallbackHost}/twilio/stream?conversation-id={newConversationId}&init-audio-file={fileName}"),
             to: new PhoneNumber(args.PhoneNumber),
-            from: new PhoneNumber(_twilioSetting.PhoneNumber));
+            from: new PhoneNumber(_twilioSetting.PhoneNumber),
+            statusCallback: new Uri($"{_twilioSetting.CallbackHost}/twilio/stream/status?conversation-id={newConversationId}&init-audio-file={fileName}"),
+            // https://www.twilio.com/docs/voice/answering-machine-detection
+            machineDetection: "Enable");
 
         var convService = _services.GetRequiredService<IConversationService>();
         var routing = _services.GetRequiredService<IRoutingContext>();

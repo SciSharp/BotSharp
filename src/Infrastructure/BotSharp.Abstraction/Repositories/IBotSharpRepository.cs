@@ -132,7 +132,7 @@ public interface IBotSharpRepository : IHaveServiceProvider
         => throw new NotImplementedException();
     void UpdateConversationTitleAlias(string conversationId, string titleAlias)
         => throw new NotImplementedException();
-    bool UpdateConversationTags(string conversationId, List<string> tags)
+    bool UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
         => throw new NotImplementedException();
     bool AppendConversationTags(string conversationId, List<string> tags)
         => throw new NotImplementedException();
@@ -164,14 +164,14 @@ public interface IBotSharpRepository : IHaveServiceProvider
     #region Conversation Content Log
     void SaveConversationContentLog(ContentLogOutputModel log)
         => throw new NotImplementedException();
-    List<ContentLogOutputModel> GetConversationContentLogs(string conversationId)
+    DateTimePagination<ContentLogOutputModel> GetConversationContentLogs(string conversationId, ConversationLogFilter filter)
         => throw new NotImplementedException();
     #endregion
 
     #region Conversation State Log
     void SaveConversationStateLog(ConversationStateLogModel log)
         => throw new NotImplementedException();
-    List<ConversationStateLogModel> GetConversationStateLogs(string conversationId)
+    DateTimePagination<ConversationStateLogModel> GetConversationStateLogs(string conversationId, ConversationLogFilter filter)
         => throw new NotImplementedException();
     #endregion
 

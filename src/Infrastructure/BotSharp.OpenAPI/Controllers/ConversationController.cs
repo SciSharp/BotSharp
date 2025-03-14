@@ -81,11 +81,11 @@ public class ConversationController : ControllerBase
     }
 
     [HttpGet("/conversation/{conversationId}/dialogs")]
-    public async Task<IEnumerable<ChatResponseModel>> GetDialogs([FromRoute] string conversationId)
+    public async Task<IEnumerable<ChatResponseModel>> GetDialogs([FromRoute] string conversationId, [FromQuery] int count = 100)
     {
         var conv = _services.GetRequiredService<IConversationService>();
         conv.SetConversationId(conversationId, [], isReadOnly: true);
-        var history = conv.GetDialogHistory(fromBreakpoint: false);
+        var history = conv.GetDialogHistory(lastCount: count, fromBreakpoint: false);
 
         var userService = _services.GetRequiredService<IUserService>();
         var agentService = _services.GetRequiredService<IAgentService>();
@@ -255,7 +255,7 @@ public class ConversationController : ControllerBase
     public async Task<bool> UpdateConversationTags([FromRoute] string conversationId, [FromBody] UpdateConversationRequest request)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-        return await conv.UpdateConversationTags(conversationId, request.Tags);
+        return await conv.UpdateConversationTags(conversationId, request.ToAddTags, request.ToDeleteTags);
     }
 
     [HttpPut("/conversation/{conversationId}/update-message")]

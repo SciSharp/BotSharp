@@ -59,10 +59,10 @@ public partial class ConversationService : IConversationService
         return conversation;
     }
 
-    public async Task<bool> UpdateConversationTags(string conversationId, List<string> tags)
+    public async Task<bool> UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateConversationTags(conversationId, tags);
+        return db.UpdateConversationTags(conversationId, toAddTags, toDeleteTags);
     }
 
     public async Task<bool> UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
