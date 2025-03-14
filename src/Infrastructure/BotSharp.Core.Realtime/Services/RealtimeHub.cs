@@ -1,7 +1,3 @@
-using BotSharp.Abstraction.Utilities;
-using BotSharp.Core.Infrastructures;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-
 namespace BotSharp.Core.Realtime.Services;
 
 public class RealtimeHub : IRealtimeHub
@@ -257,9 +253,7 @@ public class RealtimeHub : IRealtimeHub
 
     private async Task HandleUserDisconnected()
     {
-        var convService = _services.GetRequiredService<IConversationService>();
-        var conversation = await convService.GetConversation(_conn.ConversationId);
-        await HookEmitter.Emit<IConversationHook>(_services, x => x.OnUserDisconnected(conversation));
+
     }
 
     private async Task SendEventToUser(WebSocket webSocket, object message)

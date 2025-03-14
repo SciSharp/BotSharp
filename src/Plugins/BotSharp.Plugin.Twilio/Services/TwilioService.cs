@@ -1,7 +1,6 @@
 using BotSharp.Abstraction.Utilities;
 using BotSharp.Plugin.Twilio.Models;
 using Twilio.Jwt.AccessToken;
-using Twilio.TwiML.Messaging;
 using Token = Twilio.Jwt.AccessToken.Token;
 
 namespace BotSharp.Plugin.Twilio.Services;
@@ -101,17 +100,25 @@ public class TwilioService
         return response;
     }
 
-    public VoiceResponse ReturnNoninterruptedInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
+    public VoiceResponse ReturnNoninterruptedInstructions(ConversationalVoiceResponse voiceResponse)
     {
         var response = new VoiceResponse();
-        response.Pause(2);
-        if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
+
+        if (voiceResponse.SpeechPaths != null && voiceResponse.SpeechPaths.Any())
         {
-            foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
+            foreach (var speechPath in voiceResponse.SpeechPaths)
             {
-                response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+                if (speechPath.StartsWith(_settings.CallbackHost))
+                {
+                    response.Play(new Uri(speechPath));
+                }
+                else
+                {
+                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+                }
             }
         }
+
         var gather = new Gather()
         {
             Input = new List<Gather.InputEnum>()
@@ -119,14 +126,15 @@ public class TwilioService
                 Gather.InputEnum.Speech,
                 Gather.InputEnum.Dtmf
             },
-            Action = new Uri($"{_settings.CallbackHost}/{conversationalVoiceResponse.CallbackPath}"),
+            Action = new Uri($"{_settings.CallbackHost}/{voiceResponse.CallbackPath}"),
             Enhanced = true,
             SpeechModel = Gather.SpeechModelEnum.PhoneCall,
             SpeechTimeout = "auto", // conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout.ToString() : "3",
-            Timeout = conversationalVoiceResponse.Timeout > 0 ? conversationalVoiceResponse.Timeout : 3,
-            ActionOnEmptyResult = conversationalVoiceResponse.ActionOnEmptyResult
+            Timeout = voiceResponse.Timeout > 0 ? voiceResponse.Timeout : 3,
+            ActionOnEmptyResult = voiceResponse.ActionOnEmptyResult,
         };
         response.Append(gather);
+
         return response;
     }
 
@@ -185,6 +193,7 @@ public class TwilioService
     public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(string conversationId, ConversationalVoiceResponse conversationalVoiceResponse)
     {
         var response = new VoiceResponse();
+
         if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
@@ -193,9 +202,13 @@ public class TwilioService
                 {
                     response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
                 }
+                else if (speechPath.StartsWith(_settings.CallbackHost))
+                {
+                    response.Play(new Uri(speechPath));
+                }
                 else
                 {
-                    response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}"));
+                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
                 }
             }
         }
