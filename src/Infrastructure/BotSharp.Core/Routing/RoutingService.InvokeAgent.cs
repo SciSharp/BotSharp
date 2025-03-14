@@ -101,8 +101,8 @@ public partial class RoutingService
                 Context.SetDialogs(dialogs);
 
                 // Send to Next LLM
-                var agentId = routing.Context.GetCurrentAgentId();
-                await InvokeAgent(agentId, dialogs);
+                var curAgentId = routing.Context.GetCurrentAgentId();
+                await InvokeAgent(curAgentId, dialogs);
             }
         }
         else

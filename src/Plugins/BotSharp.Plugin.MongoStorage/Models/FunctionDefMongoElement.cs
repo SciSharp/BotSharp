@@ -12,6 +12,7 @@ public class FunctionDefMongoElement
     public string? VisibilityExpression { get; set; }
     public string? Impact { get; set; }
     public FunctionParametersDefMongoElement Parameters { get; set; } = new();
+    public string? Output { get; set; }
 
     public static FunctionDefMongoElement ToMongoElement(FunctionDef function)
     {
@@ -27,7 +28,8 @@ public class FunctionDefMongoElement
                 Type = function.Parameters.Type,
                 Properties = JsonSerializer.Serialize(function.Parameters.Properties),
                 Required = function.Parameters.Required,
-            }
+            },
+            Output = function.Output
         };
     }
 
@@ -45,7 +47,8 @@ public class FunctionDefMongoElement
                 Type = function.Parameters.Type,
                 Properties = JsonSerializer.Deserialize<JsonDocument>(function.Parameters.Properties.IfNullOrEmptyAs("{}")),
                 Required = function.Parameters.Required,
-            }
+            },
+            Output = function.Output
         };
     }
 }
