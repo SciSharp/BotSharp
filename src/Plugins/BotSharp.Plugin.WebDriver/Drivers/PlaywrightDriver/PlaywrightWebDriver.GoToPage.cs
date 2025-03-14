@@ -15,7 +15,14 @@ public partial class PlaywrightWebDriver
 
                 if (page != null)
                 {
-                    if (page.Url != "about:blank")
+                    if (!args.OpenBlankPage)
+                    {
+                        if (!_instance.Pages[message.ContextId].Contains(page))
+                        {
+                            _instance.Pages[message.ContextId].Add(page);
+                        }
+                    }
+                    if (args.OpenBlankPage && page.Url != "about:blank")
                     {
                         await page.EvaluateAsync(@"() => {
                             window.open('', '_blank');
@@ -48,7 +55,6 @@ public partial class PlaywrightWebDriver
 
             // Active current tab
             await page.BringToFrontAsync();
-
             var response = await page.GotoAsync(args.Url, new PageGotoOptions
             {
                 Timeout = args.Timeout > 0 ? args.Timeout : 30000
