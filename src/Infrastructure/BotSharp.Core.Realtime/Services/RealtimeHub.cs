@@ -99,13 +99,7 @@ public class RealtimeHub : IRealtimeHub
             onModelReady: async () => 
             {
                 // Not TriggerModelInference, waiting for user utter.
-                await _completer.UpdateSession(_conn);
-
-                // Push dialogs into model context
-                foreach (var message in dialogs)
-                {
-                    await _completer.InsertConversationItem(message);
-                }
+                var instruction = await _completer.UpdateSession(_conn);
 
                 // Trigger model inference if there is no audio file in the conversation
                 if (!states.ContainsState("init_audio_file"))
@@ -118,6 +112,16 @@ public class RealtimeHub : IRealtimeHub
                     {
                         await _completer.TriggerModelInference("Reply based on the conversation context.");
                     }
+                }
+                else
+                {
+                    // Push dialogs into model context
+                    foreach (var message in dialogs)
+                    {
+                        await _completer.InsertConversationItem(message);
+                    }
+
+                    await _completer.TriggerModelInference($"{instruction}\r\n\r\nAssist user without repeating your previous statement.");
                 }
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>

@@ -208,7 +208,7 @@ public class TwilioService
                 }
                 else
                 {
-                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
+                    response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{conversationalVoiceResponse.ConversationId}/{speechPath}"));
                 }
             }
         }

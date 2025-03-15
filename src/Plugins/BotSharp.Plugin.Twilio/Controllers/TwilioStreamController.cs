@@ -55,7 +55,7 @@ public class TwilioStreamController : TwilioController
 
         if (request.InitAudioFile != null)
         {
-            instruction.SpeechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{request.InitAudioFile}");
+            instruction.SpeechPaths.Add(request.InitAudioFile);
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
