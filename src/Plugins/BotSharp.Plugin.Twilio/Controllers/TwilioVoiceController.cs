@@ -430,6 +430,15 @@ public class TwilioVoiceController : TwilioController
     }
 
     [ValidateRequest]
+    [HttpPost("twilio/voice/hang-up")]
+    public async Task<TwiMLResult> Hangup(ConversationalVoiceRequest request)
+    {
+        var twilio = _services.GetRequiredService<TwilioService>();
+        var response = twilio.HangUp("twilio/bye.mp3");
+        return TwiML(response);
+    }
+
+    [ValidateRequest]
     [HttpPost("twilio/voice/status")]
     public async Task<ActionResult> PhoneCallStatus(ConversationalVoiceRequest request)
     {
