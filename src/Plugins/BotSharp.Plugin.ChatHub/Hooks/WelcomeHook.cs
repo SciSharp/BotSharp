@@ -6,6 +6,7 @@ public class WelcomeHook : ConversationHookBase
 {
     private readonly IServiceProvider _services;
     private readonly IHubContext<SignalRHub> _chatHub;
+    private readonly ILogger<WelcomeHook> _logger;
     private readonly IUserIdentity _user;
     private readonly IConversationStorage _storage;
     private readonly BotSharpOptions _options;
@@ -17,6 +18,7 @@ public class WelcomeHook : ConversationHookBase
 
     public WelcomeHook(IServiceProvider services,
         IHubContext<SignalRHub> chatHub,
+        ILogger<WelcomeHook> logger,
         IUserIdentity user,
         IConversationStorage storage,
         BotSharpOptions options,
@@ -24,6 +26,7 @@ public class WelcomeHook : ConversationHookBase
     {
         _services = services;
         _chatHub = chatHub;
+        _logger = logger;
         _user = user;
         _storage = storage;
         _options = options;
@@ -78,17 +81,30 @@ public class WelcomeHook : ConversationHookBase
 
                 _storage.Append(conversation.Id, dialog);
 
-                if (_settings.EventDispatchBy == EventDispatchType.Group)
-                {
-                    await _chatHub.Clients.Group(conversation.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
-                }
-                else
-                {
-                    await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
-                }
+                await SendEvent(conversation.Id, json);
             }
         }
 
         await base.OnUserAgentConnectedInitially(conversation);
+    }
+
+    private async Task SendEvent(string conversationId, string json)
+    {
+        try
+        {
+            if (_settings.EventDispatchBy == EventDispatchType.Group)
+            {
+                await _chatHub.Clients.Group(conversationId).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+            }
+            else
+            {
+                await _chatHub.Clients.User(_user.Id).SendAsync(RECEIVE_ASSISTANT_MESSAGE, json);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Failed to send event in {nameof(WelcomeHook)} (conversation id: {conversationId})." +
+                $"\r\n{ex.Message}\r\n{ex.InnerException}");
+        }
     }
 }

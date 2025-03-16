@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LangChain.Providers.Google.VertexAI" Version="0.15.3-dev.58" />
+    <PackageReference Include="LangChain.Providers.Google.VertexAI" />
   </ItemGroup>
 
   <ItemGroup>

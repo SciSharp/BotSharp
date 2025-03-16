@@ -1,0 +1,18 @@
+{
+  "name": "util-routing-fallback_to_router",
+  "description": "Return to the Router to find the appropriate agent who can handle the user's request.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "fallback_reason": {
+        "type": "string",
+        "description": "The reason why you need to reach out to other agent."
+      },
+      "user_question": {
+        "type": "string",
+        "description": "User question or statement."
+      }
+    },
+    "required": [ "fallback_reason" ]
+  }
+}

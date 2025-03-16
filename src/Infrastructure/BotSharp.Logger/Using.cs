@@ -12,4 +12,5 @@ global using BotSharp.Abstraction.Conversations.Models;
 global using BotSharp.Abstraction.Conversations;
 global using BotSharp.Abstraction.Repositories;
 global using BotSharp.Abstraction.Conversations.Settings;
+global using BotSharp.Abstraction.Instructs;
 global using BotSharp.Logger.Hooks;

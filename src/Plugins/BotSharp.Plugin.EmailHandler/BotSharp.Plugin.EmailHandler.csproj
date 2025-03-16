@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.7.0" />
+    <PackageReference Include="MailKit" />
   </ItemGroup>
 
   <ItemGroup>

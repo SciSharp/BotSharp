@@ -6,5 +6,6 @@
   "id": "b284db86-e9c2-4c25-a59e-4649797dd130",
   "disabled": false,
   "isPublic": true,
-  "profiles": [ "pizza" ]
+  "profiles": [ "pizza" ],
+  "labels": [ "experiment" ]
 }

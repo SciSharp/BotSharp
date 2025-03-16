@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace BotSharp.OpenAPI.ViewModels.Users;
-public class UserDashboardModel
-{
 
+public class UserDashboardViewModel
+{
     [JsonPropertyName("conversation_list")]
-    public IList<UserDashboardConversationModel> ConversationList { get; set; } = [];
+    public IList<UserDashboardConversationViewModel> ConversationList { get; set; } = [];
 }
 
-public class UserDashboardConversationModel
+public class UserDashboardConversationViewModel
 {
     [JsonPropertyName("name")]
     public string? Name { get; set; }

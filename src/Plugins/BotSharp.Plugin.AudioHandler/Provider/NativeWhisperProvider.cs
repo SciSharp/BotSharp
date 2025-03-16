@@ -15,6 +15,8 @@ public class NativeWhisperProvider : IAudioCompletion
     private readonly ILogger<NativeWhisperProvider> _logger;
 
     public string Provider => "native-whisper";
+    public string Model => _model;
+    private string _model;
 
     public NativeWhisperProvider(
         BotSharpDatabaseSettings dbSettings,
@@ -56,11 +58,13 @@ public class NativeWhisperProvider : IAudioCompletion
     {
         if (Enum.TryParse(model, true, out GgmlType ggmlType))
         {
+            _model = model;
             LoadWhisperModel(ggmlType);
         }
         else
         {
             _logger.LogWarning($"Unsupported model type: {model}. Use Tiny model instead!");
+            _model = "Tiny";
             LoadWhisperModel(GgmlType.Tiny);
         }
     }

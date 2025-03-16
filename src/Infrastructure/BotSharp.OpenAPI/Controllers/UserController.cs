@@ -254,7 +254,8 @@ public class UserController : ControllerBase
     private async Task<bool> IsValidUser()
     {
         var userService = _services.GetRequiredService<IUserService>();
-        return await userService.IsAdminUser(_user.Id);
+        var (isAdmin, _) = await userService.IsAdminUser(_user.Id);
+        return isAdmin;
     }
 
     private FileContentResult BuildFileResult(string file)

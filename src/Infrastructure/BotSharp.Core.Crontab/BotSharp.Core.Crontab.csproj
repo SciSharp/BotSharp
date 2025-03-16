@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NCrontab" Version="3.3.3" />
+    <PackageReference Include="NCrontab" />
   </ItemGroup>
 
   <ItemGroup>

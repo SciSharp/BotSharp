@@ -1,7 +1,7 @@
 {
   "id": "8970b1e5-d260-4e2c-90b1-f1415a257c18",
   "name": "Pizza Bot",
-  "description": "AI assistant that can help customer place pizza order.",
+  "description": "AI assistant that can help customer place pizza order, make payment or inquiry order status.",
   "type": "routing",
   "inheritAgentId": "01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a",
   "createdDateTime": "2023-08-18T10:39:32.2349685Z",
@@ -10,10 +10,11 @@
   "disabled": false,
   "isPublic": true,
   "profiles": [ "pizza" ],
+  "labels": [ "experiment" ],
   "routingRules": [
     {
       "type": "reasoner",
-      "field": "NaiveReasoner"
+      "field": "Naive Reasoner"
     }
   ]
 }

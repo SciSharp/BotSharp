@@ -24,6 +24,7 @@ public sealed class MicrosoftExtensionsAITextCompletionProvider : ITextCompletio
 
     /// <inheritdoc/>
     public string Provider => "microsoft-extensions-ai";
+    public string Model => _model;
 
     /// <summary>
     /// Creates an instance of the <see cref="MicrosoftExtensionsAITextCompletionProvider"/> class.
@@ -50,7 +51,7 @@ public sealed class MicrosoftExtensionsAITextCompletionProvider : ITextCompletio
 
         _tokenStatistics.StartTimer();
         var completion = await _chatClient.GetResponseAsync(text);
-        var result = string.Concat(completion.Message.Contents.OfType<TextContent>());
+        var result = completion.Text;
         _tokenStatistics.StopTimer();
 
         // After chat completion hook

@@ -14,6 +14,7 @@ public partial class ImageCompletionProvider : IImageCompletion
     protected string _model;
 
     public virtual string Provider => "azure-openai";
+    public string Model => _model;
 
     public ImageCompletionProvider(
         AzureOpenAiSettings settings,

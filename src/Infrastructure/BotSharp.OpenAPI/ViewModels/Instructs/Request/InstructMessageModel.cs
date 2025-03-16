@@ -15,4 +15,5 @@ public class IncomingInstructRequest : IncomingMessageModel
 {
     public string? AgentId { get; set; }
     public string? Instruction { get; set; }
+    public string? Template { get; set; }
 }

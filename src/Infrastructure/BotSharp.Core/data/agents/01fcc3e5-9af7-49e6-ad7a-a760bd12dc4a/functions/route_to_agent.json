@@ -1,0 +1,31 @@
+{
+  "name": "route_to_agent",
+  "description": "Route request to appropriate AI agent.",
+  "visibility_expression": "{% if states.routing_mode == 'lazy' %}visible{% endif %}",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "next_action_agent": {
+        "type": "string",
+        "description": "Agent for next action based on user latest response"
+      },
+      "next_action_reason": {
+        "type": "string",
+        "description": "The reason why route to this agent."
+      },
+      "user_goal_agent": {
+        "type": "string",
+        "description": "Agent who can acheive user initial task."
+      },
+      "conversation_end": {
+        "type": "boolean",
+        "description": "User is ending the conversation."
+      },
+      "args": {
+        "type": "object",
+        "description": "Required parameters of next action agent"
+      }
+    },
+    "required": [ "next_action_agent", "user_goal_agent", "next_action_reason", "args" ]
+  }
+}

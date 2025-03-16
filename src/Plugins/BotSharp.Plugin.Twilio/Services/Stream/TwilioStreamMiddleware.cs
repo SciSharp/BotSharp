@@ -1,6 +1,5 @@
 using BotSharp.Abstraction.Realtime;
 using BotSharp.Abstraction.Realtime.Models;
-using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models.Stream;
 using Microsoft.AspNetCore.Http;
@@ -10,15 +9,17 @@ using Task = System.Threading.Tasks.Task;
 namespace BotSharp.Plugin.Twilio.Services.Stream;
 
 /// <summary>
-/// Refrence to https://github.com/twilio-samples/speech-assistant-openai-realtime-api-node/blob/main/index.js
+/// Reference to https://github.com/twilio-samples/speech-assistant-openai-realtime-api-node/blob/main/index.js
 /// </summary>
 public class TwilioStreamMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<TwilioStreamMiddleware> _logger;
 
-    public TwilioStreamMiddleware(RequestDelegate next)
+    public TwilioStreamMiddleware(RequestDelegate next, ILogger<TwilioStreamMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task Invoke(HttpContext httpContext)
@@ -32,7 +33,14 @@ public class TwilioStreamMiddleware
                 var services = httpContext.RequestServices;
                 var conversationId = request.Path.Value.Split("/").Last();
                 using WebSocket webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
-                await HandleWebSocket(services, conversationId, webSocket);
+                try
+                {
+                    await HandleWebSocket(services, conversationId, webSocket);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error in WebSocket communication: {ex.Message} for conversation {conversationId}");
+                }
                 return;
             }
         }
@@ -43,12 +51,9 @@ public class TwilioStreamMiddleware
     private async Task HandleWebSocket(IServiceProvider services, string conversationId, WebSocket webSocket)
     {
         var hub = services.GetRequiredService<IRealtimeHub>();
+        var conn = hub.SetHubConnection(conversationId);
+        var completer = hub.SetCompleter("openai");
         
-        var conn = new RealtimeHubConnection
-        {
-            ConversationId = conversationId
-        };
-
         // load conversation and state
         var convService = services.GetRequiredService<IConversationService>();
         convService.SetConversationId(conversationId, []);
@@ -63,17 +68,44 @@ public class TwilioStreamMiddleware
         {
             var response = JsonSerializer.Deserialize<StreamEventResponse>(receivedText);
             conn.StreamId = response.StreamSid;
-            conn.Event = response.Event switch
-            {
-                "start" => "user_connected",
-                "media" => "user_data_received",
-                "stop" => "user_disconnected",
-                _ => response.Event
-            };
 
-            if (string.IsNullOrEmpty(conn.Event))
+            switch (response.Event)
             {
-                return conn;
+                case "start":
+                    conn.Event = "user_connected";
+                    var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
+                    conn.Data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
+                    conn.ResetStreamState();
+                    break;
+                case "media":
+                    conn.Event = "user_data_received";
+                    var mediaResponse = JsonSerializer.Deserialize<StreamEventMediaResponse>(receivedText);
+                    conn.LatestMediaTimestamp = long.Parse(mediaResponse.Body.Timestamp);
+                    conn.Data = mediaResponse.Body.Payload;
+                    break;
+                case "stop":
+                    conn.Event = "user_disconnected";
+                    break;
+                case "mark":
+                    conn.Event = "mark";
+                    if (conn.MarkQueue.Count > 0) conn.MarkQueue.TryDequeue(out var _);
+                    break;
+                case "dtmf":
+                    var dtmfResponse = JsonSerializer.Deserialize<StreamEventDtmfResponse>(receivedText);
+                    if (dtmfResponse.Body.Digit == "#")
+                    {
+                        conn.Event = "user_dtmf_received";
+                        conn.Data = conn.KeypadInputBuffer;
+                        conn.KeypadInputBuffer = string.Empty;
+                    }
+                    else
+                    {
+                        conn.KeypadInputBuffer += dtmfResponse.Body.Digit;
+                    }
+                    break;
+                default:
+                    conn.Event = response.Event;
+                    break;
             }
 
             conn.OnModelMessageReceived = message =>
@@ -96,19 +128,6 @@ public class TwilioStreamMiddleware
                     @event = "clear",
                     streamSid = response.StreamSid
                 };
-
-            if (response.Event == "start")
-            {
-                var startResponse = JsonSerializer.Deserialize<StreamEventStartResponse>(receivedText);
-                conn.Data = JsonSerializer.Serialize(startResponse.Body.CustomParameters);
-            }
-            else if (response.Event == "media")
-            {
-                var mediaResponse = JsonSerializer.Deserialize<StreamEventMediaResponse>(receivedText);
-                conn.Data = mediaResponse.Body.Payload;
-            }
-
-            return conn;
         });
     }
 }

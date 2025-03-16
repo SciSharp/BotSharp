@@ -23,6 +23,7 @@ public sealed class MicrosoftExtensionsAITextEmbeddingProvider : ITextEmbedding
 
     /// <inheritdoc/>
     public string Provider => "microsoft-extensions-ai";
+    public string Model => _model;
 
     /// <inheritdoc/>
     public async Task<float[]> GetVectorAsync(string text) =>

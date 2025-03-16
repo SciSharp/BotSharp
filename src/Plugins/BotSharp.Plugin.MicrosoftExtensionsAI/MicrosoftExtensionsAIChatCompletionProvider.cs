@@ -45,6 +45,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     
     /// <inheritdoc/>
     public string Provider => "microsoft.extensions.ai";
+    public string Model => _model ?? "";
 
     /// <inheritdoc/>
     public void SetModelName(string model) => _model = model;
@@ -54,6 +55,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
     {
         // Before chat completion hook
         var hooks = _services.GetServices<IContentGeneratingHook>().ToArray();
+        List<string> renderedInstructions = [];
         await Task.WhenAll(hooks.Select(hook => hook.BeforeGenerating(agent, conversations)));
 
         // Configure options
@@ -82,6 +84,7 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
         if (_services.GetRequiredService<IAgentService>().RenderedInstruction(agent) is string instruction &&
             instruction.Length > 0)
         {
+            renderedInstructions.Add(instruction);
             messages.Add(new(ChatRole.System, instruction));
         }
 
@@ -141,12 +144,13 @@ public sealed class MicrosoftExtensionsAIChatCompletionProvider : IChatCompletio
 
         var completion = await _client.GetResponseAsync(messages);
 
-        RoleDialogModel result = new(AgentRole.Assistant, string.Concat(completion.Message.Contents.OfType<TextContent>()))
+        RoleDialogModel result = new(AgentRole.Assistant, completion.Text)
         {
-            CurrentAgentId = agent.Id
+            CurrentAgentId = agent.Id,
+            //RenderedInstruction = renderedInstructions,
         };
 
-        if (completion.Message.Contents.OfType<FunctionCallContent>().FirstOrDefault() is { } fcc)
+        if (completion.Messages.SelectMany(m => m.Contents).OfType<FunctionCallContent>().FirstOrDefault() is { } fcc)
         {
             result.Role = AgentRole.Function;
             result.MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty;

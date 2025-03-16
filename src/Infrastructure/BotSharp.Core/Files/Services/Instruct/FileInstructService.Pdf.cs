@@ -1,4 +1,6 @@
 using BotSharp.Abstraction.Files.Converters;
+using BotSharp.Abstraction.Instructs.Models;
+using BotSharp.Abstraction.Instructs;
 
 namespace BotSharp.Core.Files.Services;
 
@@ -23,11 +25,12 @@ public partial class FileInstructService
             var images = await ConvertPdfToImages(pdfFiles);
             if (images.IsNullOrEmpty()) return content;
 
+            var innerAgentId = agentId ?? Guid.Empty.ToString();
             var completion = CompletionProvider.GetChatCompletion(_services, provider: provider ?? "openai",
                 model: model, modelId: modelId ?? "gpt-4", multiModal: true);
             var message = await completion.GetChatCompletions(new Agent()
             {
-                Id = agentId ?? Guid.Empty.ToString(),
+                Id = innerAgentId,
             }, new List<RoleDialogModel>
             {
                 new RoleDialogModel(AgentRole.User, prompt)
@@ -35,6 +38,25 @@ public partial class FileInstructService
                     Files = images.Select(x => new BotSharpFile { FileStorageUrl = x }).ToList()
                 }
             });
+
+            var hooks = _services.GetServices<IInstructHook>();
+            foreach (var hook in hooks)
+            {
+                if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agentId)
+                {
+                    continue;
+                }
+
+                await hook.OnResponseGenerated(new InstructResponseModel
+                {
+                    AgentId = innerAgentId,
+                    Provider = completion.Provider,
+                    Model = completion.Model,
+                    UserMessage = prompt,
+                    CompletionText = message.Content
+                });
+            }
+
             return message.Content;
         }
         catch (Exception ex)

@@ -58,17 +58,13 @@ public class DialogElement
     [JsonPropertyName("payload")]
     public string? Payload { get; set; }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("data")]
-    public object? Data { get; set; }
-
     public DialogElement()
     {
 
     }
 
     public DialogElement(DialogMetaData meta, string content, string? richContent = null,
-        string? secondaryContent = null, string? secondaryRichContent = null, string? payload = null, object? data = null)
+        string? secondaryContent = null, string? secondaryRichContent = null, string? payload = null)
     {
         MetaData = meta;
         Content = content;
@@ -76,7 +72,6 @@ public class DialogElement
         SecondaryContent = secondaryContent;
         SecondaryRichContent = secondaryRichContent;
         Payload = payload;
-        Data = data;
     }
 
     public override string ToString()

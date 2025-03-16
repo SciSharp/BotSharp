@@ -10,6 +10,7 @@ public class TextCompletionProvider : ITextCompletion
     private readonly ITokenStatistics _tokenStatistics;
     private string _model;
     public string Provider => "llama-sharp";
+    public string Model => _model;
 
     public TextCompletionProvider(IServiceProvider services,
         ILogger<TextCompletionProvider> logger,

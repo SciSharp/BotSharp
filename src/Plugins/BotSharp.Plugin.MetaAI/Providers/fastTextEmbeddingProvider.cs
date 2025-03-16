@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.MLTasks;
+using BotSharp.Abstraction.Models;
 using BotSharp.Plugin.MetaAI.Settings;
 using FastText.NetWrapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ public class fastTextEmbeddingProvider : ITextEmbedding
     private int _dimension;
 
     public string Provider => "meta-ai";
+    public string Model => string.Empty;
 
     public fastTextEmbeddingProvider(IServiceProvider services)
     {

@@ -10,6 +10,7 @@ public class TextCompletionProvider : ITextCompletion
     protected string _model;
 
     public string Provider => "deepseek-ai";
+    public string Model => _model;
 
     public TextCompletionProvider(
         IServiceProvider services,

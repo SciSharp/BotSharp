@@ -29,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-    <PackageReference Include="TensorFlow.Keras" Version="0.15.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" />
+    <PackageReference Include="TensorFlow.Keras" />
   </ItemGroup>
 
   <ItemGroup>

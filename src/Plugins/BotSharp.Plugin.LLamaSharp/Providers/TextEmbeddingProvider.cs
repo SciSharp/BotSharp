@@ -1,6 +1,4 @@
 using System.IO;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BotSharp.Plugin.LLamaSharp.Providers;
 
@@ -14,6 +12,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     protected int _dimension = DEFAULT_DIMENSION;
 
     public string Provider => "llama-sharp";
+    public string Model => string.Empty;
 
     public TextEmbeddingProvider(IServiceProvider services, LlamaSharpSettings settings)
     {

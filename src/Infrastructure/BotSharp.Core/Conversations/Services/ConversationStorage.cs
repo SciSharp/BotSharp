@@ -52,8 +52,7 @@ public class ConversationStorage : IConversationStorage
                 MetaData = meta,
                 Content = dialog.Content,
                 SecondaryContent = dialog.SecondaryContent,
-                Payload = dialog.Payload,
-                Data = dialog.Data
+                Payload = dialog.Payload
             });
         }
         else
@@ -84,8 +83,7 @@ public class ConversationStorage : IConversationStorage
                 SecondaryContent = dialog.SecondaryContent,
                 RichContent = richContent,
                 SecondaryRichContent = secondaryRichContent,
-                Payload = dialog.Payload,
-                Data = dialog.Data
+                Payload = dialog.Payload
             });
         }
 
@@ -123,8 +121,7 @@ public class ConversationStorage : IConversationStorage
                     MetaData = meta,
                     Content = dialog.Content,
                     SecondaryContent = dialog.SecondaryContent,
-                    Payload = dialog.Payload,
-                    Data = dialog.Data
+                    Payload = dialog.Payload
                 });
             }
             else
@@ -155,8 +152,7 @@ public class ConversationStorage : IConversationStorage
                     SecondaryContent = dialog.SecondaryContent,
                     RichContent = richContent,
                     SecondaryRichContent = secondaryRichContent,
-                    Payload = dialog.Payload,
-                    Data = dialog.Data
+                    Payload = dialog.Payload
                 });
             }
         }
@@ -200,8 +196,7 @@ public class ConversationStorage : IConversationStorage
                 RichContent = richContent,
                 SecondaryContent = secondaryContent,
                 SecondaryRichContent = secondaryRichContent,
-                Payload = payload,
-                Data = dialog.Data
+                Payload = payload
             };
             results.Add(record);
 

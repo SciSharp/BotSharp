@@ -1,13 +1,12 @@
 using BotSharp.Abstraction.Infrastructures;
+using BotSharp.Abstraction.Infrastructures.Enums;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Twilio.TwiML.Voice;
 using Conversation = BotSharp.Abstraction.Conversations.Models.Conversation;
-using Task = System.Threading.Tasks.Task;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
 
@@ -36,25 +35,27 @@ public class TwilioStreamController : TwilioController
             throw new ArgumentNullException(nameof(VoiceRequest.CallSid));
         }
 
-        VoiceResponse response = null;
+        VoiceResponse response = default!;
+
+        if (request.AnsweredBy == "machine_start" &&
+            request.Direction == "outbound-api" &&
+            request.InitAudioFile != null)
+        {
+            response = new VoiceResponse();
+            response.Play(new Uri(request.InitAudioFile));
+            return TwiML(response);
+        }
+
         var instruction = new ConversationalVoiceResponse
         {
+            ConversationId = request.ConversationId,
             SpeechPaths = [],
             ActionOnEmptyResult = true
         };
 
-        if (_context.HttpContext.Request.Query.ContainsKey("init_audio_file"))
+        if (request.InitAudioFile != null)
         {
-            instruction.SpeechPaths.Add(_context.HttpContext.Request.Query["init_audio_file"]);
-        }
-
-        if (_context.HttpContext.Request.Query.ContainsKey("conversation_id"))
-        {
-            request.ConversationId = _context.HttpContext.Request.Query["conversation_id"];
-        }
-        else
-        {
-            request.ConversationId = request.CallSid;
+            instruction.SpeechPaths.Add(request.InitAudioFile);
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -65,7 +66,7 @@ public class TwilioStreamController : TwilioController
             OnlyOnce = true
         });
 
-        await InitConversation(request);
+        request.ConversationId = await InitConversation(request);
 
         var twilio = _services.GetRequiredService<TwilioService>();
 
@@ -82,7 +83,7 @@ public class TwilioStreamController : TwilioController
         return TwiML(response);
     }
 
-    private async Task InitConversation(ConversationalVoiceRequest request)
+    private async Task<string> InitConversation(ConversationalVoiceRequest request)
     {
         var convService = _services.GetRequiredService<IConversationService>();
         var conversation = await convService.GetConversation(request.ConversationId);
@@ -90,10 +91,10 @@ public class TwilioStreamController : TwilioController
         {
             var conv = new Conversation
             {
-                Id = request.CallSid,
-                AgentId = _settings.AgentId,
+                AgentId = request.AgentId ?? _settings.AgentId,
                 Channel = ConversationChannel.Phone,
-                Title = $"Phone call from {request.From}",
+                ChannelId = request.CallSid,
+                Title = $"Incoming phone call from {request.From}",
                 Tags = [],
             };
 
@@ -103,10 +104,20 @@ public class TwilioStreamController : TwilioController
         var states = new List<MessageState>
             {
                 new("channel", ConversationChannel.Phone),
-                new("calling_phone", request.From)
+                new("calling_phone", request.From),
+                new("twilio_call_sid", request.CallSid),
+                // Enable lazy routing mode to optimize realtime experience
+                new(StateConst.ROUTING_MODE, "lazy"),
             };
+
+        if (request.InitAudioFile != null)
+        {
+            states.Add(new("init_audio_file", request.InitAudioFile));
+        }
 
         convService.SetConversationId(conversation.Id, states);
         convService.SaveStates();
+
+        return conversation.Id;
     }
 }

@@ -4,7 +4,7 @@ namespace BotSharp.Abstraction.Options;
 
 public class BotSharpOptions
 {
-    private readonly static JsonSerializerOptions defaultJsonOptions = new JsonSerializerOptions()
+    public readonly static JsonSerializerOptions defaultJsonOptions = new JsonSerializerOptions()
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

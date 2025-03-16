@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-    <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" />
+    <PackageReference Include="Refit.HttpClientFactory" />
   </ItemGroup>
 
   <ItemGroup>
