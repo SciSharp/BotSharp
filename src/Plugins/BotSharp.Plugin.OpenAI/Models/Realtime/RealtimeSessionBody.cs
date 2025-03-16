@@ -47,11 +47,14 @@ public class RealtimeSessionBody
     public FunctionDef[] Tools { get; set; } = [];
 
     [JsonPropertyName("turn_detection")]
-    public RealtimeSessionTurnDetection TurnDetection { get; set; } = new();
+    public RealtimeSessionTurnDetection? TurnDetection { get; set; } = new();
 }
 
 public class RealtimeSessionTurnDetection
 {
+    [JsonPropertyName("interrupt_response")]
+    public bool InterruptResponse { get; set; } = true;
+
     /// <summary>
     /// Milliseconds
     /// </summary>
@@ -72,4 +75,11 @@ public class InputAudioTranscription
 {
     [JsonPropertyName("model")]
     public string Model { get; set; } = null!;
+
+    [JsonPropertyName("language")]
+    public string Language { get; set; } = "en";
+
+    [JsonPropertyName("prompt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Prompt { get; set; }
 }

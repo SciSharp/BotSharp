@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Browsing.Settings;
+
 namespace BotSharp.Plugin.WebDriver.Functions;
 
 public class OpenBrowserFn : IFunctionCallback
@@ -6,12 +8,15 @@ public class OpenBrowserFn : IFunctionCallback
 
     private readonly IServiceProvider _services;
     private readonly IWebBrowser _browser;
+    private readonly WebBrowsingSettings _webBrowsingSettings;
 
     public OpenBrowserFn(IServiceProvider services,
-        IWebBrowser browser)
+        IWebBrowser browser,
+        WebBrowsingSettings webBrowsingSettings)
     {
         _services = services;
         _browser = browser;
+        _webBrowsingSettings = webBrowsingSettings;
     }
 
     public async Task<bool> Execute(RoleDialogModel message)
@@ -21,7 +26,7 @@ public class OpenBrowserFn : IFunctionCallback
 
         var webDriverService = _services.GetRequiredService<WebDriverService>();
         var url = webDriverService.ReplaceToken(args.Url);
-
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
         url = url.Replace("https://https://", "https://");
         var msgInfo = new MessageInfo
         {
@@ -31,11 +36,12 @@ public class OpenBrowserFn : IFunctionCallback
         };
         var result = await _browser.LaunchBrowser(msgInfo, new BrowserActionArgs
         {
-            Headless = false
+            Headless = _webBrowsingSettings.Headless
         });
         result = await _browser.GoToPage(msgInfo, new PageActionArgs
         {
-            Url = url
+            Url = url,
+            Timeout = _webDriver.DefaultTimeout
         });
 
         if (result.IsSuccess)

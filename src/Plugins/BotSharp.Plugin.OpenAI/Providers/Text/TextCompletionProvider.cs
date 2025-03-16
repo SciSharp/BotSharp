@@ -15,6 +15,7 @@ public class TextCompletionProvider : ITextCompletion
     protected string _model;
 
     public virtual string Provider => "openai";
+    public string Model => _model;
 
     public TextCompletionProvider(
         OpenAiSettings settings,

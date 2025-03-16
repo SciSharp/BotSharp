@@ -13,6 +13,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     protected int _dimension;
 
     public virtual string Provider => "azure-openai";
+    public string Model => _model;
 
     public TextEmbeddingProvider(
         AzureOpenAiSettings settings,
@@ -48,6 +49,7 @@ public class TextEmbeddingProvider : ITextEmbedding
     {
         _model = model;
     }
+
 
     public void SetDimension(int dimension)
     {

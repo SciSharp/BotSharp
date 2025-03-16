@@ -18,7 +18,7 @@ public partial class AgentService
 
         var userIdentity = _services.GetRequiredService<IUserIdentity>();
         var userService = _services.GetRequiredService<IUserService>();
-        var isValid = await userService.IsAdminUser(userIdentity.Id);
+        var (isValid, _) = await userService.IsAdminUser(userIdentity.Id);
         if (!isValid)
         {
             return "Unauthorized user.";

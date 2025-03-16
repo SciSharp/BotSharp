@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>$(TargetFramework)</TargetFramework>
@@ -9,21 +9,21 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
-    <PackageReference Include="BotSharp.Logger" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.OpenAPI" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.Dashboard" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.AzureOpenAI" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.GoogleAI" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.HuggingFace" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.KnowledgeBase" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.MetaAI" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.LLamaSharp" Version="$(BotSharpVersion)" />
-    <PackageReference Include="BotSharp.Plugin.ChatHub" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Logger" />
+    <PackageReference Include="BotSharp.OpenAPI" />
+    <PackageReference Include="BotSharp.Plugin.Dashboard" />
+    <PackageReference Include="BotSharp.Plugin.AzureOpenAI" />
+    <PackageReference Include="BotSharp.Plugin.GoogleAI" />
+    <PackageReference Include="BotSharp.Plugin.HuggingFace" />
+    <PackageReference Include="BotSharp.Plugin.KnowledgeBase" />
+    <PackageReference Include="BotSharp.Plugin.MetaAI" />
+    <PackageReference Include="BotSharp.Plugin.LLamaSharp" />
+    <PackageReference Include="BotSharp.Plugin.ChatHub" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="8.0.8" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +38,7 @@
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Rules\BotSharp.Core.Rules.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.Crontab\BotSharp.Core.Crontab.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Core.SideCar\BotSharp.Core.SideCar.csproj" />
+    <ProjectReference Include="..\Infrastructure\BotSharp.Core.Realtime\BotSharp.Core.Realtime.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.Logger\BotSharp.Logger.csproj" />
     <ProjectReference Include="..\Infrastructure\BotSharp.OpenAPI\BotSharp.OpenAPI.csproj" />
     <ProjectReference Include="..\BotSharp.ServiceDefaults\BotSharp.ServiceDefaults.csproj" />

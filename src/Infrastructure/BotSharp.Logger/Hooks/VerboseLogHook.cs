@@ -35,7 +35,7 @@ public class VerboseLogHook : IContentGeneratingHook
 
     public async Task AfterGenerated(RoleDialogModel message, TokenStatsModel tokenStats)
     {
-        if (!_convSettings.ShowVerboseLog) return;
+        if (!_convSettings.ShowVerboseLog || string.IsNullOrEmpty(tokenStats.Prompt)) return;
 
         var agentService = _services.GetRequiredService<IAgentService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);

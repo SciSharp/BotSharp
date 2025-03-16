@@ -60,6 +60,14 @@ public interface IKnowledgeService
     Task<FileBinaryDataModel> GetKnowledgeDocumentBinaryData(string collectionName, Guid fileId);
     #endregion
 
+    #region Snapshot
+    Task<IEnumerable<VectorCollectionSnapshot>> GetVectorCollectionSnapshots(string collectionName);
+    Task<VectorCollectionSnapshot?> CreateVectorCollectionSnapshot(string collectionName);
+    Task<BinaryData> DownloadVectorCollectionSnapshot(string collectionName, string snapshotFileName);
+    Task<bool> RecoverVectorCollectionFromSnapshot(string collectionName, string snapshotFileName, BinaryData snapshotData);
+    Task<bool> DeleteVectorCollectionSnapshot(string collectionName, string snapshotName);
+    #endregion
+
     #region Common
     Task<bool> RefreshVectorKnowledgeConfigs(VectorCollectionConfigsModel configs);
     #endregion

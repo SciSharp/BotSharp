@@ -6,7 +6,6 @@ using BotSharp.Abstraction.Users.Models;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Tasks.Models;
 
-
 namespace BotSharp.Core.Repository;
 
 public partial class FileRepository : IBotSharpRepository
@@ -34,6 +33,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string DIALOG_FILE = "dialogs.json";
     private const string STATE_FILE = "state.json";
     private const string BREAKPOINT_FILE = "breakpoint.json";
+    private const string CONV_LATEST_STATE_FILE = "latest-state.json";
     private const string TRANSLATION_MEMORY_FILE = "memory.json";
 
     private const string USERS_FOLDER = "users";
@@ -54,6 +54,7 @@ public partial class FileRepository : IBotSharpRepository
     private const string STATS_FILE = "stats.json";
 
     private const string CRON_FILE = "cron.json";
+    private const string INSTRUCTION_LOG_FOLDER = "instruction-logs";
 
     public FileRepository(
         IServiceProvider services,

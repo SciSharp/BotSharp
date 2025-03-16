@@ -26,6 +26,7 @@ namespace BotSharp.Plugin.SemanticKernel
 
         /// <inheritdoc/>
         public string Provider => "semantic-kernel";
+        public string Model => _model;
 
         /// <summary>
         /// Create a new instance of <see cref="SemanticKernelChatCompletionProvider"/>
@@ -74,7 +75,8 @@ namespace BotSharp.Plugin.SemanticKernel
             var response = chatMessageContent != null ? chatMessageContent.Content :string.Empty;
             var msg = new RoleDialogModel(AgentRole.Assistant, response)
             {
-                CurrentAgentId = agent.Id
+                CurrentAgentId = agent.Id,
+                RenderedInstruction = instruction
             };
 
             // After chat completion hook

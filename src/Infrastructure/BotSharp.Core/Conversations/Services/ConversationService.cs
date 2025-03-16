@@ -59,10 +59,10 @@ public partial class ConversationService : IConversationService
         return conversation;
     }
 
-    public async Task<bool> UpdateConversationTags(string conversationId, List<string> tags)
+    public async Task<bool> UpdateConversationTags(string conversationId, List<string> toAddTags, List<string> toDeleteTags)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        return db.UpdateConversationTags(conversationId, tags);
+        return db.UpdateConversationTags(conversationId, toAddTags, toDeleteTags);
     }
 
     public async Task<bool> UpdateConversationMessage(string conversationId, UpdateMessageRequest request)
@@ -222,17 +222,26 @@ public partial class ConversationService : IConversationService
         _state.Save();
     }
 
-    public async Task<List<string>> GetConversationStateSearhKeys(string query, int convLimit = 100, int keyLimit = 10, bool preload = false)
+    public async Task<List<string>> GetConversationStateSearhKeys(ConversationStateKeysFilter filter)
     {
+        if (filter == null)
+        {
+            filter = ConversationStateKeysFilter.Empty();
+        }
+
         var keys = new List<string>();
-        if (!preload && string.IsNullOrWhiteSpace(query))
+        if (!filter.PreLoad && string.IsNullOrWhiteSpace(filter.Query))
         {
             return keys;
         }
 
+        var userService = _services.GetRequiredService<IUserService>();
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        keys = db.GetConversationStateSearchKeys(convUpperLimit: convLimit);
-        keys = preload ? keys : keys.Where(x => x.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
-        return keys.OrderBy(x => x).Take(keyLimit).ToList();
+
+        var (isAdmin, user) = await userService.IsAdminUser(_user.Id);
+        filter.UserIds = !isAdmin && user?.Id != null ? [user.Id] : [];
+        keys = db.GetConversationStateSearchKeys(filter);
+        keys = filter.PreLoad ? keys : keys.Where(x => x.Contains(filter.Query ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList();
+        return keys.OrderBy(x => x).Take(filter.KeyLimit).ToList();
     }
 }

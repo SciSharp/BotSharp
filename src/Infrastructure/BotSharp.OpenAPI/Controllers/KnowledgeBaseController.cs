@@ -12,7 +12,9 @@ public class KnowledgeBaseController : ControllerBase
     private readonly IKnowledgeService _knowledgeService;
     private readonly IServiceProvider _services;
 
-    public KnowledgeBaseController(IKnowledgeService knowledgeService, IServiceProvider services)
+    public KnowledgeBaseController(
+        IKnowledgeService knowledgeService,
+        IServiceProvider services)
     {
         _knowledgeService = knowledgeService;
         _services = services;
@@ -117,6 +119,46 @@ public class KnowledgeBaseController : ControllerBase
     #endregion
 
 
+    #region Snapshot
+    [HttpGet("/knowledge/vector/{collection}/snapshots")]
+    public async Task<IEnumerable<VectorCollectionSnapshotViewModel>> GetVectorCollectionSnapshots([FromRoute] string collection)
+    {
+        var snapshots = await _knowledgeService.GetVectorCollectionSnapshots(collection);
+        return snapshots.Select(x => VectorCollectionSnapshotViewModel.From(x));
+    }
+
+    [HttpPost("/knowledge/vector/{collection}/snapshot")]
+    public async Task<VectorCollectionSnapshotViewModel?> CreateVectorCollectionSnapshot([FromRoute] string collection)
+    {
+        var snapshot = await _knowledgeService.CreateVectorCollectionSnapshot(collection);
+        return VectorCollectionSnapshotViewModel.From(snapshot);
+    }
+
+    [HttpGet("/knowledge/vector/{collection}/snapshot")]
+    public async Task<IActionResult> GetVectorCollectionSnapshot([FromRoute] string collection, [FromQuery] string snapshotFileName)
+    {
+        var snapshot = await _knowledgeService.DownloadVectorCollectionSnapshot(collection, snapshotFileName);
+        return BuildFileResult(snapshotFileName, snapshot);
+    }
+
+    [HttpPost("/knowledge/vector/{collection}/snapshot/recover")]
+    public async Task<bool> RecoverVectorCollectionFromSnapshot([FromRoute] string collection, IFormFile snapshotFile)
+    {
+        var fileName = snapshotFile.FileName;
+        var binary = FileUtility.BuildBinaryDataFromFile(snapshotFile);
+        var done = await _knowledgeService.RecoverVectorCollectionFromSnapshot(collection, fileName, binary);
+        return done;
+    }
+
+    [HttpDelete("/knowledge/vector/{collection}/snapshot")]
+    public async Task<bool> DeleteVectorCollectionSnapshots([FromRoute] string collection, [FromBody] DeleteVectorCollectionSnapshotRequest request)
+    {
+        var done = await _knowledgeService.DeleteVectorCollectionSnapshot(collection, request.SnapshotName);
+        return done;
+    }
+    #endregion
+
+
     #region Document
     [HttpPost("/knowledge/document/{collection}/upload")]
     public async Task<UploadKnowledgeResponse> UploadKnowledgeDocuments([FromRoute] string collection, [FromBody] VectorKnowledgeUploadRequest request)
@@ -187,7 +229,6 @@ public class KnowledgeBaseController : ControllerBase
     #endregion
 
 
-
     #region Graph
     [HttpPost("/knowledge/graph/search")]
     public async Task<GraphKnowledgeViewModel> SearchGraphKnowledge([FromBody] SearchGraphKnowledgeRequest request)
@@ -212,6 +253,15 @@ public class KnowledgeBaseController : ControllerBase
     {
         var saved = await _knowledgeService.RefreshVectorKnowledgeConfigs(request);
         return saved ? "Success" : "Fail";
+    }
+    #endregion
+
+    #region Private methods
+    private FileStreamResult BuildFileResult(string fileName, BinaryData fileData)
+    {
+        var stream = fileData.ToStream();
+        stream.Position = 0;
+        return File(stream, "application/octet-stream", Path.GetFileName(fileName));
     }
     #endregion
 }

@@ -13,11 +13,11 @@ public class AgentTaskViewModel
 
     public string Status { get; set; } = null!;
 
-    [JsonPropertyName("created_datetime")]
-    public DateTime CreatedDateTime { get; set; }
+    [JsonPropertyName("created_time")]
+    public DateTime CreatedTime { get; set; }
 
-    [JsonPropertyName("updated_datetime")]
-    public DateTime UpdatedDateTime { get; set; }
+    [JsonPropertyName("updated_time")]
+    public DateTime UpdatedTime { get; set; }
 
     [JsonPropertyName("agent_id")]
     public string AgentId { get; set; } = null!;
@@ -37,8 +37,8 @@ public class AgentTaskViewModel
             AgentId = task.AgentId,
             AgentName = task.Agent?.Name,
             Status = task.Status,
-            CreatedDateTime = task.CreatedDateTime,
-            UpdatedDateTime = task.UpdatedDateTime
+            CreatedTime = task.CreatedTime,
+            UpdatedTime = task.UpdatedTime
         };
     }
 }

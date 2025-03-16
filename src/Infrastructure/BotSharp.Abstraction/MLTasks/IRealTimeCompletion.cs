@@ -6,12 +6,11 @@ public interface IRealTimeCompletion
 {
     string Provider { get; }
     string Model { get; }
-
     void SetModelName(string model);
 
     Task Connect(RealtimeHubConnection conn,
         Action onModelReady,
-        Action<string> onModelAudioDeltaReceived,
+        Action<string, string> onModelAudioDeltaReceived,
         Action onModelAudioResponseDone,
         Action<string> onAudioTranscriptDone,
         Action<List<RoleDialogModel>> onModelResponseDone,
@@ -24,7 +23,7 @@ public interface IRealTimeCompletion
     Task Disconnect();
 
     Task<RealtimeSession> CreateSession(Agent agent, List<RoleDialogModel> conversations);
-    Task UpdateSession(RealtimeHubConnection conn);
+    Task<string> UpdateSession(RealtimeHubConnection conn, bool interruptResponse = true);
     Task InsertConversationItem(RoleDialogModel message);
     Task RemoveConversationItem(string itemId);
     Task TriggerModelInference(string? instructions = null);

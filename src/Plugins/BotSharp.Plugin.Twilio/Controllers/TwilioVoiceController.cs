@@ -1,13 +1,11 @@
 using BotSharp.Abstraction.Files;
 using BotSharp.Abstraction.Infrastructures;
-using BotSharp.Abstraction.Repositories;
 using BotSharp.Core.Infrastructures;
 using BotSharp.Plugin.Twilio.Interfaces;
 using BotSharp.Plugin.Twilio.Models;
 using BotSharp.Plugin.Twilio.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 using Twilio.Http;
 
 namespace BotSharp.Plugin.Twilio.Controllers;
@@ -54,6 +52,7 @@ public class TwilioVoiceController : TwilioController
         VoiceResponse response = null;
         var instruction = new ConversationalVoiceResponse
         {
+            ConversationId = request.ConversationId,
             SpeechPaths = ["twilio/welcome.mp3"],
             ActionOnEmptyResult = true
         };
@@ -66,7 +65,7 @@ public class TwilioVoiceController : TwilioController
         });
 
         request.ConversationId = $"TwilioVoice_{request.CallSid}";
-        instruction.CallbackPath = $"twilio/voice/{request.ConversationId}/receive/0?{GenerateStatesParameter(request.States)}";
+        instruction.CallbackPath = $"twilio/voice/receive/0?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}";
 
         var twilio = _services.GetRequiredService<TwilioService>();
         if (string.IsNullOrWhiteSpace(request.Intent))
@@ -89,7 +88,7 @@ public class TwilioVoiceController : TwilioController
             };
             await messageQueue.EnqueueAsync(callerMessage);
             response = new VoiceResponse();
-            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{request.ConversationId}/reply/{seqNum}?{GenerateStatesParameter(request.States)}"), HttpMethod.Post);
+            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/reply/{seqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}"), HttpMethod.Post);
         }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
@@ -109,7 +108,7 @@ public class TwilioVoiceController : TwilioController
     /// <param name="request"></param>
     /// <returns></returns>
     [ValidateRequest]
-    [HttpPost("twilio/voice/{conversationId}/receive/{seqNum}")]
+    [HttpPost("twilio/voice/receive/{seqNum}")]
     public async Task<TwiMLResult> ReceiveCallerMessage(ConversationalVoiceRequest request)
     {
         var twilio = _services.GetRequiredService<TwilioService>();
@@ -142,7 +141,7 @@ public class TwilioVoiceController : TwilioController
             await messageQueue.EnqueueAsync(callerMessage);
 
             response = new VoiceResponse();
-            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}"), HttpMethod.Post);
+            response.Redirect(new Uri($"{_settings.CallbackHost}/twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime=0"), HttpMethod.Post);
 
             await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
             {
@@ -172,8 +171,9 @@ public class TwilioVoiceController : TwilioController
             {
                 var instruction = new ConversationalVoiceResponse
                 {
+                    ConversationId = request.ConversationId,
                     SpeechPaths = new List<string>(),
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/receive/{request.SeqNum}?{GenerateStatesParameter(request.States)}&attempts={++request.Attempts}",
+                    CallbackPath = $"twilio/voice/receive/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&attempts={++request.Attempts}",
                     ActionOnEmptyResult = true
                 };
 
@@ -203,7 +203,7 @@ public class TwilioVoiceController : TwilioController
     /// <param name="request"></param>
     /// <returns></returns>
     [ValidateRequest]
-    [HttpPost("twilio/voice/{conversationId}/reply/{seqNum}")]
+    [HttpPost("twilio/voice/reply/{seqNum}")]
     public async Task<TwiMLResult> ReplyCallerMessage(ConversationalVoiceRequest request)
     {
         var nextSeqNum = request.SeqNum + 1;
@@ -217,8 +217,22 @@ public class TwilioVoiceController : TwilioController
 
         var reply = await sessionManager.GetAssistantReplyAsync(request.ConversationId, request.SeqNum);
         VoiceResponse response;
+        
+        if (request.AIResponseWaitTime > 5)
+        {
+            // Wait AI Response Timeout
+            await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
+            {
+                request.AIResponseErrorMessage = $"AI response timeout: AIResponseWaitTime greater than {request.AIResponseWaitTime}, please check internal error log!";
+                await hook.OnAgentHangUp(request);
+            }, new HookEmitOption
+            {
+                OnlyOnce = true
+            });
 
-        if (reply == null)
+            response = twilio.HangUp($"twilio/error.mp3");
+        }
+        else if (reply == null)
         {
             var indication = await sessionManager.GetReplyIndicationAsync(request.ConversationId, request.SeqNum);
             if (indication != null)
@@ -261,8 +275,9 @@ public class TwilioVoiceController : TwilioController
 
                 var instruction = new ConversationalVoiceResponse
                 {
+                    ConversationId = request.ConversationId,
                     SpeechPaths = speechPaths,
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}",
+                    CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
                     ActionOnEmptyResult = true
                 };
 
@@ -300,8 +315,9 @@ public class TwilioVoiceController : TwilioController
 
                 var instruction = new ConversationalVoiceResponse
                 {
+                    ConversationId = request.ConversationId,
                     SpeechPaths = instructions,
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/reply/{request.SeqNum}?{GenerateStatesParameter(request.States)}",
+                    CallbackPath = $"twilio/voice/reply/{request.SeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}&AIResponseWaitTime={++request.AIResponseWaitTime}",
                     ActionOnEmptyResult = true
                 };
 
@@ -346,8 +362,9 @@ public class TwilioVoiceController : TwilioController
             {
                 var instruction = new ConversationalVoiceResponse
                 {
+                    ConversationId = request.ConversationId,
                     SpeechPaths = [$"twilio/voice/speeches/{request.ConversationId}/{reply.SpeechFileName}"],
-                    CallbackPath = $"twilio/voice/{request.ConversationId}/receive/{nextSeqNum}?{GenerateStatesParameter(request.States)}",
+                    CallbackPath = $"twilio/voice/receive/{nextSeqNum}?conversation-id={request.ConversationId}&{GenerateStatesParameter(request.States)}",
                     ActionOnEmptyResult = true,
                     Hints = reply.Hints
                 };
@@ -368,23 +385,34 @@ public class TwilioVoiceController : TwilioController
     }
 
     [ValidateRequest]
-    [HttpPost("twilio/voice/init-call")]
-    public TwiMLResult InitiateOutboundCall(VoiceRequest request, [Required][FromQuery] string conversationId)
+    [HttpPost("twilio/voice/init-outbound-call")]
+    public TwiMLResult InitiateOutboundCall(ConversationalVoiceRequest request)
     {
+        VoiceResponse response = default!;
+        if (request.AnsweredBy == "machine_start" &&
+            request.Direction == "outbound-api" &&
+            request.InitAudioFile != null)
+        {
+            response = new VoiceResponse();
+            response.Play(new Uri(request.InitAudioFile));
+            return TwiML(response);
+        }
+
         var instruction = new ConversationalVoiceResponse
         {
+            ConversationId = request.ConversationId,
             ActionOnEmptyResult = true,
-            CallbackPath = $"twilio/voice/{conversationId}/receive/1",
-            SpeechPaths = new List<string>
-            {
-                $"twilio/voice/speeches/{conversationId}/intial.mp3"
-            }
+            CallbackPath = $"twilio/voice/receive/1?conversation-id={request.ConversationId}",
         };
-        string tag = $"twilio:{Request.Form["AnsweredBy"]}";
-        var db = _services.GetRequiredService<IBotSharpRepository>();
-        db.AppendConversationTags(conversationId, new List<string> { tag });
+
+        if (request.InitAudioFile != null)
+        {
+            instruction.CallbackPath += $"&init-audio-file={request.InitAudioFile}";
+            instruction.SpeechPaths.Add($"twilio/voice/speeches/{request.ConversationId}/{request.InitAudioFile}");
+        }
+
         var twilio = _services.GetRequiredService<TwilioService>();
-        var response = twilio.ReturnNoninterruptedInstructions(instruction);
+        response = twilio.ReturnNoninterruptedInstructions(instruction);
         return TwiML(response);
     }
 
@@ -399,6 +427,41 @@ public class TwilioVoiceController : TwilioController
             FileDownloadName = fileName
         };
         return result;
+    }
+
+    [ValidateRequest]
+    [HttpPost("twilio/voice/hang-up")]
+    public async Task<TwiMLResult> Hangup(ConversationalVoiceRequest request)
+    {
+        var twilio = _services.GetRequiredService<TwilioService>();
+        var response = twilio.HangUp("twilio/bye.mp3");
+        return TwiML(response);
+    }
+
+    [ValidateRequest]
+    [HttpPost("twilio/voice/status")]
+    public async Task<ActionResult> PhoneCallStatus(ConversationalVoiceRequest request)
+    {
+        if (request.CallStatus == "completed")
+        {
+            if (request.AnsweredBy == "machine_start" &&
+                request.Direction == "outbound-api" &&
+                request.InitAudioFile != null)
+            {
+                // voicemail
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
+                {
+                    await hook.OnVoicemailLeft(request);
+                });
+            }
+            else
+            {
+                // phone call completed
+                await HookEmitter.Emit<ITwilioCallStatusHook>(_services, x => x.OnUserDisconnected(request));
+            }
+        }
+
+        return Ok();
     }
 
     private Dictionary<string, string> ParseStates(List<string> states)

@@ -12,10 +12,6 @@ public class RoutingArgs
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? NextActionReason { get; set; }
 
-    [JsonPropertyName("reason")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Reason { get; set; }
-
     [JsonPropertyName("conversation_end")]
     public bool ConversationEnd { get; set; }
 

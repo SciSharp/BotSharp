@@ -1,4 +1,6 @@
+using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Plugins.Models;
+using BotSharp.Abstraction.Settings;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Instructs;
@@ -11,13 +13,25 @@ public class InsturctionPlugin : IBotSharpPlugin
 
     public void RegisterDI(IServiceCollection services, IConfiguration config)
     {
-        
+        services.AddScoped(provider =>
+        {
+            var settingService = provider.GetRequiredService<ISettingService>();
+            return settingService.Bind<InstructionSettings>("Instruction");
+        });
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
     {
         var section = menu.First(x => x.Label == "Apps");
-        menu.Add(new PluginMenuDef("Instruction", link: "page/instruction", icon: "bx bx-book-content", weight: section.Weight + 5));
+        menu.Add(new PluginMenuDef("Instruction", icon: "bx bx-book-content", weight: section.Weight + 5)
+        {
+            SubMenu = new List<PluginMenuDef>
+            {
+                new PluginMenuDef("Testing", link: "page/instruction/testing"),
+                new PluginMenuDef("Log", link: "page/instruction/log")
+            }
+        });
+
         return true;
     }
 }

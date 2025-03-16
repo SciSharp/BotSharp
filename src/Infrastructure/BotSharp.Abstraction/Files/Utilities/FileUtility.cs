@@ -47,6 +47,17 @@ public static class FileUtility
         return $"data:{contentType};base64,{base64}";
     }
 
+    public static BinaryData BuildBinaryDataFromFile(IFormFile file)
+    {
+        using var stream = new MemoryStream();
+        file.CopyTo(stream);
+        stream.Position = 0;
+        var binary = BinaryData.FromStream(stream);
+        stream.Close();
+
+        return binary;
+    }
+
     public static string GetFileContentType(string fileName)
     {
         string contentType;

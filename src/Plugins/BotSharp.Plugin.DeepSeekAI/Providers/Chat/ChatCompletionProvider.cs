@@ -9,9 +9,11 @@ public class ChatCompletionProvider : IChatCompletion
 {
     protected readonly IServiceProvider _services;
     protected readonly ILogger<ChatCompletionProvider> _logger;
+    private List<string> renderedInstructions = [];
 
     protected string _model;
     public virtual string Provider => "deepseek-ai";
+    public string Model => _model;
 
     public ChatCompletionProvider(
         IServiceProvider services,
@@ -51,7 +53,8 @@ public class ChatCompletionProvider : IChatCompletion
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString()
+                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
             // Somethings LLM will generate a function name with agent name.
@@ -66,6 +69,7 @@ public class ChatCompletionProvider : IChatCompletion
             {
                 CurrentAgentId = agent.Id,
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
         }
 
@@ -107,7 +111,8 @@ public class ChatCompletionProvider : IChatCompletion
 
         var msg = new RoleDialogModel(AgentRole.Assistant, text)
         {
-            CurrentAgentId = agent.Id
+            CurrentAgentId = agent.Id,
+            RenderedInstruction = string.Join("\r\n", renderedInstructions)
         };
 
         // After chat completion hook
@@ -134,7 +139,8 @@ public class ChatCompletionProvider : IChatCompletion
                 MessageId = conversations.LastOrDefault()?.MessageId ?? string.Empty,
                 ToolCallId = toolCall?.Id,
                 FunctionName = toolCall?.FunctionName,
-                FunctionArgs = toolCall?.FunctionArguments?.ToString()
+                FunctionArgs = toolCall?.FunctionArguments?.ToString(),
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
             };
 
             // Somethings LLM will generate a function name with agent name.
@@ -170,7 +176,10 @@ public class ChatCompletionProvider : IChatCompletion
                 var update = choice.ToolCallUpdates?.FirstOrDefault()?.FunctionArgumentsUpdate?.ToString() ?? string.Empty;
                 _logger.LogInformation(update);
 
-                await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update));
+                await onMessageReceived(new RoleDialogModel(AgentRole.Assistant, update)
+                {
+                    RenderedInstruction = string.Join("\r\n", renderedInstructions)
+                });
                 continue;
             }
 
@@ -178,7 +187,10 @@ public class ChatCompletionProvider : IChatCompletion
 
             _logger.LogInformation(choice.ContentUpdate[0]?.Text);
 
-            await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty));
+            await onMessageReceived(new RoleDialogModel(choice.Role?.ToString() ?? ChatMessageRole.Assistant.ToString(), choice.ContentUpdate[0]?.Text ?? string.Empty)
+            {
+                RenderedInstruction = string.Join("\r\n", renderedInstructions)
+            });
         }
 
         return true;
@@ -197,6 +209,7 @@ public class ChatCompletionProvider : IChatCompletion
         var settingsService = _services.GetRequiredService<ILlmProviderService>();
         var settings = settingsService.GetSetting(Provider, _model);
         var allowMultiModal = settings != null && settings.MultiModal;
+        renderedInstructions = [];
 
         var messages = new List<ChatMessage>();
 
@@ -226,6 +239,7 @@ public class ChatCompletionProvider : IChatCompletion
         if (!string.IsNullOrEmpty(agent.Instruction) || !agent.SecondaryInstructions.IsNullOrEmpty())
         {
             var text = agentService.RenderedInstruction(agent);
+            renderedInstructions.Add(text);
             messages.Add(new SystemChatMessage(text));
         }
 

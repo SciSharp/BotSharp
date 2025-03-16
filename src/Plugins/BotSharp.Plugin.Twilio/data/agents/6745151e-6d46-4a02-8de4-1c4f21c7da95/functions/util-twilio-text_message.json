@@ -1,0 +1,18 @@
+{
+  "name": "util-twilio-text_message",
+  "description": "If the user wants to send SMS message to a phone.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "phone_number": {
+        "type": "string",
+        "description": "The phone number which will receive message. It needs to be a valid phone number starting with +1."
+      },
+      "initial_message": {
+        "type": "string",
+        "description": "The initial message which will be sent."
+      }
+    },
+    "required": [ "phone_number", "initial_message" ]
+  }
+}

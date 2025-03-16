@@ -97,7 +97,7 @@ public class CrontabService : ICrontabService, ITaskFeeder
                 Status = TaskStatus.Scheduled,
                 Enabled = !x.Disabled,
                 Description = cron.Description,
-                LastExecutedDateTime = cron.LastExecutionTime
+                LastExecutionTime = cron.LastExecutionTime
             }));
         }
 

@@ -1,3 +1,5 @@
+using BotSharp.Abstraction.Browsing.Settings;
+
 namespace BotSharp.Plugin.WebDriver.UtilFunctions;
 
 public class UtilWebGoToPageFn : IFunctionCallback
@@ -21,9 +23,10 @@ public class UtilWebGoToPageFn : IFunctionCallback
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
+        var _webDriver = _services.GetRequiredService<WebBrowsingSettings>();
+        args.Timeout = _webDriver.DefaultTimeout;
         args.WaitForNetworkIdle = false;
-        args.WaitTime = 5;
-        args.OpenNewTab = true;
+        args.WaitTime = _webDriver.DefaultWaitTime;
 
         var conv = _services.GetRequiredService<IConversationService>();
 
@@ -34,7 +37,10 @@ public class UtilWebGoToPageFn : IFunctionCallback
             MessageId = message.MessageId,
             ContextId = message.CurrentAgentId,
         };
-        await browser.CloseCurrentPage(msg);
+        if (!args.KeepBrowserOpen)
+        {
+            await browser.CloseCurrentPage(msg);
+        }
         var result = await browser.GoToPage(msg, args);
         if (!result.IsSuccess)
         {

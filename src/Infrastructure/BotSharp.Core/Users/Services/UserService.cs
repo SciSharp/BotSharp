@@ -418,23 +418,24 @@ public class UserService : IUserService
         return users;
     }
 
-    public async Task<bool> IsAdminUser(string userId)
+    [SharpCache(10, perInstanceCache: true)]
+    public async Task<(bool, User?)> IsAdminUser(string userId)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
         var user = db.GetUserById(userId);
-        return user != null && UserConstant.AdminRoles.Contains(user.Role);
+        var isAdmin = user != null && UserConstant.AdminRoles.Contains(user.Role);
+        return (isAdmin, user);
     }
 
     public async Task<UserAuthorization> GetUserAuthorizations(IEnumerable<string>? agentIds = null)
     {
         var db = _services.GetRequiredService<IBotSharpRepository>();
-        var user = db.GetUserById(_user.Id);
+        var (isAdmin, user) = await IsAdminUser(_user.Id);
         var auth = new UserAuthorization();
 
         if (user == null) return auth;
 
-        auth.IsAdmin = UserConstant.AdminRoles.Contains(user.Role);
-
+        auth.IsAdmin = isAdmin;
         var role = db.GetRoles(new RoleFilter { Names = [user.Role] }).FirstOrDefault();
         var permissions = user.Permissions?.Any() == true ? user.Permissions : role?.Permissions ?? [];
         auth.Permissions = permissions;

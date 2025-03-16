@@ -14,6 +14,7 @@ public class PalmTextCompletionProvider : ITextCompletion
     private string _model;
 
     public string Provider => "google-palm";
+    public string Model => _model;
 
     public PalmTextCompletionProvider(
         IServiceProvider services,
