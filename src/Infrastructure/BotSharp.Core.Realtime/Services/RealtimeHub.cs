@@ -1,7 +1,3 @@
-using BotSharp.Abstraction.Utilities;
-using BotSharp.Core.Infrastructures;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-
 namespace BotSharp.Core.Realtime.Services;
 
 public class RealtimeHub : IRealtimeHub
@@ -102,15 +98,12 @@ public class RealtimeHub : IRealtimeHub
         await _completer.Connect(_conn, 
             onModelReady: async () => 
             {
-                if (states.ContainsState("init_audio_file"))
-                {
-                    await _completer.UpdateSession(_conn, turnDetection: true);
-                }
-                else
-                {
-                    // Control initial session, prevent initial response interruption
-                    await _completer.UpdateSession(_conn, turnDetection: false);
+                // Not TriggerModelInference, waiting for user utter.
+                var instruction = await _completer.UpdateSession(_conn);
 
+                // Trigger model inference if there is no audio file in the conversation
+                if (!states.ContainsState("init_audio_file"))
+                {
                     if (dialogs.LastOrDefault()?.Role == AgentRole.Assistant)
                     {
                         await _completer.TriggerModelInference($"Rephase your last response:\r\n{dialogs.LastOrDefault()?.Content}");
@@ -119,10 +112,16 @@ public class RealtimeHub : IRealtimeHub
                     {
                         await _completer.TriggerModelInference("Reply based on the conversation context.");
                     }
+                }
+                else
+                {
+                    // Push dialogs into model context
+                    foreach (var message in dialogs)
+                    {
+                        await _completer.InsertConversationItem(message);
+                    }
 
-                    // Start turn detection
-                    await Task.Delay(1000 * 8);
-                    await _completer.UpdateSession(_conn, turnDetection: true);
+                    await _completer.TriggerModelInference($"{instruction}\r\n\r\nAssist user without repeating your previous statement.");
                 }
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
@@ -257,9 +256,7 @@ public class RealtimeHub : IRealtimeHub
 
     private async Task HandleUserDisconnected()
     {
-        var convService = _services.GetRequiredService<IConversationService>();
-        var conversation = await convService.GetConversation(_conn.ConversationId);
-        await HookEmitter.Emit<IConversationHook>(_services, x => x.OnUserDisconnected(conversation));
+
     }
 
     private async Task SendEventToUser(WebSocket webSocket, object message)
