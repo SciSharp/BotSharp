@@ -33,6 +33,7 @@ public class TwilioSetting
     public int MaxGatherAttempts { get; set; } = 4;
 
     public string? MachineDetection { get; set; }
+    public int MachineDetectionSilenceTimeout { get; set; } = 2500;
 
     public bool RecordingEnabled { get; set; } = false;
 }

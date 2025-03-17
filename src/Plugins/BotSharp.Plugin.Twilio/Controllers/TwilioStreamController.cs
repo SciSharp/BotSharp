@@ -35,6 +35,7 @@ public class TwilioStreamController : TwilioController
             throw new ArgumentNullException(nameof(VoiceRequest.CallSid));
         }
 
+        var twilio = _services.GetRequiredService<TwilioService>();
         VoiceResponse response = default!;
 
         if (request.AnsweredBy == "machine_start" &&
@@ -42,7 +43,8 @@ public class TwilioStreamController : TwilioController
             request.InitAudioFile != null)
         {
             response = new VoiceResponse();
-            response.Play(new Uri(request.InitAudioFile));
+            var url = twilio.GetSpeechPath(request.ConversationId, request.InitAudioFile);
+            response.Play(new Uri(url));
             return TwiML(response);
         }
 
@@ -68,9 +70,7 @@ public class TwilioStreamController : TwilioController
 
         request.ConversationId = await InitConversation(request);
 
-        var twilio = _services.GetRequiredService<TwilioService>();
-
-        response = twilio.ReturnBidirectionalMediaStreamsInstructions(request.ConversationId, instruction);
+        response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
