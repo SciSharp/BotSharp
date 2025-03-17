@@ -1,4 +1,5 @@
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Instructs;
 using BotSharp.Abstraction.Instructs.Models;
 
 namespace BotSharp.Core.Instructs.Functions;
@@ -23,7 +24,7 @@ public class ExecuteTemplateFn : IFunctionCallback
         var args = JsonSerializer.Deserialize<ExecuteTemplateArgs>(message.FunctionArgs);
         if (string.IsNullOrEmpty(args.TemplateName))
         {
-            message.Content = $"Empty template name.";
+            message.Content = $"Invalid template name.";
             return false;
         }
 
@@ -37,16 +38,18 @@ public class ExecuteTemplateFn : IFunctionCallback
             return false;
         }
 
-        var prompt = agentService.RenderedTemplate(agent, args.TemplateName);
-        var response = await GetAiResponse(agent, prompt);
+        var response = await GetAiResponse(agent, args.TemplateName);
         message.Content = response;
         return true;
     }
 
-    private async Task<string> GetAiResponse(Agent agent, string text)
+    private async Task<string> GetAiResponse(Agent agent, string templateName)
     {
         try
         {
+            var agentService = _services.GetRequiredService<IAgentService>();
+            var text = agentService.RenderedTemplate(agent, templateName);
+
             var completion = CompletionProvider.GetChatCompletion(_services, provider: agent.LlmConfig?.Provider, model: agent.LlmConfig?.Model);
             var response = await completion.GetChatCompletions(new Agent()
             {
@@ -56,6 +59,21 @@ public class ExecuteTemplateFn : IFunctionCallback
             {
                 new(AgentRole.User, text)
             });
+
+            var hooks = _services.GetServices<IInstructHook>();
+            foreach (var hook in hooks)
+            {
+                await hook.OnResponseGenerated(new InstructResponseModel
+                {
+                    AgentId = agent.Id,
+                    TemplateName = templateName,
+                    Provider = completion.Provider,
+                    Model = completion.Model,
+                    UserMessage = text,
+                    CompletionText = response.Content
+                });
+            }
+
             return response.Content;
         }
         catch (Exception ex)
