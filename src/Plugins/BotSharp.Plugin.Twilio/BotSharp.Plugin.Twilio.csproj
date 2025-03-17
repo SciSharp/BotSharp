@@ -10,6 +10,9 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-transfer_phone_call.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\agents\6745151e-6d46-4a02-8de4-1c4f21c7da95\functions\util-twilio-hangup_phone_call.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

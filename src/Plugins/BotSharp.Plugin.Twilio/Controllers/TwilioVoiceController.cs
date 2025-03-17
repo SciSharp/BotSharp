@@ -439,6 +439,26 @@ public class TwilioVoiceController : TwilioController
     }
 
     [ValidateRequest]
+    [HttpPost("twilio/voice/transfer-call")]
+    public async Task<TwiMLResult> TransferCall(ConversationalVoiceRequest request)
+    {
+        var instruction = new ConversationalVoiceResponse
+        {
+            ConversationId = request.ConversationId,
+            TransferTo = request.TransferTo
+        };
+
+        if (request.InitAudioFile != null)
+        {
+            instruction.SpeechPaths.Add(request.InitAudioFile);
+        }
+
+        var twilio = _services.GetRequiredService<TwilioService>();
+        var response = twilio.TransferCall(instruction);
+        return TwiML(response);
+    }
+
+    [ValidateRequest]
     [HttpPost("twilio/voice/status")]
     public async Task<ActionResult> PhoneCallStatus(ConversationalVoiceRequest request)
     {

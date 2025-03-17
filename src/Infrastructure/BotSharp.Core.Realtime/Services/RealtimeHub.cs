@@ -92,6 +92,7 @@ public class RealtimeHub : IRealtimeHub
         }
 
         routing.Context.SetDialogs(dialogs);
+        routing.Context.SetMessageId(_conn.ConversationId, dialogs.Last().MessageId);
 
         var states = _services.GetRequiredService<IConversationStateService>();
 
@@ -188,6 +189,7 @@ public class RealtimeHub : IRealtimeHub
                 // append input audio transcript to conversation
                 dialogs.Add(message);
                 storage.Append(_conn.ConversationId, message);
+                routing.Context.SetMessageId(_conn.ConversationId, message.MessageId);
 
                 foreach (var hook in hookProvider.HooksOrderByPriority)
                 {

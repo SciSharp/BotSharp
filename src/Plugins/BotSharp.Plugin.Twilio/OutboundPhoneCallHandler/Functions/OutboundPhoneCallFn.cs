@@ -108,6 +108,7 @@ public class OutboundPhoneCallFn : IFunctionCallback
             statusCallback: new Uri(statusUrl),
             // https://www.twilio.com/docs/voice/answering-machine-detection
             machineDetection: _twilioSetting.MachineDetection,
+            machineDetectionSilenceTimeout: _twilioSetting.MachineDetectionSilenceTimeout,
             record: _twilioSetting.RecordingEnabled,
             recordingStatusCallback: $"{_twilioSetting.CallbackHost}/twilio/record/status?conversation-id={newConversationId}");
 
