@@ -1,6 +1,7 @@
 using BotSharp.Abstraction.Instructs.Settings;
 using BotSharp.Abstraction.Plugins.Models;
 using BotSharp.Abstraction.Settings;
+using BotSharp.Core.Instructs.Hooks;
 using Microsoft.Extensions.Configuration;
 
 namespace BotSharp.Core.Instructs;
@@ -18,6 +19,8 @@ public class InsturctionPlugin : IBotSharpPlugin
             var settingService = provider.GetRequiredService<ISettingService>();
             return settingService.Bind<InstructionSettings>("Instruction");
         });
+
+        services.AddScoped<IAgentUtilityHook, InstructUtilityHook>();
     }
 
     public bool AttachMenu(List<PluginMenuDef> menu)
