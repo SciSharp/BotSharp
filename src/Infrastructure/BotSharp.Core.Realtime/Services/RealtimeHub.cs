@@ -116,13 +116,14 @@ public class RealtimeHub : IRealtimeHub
                 }
                 else
                 {
-                    // Push dialogs into model context
+                    // Append dialogs into model context
+                    var history = "[CONVERSATION HISTORY]\r\n";
                     foreach (var message in dialogs)
                     {
-                        await _completer.InsertConversationItem(message);
+                        history += $"{message.Role}: {message.Content}\r\n";
                     }
 
-                    await _completer.TriggerModelInference($"{instruction}\r\n\r\nAssist user without repeating your previous statement.");
+                    await _completer.TriggerModelInference($"{instruction}\r\n\r\n{history}\r\n\r\nAssist user without repeating your previous statement.");
                 }
             },
             onModelAudioDeltaReceived: async (audioDeltaData, itemId) =>
