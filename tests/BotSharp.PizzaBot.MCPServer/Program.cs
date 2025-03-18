@@ -1,3 +1,4 @@
+using McpDotNet.Protocol.Messages;
 using McpDotNet.Protocol.Transport;
 using McpDotNet.Protocol.Types;
 using McpDotNet.Server;
@@ -20,30 +21,42 @@ namespace BotSharp.PizzaBot.MCPServer
                 ServerInfo = new Implementation() { Name = "PizzaServer", Version = "1.0.0" },
                 Capabilities = new ServerCapabilities()
                 {
-                    Tools = new(),
-                    Resources = new(),
-                    Prompts = new(),
+                     //Tools = ConfigureTools(),                     
                 },
-                ProtocolVersion = "2024-11-05"
+                ProtocolVersion = "2024-11-05",
+                 ServerInstructions = "This is a test server with only stub functionality"
             };
             var loggerFactory = CreateLoggerFactory();
-            McpServerFactory factory = new McpServerFactory(new StdioServerTransport("PizzaServer", loggerFactory), options, loggerFactory,
-                "This is a test server with only stub functionality");
+            McpServerFactory factory = new McpServerFactory(new StdioServerTransport("PizzaServer", loggerFactory), options, loggerFactory);
             IMcpServer server = factory.CreateServer();
+            ConfigureTools(server);
 
             Console.WriteLine("Server object created, registering handlers.");
 
-            #region Tools
-            server.ListToolsHandler = (request, cancellationToken) =>
+            Console.WriteLine("Server initialized.");
+
+            await server.StartAsync();
+
+            Console.WriteLine("Server started.");
+
+            // Run until process is stopped by the client (parent process)
+            while (true)
             {
-                return Task.FromResult(new ListToolsResult()
+                await Task.Delay(1000);
+            }
+        }
+
+        private static void ConfigureTools(IMcpServer server)
+        {
+            server.ListToolsHandler = (request, cancellationToken) =>
                 {
-                    Tools =
-                    [
-                        new Tool()
+                    return Task.FromResult(new ListToolsResult()
+                    {
+                        Tools = [
+                             new Tool()
                     {
                         Name = "make_payment",
-                        Description = "call this function to make payment", 
+                        Description = "call this function to make payment",
                         InputSchema = new JsonSchema()
                         {
                             Type = "object",
@@ -51,9 +64,9 @@ namespace BotSharp.PizzaBot.MCPServer
                             {
                                 ["order_number"] = new JsonSchemaProperty() { Type = "string", Description = "order number." },
                                 ["total_amount"] = new JsonSchemaProperty() { Type = "string", Description = "total amount." },
-                            }, 
+                            },
                             Required = new List<string>() { "order_number", "total_amount" }
-                        }, 
+                        },
                         },
                         new Tool()
                         {
@@ -63,7 +76,7 @@ namespace BotSharp.PizzaBot.MCPServer
                             {
                                 Type = "object",
                                 Properties = new Dictionary<string, JsonSchemaProperty>()
-                                {                            
+                                {
                                     ["pizza_type"] = new JsonSchemaProperty() { Type = "string", Description = "The pizza type." },
                                     ["quantity"] = new JsonSchemaProperty() { Type = "string", Description = "quantity of pizza." },
 
@@ -79,7 +92,7 @@ namespace BotSharp.PizzaBot.MCPServer
                             {
                                 Type = "object",
                                 Properties = new Dictionary<string, JsonSchemaProperty>()
-                                {                              
+                                {
                                     ["pizza_type"] = new JsonSchemaProperty() { Type = "string", Description = "The pizza type." },
                                     ["quantity"] = new JsonSchemaProperty() { Type = "number", Description = "quantity of pizza." },
                                     ["unit_price"] = new JsonSchemaProperty() { Type = "number", Description = "unit price" },
@@ -88,19 +101,19 @@ namespace BotSharp.PizzaBot.MCPServer
                                 Required = new List<string>(){"pizza_type", "quantity", "unit_price" }
                             }
                         }
-                    ]
-                });
-            };
+                            ]
+                    });
+                };
 
             server.CallToolHandler = async (request, cancellationToken) =>
             {
-                if (request.Name == "make_payment")
+                if (request.Params.Name == "make_payment")
                 {
-                    if (request.Arguments is null || !request.Arguments.TryGetValue("order_number", out var order_number))
+                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("order_number", out var order_number))
                     {
                         throw new McpServerException("Missing required argument 'order_number'");
                     }
-                    if (request.Arguments is null || !request.Arguments.TryGetValue("total_amount", out var total_amount))
+                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("total_amount", out var total_amount))
                     {
                         throw new McpServerException("Missing required argument 'total_amount'");
                     }
@@ -113,17 +126,17 @@ namespace BotSharp.PizzaBot.MCPServer
                     var jsonMessage = JsonSerializer.Serialize(message, jso);
 
                     return new CallToolResponse()
-                    {                         
-                        Content = [new Content() { Text = jsonMessage , Type = "text" }]
+                    {
+                        Content = [new Content() { Text = jsonMessage, Type = "text" }]
                     };
                 }
-                else if(request.Name == "get_pizza_prices")
+                else if (request.Params.Name == "get_pizza_prices")
                 {
-                    if (request.Arguments is null || !request.Arguments.TryGetValue("pizza_type", out var pizza_type))
+                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("pizza_type", out var pizza_type))
                     {
                         throw new McpServerException("Missing required argument 'pizza_type'");
                     }
-                    if (request.Arguments is null || !request.Arguments.TryGetValue("quantity", out var quantity))
+                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("quantity", out var quantity))
                     {
                         throw new McpServerException("Missing required argument 'quantity'");
                     }
@@ -139,23 +152,23 @@ namespace BotSharp.PizzaBot.MCPServer
                         Content = [new Content() { Text = jsonMessage, Type = "text" }]
                     };
                 }
-                else if (request.Name == "place_an_order")
+                else if (request.Params.Name == "place_an_order")
                 {
-                    if (request.Arguments is null || !request.Arguments.TryGetValue("pizza_type", out var pizza_type))
+                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("pizza_type", out var pizza_type))
                     {
                         throw new McpServerException("Missing required argument 'pizza_type'");
                     }
-                    if (request.Arguments is null || !request.Arguments.TryGetValue("quantity", out var quantity))
+                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("quantity", out var quantity))
                     {
                         throw new McpServerException("Missing required argument 'quantity'");
                     }
-                    if (request.Arguments is null || !request.Arguments.TryGetValue("unit_price", out var unit_price))
+                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("unit_price", out var unit_price))
                     {
                         throw new McpServerException("Missing required argument 'unit_price'");
                     }
                     dynamic message = new ExpandoObject();
                     message.order_number = "P123-01";
-                    message.Content = "The order number is P123-01"; 
+                    message.Content = "The order number is P123-01";
                     // Serialize the message to JSON
                     var jso = new JsonSerializerOptions() { WriteIndented = true };
                     var jsonMessage = JsonSerializer.Serialize(message, jso);
@@ -166,22 +179,9 @@ namespace BotSharp.PizzaBot.MCPServer
                 }
                 else
                 {
-                    throw new McpServerException($"Unknown tool: {request.Name}");
+                    throw new McpServerException($"Unknown tool: {request.Params.Name}");
                 }
-            };
-            #endregion  
-
-            Console.WriteLine("Server initialized.");
-
-            await server.StartAsync();
-
-            Console.WriteLine("Server started.");
-
-            // Run until process is stopped by the client (parent process)
-            while (true)
-            {
-                await Task.Delay(1000);
-            }
+            };            
         }
 
         private static ILoggerFactory CreateLoggerFactory()

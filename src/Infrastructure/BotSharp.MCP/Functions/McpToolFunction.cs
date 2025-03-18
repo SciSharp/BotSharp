@@ -2,6 +2,7 @@ using BotSharp.Abstraction.Agents;
 using BotSharp.Abstraction.Agents.Models;
 using BotSharp.Abstraction.Conversations.Models;
 using BotSharp.Abstraction.Functions;
+using BotSharp.Abstraction.Utilities;
 using McpDotNet.Client;
 using McpDotNet.Protocol.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,8 +50,8 @@ public class McpToolFunction : IFunctionCallback
         var json = string.Join("\n", result.Content
             .Where(c => c.Type == "text")
             .Select(c => c.Text));
-        message.Content = json;
-        message.Data = JsonSerializer.Deserialize(json,typeof(object));
+        message.Content = json.JsonContent();
+
         return true;
     }
 

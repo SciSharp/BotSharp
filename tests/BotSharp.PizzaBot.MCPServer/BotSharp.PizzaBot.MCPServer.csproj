@@ -8,9 +8,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="mcpdotnet" Version="1.0.1.3" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="mcpdotnet" />
+    <PackageReference Include="Microsoft.Extensions.Hosting"/>
+    <PackageReference Include="Microsoft.Extensions.Logging"  />
+    <PackageReference Include="Serilog.Extensions.Logging"  />
+    <PackageReference Include="Serilog.Sinks.File"  />
   </ItemGroup>
 </Project>

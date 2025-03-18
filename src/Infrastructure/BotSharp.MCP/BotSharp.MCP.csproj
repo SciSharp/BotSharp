@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="mcpdotnet" Version="1.1.0.1" />
+    <PackageReference Include="mcpdotnet"  />
   </ItemGroup>
   
   <ItemGroup>
