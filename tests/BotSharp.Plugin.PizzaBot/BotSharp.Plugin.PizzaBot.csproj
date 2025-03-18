@@ -10,7 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
-    <PackageReference Include="BotSharp.Core" Version="$(BotSharpVersion)" />
+    <PackageReference Include="BotSharp.Core" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(SolutionName)==BotSharp">
+    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -95,10 +99,6 @@
     <Content Include="data\agents\fe8c60aa-b114-4ef3-93cb-a8efeac80f75\functions\make_payment.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition="$(SolutionName)==BotSharp">
-    <ProjectReference Include="..\..\src\Infrastructure\BotSharp.Core\BotSharp.Core.csproj" />
   </ItemGroup>
 
 </Project>
