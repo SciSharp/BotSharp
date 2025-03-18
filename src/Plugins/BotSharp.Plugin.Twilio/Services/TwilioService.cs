@@ -160,6 +160,23 @@ public class TwilioService
         return response;
     }
 
+    public VoiceResponse TransferCall(ConversationalVoiceResponse conversationalVoiceResponse)
+    {
+        var response = new VoiceResponse();
+        var conversationId = conversationalVoiceResponse.ConversationId;
+        if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
+        {
+            foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
+            {
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
+            }
+        }
+        response.Dial(conversationalVoiceResponse.TransferTo, answerOnBridge: true);
+
+        return response;
+    }
+
     public VoiceResponse HoldOn(int interval, string message = null)
     {
         var twilioSetting = _services.GetRequiredService<TwilioSetting>();
@@ -190,26 +207,17 @@ public class TwilioService
     /// </summary>
     /// <param name="conversationalVoiceResponse"></param>
     /// <returns></returns>
-    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(string conversationId, ConversationalVoiceResponse conversationalVoiceResponse)
+    public VoiceResponse ReturnBidirectionalMediaStreamsInstructions(ConversationalVoiceResponse conversationalVoiceResponse)
     {
         var response = new VoiceResponse();
+        var conversationId = conversationalVoiceResponse.ConversationId;
 
         if (conversationalVoiceResponse.SpeechPaths != null && conversationalVoiceResponse.SpeechPaths.Any())
         {
             foreach (var speechPath in conversationalVoiceResponse.SpeechPaths)
             {
-                if (speechPath.StartsWith("twilio/"))
-                {
-                    response.Play(new Uri($"{_settings.CallbackHost}/{speechPath}"));
-                }
-                else if (speechPath.StartsWith(_settings.CallbackHost))
-                {
-                    response.Play(new Uri(speechPath));
-                }
-                else
-                {
-                    response.Play(new Uri($"{_settings.CallbackHost}/twilio/voice/speeches/{conversationalVoiceResponse.ConversationId}/{speechPath}"));
-                }
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
             }
         }
 
@@ -219,5 +227,21 @@ public class TwilioService
         response.Append(connect);
 
         return response;
+    }
+
+    public string GetSpeechPath(string conversationId, string speechPath)
+    {
+        if (speechPath.StartsWith("twilio/"))
+        {
+            return $"{_settings.CallbackHost}/{speechPath}";
+        }
+        else if (speechPath.StartsWith(_settings.CallbackHost))
+        {
+            return speechPath;
+        }
+        else
+        {
+            return $"{_settings.CallbackHost}/twilio/voice/speeches/{conversationId}/{speechPath}";
+        }
     }
 }

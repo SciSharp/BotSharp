@@ -11,6 +11,7 @@
   <ItemGroup Condition="$(SolutionName)==PizzaBot">
     <PackageReference Include="BotSharp.Logger" />
     <PackageReference Include="BotSharp.OpenAPI" />
+    <PackageReference Include="BotSharp.Core.Realtime" />
     <PackageReference Include="BotSharp.Plugin.Dashboard" />
     <PackageReference Include="BotSharp.Plugin.AzureOpenAI" />
     <PackageReference Include="BotSharp.Plugin.GoogleAI" />

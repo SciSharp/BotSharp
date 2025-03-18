@@ -46,18 +46,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="build\**" />
     <Compile Remove="packages\**" />
     <Compile Remove="Planning\**" />
     <Compile Remove="Translation\Models\**" />
+    <EmbeddedResource Remove="build\**" />
     <EmbeddedResource Remove="packages\**" />
     <EmbeddedResource Remove="Planning\**" />
     <EmbeddedResource Remove="Translation\Models\**" />
+    <None Remove="build\**" />
     <None Remove="packages\**" />
     <None Remove="Planning\**" />
     <None Remove="Translation\Models\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Content.targets" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\database_knowledge.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\reasoner.hf.liquid" />
     <None Remove="data\agents\01fcc3e5-9af7-49e6-ad7a-a760bd12dc4a\templates\reasoner.naive.liquid" />
@@ -218,6 +222,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\BotSharp.Core.targets" PackagePath="build\BotSharp.Core.targets" />
+    <Content Include="data/*.*">
+      <Pack>true</Pack>
+    </Content>
   </ItemGroup>
 
 </Project>
