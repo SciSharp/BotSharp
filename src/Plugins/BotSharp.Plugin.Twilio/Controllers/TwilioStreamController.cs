@@ -69,7 +69,7 @@ public class TwilioStreamController : TwilioController
         });
 
         request.ConversationId = await InitConversation(request);
-
+        instruction.ConversationId = request.ConversationId;
         response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
