@@ -20,7 +20,7 @@ public class PageActionArgs
     public bool OpenNewTab { get; set; } = true;
     [JsonPropertyName("open_blank_page")]
     public bool OpenBlankPage { get; set; } = true;
-
+    [JsonPropertyName("enable_response_callback")]
     public bool EnableResponseCallback { get; set; } = false;
 
     /// <summary>
