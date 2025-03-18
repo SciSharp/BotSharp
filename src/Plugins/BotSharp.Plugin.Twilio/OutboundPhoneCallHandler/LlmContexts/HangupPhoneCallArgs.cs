@@ -4,6 +4,9 @@ namespace BotSharp.Plugin.Twilio.OutboundPhoneCallHandler.LlmContexts;
 
 public class HangupPhoneCallArgs
 {
-    [JsonPropertyName("anything_else_to_help")]
-    public bool AnythingElseToHelp { get; set; } = true;
+    [JsonPropertyName("reason")]
+    public string Reason { get; set; } = null!;
+
+    [JsonPropertyName("response_content")]
+    public string ResponseContent { get; set; } = null!;
 }

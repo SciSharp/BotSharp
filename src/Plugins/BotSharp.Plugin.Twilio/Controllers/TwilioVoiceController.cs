@@ -164,7 +164,7 @@ public class TwilioVoiceController : TwilioController
                     OnlyOnce = true
                 });
 
-                response = twilio.HangUp(null);
+                response = twilio.HangUp(string.Empty);
             }
             // keep waiting for user response
             else
@@ -433,8 +433,18 @@ public class TwilioVoiceController : TwilioController
     [HttpPost("twilio/voice/hang-up")]
     public async Task<TwiMLResult> Hangup(ConversationalVoiceRequest request)
     {
+        var instruction = new ConversationalVoiceResponse
+        {
+            ConversationId = request.ConversationId
+        };
+
+        if (request.InitAudioFile != null)
+        {
+            instruction.SpeechPaths.Add(request.InitAudioFile);
+        }
+
         var twilio = _services.GetRequiredService<TwilioService>();
-        var response = twilio.HangUp("twilio/bye.mp3");
+        var response = twilio.HangUp(instruction);
         return TwiML(response);
     }
 
