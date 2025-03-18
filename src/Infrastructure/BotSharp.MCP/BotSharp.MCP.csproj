@@ -9,10 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="mcpdotnet"  />
+    <PackageReference Include="System.Linq.AsyncEnumerable" />
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\mcpdotnet\src\mcpdotnet\mcpdotnet.csproj" />
     <ProjectReference Include="..\BotSharp.Abstraction\BotSharp.Abstraction.csproj" />
   </ItemGroup>
 </Project>

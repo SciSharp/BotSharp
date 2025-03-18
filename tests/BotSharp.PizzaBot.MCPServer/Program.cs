@@ -12,6 +12,9 @@ namespace BotSharp.PizzaBot.MCPServer
 {
     internal class Program
     {
+        private static HashSet<string> _subscribedResources = new();
+        private static readonly object _subscribedResourcesLock = new();
+
         private static async Task Main(string[] args)
         {
             Console.WriteLine("Starting server...");
@@ -21,34 +24,48 @@ namespace BotSharp.PizzaBot.MCPServer
                 ServerInfo = new Implementation() { Name = "PizzaServer", Version = "1.0.0" },
                 Capabilities = new ServerCapabilities()
                 {
-                     //Tools = ConfigureTools(),                     
+                     Tools = ConfigureTools(),                     
                 },
                 ProtocolVersion = "2024-11-05",
                  ServerInstructions = "This is a test server with only stub functionality"
             };
             var loggerFactory = CreateLoggerFactory();
-            McpServerFactory factory = new McpServerFactory(new StdioServerTransport("PizzaServer", loggerFactory), options, loggerFactory);
-            IMcpServer server = factory.CreateServer();
-            ConfigureTools(server);
-
-            Console.WriteLine("Server object created, registering handlers.");
-
-            Console.WriteLine("Server initialized.");
+            await using IMcpServer server = McpServerFactory.Create(new StdioServerTransport("TestServer", loggerFactory), options, loggerFactory);
+            Log.Logger.Information("Server initialized.");
 
             await server.StartAsync();
 
-            Console.WriteLine("Server started.");
+            Log.Logger.Information("Server started.");
 
             // Run until process is stopped by the client (parent process)
             while (true)
             {
-                await Task.Delay(1000);
+                await Task.Delay(5000);
+
+                // Snapshot the subscribed resources, rather than locking while sending notifications
+                List<string> resources;
+                lock (_subscribedResourcesLock)
+                {
+                    resources = _subscribedResources.ToList();
+                }
+
+                foreach (var resource in resources)
+                {
+                    ResourceUpdatedNotificationParams notificationParams = new() { Uri = resource };
+                    await server.SendMessageAsync(new JsonRpcNotification()
+                    {
+                        Method = NotificationMethods.ResourceUpdatedNotification,
+                        Params = notificationParams
+                    });
+                }
             }
         }
 
-        private static void ConfigureTools(IMcpServer server)
+        private static ToolsCapability ConfigureTools()
         {
-            server.ListToolsHandler = (request, cancellationToken) =>
+            return new()
+            {
+                ListToolsHandler = (request, cancellationToken) =>
                 {
                     return Task.FromResult(new ListToolsResult()
                     {
@@ -71,7 +88,7 @@ namespace BotSharp.PizzaBot.MCPServer
                         new Tool()
                         {
                             Name = "get_pizza_prices",
-                            Description = "call this function to get pizza prices",
+                            Description = "call this function to get pizza unit price",
                             InputSchema = new JsonSchema()
                             {
                                 Type = "object",
@@ -95,7 +112,7 @@ namespace BotSharp.PizzaBot.MCPServer
                                 {
                                     ["pizza_type"] = new JsonSchemaProperty() { Type = "string", Description = "The pizza type." },
                                     ["quantity"] = new JsonSchemaProperty() { Type = "number", Description = "quantity of pizza." },
-                                    ["unit_price"] = new JsonSchemaProperty() { Type = "number", Description = "unit price" },
+                                    ["unit_price"] = new JsonSchemaProperty() { Type = "number", Description = "pizza unit price" },
 
                                 },
                                 Required = new List<string>(){"pizza_type", "quantity", "unit_price" }
@@ -103,86 +120,98 @@ namespace BotSharp.PizzaBot.MCPServer
                         }
                             ]
                     });
-                };
+                },
 
-            server.CallToolHandler = async (request, cancellationToken) =>
-            {
-                if (request.Params.Name == "make_payment")
+                CallToolHandler = async (request, cancellationToken) =>
                 {
-                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("order_number", out var order_number))
+                    if (request.Params.Name == "make_payment")
                     {
-                        throw new McpServerException("Missing required argument 'order_number'");
-                    }
-                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("total_amount", out var total_amount))
-                    {
-                        throw new McpServerException("Missing required argument 'total_amount'");
-                    }
-                    dynamic message = new ExpandoObject();
-                    message.Transaction = Guid.NewGuid().ToString();
-                    message.Status = "Success";
+                        if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("order_number", out var order_number))
+                        {
+                            throw new McpServerException("Missing required argument 'order_number'");
+                        }
+                        if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("total_amount", out var total_amount))
+                        {
+                            throw new McpServerException("Missing required argument 'total_amount'");
+                        }
+                        //dynamic message = new ExpandoObject();
+                        //message.Transaction = Guid.NewGuid().ToString();
+                        //message.Status = "Success";
 
-                    // Serialize the message to JSON
-                    var jso = new JsonSerializerOptions() { WriteIndented = true };
-                    var jsonMessage = JsonSerializer.Serialize(message, jso);
+                        //// Serialize the message to JSON
+                        //var jso = new JsonSerializerOptions() { WriteIndented = true };
+                        //var jsonMessage = JsonSerializer.Serialize(message, jso);
 
-                    return new CallToolResponse()
+                        return new CallToolResponse()
+                        {
+                            Content = [new Content() { Text = "Payment proceed successfully. Thank you for your business. Have a great day!", Type = "text" }]
+                        };
+                    }
+                    else if (request.Params.Name == "get_pizza_prices")
                     {
-                        Content = [new Content() { Text = jsonMessage, Type = "text" }]
-                    };
+                        if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("pizza_type", out var pizza_type))
+                        {
+                            throw new McpServerException("Missing required argument 'pizza_type'");
+                        }
+                        if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("quantity", out var quantity))
+                        {
+                            throw new McpServerException("Missing required argument 'quantity'");
+                        }
+                        double unit_price = 0;
+                        if(pizza_type.ToString() == "Pepperoni Pizza")
+                        {
+                            unit_price = 3.2 * (int)quantity;
+                        }
+                        else if(pizza_type.ToString() == "Cheese Pizza")
+                        {
+                            unit_price = 3.5 * (int)quantity; ;
+                        }
+                        else if(pizza_type.ToString() == "Margherita Pizza")
+                        {
+                            unit_price = 3.8 * (int)quantity; ;
+                        }
+                        dynamic message = new ExpandoObject();
+                        message.unit_price = unit_price;
+                        var jso = new JsonSerializerOptions() { WriteIndented = true };
+                        var jsonMessage = JsonSerializer.Serialize(message, jso);
+                        return new CallToolResponse()
+                        {
+                            Content = [new Content() { Text = jsonMessage, Type = "text" }]
+                        };
+                    }
+                    else if (request.Params.Name == "place_an_order")
+                    {
+                        if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("pizza_type", out var pizza_type))
+                        {
+                            throw new McpServerException("Missing required argument 'pizza_type'");
+                        }
+                        if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("quantity", out var quantity))
+                        {
+                            throw new McpServerException("Missing required argument 'quantity'");
+                        }
+                        if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("unit_price", out var unit_price))
+                        {
+                            throw new McpServerException("Missing required argument 'unit_price'");
+                        }
+                        //dynamic message = new ExpandoObject();
+                        //message.order_number = "P123-01";
+                        //message.Content = "The order number is P123-01";
+                        //// Serialize the message to JSON
+                        //var jso = new JsonSerializerOptions() { WriteIndented = true };
+                        //var jsonMessage = JsonSerializer.Serialize(message, jso);
+                        return new CallToolResponse()
+                        {
+                            Content = [new Content() { Text = "The order number is P123-01: {order_number = \"P123-01\" }", Type = "text" }]
+                        };
+                    }
+                    else
+                    {
+                        throw new McpServerException($"Unknown tool: {request.Params.Name}");
+                    }
                 }
-                else if (request.Params.Name == "get_pizza_prices")
-                {
-                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("pizza_type", out var pizza_type))
-                    {
-                        throw new McpServerException("Missing required argument 'pizza_type'");
-                    }
-                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("quantity", out var quantity))
-                    {
-                        throw new McpServerException("Missing required argument 'quantity'");
-                    }
-                    dynamic message = new ExpandoObject();
-                    message.pepperoni_unit_price = 3.2;
-                    message.cheese_unit_price = 3.5;
-                    message.margherita_unit_price = 3.8;
-                    // Serialize the message to JSON
-                    var jso = new JsonSerializerOptions() { WriteIndented = true };
-                    var jsonMessage = JsonSerializer.Serialize(message, jso);
-                    return new CallToolResponse()
-                    {
-                        Content = [new Content() { Text = jsonMessage, Type = "text" }]
-                    };
-                }
-                else if (request.Params.Name == "place_an_order")
-                {
-                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("pizza_type", out var pizza_type))
-                    {
-                        throw new McpServerException("Missing required argument 'pizza_type'");
-                    }
-                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("quantity", out var quantity))
-                    {
-                        throw new McpServerException("Missing required argument 'quantity'");
-                    }
-                    if (request.Params.Arguments is null || !request.Params.Arguments.TryGetValue("unit_price", out var unit_price))
-                    {
-                        throw new McpServerException("Missing required argument 'unit_price'");
-                    }
-                    dynamic message = new ExpandoObject();
-                    message.order_number = "P123-01";
-                    message.Content = "The order number is P123-01";
-                    // Serialize the message to JSON
-                    var jso = new JsonSerializerOptions() { WriteIndented = true };
-                    var jsonMessage = JsonSerializer.Serialize(message, jso);
-                    return new CallToolResponse()
-                    {
-                        Content = [new Content() { Text = jsonMessage, Type = "text" }]
-                    };
-                }
-                else
-                {
-                    throw new McpServerException($"Unknown tool: {request.Params.Name}");
-                }
-            };            
+            };
         }
+        
 
         private static ILoggerFactory CreateLoggerFactory()
         {

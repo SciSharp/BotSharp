@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <MSExtensionsVersion>8.0.0</MSExtensionsVersion>
-	  <AspNetCoreVersion>2.3.0</AspNetCoreVersion>
+    <AspNetCoreVersion>2.3.0</AspNetCoreVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
@@ -15,10 +15,11 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0" />
-	  <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
+    <PackageVersion Include="System.Linq.AsyncEnumerable" Version="10.0.0-preview.1.25080.5" />
     <PackageVersion Include="System.Memory.Data" Version="8.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
@@ -131,7 +132,6 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.5" />
     <PackageVersion Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.5" />
   </ItemGroup>
-  
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="6.0.27" />
     <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="6.0.15" />

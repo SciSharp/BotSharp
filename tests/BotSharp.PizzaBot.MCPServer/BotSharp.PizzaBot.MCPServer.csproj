@@ -8,10 +8,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="mcpdotnet" />
-    <PackageReference Include="Microsoft.Extensions.Hosting"/>
-    <PackageReference Include="Microsoft.Extensions.Logging"  />
-    <PackageReference Include="Serilog.Extensions.Logging"  />
-    <PackageReference Include="Serilog.Sinks.File"  />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\mcpdotnet\src\mcpdotnet\mcpdotnet.csproj" />
   </ItemGroup>
 </Project>

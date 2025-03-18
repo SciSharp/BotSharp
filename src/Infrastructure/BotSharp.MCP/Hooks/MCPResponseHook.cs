@@ -30,10 +30,12 @@ public class MCPResponseHook : ConversationHookBase
     public override async Task OnResponseGenerated(RoleDialogModel message)
     {
         var agentService = _services.GetRequiredService<IAgentService>();
+        var state = _services.GetRequiredService<IConversationStateService>();
         var agent = await agentService.LoadAgent(message.CurrentAgentId);
         if(agent.McpTools.Any(item => item.Functions.Any(x=> x.Name == message.FunctionName)))
         {
-            message.Data = JsonSerializer.Deserialize(message.Content, typeof(object));
+            var data = JsonDocument.Parse(JsonSerializer.Serialize(message.Data));
+            state.SaveStateByArgs(data);
         }
         await base.OnResponseGenerated(message);
     }

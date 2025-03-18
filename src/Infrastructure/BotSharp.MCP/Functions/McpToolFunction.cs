@@ -39,7 +39,7 @@ public class McpToolFunction : IFunctionCallback
         var agent = await agentService.LoadAgent(currentAgentId);
         var serverId = agent.McpTools.Where(t => t.Functions.Any(f => f.Name == Name)).FirstOrDefault().ServerId;
 
-        var client = await _clientManager.Factory.GetClientAsync(serverId);
+        var client =  await _clientManager.GetMcpClientAsync(serverId);
         // Call the tool through mcpdotnet
         var result = await client.CallToolAsync(
             _tool.Name,
@@ -50,8 +50,8 @@ public class McpToolFunction : IFunctionCallback
         var json = string.Join("\n", result.Content
             .Where(c => c.Type == "text")
             .Select(c => c.Text));
-        message.Content = json.JsonContent();
-
+        message.Content = json;
+        message.Data = json.JsonContent();
         return true;
     }
 
