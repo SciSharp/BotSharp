@@ -149,6 +149,22 @@ public class TwilioService
         return response;
     }
 
+    public VoiceResponse HangUp(ConversationalVoiceResponse voiceResponse)
+    {
+        var response = new VoiceResponse();
+        var conversationId = voiceResponse.ConversationId;
+        if (voiceResponse.SpeechPaths != null && voiceResponse.SpeechPaths.Any())
+        {
+            foreach (var speechPath in voiceResponse.SpeechPaths)
+            {
+                var uri = GetSpeechPath(conversationId, speechPath);
+                response.Play(new Uri(uri));
+            }
+        }
+        response.Hangup();
+        return response;
+    }
+
     public VoiceResponse DialCsrAgent(string speechPath)
     {
         var response = new VoiceResponse();

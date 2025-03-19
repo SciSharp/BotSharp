@@ -35,44 +35,35 @@ public class TransferPhoneCallFn : IFunctionCallback
 
         var fileStorage = _services.GetRequiredService<IFileStorageService>();
         var states = _services.GetRequiredService<IConversationStateService>();
-        var routing = _services.GetRequiredService<IRoutingService>();
-        var conversationId = routing.Context.ConversationId;
-        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/transfer-call?conversation-id={conversationId}&transfer-to={args.PhoneNumber}";
-
-        // Generate initial assistant audio
-        string initAudioFile = null;
-        if (!string.IsNullOrEmpty(args.TransitionMessage))
-        {
-            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
-            var data = await completion.GenerateAudioFromTextAsync(args.TransitionMessage);
-            initAudioFile = "transfer.mp3";
-            fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
-
-            processUrl += $"&init-audio-file={initAudioFile}";
-        }
-
-        if (!string.IsNullOrEmpty(initAudioFile))
-        {
-            processUrl += $"&init-audio-file={initAudioFile}";
-        }
-
-        // Forward call
         var sid = states.GetState("twilio_call_sid");
-
         if (string.IsNullOrEmpty(sid))
         {
             _logger.LogError("Twilio call sid is empty.");
             message.Content = "There is an error when transferring the phone call.";
             return false;
         }
-        else
-        {
-            var call = CallResource.Update(
-                pathSid: sid,
-                url: new Uri(processUrl));
 
-            message.Content = args.TransitionMessage;
-            return true;
+        var routing = _services.GetRequiredService<IRoutingService>();
+        var conversationId = routing.Context.ConversationId;
+        var processUrl = $"{_twilioSetting.CallbackHost}/twilio/voice/transfer-call?conversation-id={conversationId}&transfer-to={args.PhoneNumber}";
+
+        // Generate initial assistant audio
+        if (!string.IsNullOrEmpty(args.TransitionMessage))
+        {
+            var completion = CompletionProvider.GetAudioCompletion(_services, "openai", "tts-1");
+            var data = await completion.GenerateAudioFromTextAsync(args.TransitionMessage);
+            var initAudioFile = "transfer.mp3";
+            fileStorage.SaveSpeechFile(conversationId, initAudioFile, data);
+
+            processUrl += $"&init-audio-file={initAudioFile}";
         }
+
+        // Transfer call
+        var call = CallResource.Update(
+            pathSid: sid,
+            url: new Uri(processUrl));
+
+        message.Content = args.TransitionMessage;
+        return true;
     }
 }
