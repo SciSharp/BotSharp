@@ -28,7 +28,7 @@ public class ExtractDataFn : IFunctionCallback
         message.Data = await _browser.ScreenshotAsync(new MessageInfo
         {
             AgentId = message.CurrentAgentId,
-            ContextId = convService.ConversationId,
+            ContextId = webDriverService.GetMessageContext(message),
             MessageId = message.MessageId
         }, path);
 

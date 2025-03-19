@@ -18,20 +18,19 @@ public class UtilWebCloseBrowserFn : IFunctionCallback
     public async Task<bool> Execute(RoleDialogModel message)
     {
         var conv = _services.GetRequiredService<IConversationService>();
-
+        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var browser = _services.GetRequiredService<IWebBrowser>();
         var msg = new MessageInfo
         {
             AgentId = message.CurrentAgentId,
             MessageId = message.MessageId,
-            ContextId = message.CurrentAgentId,
+            ContextId = webDriverService.GetMessageContext(message)
         };
 
         await browser.CloseBrowser(message.CurrentAgentId);
 
         message.Content = $"Browser closed.";
 
-        var webDriverService = _services.GetRequiredService<WebDriverService>();
         var path = webDriverService.GetScreenshotFilePath(message.MessageId);
 
         message.Data = await browser.ScreenshotAsync(msg, path);
