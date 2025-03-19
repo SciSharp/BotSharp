@@ -1,0 +1,19 @@
+{
+  "name": "util-twilio-leave_voicemail",
+  "description": "If the user wants you to leave a voicemail.",
+  "visibility_expression": "{% if states.channel == 'phone' %}visible{% endif %}",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "voicemail_message": {
+        "type": "string",
+        "description": "User voicemail with details."
+      },
+      "phone_number": {
+        "type": "string",
+        "description": "Phone number to callback."
+      }
+    },
+    "required": [ "voicemail_message", "phone_number" ]
+  }
+}

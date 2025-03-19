@@ -475,8 +475,7 @@ public class TwilioVoiceController : TwilioController
         if (request.CallStatus == "completed")
         {
             if (request.AnsweredBy == "machine_start" &&
-                request.Direction == "outbound-api" &&
-                request.InitAudioFile != null)
+                request.Direction == "outbound-api")
             {
                 // voicemail
                 await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>

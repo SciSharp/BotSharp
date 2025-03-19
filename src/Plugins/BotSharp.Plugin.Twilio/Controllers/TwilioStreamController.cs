@@ -38,16 +38,6 @@ public class TwilioStreamController : TwilioController
         var twilio = _services.GetRequiredService<TwilioService>();
         VoiceResponse response = default!;
 
-        if (request.AnsweredBy == "machine_start" &&
-            request.Direction == "outbound-api" &&
-            request.InitAudioFile != null)
-        {
-            response = new VoiceResponse();
-            var url = twilio.GetSpeechPath(request.ConversationId, request.InitAudioFile);
-            response.Play(new Uri(url));
-            return TwiML(response);
-        }
-
         var instruction = new ConversationalVoiceResponse
         {
             ConversationId = request.ConversationId,
@@ -70,7 +60,24 @@ public class TwilioStreamController : TwilioController
 
         request.ConversationId = await InitConversation(request);
         instruction.ConversationId = request.ConversationId;
-        response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
+
+        if (request.AnsweredBy == "machine_start" &&
+            request.Direction == "outbound-api")
+        {
+            response = new VoiceResponse();
+
+            await HookEmitter.Emit<ITwilioCallStatusHook>(_services, async hook =>
+            {
+                await hook.OnVoicemailStarting(request);
+            });
+
+            var url = twilio.GetSpeechPath(request.ConversationId, "voicemail.mp3");
+            response.Play(new Uri(url));
+        }
+        else
+        {
+            response = twilio.ReturnBidirectionalMediaStreamsInstructions(instruction);
+        }
 
         await HookEmitter.Emit<ITwilioSessionHook>(_services, async hook =>
         {
