@@ -63,6 +63,11 @@ public class ExecuteTemplateFn : IFunctionCallback
             var hooks = _services.GetServices<IInstructHook>();
             foreach (var hook in hooks)
             {
+                if (!string.IsNullOrEmpty(hook.SelfId) && hook.SelfId != agent.Id)
+                {
+                    continue;
+                }
+
                 await hook.OnResponseGenerated(new InstructResponseModel
                 {
                     AgentId = agent.Id,
